@@ -5,6 +5,10 @@ import (
 	"testing"
 )
 
+func newLogTestWriter() Writer {
+	return &ConsoleWriter{Level: LevelTrace, Color: true}
+}
+
 // Try each log level in decreasing order of priority.
 func testLoggerCalls(l Logger) {
 	for i := 0; i < 1; i++ {
@@ -19,7 +23,7 @@ func testLoggerCalls(l Logger) {
 
 func TestLogFuncs(t *testing.T) {
 	fmt.Println("\n\n--------------- Funcs ---------------------")
-	log.AddWriter(&ConsoleWriter{Level: LevelTrace})
+	log.AddWriter(newLogTestWriter())
 	SetLevel(LevelTrace)
 	for i := 0; i < 1; i++ {
 		Fatal("fatal")
@@ -41,7 +45,7 @@ func TestLogNewLog(t *testing.T) {
 	fmt.Println("\n\n-------------- NewLog() ---------------------")
 	log1 := NewLog()
 	log1.SetLevel(LevelTrace)
-	log1.AddWriter(&ConsoleWriter{Level: LevelTrace})
+	log1.AddWriter(newLogTestWriter())
 	testLoggerCalls(log1)
 }
 
@@ -49,7 +53,7 @@ func TestLogNewLogGetLogger(t *testing.T) {
 	fmt.Println("\n\n-------------- NewLog().GetLogger() ---------")
 	log1 := NewLog()
 	log1.SetLevel(LevelTrace)
-	log1.AddWriter(&ConsoleWriter{Level: LevelTrace})
+	log1.AddWriter(newLogTestWriter())
 	log2 := log1.GetLogger("hello")
 	testLoggerCalls(log2)
 }
@@ -59,7 +63,7 @@ func TestLogNewLogParam(t *testing.T) {
 	log1 := NewLog()
 	log1.SetFormatter(NewFormatter("%X{key} %X{nil} - %m%T%n"))
 	log1.SetLevel(LevelTrace)
-	log1.AddWriter(&ConsoleWriter{Level: LevelTrace})
+	log1.AddWriter(newLogTestWriter())
 	log1.SetParam("key", "val")
 	testLoggerCalls(log1)
 }

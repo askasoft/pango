@@ -203,7 +203,7 @@ func newLog(depth int) *Log {
 	log := &Log{}
 	log.log = log
 	log.name = "_"
-	log.level = LevelDebug
+	log.level = LevelTrace
 	log.depth = depth
 	log.trace = LevelError
 	log.logfmt = FormatterDefault

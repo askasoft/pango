@@ -45,7 +45,7 @@ func (fw *FileWriter) SetFormat(format string) {
 
 // WriteMsg write logger message into file.
 func (fw *FileWriter) Write(le *Event) {
-	if le.Level > fw.Level {
+	if fw.Level < le.Level {
 		return
 	}
 

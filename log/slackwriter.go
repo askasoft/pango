@@ -32,7 +32,7 @@ func (sw *SlackWriter) SetSubject(format string) {
 // WriteMsg write message in smtp writer.
 // it will send an email with subject and only this message.
 func (sw *SlackWriter) Write(le *Event) {
-	if le.Level > sw.Level {
+	if sw.Level < le.Level {
 		return
 	}
 	if sw.Subfmt == nil {

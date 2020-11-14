@@ -21,11 +21,23 @@ type Event struct {
 	Trace  string
 }
 
-// EventPool log event pool
-var EventPool = &sync.Pool{
+// eventPool log event pool
+var eventPool = &sync.Pool{
 	New: func() interface{} {
 		return &Event{}
 	},
+}
+
+// Clear clear event values
+func (le *Event) Clear() {
+	le.Logger = nil
+	le.Level = LevelNone
+	le.Msg = ""
+	le.When = 0
+	le.File = ""
+	le.Line = 0
+	le.Func = ""
+	le.Trace = ""
 }
 
 // Caller get caller filename and line number
@@ -63,9 +75,9 @@ func (le *Event) Caller(depth int, trace bool) {
 	}
 }
 
-// NewEvent create a new log event
-func NewEvent(logger Logger, lvl int, msg string) *Event {
-	le := EventPool.Get().(*Event)
+// newEvent get a log event from pool
+func newEvent(logger Logger, lvl int, msg string) *Event {
+	le := eventPool.Get().(*Event)
 	le.Logger = logger
 	le.Level = lvl
 	le.Msg = msg
@@ -77,4 +89,10 @@ func NewEvent(logger Logger, lvl int, msg string) *Event {
 		le.Caller(logger.GetCallerDepth(), logger.GetTraceLevel() >= lvl)
 	}
 	return le
+}
+
+// putEvent put event back to pool
+func putEvent(le *Event) {
+	le.Clear()
+	eventPool.Put(le)
 }

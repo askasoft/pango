@@ -101,7 +101,7 @@ func (log *Log) write(le *Event) {
 	if log.writer != nil {
 		log.writer.Write(le)
 	}
-	EventPool.Put(le)
+	putEvent(le)
 }
 
 // Log log a log event

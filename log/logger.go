@@ -131,7 +131,7 @@ func (l *logger) IsAsync() bool {
 func (l *logger) Fatal(v ...interface{}) {
 	if l.IsFatalEnabled() {
 		s := printv(v...)
-		le := NewEvent(l, LevelFatal, s)
+		le := newEvent(l, LevelFatal, s)
 		l.log.Log(le)
 	}
 }
@@ -140,7 +140,7 @@ func (l *logger) Fatal(v ...interface{}) {
 func (l *logger) Fatalf(f string, v ...interface{}) {
 	if l.IsFatalEnabled() {
 		s := printf(f, v...)
-		le := NewEvent(l, LevelFatal, s)
+		le := newEvent(l, LevelFatal, s)
 		l.log.Log(le)
 	}
 }
@@ -154,7 +154,7 @@ func (l *logger) IsErrorEnabled() bool {
 func (l *logger) Error(v ...interface{}) {
 	if l.IsErrorEnabled() {
 		s := printv(v...)
-		le := NewEvent(l, LevelError, s)
+		le := newEvent(l, LevelError, s)
 		l.log.Log(le)
 	}
 }
@@ -163,7 +163,7 @@ func (l *logger) Error(v ...interface{}) {
 func (l *logger) Errorf(f string, v ...interface{}) {
 	if l.IsErrorEnabled() {
 		s := printf(f, v...)
-		le := NewEvent(l, LevelError, s)
+		le := newEvent(l, LevelError, s)
 		l.log.Log(le)
 	}
 }
@@ -177,7 +177,7 @@ func (l *logger) IsWarnEnabled() bool {
 func (l *logger) Warn(v ...interface{}) {
 	if l.IsWarnEnabled() {
 		s := printv(v...)
-		le := NewEvent(l, LevelWarn, s)
+		le := newEvent(l, LevelWarn, s)
 		l.log.Log(le)
 	}
 }
@@ -186,7 +186,7 @@ func (l *logger) Warn(v ...interface{}) {
 func (l *logger) Warnf(f string, v ...interface{}) {
 	if l.IsWarnEnabled() {
 		s := printf(f, v...)
-		le := NewEvent(l, LevelWarn, s)
+		le := newEvent(l, LevelWarn, s)
 		l.log.Log(le)
 	}
 }
@@ -200,7 +200,7 @@ func (l *logger) IsInfoEnabled() bool {
 func (l *logger) Info(v ...interface{}) {
 	if l.IsInfoEnabled() {
 		s := printv(v...)
-		le := NewEvent(l, LevelInfo, s)
+		le := newEvent(l, LevelInfo, s)
 		l.log.Log(le)
 	}
 }
@@ -209,7 +209,7 @@ func (l *logger) Info(v ...interface{}) {
 func (l *logger) Infof(f string, v ...interface{}) {
 	if l.IsInfoEnabled() {
 		s := printf(f, v...)
-		le := NewEvent(l, LevelInfo, s)
+		le := newEvent(l, LevelInfo, s)
 		l.log.Log(le)
 	}
 }
@@ -223,7 +223,7 @@ func (l *logger) IsDebugEnabled() bool {
 func (l *logger) Debug(v ...interface{}) {
 	if l.IsDebugEnabled() {
 		s := printv(v...)
-		le := NewEvent(l, LevelDebug, s)
+		le := newEvent(l, LevelDebug, s)
 		l.log.Log(le)
 	}
 }
@@ -232,7 +232,7 @@ func (l *logger) Debug(v ...interface{}) {
 func (l *logger) Debugf(f string, v ...interface{}) {
 	if l.IsDebugEnabled() {
 		s := printf(f, v...)
-		le := NewEvent(l, LevelDebug, s)
+		le := newEvent(l, LevelDebug, s)
 		l.log.Log(le)
 	}
 }
@@ -246,7 +246,7 @@ func (l *logger) IsTraceEnabled() bool {
 func (l *logger) Trace(v ...interface{}) {
 	if l.IsTraceEnabled() {
 		s := printv(v...)
-		le := NewEvent(l, LevelTrace, s)
+		le := newEvent(l, LevelTrace, s)
 		l.log.Log(le)
 	}
 }
@@ -255,7 +255,7 @@ func (l *logger) Trace(v ...interface{}) {
 func (l *logger) Tracef(f string, v ...interface{}) {
 	if l.IsTraceEnabled() {
 		s := printf(f, v...)
-		le := NewEvent(l, LevelTrace, s)
+		le := newEvent(l, LevelTrace, s)
 		l.log.Log(le)
 	}
 }

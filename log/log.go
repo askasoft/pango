@@ -4,7 +4,7 @@
 // import "github.com/pandafw/pango/log"
 //
 //	log := log.NewLog()
-//	log.AddWriter("console", "")
+//	log.SetWriter("console", "")
 //	log.Async(1000)
 //
 // Use it like this:
@@ -25,27 +25,15 @@ import (
 	"sync"
 )
 
-// Log level
-const (
-	LevelNone = iota
-	LevelFatal
-	LevelError
-	LevelWarn
-	LevelInfo
-	LevelDebug
-	LevelTrace
-)
-
 // Log is default logger in application.
 // it can contain several writers and log message into all writers.
 type Log struct {
 	logger
 	async   bool
-	lock    sync.Mutex
 	evtChan chan *Event
 	sigChan chan string
 	waitg   sync.WaitGroup
-	writers []Writer
+	writer  Writer
 }
 
 // GetLogger returns a new Logger with name
@@ -56,9 +44,6 @@ func (log *Log) GetLogger(name string) Logger {
 // Async set the log to asynchronous and start the goroutine
 // if size < 1 then stop async goroutine
 func (log *Log) Async(size int32) *Log {
-	log.lock.Lock()
-	defer log.lock.Unlock()
-
 	if size < 1 {
 		if log.async {
 			// flush and stop async goroutine
@@ -77,13 +62,13 @@ func (log *Log) Async(size int32) *Log {
 	log.async = true
 	log.evtChan = make(chan *Event, size)
 	log.sigChan = make(chan string, 1)
-	go log.startLogger()
+	go log.startAsync()
 	return log
 }
 
 // start logger chan reading.
 // when chan is not empty, write log.
-func (log *Log) startLogger() {
+func (log *Log) startAsync() {
 	done := false
 	for {
 		select {
@@ -107,18 +92,13 @@ func (log *Log) startLogger() {
 	}
 }
 
-// AddWriter add a writer to the Log
-func (log *Log) AddWriter(lw Writer) {
-	log.lock.Lock()
-	defer log.lock.Unlock()
-
-	log.writers = append(log.writers, lw)
+// SetWriter add a writer to the Log
+func (log *Log) SetWriter(lw Writer) {
+	log.writer = lw
 }
 
 func (log *Log) write(le *Event) {
-	for _, w := range log.writers {
-		w.Write(le)
-	}
+	log.writer.Write(le)
 	EventPool.Put(le)
 }
 
@@ -153,9 +133,7 @@ func (log *Log) flush() {
 			break
 		}
 	}
-	for _, w := range log.writers {
-		w.Flush()
-	}
+	log.writer.Flush()
 }
 
 // Close close logger, flush all chan data and destroy all adapters in Log.
@@ -173,10 +151,7 @@ func (log *Log) Close() {
 }
 
 func (log *Log) close() {
-	for _, w := range log.writers {
-		w.Close()
-	}
-	log.writers = nil
+	log.writer.Close()
 }
 
 // Reset close and clear all writers
@@ -220,9 +195,9 @@ func IsAsync() bool {
 	return log.async
 }
 
-// AddWriter add a new writer.
-func AddWriter(lw Writer) {
-	log.AddWriter(lw)
+// SetWriter set the writer.
+func SetWriter(lw Writer) {
+	log.SetWriter(lw)
 }
 
 // Reset will remove all the adapter

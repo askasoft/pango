@@ -16,7 +16,7 @@ func (cw *ConsoleWriter) SetFormat(format string) {
 	cw.Logfmt = NewFormatter(format)
 }
 
-// WriteMsg write message in console.
+// Write write message in console.
 func (cw *ConsoleWriter) Write(le *Event) {
 	if cw.Level < le.Level {
 		return

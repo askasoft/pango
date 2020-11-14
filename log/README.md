@@ -26,7 +26,7 @@ Then init a Log (example with console writer)
 
 ```golang
 log := log.NewLog()
-log.AddWriter(&log.ConsoleWriter{})
+log.SetWriter(&log.ConsoleWriter{})
 ```
 
 Use it like this:
@@ -45,7 +45,7 @@ Configure file writer like this:
 
 ```golang
 log := log.NewLog()
-log.AddWriter("file", `{"filename":"test.log"}`)
+log.SetWriter("file", `{"filename":"test.log"}`)
 ```
 
 ## Conn writer
@@ -54,7 +54,7 @@ Configure like this:
 
 ```golang
 log := log.NewLog()
-log.AddWriter("conn", `{"net":"tcp","addr":":7020"}`)
+log.SetWriter("conn", `{"net":"tcp","addr":":7020"}`)
 log.Info("info")
 ```
 
@@ -64,6 +64,6 @@ Configure like this:
 
 ```golang
 log := log.NewLog()
-log.AddWriter("smtp", `{"username":"pangotest@gmail.com","password":"xxxxxxxx","host":"smtp.gmail.com:587","sendTos":["someone@gmail.com"]}`)
+log.SetWriter("smtp", `{"username":"pangotest@gmail.com","password":"xxxxxxxx","host":"smtp.gmail.com:587","sendTos":["someone@gmail.com"]}`)
 log.Fatal("oh my god!")
 ```

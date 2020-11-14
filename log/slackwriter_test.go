@@ -14,7 +14,7 @@ func TestSlackLog(t *testing.T) {
 
 	log1 := NewLog()
 	log1.SetLevel(LevelTrace)
-	log1.AddWriter(&SlackWriter{Level: LevelTrace, Webhook: os.Getenv("SLACK_WEBHOOK")})
+	log1.SetWriter(&SlackWriter{Level: LevelTrace, Webhook: os.Getenv("SLACK_WEBHOOK")})
 
 	log1.Info("This is a slack info log")
 }

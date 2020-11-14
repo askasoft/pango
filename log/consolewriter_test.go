@@ -26,35 +26,35 @@ func testConsoleCalls(log Logger, loop int) {
 // Test console info level
 func TestConsoleWarn(t *testing.T) {
 	log1 := NewLog()
-	log1.AddWriter(&ConsoleWriter{Level: LevelWarn, Color: true})
+	log1.SetWriter(&ConsoleWriter{Level: LevelWarn, Color: true})
 	testConsoleCalls(log1, 1)
 }
 
 // Test console info level
 func TestConsoleInfo(t *testing.T) {
 	log1 := NewLog()
-	log1.AddWriter(&ConsoleWriter{Level: LevelInfo, Color: true})
+	log1.SetWriter(&ConsoleWriter{Level: LevelInfo, Color: true})
 	testConsoleCalls(log1, 1)
 }
 
 // Test console trace level
 func TestConsoleTrace(t *testing.T) {
 	log1 := NewLog()
-	log1.AddWriter(&ConsoleWriter{Level: LevelTrace, Color: true})
+	log1.SetWriter(&ConsoleWriter{Level: LevelTrace, Color: true})
 	testConsoleCalls(log1, 1)
 }
 
 // Test console without color
 func TestConsoleNoColor(t *testing.T) {
 	log := NewLog()
-	log.AddWriter(&ConsoleWriter{Level: LevelTrace, Color: false})
+	log.SetWriter(&ConsoleWriter{Level: LevelTrace, Color: false})
 	testConsoleCalls(log, 1)
 }
 
 // Test console async
 func TestConsoleAsync(t *testing.T) {
 	log := NewLog()
-	log.AddWriter(&ConsoleWriter{Level: LevelTrace, Color: true})
+	log.SetWriter(&ConsoleWriter{Level: LevelTrace, Color: true})
 	log.Async(100)
 	go testConsoleCalls(log, 100)
 	go testConsoleCalls(log, 100)
@@ -68,6 +68,6 @@ func TestConsoleAsync(t *testing.T) {
 // Test console strace trace
 func TestConsoleStackTrace(t *testing.T) {
 	log1 := NewLog()
-	log1.AddWriter(&ConsoleWriter{Level: LevelTrace, Color: true})
+	log1.SetWriter(&ConsoleWriter{Level: LevelTrace, Color: true})
 	testConsoleCalls(log1, 1)
 }

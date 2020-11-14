@@ -1,7 +1,9 @@
 package log
 
 import (
+	"compress/gzip"
 	"fmt"
+	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -18,11 +20,12 @@ type FileWriter struct {
 	Perm     uint32 `json:"perm"`     // Log file permission
 	Rotate   bool   `json:"rotate"`   // Rotate log files
 	MaxFiles int    `json:"maxfiles"` // Max split files
-	MaxSize  int    `json:"maxsize"`  // Rotate at size
+	MaxSize  int64  `json:"maxsize"`  // Rotate at size
 	Daily    bool   `json:"daily"`    // Rotate daily
 	MaxDays  int64  `json:"maxdays"`  // Max daily files
 	Hourly   bool   `json:"hourly"`   // Rotate hourly
 	MaxHours int64  `json:"maxhours"` // Max hourly files
+	Gzip     bool   `json:"gzip"`     // Compress rotated log files
 	Sync     bool   `json:"sync"`     // Flush always
 	Logfmt   Formatter
 
@@ -30,7 +33,7 @@ type FileWriter struct {
 	prefix   string
 	suffix   string
 	file     *os.File
-	fileSize int
+	fileSize int64
 	fileNum  int
 	openTime time.Time
 	openDay  int
@@ -43,7 +46,7 @@ func (fw *FileWriter) SetFormat(format string) {
 	fw.Logfmt = NewFormatter(format)
 }
 
-// WriteMsg write logger message into file.
+// Write write logger message into file.
 func (fw *FileWriter) Write(le *Event) {
 	if fw.Level < le.Level {
 		return
@@ -81,7 +84,7 @@ func (fw *FileWriter) Write(le *Event) {
 	defer fw.unlock(le)
 
 	n, _ := fw.file.WriteString(msg)
-	fw.fileSize += n
+	fw.fileSize += int64(n)
 
 	if fw.Sync {
 		fw.file.Sync()
@@ -127,7 +130,7 @@ func (fw *FileWriter) init() {
 	// Open the log file
 	file, err := os.OpenFile(fw.File, os.O_WRONLY|os.O_APPEND|os.O_CREATE, os.FileMode(fw.Perm))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "FileWriter(%q) - OpenFile: %s\n", fw.File, err)
+		fmt.Fprintf(os.Stderr, "FileWriter(%q) - OpenFile(): %s\n", fw.File, err)
 		return
 	}
 
@@ -136,12 +139,12 @@ func (fw *FileWriter) init() {
 
 	fi, err := file.Stat()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "FileWriter(%q): Stat: %s\n", fw.File, err)
+		fmt.Fprintf(os.Stderr, "FileWriter(%q) - Stat(): %s\n", fw.File, err)
 		return
 	}
 
 	// init file info
-	fw.fileSize = int(fi.Size())
+	fw.fileSize = fi.Size()
 	fw.openTime = time.Now()
 	fw.openDay = fw.openTime.Day()
 	fw.openHour = fw.openTime.Hour()
@@ -195,34 +198,20 @@ func (fw *FileWriter) rotate(logTime time.Time) {
 		}
 	}
 
-	files := []string{}
-	num := fw.fileNum + 1
+	var files []string
 
 	pre := filepath.Join(fw.dir, fw.prefix) + date
 
 	// only when one of them be setted, then the file would be splited
 	if fw.MaxSize > 0 {
-		var err error
-		for ; err != nil; num++ {
-			path = pre + fmt.Sprintf("%03d", num) + fw.suffix
-			if fw.MaxFiles > 0 {
-				files = append(files, path)
-			}
-			_, err = os.Stat(path)
-		}
-		fw.fileNum = num
+		path, files = fw.nextFile(pre)
 	} else {
 		path = pre + fw.suffix
 		_, err := os.Stat(path)
 		if err == nil {
-			for ; err != nil; num++ {
-				path = pre + fmt.Sprintf("%03d", num) + fw.suffix
-				if fw.MaxFiles > 0 {
-					files = append(files, path)
-				}
-				_, err = os.Stat(path)
-			}
-			fw.fileNum = num
+			// timely rotate file exists (normally impossible)
+			// find next split file name
+			path, files = fw.nextFile(pre)
 		}
 	}
 
@@ -235,7 +224,7 @@ func (fw *FileWriter) rotate(logTime time.Time) {
 	// close file before rename
 	err := fw.file.Close()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "FileWriter(%q): Close: %s\n", fw.File, err)
+		fmt.Fprintf(os.Stderr, "FileWriter(%q) - Close(): %s\n", fw.File, err)
 		return
 	}
 	fw.file = nil
@@ -243,26 +232,92 @@ func (fw *FileWriter) rotate(logTime time.Time) {
 	// Rename the file to its new found name
 	// even if occurs error,we MUST guarantee to  restart new logger
 	err = os.Rename(fw.File, path)
-	if err == nil {
-		os.Chmod(path, os.FileMode(fw.Perm))
+	if err == nil && fw.Gzip {
+		go fw.compressFile(path)
 	}
 
 	// Open file again
 	fw.init()
 
-	// delete rotated files
+	// delete outdated rotated files
 	if fw.Hourly || fw.Daily {
-		go fw.deleteOldLog()
+		go fw.deleteOutdatedFiles()
+	}
+}
+
+func (fw *FileWriter) nextFile(pre string) (string, []string) {
+	var path string
+	var files []string
+	for fw.fileNum++; ; fw.fileNum++ {
+		path = pre + fmt.Sprintf("%03d", fw.fileNum) + fw.suffix
+		_, err := os.Stat(path)
+		if os.IsNotExist(err) {
+			if fw.Gzip {
+				p := path + ".gz"
+				_, err = os.Stat(p)
+				if os.IsNotExist(err) {
+					break
+				}
+			} else {
+				break
+			}
+		}
+		if fw.MaxFiles > 0 {
+			files = append(files, path)
+		}
+	}
+	return path, files
+}
+
+func (fw *FileWriter) compressFile(src string) {
+	dst := src + ".gz"
+
+	f, err := os.Open(src)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "FileWriter(%q) - Open(%q): %s\n", fw.File, src, err)
+		return
+	}
+	defer f.Close()
+
+	// If this file already exists, we presume it was created by
+	// a previous attempt to compress the log file.
+	gzf, err := os.OpenFile(dst, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, os.FileMode(fw.Perm))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "FileWriter(%q) - OpenFile(%q): %s\n", fw.File, dst, err)
+		return
+	}
+	defer gzf.Close()
+
+	gz := gzip.NewWriter(gzf)
+
+	if _, err := io.Copy(gz, f); err != nil {
+		fmt.Fprintf(os.Stderr, "FileWriter(%q) - gzip(%q): %s\n", fw.File, dst, err)
+		return
+	}
+	if err := gz.Close(); err != nil {
+		fmt.Fprintf(os.Stderr, "FileWriter(%q) - gzip.Close(%q): %s\n", fw.File, dst, err)
+		return
+	}
+	if err := gzf.Close(); err != nil {
+		fmt.Fprintf(os.Stderr, "FileWriter(%q) - Close(%q): %s\n", fw.File, dst, err)
+		return
+	}
+
+	f.Close()
+	if err := os.Remove(src); err != nil {
+		fmt.Fprintf(os.Stderr, "FileWriter(%q) - Remove(%q): %s\n", fw.File, src, err)
 	}
 }
 
 func (fw *FileWriter) deleteFiles(files []string) {
 	for _, f := range files {
-		os.Remove(f)
+		if err := os.Remove(f); err != nil {
+			fmt.Fprintf(os.Stderr, "FileWriter(%q) - Remove(%q): %s\n", fw.File, f, err)
+		}
 	}
 }
 
-func (fw *FileWriter) deleteOldLog() {
+func (fw *FileWriter) deleteOutdatedFiles() {
 	var due time.Time
 	if fw.Hourly {
 		due = time.Now().Add(-1 * time.Hour * time.Duration(fw.MaxHours))
@@ -271,29 +326,31 @@ func (fw *FileWriter) deleteOldLog() {
 	}
 
 	dir := filepath.Dir(fw.File)
-	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "FileWriter(%q) - filepath.walk(%q) error: %s\n", fw.File, dir, err)
-			return err
-		}
-		if info.IsDir() {
-			return filepath.SkipDir
+	f, err := os.Open(dir)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "FileWriter(%q) - Open(%q): %s\n", fw.File, dir, err)
+		return
+	}
+	defer f.Close()
+
+	fis, err := f.Readdir(-1)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "FileWriter(%q) - Readdir(%q): %s\n", fw.File, dir, err)
+		return
+	}
+
+	for _, fi := range fis {
+		if fi.IsDir() {
+			continue
 		}
 
-		name := filepath.Base(path)
-		if fw.Hourly {
-			if info.ModTime().Before(due) {
-				if strings.HasPrefix(name, fw.prefix) && strings.HasSuffix(name, fw.suffix) {
-					os.Remove(path)
-				}
-			}
-		} else {
-			if info.ModTime().Before(due) {
-				if strings.HasPrefix(name, fw.prefix) && strings.HasSuffix(name, fw.suffix) {
-					os.Remove(path)
+		if fi.ModTime().Before(due) {
+			name := filepath.Base(fi.Name())
+			if strings.HasPrefix(name, fw.prefix) {
+				if err := os.Remove(fi.Name()); err != nil {
+					fmt.Fprintf(os.Stderr, "FileWriter(%q) - Remove(%q): %s\n", fw.File, fi.Name(), err)
 				}
 			}
 		}
-		return nil
-	})
+	}
 }

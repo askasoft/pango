@@ -17,7 +17,7 @@ type TextFormatter struct {
 	fmts []fmtfunc
 }
 
-// NewFormatter create a Formatter instance
+// NewTextFormatter create a Formatter instance
 // Log Format
 // %c: logger name
 // %d{format}: date
@@ -30,17 +30,17 @@ type TextFormatter struct {
 // %F: caller function name (!!SLOW!!)
 // %T: caller stack trace (!!SLOW!!)
 // %X{key}: logger value
-func NewFormatter(format string) Formatter {
+func NewTextFormatter(format string) Formatter {
 	tf := &TextFormatter{}
 	tf.Init(format)
 	return tf
 }
 
-// FormatterSimple simple log format "[%l] %m"
-var FormatterSimple = NewFormatter("[%l] %m")
+// FormatterSimple simple log format "[%l] %m%n"
+var FormatterSimple = NewTextFormatter("[%l] %m%n")
 
 // FormatterDefault default log format "%d{2006-01-02T15:04:05.000} %l %S:%L %F() - %m%n%T"
-var FormatterDefault = NewFormatter("%d{2006-01-02T15:04:05.000} %l %S:%L %F() - %m%n%T")
+var FormatterDefault = NewTextFormatter("%d{2006-01-02T15:04:05.000} %l %S:%L %F() - %m%n%T")
 
 var eol = geteol()
 var lvlPrefixs = [LevelTrace + 1]string{"N", "F", "E", "W", "I", "D", "T"}

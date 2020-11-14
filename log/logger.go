@@ -130,7 +130,7 @@ func (l *logger) IsAsync() bool {
 // Fatal log a message at fatal level.
 func (l *logger) Fatal(v ...interface{}) {
 	if l.IsFatalEnabled() {
-		s := formatMsg(v...)
+		s := printv(v...)
 		le := NewEvent(l, LevelFatal, s)
 		l.log.Log(le)
 	}
@@ -139,7 +139,7 @@ func (l *logger) Fatal(v ...interface{}) {
 // Fatalf format and log a message at fatal level.
 func (l *logger) Fatalf(f string, v ...interface{}) {
 	if l.IsFatalEnabled() {
-		s := formatMsgf(f, v...)
+		s := printf(f, v...)
 		le := NewEvent(l, LevelFatal, s)
 		l.log.Log(le)
 	}
@@ -153,7 +153,7 @@ func (l *logger) IsErrorEnabled() bool {
 // Error log a message at error level.
 func (l *logger) Error(v ...interface{}) {
 	if l.IsErrorEnabled() {
-		s := formatMsg(v...)
+		s := printv(v...)
 		le := NewEvent(l, LevelError, s)
 		l.log.Log(le)
 	}
@@ -162,7 +162,7 @@ func (l *logger) Error(v ...interface{}) {
 // Errorf format and log a message at error level.
 func (l *logger) Errorf(f string, v ...interface{}) {
 	if l.IsErrorEnabled() {
-		s := formatMsgf(f, v...)
+		s := printf(f, v...)
 		le := NewEvent(l, LevelError, s)
 		l.log.Log(le)
 	}
@@ -176,7 +176,7 @@ func (l *logger) IsWarnEnabled() bool {
 // Warn log a message at warning level.
 func (l *logger) Warn(v ...interface{}) {
 	if l.IsWarnEnabled() {
-		s := formatMsg(v...)
+		s := printv(v...)
 		le := NewEvent(l, LevelWarn, s)
 		l.log.Log(le)
 	}
@@ -185,7 +185,7 @@ func (l *logger) Warn(v ...interface{}) {
 // Warnf format and log a message at warning level.
 func (l *logger) Warnf(f string, v ...interface{}) {
 	if l.IsWarnEnabled() {
-		s := formatMsgf(f, v...)
+		s := printf(f, v...)
 		le := NewEvent(l, LevelWarn, s)
 		l.log.Log(le)
 	}
@@ -199,7 +199,7 @@ func (l *logger) IsInfoEnabled() bool {
 // Info log a message at info level.
 func (l *logger) Info(v ...interface{}) {
 	if l.IsInfoEnabled() {
-		s := formatMsg(v...)
+		s := printv(v...)
 		le := NewEvent(l, LevelInfo, s)
 		l.log.Log(le)
 	}
@@ -208,7 +208,7 @@ func (l *logger) Info(v ...interface{}) {
 // Infof format and log a message at info level.
 func (l *logger) Infof(f string, v ...interface{}) {
 	if l.IsInfoEnabled() {
-		s := formatMsgf(f, v...)
+		s := printf(f, v...)
 		le := NewEvent(l, LevelInfo, s)
 		l.log.Log(le)
 	}
@@ -222,7 +222,7 @@ func (l *logger) IsDebugEnabled() bool {
 // Debug log a message at debug level.
 func (l *logger) Debug(v ...interface{}) {
 	if l.IsDebugEnabled() {
-		s := formatMsg(v...)
+		s := printv(v...)
 		le := NewEvent(l, LevelDebug, s)
 		l.log.Log(le)
 	}
@@ -231,7 +231,7 @@ func (l *logger) Debug(v ...interface{}) {
 // Debugf format log a message at debug level.
 func (l *logger) Debugf(f string, v ...interface{}) {
 	if l.IsDebugEnabled() {
-		s := formatMsgf(f, v...)
+		s := printf(f, v...)
 		le := NewEvent(l, LevelDebug, s)
 		l.log.Log(le)
 	}
@@ -245,7 +245,7 @@ func (l *logger) IsTraceEnabled() bool {
 // Trace log a message at trace level.
 func (l *logger) Trace(v ...interface{}) {
 	if l.IsTraceEnabled() {
-		s := formatMsg(v...)
+		s := printv(v...)
 		le := NewEvent(l, LevelTrace, s)
 		l.log.Log(le)
 	}
@@ -254,20 +254,27 @@ func (l *logger) Trace(v ...interface{}) {
 // Tracef format and log a message at trace level.
 func (l *logger) Tracef(f string, v ...interface{}) {
 	if l.IsTraceEnabled() {
-		s := formatMsgf(f, v...)
+		s := printf(f, v...)
 		le := NewEvent(l, LevelTrace, s)
 		l.log.Log(le)
 	}
 }
 
-func formatMsg(v ...interface{}) string {
+func printv(v ...interface{}) string {
 	if len(v) == 0 {
 		return ""
 	}
-	f := strings.Repeat(" %v", len(v))[1:]
-	return fmt.Sprintf(f, v...)
+
+	sb := strings.Builder{}
+	for i, o := range v {
+		if i > 0 {
+			sb.WriteByte(' ')
+		}
+		sb.WriteString(fmt.Sprint(o))
+	}
+	return sb.String()
 }
 
-func formatMsgf(f string, v ...interface{}) string {
+func printf(f string, v ...interface{}) string {
 	return fmt.Sprintf(f, v...)
 }

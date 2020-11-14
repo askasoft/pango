@@ -98,7 +98,9 @@ func (log *Log) SetWriter(lw Writer) {
 }
 
 func (log *Log) write(le *Event) {
-	log.writer.Write(le)
+	if log.writer != nil {
+		log.writer.Write(le)
+	}
 	EventPool.Put(le)
 }
 
@@ -133,7 +135,9 @@ func (log *Log) flush() {
 			break
 		}
 	}
-	log.writer.Flush()
+	if log.writer != nil {
+		log.writer.Flush()
+	}
 }
 
 // Close close logger, flush all chan data and destroy all adapters in Log.
@@ -151,7 +155,9 @@ func (log *Log) Close() {
 }
 
 func (log *Log) close() {
-	log.writer.Close()
+	if log.writer != nil {
+		log.writer.Close()
+	}
 }
 
 // Reset close and clear all writers

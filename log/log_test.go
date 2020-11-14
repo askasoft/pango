@@ -21,8 +21,14 @@ func testLoggerCalls(l Logger) {
 	}
 }
 
+func TestLogNilWriter(t *testing.T) {
+	fmt.Println("\n\n--------------- TestLogNilWriter ---------------------")
+	log0 := GetLogger("some")
+	testLoggerCalls(log0)
+}
+
 func TestLogFuncs(t *testing.T) {
-	fmt.Println("\n\n--------------- Funcs ---------------------")
+	fmt.Println("\n\n--------------- TestLogFuncs ---------------------")
 	log.SetWriter(newLogTestWriter())
 	SetLevel(LevelTrace)
 	for i := 0; i < 1; i++ {
@@ -36,13 +42,13 @@ func TestLogFuncs(t *testing.T) {
 }
 
 func TestLogGetLogger(t *testing.T) {
-	fmt.Println("\n\n-------------- GetLogger() ------------------")
+	fmt.Println("\n\n-------------- TestLogGetLogger ------------------")
 	log0 := GetLogger("some")
 	testLoggerCalls(log0)
 }
 
 func TestLogNewLog(t *testing.T) {
-	fmt.Println("\n\n-------------- NewLog() ---------------------")
+	fmt.Println("\n\n-------------- TestLogNewLog ---------------------")
 	log1 := NewLog()
 	log1.SetLevel(LevelTrace)
 	log1.SetWriter(newLogTestWriter())
@@ -50,7 +56,7 @@ func TestLogNewLog(t *testing.T) {
 }
 
 func TestLogNewLogGetLogger(t *testing.T) {
-	fmt.Println("\n\n-------------- NewLog().GetLogger() ---------")
+	fmt.Println("\n\n-------------- TestLogNewLogGetLogger ---------")
 	log1 := NewLog()
 	log1.SetLevel(LevelTrace)
 	log1.SetWriter(newLogTestWriter())
@@ -59,9 +65,9 @@ func TestLogNewLogGetLogger(t *testing.T) {
 }
 
 func TestLogNewLogParam(t *testing.T) {
-	fmt.Println("\n\n-------------- NewLog().Param ----------------")
+	fmt.Println("\n\n-------------- TestLogNewLogParam ----------------")
 	log1 := NewLog()
-	log1.SetFormatter(NewFormatter("%X{key} %X{nil} - %m%T%n"))
+	log1.SetFormatter(NewTextFormatter("%X{key} %X{nil} - %m%T%n"))
 	log1.SetLevel(LevelTrace)
 	log1.SetWriter(newLogTestWriter())
 	log1.SetParam("key", "val")

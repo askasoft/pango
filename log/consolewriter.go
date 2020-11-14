@@ -18,7 +18,7 @@ func (cw *ConsoleWriter) SetLevel(level string) {
 
 // SetFormat set a log formatter
 func (cw *ConsoleWriter) SetFormat(format string) {
-	cw.Logfmt = NewFormatter(format)
+	cw.Logfmt = NewTextFormatter(format)
 }
 
 // Write write message in console.

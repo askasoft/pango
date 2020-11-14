@@ -24,14 +24,14 @@ func (sw *SlackWriter) SetLevel(level string) {
 	sw.Level = ParseLevel(level)
 }
 
-// SetFormat set a log formatter
-func (sw *SlackWriter) SetFormat(format string) {
-	sw.Logfmt = NewFormatter(format)
-}
-
 // SetSubject set a subject formatter
 func (sw *SlackWriter) SetSubject(format string) {
-	sw.Subfmt = NewFormatter(format)
+	sw.Subfmt = NewTextFormatter(format)
+}
+
+// SetFormat set a log formatter
+func (sw *SlackWriter) SetFormat(format string) {
+	sw.Logfmt = NewTextFormatter(format)
 }
 
 // Write write message in smtp writer.

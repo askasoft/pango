@@ -48,7 +48,7 @@ func (fw *FileWriter) SetLevel(level string) {
 
 // SetFormat set a log formatter
 func (fw *FileWriter) SetFormat(format string) {
-	fw.Logfmt = NewFormatter(format)
+	fw.Logfmt = NewTextFormatter(format)
 }
 
 // Write write logger message into file.

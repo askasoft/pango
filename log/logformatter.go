@@ -39,8 +39,8 @@ func NewFormatter(format string) Formatter {
 // FormatterSimple simple log format "[%l] %m"
 var FormatterSimple = NewFormatter("[%l] %m")
 
-// FormatterDefault default log format "%d{2006-01-02T15:04:05.000} %l %S:%L %F() - %m%T%n"
-var FormatterDefault = NewFormatter("%d{2006-01-02T15:04:05.000} %l %S:%L %F() - %m%T%n")
+// FormatterDefault default log format "%d{2006-01-02T15:04:05.000} %l %S:%L %F() - %m%n%T"
+var FormatterDefault = NewFormatter("%d{2006-01-02T15:04:05.000} %l %S:%L %F() - %m%n%T")
 
 var eol = geteol()
 var lvlPrefixs = [LevelTrace + 1]string{"N", "F", "E", "W", "I", "D", "T"}

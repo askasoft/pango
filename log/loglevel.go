@@ -11,8 +11,8 @@ const (
 	LevelTrace
 )
 
-// LevelFromString parse level from string
-func LevelFromString(lvl string) int {
+// ParseLevel parse level from string
+func ParseLevel(lvl string) int {
 	if lvl != "" {
 		switch lvl[0] {
 		case 'f', 'F':

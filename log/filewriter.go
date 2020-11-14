@@ -15,19 +15,19 @@ import (
 // FileWriter implements Writer.
 // It writes messages and rotate by file size limit, daily, hourly.
 type FileWriter struct {
-	Level    int    `json:"level"`    // Level threshold
-	File     string `json:"file"`     // Log file name
-	Perm     uint32 `json:"perm"`     // Log file permission
-	Rotate   bool   `json:"rotate"`   // Rotate log files
-	MaxFiles int    `json:"maxfiles"` // Max split files
-	MaxSize  int64  `json:"maxsize"`  // Rotate at size
-	Daily    bool   `json:"daily"`    // Rotate daily
-	MaxDays  int64  `json:"maxdays"`  // Max daily files
-	Hourly   bool   `json:"hourly"`   // Rotate hourly
-	MaxHours int64  `json:"maxhours"` // Max hourly files
-	Gzip     bool   `json:"gzip"`     // Compress rotated log files
-	Sync     bool   `json:"sync"`     // Flush always
-	Logfmt   Formatter
+	Level      int    `json:"level"`      // Level threshold
+	File       string `json:"file"`       // Log file name
+	Perm       uint32 `json:"perm"`       // Log file permission
+	Rotate     bool   `json:"rotate"`     // Rotate log files
+	MaxFiles   int    `json:"maxfiles"`   // Max split files
+	MaxSize    int64  `json:"maxsize"`    // Rotate at size
+	Daily      bool   `json:"daily"`      // Rotate daily
+	MaxDays    int    `json:"maxdays"`    // Max daily files
+	Hourly     bool   `json:"hourly"`     // Rotate hourly
+	MaxHours   int    `json:"maxhours"`   // Max hourly files
+	Gzip       bool   `json:"gzip"`       // Compress rotated log files
+	FlushLevel int    `json:"flushlevel"` // Flush by log level
+	Logfmt     Formatter
 
 	dir      string
 	prefix   string
@@ -39,6 +39,11 @@ type FileWriter struct {
 	openDay  int
 	openHour int
 	sync.RWMutex
+}
+
+// SetLevel set the log level
+func (fw *FileWriter) SetLevel(level string) {
+	fw.Level = ParseLevel(level)
 }
 
 // SetFormat set a log formatter
@@ -86,21 +91,25 @@ func (fw *FileWriter) Write(le *Event) {
 	n, _ := fw.file.WriteString(msg)
 	fw.fileSize += int64(n)
 
-	if fw.Sync {
+	if fw.FlushLevel <= le.Level {
 		fw.file.Sync()
 	}
-}
-
-// Close close the file description, close file writer.
-func (fw *FileWriter) Close() {
-	fw.file.Close()
 }
 
 // Flush flush file logger.
 // there are no buffering messages in file logger in memory.
 // flush file means sync file from disk.
 func (fw *FileWriter) Flush() {
-	fw.file.Sync()
+	if fw.file != nil {
+		fw.file.Sync()
+	}
+}
+
+// Close close the file description, close file writer.
+func (fw *FileWriter) Close() {
+	if fw.file != nil {
+		fw.file.Close()
+	}
 }
 
 func (fw *FileWriter) init() {

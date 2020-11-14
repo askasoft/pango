@@ -34,6 +34,7 @@ func (le *Event) Caller(depth int, trace bool) {
 	if trace {
 		dep = 30
 	}
+
 	rpc := make([]uintptr, dep)
 	n := runtime.Callers(depth, rpc)
 	if n > 0 {
@@ -45,13 +46,13 @@ func (le *Event) Caller(depth int, trace bool) {
 		if next {
 			sb := strings.Builder{}
 			for ; next; frame, next = frames.Next() {
-				sb.WriteByte('\n')
 				sb.WriteString(frame.File)
 				sb.WriteString(":")
 				sb.WriteString(strconv.Itoa(frame.Line))
 				sb.WriteString(" ")
 				sb.WriteString(frame.Function)
 				sb.WriteString("()")
+				sb.WriteString(eol)
 			}
 			le.Trace = sb.String()
 		}

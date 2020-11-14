@@ -54,10 +54,15 @@ func TestConsoleNoColor(t *testing.T) {
 // Test console async
 func TestConsoleAsync(t *testing.T) {
 	log := NewLog()
-	log.SetWriter(&ConsoleWriter{Level: LevelTrace, Color: true})
+	log.SetWriter(&ConsoleWriter{Level: LevelTrace, Color: true, Logfmt: NewFormatter("%d{2006-01-02T15:04:05.000} [%c] %l - %m%n")})
 	log.Async(100)
-	go testConsoleCalls(log, 100)
-	go testConsoleCalls(log, 100)
+
+	log1 := log.GetLogger("1")
+	go testConsoleCalls(log1, 100)
+
+	log2 := log.GetLogger("2")
+	go testConsoleCalls(log2, 100)
+
 	time.Sleep(1 * time.Second)
 	for len(log.evtChan) != 0 {
 		time.Sleep(1 * time.Millisecond)

@@ -19,6 +19,11 @@ type SlackWriter struct {
 	Logfmt   Formatter
 }
 
+// SetLevel set the log level
+func (sw *SlackWriter) SetLevel(level string) {
+	sw.Level = ParseLevel(level)
+}
+
 // SetFormat set a log formatter
 func (sw *SlackWriter) SetFormat(format string) {
 	sw.Logfmt = NewFormatter(format)

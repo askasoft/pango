@@ -11,6 +11,11 @@ type ConsoleWriter struct {
 	Logfmt Formatter
 }
 
+// SetLevel set the log level
+func (cw *ConsoleWriter) SetLevel(level string) {
+	cw.Level = ParseLevel(level)
+}
+
 // SetFormat set a log formatter
 func (cw *ConsoleWriter) SetFormat(format string) {
 	cw.Logfmt = NewFormatter(format)
@@ -32,12 +37,12 @@ func (cw *ConsoleWriter) Write(le *Event) {
 	return
 }
 
-// Close implementing method. empty.
-func (cw *ConsoleWriter) Close() {
-}
-
 // Flush implementing method. empty.
 func (cw *ConsoleWriter) Flush() {
+}
+
+// Close implementing method. empty.
+func (cw *ConsoleWriter) Close() {
 }
 
 // brush is a color join function

@@ -3,27 +3,15 @@ package slack
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
+	"strconv"
 	"time"
 )
 
-// Message slack message
-type Message struct {
-	Channel     string        `json:"channel"`
-	Username    string        `json:"username"`
-	IconEmoji   string        `json:"icon_emoji"`
-	Text        string        `json:"text"`
-	Attachments []*Attachment `json:"attachments"`
-}
-
-// AddAttachment add a attachment
-func (sm *Message) AddAttachment(sa *Attachment) {
-	sm.Attachments = append(sm.Attachments, sa)
-}
-
 // Post post slack message
-func (sm *Message) Post(url string, timeout time.Duration) error {
+func Post(url string, timeout time.Duration, sm *Message) error {
 	bs, err := json.Marshal(sm)
 	if err != nil {
 		return err
@@ -40,12 +28,47 @@ func (sm *Message) Post(url string, timeout time.Duration) error {
 	if err != nil {
 		return err
 	}
+	io.Copy(ioutil.Discard, res.Body)
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		return fmt.Errorf("%s - POST %s", res.Status, url)
+		e := &Error{Status: res.Status, StatusCode: res.StatusCode}
+		ra := res.Header.Get("retry-after")
+		if ra != "" {
+			e.RetryAfter, _ = strconv.Atoi(ra)
+		}
+		return e
 	}
 	return nil
+}
+
+// Error slack api error
+type Error struct {
+	StatusCode int
+	Status     string
+	RetryAfter int
+}
+
+// Error return error string
+func (e *Error) Error() string {
+	if e.RetryAfter != 0 {
+		return e.Status + " - RetryAfter: " + strconv.Itoa(e.RetryAfter)
+	}
+	return e.Status
+}
+
+// Message slack message
+type Message struct {
+	Channel     string        `json:"channel"`
+	Username    string        `json:"username"`
+	IconEmoji   string        `json:"icon_emoji"`
+	Text        string        `json:"text"`
+	Attachments []*Attachment `json:"attachments"`
+}
+
+// AddAttachment add a attachment
+func (sm *Message) AddAttachment(sa *Attachment) {
+	sm.Attachments = append(sm.Attachments, sa)
 }
 
 // Attachment slack attachment

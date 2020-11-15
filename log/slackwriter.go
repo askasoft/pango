@@ -42,7 +42,7 @@ func (sw *SlackWriter) Write(le *Event) {
 		sw.Logfmt = le.Logger.GetFormatter()
 	}
 
-	sm := slack.Message{}
+	sm := &slack.Message{}
 	sm.IconEmoji = getIconEmoji(le.Level)
 	sm.Channel = sw.Channel
 	sm.Username = sw.Username
@@ -52,9 +52,9 @@ func (sw *SlackWriter) Write(le *Event) {
 	sm.AddAttachment(sa)
 
 	timeout, _ := time.ParseDuration(sw.Timeout)
-	err := sm.Post(sw.Webhook, timeout)
+	err := slack.Post(sw.Webhook, timeout, sm)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintf(os.Stderr, "SlackWriter(%q) - Post(): %v\n", sw.Webhook, err)
 	}
 }
 

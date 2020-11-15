@@ -171,19 +171,20 @@ func (log *Log) Reset() {
 //--------------------------------------------------------------------
 // package functions
 //
-
-// log default Log instance
-var log = newLog(5)
+const ROOT = "_"
 
 // NewLog returns a new Log.
 func NewLog() *Log {
 	return newLog(4)
 }
 
+// log default Log instance
+var log = newLog(5)
+
 func newLog(depth int) *Log {
 	log := &Log{}
 	log.log = log
-	log.name = "_"
+	log.name = ROOT
 	log.level = LevelTrace
 	log.depth = depth
 	log.trace = LevelError

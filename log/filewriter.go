@@ -15,19 +15,19 @@ import (
 // FileWriter implements Writer.
 // It writes messages and rotate by file size limit, daily, hourly.
 type FileWriter struct {
-	Level      int    `json:"level"`      // Level threshold
-	File       string `json:"file"`       // Log file name
-	Perm       uint32 `json:"perm"`       // Log file permission
-	Rotate     bool   `json:"rotate"`     // Rotate log files
-	MaxFiles   int    `json:"maxfiles"`   // Max split files
-	MaxSize    int64  `json:"maxsize"`    // Rotate at size
-	Daily      bool   `json:"daily"`      // Rotate daily
-	MaxDays    int    `json:"maxdays"`    // Max daily files
-	Hourly     bool   `json:"hourly"`     // Rotate hourly
-	MaxHours   int    `json:"maxhours"`   // Max hourly files
-	Gzip       bool   `json:"gzip"`       // Compress rotated log files
-	FlushLevel int    `json:"flushlevel"` // Flush by log level
-	Logfmt     Formatter
+	File       string    `json:"file"`       // Log file name
+	Perm       uint32    `json:"perm"`       // Log file permission
+	Rotate     bool      `json:"rotate"`     // Rotate log files
+	MaxFiles   int       `json:"maxfiles"`   // Max split files
+	MaxSize    int64     `json:"maxsize"`    // Rotate at size
+	Daily      bool      `json:"daily"`      // Rotate daily
+	MaxDays    int       `json:"maxdays"`    // Max daily files
+	Hourly     bool      `json:"hourly"`     // Rotate hourly
+	MaxHours   int       `json:"maxhours"`   // Max hourly files
+	Gzip       bool      `json:"gzip"`       // Compress rotated log files
+	FlushLevel int       `json:"flushlevel"` // Flush by log level
+	Logfmt     Formatter // log formatter
+	Logfil     Filter    // log filter
 
 	dir      string
 	prefix   string
@@ -41,11 +41,6 @@ type FileWriter struct {
 	sync.RWMutex
 }
 
-// SetLevel set the log level
-func (fw *FileWriter) SetLevel(level string) {
-	fw.Level = ParseLevel(level)
-}
-
 // SetFormat set a log formatter
 func (fw *FileWriter) SetFormat(format string) {
 	fw.Logfmt = NewTextFormatter(format)
@@ -53,7 +48,7 @@ func (fw *FileWriter) SetFormat(format string) {
 
 // Write write logger message into file.
 func (fw *FileWriter) Write(le *Event) {
-	if fw.Level < le.Level {
+	if fw.Logfil != nil && fw.Logfil.Reject(le) {
 		return
 	}
 

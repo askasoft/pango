@@ -2,7 +2,6 @@ package log
 
 import (
 	"fmt"
-	"strings"
 )
 
 // Logger logger interface
@@ -264,15 +263,7 @@ func printv(v ...interface{}) string {
 	if len(v) == 0 {
 		return ""
 	}
-
-	sb := strings.Builder{}
-	for i, o := range v {
-		if i > 0 {
-			sb.WriteByte(' ')
-		}
-		sb.WriteString(fmt.Sprint(o))
-	}
-	return sb.String()
+	return fmt.Sprint(v...)
 }
 
 func printf(f string, v ...interface{}) string {

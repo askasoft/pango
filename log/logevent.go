@@ -33,7 +33,6 @@ func (le *Event) Clear() {
 	le.Logger = nil
 	le.Level = LevelNone
 	le.Msg = ""
-	le.When = 0
 	le.File = ""
 	le.Line = 0
 	le.Func = ""

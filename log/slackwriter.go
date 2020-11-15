@@ -10,18 +10,13 @@ import (
 
 // SlackWriter implements LogWriter Interface and writes messages to slack.
 type SlackWriter struct {
-	Level    int    `json:"level"`
-	Webhook  string `json:"webhook"`
-	Username string `json:"username"`
-	Channel  string `json:"channel"`
-	Timeout  string `json:"timeout"`
-	Subfmt   Formatter
-	Logfmt   Formatter
-}
-
-// SetLevel set the log level
-func (sw *SlackWriter) SetLevel(level string) {
-	sw.Level = ParseLevel(level)
+	Webhook  string    `json:"webhook"`
+	Username string    `json:"username"`
+	Channel  string    `json:"channel"`
+	Timeout  string    `json:"timeout"`
+	Subfmt   Formatter // subject formatter
+	Logfmt   Formatter // log formatter
+	Logfil   Filter    // log filter
 }
 
 // SetSubject set a subject formatter
@@ -37,7 +32,7 @@ func (sw *SlackWriter) SetFormat(format string) {
 // Write write message in smtp writer.
 // it will send an email with subject and only this message.
 func (sw *SlackWriter) Write(le *Event) {
-	if sw.Level < le.Level {
+	if sw.Logfil != nil && sw.Logfil.Reject(le) {
 		return
 	}
 	if sw.Subfmt == nil {

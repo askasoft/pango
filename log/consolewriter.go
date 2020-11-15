@@ -6,14 +6,9 @@ import (
 
 // ConsoleWriter implements LogWriter Interface and writes messages to terminal.
 type ConsoleWriter struct {
-	Level  int  `json:"level"`
-	Color  bool `json:"color"` //this filed is useful only when system's terminal supports color
-	Logfmt Formatter
-}
-
-// SetLevel set the log level
-func (cw *ConsoleWriter) SetLevel(level string) {
-	cw.Level = ParseLevel(level)
+	Color  bool      `json:"color"` //this filed is useful only when system's terminal supports color
+	Logfmt Formatter // log formatter
+	Logfil Filter    // log filter
 }
 
 // SetFormat set a log formatter
@@ -23,7 +18,7 @@ func (cw *ConsoleWriter) SetFormat(format string) {
 
 // Write write message in console.
 func (cw *ConsoleWriter) Write(le *Event) {
-	if cw.Level < le.Level {
+	if cw.Logfil != nil && cw.Logfil.Reject(le) {
 		return
 	}
 	if cw.Logfmt == nil {

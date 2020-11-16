@@ -64,12 +64,12 @@ func TestLogNewLogGetLogger(t *testing.T) {
 	testLoggerCalls(log2)
 }
 
-func TestLogNewLogParam(t *testing.T) {
-	fmt.Println("\n\n-------------- TestLogNewLogParam ----------------")
+func TestLogNewLogProp(t *testing.T) {
+	fmt.Println("\n\n-------------- TestLogNewLogProp ----------------")
 	log1 := NewLog()
-	log1.SetFormatter(NewTextFormatter("%X{key} %X{nil} - %m%T%n"))
+	log1.SetFormatter(NewTextFormatter("%x{key} %x{nil} - %m%T%n"))
 	log1.SetLevel(LevelTrace)
 	log1.SetWriter(newLogTestWriter())
-	log1.SetParam("key", "val")
+	log1.SetProp("key", "val")
 	testLoggerCalls(log1)
 }

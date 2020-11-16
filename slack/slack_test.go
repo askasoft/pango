@@ -16,6 +16,7 @@ func TestSlackError(t *testing.T) {
 func postSlack(t *testing.T, sm *Message) {
 	url := os.Getenv("SLACK_WEBHOOK")
 	if len(url) < 1 {
+		t.Skip("SLACK_WEBHOOK not set")
 		return
 	}
 	err := Post(url, time.Second*5, sm)

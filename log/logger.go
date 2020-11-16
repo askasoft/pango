@@ -14,8 +14,10 @@ type Logger interface {
 	SetTraceLevel(t int)
 	GetName() string
 	SetName(n string)
-	GetParam(k string) interface{}
-	SetParam(k string, v interface{})
+	GetProp(k string) interface{}
+	SetProp(k string, v interface{})
+	GetProps() map[string]interface{}
+	SetProps(map[string]interface{})
 	GetFormatter() Formatter
 	SetFormatter(lf Formatter)
 	IsAsync() bool
@@ -47,7 +49,7 @@ type logger struct {
 	trace  int
 	log    *Log
 	logfmt Formatter
-	vars   map[string]interface{}
+	props  map[string]interface{}
 }
 
 // GetName return the logger's name
@@ -75,7 +77,7 @@ func (l *logger) GetCallerDepth() int {
 	return l.depth
 }
 
-// SetCallerDepth set the logger's depth, 0: disable runtime.Caller()
+// SetCallerDepth set the logger's caller depth (!!SLOW!!), 0: disable runtime.Caller()
 func (l *logger) SetCallerDepth(d int) {
 	l.depth = d
 }
@@ -90,20 +92,30 @@ func (l *logger) SetTraceLevel(lvl int) {
 	l.trace = lvl
 }
 
-// GetParam get logger k's value
-func (l *logger) GetParam(k string) interface{} {
-	if l.vars == nil {
+// GetProp get logger property
+func (l *logger) GetProp(k string) interface{} {
+	if l.props == nil {
 		return nil
 	}
-	return l.vars[k]
+	return l.props[k]
 }
 
-// SetParam set logger k's value
-func (l *logger) SetParam(k string, v interface{}) {
-	if l.vars == nil {
-		l.vars = make(map[string]interface{})
+// SetProp set logger property
+func (l *logger) SetProp(k string, v interface{}) {
+	if l.props == nil {
+		l.props = make(map[string]interface{})
 	}
-	l.vars[k] = v
+	l.props[k] = v
+}
+
+// GetProps get logger properties
+func (l *logger) GetProps() map[string]interface{} {
+	return l.props
+}
+
+// SetProps set logger properties
+func (l *logger) SetProps(props map[string]interface{}) {
+	l.props = props
 }
 
 // GetFormatter get logger formatter

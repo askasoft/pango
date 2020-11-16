@@ -36,7 +36,7 @@ func (sw *SlackWriter) Write(le *Event) {
 		return
 	}
 	if sw.Subfmt == nil {
-		sw.Subfmt = FormatterSimple
+		sw.Subfmt = TextFmtSimple
 	}
 	if sw.Logfmt == nil {
 		sw.Logfmt = le.Logger.GetFormatter()

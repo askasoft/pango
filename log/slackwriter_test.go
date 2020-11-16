@@ -9,6 +9,7 @@ import (
 func TestSlackLog(t *testing.T) {
 	wh := os.Getenv("SLACK_WEBHOOK")
 	if len(wh) < 1 {
+		t.Skip("SLACK_WEBHOOK not set")
 		return
 	}
 

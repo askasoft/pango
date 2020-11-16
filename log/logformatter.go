@@ -1,24 +1,53 @@
 package log
 
 import (
+	"encoding/json"
 	"fmt"
 	"runtime"
 	"strconv"
 	"strings"
 )
 
+var eol = geteol()
+var lvlPrefixs = [LevelTrace + 1]string{"N", "F", "E", "W", "I", "D", "T"}
+var lvlStrings = [LevelTrace + 1]string{"NONE ", "FATAL", "ERROR", "WARN ", "INFO ", "DEBUG", "TRACE"}
+
 // Formatter log formater interface
 type Formatter interface {
 	Format(le *Event) string
 }
 
-// TextFormatter text formatter implement struct
-type TextFormatter struct {
-	fmts []fmtfunc
+// TextFmtSimple simple log format "[%l] %m%n"
+var TextFmtSimple = NewTextFormatter("[%l] %m%n")
+
+// TextFmtDefault default log format "%d{2006-01-02T15:04:05.000} %l %S:%L %F() - %m%n%T"
+var TextFmtDefault = NewTextFormatter("%d{2006-01-02T15:04:05.000} %l %S:%L %F() - %m%n%T")
+
+// JSONFmtDefault default log format `{"when":%d{2006-01-02T15:04:05.000Z}, "level":%l, "file":%S, "line":%L, "func":%F, "msg": %m}%n`
+var JSONFmtDefault = NewJSONFormatter(`{"when":%d{2006-01-02T15:04:05.000Z}, "level":%l, "file":%S, "line":%L, "func":%F, "msg": %m}%n`)
+
+// NewTextFormatter create a Text Formatter instance
+// Text Format
+// %c: logger name
+// %d{format}: date
+// %m: message
+// %n: EOL('\n')
+// %p: log level prefix
+// %l: log level string
+// %S: caller source file name (!!SLOW!!)
+// %L: caller source line number (!!SLOW!!)
+// %F: caller function name (!!SLOW!!)
+// %T: caller stack trace (!!SLOW!!)
+// %x{key}: logger property
+// %X{=| }: logger propertys (operator|separator)
+func NewTextFormatter(format string) *TextFormatter {
+	tf := &TextFormatter{}
+	tf.Init(format)
+	return tf
 }
 
-// NewTextFormatter create a Formatter instance
-// Log Format
+// NewJSONFormatter create a Json Formatter instance
+// JSON Format
 // %c: logger name
 // %d{format}: date
 // %m: message
@@ -30,33 +59,32 @@ type TextFormatter struct {
 // %F: caller function name (!!SLOW!!)
 // %T: caller stack trace (!!SLOW!!)
 // %X{key}: logger value
-func NewTextFormatter(format string) Formatter {
-	tf := &TextFormatter{}
-	tf.Init(format)
-	return tf
+// %X: logger propertys
+func NewJSONFormatter(format string) *JSONFormatter {
+	jf := &JSONFormatter{}
+	jf.Init(format)
+	return jf
 }
 
-// FormatterSimple simple log format "[%l] %m%n"
-var FormatterSimple = NewTextFormatter("[%l] %m%n")
-
-// FormatterDefault default log format "%d{2006-01-02T15:04:05.000} %l %S:%L %F() - %m%n%T"
-var FormatterDefault = NewTextFormatter("%d{2006-01-02T15:04:05.000} %l %S:%L %F() - %m%n%T")
-
-var eol = geteol()
-var lvlPrefixs = [LevelTrace + 1]string{"N", "F", "E", "W", "I", "D", "T"}
-var lvlStrings = [LevelTrace + 1]string{"NONE ", "FATAL", "ERROR", "WARN ", "INFO ", "DEBUG", "TRACE"}
+// TextFormatter text formatter
+type TextFormatter struct {
+	fmts []fmtfunc
+}
 
 // Format format the log event to a string
 func (tf *TextFormatter) Format(le *Event) string {
-	sb := strings.Builder{}
+	ss := make([]string, 0, len(tf.fmts))
 	for _, f := range tf.fmts {
-		f(&sb, le)
+		s := f(le)
+		ss = append(ss, s)
 	}
-	return sb.String()
+	return strings.Join(ss, "")
 }
 
-// Init initialize the formatter
+// Init initialize the text formatter
 func (tf *TextFormatter) Init(format string) {
+	fmts := make([]fmtfunc, 0, 10)
+
 	s := 0
 	for i := 0; i < len(format); i++ {
 		c := format[i]
@@ -66,7 +94,7 @@ func (tf *TextFormatter) Init(format string) {
 
 		// string
 		if s < i {
-			tf.fmts = append(tf.fmts, strfmt(format[s:i]))
+			fmts = append(fmts, strfmt(format[s:i]))
 		}
 
 		i++
@@ -103,6 +131,17 @@ func (tf *TextFormatter) Init(format string) {
 				if e > 0 {
 					fmt = timefmt(p[1:e])
 					i += e + 1
+					break
+				}
+			}
+			fmt = datefmt
+		case 'x':
+			p := format[i+1:]
+			if len(p) > 0 && p[0] == '{' {
+				e := strings.IndexByte(p, '}')
+				if e > 0 {
+					fmt = propfmt(p[1:e])
+					i += e + 1
 				}
 			}
 		case 'X':
@@ -110,24 +149,124 @@ func (tf *TextFormatter) Init(format string) {
 			if len(p) > 0 && p[0] == '{' {
 				e := strings.IndexByte(p, '}')
 				if e > 0 {
-					fmt = paramfmt(p[1:e])
+					fmt = propsfmt(p[1:e])
 					i += e + 1
+					break
 				}
 			}
+			fmt = propsfmt("=| ")
 		}
 
 		if fmt != nil {
-			tf.fmts = append(tf.fmts, fmt)
+			fmts = append(fmts, fmt)
 			s = i + 1
 		}
 	}
 
 	if s < len(format) {
-		tf.fmts = append(tf.fmts, strfmt(format[s:]))
+		fmts = append(fmts, strfmt(format[s:]))
 	}
+
+	tf.fmts = fmts
 }
 
-type fmtfunc func(sb *strings.Builder, le *Event)
+// JSONFormatter json formatter
+type JSONFormatter struct {
+	fmts []fmtfunc
+}
+
+// Format format the log event to a json string
+func (jf *JSONFormatter) Format(le *Event) string {
+	ss := make([]string, 0, len(jf.fmts))
+	for _, f := range jf.fmts {
+		s := f(le)
+		ss = append(ss, s)
+	}
+	return strings.Join(ss, "")
+}
+
+// Init initialize the json formatter
+func (jf *JSONFormatter) Init(format string) {
+	fmts := make([]fmtfunc, 0, 10)
+
+	s := 0
+	for i := 0; i < len(format); i++ {
+		c := format[i]
+		if c != '%' {
+			continue
+		}
+
+		// string
+		if s < i {
+			fmts = append(fmts, strfmt(format[s:i]))
+		}
+
+		i++
+		s = i
+		if i >= len(format) {
+			break
+		}
+
+		// symbol
+		var fmt fmtfunc
+		switch format[i] {
+		case 'c':
+			fmt = quotefmt(namefmt)
+		case 'p':
+			fmt = quotefmt(lvlpfmt)
+		case 'l':
+			fmt = quotefmt(lvlsfmt)
+		case 'm':
+			fmt = quotefmt(msgfmt)
+		case 'n':
+			fmt = eolfmt
+		case 'F':
+			fmt = quotefmt(funcfmt)
+		case 'S':
+			fmt = quotefmt(filefmt)
+		case 'L':
+			fmt = linefmt
+		case 'T':
+			fmt = quotefmt(tracefmt)
+		case 'd':
+			p := format[i+1:]
+			if len(p) > 0 && p[0] == '{' {
+				e := strings.IndexByte(p, '}')
+				if e > 0 {
+					fmt = quotefmt(timefmt(p[1:e]))
+					i += e + 1
+					break
+				}
+			}
+			fmt = quotefmt(datefmt)
+		case 'x':
+			p := format[i+1:]
+			if len(p) > 0 && p[0] == '{' {
+				e := strings.IndexByte(p, '}')
+				if e > 0 {
+					fmt = jpropfmt(p[1:e])
+					i += e + 1
+				}
+			}
+		case 'X':
+			fmt = jpropsfmt
+		}
+
+		if fmt != nil {
+			fmts = append(fmts, fmt)
+			s = i + 1
+		}
+	}
+
+	if s < len(format) {
+		fmts = append(fmts, strfmt(format[s:]))
+	}
+	jf.fmts = fmts
+}
+
+//-------------------------------------------------
+
+type fmtfunc func(le *Event) string
 
 func geteol() string {
 	if runtime.GOOS == "windows" {
@@ -136,56 +275,99 @@ func geteol() string {
 	return "\n"
 }
 
-func strfmt(s string) fmtfunc {
-	return func(sb *strings.Builder, le *Event) {
-		sb.WriteString(s)
+func quotefmt(ff fmtfunc) fmtfunc {
+	return func(le *Event) string {
+		return fmt.Sprintf("%q", ff(le))
 	}
 }
 
-func lvlpfmt(sb *strings.Builder, le *Event) {
-	sb.WriteString(lvlPrefixs[le.Level])
+func strfmt(s string) fmtfunc {
+	return func(le *Event) string {
+		return s
+	}
 }
 
-func lvlsfmt(sb *strings.Builder, le *Event) {
-	sb.WriteString(lvlStrings[le.Level])
+func lvlpfmt(le *Event) string {
+	return lvlPrefixs[le.Level]
 }
 
-func namefmt(sb *strings.Builder, le *Event) {
-	sb.WriteString(le.Logger.GetName())
+func lvlsfmt(le *Event) string {
+	return lvlStrings[le.Level]
 }
 
-func msgfmt(sb *strings.Builder, le *Event) {
-	sb.WriteString(le.Msg)
+func namefmt(le *Event) string {
+	return le.Logger.GetName()
 }
 
-func eolfmt(sb *strings.Builder, le *Event) {
-	sb.WriteString(eol)
+func msgfmt(le *Event) string {
+	return le.Msg
 }
 
-func funcfmt(sb *strings.Builder, le *Event) {
-	sb.WriteString(le.Func)
+func eolfmt(le *Event) string {
+	return eol
 }
 
-func filefmt(sb *strings.Builder, le *Event) {
-	sb.WriteString(le.File)
+func funcfmt(le *Event) string {
+	return le.Func
 }
 
-func linefmt(sb *strings.Builder, le *Event) {
-	sb.WriteString(strconv.Itoa(le.Line))
+func filefmt(le *Event) string {
+	return le.File
 }
 
-func tracefmt(sb *strings.Builder, le *Event) {
-	sb.WriteString(le.Trace)
+func linefmt(le *Event) string {
+	return strconv.Itoa(le.Line)
+}
+
+func tracefmt(le *Event) string {
+	return le.Trace
+}
+
+func datefmt(le *Event) string {
+	return fmt.Sprint(le.When)
 }
 
 func timefmt(layout string) fmtfunc {
-	return func(sb *strings.Builder, le *Event) {
-		sb.WriteString(le.When.Format(layout))
+	return func(le *Event) string {
+		return le.When.Format(layout)
 	}
 }
 
-func paramfmt(key string) fmtfunc {
-	return func(sb *strings.Builder, le *Event) {
-		sb.WriteString(fmt.Sprint(le.Logger.GetParam(key)))
+func propfmt(key string) fmtfunc {
+	return func(le *Event) string {
+		return fmt.Sprint(le.Logger.GetProp(key))
 	}
+}
+
+func propsfmt(f string) fmtfunc {
+	ss := strings.Split(f, "|")
+	d := ss[0]
+	j := ""
+	if len(ss) > 1 {
+		j = ss[1]
+	}
+	return func(le *Event) string {
+		m := le.Logger.GetProps()
+		if m == nil {
+			return ""
+		}
+
+		a := make([]string, 0, len(m))
+		for k, v := range m {
+			a = append(a, fmt.Sprintf("%s%s%v", k, d, v))
+		}
+		return strings.Join(a, j)
+	}
+}
+
+func jpropfmt(key string) fmtfunc {
+	return func(le *Event) string {
+		b, _ := json.Marshal(le.Logger.GetProp(key))
+		return string(b)
+	}
+}
+
+func jpropsfmt(le *Event) string {
+	b, _ := json.Marshal(le.Logger.GetProps())
+	return string(b)
 }

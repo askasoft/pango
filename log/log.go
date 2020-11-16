@@ -188,7 +188,7 @@ func newLog(depth int) *Log {
 	log.level = LevelTrace
 	log.depth = depth
 	log.trace = LevelError
-	log.logfmt = FormatterDefault
+	log.logfmt = TextFmtDefault
 	return log
 }
 
@@ -234,7 +234,7 @@ func GetCallerDepth() int {
 	return log.GetCallerDepth()
 }
 
-// SetCallerDepth set the logger's caller depth
+// SetCallerDepth set the logger's caller depth (!!SLOW!!), 0: disable runtime.Caller()
 func SetCallerDepth(d int) {
 	log.SetCallerDepth(d)
 }

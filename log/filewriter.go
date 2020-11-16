@@ -38,7 +38,7 @@ type FileWriter struct {
 	openTime time.Time
 	openDay  int
 	openHour int
-	sync.RWMutex
+	sync.Mutex
 }
 
 // SetFormat set a log formatter
@@ -52,24 +52,19 @@ func (fw *FileWriter) Write(le *Event) {
 		return
 	}
 
+	fw.lock(le)
+	defer fw.unlock(le)
+
 	fw.init()
 	if fw.file == nil {
 		return
 	}
 
-	if fw.Rotate {
-		fw.lock(le)
+	if fw.Rotate && fw.fileSize > 0 {
 		d := le.When.Day()
 		h := le.When.Hour()
 		if fw.needRotate(d, h) {
-			fw.runlock(le)
-			fw.lock(le)
-			if fw.needRotate(d, h) {
-				fw.rotate(le.When)
-			}
-			fw.unlock(le)
-		} else {
-			fw.runlock(le)
+			fw.rotate(le.When)
 		}
 	}
 
@@ -80,13 +75,10 @@ func (fw *FileWriter) Write(le *Event) {
 	msg := fw.Logfmt.Format(le)
 
 	// write log
-	fw.lock(le)
-	defer fw.unlock(le)
-
 	n, _ := fw.file.WriteString(msg)
 	fw.fileSize += int64(n)
 
-	if fw.FlushLevel <= le.Level {
+	if le.Level <= fw.FlushLevel {
 		fw.file.Sync()
 	}
 }
@@ -168,20 +160,8 @@ func (fw *FileWriter) unlock(le *Event) {
 	}
 }
 
-func (fw *FileWriter) rlock(le *Event) {
-	if !le.Logger.IsAsync() {
-		fw.RLock()
-	}
-}
-
-func (fw *FileWriter) runlock(le *Event) {
-	if !le.Logger.IsAsync() {
-		fw.RUnlock()
-	}
-}
-
 func (fw *FileWriter) needRotate(day int, hour int) bool {
-	return (fw.MaxSize > 0 && fw.fileSize >= fw.MaxSize) || (fw.Hourly && hour != fw.openHour) || (fw.Daily && day != fw.openDay)
+	return (fw.MaxSize > 0 && fw.fileSize >= fw.MaxSize) || (fw.Hourly && fw.openHour != hour) || (fw.Daily && fw.openDay != day)
 }
 
 // DoRotate means it need to write file in new file.

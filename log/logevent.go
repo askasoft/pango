@@ -11,14 +11,14 @@ import (
 
 // Event log event
 type Event struct {
-	Logger Logger
-	Level  int
-	Msg    string
-	When   time.Time
-	File   string
-	Line   int
-	Func   string
-	Trace  string
+	Logger Logger    `json:"-"`
+	Level  int       `json:"level"`
+	Msg    string    `json:"msg"`
+	When   time.Time `json:"when"`
+	File   string    `json:"file"`
+	Line   int       `json:"line"`
+	Func   string    `json:"func"`
+	Trace  string    `json:"trace"`
 }
 
 // eventPool log event pool

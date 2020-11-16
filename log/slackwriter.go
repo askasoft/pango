@@ -5,10 +5,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/pandafw/pango/slack"
+	"github.com/pandafw/pango/net/slack"
 )
 
-// SlackWriter implements LogWriter Interface and writes messages to slack.
+// SlackWriter implements log Writer Interface and send log message to slack.
 type SlackWriter struct {
 	Webhook  string    `json:"webhook"`
 	Username string    `json:"username"`
@@ -29,8 +29,7 @@ func (sw *SlackWriter) SetFormat(format string) {
 	sw.Logfmt = NewTextFormatter(format)
 }
 
-// Write write message in smtp writer.
-// it will send an email with subject and only this message.
+// Write send log message to slack
 func (sw *SlackWriter) Write(le *Event) {
 	if sw.Logfil != nil && sw.Logfil.Reject(le) {
 		return

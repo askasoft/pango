@@ -1,11 +1,11 @@
 package log
 
-// MultiWriter write messages to multiple writers.
+// MultiWriter write log to multiple writers.
 type MultiWriter struct {
 	Writers []Writer
 }
 
-// Write write message in console.
+// Write write log event to multiple writers.
 func (mw *MultiWriter) Write(le *Event) {
 	for _, w := range mw.Writers {
 		w.Write(le)

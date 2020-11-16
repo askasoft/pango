@@ -4,7 +4,7 @@ import (
 	"os"
 )
 
-// ConsoleWriter implements LogWriter Interface and writes messages to terminal.
+// ConsoleWriter implements log Writer Interface and writes messages to terminal.
 type ConsoleWriter struct {
 	Color  bool      `json:"color"` //this filed is useful only when system's terminal supports color
 	Logfmt Formatter // log formatter

@@ -12,7 +12,7 @@ func TestTextFormatSimple(t *testing.T) {
 	tf := TextFmtSimple
 	le := newEvent(&logger{}, LevelInfo, "simple")
 	le.When = time.Time{}
-	assert.Equal(t, `[INFO ] simple`+eol, tf.Format(le))
+	assert.Equal(t, `[I] simple`+eol, tf.Format(le))
 }
 
 func TestTextFormatDefault(t *testing.T) {

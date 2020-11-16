@@ -17,8 +17,11 @@ type Formatter interface {
 	Format(le *Event) string
 }
 
-// TextFmtSimple simple log format "[%l] %m%n"
-var TextFmtSimple = NewTextFormatter("[%l] %m%n")
+// TextFmtSubject subject log format "[%l] %m"
+var TextFmtSubject = NewTextFormatter("[%l] %m")
+
+// TextFmtSimple simple log format "[%p] %m%n"
+var TextFmtSimple = NewTextFormatter("[%p] %m%n")
 
 // TextFmtDefault default log format "%d{2006-01-02T15:04:05.000} %l %S:%L %F() - %m%n%T"
 var TextFmtDefault = NewTextFormatter("%d{2006-01-02T15:04:05.000} %l %S:%L %F() - %m%n%T")

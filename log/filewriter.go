@@ -1,13 +1,13 @@
 package log
 
 import (
+	"bytes"
 	"compress/gzip"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -38,7 +38,7 @@ type FileWriter struct {
 	openTime time.Time
 	openDay  int
 	openHour int
-	mutex    sync.Mutex
+	bb       bytes.Buffer
 }
 
 // SetFormat set a log formatter
@@ -52,8 +52,12 @@ func (fw *FileWriter) Write(le *Event) {
 		return
 	}
 
-	fw.lock()
-	defer fw.unlock()
+	le.Logger.Lock()
+	defer le.Logger.Unlock()
+
+	if fw.Logfmt == nil {
+		fw.Logfmt = le.Logger.GetFormatter()
+	}
 
 	fw.init()
 	if fw.file == nil {
@@ -69,13 +73,11 @@ func (fw *FileWriter) Write(le *Event) {
 	}
 
 	// format msg
-	if fw.Logfmt == nil {
-		fw.Logfmt = le.Logger.GetFormatter()
-	}
-	msg := fw.Logfmt.Format(le)
+	fw.bb.Reset()
+	fw.Logfmt.Write(&fw.bb, le)
 
 	// write log
-	n, err := fw.file.WriteString(msg)
+	n, err := fw.file.Write(fw.bb.Bytes())
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "FileWriter(%q) - Write(): %v\n", fw.Path, err)
 	}
@@ -90,9 +92,6 @@ func (fw *FileWriter) Write(le *Event) {
 // there are no buffering messages in file logger in memory.
 // flush file means sync file from disk.
 func (fw *FileWriter) Flush() {
-	fw.lock()
-	defer fw.unlock()
-
 	if fw.file != nil {
 		err := fw.file.Sync()
 		if err != nil {
@@ -103,9 +102,6 @@ func (fw *FileWriter) Flush() {
 
 // Close close the file description, close file writer.
 func (fw *FileWriter) Close() {
-	fw.lock()
-	defer fw.unlock()
-
 	if fw.file != nil {
 		err := fw.file.Close()
 		if err != nil {
@@ -162,18 +158,6 @@ func (fw *FileWriter) init() {
 	fw.openHour = fw.openTime.Hour()
 
 	fw.file = file
-}
-
-func (fw *FileWriter) lock() {
-	if !fw.Async {
-		fw.mutex.Lock()
-	}
-}
-
-func (fw *FileWriter) unlock() {
-	if !fw.Async {
-		fw.mutex.Unlock()
-	}
 }
 
 func (fw *FileWriter) needRotate(day int, hour int) bool {

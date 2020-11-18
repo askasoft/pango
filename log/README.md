@@ -9,7 +9,7 @@ log is a Go log manager. It can use many log writers. The repo is inspired by ht
 
 ## What writers are supported?
 
-As of now this log support console, file, slack, smtp, connection.
+As of now this log support stream(console), file, slack, smtp, connection.
 
 
 ## How to use it?
@@ -26,7 +26,7 @@ Then init a Log (example with console writer)
 
 ```golang
 log := log.NewLog()
-log.SetWriter(&log.ConsoleWriter{})
+log.SetWriter(&log.StreamWriter{Color:true})
 ```
 
 Use it like this:
@@ -45,7 +45,7 @@ Configure file writer like this:
 
 ```golang
 log := log.NewLog()
-log.SetWriter("file", `{"filename":"test.log"}`)
+log.SetWriter(&log.FileWriter{Path:"test.log"})
 ```
 
 ## Conn writer

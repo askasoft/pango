@@ -21,6 +21,8 @@ type Logger interface {
 	GetFormatter() Formatter
 	SetFormatter(lf Formatter)
 	IsAsync() bool
+	Lock()
+	Unlock()
 	IsFatalEnabled() bool
 	Fatal(v ...interface{})
 	Fatalf(f string, v ...interface{})
@@ -128,14 +130,24 @@ func (l *logger) SetFormatter(lf Formatter) {
 	l.logfmt = lf
 }
 
-// IsFatalEnabled is FATAL level enabled
-func (l *logger) IsFatalEnabled() bool {
-	return l.level >= LevelFatal
-}
-
 // IsAsync return the logger's async
 func (l *logger) IsAsync() bool {
 	return l.log.async
+}
+
+// Lock lock the log
+func (l *logger) Lock() {
+	l.log.Lock()
+}
+
+// Unlock unlock the log
+func (l *logger) Unlock() {
+	l.log.Unlock()
+}
+
+// IsFatalEnabled is FATAL level enabled
+func (l *logger) IsFatalEnabled() bool {
+	return l.level >= LevelFatal
 }
 
 // Fatal log a message at fatal level.

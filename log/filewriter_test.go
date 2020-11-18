@@ -251,7 +251,7 @@ func TestFileRotateDaily(t *testing.T) {
 
 	path := "filetest/TestFileRotateDaily.log"
 	fw := &FileWriter{Path: path, Rotate: true, Daily: true}
-	lg := &logger{}
+	lg := NewLog()
 	lg.SetFormatter(TextFmtSimple)
 
 	now := time.Now()
@@ -287,7 +287,7 @@ func TestFileRotateDailyOutdated(t *testing.T) {
 
 	path := "filetest/TestFileRotateDailyOutdated.log"
 	fw := &FileWriter{Path: path, Rotate: true, Daily: true, MaxDays: 3}
-	lg := &logger{}
+	lg := NewLog()
 	lg.SetFormatter(TextFmtSimple)
 
 	now := time.Now().Add(time.Hour * 24 * -8)
@@ -337,7 +337,7 @@ func TestFileRotateHourly(t *testing.T) {
 
 	path := "filetest/TestFileRotateHourly.log"
 	fw := &FileWriter{Path: path, Rotate: true, Hourly: true}
-	lg := &logger{}
+	lg := NewLog()
 	lg.SetFormatter(TextFmtSimple)
 
 	now := time.Now()
@@ -373,7 +373,7 @@ func TestFileRotateHourlyOutdated(t *testing.T) {
 
 	path := "filetest/TestFileRotateHourlyOutdated.log"
 	fw := &FileWriter{Path: path, Rotate: true, Hourly: true, MaxHours: 3}
-	lg := &logger{}
+	lg := NewLog()
 	lg.SetFormatter(TextFmtSimple)
 
 	now := time.Now().Add(time.Hour * -8)

@@ -6,7 +6,7 @@ import (
 )
 
 func newLogTestWriter() Writer {
-	return &ConsoleWriter{Color: true}
+	return &StreamWriter{Color: true}
 }
 
 // Try each log level in decreasing order of priority.

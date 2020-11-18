@@ -34,6 +34,7 @@ type Log struct {
 	sigChan chan string
 	waitg   sync.WaitGroup
 	writer  Writer
+	mutex   sync.Mutex
 }
 
 // GetLogger returns a new Logger with name
@@ -136,6 +137,8 @@ func (log *Log) flush() {
 		}
 	}
 	if log.writer != nil {
+		log.Lock()
+		defer log.Unlock()
 		log.writer.Flush()
 	}
 }
@@ -156,6 +159,8 @@ func (log *Log) Close() {
 
 func (log *Log) close() {
 	if log.writer != nil {
+		log.Lock()
+		defer log.Unlock()
 		log.writer.Close()
 	}
 }
@@ -168,9 +173,25 @@ func (log *Log) Reset() {
 	log.close()
 }
 
+// Lock lock the log
+func (log *Log) Lock() {
+	if !log.async {
+		log.mutex.Lock()
+	}
+}
+
+// Unlock unlock the log
+func (log *Log) Unlock() {
+	if !log.async {
+		log.mutex.Unlock()
+	}
+}
+
 //--------------------------------------------------------------------
 // package functions
 //
+
+// ROOT default logger name
 const ROOT = "_"
 
 // NewLog returns a new Log.

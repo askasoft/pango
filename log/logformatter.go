@@ -1,6 +1,7 @@
 package log
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"runtime"
@@ -14,6 +15,7 @@ var lvlStrings = [LevelTrace + 1]string{"NONE ", "FATAL", "ERROR", "WARN ", "INF
 
 // Formatter log formater interface
 type Formatter interface {
+	Write(bb *bytes.Buffer, le *Event)
 	Format(le *Event) string
 }
 
@@ -74,14 +76,14 @@ type TextFormatter struct {
 	fmts []fmtfunc
 }
 
+// Format format the log event to the buffer 'bb'
+func (tf *TextFormatter) Write(bb *bytes.Buffer, le *Event) {
+	write(bb, le, tf.fmts)
+}
+
 // Format format the log event to a string
 func (tf *TextFormatter) Format(le *Event) string {
-	ss := make([]string, 0, len(tf.fmts))
-	for _, f := range tf.fmts {
-		s := f(le)
-		ss = append(ss, s)
-	}
-	return strings.Join(ss, "")
+	return format(le, tf.fmts)
 }
 
 // Init initialize the text formatter
@@ -178,14 +180,14 @@ type JSONFormatter struct {
 	fmts []fmtfunc
 }
 
+// Write format the log event as a json string to the buffer 'bb'
+func (jf *JSONFormatter) Write(bb *bytes.Buffer, le *Event) {
+	write(bb, le, jf.fmts)
+}
+
 // Format format the log event to a json string
 func (jf *JSONFormatter) Format(le *Event) string {
-	ss := make([]string, 0, len(jf.fmts))
-	for _, f := range jf.fmts {
-		s := f(le)
-		ss = append(ss, s)
-	}
-	return strings.Join(ss, "")
+	return format(le, jf.fmts)
 }
 
 // Init initialize the json formatter
@@ -270,6 +272,22 @@ func (jf *JSONFormatter) Init(format string) {
 //-------------------------------------------------
 
 type fmtfunc func(le *Event) string
+
+func write(bb *bytes.Buffer, le *Event, fmts []fmtfunc) {
+	for _, f := range fmts {
+		s := f(le)
+		bb.WriteString(s)
+	}
+}
+
+func format(le *Event, fmts []fmtfunc) string {
+	ss := strings.Builder{}
+	for _, f := range fmts {
+		s := f(le)
+		ss.WriteString(s)
+	}
+	return ss.String()
+}
 
 func geteol() string {
 	if runtime.GOOS == "windows" {

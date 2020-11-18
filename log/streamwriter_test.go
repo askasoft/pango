@@ -27,7 +27,7 @@ func testConsoleCalls(log Logger, loop int) {
 // Test console info level filter
 func TestConsoleFilterInfo(t *testing.T) {
 	log := NewLog()
-	log.SetWriter(&ConsoleWriter{Color: true, Logfil: NewLevelFilter(LevelInfo)})
+	log.SetWriter(&StreamWriter{Color: true, Logfil: NewLevelFilter(LevelInfo)})
 	log.SetFormatter(NewTextFormatter("[%c] %l - %m%n"))
 	testConsoleCalls(log, 1)
 	log.close()
@@ -36,7 +36,7 @@ func TestConsoleFilterInfo(t *testing.T) {
 // Test console name filter
 func TestConsoleFilterName(t *testing.T) {
 	log := NewLog()
-	log.SetWriter(&ConsoleWriter{Color: true, Logfil: NewNameFilter("out")})
+	log.SetWriter(&StreamWriter{Color: true, Logfil: NewNameFilter("out")})
 	log.SetFormatter(NewTextFormatter("[%c] %l - %m%n"))
 
 	log1 := log.GetLogger("OUT")
@@ -50,7 +50,7 @@ func TestConsoleFilterName(t *testing.T) {
 // Test console multi filter
 func TestConsoleFilterMulti(t *testing.T) {
 	log := NewLog()
-	log.SetWriter(&ConsoleWriter{Color: true, Logfil: NewMultiFilter(NewLevelFilter(LevelWarn), NewNameFilter("out"))})
+	log.SetWriter(&StreamWriter{Color: true, Logfil: NewMultiFilter(NewLevelFilter(LevelWarn), NewNameFilter("out"))})
 	log.SetFormatter(NewTextFormatter("[%c] %l - %m%n"))
 
 	log1 := log.GetLogger("OUT")
@@ -64,7 +64,7 @@ func TestConsoleFilterMulti(t *testing.T) {
 // Test console without color
 func TestConsoleNoColor(t *testing.T) {
 	log := NewLog()
-	log.SetWriter(&ConsoleWriter{Color: false})
+	log.SetWriter(&StreamWriter{Color: false})
 	log.SetFormatter(NewTextFormatter("[%c] %l - %m%n"))
 	testConsoleCalls(log, 1)
 	log.close()
@@ -73,7 +73,7 @@ func TestConsoleNoColor(t *testing.T) {
 // Test console async
 func TestConsoleAsync(t *testing.T) {
 	log := NewLog()
-	log.SetWriter(&ConsoleWriter{Color: true, Logfmt: NewTextFormatter("%d{2006-01-02T15:04:05.000} [%c] %l - %m%n")})
+	log.SetWriter(&StreamWriter{Color: true, Logfmt: NewTextFormatter("%d{2006-01-02T15:04:05.000} [%c] %l - %m%n")})
 	log.Async(100)
 
 	wg := sync.WaitGroup{}
@@ -92,7 +92,7 @@ func TestConsoleAsync(t *testing.T) {
 // Test console strace trace
 func TestConsoleStackTrace(t *testing.T) {
 	log := NewLog()
-	log.SetWriter(&ConsoleWriter{Color: true})
+	log.SetWriter(&StreamWriter{Color: true})
 	testConsoleCalls(log, 1)
 	log.Close()
 }

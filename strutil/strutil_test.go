@@ -6,11 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSplitAnyByte(t *testing.T) {
-	exp := [...]string{"http", "a", "b", "c"}
-	assert.Equal(t, exp[:], SplitAnyByte("http://a.b.c", ":/."), "-")
-}
-
 func TestRemoveByte(t *testing.T) {
 	// RemoveByte("", *) = ""
 	assert.Equal(t, "", RemoveByte("", 'a'))
@@ -24,15 +19,19 @@ func TestRemoveByte(t *testing.T) {
 	assert.Equal(t, "queued", RemoveByte("queued", 'z'))
 }
 
-func TestRemoveAnyBytes(t *testing.T) {
-	// RemoveAnyByte("", *) = ""
-	assert.Equal(t, "", RemoveAnyByte("", "ab"))
-	assert.Equal(t, "", RemoveAnyByte("", "ab"))
-	assert.Equal(t, "", RemoveAnyByte("", "ab"))
+func TestRemoveAny(t *testing.T) {
+	// RemoveAny("", *) = ""
+	assert.Equal(t, "", RemoveAny("", "ab"))
+	assert.Equal(t, "", RemoveAny("", "ab"))
+	assert.Equal(t, "", RemoveAny("", "ab"))
 
-	// RemoveAnyByte("queued", 'ud') = "qee"
-	assert.Equal(t, "qee", RemoveAnyByte("queued", "ud"))
+	assert.Equal(t, "qee", RemoveAny("queued", "ud"))
+	assert.Equal(t, "queued", RemoveAny("queued", "z"))
+	assert.Equal(t, "ありとういます。", RemoveAny("ありがとうございます。", "がござ"))
+}
 
-	// RemoveAnyByte("queued", "z") = "queued"
-	assert.Equal(t, "queued", RemoveAnyByte("queued", "z"))
+func TestSplitAny(t *testing.T) {
+	assert.Equal(t, []string{"http", "a", "b", "c"}, SplitAny("http://a.b.c", ":/."))
+	assert.Equal(t, []string{"http", "あ", "い", "う"}, SplitAny("http://あ.い.う", ":/."))
+	assert.Equal(t, []string{"http", "あ", "い", "う"}, SplitAny("http://あ。い。う", ":/。."))
 }

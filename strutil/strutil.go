@@ -1,6 +1,7 @@
 package strutil
 
 import (
+	"bytes"
 	"regexp"
 	"strings"
 )
@@ -8,27 +9,6 @@ import (
 // ContainsByte reports whether b is within s.
 func ContainsByte(s string, b byte) bool {
 	return strings.IndexByte(s, b) >= 0
-}
-
-// ContainsAnyByte reports whether any byte in sbs is within str.
-func ContainsAnyByte(str string, sbs string) bool {
-	if IsEmpty(sbs) {
-		return true
-	}
-
-	if IsEmpty(str) {
-		return false
-	}
-
-	l := len(str)
-	for i := 0; i < l; i++ {
-		b := str[i]
-		if ContainsByte(sbs, b) {
-			return true
-		}
-	}
-
-	return false
 }
 
 // RemoveByte Removes all occurrences of the byte b from the source string str.
@@ -49,47 +29,46 @@ func RemoveByte(s string, b byte) string {
 	return string(bs[0:p])
 }
 
-// RemoveAnyByte Removes all occurrences of characters from within the source string.
-func RemoveAnyByte(str string, rbs string) string {
-	if IsEmpty(str) || IsEmpty(rbs) {
+// RemoveAny Removes all occurrences of characters from within the source string.
+func RemoveAny(str string, rcs string) string {
+	if IsEmpty(str) || IsEmpty(rcs) {
 		return str
 	}
 
-	l := len(str)
-	bs := make([]byte, l)
+	bb := bytes.Buffer{}
+	bb.Grow(len(str))
 
-	p := 0
-	for i := 0; i < l; i++ {
-		b := str[i]
-		if !ContainsByte(rbs, b) {
-			bs[p] = b
-			p++
+	for _, c := range str {
+		if strings.ContainsRune(rcs, c) {
+			continue
 		}
+		bb.WriteRune(c)
 	}
-	return string(bs[0:p])
+	return bb.String()
 }
 
-// SplitAnyByte split string into string slice by any byte in chars
-func SplitAnyByte(s, chars string) []string {
+// SplitAny split string into string slice by any byte in chars
+func SplitAny(s, chars string) []string {
 	if len(chars) == 0 {
-		a := [1]string{s}
-		return a[:]
+		return []string{s}
 	}
 
 	a := make([]string, 0, 2)
-	l := len(s)
-	b := 0
-	for i := 0; i < l; i++ {
-		c := s[i]
-		if strings.IndexByte(chars, c) >= 0 {
+	b := -1
+	for i, c := range s {
+		if b < 0 {
+			b = i
+		}
+		if strings.ContainsRune(chars, c) {
 			if i > b {
 				a = append(a, s[b:i])
 			}
-			b = i + 1
+			b = -1
 		}
 	}
-	if b < l {
-		a = append(a, s[b:l])
+
+	if b >= 0 && b < len(s) {
+		a = append(a, s[b:])
 	}
 	return a
 }

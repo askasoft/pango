@@ -12,7 +12,7 @@ import (
 
 // IsFileName is illegal file name
 func IsFileName(s string) bool {
-	return !ContainsAnyByte(s, `\/:*?"<>|`)
+	return !strings.ContainsAny(s, `\/:*?"<>|`)
 }
 
 // IsEmail checks if the string is an email.
@@ -385,7 +385,7 @@ func IsUUID(s string) bool {
 
 // IsCreditCard checks if the string is a credit card.
 func IsCreditCard(s string) bool {
-	sanitized := RemoveAnyByte(s, " -")
+	sanitized := RemoveAny(s, " -")
 	if !rxCreditCard.MatchString(sanitized) {
 		return false
 	}
@@ -426,7 +426,7 @@ func IsISBN13(s string) bool {
 // IsISBN checks if the string is an ISBN (version 10 or 13).
 // If version value is not equal to 10 or 13, it will be checks both variants.
 func IsISBN(s string, version int) bool {
-	sanitized := RemoveAnyByte(s, " -")
+	sanitized := RemoveAny(s, " -")
 	var checksum int32
 	var i int32
 	if version == 10 {

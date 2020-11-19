@@ -2,9 +2,11 @@ package email
 
 import (
 	"net/mail"
+	"path/filepath"
 	"time"
 
-	"github.com/pandafw/pango/strutil"
+	"github.com/pandafw/pango/ios"
+	"github.com/pandafw/pango/str"
 )
 
 // Email email struct
@@ -89,7 +91,7 @@ func (m *Email) AddTo(s string) error {
 	return err
 }
 
-// GetTos get cc address array
+// GetCcs get cc address array
 func (m *Email) GetCcs() []*mail.Address {
 	return m.ccs
 }
@@ -136,6 +138,15 @@ func (m *Email) AddAttachment(a *Attachment) {
 	m.Attachments = append(m.Attachments, a)
 }
 
+// AttachFile attach a file
+func (m *Email) AttachFile(path string) error {
+	if err := ios.FileExists(path); err != nil {
+		return err
+	}
+	m.AddAttachment(&Attachment{Name: filepath.Base(path), Data: &ios.FileReader{Path: path}})
+	return nil
+}
+
 // GetRecipients get all recipients
 func (m *Email) GetRecipients() []string {
 	rs := make(map[string]bool, len(m.tos)+len(m.ccs)+len(m.bccs))
@@ -150,7 +161,7 @@ func (m *Email) GetRecipients() []string {
 	}
 
 	as := make([]string, 0, len(rs))
-	for a, _ := range rs {
+	for a := range rs {
 		as = append(as, a)
 	}
 
@@ -162,7 +173,7 @@ func (m *Email) GetRcptsByDomain() map[string][]string {
 	rcpts := m.GetRecipients()
 	rs := make(map[string][]string, len(rcpts))
 	for _, r := range rcpts {
-		d := strutil.StringAfterByte(r, '@')
+		d := str.StringAfterByte(r, '@')
 		if d == "" {
 			continue
 		}

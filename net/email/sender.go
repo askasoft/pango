@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/pandafw/pango/enc"
-	"github.com/pandafw/pango/strutil"
+	"github.com/pandafw/pango/str"
 )
 
 // Sender email sender
@@ -22,27 +22,37 @@ type Sender struct {
 	// LocalName is the hostname sent to the SMTP server with the HELO command.
 	// By default, "localhost" is sent.
 	Helo string
+
 	// Host represents the host of the SMTP server.
 	Host string
+
 	// Port represents the port of the SMTP server.
 	Port int
+
 	// Username is the username to use to authenticate to the SMTP server.
 	Username string
+
 	// Password is the password to use to authenticate to the SMTP server.
 	Password string
+
 	// Auth represents the authentication mechanism used to authenticate to the
 	// SMTP server.
 	Auth smtp.Auth
+
+	// Timeout timeout when connect to the SMTP server
+	Timeout time.Duration
+
 	// SSL defines whether an SSL connection is used. It should be false in
 	// most cases since the authentication mechanism should use the STARTTLS
 	// extension instead.
 	SSL bool
+
+	// StartTLS StartTLS when the STARTTLS extension is used
+	StartTLS bool
+
 	// TSLConfig represents the TLS configuration used for the TLS (when the
 	// STARTTLS extension is used) or SSL connection.
 	TLSConfig *tls.Config
-	StartTLS  bool
-	// Timeout timeout when connect to the SMTP server
-	Timeout time.Duration
 
 	client *smtp.Client
 }
@@ -160,6 +170,17 @@ func (s *Sender) Send(mail *Email) error {
 	return c.Quit()
 }
 
+// Close close the SMTP client
+func (s *Sender) Close() error {
+	if s.client == nil {
+		return nil
+	}
+
+	err := s.client.Quit()
+	s.client = nil
+	return err
+}
+
 // header SMTP message header
 type header map[string]string
 
@@ -201,17 +222,30 @@ func writeHead(w io.Writer, h header) error {
 	return err
 }
 
-func copyFile(w io.Writer, r io.Reader) error {
+func closeAttach(r io.Reader) {
+	if c, ok := r.(io.Closer); ok {
+		c.Close()
+	}
+}
+
+func copyAttach(w io.Writer, r io.Reader) error {
+	defer closeAttach(r)
+
 	b := base64.NewEncoder(base64.StdEncoding, enc.NewBase64LineWriter(w))
 	_, err := io.Copy(w, r)
+	if err != nil {
+		return err
+	}
+
+	err = b.Close()
 	if err != nil {
 		return err
 	}
 	return b.Close()
 }
 
-func writeMsg(w io.Writer, enc string, msg string) error {
-	if enc == "Base64" {
+func writeMsg(w io.Writer, encoding string, msg string) error {
+	if encoding == "Base64" {
 		b := base64.NewEncoder(base64.StdEncoding, enc.NewBase64LineWriter(w))
 		err := writeString(b, msg)
 		if err != nil {
@@ -236,23 +270,16 @@ func writeBody(w io.Writer, enc string, m *Email, boundary string) error {
 
 	// Write the message part
 	err = writeString(w, "--"+boundary+"\n")
-	err = writeString(w, HEADER_CONTENT_TYPE)
-	err = writeString(w, ": ")
+	err = writeString(w, "Content-Type: ")
 	if m.HTML {
 		err = writeString(w, "text/html")
 	} else {
 		err = writeString(w, "text/plain")
 	}
-	err = writeString(w, "; charset=UTF-8")
-	err = writeString(w, "\r\n")
+	err = writeString(w, "; charset=UTF-8\r\n")
 
-	err = writeString(w, HEADER_CONTENT_DISPOSITION)
-	err = writeString(w, ": ")
-	err = writeString(w, HEADER_CONTENT_DISPOSITION_INLIE)
-	err = writeString(w, "\r\n")
-
-	err = writeString(w, HEADER_CONTENT_TRANSFER_ENCODING)
-	err = writeString(w, ": ")
+	err = writeString(w, "Content-Disposition: inline\r\n")
+	err = writeString(w, "Content-Transfer-Encoding: ")
 	err = writeString(w, enc)
 	err = writeString(w, "\r\n\r\n")
 	if err != nil {
@@ -287,34 +314,30 @@ func writeAttachments(w io.Writer, as []*Attachment, boundary string) error {
 		err = writeString(w, boundary)
 		err = writeString(w, "\r\n")
 
-		err = writeString(w, HEADER_CONTENT_TYPE)
-		err = writeString(w, ": ")
+		err = writeString(w, "Content-Type: ")
 		err = writeString(w, encodeWord(mt))
 		err = writeString(w, "; name=\"")
 		err = writeString(w, encodeWord(a.Name))
 		err = writeString(w, "\"\r\n")
 
-		err = writeString(w, HEADER_CONTENT_DISPOSITION)
-		err = writeString(w, ": ")
+		err = writeString(w, "Content-Disposition: ")
 		if a.Cid != "" {
-			err = writeString(w, HEADER_CONTENT_DISPOSITION_INLIE)
+			err = writeString(w, "inline")
 		} else {
-			err = writeString(w, HEADER_CONTENT_DISPOSITION_ATTACHMENT)
+			err = writeString(w, "attachment")
 		}
 		err = writeString(w, "; filename=\"")
 		err = writeString(w, encodeWord(a.Name))
 		err = writeString(w, "\"\r\n")
 
 		if a.Cid != "" {
-			err = writeString(w, HEADER_CONTENT_ID)
-			err = writeString(w, ": ")
+			err = writeString(w, "Content-ID: ")
 			err = writeString(w, a.Cid)
 			err = writeString(w, "\r\n")
 		}
-		err = writeString(w, HEADER_CONTENT_TRANSFER_ENCODING)
-		err = writeString(w, ": Base64\r\n\r\n")
+		err = writeString(w, "Content-Transfer-Encoding: Base64\r\n\r\n")
 
-		err = copyFile(w, a.Data)
+		err = copyAttach(w, a.Data)
 		if err != nil {
 			return err
 		}
@@ -330,39 +353,37 @@ func writeAttachments(w io.Writer, as []*Attachment, boundary string) error {
 func (s *Sender) writeMail(w io.Writer, m *Email) error {
 	header := header{}
 
-	header[HEADER_DATE] = formatDate(m.GetDate())
-	header[HEADER_FROM] = m.GetFrom().String()
-	header[HEADER_TO] = encodeAddress(m.GetTos()...)
+	header["MIME-Version"] = "1.0"
+	if m.MsgID != "" {
+		header["Message-ID"] = m.MsgID
+	}
+	header["Date"] = formatDate(m.GetDate())
+	header["From"] = m.GetFrom().String()
+	header["To"] = encodeAddress(m.GetTos()...)
 	if len(m.GetCcs()) > 0 {
-		header[HEADER_CC] = encodeAddress(m.GetCcs()...)
+		header["Cc"] = encodeAddress(m.GetCcs()...)
 	}
 	if len(m.GetBccs()) > 0 {
-		header[HEADER_BCC] = encodeAddress(m.GetBccs()...)
+		header["Bcc"] = encodeAddress(m.GetBccs()...)
 	}
 	if len(m.GetReplys()) > 0 {
-		header[HEADER_REPLY_TO] = encodeAddress(m.GetReplys()...)
+		header["Reply-To"] = encodeAddress(m.GetReplys()...)
 	}
-
-	if m.MsgID != "" {
-		header[HEADER_MESSAGE_ID] = m.MsgID
-	}
-	header[HEADER_SUBJECT] = encodeWord(m.Subject)
-	header[HEADER_MIME_VERSION] = HEADER_MIME_VERSION_10
+	header["Subject"] = encodeWord(m.Subject)
 
 	var boundary string
 	if m.HTML || len(m.Attachments) > 0 {
-		boundary = strutil.RandDigitLetters(28)
-		header[HEADER_CONTENT_TYPE] = "multipart/mixed; boundary=" + boundary
+		boundary = str.RandDigitLetters(28)
+		header["Content-Type"] = "multipart/mixed; boundary=" + boundary
 	} else {
-		header[HEADER_CONTENT_TYPE] = "text/plain; charset=UTF-8"
+		header["Content-Type"] = "text/plain; charset=UTF-8"
 	}
 
 	enc := "7bit"
-	if !strutil.IsASCII(m.Message) {
+	if !str.IsASCII(m.Message) {
 		enc = "Base64"
 	}
-
-	header[HEADER_CONTENT_TRANSFER_ENCODING] = enc
+	header["Content-Transfer-Encoding"] = enc
 
 	writeHead(w, header)
 	writeBody(w, enc, m, boundary)

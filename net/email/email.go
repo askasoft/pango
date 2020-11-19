@@ -1,8 +1,10 @@
 package email
 
 import (
+	"fmt"
 	"net/mail"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/pandafw/pango/ios"
@@ -32,7 +34,11 @@ type Email struct {
 
 // ParseAddress parse email address
 func ParseAddress(s string) (*mail.Address, error) {
-	return mail.ParseAddress(s)
+	a, err := mail.ParseAddress(s)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid address %s - %v", s, err)
+	}
+	return a, nil
 }
 
 // GetDate return the email date
@@ -145,6 +151,37 @@ func (m *Email) AttachFile(path string) error {
 	}
 	m.AddAttachment(&Attachment{Name: filepath.Base(path), Data: &ios.FileReader{Path: path}})
 	return nil
+}
+
+// SetTextMsg set the text message
+func (m *Email) SetTextMsg(msg string) {
+	m.HTML = false
+	m.Message = msg
+}
+
+// SetHTMLMsg set the HTML message
+func (m *Email) SetHTMLMsg(msg string) {
+	m.HTML = true
+	m.Message = msg
+}
+
+// AttachString attach a string date file
+func (m *Email) AttachString(name string, data string) {
+	m.AddAttachment(&Attachment{Name: name, Data: strings.NewReader(data)})
+}
+
+// EmbedFile embed a file
+func (m *Email) EmbedFile(cid string, path string) error {
+	if err := ios.FileExists(path); err != nil {
+		return err
+	}
+	m.AddAttachment(&Attachment{Cid: cid, Name: filepath.Base(path), Data: &ios.FileReader{Path: path}})
+	return nil
+}
+
+// EmbedString embed a string date file
+func (m *Email) EmbedString(cid string, name string, data string) {
+	m.AddAttachment(&Attachment{Cid: cid, Name: name, Data: strings.NewReader(data)})
 }
 
 // GetRecipients get all recipients

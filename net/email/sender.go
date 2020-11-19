@@ -3,6 +3,7 @@ package email
 import (
 	"crypto/tls"
 	"encoding/base64"
+	"fmt"
 	"io"
 	"mime"
 	"net"
@@ -47,14 +48,26 @@ type Sender struct {
 	// extension instead.
 	SSL bool
 
-	// StartTLS StartTLS when the STARTTLS extension is used
-	StartTLS bool
+	// SkipTLS Skip StartTLS when the STARTTLS extension is used
+	SkipTLS bool
 
 	// TSLConfig represents the TLS configuration used for the TLS (when the
 	// STARTTLS extension is used) or SSL connection.
 	TLSConfig *tls.Config
 
 	client *smtp.Client
+}
+
+// DialAndSend opens a connection to the SMTP server, sends the given emails and
+// closes the connection.
+func (s *Sender) DialAndSend(ms ...*Email) error {
+	err := s.Dial()
+	if err != nil {
+		return err
+	}
+	defer s.Close()
+
+	return s.Send(ms...)
 }
 
 // Dial dials and authenticates to an SMTP server.
@@ -67,15 +80,51 @@ func (s *Sender) Dial() error {
 			s.Port = 465
 		}
 	}
+	return s.dial()
+}
 
-	conn, err := net.DialTimeout("tcp", s.Host+":"+strconv.Itoa(s.Port), s.Timeout)
+// Send send mail to SMTP server.
+func (s *Sender) Send(ms ...*Email) error {
+	for i, m := range ms {
+		if err := s.send(m); err != nil {
+			return fmt.Errorf("Failed to send email %d: %v", i+1, err)
+		}
+	}
+
+	return nil
+}
+
+// Close close the SMTP client
+func (s *Sender) Close() error {
+	if s.client == nil {
+		return nil
+	}
+
+	err := s.client.Quit()
+	s.client = nil
+	return err
+}
+
+var wrapConn = func(conn net.Conn) net.Conn {
+	return conn
+}
+
+var wrapWriter = func(w io.Writer) io.Writer {
+	return w
+}
+
+func (s *Sender) dial() error {
+	addr := s.Host + ":" + strconv.Itoa(s.Port)
+	conn, err := net.DialTimeout("tcp", addr, s.Timeout)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to dial %s - %v", addr, err)
 	}
 
 	if s.SSL {
 		conn = tls.Client(conn, s.tlsConfig())
 	}
+
+	conn = wrapConn(conn)
 
 	c, err := smtp.NewClient(conn, s.Host)
 	if err != nil {
@@ -89,7 +138,7 @@ func (s *Sender) Dial() error {
 		}
 	}
 
-	if !s.SSL {
+	if !s.SSL && !s.SkipTLS {
 		if ok, _ := c.Extension("STARTTLS"); ok {
 			if err := c.StartTLS(s.tlsConfig()); err != nil {
 				c.Close()
@@ -103,11 +152,7 @@ func (s *Sender) Dial() error {
 			if strings.Contains(auths, "CRAM-MD5") {
 				s.Auth = smtp.CRAMMD5Auth(s.Username, s.Password)
 			} else if strings.Contains(auths, "LOGIN") && !strings.Contains(auths, "PLAIN") {
-				s.Auth = &loginAuth{
-					username: s.Username,
-					password: s.Password,
-					host:     s.Host,
-				}
+				s.Auth = &loginAuth{host: s.Host, username: s.Username, password: s.Password}
 			} else {
 				s.Auth = smtp.PlainAuth("", s.Username, s.Password, s.Host)
 			}
@@ -125,15 +170,7 @@ func (s *Sender) Dial() error {
 	return nil
 }
 
-func (s *Sender) tlsConfig() *tls.Config {
-	if s.TLSConfig == nil {
-		s.TLSConfig = &tls.Config{ServerName: s.Host}
-	}
-	return s.TLSConfig
-}
-
-// Send send message to SMTP server.
-func (s *Sender) Send(mail *Email) error {
+func (s *Sender) send(mail *Email) error {
 	c := s.client
 	if err := c.Mail(mail.GetSender()); err != nil {
 		if err == io.EOF {
@@ -167,18 +204,14 @@ func (s *Sender) Send(mail *Email) error {
 	if err != nil {
 		return err
 	}
-	return c.Quit()
+	return nil
 }
 
-// Close close the SMTP client
-func (s *Sender) Close() error {
-	if s.client == nil {
-		return nil
+func (s *Sender) tlsConfig() *tls.Config {
+	if s.TLSConfig == nil {
+		s.TLSConfig = &tls.Config{ServerName: s.Host}
 	}
-
-	err := s.client.Quit()
-	s.client = nil
-	return err
+	return s.TLSConfig
 }
 
 // header SMTP message header
@@ -232,15 +265,11 @@ func copyAttach(w io.Writer, r io.Reader) error {
 	defer closeAttach(r)
 
 	b := base64.NewEncoder(base64.StdEncoding, enc.NewBase64LineWriter(w))
-	_, err := io.Copy(w, r)
+	_, err := io.Copy(b, r)
 	if err != nil {
 		return err
 	}
 
-	err = b.Close()
-	if err != nil {
-		return err
-	}
 	return b.Close()
 }
 
@@ -385,6 +414,7 @@ func (s *Sender) writeMail(w io.Writer, m *Email) error {
 	}
 	header["Content-Transfer-Encoding"] = enc
 
+	w = wrapWriter(w)
 	writeHead(w, header)
 	writeBody(w, enc, m, boundary)
 	return nil

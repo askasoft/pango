@@ -32,7 +32,7 @@ func (fr *FileReader) Read(p []byte) (n int, err error) {
 		}
 		fr.file = file
 	}
-	return fr.Read(p)
+	return fr.file.Read(p)
 }
 
 // Close implements io.Close

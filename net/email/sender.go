@@ -70,6 +70,11 @@ func (s *Sender) DialAndSend(ms ...*Email) error {
 	return s.Send(ms...)
 }
 
+// IsDialed return true if the sender is dialed
+func (s *Sender) IsDialed() bool {
+	return s.client != nil
+}
+
 // Dial dials and authenticates to an SMTP server.
 // Should call Close() when done.
 func (s *Sender) Dial() error {

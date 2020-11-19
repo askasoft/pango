@@ -2,13 +2,15 @@ package log
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
+	"strconv"
 )
 
 // StreamWriter implements log Writer Interface and writes messages to terminal.
 type StreamWriter struct {
-	Color  bool         `json:"color"` //this filed is useful only when system's terminal supports color
+	Color  bool         //this filed is useful only when system's terminal supports color
 	Output io.Writer    // log output
 	Logfmt Formatter    // log formatter
 	Logfil Filter       // log filter
@@ -18,6 +20,16 @@ type StreamWriter struct {
 // SetFormat set a log formatter
 func (sw *StreamWriter) SetFormat(format string) {
 	sw.Logfmt = NewTextFormatter(format)
+}
+
+// SetColor set a log formatter
+func (sw *StreamWriter) SetColor(color string) error {
+	clr, err := strconv.ParseBool(color)
+	if err != nil {
+		return fmt.Errorf("Invalid Color: %v", err)
+	}
+	sw.Color = clr
+	return nil
 }
 
 // Write write message in console.

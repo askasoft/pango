@@ -14,18 +14,18 @@ import (
 // FileWriter implements Writer.
 // It writes messages and rotate by file size limit, daily, hourly.
 type FileWriter struct {
-	Path       string    `json:"path"`       // Log file path name
-	Perm       uint32    `json:"perm"`       // Log file permission
-	Async      bool      `json:"async"`      // Log is in async mode
-	Rotate     bool      `json:"rotate"`     // Rotate log files
-	MaxFiles   int       `json:"maxfiles"`   // Max split files
-	MaxSize    int64     `json:"maxsize"`    // Rotate at size
-	Daily      bool      `json:"daily"`      // Rotate daily
-	MaxDays    int       `json:"maxdays"`    // Max daily files
-	Hourly     bool      `json:"hourly"`     // Rotate hourly
-	MaxHours   int       `json:"maxhours"`   // Max hourly files
-	Gzip       bool      `json:"gzip"`       // Compress rotated log files
-	FlushLevel int       `json:"flushlevel"` // Flush by log level
+	Path       string    // Log file path name
+	Perm       uint32    // Log file permission
+	Async      bool      // Log is in async mode
+	Rotate     bool      // Rotate log files
+	MaxFiles   int       // Max split files
+	MaxSize    int64     // Rotate at size
+	Daily      bool      // Rotate daily
+	MaxDays    int       // Max daily files
+	Hourly     bool      // Rotate hourly
+	MaxHours   int       // Max hourly files
+	Gzip       bool      // Compress rotated log files
+	FlushLevel int       // Flush by log level
 	Logfmt     Formatter // log formatter
 	Logfil     Filter    // log filter
 

@@ -17,7 +17,7 @@ func testDirectSendEmail(t *testing.T, m *Email) {
 	m.AddTo(st)
 	m.Subject = "test subject あいうえお " + time.Now().String()
 
-	s := DirectSender{Timeout: time.Second * 5}
+	s := DirectSender{Timeout: time.Second * 5, InsecureSkipVerify: true}
 	err := s.DirectSend(m)
 	if err != nil {
 		t.Error(err)

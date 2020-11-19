@@ -24,9 +24,13 @@ type DirectSender struct {
 	// SkipTLS Skip StartTLS when the STARTTLS extension is used
 	SkipTLS bool
 
-	// TSLConfig represents the TLS configuration used for the TLS (when the
-	// STARTTLS extension is used) or SSL connection.
-	TLSConfig *tls.Config
+	// InsecureSkipVerify controls whether a client verifies the server's
+	// certificate chain and host name. If InsecureSkipVerify is true, crypto/tls
+	// accepts any certificate presented by the server and any host name in that
+	// certificate. In this mode, TLS is susceptible to machine-in-the-middle
+	// attacks unless custom verification is used. This should be used only for
+	// testing or in combination with VerifyConnection or VerifyPeerCertificate.
+	InsecureSkipVerify bool
 
 	sender Sender
 }
@@ -36,7 +40,7 @@ func (ds *DirectSender) DirectSend(ms ...*Email) error {
 	ds.sender.Helo = ds.Helo
 	ds.sender.SSL = ds.SSL
 	ds.sender.SkipTLS = ds.SkipTLS
-	ds.sender.TLSConfig = ds.TLSConfig
+	ds.sender.TLSConfig = &tls.Config{InsecureSkipVerify: ds.InsecureSkipVerify}
 	ds.sender.Port = 25
 
 	for i, m := range ms {
@@ -75,6 +79,7 @@ func (ds *DirectSender) directSends(domain string, addrs []string, mail *Email) 
 		if ds.sender.Host[len(ds.sender.Host)-1] == '.' {
 			ds.sender.Host = ds.sender.Host[:len(ds.sender.Host)-1]
 		}
+		ds.sender.TLSConfig.ServerName = ds.sender.Host
 
 		err = ds.sender.Dial()
 		if err == nil {

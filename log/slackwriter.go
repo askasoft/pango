@@ -10,10 +10,10 @@ import (
 
 // SlackWriter implements log Writer Interface and send log message to slack.
 type SlackWriter struct {
-	Webhook  string    `json:"webhook"`
-	Username string    `json:"username"`
-	Channel  string    `json:"channel"`
-	Timeout  string    `json:"timeout"`
+	Webhook  string
+	Username string
+	Channel  string
+	Timeout  time.Duration
 	Subfmt   Formatter // subject formatter
 	Logfmt   Formatter // log formatter
 	Logfil   Filter    // log filter
@@ -27,6 +27,16 @@ func (sw *SlackWriter) SetSubject(format string) {
 // SetFormat set a log formatter
 func (sw *SlackWriter) SetFormat(format string) {
 	sw.Logfmt = NewTextFormatter(format)
+}
+
+// SetTimeout set timeout
+func (sw *SlackWriter) SetTimeout(timeout string) error {
+	tmo, err := time.ParseDuration(timeout)
+	if err != nil {
+		return fmt.Errorf("SlackWriter - Invalid timeout: %v", err)
+	}
+	sw.Timeout = tmo
+	return nil
 }
 
 // Write send log message to slack
@@ -50,8 +60,7 @@ func (sw *SlackWriter) Write(le *Event) {
 	sa := &slack.Attachment{Text: sw.Logfmt.Format(le)}
 	sm.AddAttachment(sa)
 
-	timeout, _ := time.ParseDuration(sw.Timeout)
-	err := slack.Post(sw.Webhook, timeout, sm)
+	err := slack.Post(sw.Webhook, sw.Timeout, sm)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "SlackWriter(%q) - Post(): %v\n", sw.Webhook, err)
 	}

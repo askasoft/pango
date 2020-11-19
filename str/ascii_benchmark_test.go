@@ -6,7 +6,7 @@ import (
 	"unicode"
 )
 
-func isASCIIRange(s string) bool {
+func testIsASCIIRange(s string) bool {
 	for _, c := range s {
 		if c > unicode.MaxASCII {
 			return false
@@ -16,10 +16,10 @@ func isASCIIRange(s string) bool {
 }
 
 func BenchmarkIsASCIIRange(b *testing.B) {
-	str := ascii()
+	str := testAscii()
 	b.ResetTimer()
 	for N := 0; N < b.N; N++ {
-		is := isASCIIRange(str)
+		is := testIsASCIIRange(str)
 		if !is {
 			b.Fatal("notASCII")
 		}
@@ -27,7 +27,7 @@ func BenchmarkIsASCIIRange(b *testing.B) {
 }
 
 func BenchmarkIsASCIIIndex(b *testing.B) {
-	str := ascii()
+	str := testAscii()
 	b.ResetTimer()
 	for N := 0; N < b.N; N++ {
 		is := IsASCII(str)
@@ -37,25 +37,25 @@ func BenchmarkIsASCIIIndex(b *testing.B) {
 	}
 }
 
-var reASCII = "^[\x00-\x7F]+$"
-var rxASCII = regexp.MustCompile(reASCII)
+var testReASCII = "^[\x00-\x7F]+$"
+var testRxASCII = regexp.MustCompile(testReASCII)
 
-func isASCIIRegex(str string) bool {
-	return rxASCII.MatchString(str)
+func testIsASCIIRegex(str string) bool {
+	return testRxASCII.MatchString(str)
 }
 
 func BenchmarkIsASCIIRegex(b *testing.B) {
-	str := ascii()
+	str := testAscii()
 	b.ResetTimer()
 	for N := 0; N < b.N; N++ {
-		is := isASCIIRegex(str)
+		is := testIsASCIIRegex(str)
 		if !is {
 			b.Log("notASCII")
 		}
 	}
 }
 
-func ascii() string {
+func testAscii() string {
 	byt := make([]byte, unicode.MaxASCII+1)
 	for i := range byt {
 		byt[i] = byte(i)

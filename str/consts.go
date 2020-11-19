@@ -1,4 +1,4 @@
-package strutil
+package str
 
 const (
 	// Digits A String for digits "0123456789"

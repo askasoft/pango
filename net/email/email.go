@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pandafw/pango/ios"
+	"github.com/pandafw/pango/iox"
 	"github.com/pandafw/pango/str"
 )
 
@@ -146,10 +146,10 @@ func (m *Email) AddAttachment(a *Attachment) {
 
 // AttachFile attach a file
 func (m *Email) AttachFile(path string) error {
-	if err := ios.FileExists(path); err != nil {
+	if err := iox.FileExists(path); err != nil {
 		return err
 	}
-	m.AddAttachment(&Attachment{Name: filepath.Base(path), Data: &ios.FileReader{Path: path}})
+	m.AddAttachment(&Attachment{Name: filepath.Base(path), Data: &iox.FileReader{Path: path}})
 	return nil
 }
 
@@ -172,10 +172,10 @@ func (m *Email) AttachString(name string, data string) {
 
 // EmbedFile embed a file
 func (m *Email) EmbedFile(cid string, path string) error {
-	if err := ios.FileExists(path); err != nil {
+	if err := iox.FileExists(path); err != nil {
 		return err
 	}
-	m.AddAttachment(&Attachment{Cid: cid, Name: filepath.Base(path), Data: &ios.FileReader{Path: path}})
+	m.AddAttachment(&Attachment{Cid: cid, Name: filepath.Base(path), Data: &iox.FileReader{Path: path}})
 	return nil
 }
 

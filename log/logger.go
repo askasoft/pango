@@ -6,14 +6,13 @@ import (
 
 // Logger logger interface
 type Logger interface {
+	GetName() string
 	GetLevel() int
 	SetLevel(l int)
 	GetCallerDepth() int
 	SetCallerDepth(d int)
 	GetTraceLevel() int
 	SetTraceLevel(t int)
-	GetName() string
-	SetName(n string)
 	GetProp(k string) interface{}
 	SetProp(k string, v interface{})
 	GetProps() map[string]interface{}
@@ -23,6 +22,9 @@ type Logger interface {
 	IsAsync() bool
 	Lock()
 	Unlock()
+	IsLevelEnabled(lvl int) bool
+	Log(lvl int, v ...interface{})
+	Logf(lvl int, f string, v ...interface{})
 	IsFatalEnabled() bool
 	Fatal(v ...interface{})
 	Fatalf(f string, v ...interface{})
@@ -145,142 +147,117 @@ func (l *logger) Unlock() {
 	l.log.Unlock()
 }
 
+// IsLevelEnabled is specified level enabled
+func (l *logger) IsLevelEnabled(lvl int) bool {
+	return l.level >= lvl
+}
+
+// Log log a message at specified level.
+func (l *logger) Log(lvl int, v ...interface{}) {
+	if l.IsLevelEnabled(LevelFatal) {
+		s := printv(v...)
+		le := newEvent(l, lvl, s)
+		l.log.submit(le)
+	}
+}
+
+// Logf format and log a message at specified level.
+func (l *logger) Logf(lvl int, f string, v ...interface{}) {
+	if l.IsLevelEnabled(lvl) {
+		s := printf(f, v...)
+		le := newEvent(l, lvl, s)
+		l.log.submit(le)
+	}
+}
+
 // IsFatalEnabled is FATAL level enabled
 func (l *logger) IsFatalEnabled() bool {
-	return l.level >= LevelFatal
+	return l.IsLevelEnabled(LevelFatal)
 }
 
 // Fatal log a message at fatal level.
 func (l *logger) Fatal(v ...interface{}) {
-	if l.IsFatalEnabled() {
-		s := printv(v...)
-		le := newEvent(l, LevelFatal, s)
-		l.log.Log(le)
-	}
+	l.Log(LevelFatal, v...)
 }
 
 // Fatalf format and log a message at fatal level.
 func (l *logger) Fatalf(f string, v ...interface{}) {
-	if l.IsFatalEnabled() {
-		s := printf(f, v...)
-		le := newEvent(l, LevelFatal, s)
-		l.log.Log(le)
-	}
+	l.Logf(LevelFatal, f, v...)
 }
 
 // IsErrorEnabled is ERROR level enabled
 func (l *logger) IsErrorEnabled() bool {
-	return l.level >= LevelError
+	return l.IsLevelEnabled(LevelError)
 }
 
 // Error log a message at error level.
 func (l *logger) Error(v ...interface{}) {
-	if l.IsErrorEnabled() {
-		s := printv(v...)
-		le := newEvent(l, LevelError, s)
-		l.log.Log(le)
-	}
+	l.Log(LevelError, v...)
 }
 
 // Errorf format and log a message at error level.
 func (l *logger) Errorf(f string, v ...interface{}) {
-	if l.IsErrorEnabled() {
-		s := printf(f, v...)
-		le := newEvent(l, LevelError, s)
-		l.log.Log(le)
-	}
+	l.Logf(LevelError, f, v...)
 }
 
 // IsWarnEnabled is WARN level enabled
 func (l *logger) IsWarnEnabled() bool {
-	return l.level >= LevelWarn
+	return l.IsLevelEnabled(LevelWarn)
 }
 
 // Warn log a message at warning level.
 func (l *logger) Warn(v ...interface{}) {
-	if l.IsWarnEnabled() {
-		s := printv(v...)
-		le := newEvent(l, LevelWarn, s)
-		l.log.Log(le)
-	}
+	l.Log(LevelWarn, v...)
 }
 
 // Warnf format and log a message at warning level.
 func (l *logger) Warnf(f string, v ...interface{}) {
-	if l.IsWarnEnabled() {
-		s := printf(f, v...)
-		le := newEvent(l, LevelWarn, s)
-		l.log.Log(le)
-	}
+	l.Logf(LevelWarn, f, v...)
 }
 
 // IsInfoEnabled is INFO level enabled
 func (l *logger) IsInfoEnabled() bool {
-	return l.level >= LevelInfo
+	return l.IsLevelEnabled(LevelInfo)
 }
 
 // Info log a message at info level.
 func (l *logger) Info(v ...interface{}) {
-	if l.IsInfoEnabled() {
-		s := printv(v...)
-		le := newEvent(l, LevelInfo, s)
-		l.log.Log(le)
-	}
+	l.Log(LevelInfo, v...)
 }
 
 // Infof format and log a message at info level.
 func (l *logger) Infof(f string, v ...interface{}) {
-	if l.IsInfoEnabled() {
-		s := printf(f, v...)
-		le := newEvent(l, LevelInfo, s)
-		l.log.Log(le)
-	}
+	l.Logf(LevelInfo, f, v...)
 }
 
 // IsDebugEnabled is DEBUG level enabled
 func (l *logger) IsDebugEnabled() bool {
-	return l.level >= LevelDebug
+	return l.IsLevelEnabled(LevelDebug)
 }
 
 // Debug log a message at debug level.
 func (l *logger) Debug(v ...interface{}) {
-	if l.IsDebugEnabled() {
-		s := printv(v...)
-		le := newEvent(l, LevelDebug, s)
-		l.log.Log(le)
-	}
+	l.Log(LevelDebug, v...)
 }
 
 // Debugf format log a message at debug level.
 func (l *logger) Debugf(f string, v ...interface{}) {
-	if l.IsDebugEnabled() {
-		s := printf(f, v...)
-		le := newEvent(l, LevelDebug, s)
-		l.log.Log(le)
-	}
+	l.Logf(LevelDebug, f, v...)
 }
 
 // IsTraceEnabled is TRACE level enabled
 func (l *logger) IsTraceEnabled() bool {
-	return l.level >= LevelTrace
+	return l.IsLevelEnabled(LevelTrace)
 }
 
 // Trace log a message at trace level.
 func (l *logger) Trace(v ...interface{}) {
-	if l.IsTraceEnabled() {
-		s := printv(v...)
-		le := newEvent(l, LevelTrace, s)
-		l.log.Log(le)
-	}
+	l.Log(LevelTrace, v...)
 }
 
 // Tracef format and log a message at trace level.
 func (l *logger) Tracef(f string, v ...interface{}) {
-	if l.IsTraceEnabled() {
-		s := printf(f, v...)
-		le := newEvent(l, LevelTrace, s)
-		l.log.Log(le)
-	}
+	l.Logf(LevelTrace, f, v...)
 }
 
 func printv(v ...interface{}) string {

@@ -22,6 +22,7 @@
 package log
 
 import (
+	"io"
 	"sync"
 )
 
@@ -39,18 +40,27 @@ type Log struct {
 
 // GetLogger returns a new Logger with name
 func (log *Log) GetLogger(name string) Logger {
+	if name == "" || name == ROOT {
+		return log
+	}
 	return &logger{name: name, log: log, logfmt: log.logfmt, depth: log.depth, level: log.level, trace: log.trace}
 }
 
 // Async set the log to asynchronous and start the goroutine
 // if size < 1 then stop async goroutine
 func (log *Log) Async(size int32) *Log {
+	log.Lock()
+	defer log.Unlock()
+
 	if size < 1 {
 		if log.async {
 			// flush and stop async goroutine
 			log.waitg.Add(1)
 			log.sigChan <- "done"
 			log.waitg.Wait()
+			log.drain()
+			close(log.evtChan)
+			close(log.sigChan)
 			log.async = false
 		}
 		return log
@@ -105,8 +115,8 @@ func (log *Log) write(le *Event) {
 	putEvent(le)
 }
 
-// Log log a log event
-func (log *Log) Log(le *Event) {
+// log a log event
+func (log *Log) submit(le *Event) {
 	if log.async {
 		log.evtChan <- le
 	} else {
@@ -122,10 +132,13 @@ func (log *Log) Flush() {
 		log.waitg.Wait()
 		return
 	}
+
+	log.Lock()
+	defer log.Unlock()
 	log.flush()
 }
 
-func (log *Log) flush() {
+func (log *Log) drain() {
 	if log.async {
 		for {
 			if len(log.evtChan) > 0 {
@@ -136,31 +149,36 @@ func (log *Log) flush() {
 			break
 		}
 	}
+}
+
+func (log *Log) flush() {
+	log.drain()
 	if log.writer != nil {
-		log.Lock()
-		defer log.Unlock()
 		log.writer.Flush()
 	}
 }
 
-// Close close logger, flush all chan data and destroy all adapters in Log.
+// Close close logger, flush all chan data and close the writer.
 func (log *Log) Close() {
+	log.Lock()
+	defer log.Unlock()
+
 	if log.async {
 		log.waitg.Add(1)
 		log.sigChan <- "close"
 		log.waitg.Wait()
 		close(log.evtChan)
 		close(log.sigChan)
-	} else {
-		log.flush()
-		log.close()
+		log.async = false
+		return
 	}
+
+	log.flush()
+	log.close()
 }
 
 func (log *Log) close() {
 	if log.writer != nil {
-		log.Lock()
-		defer log.Unlock()
 		log.writer.Close()
 	}
 }
@@ -187,6 +205,13 @@ func (log *Log) Unlock() {
 	}
 }
 
+// Outputer return a io.Writer for go log.SetOutput
+func (log *Log) Outputer(lvl int) io.Writer {
+	lg := log.GetLogger("golog")
+	lg.SetCallerDepth(lg.GetCallerDepth() + 2)
+	return &outputer{logger: lg, level: lvl}
+}
+
 //--------------------------------------------------------------------
 // package functions
 //
@@ -196,11 +221,11 @@ const ROOT = "_"
 
 // NewLog returns a new Log.
 func NewLog() *Log {
-	return newLog(4)
+	return newLog(5)
 }
 
-// log default Log instance
-var log = newLog(5)
+// default package Log instance
+var log = newLog(6)
 
 func newLog(depth int) *Log {
 	log := &Log{}
@@ -213,6 +238,29 @@ func newLog(depth int) *Log {
 	return log
 }
 
+// Default get default Log
+func Default() *Log {
+	return log
+}
+
+// GetLogger returns a new logger
+func GetLogger(name string) Logger {
+	if name == "" || name == ROOT {
+		return log
+	}
+
+	l := log.GetLogger(name)
+	l.SetCallerDepth(GetCallerDepth() - 1)
+	return l
+}
+
+// Outputer return a io.Writer for go log.SetOutput
+func Outputer(lvl int) io.Writer {
+	lg := GetLogger("golog")
+	lg.SetCallerDepth(lg.GetCallerDepth() + 2)
+	return &outputer{logger: lg, level: lvl}
+}
+
 // Async set the Log with Async mode and hold msglen messages
 func Async(msgLen int32) {
 	log.Async(msgLen)
@@ -223,21 +271,24 @@ func IsAsync() bool {
 	return log.async
 }
 
+// SetFormatter set the formatter.
+func SetFormatter(lf Formatter) {
+	log.SetFormatter(lf)
+}
+
 // SetWriter set the writer.
 func SetWriter(lw Writer) {
 	log.SetWriter(lw)
 }
 
-// Reset will remove all the adapter
+// Reset will remove all writers
 func Reset() {
 	log.Reset()
 }
 
-// GetLogger returns a new logger
-func GetLogger(name string) Logger {
-	l := log.GetLogger(name)
-	l.SetCallerDepth(GetCallerDepth() - 1)
-	return l
+// Close will remove all writers and stop async goroutine
+func Close() {
+	log.Close()
 }
 
 // GetLevel return the logger's level

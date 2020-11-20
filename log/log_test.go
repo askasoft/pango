@@ -2,10 +2,26 @@ package log
 
 import (
 	"fmt"
+	"path"
+	"runtime"
 	"testing"
 )
 
-func newLogTestWriter() Writer {
+func testGetCaller(offset int) (string, int, string) {
+	rpc := make([]uintptr, 1)
+	n := runtime.Callers(2, rpc)
+	if n > 0 {
+		frames := runtime.CallersFrames(rpc)
+		frame, _ := frames.Next()
+		_, ffun := path.Split(frame.Function)
+		_, file := path.Split(frame.File)
+		line := frame.Line + offset
+		return file, line, ffun
+	}
+	return "???", 0, "???"
+}
+
+func testNewConsoleWriter() Writer {
 	return &StreamWriter{Color: true}
 }
 
@@ -29,7 +45,7 @@ func TestLogNilWriter(t *testing.T) {
 
 func TestLogFuncs(t *testing.T) {
 	fmt.Println("\n\n--------------- TestLogFuncs ---------------------")
-	log.SetWriter(newLogTestWriter())
+	log.SetWriter(testNewConsoleWriter())
 	SetLevel(LevelTrace)
 	for i := 0; i < 1; i++ {
 		Fatal("fatal")
@@ -51,7 +67,7 @@ func TestLogNewLog(t *testing.T) {
 	fmt.Println("\n\n-------------- TestLogNewLog ---------------------")
 	log1 := NewLog()
 	log1.SetLevel(LevelTrace)
-	log1.SetWriter(newLogTestWriter())
+	log1.SetWriter(testNewConsoleWriter())
 	testLoggerCalls(log1)
 }
 
@@ -59,7 +75,7 @@ func TestLogNewLogGetLogger(t *testing.T) {
 	fmt.Println("\n\n-------------- TestLogNewLogGetLogger ---------")
 	log1 := NewLog()
 	log1.SetLevel(LevelTrace)
-	log1.SetWriter(newLogTestWriter())
+	log1.SetWriter(testNewConsoleWriter())
 	log2 := log1.GetLogger("hello")
 	testLoggerCalls(log2)
 }
@@ -69,7 +85,7 @@ func TestLogNewLogProp(t *testing.T) {
 	log1 := NewLog()
 	log1.SetFormatter(NewTextFormatter("%x{key} %x{nil} - %m%T%n"))
 	log1.SetLevel(LevelTrace)
-	log1.SetWriter(newLogTestWriter())
+	log1.SetWriter(testNewConsoleWriter())
 	log1.SetProp("key", "val")
 	testLoggerCalls(log1)
 }

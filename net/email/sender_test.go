@@ -2,23 +2,28 @@ package email
 
 import (
 	"crypto/tls"
-	"io"
+	"net"
 	"os"
 	"strconv"
-	"strings"
 	"testing"
 	"time"
+
+	"github.com/pandafw/pango/iox"
 )
 
 func testSendEmail(t *testing.T, m *Email) {
-	// wrapConn = func(conn net.Conn) net.Conn {
-	// 	return &netutil.ConnDump{Conn: conn, Recv: os.Stdout, Send: os.Stdout}
-	// }
-	wrapWriter = func(w io.Writer) io.Writer {
-		return io.MultiWriter(os.Stdout, w)
-	}
-
 	s := Sender{Timeout: time.Second * 5}
+	w := iox.SyncWriter(os.Stdout)
+	s.ConnDebug = func(conn net.Conn) net.Conn {
+		return &iox.ConnDump{
+			Conn: conn,
+			Recv: &iox.WrapWriter{Writer: w, Prefix: iox.ConsoleColor.Magenta + "< ", Suffix: iox.ConsoleColor.Reset},
+			Send: &iox.WrapWriter{Writer: w, Prefix: iox.ConsoleColor.Yellow + "> ", Suffix: iox.ConsoleColor.Reset},
+		}
+	}
+	// s.DataDebug = func(w io.Writer) io.Writer {
+	// 	return io.MultiWriter(os.Stdout, w)
+	// }
 
 	s.Host = os.Getenv("SMTP_HOST")
 	if len(s.Host) < 1 {
@@ -34,19 +39,19 @@ func testSendEmail(t *testing.T, m *Email) {
 		return
 	}
 
-	s.Password = strings.Trim(os.Getenv("SMTP_PASS"), "\"")
+	s.Password = os.Getenv("SMTP_PASS")
 	if len(s.Password) < 1 {
 		t.Skip("SMTP_PASS not set")
 		return
 	}
 
-	sf := strings.Trim(os.Getenv("SMTP_FROM"), "\"")
+	sf := os.Getenv("SMTP_FROM")
 	if len(sf) < 1 {
 		t.Skip("SMTP_FROM not set")
 		return
 	}
 
-	st := strings.Trim(os.Getenv("SMTP_TO"), "\"")
+	st := os.Getenv("SMTP_TO")
 	if len(st) < 1 {
 		t.Skip("SMTP_TO not set")
 		return

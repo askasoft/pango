@@ -9,10 +9,13 @@ import (
 	"net"
 	"net/mail"
 	"net/smtp"
+	"net/textproto"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
+	"unsafe"
 
 	"github.com/pandafw/pango/enc"
 	"github.com/pandafw/pango/str"
@@ -54,6 +57,12 @@ type Sender struct {
 	// TSLConfig represents the TLS configuration used for the TLS (when the
 	// STARTTLS extension is used) or SSL connection.
 	TLSConfig *tls.Config
+
+	// ConnDebug  a conn wrap func
+	ConnDebug func(conn net.Conn) net.Conn
+
+	// DataDebug  a data writer wrap func
+	DataDebug func(w io.Writer) io.Writer
 
 	client *smtp.Client
 }
@@ -110,12 +119,18 @@ func (s *Sender) Close() error {
 	return err
 }
 
-var wrapConn = func(conn net.Conn) net.Conn {
-	return conn
+func (s *Sender) setConn(i interface{}, c net.Conn) {
+	v := reflect.ValueOf(i).Elem()
+	f := v.FieldByName("conn")
+	pc := (*net.Conn)(unsafe.Pointer(f.UnsafeAddr()))
+	*pc = c
 }
 
-var wrapWriter = func(w io.Writer) io.Writer {
-	return w
+func (s *Sender) getConn(i interface{}) net.Conn {
+	v := reflect.ValueOf(i).Elem()
+	f := v.FieldByName("conn")
+	pc := (*net.Conn)(unsafe.Pointer(f.UnsafeAddr()))
+	return *pc
 }
 
 func (s *Sender) dial() error {
@@ -129,7 +144,10 @@ func (s *Sender) dial() error {
 		conn = tls.Client(conn, s.tlsConfig())
 	}
 
-	conn = wrapConn(conn)
+	orig := conn
+	if s.ConnDebug != nil {
+		conn = s.ConnDebug(conn)
+	}
 
 	c, err := smtp.NewClient(conn, s.Host)
 	if err != nil {
@@ -144,10 +162,19 @@ func (s *Sender) dial() error {
 	}
 
 	if !s.SSL && !s.SkipTLS {
+		if s.ConnDebug != nil {
+			s.setConn(c, orig)
+			c.Text = textproto.NewConn(orig)
+		}
 		if ok, _ := c.Extension("STARTTLS"); ok {
 			if err := c.StartTLS(s.tlsConfig()); err != nil {
 				c.Close()
 				return err
+			}
+			if s.ConnDebug != nil {
+				ctls := s.getConn(c)
+				conn = s.ConnDebug(ctls)
+				c.Text = textproto.NewConn(conn)
 			}
 		}
 	}
@@ -202,6 +229,7 @@ func (s *Sender) send(mail *Email) error {
 
 	err = s.writeMail(w, mail)
 	if err != nil {
+		w.Close()
 		return err
 	}
 
@@ -419,8 +447,14 @@ func (s *Sender) writeMail(w io.Writer, m *Email) error {
 	}
 	header["Content-Transfer-Encoding"] = enc
 
-	w = wrapWriter(w)
-	writeHead(w, header)
-	writeBody(w, enc, m, boundary)
-	return nil
+	if s.DataDebug != nil {
+		w = s.DataDebug(w)
+	}
+
+	err := writeHead(w, header)
+	if err != nil {
+		return err
+	}
+
+	return writeBody(w, enc, m, boundary)
 }

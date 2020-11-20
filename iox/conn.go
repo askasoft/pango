@@ -1,10 +1,13 @@
-package netutil
+package iox
 
 import (
 	"io"
 	"net"
 	"time"
 )
+
+// ConnWrapFunc a connect wrapper function
+type ConnWrapFunc func(conn net.Conn) net.Conn
 
 // ConnDump a connection dump utility
 type ConnDump struct {

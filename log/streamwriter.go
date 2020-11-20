@@ -6,6 +6,8 @@ import (
 	"io"
 	"os"
 	"strconv"
+
+	"github.com/pandafw/pango/iox"
 )
 
 // StreamWriter implements log Writer Interface and writes messages to terminal.
@@ -51,11 +53,9 @@ func (sw *StreamWriter) Write(le *Event) {
 	sw.bb.Reset()
 	sw.Logfmt.Write(&sw.bb, le)
 	if sw.Color {
-		sw.Output.Write([]byte("\x1b["))
 		sw.Output.Write([]byte(colors[le.Level]))
-		sw.Output.Write([]byte("m"))
 		sw.Output.Write(sw.bb.Bytes())
-		sw.Output.Write([]byte("\x1b[0m"))
+		sw.Output.Write([]byte(colors[0]))
 	} else {
 		sw.Output.Write(sw.bb.Bytes())
 	}
@@ -70,11 +70,11 @@ func (sw *StreamWriter) Close() {
 }
 
 var colors = []string{
-	"0",  // None		reset
-	"91", // Fatal	red
-	"95", // Error	magenta
-	"93", // Warn		yellow
-	"94", // Info		blue
-	"97", // Debug	white
-	"90", // Trace	grey
+	iox.ConsoleColor.Reset,   // None
+	iox.ConsoleColor.Red,     // Fatal
+	iox.ConsoleColor.Magenta, // Error
+	iox.ConsoleColor.Yellow,  // Warn
+	iox.ConsoleColor.Blue,    // Info
+	iox.ConsoleColor.White,   // Debug
+	iox.ConsoleColor.Gray,    // Trace
 }

@@ -144,7 +144,7 @@ func (s *Sender) dial() error {
 		conn = tls.Client(conn, s.tlsConfig())
 	}
 
-	orig := conn
+	corg := conn
 	if s.ConnDebug != nil {
 		conn = s.ConnDebug(conn)
 	}
@@ -163,8 +163,8 @@ func (s *Sender) dial() error {
 
 	if !s.SSL && !s.SkipTLS {
 		if s.ConnDebug != nil {
-			s.setConn(c, orig)
-			c.Text = textproto.NewConn(orig)
+			s.setConn(c, corg)
+			c.Text = textproto.NewConn(corg)
 		}
 		if ok, _ := c.Extension("STARTTLS"); ok {
 			if err := c.StartTLS(s.tlsConfig()); err != nil {
@@ -254,6 +254,7 @@ func formatDate(t time.Time) string {
 	return t.Format(time.RFC1123Z)
 }
 
+// Encode a RFC 822 "word" token into mail-safe form as per RFC 2047.
 func encodeWord(s string) string {
 	return mime.QEncoding.Encode("UTF-8", s)
 }
@@ -277,11 +278,16 @@ func encodeAddress(as ...*mail.Address) string {
 	return sb.String()
 }
 
-func writeHead(w io.Writer, h header) error {
+// http://www.faqs.org/rfcs/rfc2822.html
+func writeHeader(w io.Writer, h header) error {
 	var err error
 	for k, v := range h {
 		err = writeString(w, k)
 		err = writeString(w, ": ")
+		if len(k)+len(v) > 74 {
+			// folding header
+			v = strings.ReplaceAll(v, " ", "\r\n ")
+		}
 		err = writeString(w, v)
 		err = writeString(w, "\r\n")
 	}
@@ -330,20 +336,19 @@ func writeBody(w io.Writer, enc string, m *Email, boundary string) error {
 
 	var err error
 
+	header := header{}
+	if m.HTML {
+		header["Content-Type"] = "text/html; charset=UTF-8"
+	} else {
+		header["Content-Type"] = "text/plain; charset=UTF-8"
+	}
+	header["Content-Disposition"] = "inline"
+	header["Content-Transfer-Encoding"] = enc
+
 	// Write the message part
 	err = writeString(w, "--"+boundary+"\n")
-	err = writeString(w, "Content-Type: ")
-	if m.HTML {
-		err = writeString(w, "text/html")
-	} else {
-		err = writeString(w, "text/plain")
-	}
-	err = writeString(w, "; charset=UTF-8\r\n")
-
-	err = writeString(w, "Content-Disposition: inline\r\n")
-	err = writeString(w, "Content-Transfer-Encoding: ")
-	err = writeString(w, enc)
-	err = writeString(w, "\r\n\r\n")
+	err = writeHeader(w, header)
+	err = writeString(w, "\r\n")
 	if err != nil {
 		return err
 	}
@@ -372,32 +377,21 @@ func writeAttachments(w io.Writer, as []*Attachment, boundary string) error {
 			mt = "application/octet-stream"
 		}
 
-		err = writeString(w, "--")
-		err = writeString(w, boundary)
-		err = writeString(w, "\r\n")
-
-		err = writeString(w, "Content-Type: ")
-		err = writeString(w, encodeWord(mt))
-		err = writeString(w, "; name=\"")
-		err = writeString(w, encodeWord(a.Name))
-		err = writeString(w, "\"\r\n")
-
-		err = writeString(w, "Content-Disposition: ")
+		header := header{}
+		header["Content-Type"] = mt + "; name=\"" + encodeWord(a.Name) + "\""
 		if a.Cid != "" {
-			err = writeString(w, "inline")
+			header["Content-Disposition"] = "inline; filename=\"" + encodeWord(a.Name) + "\""
 		} else {
-			err = writeString(w, "attachment")
+			header["Content-Disposition"] = "attachment; filename=\"" + encodeWord(a.Name) + "\""
 		}
-		err = writeString(w, "; filename=\"")
-		err = writeString(w, encodeWord(a.Name))
-		err = writeString(w, "\"\r\n")
-
 		if a.Cid != "" {
-			err = writeString(w, "Content-ID: ")
-			err = writeString(w, a.Cid)
-			err = writeString(w, "\r\n")
+			header["Content-ID"] = a.Cid
 		}
-		err = writeString(w, "Content-Transfer-Encoding: Base64\r\n\r\n")
+		header["Content-Transfer-Encoding"] = "Base64"
+
+		err = writeString(w, "--"+boundary+"\r\n")
+		err = writeHeader(w, header)
+		err = writeString(w, "\r\n")
 
 		err = copyAttach(w, a.Data)
 		if err != nil {
@@ -451,7 +445,7 @@ func (s *Sender) writeMail(w io.Writer, m *Email) error {
 		w = s.DataDebug(w)
 	}
 
-	err := writeHead(w, header)
+	err := writeHeader(w, header)
 	if err != nil {
 		return err
 	}

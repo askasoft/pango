@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -12,8 +13,15 @@ import (
 )
 
 func testSendEmail(t *testing.T, m *Email) {
-	s := Sender{Timeout: time.Second * 5}
-	w := iox.SyncWriter(os.Stdout)
+	s := Sender{Timeout: time.Second * 5, Helo: "localhost"}
+	// f, err := os.OpenFile("sender.log", os.O_WRONLY|os.O_APPEND|os.O_CREATE, os.FileMode(0666))
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
+	// defer f.Close()
+	f := os.Stdout
+	w := iox.SyncWriter(f)
 	s.ConnDebug = func(conn net.Conn) net.Conn {
 		return &iox.ConnDump{
 			Conn: conn,
@@ -32,7 +40,6 @@ func testSendEmail(t *testing.T, m *Email) {
 	}
 
 	s.Port, _ = strconv.Atoi(os.Getenv("SMTP_PORT"))
-	s.Port = 25
 	s.Username = os.Getenv("SMTP_USER")
 	if len(s.Username) < 1 {
 		t.Skip("SMTP_USER not set")
@@ -57,7 +64,7 @@ func testSendEmail(t *testing.T, m *Email) {
 		return
 	}
 
-	err := m.SetFrom(sf)
+	err = m.SetFrom(sf)
 	if err != nil {
 		t.Error(sf, err)
 		return
@@ -67,7 +74,7 @@ func testSendEmail(t *testing.T, m *Email) {
 		t.Error(st, err)
 		return
 	}
-	m.Subject = "test subject あいうえお " + time.Now().String()
+	m.Subject = "test subject " + time.Now().String() + strings.Repeat(" あいうえお", 10)
 
 	s.TLSConfig = &tls.Config{ServerName: s.Host, InsecureSkipVerify: true}
 	err = s.DialAndSend(m)
@@ -87,7 +94,7 @@ func TestSendTextEmailAttach(t *testing.T) {
 	email := &Email{}
 
 	email.Message = ".\nthis is a test email " + time.Now().String() + " from example.com. あいうえお"
-	email.AttachString("string.txt", "abcdefg")
+	email.AttachString("string.txt", strings.Repeat("abcdefgあいうえお\r\n", 10))
 	err := email.EmbedFile("panda.png", "testdata/panda.png")
 	if err != nil {
 		t.Error(err)
@@ -108,7 +115,7 @@ func TestSendHtmlEmailAttach(t *testing.T) {
 	email := &Email{}
 
 	email.SetHTMLMsg("<pre><IMG src=\"cid:panda.png\"> <font color=red>.\nthis is a test email " + time.Now().String() + " from example.com. あいうえお</font></pre>")
-	email.AttachString("string.txt", "abcdefg")
+	email.AttachString("string.txt", strings.Repeat("abcdefgあいうえお\r\n", 10))
 
 	err := email.EmbedFile("panda.png", "testdata/panda.png")
 	if err != nil {

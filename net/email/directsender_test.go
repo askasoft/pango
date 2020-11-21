@@ -1,24 +1,50 @@
 package email
 
 import (
+	"crypto/tls"
+	"net"
 	"os"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/pandafw/pango/iox"
 )
 
 func testDirectSendEmail(t *testing.T, m *Email) {
+	var err error
+
+	s := &DirectSender{}
+	s.Timeout = time.Second * 5
+	s.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+
+	f := os.Stdout
+	w := iox.SyncWriter(f)
+	s.ConnDebug = func(conn net.Conn) net.Conn {
+		return &iox.ConnDump{
+			Conn: conn,
+			Recv: &iox.WrapWriter{Writer: w, Prefix: iox.ConsoleColor.Magenta + "< ", Suffix: iox.ConsoleColor.Reset},
+			Send: &iox.WrapWriter{Writer: w, Prefix: iox.ConsoleColor.Yellow + "> ", Suffix: iox.ConsoleColor.Reset},
+		}
+	}
+
+	sf := os.Getenv("SMTP_FROM")
+	if len(sf) < 1 {
+		t.Skip("SMTP_FROM not set")
+		return
+	}
+
 	st := os.Getenv("SMTP_TO")
 	if len(st) < 1 {
 		t.Skip("SMTP_TO not set")
 		return
 	}
 
-	m.SetFrom("testテスター <test@example.com>")
+	m.SetFrom(sf)
 	m.AddTo(st)
-	m.Subject = "test subject あいうえお " + time.Now().String()
+	m.Subject = "direct send subject " + time.Now().String() + strings.Repeat(" あいうえお", 10)
 
-	s := DirectSender{Timeout: time.Second * 5, InsecureSkipVerify: true}
-	err := s.DirectSend(m)
+	err = s.DirectSend(m)
 	if err != nil {
 		t.Error(err)
 	}

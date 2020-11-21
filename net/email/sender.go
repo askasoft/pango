@@ -171,11 +171,11 @@ func (s *Sender) dial() error {
 				c.Close()
 				return err
 			}
-			if s.ConnDebug != nil {
-				ctls := s.getConn(c)
-				conn = s.ConnDebug(ctls)
-				c.Text = textproto.NewConn(conn)
-			}
+		}
+		if s.ConnDebug != nil {
+			ctls := s.getConn(c)
+			conn = s.ConnDebug(ctls)
+			c.Text = textproto.NewConn(conn)
 		}
 	}
 

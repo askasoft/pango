@@ -13,8 +13,10 @@ import (
 )
 
 func testSendEmail(t *testing.T, m *Email) {
-	s := Sender{Timeout: time.Second * 5, Helo: "localhost"}
-	// f, err := os.OpenFile("sender.log", os.O_WRONLY|os.O_APPEND|os.O_CREATE, os.FileMode(0666))
+	var err error
+
+	s := &Sender{Timeout: time.Second * 5, Helo: "localhost"}
+	// f, err = os.OpenFile("sender.log", os.O_WRONLY|os.O_APPEND|os.O_CREATE, os.FileMode(0666))
 	// if err != nil {
 	// 	fmt.Println(err)
 	// 	return

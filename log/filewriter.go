@@ -84,7 +84,10 @@ func (fw *FileWriter) Write(le *Event) {
 	fw.fileSize += int64(n)
 
 	if le.Level <= fw.FlushLevel {
-		fw.file.Sync()
+		err := fw.file.Sync()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "FileWriter(%q) - Sync(): %v\n", fw.Path, err)
+		}
 	}
 }
 

@@ -1,7 +1,6 @@
 package str
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -1795,42 +1794,6 @@ func TestIsMAC(t *testing.T) {
 		actual := IsMAC(test.param)
 		if actual != test.expected {
 			t.Errorf("Expected IsMAC(%q) to be %v, got %v", test.param, test.expected, actual)
-		}
-	}
-}
-
-func TestFilePath(t *testing.T) {
-	t.Parallel()
-
-	var tests = []struct {
-		param    string
-		expected bool
-		osType   int
-	}{
-		{"c:\\" + strings.Repeat("a", 32767), true, Win}, //See http://msdn.microsoft.com/en-us/library/aa365247(VS.85).aspx#maxpath
-		{"c:\\" + strings.Repeat("a", 32768), false, Win},
-		{"c:\\path\\file (x86)\bar", true, Win},
-		{"c:\\path\\file", true, Win},
-		{"c:\\path\\file:exe", false, Unknown},
-		{"C:\\", true, Win},
-		{"c:\\path\\file\\", true, Win},
-		{"c:/path/file/", false, Unknown},
-		{"/path/file/", true, Unix},
-		{"/path/file:SAMPLE/", true, Unix},
-		{"/path/file:/.txt", true, Unix},
-		{"/path", true, Unix},
-		{"/path/__bc/file.txt", true, Unix},
-		{"/path/a--ac/file.txt", true, Unix},
-		{"/_path/file.txt", true, Unix},
-		{"/path/__bc/file.txt", true, Unix},
-		{"/path/a--ac/file.txt", true, Unix},
-		{"/__path/--file.txt", true, Unix},
-		{"/path/a bc", true, Unix},
-	}
-	for _, test := range tests {
-		actual, osType := IsFilePath(test.param)
-		if actual != test.expected || osType != test.osType {
-			t.Errorf("Expected IsFilePath(%q) to be %v, got %v", test.param, test.expected, actual)
 		}
 	}
 }

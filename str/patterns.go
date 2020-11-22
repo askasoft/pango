@@ -33,8 +33,6 @@ const (
 	URLSubdomain      = `((www\.)|([a-zA-Z0-9]+([-_\.]?[a-zA-Z0-9])*[a-zA-Z0-9]\.[a-zA-Z0-9]+))`
 	URL               = `^` + URLSchema + `?` + URLUsername + `?` + `((` + URLIP + `|(\[` + IP + `\])|(([a-zA-Z0-9]([a-zA-Z0-9-_]+)?[a-zA-Z0-9]([-\.][a-zA-Z0-9]+)*)|(` + URLSubdomain + `?))?(([a-zA-Z\x{00a1}-\x{ffff}0-9]+-?-?)*[a-zA-Z\x{00a1}-\x{ffff}0-9]+)(?:\.([a-zA-Z\x{00a1}-\x{ffff}]{1,}))?))\.?` + URLPort + `?` + URLPath + `?$`
 	SSN               = `^\d{3}[- ]?\d{2}[- ]?\d{4}$`
-	WinPath           = `^[a-zA-Z]:\\(?:[^\\/:*?"<>|\r\n]+\\)*[^\\/:*?"<>|\r\n]*$`
-	UnixPath          = `^(/[^/\x00]*)+/?$`
 	tagName           = "valid"
 	hasWhitespace     = ".*[[:space:]]"
 	hasWhitespaceOnly = "^[[:space:]]+$"
@@ -78,8 +76,6 @@ var (
 	rxDNSName           = regexp.MustCompile(DNSName)
 	rxURL               = regexp.MustCompile(URL)
 	rxSSN               = regexp.MustCompile(SSN)
-	rxWinPath           = regexp.MustCompile(WinPath)
-	rxUnixPath          = regexp.MustCompile(UnixPath)
 	rxHasWhitespace     = regexp.MustCompile(hasWhitespace)
 	rxHasWhitespaceOnly = regexp.MustCompile(hasWhitespaceOnly)
 	rxIMEI              = regexp.MustCompile(IMEI)

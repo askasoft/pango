@@ -36,10 +36,7 @@ func IsExistingEmail(email string) bool {
 	if len(user) > 64 {
 		return false
 	}
-	switch host {
-	case "localhost", "example.com":
-		return true
-	}
+
 	if userDotRegexp.MatchString(user) || !userRegexp.MatchString(user) || !hostRegexp.MatchString(host) {
 		return false
 	}
@@ -538,21 +535,6 @@ func IsVariableWidth(s string) bool {
 // IsBase64 checks if a string is base64 encoded.
 func IsBase64(s string) bool {
 	return rxBase64.MatchString(s)
-}
-
-// IsFilePath checks is a string is Win or Unix file path and returns it's type.
-func IsFilePath(s string) (bool, int) {
-	if rxWinPath.MatchString(s) {
-		//check windows path limit see:
-		//  http://msdn.microsoft.com/en-us/library/aa365247(VS.85).aspx#maxpath
-		if len(s[3:]) > 32767 {
-			return false, Win
-		}
-		return true, Win
-	} else if rxUnixPath.MatchString(s) {
-		return true, Unix
-	}
-	return false, Unknown
 }
 
 // IsDataURI checks if a string is base64 encoded data URI such as an image

@@ -68,9 +68,9 @@ func TestTextFormatProps2(t *testing.T) {
 func TestJSONFormatDefault(t *testing.T) {
 	jf := JSONFmtDefault
 	le := newEvent(&logger{}, LevelInfo, "default")
-	le.When = time.Time{}
+	le.When = time.Now()
 	le.Caller(2, false)
-	assert.Equal(t, `{"when":"0001-01-01T00:00:00.000Z", "level":"INFO ", "file":"logformatter_test.go", "line":`+strconv.Itoa(le.Line)+`, "func":"log.TestJSONFormatDefault", "msg": "default"}`+eol, jf.Format(le))
+	assert.Equal(t, `{"when":"`+le.When.Format("2006-01-02T15:04:05.000Z07:00")+`", "level":"INFO ", "file":"logformatter_test.go", "line":`+strconv.Itoa(le.Line)+`, "func":"log.TestJSONFormatDefault", "msg": "default"}`+eol, jf.Format(le))
 }
 
 func TestJSONFormatProp(t *testing.T) {

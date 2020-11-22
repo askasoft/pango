@@ -1,5 +1,10 @@
 package log
 
+// NewMultiWriter create a multi writer
+func NewMultiWriter(ws ...Writer) *MultiWriter {
+	return &MultiWriter{Writers: ws}
+}
+
 // MultiWriter write log to multiple writers.
 type MultiWriter struct {
 	Writers []Writer

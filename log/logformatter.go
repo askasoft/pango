@@ -28,8 +28,8 @@ var TextFmtSimple = NewTextFormatter("[%p] %m%n")
 // TextFmtDefault default log format "%d{2006-01-02T15:04:05.000} %l %S:%L %F() - %m%n%T"
 var TextFmtDefault = NewTextFormatter("%d{2006-01-02T15:04:05.000} %l %S:%L %F() - %m%n%T")
 
-// JSONFmtDefault default log format `{"when":%d{2006-01-02T15:04:05.000Z}, "level":%l, "file":%S, "line":%L, "func":%F, "msg": %m}%n`
-var JSONFmtDefault = NewJSONFormatter(`{"when":%d{2006-01-02T15:04:05.000Z}, "level":%l, "file":%S, "line":%L, "func":%F, "msg": %m}%n`)
+// JSONFmtDefault default log format `{"when":%d{2006-01-02T15:04:05.000Z07:00}, "level":%l, "file":%S, "line":%L, "func":%F, "msg": %m}%n`
+var JSONFmtDefault = NewJSONFormatter(`{"when":%d{2006-01-02T15:04:05.000Z07:00}, "level":%l, "file":%S, "line":%L, "func":%F, "msg": %m}%n`)
 
 // NewTextFormatter create a Text Formatter instance
 // Text Format

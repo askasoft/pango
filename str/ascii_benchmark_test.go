@@ -16,7 +16,7 @@ func testIsASCIIRange(s string) bool {
 }
 
 func BenchmarkIsASCIIRange(b *testing.B) {
-	str := testAscii()
+	str := testASCII()
 	b.ResetTimer()
 	for N := 0; N < b.N; N++ {
 		is := testIsASCIIRange(str)
@@ -27,7 +27,7 @@ func BenchmarkIsASCIIRange(b *testing.B) {
 }
 
 func BenchmarkIsASCIIIndex(b *testing.B) {
-	str := testAscii()
+	str := testASCII()
 	b.ResetTimer()
 	for N := 0; N < b.N; N++ {
 		is := IsASCII(str)
@@ -45,7 +45,7 @@ func testIsASCIIRegex(str string) bool {
 }
 
 func BenchmarkIsASCIIRegex(b *testing.B) {
-	str := testAscii()
+	str := testASCII()
 	b.ResetTimer()
 	for N := 0; N < b.N; N++ {
 		is := testIsASCIIRegex(str)
@@ -55,7 +55,7 @@ func BenchmarkIsASCIIRegex(b *testing.B) {
 	}
 }
 
-func testAscii() string {
+func testASCII() string {
 	byt := make([]byte, unicode.MaxASCII+1)
 	for i := range byt {
 		byt[i] = byte(i)

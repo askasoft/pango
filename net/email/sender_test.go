@@ -2,6 +2,7 @@ package email
 
 import (
 	"crypto/tls"
+	"fmt"
 	"net"
 	"os"
 	"strconv"
@@ -12,13 +13,18 @@ import (
 	"github.com/pandafw/pango/iox"
 )
 
+func skipTest(t *testing.T, msg string) {
+	fmt.Println(msg)
+	t.Skip(msg)
+}
+
 func testSendEmail(t *testing.T, m *Email) {
 	var err error
 
 	s := &Sender{Timeout: time.Second * 5, Helo: "localhost"}
-	// f, err = os.OpenFile("sender.log", os.O_WRONLY|os.O_APPEND|os.O_CREATE, os.FileMode(0666))
-	// if err != nil {
-	// 	fmt.Println(err)
+	// f, ef := os.OpenFile("D:\\sender.log", os.O_WRONLY|os.O_APPEND|os.O_CREATE, os.FileMode(0666))
+	// if ef != nil {
+	// 	fmt.Println(ef)
 	// 	return
 	// }
 	// defer f.Close()
@@ -35,34 +41,39 @@ func testSendEmail(t *testing.T, m *Email) {
 	// 	return io.MultiWriter(os.Stdout, w)
 	// }
 
+	// os.Setenv("SMTP_HOST", "smtp.sendgrid.net")
+	// os.Setenv("SMTP_PORT", "25")
+	// os.Setenv("SMTP_USER", "apikey")
+	// os.Setenv("SMTP_PASS", "xx")
+	// os.Setenv("SMTP_TO", "xx@test.com")
 	s.Host = os.Getenv("SMTP_HOST")
 	if len(s.Host) < 1 {
-		t.Skip("SMTP_HOST not set")
+		skipTest(t, "SMTP_HOST not set")
 		return
 	}
 
 	s.Port, _ = strconv.Atoi(os.Getenv("SMTP_PORT"))
 	s.Username = os.Getenv("SMTP_USER")
 	if len(s.Username) < 1 {
-		t.Skip("SMTP_USER not set")
+		skipTest(t, "SMTP_USER not set")
 		return
 	}
 
 	s.Password = os.Getenv("SMTP_PASS")
 	if len(s.Password) < 1 {
-		t.Skip("SMTP_PASS not set")
+		skipTest(t, "SMTP_PASS not set")
 		return
 	}
 
 	sf := os.Getenv("SMTP_FROM")
 	if len(sf) < 1 {
-		t.Skip("SMTP_FROM not set")
+		skipTest(t, "SMTP_FROM not set")
 		return
 	}
 
 	st := os.Getenv("SMTP_TO")
 	if len(st) < 1 {
-		t.Skip("SMTP_TO not set")
+		skipTest(t, "SMTP_TO not set")
 		return
 	}
 

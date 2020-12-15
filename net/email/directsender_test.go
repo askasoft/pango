@@ -30,13 +30,13 @@ func testDirectSendEmail(t *testing.T, m *Email) {
 
 	sf := os.Getenv("SMTP_FROM")
 	if len(sf) < 1 {
-		t.Skip("SMTP_FROM not set")
+		skipTest(t, "SMTP_FROM not set")
 		return
 	}
 
 	st := os.Getenv("SMTP_TO")
 	if len(st) < 1 {
-		t.Skip("SMTP_TO not set")
+		skipTest(t, "SMTP_TO not set")
 		return
 	}
 

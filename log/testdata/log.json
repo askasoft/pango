@@ -1,0 +1,63 @@
+{
+	"async": 1000,
+	"format": "text:%l %S %F() - %m%n%T",
+	"level": {
+		"*": "info",
+		"sql": "debug",
+		"http": "trace"
+	},
+	"writer": [{
+		"_": "stdout",
+		"format": "%l - %m%n%T",
+		"filter": "name:out level:debug"
+	}, {
+		"_": "stderr",
+		"color": true,
+		"format": "%l - %m%n%T",
+		"filter": "level:error"
+	}, {
+		"_": "conn",
+		"net": "tcp",
+		"addr": "localhost:9999",
+		"timeout": "5s",
+		"format": "%l - %m%n%T",
+		"filter": "level:error"
+	}, {
+		"_": "es",
+		"URL": "http://localhost:9200/pango/log",
+		"timeout": "5s",
+		"format": "%l - %m%n%T",
+		"filter": "level:error"
+	}, {
+		"_": "file",
+		"path": "/tmp/gotest/logs/test.log",
+		"daily": true,
+		"maxDays": 7,
+		"flushLevel": "error",
+		"format": "[%t] [%X{k}] %d{yyyy-MM-dd HH:mm:ss.SSS} %-5p %C (%L) - %e - %m%n",
+		"filter": "level:error"
+	}, {
+		"_": "slack",
+		"subject": "%l - %m", 
+		"channel": "develop",
+		"username": "gotest",
+		"webhook": "https://hooks.slack.com/services/...",
+		"timeout": "5s",
+		"format": "%l - %m%n%T",
+		"filter": "level:error"
+	}, {
+		"_": "smtp",
+		"host": "localhost",
+		"port": 25,
+		"username": "-----",
+		"password": "xxxxxxx",
+		"from": "pango@google.com",
+		"to": "to1@test.com; to2@test.com",
+		"cc": "cc1@test.com; cc2@test.com",
+		"timeout": "5s",
+		"subject": "%l - %m", 
+		"format": "%l - %m%n%T",
+		"filter": "level:error"
+	}]
+}
+

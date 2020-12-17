@@ -7,6 +7,8 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+
+	"github.com/pandafw/pango/str"
 )
 
 var eol = geteol()
@@ -30,6 +32,19 @@ var TextFmtDefault = NewTextFormatter("%d{2006-01-02T15:04:05.000} %l %S:%L %F()
 
 // JSONFmtDefault default log format `{"when":%d{2006-01-02T15:04:05.000Z07:00}, "level":%l, "file":%S, "line":%L, "func":%F, "msg": %m}%n`
 var JSONFmtDefault = NewJSONFormatter(`{"when":%d{2006-01-02T15:04:05.000Z07:00}, "level":%l, "file":%S, "line":%L, "func":%F, "msg": %m}%n`)
+
+// NewLogFormatter create a text or json formatter
+// text:[%p] %m%n -> TextFormatter
+// json:{"level":%l, "msg": %m}%n  -> JSONFormatter
+func NewLogFormatter(format string) Formatter {
+	if str.StartsWith(format, "text:") {
+		return NewTextFormatter(format[5:])
+	}
+	if str.StartsWith(format, "json:") {
+		return NewJSONFormatter(format[5:])
+	}
+	return NewTextFormatter(format)
+}
 
 // NewTextFormatter create a Text Formatter instance
 // Text Format

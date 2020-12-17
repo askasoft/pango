@@ -22,9 +22,14 @@ type ConnWriter struct {
 	bb   bytes.Buffer
 }
 
-// SetFormat set a log formatter
+// SetFormat set the log formatter
 func (cw *ConnWriter) SetFormat(format string) {
-	cw.Logfmt = NewTextFormatter(format)
+	cw.Logfmt = NewLogFormatter(format)
+}
+
+// SetFilter set the log filter
+func (cw *ConnWriter) SetFilter(filter string) {
+	cw.Logfil = NewLogFilter(filter)
 }
 
 // SetTimeout set timeout
@@ -42,9 +47,6 @@ func (cw *ConnWriter) Write(le *Event) {
 	if cw.Logfil != nil && cw.Logfil.Reject(le) {
 		return
 	}
-
-	le.Logger.Lock()
-	defer le.Logger.Unlock()
 
 	if cw.Logfmt == nil {
 		cw.Logfmt = le.Logger.GetFormatter()
@@ -111,4 +113,10 @@ func (cw *ConnWriter) dial() {
 	}
 
 	cw.conn = conn
+}
+
+func init() {
+	RegisterWriter("conn", func() Writer {
+		return &ConnWriter{}
+	})
 }

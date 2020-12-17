@@ -19,14 +19,19 @@ type SlackWriter struct {
 	Logfil   Filter    // log filter
 }
 
-// SetSubject set a subject formatter
+// SetSubject set the subject formatter
 func (sw *SlackWriter) SetSubject(format string) {
-	sw.Subfmt = NewTextFormatter(format)
+	sw.Subfmt = NewLogFormatter(format)
 }
 
-// SetFormat set a log formatter
+// SetFormat set the log formatter
 func (sw *SlackWriter) SetFormat(format string) {
-	sw.Logfmt = NewTextFormatter(format)
+	sw.Logfmt = NewLogFormatter(format)
+}
+
+// SetFilter set the log filter
+func (sw *SlackWriter) SetFilter(filter string) {
+	sw.Logfil = NewLogFilter(filter)
 }
 
 // SetTimeout set timeout
@@ -90,4 +95,10 @@ func getIconEmoji(lvl int) string {
 		return ":ant:"
 	}
 	return ":ghost:"
+}
+
+func init() {
+	RegisterWriter("slack", func() Writer {
+		return &SlackWriter{}
+	})
 }

@@ -2,10 +2,8 @@ package log
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"os"
-	"strconv"
 
 	"github.com/pandafw/pango/iox"
 )
@@ -19,19 +17,14 @@ type StreamWriter struct {
 	bb     bytes.Buffer // log buffer
 }
 
-// SetFormat set a log formatter
+// SetFormat set the log formatter
 func (sw *StreamWriter) SetFormat(format string) {
-	sw.Logfmt = NewTextFormatter(format)
+	sw.Logfmt = NewLogFormatter(format)
 }
 
-// SetColor set a log formatter
-func (sw *StreamWriter) SetColor(color string) error {
-	clr, err := strconv.ParseBool(color)
-	if err != nil {
-		return fmt.Errorf("Invalid Color: %v", err)
-	}
-	sw.Color = clr
-	return nil
+// SetFilter set the log filter
+func (sw *StreamWriter) SetFilter(filter string) {
+	sw.Logfil = NewLogFilter(filter)
 }
 
 // Write write message in console.
@@ -39,9 +32,6 @@ func (sw *StreamWriter) Write(le *Event) {
 	if sw.Logfil != nil && sw.Logfil.Reject(le) {
 		return
 	}
-
-	le.Logger.Lock()
-	defer le.Logger.Unlock()
 
 	if sw.Output == nil {
 		sw.Output = os.Stdout
@@ -77,4 +67,16 @@ var colors = []string{
 	iox.ConsoleColor.Blue,    // Info
 	iox.ConsoleColor.White,   // Debug
 	iox.ConsoleColor.Gray,    // Trace
+}
+
+func init() {
+	RegisterWriter("console", func() Writer {
+		return &StreamWriter{Output: os.Stdout, Color: true}
+	})
+	RegisterWriter("stdout", func() Writer {
+		return &StreamWriter{Output: os.Stdout}
+	})
+	RegisterWriter("stderr", func() Writer {
+		return &StreamWriter{Output: os.Stderr}
+	})
 }

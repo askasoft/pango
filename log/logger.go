@@ -20,8 +20,6 @@ type Logger interface {
 	GetFormatter() Formatter
 	SetFormatter(lf Formatter)
 	IsAsync() bool
-	Lock()
-	Unlock()
 	IsLevelEnabled(lvl int) bool
 	Log(lvl int, v ...interface{})
 	Logf(lvl int, f string, v ...interface{})
@@ -135,16 +133,6 @@ func (l *logger) SetFormatter(lf Formatter) {
 // IsAsync return the logger's async
 func (l *logger) IsAsync() bool {
 	return l.log.async
-}
-
-// Lock lock the log
-func (l *logger) Lock() {
-	l.log.Lock()
-}
-
-// Unlock unlock the log
-func (l *logger) Unlock() {
-	l.log.Unlock()
 }
 
 // IsLevelEnabled is specified level enabled

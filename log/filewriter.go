@@ -16,7 +16,6 @@ import (
 type FileWriter struct {
 	Path       string    // Log file path name
 	Perm       uint32    // Log file permission
-	Async      bool      // Log is in async mode
 	Rotate     bool      // Rotate log files
 	MaxFiles   int       // Max split files
 	MaxSize    int64     // Rotate at size
@@ -41,9 +40,19 @@ type FileWriter struct {
 	bb       bytes.Buffer
 }
 
-// SetFormat set a log formatter
+// SetFlushLevel set the flush level
+func (fw *FileWriter) SetFlushLevel(lvl string) {
+	fw.FlushLevel = ParseLevel(lvl)
+}
+
+// SetFormat set the log formatter
 func (fw *FileWriter) SetFormat(format string) {
-	fw.Logfmt = NewTextFormatter(format)
+	fw.Logfmt = NewLogFormatter(format)
+}
+
+// SetFilter set the log filter
+func (fw *FileWriter) SetFilter(filter string) {
+	fw.Logfil = NewLogFilter(filter)
 }
 
 // Write write logger message into file.
@@ -51,9 +60,6 @@ func (fw *FileWriter) Write(le *Event) {
 	if fw.Logfil != nil && fw.Logfil.Reject(le) {
 		return
 	}
-
-	le.Logger.Lock()
-	defer le.Logger.Unlock()
 
 	if fw.Logfmt == nil {
 		fw.Logfmt = le.Logger.GetFormatter()
@@ -346,4 +352,10 @@ func (fw *FileWriter) deleteOutdatedFiles() {
 			}
 		}
 	}
+}
+
+func init() {
+	RegisterWriter("file", func() Writer {
+		return &FileWriter{}
+	})
 }

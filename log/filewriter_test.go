@@ -107,7 +107,7 @@ func TestFileAsyncWrite(t *testing.T) {
 	log := NewLog()
 	log.Async(10)
 	log.SetFormatter(TextFmtSimple)
-	log.SetWriter(&FileWriter{Path: path, Async: true})
+	log.SetWriter(&FileWriter{Path: path})
 
 	wg := sync.WaitGroup{}
 	for i := 1; i < 10; i++ {

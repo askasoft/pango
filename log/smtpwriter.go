@@ -28,14 +28,19 @@ type SMTPWriter struct {
 	sender *email.Sender // email sender
 }
 
-// SetSubject set a subject formatter
+// SetSubject set the subject formatter
 func (sw *SMTPWriter) SetSubject(format string) {
-	sw.Subfmt = NewTextFormatter(format)
+	sw.Subfmt = NewLogFormatter(format)
 }
 
-// SetFormat set a log formatter
+// SetFormat set the log formatter
 func (sw *SMTPWriter) SetFormat(format string) {
-	sw.Logfmt = NewTextFormatter(format)
+	sw.Logfmt = NewLogFormatter(format)
+}
+
+// SetFilter set the log filter
+func (sw *SMTPWriter) SetFilter(filter string) {
+	sw.Logfil = NewLogFilter(filter)
 }
 
 // SetTo set To recipients
@@ -63,9 +68,6 @@ func (sw *SMTPWriter) Write(le *Event) {
 	if sw.Logfil != nil && sw.Logfil.Reject(le) {
 		return
 	}
-
-	le.Logger.Lock()
-	defer le.Logger.Unlock()
 
 	if sw.Subfmt == nil {
 		sw.Subfmt = TextFmtSubject
@@ -136,4 +138,10 @@ func (sw *SMTPWriter) Close() {
 		fmt.Fprintf(os.Stderr, "SMTPWriter(%s:%d) - Close(): %v\n", sw.Host, sw.Port, err)
 		sw.sender = nil
 	}
+}
+
+func init() {
+	RegisterWriter("smtp", func() Writer {
+		return &SMTPWriter{}
+	})
 }

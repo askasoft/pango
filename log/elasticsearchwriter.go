@@ -17,13 +17,18 @@ type ElasticSearchWriter struct {
 	Logfmt  Formatter // log formatter
 	Logfil  Filter    // log filter
 
-	bb bytes.Buffer
 	hc *http.Client
+	bb bytes.Buffer
 }
 
-// SetFormat set a log formatter
+// SetFormat set the log formatter
 func (ew *ElasticSearchWriter) SetFormat(format string) {
-	ew.Logfmt = NewTextFormatter(format)
+	ew.Logfmt = NewJSONFormatter(format)
+}
+
+// SetFilter set the log filter
+func (ew *ElasticSearchWriter) SetFilter(filter string) {
+	ew.Logfil = NewLogFilter(filter)
 }
 
 // SetTimeout set timeout
@@ -41,9 +46,6 @@ func (ew *ElasticSearchWriter) Write(le *Event) {
 	if ew.Logfil != nil && ew.Logfil.Reject(le) {
 		return
 	}
-
-	le.Logger.Lock()
-	defer le.Logger.Unlock()
 
 	if ew.Logfmt == nil {
 		ew.Logfmt = le.Logger.GetFormatter()
@@ -83,4 +85,10 @@ func (ew *ElasticSearchWriter) Flush() {
 
 // Close implementing method. empty.
 func (ew *ElasticSearchWriter) Close() {
+}
+
+func init() {
+	RegisterWriter("es", func() Writer {
+		return &ElasticSearchWriter{}
+	})
 }

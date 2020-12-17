@@ -7,6 +7,11 @@ import (
 	"testing"
 )
 
+func skipTest(t *testing.T, msg string) {
+	fmt.Println(msg)
+	t.Skip(msg)
+}
+
 func testGetCaller(offset int) (string, int, string) {
 	rpc := make([]uintptr, 1)
 	n := runtime.Callers(2, rpc)

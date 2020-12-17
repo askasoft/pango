@@ -36,6 +36,21 @@ type Log struct {
 	waitg   sync.WaitGroup
 	writer  Writer
 	mutex   sync.Mutex
+	levels  map[string]int
+}
+
+// GetLoggerLevel get the named logger level
+func (log *Log) GetLoggerLevel(name string) int {
+	level := log.levels[name]
+	if level == LevelNone {
+		level = log.GetLevel()
+	}
+	return level
+}
+
+// SetLoggerLevel set the named logger level
+func (log *Log) SetLoggerLevel(name string, level int) {
+	log.levels[name] = level
 }
 
 // GetLogger returns a new Logger with name
@@ -43,31 +58,29 @@ func (log *Log) GetLogger(name string) Logger {
 	if name == "" || name == ROOT {
 		return log
 	}
-	return &logger{name: name, log: log, logfmt: log.logfmt, depth: log.depth, level: log.level, trace: log.trace}
+
+	level := log.GetLoggerLevel(name)
+	return &logger{name: name, log: log, logfmt: log.logfmt, depth: log.depth, level: level, trace: log.trace}
 }
 
 // Async set the log to asynchronous and start the goroutine
 // if size < 1 then stop async goroutine
-func (log *Log) Async(size int32) *Log {
-	log.Lock()
-	defer log.Unlock()
+func (log *Log) Async(size int) *Log {
+	log.mutex.Lock()
+	defer log.mutex.Unlock()
 
 	if size < 1 {
 		if log.async {
-			// flush and stop async goroutine
-			log.waitg.Add(1)
-			log.sigChan <- "done"
-			log.waitg.Wait()
-			log.drain()
-			close(log.evtChan)
-			close(log.sigChan)
-			log.async = false
+			log.stopAsync()
 		}
 		return log
 	}
 
 	if log.async {
-		return log
+		if size == len(log.evtChan) {
+			return log
+		}
+		log.stopAsync()
 	}
 
 	log.async = true
@@ -77,8 +90,29 @@ func (log *Log) Async(size int32) *Log {
 	return log
 }
 
-// start logger chan reading.
-// when chan is not empty, write log.
+// SetWriter set the log writer
+func (log *Log) SetWriter(lw Writer) {
+	log.mutex.Lock()
+	defer log.mutex.Unlock()
+
+	log.close()
+	log.writer = lw
+}
+
+// Flush flush all chan data.
+func (log *Log) Flush() {
+	log.mutex.Lock()
+	defer log.mutex.Unlock()
+
+	if log.async {
+		log.execSignal("flush")
+		return
+	}
+
+	log.flush()
+}
+
+// startAsync start async log goroutine
 func (log *Log) startAsync() {
 	done := false
 	for {
@@ -103,9 +137,21 @@ func (log *Log) startAsync() {
 	}
 }
 
-// SetWriter add a writer to the Log
-func (log *Log) SetWriter(lw Writer) {
-	log.writer = lw
+// stopAsync flush and stop async goroutine
+func (log *Log) stopAsync() {
+	log.execSignal("done")
+
+	log.async = false
+	log.drain()
+	close(log.evtChan)
+	close(log.sigChan)
+}
+
+// execSignal send a signal and wait for done
+func (log *Log) execSignal(sig string) {
+	log.waitg.Add(1)
+	log.sigChan <- sig
+	log.waitg.Wait()
 }
 
 func (log *Log) write(le *Event) {
@@ -115,58 +161,53 @@ func (log *Log) write(le *Event) {
 	putEvent(le)
 }
 
-// log a log event
+// submit submit a log event
 func (log *Log) submit(le *Event) {
 	if log.async {
 		log.evtChan <- le
-	} else {
-		log.write(le)
-	}
-}
-
-// Flush flush all chan data.
-func (log *Log) Flush() {
-	if log.async {
-		log.waitg.Add(1)
-		log.sigChan <- "flush"
-		log.waitg.Wait()
 		return
 	}
 
-	log.Lock()
-	defer log.Unlock()
-	log.flush()
+	log.mutex.Lock()
+	log.write(le)
+	log.mutex.Unlock()
 }
 
 func (log *Log) drain() {
-	if log.async {
-		for {
-			if len(log.evtChan) > 0 {
-				le := <-log.evtChan
-				log.write(le)
-				continue
-			}
-			break
+	for {
+		if len(log.evtChan) > 0 {
+			le := <-log.evtChan
+			log.write(le)
+			continue
 		}
+		break
 	}
 }
 
 func (log *Log) flush() {
-	log.drain()
+	if log.async {
+		log.drain()
+	}
+
 	if log.writer != nil {
 		log.writer.Flush()
 	}
 }
 
+func (log *Log) close() {
+	if log.writer != nil {
+		log.writer.Close()
+		log.writer = nil
+	}
+}
+
 // Close close logger, flush all chan data and close the writer.
 func (log *Log) Close() {
-	log.Lock()
-	defer log.Unlock()
+	log.mutex.Lock()
+	defer log.mutex.Unlock()
 
 	if log.async {
-		log.waitg.Add(1)
-		log.sigChan <- "close"
-		log.waitg.Wait()
+		log.execSignal("close")
 		close(log.evtChan)
 		close(log.sigChan)
 		log.async = false
@@ -175,34 +216,6 @@ func (log *Log) Close() {
 
 	log.flush()
 	log.close()
-}
-
-func (log *Log) close() {
-	if log.writer != nil {
-		log.writer.Close()
-	}
-}
-
-// Reset close and clear all writers
-func (log *Log) Reset() {
-	log.Flush()
-
-	// do not close channel
-	log.close()
-}
-
-// Lock lock the log
-func (log *Log) Lock() {
-	if !log.async {
-		log.mutex.Lock()
-	}
-}
-
-// Unlock unlock the log
-func (log *Log) Unlock() {
-	if !log.async {
-		log.mutex.Unlock()
-	}
 }
 
 // Outputer return a io.Writer for go log.SetOutput
@@ -235,6 +248,7 @@ func newLog(depth int) *Log {
 	log.depth = depth
 	log.trace = LevelError
 	log.logfmt = TextFmtDefault
+	log.levels = make(map[string]int)
 	return log
 }
 
@@ -262,7 +276,7 @@ func Outputer(lvl int) io.Writer {
 }
 
 // Async set the Log with Async mode and hold msglen messages
-func Async(msgLen int32) {
+func Async(msgLen int) {
 	log.Async(msgLen)
 }
 
@@ -279,11 +293,6 @@ func SetFormatter(lf Formatter) {
 // SetWriter set the writer.
 func SetWriter(lw Writer) {
 	log.SetWriter(lw)
-}
-
-// Reset will remove all writers
-func Reset() {
-	log.Reset()
 }
 
 // Close will remove all writers and stop async goroutine
@@ -314,7 +323,6 @@ func SetCallerDepth(d int) {
 // IsFatalEnabled is FATAL level enabled
 func IsFatalEnabled() bool {
 	return log.IsFatalEnabled()
-
 }
 
 // Fatal log a message at fatal level.
@@ -330,7 +338,6 @@ func Fatalf(f string, v ...interface{}) {
 // IsErrorEnabled is ERROR level enabled
 func IsErrorEnabled() bool {
 	return log.IsErrorEnabled()
-
 }
 
 // Error log a message at error level.
@@ -362,7 +369,6 @@ func Warnf(f string, v ...interface{}) {
 // IsInfoEnabled is INFO level enabled
 func IsInfoEnabled() bool {
 	return log.IsInfoEnabled()
-
 }
 
 // Info log a message at info level.
@@ -378,7 +384,6 @@ func Infof(f string, v ...interface{}) {
 // IsDebugEnabled is DEBUG level enabled
 func IsDebugEnabled() bool {
 	return log.IsDebugEnabled()
-
 }
 
 // Debug log a message at debug level.
@@ -394,7 +399,6 @@ func Debugf(f string, v ...interface{}) {
 // IsTraceEnabled is TRACE level enabled
 func IsTraceEnabled() bool {
 	return log.IsTraceEnabled()
-
 }
 
 // Trace log a message at trace level.

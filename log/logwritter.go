@@ -54,7 +54,7 @@ func setWriterProp(w Writer, k string, v interface{}) (err error) {
 	r := reflect.ValueOf(w)
 
 	m := r.MethodByName("Set" + p)
-	if m.IsValid() {
+	if m.IsValid() && m.Type().NumIn() == 1 {
 		t := m.Type().In(0)
 		i := reflect.ValueOf(v).Convert(t)
 		m.Call([]reflect.Value{i})
@@ -62,7 +62,7 @@ func setWriterProp(w Writer, k string, v interface{}) (err error) {
 	}
 
 	f := r.Elem().FieldByName(p)
-	if f.IsValid() {
+	if f.IsValid() && f.CanSet() {
 		t := f.Type()
 		i := reflect.ValueOf(v).Convert(t)
 		f.Set(i)

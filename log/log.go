@@ -24,6 +24,8 @@ package log
 import (
 	"io"
 	"sync"
+
+	"github.com/fsnotify/fsnotify"
 )
 
 // Log is default logger in application.
@@ -37,6 +39,7 @@ type Log struct {
 	writer  Writer
 	mutex   sync.Mutex
 	levels  map[string]int
+	watcher *fsnotify.Watcher
 }
 
 // GetLoggerLevel get the named logger level
@@ -205,6 +208,11 @@ func (log *Log) close() {
 func (log *Log) Close() {
 	log.mutex.Lock()
 	defer log.mutex.Unlock()
+
+	if log.watcher != nil {
+		log.watcher.Close()
+		log.watcher = nil
+	}
 
 	if log.async {
 		log.execSignal("close")

@@ -142,7 +142,7 @@ func (l *logger) IsLevelEnabled(lvl int) bool {
 
 // Log log a message at specified level.
 func (l *logger) Log(lvl int, v ...interface{}) {
-	if l.IsLevelEnabled(LevelFatal) {
+	if l.IsLevelEnabled(lvl) {
 		s := printv(v...)
 		le := newEvent(l, lvl, s)
 		l.log.submit(le)

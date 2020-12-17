@@ -1,0 +1,26 @@
+{
+	"async": 1000,
+	"format": "text:%l %S %F() - %m%n%T",
+	"level": {
+		"*": "info",
+		"sql": "debug",
+		"http": "trace"
+	},
+	"writer": [{
+		"_": "file",
+		"path": "conftest/logs/file1.log",
+		"daily": true,
+		"maxDays": 7,
+		"flushLevel": "error",
+		"format": "%l - %m%n",
+		"filter": "level:error"
+	}, {
+		"_": "file",
+		"path": "conftest/logs/file2.log",
+		"daily": true,
+		"maxDays": 7,
+		"flushLevel": "error",
+		"format": "%l - %m%n",
+		"filter": "level:warn name:test"
+	}]
+}

@@ -34,7 +34,7 @@
 		"daily": true,
 		"maxDays": 7,
 		"flushLevel": "error",
-		"format": "[%t] [%X{k}] %d{yyyy-MM-dd HH:mm:ss.SSS} %-5p %C (%L) - %e - %m%n",
+		"format": "%l %S:%L %F() - %m%n%T",
 		"filter": "level:error"
 	}, {
 		"_": "slack",
@@ -60,4 +60,3 @@
 		"filter": "level:error"
 	}]
 }
-

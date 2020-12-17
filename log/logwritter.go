@@ -1,8 +1,73 @@
 package log
 
+import (
+	"fmt"
+	"reflect"
+	"strings"
+)
+
 // Writer defines the behavior of a log writer.
 type Writer interface {
 	Write(le *Event)
 	Close()
 	Flush()
+}
+
+// WriterCreator writer create function
+type WriterCreator func() Writer
+
+var writerCreators = make(map[string]WriterCreator)
+
+// RegisterWriter register log writer type
+func RegisterWriter(name string, wc WriterCreator) {
+	writerCreators[name] = wc
+}
+
+// CreateWriter create a writer by name
+func CreateWriter(name string) Writer {
+	if f, ok := writerCreators[name]; ok {
+		return f()
+	}
+	return nil
+}
+
+// ConfigWriter config the writer by the configuration map 'c'
+func ConfigWriter(w Writer, c map[string]interface{}) error {
+	for k, v := range c {
+		if k != "_" {
+			if err := setWriterProp(w, k, v); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func setWriterProp(w Writer, k string, v interface{}) (err error) {
+	defer func() {
+		if er := recover(); er != nil {
+			err = fmt.Errorf("Panic for set %v: %v", k, er)
+		}
+	}()
+
+	p := strings.Title(k)
+	r := reflect.ValueOf(w)
+
+	m := r.MethodByName("Set" + p)
+	if m.IsValid() {
+		t := m.Type().In(0)
+		i := reflect.ValueOf(v).Convert(t)
+		m.Call([]reflect.Value{i})
+		return nil
+	}
+
+	f := r.Elem().FieldByName(p)
+	if f.IsValid() {
+		t := f.Type()
+		i := reflect.ValueOf(v).Convert(t)
+		f.Set(i)
+		return nil
+	}
+
+	return fmt.Errorf("Missing property %q of %v", k, r.Type())
 }

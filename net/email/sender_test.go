@@ -45,7 +45,8 @@ func testSendEmail(t *testing.T, m *Email) {
 	// os.Setenv("SMTP_PORT", "25")
 	// os.Setenv("SMTP_USER", "apikey")
 	// os.Setenv("SMTP_PASS", "xx")
-	// os.Setenv("SMTP_TO", "xx@test.com")
+	// os.Setenv("SMTP_FROM", "from@test.com")
+	// os.Setenv("SMTP_TO", "to@test.com")
 	s.Host = os.Getenv("SMTP_HOST")
 	if len(s.Host) < 1 {
 		skipTest(t, "SMTP_HOST not set")

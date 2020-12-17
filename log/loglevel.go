@@ -21,6 +21,8 @@ func ParseLevel(lvl string) int {
 			return LevelError
 		case 'w', 'W':
 			return LevelWarn
+		case 'i', 'I':
+			return LevelInfo
 		case 'd', 'D':
 			return LevelDebug
 		case 't', 'T':

@@ -1,5 +1,7 @@
 package log
 
+import "strings"
+
 // Filter log filter
 type Filter interface {
 	Reject(le *Event) bool
@@ -53,4 +55,54 @@ func (mf *MultiFilter) Reject(le *Event) bool {
 // NewMultiFilter create a multiple filter
 func NewMultiFilter(fs ...Filter) *MultiFilter {
 	return &MultiFilter{Filters: fs}
+}
+
+// FilterCreator filter create function
+type FilterCreator func(s string) Filter
+
+var filterCreators = make(map[string]FilterCreator)
+
+// RegisterFilter register log filter type
+func RegisterFilter(name string, fc FilterCreator) {
+	filterCreators[name] = fc
+}
+
+// CreateFilter create a log filter by name and config
+func CreateFilter(name string, conf string) Filter {
+	if f, ok := filterCreators[name]; ok {
+		return f(conf)
+	}
+	return nil
+}
+
+// NewLogFilter create a log filter by the configuration string 'c'
+func NewLogFilter(c string) Filter {
+	fs := []Filter{}
+	ss := strings.Split(c, " ")
+	for _, s := range ss {
+		cs := strings.Split(s, ":")
+		if len(cs) == 2 {
+			f := CreateFilter(cs[0], cs[1])
+			if f != nil {
+				fs = append(fs, f)
+			}
+		}
+	}
+
+	if len(fs) < 1 {
+		return nil
+	}
+	if len(fs) == 1 {
+		return fs[0]
+	}
+	return &MultiFilter{Filters: fs}
+}
+
+func init() {
+	RegisterFilter("name", func(s string) Filter {
+		return NewNameFilter(s)
+	})
+	RegisterFilter("level", func(s string) Filter {
+		return NewLevelFilter(ParseLevel(s))
+	})
 }

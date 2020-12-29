@@ -17,7 +17,7 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/pandafw/pango/enc"
+	"github.com/pandafw/pango/iox"
 	"github.com/pandafw/pango/str"
 )
 
@@ -261,7 +261,7 @@ func encodeWord(s string) string {
 
 func encodeBody(s string) string {
 	sb := strings.Builder{}
-	b := base64.NewEncoder(base64.StdEncoding, enc.NewBase64LineWriter(&sb))
+	b := base64.NewEncoder(base64.StdEncoding, iox.NewMimeChunkWriter(&sb))
 	b.Write([]byte(s))
 	b.Close()
 	return sb.String()
@@ -303,7 +303,7 @@ func closeAttach(r io.Reader) {
 func copyAttach(w io.Writer, r io.Reader) error {
 	defer closeAttach(r)
 
-	b := base64.NewEncoder(base64.StdEncoding, enc.NewBase64LineWriter(w))
+	b := base64.NewEncoder(base64.StdEncoding, iox.NewMimeChunkWriter(w))
 	_, err := io.Copy(b, r)
 	if err != nil {
 		return err
@@ -314,7 +314,7 @@ func copyAttach(w io.Writer, r io.Reader) error {
 
 func writeMsg(w io.Writer, encoding string, msg string) error {
 	if encoding == "Base64" {
-		b := base64.NewEncoder(base64.StdEncoding, enc.NewBase64LineWriter(w))
+		b := base64.NewEncoder(base64.StdEncoding, iox.NewMimeChunkWriter(w))
 		err := writeString(b, msg)
 		if err != nil {
 			return err

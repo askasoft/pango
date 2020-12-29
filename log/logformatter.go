@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"runtime"
 	"strconv"
 	"strings"
 
+	"github.com/pandafw/pango/iox"
 	"github.com/pandafw/pango/str"
 )
 
-var eol = geteol()
+var eol = iox.EOL
 var lvlPrefixs = [LevelTrace + 1]string{"N", "F", "E", "W", "I", "D", "T"}
 var lvlStrings = [LevelTrace + 1]string{"NONE ", "FATAL", "ERROR", "WARN ", "INFO ", "DEBUG", "TRACE"}
 
@@ -302,13 +302,6 @@ func format(le *Event, fmts []fmtfunc) string {
 		ss.WriteString(s)
 	}
 	return ss.String()
-}
-
-func geteol() string {
-	if runtime.GOOS == "windows" {
-		return "\r\n"
-	}
-	return "\n"
 }
 
 func quotefmt(ff fmtfunc) fmtfunc {

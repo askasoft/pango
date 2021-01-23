@@ -54,6 +54,9 @@ func (sw *SlackWriter) Write(le *Event) {
 	}
 	if sw.Logfmt == nil {
 		sw.Logfmt = le.Logger.GetFormatter()
+		if sw.Logfmt == nil {
+			sw.Logfmt = TextFmtDefault
+		}
 	}
 
 	sm := &slack.Message{}

@@ -63,6 +63,9 @@ func (fw *FileWriter) Write(le *Event) {
 
 	if fw.Logfmt == nil {
 		fw.Logfmt = le.Logger.GetFormatter()
+		if fw.Logfmt == nil {
+			fw.Logfmt = TextFmtDefault
+		}
 	}
 
 	fw.init()

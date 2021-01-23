@@ -13,7 +13,7 @@ import (
 
 var eol = iox.EOL
 var lvlPrefixs = [LevelTrace + 1]string{"N", "F", "E", "W", "I", "D", "T"}
-var lvlStrings = [LevelTrace + 1]string{"NONE ", "FATAL", "ERROR", "WARN ", "INFO ", "DEBUG", "TRACE"}
+var lvlStrings = [LevelTrace + 1]string{"NONE", "FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"}
 
 // Formatter log formater interface
 type Formatter interface {
@@ -22,16 +22,16 @@ type Formatter interface {
 }
 
 // TextFmtSubject subject log format "[%l] %m"
-var TextFmtSubject = NewTextFormatter("[%l] %m")
+var TextFmtSubject = newTextFormatter("[%l] %m")
 
 // TextFmtSimple simple log format "[%p] %m%n"
-var TextFmtSimple = NewTextFormatter("[%p] %m%n")
+var TextFmtSimple = newTextFormatter("[%p] %m%n")
 
 // TextFmtDefault default log format "%d{2006-01-02T15:04:05.000} %l %S:%L %F() - %m%n%T"
-var TextFmtDefault = NewTextFormatter("%d{2006-01-02T15:04:05.000} %l %S:%L %F() - %m%n%T")
+var TextFmtDefault = newTextFormatter("%d{2006-01-02T15:04:05.000} %l %S:%L %F() - %m%n%T")
 
-// JSONFmtDefault default log format `{"when":%d{2006-01-02T15:04:05.000Z07:00}, "level":%l, "file":%S, "line":%L, "func":%F, "msg": %m}%n`
-var JSONFmtDefault = NewJSONFormatter(`{"when":%d{2006-01-02T15:04:05.000Z07:00}, "level":%l, "file":%S, "line":%L, "func":%F, "msg": %m}%n`)
+// JSONFmtDefault default log format `{"when": %d{2006-01-02T15:04:05.000Z07:00}, "level": %l, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`
+var JSONFmtDefault = newJSONFormatter(`{"when": %d{2006-01-02T15:04:05.000Z07:00}, "level": %l, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
 
 // NewLogFormatter create a text or json formatter
 // text:[%p] %m%n -> TextFormatter
@@ -61,6 +61,19 @@ func NewLogFormatter(format string) Formatter {
 // %x{key}: logger property
 // %X{=| }: logger propertys (operator|separator)
 func NewTextFormatter(format string) *TextFormatter {
+	switch format {
+	case "DEFAULT":
+		return TextFmtDefault
+	case "SIMPLE":
+		return TextFmtSimple
+	case "SUBJECT":
+		return TextFmtSubject
+	default:
+		return newTextFormatter(format)
+	}
+}
+
+func newTextFormatter(format string) *TextFormatter {
 	tf := &TextFormatter{}
 	tf.Init(format)
 	return tf
@@ -81,6 +94,15 @@ func NewTextFormatter(format string) *TextFormatter {
 // %X{key}: logger value
 // %X: logger propertys
 func NewJSONFormatter(format string) *JSONFormatter {
+	switch format {
+	case "DEFAULT":
+		return JSONFmtDefault
+	default:
+		return newJSONFormatter(format)
+	}
+}
+
+func newJSONFormatter(format string) *JSONFormatter {
 	jf := &JSONFormatter{}
 	jf.Init(format)
 	return jf

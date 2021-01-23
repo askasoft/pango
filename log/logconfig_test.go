@@ -49,7 +49,7 @@ func TestLogConfigFile2(t *testing.T) {
 	assert.Equal(t, "ERROR - This is error."+eol+"ERROR - This is ERROR."+eol, string(bs))
 
 	bs, _ = ioutil.ReadFile("conftest/logs/file2.log")
-	assert.Equal(t, "WARN  - This is WARN."+eol+"ERROR - This is ERROR."+eol, string(bs))
+	assert.Equal(t, "WARN - This is WARN."+eol+"ERROR - This is ERROR."+eol, string(bs))
 }
 
 func TestLogConfigFile1toFile2(t *testing.T) {
@@ -106,7 +106,7 @@ func TestLogConfigFile1toFile2(t *testing.T) {
 	}
 
 	bs, _ = ioutil.ReadFile("conftest/logs/file2.log")
-	if !assert.Equal(t, "WARN  - This is WARN."+eol+"ERROR - This is ERROR."+eol, string(bs)) {
+	if !assert.Equal(t, "WARN - This is WARN."+eol+"ERROR - This is ERROR."+eol, string(bs)) {
 		return
 	}
 

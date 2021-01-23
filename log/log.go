@@ -255,7 +255,6 @@ func newLog(depth int) *Log {
 	log.level = LevelTrace
 	log.depth = depth
 	log.trace = LevelError
-	log.logfmt = TextFmtDefault
 	log.levels = make(map[string]int)
 	return log
 }

@@ -77,22 +77,22 @@ func (log *Log) Config(file string) error {
 		return err
 	}
 
-	if err = configLogLevel(log, c); err != nil {
+	if err = log.configLogLevel(c); err != nil {
 		return err
 	}
-	if err = configLogFormat(log, c); err != nil {
+	if err = log.configLogFormat(c); err != nil {
 		return err
 	}
-	if err = configLogAsync(log, c); err != nil {
+	if err = log.configLogAsync(c); err != nil {
 		return err
 	}
-	if err = configLogWriter(log, c); err != nil {
+	if err = log.configLogWriter(c); err != nil {
 		return err
 	}
 	return nil
 }
 
-func configLogAsync(log *Log, m map[string]interface{}) error {
+func (log *Log) configLogAsync(m map[string]interface{}) error {
 	if v, ok := m["async"]; ok {
 		if i, ok := v.(float64); ok {
 			log.Async(int(i))
@@ -105,7 +105,7 @@ func configLogAsync(log *Log, m map[string]interface{}) error {
 	return nil
 }
 
-func configLogFormat(log *Log, m map[string]interface{}) error {
+func (log *Log) configLogFormat(m map[string]interface{}) error {
 	if v, ok := m["format"]; ok {
 		if s, ok := v.(string); ok {
 			log.SetFormatter(NewLogFormatter(s))
@@ -116,7 +116,7 @@ func configLogFormat(log *Log, m map[string]interface{}) error {
 	return nil
 }
 
-func configLogLevel(log *Log, m map[string]interface{}) error {
+func (log *Log) configLogLevel(m map[string]interface{}) error {
 	if lvl, ok := m["level"]; ok {
 		switch lvl.(type) {
 		case string:
@@ -138,7 +138,7 @@ func configLogLevel(log *Log, m map[string]interface{}) error {
 	return nil
 }
 
-func configLogWriter(log *Log, m map[string]interface{}) error {
+func (log *Log) configLogWriter(m map[string]interface{}) error {
 	if v, ok := m["writer"]; ok {
 		if a, ok := v.([]interface{}); ok {
 			var ws []Writer

@@ -51,6 +51,9 @@ func (ew *WebhookWriter) Write(le *Event) {
 
 	if ew.Logfmt == nil {
 		ew.Logfmt = le.Logger.GetFormatter()
+		if ew.Logfmt == nil {
+			ew.Logfmt = JSONFmtDefault
+		}
 	}
 
 	if ew.hc == nil {

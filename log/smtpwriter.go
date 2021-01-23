@@ -74,6 +74,9 @@ func (sw *SMTPWriter) Write(le *Event) {
 	}
 	if sw.Logfmt == nil {
 		sw.Logfmt = le.Logger.GetFormatter()
+		if sw.Logfmt == nil {
+			sw.Logfmt = TextFmtDefault
+		}
 	}
 
 	if sw.email == nil {

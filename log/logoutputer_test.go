@@ -39,7 +39,7 @@ func TestGoLogFileCallerGlobal(t *testing.T) {
 	Close()
 
 	bs, _ := ioutil.ReadFile(path + ".log")
-	assert.Equal(t, fmt.Sprintf("INFO  %s:%d %s() - hellogolog\n", file, line, ffun), string(bs))
+	assert.Equal(t, fmt.Sprintf("INFO %s:%d %s() - hellogolog\n", file, line, ffun), string(bs))
 }
 
 func TestGoLogFileCallerNewLog(t *testing.T) {
@@ -56,5 +56,5 @@ func TestGoLogFileCallerNewLog(t *testing.T) {
 	log.Close()
 
 	bs, _ := ioutil.ReadFile(path + ".log")
-	assert.Equal(t, fmt.Sprintf("INFO  %s:%d %s() - hellogolog\n", file, line, ffun), string(bs))
+	assert.Equal(t, fmt.Sprintf("INFO %s:%d %s() - hellogolog\n", file, line, ffun), string(bs))
 }

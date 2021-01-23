@@ -38,6 +38,9 @@ func (sw *StreamWriter) Write(le *Event) {
 	}
 	if sw.Logfmt == nil {
 		sw.Logfmt = le.Logger.GetFormatter()
+		if sw.Logfmt == nil {
+			sw.Logfmt = TextFmtDefault
+		}
 	}
 
 	sw.bb.Reset()

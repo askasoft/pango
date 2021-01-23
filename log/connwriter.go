@@ -50,6 +50,9 @@ func (cw *ConnWriter) Write(le *Event) {
 
 	if cw.Logfmt == nil {
 		cw.Logfmt = le.Logger.GetFormatter()
+		if cw.Logfmt == nil {
+			cw.Logfmt = TextFmtDefault
+		}
 	}
 
 	cw.dial()

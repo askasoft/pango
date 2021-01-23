@@ -1,7 +1,9 @@
 package log
 
 import (
+	"sort"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -20,7 +22,7 @@ func TestTextFormatDefault(t *testing.T) {
 	le := newEvent(&logger{}, LevelInfo, "default")
 	le.When = time.Time{}
 	le.Caller(2, false)
-	assert.Equal(t, `0001-01-01T00:00:00.000 INFO  logformatter_test.go:`+strconv.Itoa(le.Line)+` log.TestTextFormatDefault() - default`+eol, tf.Format(le))
+	assert.Equal(t, `0001-01-01T00:00:00.000 INFO logformatter_test.go:`+strconv.Itoa(le.Line)+` log.TestTextFormatDefault() - default`+eol, tf.Format(le))
 }
 
 func TestTextFormatDate(t *testing.T) {
@@ -49,7 +51,12 @@ func TestTextFormatProps1(t *testing.T) {
 	lg.SetProp("x", nil)
 	le := newEvent(lg, LevelInfo, "props")
 	le.When = time.Time{}
-	assert.Equal(t, `a=av b=bv c=cv n=11 x=<nil>`, tf.Format(le))
+
+	exp := strings.Split(`a=av b=bv c=cv n=11 x=<nil>`, " ")
+	sort.Strings(exp)
+	act := strings.Split(tf.Format(le), " ")
+	sort.Strings(act)
+	assert.Equal(t, exp, act)
 }
 
 func TestTextFormatProps2(t *testing.T) {
@@ -62,7 +69,42 @@ func TestTextFormatProps2(t *testing.T) {
 	lg.SetProp("x", nil)
 	le := newEvent(lg, LevelInfo, "props")
 	le.When = time.Time{}
-	assert.Equal(t, `a=av,b=bv,c=cv,n=11,x=<nil>`, tf.Format(le))
+
+	exp := strings.Split(`a=av,b=bv,c=cv,n=11,x=<nil>`, ",")
+	sort.Strings(exp)
+	act := strings.Split(tf.Format(le), ",")
+	sort.Strings(act)
+	assert.Equal(t, exp, act)
+}
+
+func TestNewTextFormatSimple(t *testing.T) {
+	tf := NewTextFormatter("SIMPLE")
+	le := newEvent(&logger{}, LevelInfo, "simple")
+	le.When = time.Time{}
+	assert.Equal(t, `[I] simple`+eol, tf.Format(le))
+}
+
+func TestNewTextFormatSubject(t *testing.T) {
+	tf := NewTextFormatter("SUBJECT")
+	le := newEvent(&logger{}, LevelInfo, "subject")
+	le.When = time.Time{}
+	assert.Equal(t, `[INFO] subject`, tf.Format(le))
+}
+
+func TestNewTextFormatDefault(t *testing.T) {
+	tf := NewTextFormatter("DEFAULT")
+	le := newEvent(&logger{}, LevelInfo, "default")
+	le.When = time.Time{}
+	le.Caller(2, false)
+	assert.Equal(t, `0001-01-01T00:00:00.000 INFO logformatter_test.go:`+strconv.Itoa(le.Line)+` log.TestNewTextFormatDefault() - default`+eol, tf.Format(le))
+}
+
+func TestNewLogFormatTextDefault(t *testing.T) {
+	tf := NewLogFormatter("text:DEFAULT")
+	le := newEvent(&logger{}, LevelInfo, "default")
+	le.When = time.Time{}
+	le.Caller(2, false)
+	assert.Equal(t, `0001-01-01T00:00:00.000 INFO logformatter_test.go:`+strconv.Itoa(le.Line)+` log.TestNewLogFormatTextDefault() - default`+eol, tf.Format(le))
 }
 
 func TestJSONFormatDefault(t *testing.T) {
@@ -70,7 +112,7 @@ func TestJSONFormatDefault(t *testing.T) {
 	le := newEvent(&logger{}, LevelInfo, "default")
 	le.When = time.Now()
 	le.Caller(2, false)
-	assert.Equal(t, `{"when":"`+le.When.Format("2006-01-02T15:04:05.000Z07:00")+`", "level":"INFO ", "file":"logformatter_test.go", "line":`+strconv.Itoa(le.Line)+`, "func":"log.TestJSONFormatDefault", "msg": "default"}`+eol, jf.Format(le))
+	assert.Equal(t, `{"when": "`+le.When.Format("2006-01-02T15:04:05.000Z07:00")+`", "level": "INFO", "file": "logformatter_test.go", "line": `+strconv.Itoa(le.Line)+`, "func": "log.TestJSONFormatDefault", "msg": "default", "trace": ""}`+eol, jf.Format(le))
 }
 
 func TestJSONFormatProp(t *testing.T) {
@@ -94,4 +136,20 @@ func TestJSONFormatProps(t *testing.T) {
 	le := newEvent(lg, LevelInfo, "props")
 	le.When = time.Time{}
 	assert.Equal(t, `{"m":{"a":"av","b":"bv","c":"cv","n":11,"x":null}}`, jf.Format(le))
+}
+
+func TestNewJSONFormatDefault(t *testing.T) {
+	jf := NewJSONFormatter("DEFAULT")
+	le := newEvent(&logger{}, LevelInfo, "default")
+	le.When = time.Now()
+	le.Caller(2, false)
+	assert.Equal(t, `{"when": "`+le.When.Format("2006-01-02T15:04:05.000Z07:00")+`", "level": "INFO", "file": "logformatter_test.go", "line": `+strconv.Itoa(le.Line)+`, "func": "log.TestNewJSONFormatDefault", "msg": "default", "trace": ""}`+eol, jf.Format(le))
+}
+
+func TestNewLogFormatJSONDefault(t *testing.T) {
+	jf := NewLogFormatter("json:DEFAULT")
+	le := newEvent(&logger{}, LevelInfo, "default")
+	le.When = time.Now()
+	le.Caller(2, false)
+	assert.Equal(t, `{"when": "`+le.When.Format("2006-01-02T15:04:05.000Z07:00")+`", "level": "INFO", "file": "logformatter_test.go", "line": `+strconv.Itoa(le.Line)+`, "func": "log.TestNewLogFormatJSONDefault", "msg": "default", "trace": ""}`+eol, jf.Format(le))
 }

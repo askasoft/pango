@@ -43,7 +43,7 @@ func TestFileCallerGlobal(t *testing.T) {
 
 	// check lastest file
 	bs, _ := ioutil.ReadFile(path + ".log")
-	assert.Equal(t, fmt.Sprintf("INFO  %s:%d %s() - hello%s", file, line, ffun, eol), string(bs))
+	assert.Equal(t, fmt.Sprintf("INFO %s:%d %s() - hello%s", file, line, ffun, eol), string(bs))
 }
 
 func TestFileCallerNewLog(t *testing.T) {
@@ -59,7 +59,7 @@ func TestFileCallerNewLog(t *testing.T) {
 
 	// check lastest file
 	bs, _ := ioutil.ReadFile(path + ".log")
-	assert.Equal(t, fmt.Sprintf("INFO  %s:%d %s() - hello%s", file, line, ffun, eol), string(bs))
+	assert.Equal(t, fmt.Sprintf("INFO %s:%d %s() - hello%s", file, line, ffun, eol), string(bs))
 }
 
 func TestFileSyncWrite(t *testing.T) {

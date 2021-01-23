@@ -23,12 +23,6 @@
 		"format": "%l - %m%n%T",
 		"filter": "level:error"
 	}, {
-		"_": "es",
-		"URL": "http://localhost:9200/pango/log",
-		"timeout": "5s",
-		"format": "%l - %m%n%T",
-		"filter": "level:error"
-	}, {
 		"_": "file",
 		"path": "/tmp/gotest/logs/test.log",
 		"daily": true,
@@ -56,6 +50,13 @@
 		"cc": "cc1@test.com; cc2@test.com",
 		"timeout": "5s",
 		"subject": "%l - %m", 
+		"format": "%l - %m%n%T",
+		"filter": "level:error"
+	}, {
+		"_": "webhook",
+		"webhook": "http://localhost:9200/pango/logs",
+		"contentType": "application/json",
+		"timeout": "5s",
 		"format": "%l - %m%n%T",
 		"filter": "level:error"
 	}]

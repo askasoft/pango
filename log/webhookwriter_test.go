@@ -6,12 +6,13 @@ import (
 )
 
 // Test elasticsearch log
-func TestElasticSearchLog(t *testing.T) {
-	os.Setenv("ELASTICSEARCH_URL", "http://localhost:9200/pango/log")
+// create index: curl -X PUT "http://localhost:9200/pango?pretty"
+func TestWebhook_ESLog(t *testing.T) {
+	//os.Setenv("ES_WEBHOOK", "http://localhost:9200/pango/logs")
 
-	url := os.Getenv("ELASTICSEARCH_URL")
+	url := os.Getenv("ES_WEBHOOK")
 	if len(url) < 1 {
-		t.Skip("ELASTICSEARCH_URL not set")
+		t.Skip("ES_WEBHOOK not set")
 		return
 	}
 
@@ -19,9 +20,10 @@ func TestElasticSearchLog(t *testing.T) {
 	log.SetLevel(LevelTrace)
 	log.SetFormatter(JSONFmtDefault)
 	log.SetWriter(NewMultiWriter(
-		&ElasticSearchWriter{
-			URL:    url,
-			Logfil: NewLevelFilter(LevelDebug),
+		&WebhookWriter{
+			Webhook:     url,
+			ContentType: "application/json",
+			Logfil:      NewLevelFilter(LevelDebug),
 		},
 		&StreamWriter{Color: true},
 	))

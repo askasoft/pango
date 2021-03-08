@@ -651,7 +651,7 @@ func TestIsExistingEmail(t *testing.T) {
 		{"@invalid.com", false},
 		{"NathAn.daVIeS@DomaIn.cOM", true},
 		{"NATHAN.DAVIES@DOMAIN.CO.UK", true},
-		{"prasun.joshi@localhost", true},
+		{"prasun.joshi@localhost", false},
 		{"[prasun.joshi]@DomaIn.cOM", false},
 		{"sizeofuserismorethansixtyfour0123sizeofuserismorethansixtyfour0123@DOMAIN.CO.UK", false},
 		{"nosuchdomain@bar.nosuchdomainsuffix", false},

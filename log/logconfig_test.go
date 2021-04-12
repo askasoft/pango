@@ -18,6 +18,7 @@ func TestLogConfig(t *testing.T) {
 }
 
 func TestLogConfigFile1(t *testing.T) {
+	os.RemoveAll("conftest")
 	defer os.RemoveAll("conftest")
 
 	log := Default()
@@ -32,6 +33,7 @@ func TestLogConfigFile1(t *testing.T) {
 }
 
 func TestLogConfigFile2(t *testing.T) {
+	os.RemoveAll("conftest")
 	defer os.RemoveAll("conftest")
 
 	log := Default()
@@ -53,13 +55,24 @@ func TestLogConfigFile2(t *testing.T) {
 }
 
 func TestLogConfigFile1toFile2(t *testing.T) {
+	os.RemoveAll("conftest")
+	defer os.RemoveAll("conftest")
+
 	path := "conftest/log.json"
 
 	iox.CopyFile("testdata/log-file1.json", path)
 	log := Default()
 	assert.Nil(t, log.Config(path))
 
-	assert.Nil(t, log.Watch(path))
+	fw, err := iox.NewFileWatcher()
+	assert.Nil(t, err)
+	fw.StartWatch()
+	assert.Nil(t, fw.AddFile(path, func(path string) {
+		err := log.Config(path)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to config log by %q: %v\n", path, err)
+		}
+	}))
 
 	log.Info("This is info.")
 	log.Warn("This is warn.")
@@ -74,7 +87,7 @@ func TestLogConfigFile1toFile2(t *testing.T) {
 	// Sleep 1s for log watch
 	time.Sleep(time.Second * 1)
 	fmt.Println("Change config file")
-	err := iox.CopyFile("testdata/log-file2.json", path)
+	err = iox.CopyFile("testdata/log-file2.json", path)
 	if err != nil {
 		fmt.Printf("Failed to change config %v\n", err)
 		assert.Fail(t, "Failed to change config %v", err)
@@ -82,7 +95,7 @@ func TestLogConfigFile1toFile2(t *testing.T) {
 	}
 
 	// wait for file change event and log config reload
-	for i := 0; i < 30; i++ {
+	for i := 0; i < 10; i++ {
 		_, ok := log.writer.(*MultiWriter)
 		if ok {
 			break
@@ -109,6 +122,4 @@ func TestLogConfigFile1toFile2(t *testing.T) {
 	if !assert.Equal(t, "WARN - This is WARN."+eol+"ERROR - This is ERROR."+eol, string(bs)) {
 		return
 	}
-
-	os.RemoveAll("conftest")
 }

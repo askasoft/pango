@@ -4,63 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"time"
-
-	"github.com/fsnotify/fsnotify"
 )
-
-// Watch watch configuration file and config log when file modified
-func (log *Log) Watch(file string) error {
-	log.mutex.Lock()
-	defer log.mutex.Unlock()
-
-	fw, err := fsnotify.NewWatcher()
-	if err != nil {
-		return err
-	}
-
-	if err != fw.Add(file) {
-		fw.Close()
-		return err
-	}
-
-	go log.watch(fw)
-
-	if log.watcher != nil {
-		log.watcher.Close()
-	}
-	log.watcher = fw
-	return nil
-}
-
-func (log *Log) watch(fw *fsnotify.Watcher) {
-	last := time.Now()
-	for {
-		select {
-		case event, ok := <-fw.Events:
-			if !ok {
-				return
-			}
-			if event.Op&fsnotify.Write == fsnotify.Write {
-				// some editor use create->rename to save file,
-				// this cloud raise 2 WRITE event continously,
-				// delay 1s for prevent duplicated event
-				due := last.Add(time.Second)
-				now := time.Now()
-				if due.Before(now) {
-					last = now
-					go func() {
-						time.Sleep(time.Second)
-						err := log.Config(event.Name)
-						if err != nil {
-							fmt.Fprintf(os.Stderr, "Failed to config log by %q: %v\n", event.Name, err)
-						}
-					}()
-				}
-			}
-		}
-	}
-}
 
 // Config config log by configuration file
 func (log *Log) Config(file string) error {
@@ -117,12 +61,12 @@ func (log *Log) configLogFormat(m map[string]interface{}) error {
 }
 
 func (log *Log) configLogLevel(m map[string]interface{}) error {
-	if lvl, ok := m["level"]; ok {
-		switch lvl.(type) {
+	if lv, ok := m["level"]; ok {
+		switch lvl := lv.(type) {
 		case string:
-			log.SetLevel(ParseLevel(lvl.(string)))
+			log.SetLevel(ParseLevel(lvl))
 		case map[string]interface{}:
-			for k, v := range lvl.(map[string]interface{}) {
+			for k, v := range lvl {
 				if s, ok := v.(string); ok {
 					if k == "*" {
 						log.SetLevel(ParseLevel(s))

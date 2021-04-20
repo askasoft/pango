@@ -12,8 +12,9 @@ const PemChunkSize = 64
 type ChunkLineWriter struct {
 	Writer io.Writer
 	EOL    string
-	Length int
-	size   int
+	Length int // chunk line size
+
+	size int // internal writed line size
 }
 
 // NewMimeChunkWriter create a writer for split base64 to 76 characters per line
@@ -27,18 +28,18 @@ func NewPemChunkWriter(w io.Writer) *ChunkLineWriter {
 }
 
 // Write implements io.Writer
-func (w *ChunkLineWriter) Write(p []byte) (int, error) {
-	n := 0
+func (w *ChunkLineWriter) Write(p []byte) (n int, err error) {
+	n = 0
 	for len(p)+w.size > w.Length {
-		w.Writer.Write(p[:w.Length-w.size])
-		w.Writer.Write([]byte(w.EOL))
+		_, err = w.Writer.Write(p[:w.Length-w.size])
+		_, err = w.Writer.Write([]byte(w.EOL))
 		p = p[w.Length-w.size:]
 		n += w.Length - w.size
 		w.size = 0
 	}
 
-	w.Writer.Write(p)
+	_, err = w.Writer.Write(p)
 	w.size += len(p)
 
-	return n + len(p), nil
+	return n + len(p), err
 }

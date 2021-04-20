@@ -42,10 +42,10 @@ func (l *List) At(i int) *ListEntry {
 	}
 
 	if i < l.len/2 {
-		return l.Front().Nexts(i)
+		return l.Front().NextAt(i)
 	}
 
-	return l.Back().Prevs(i)
+	return l.Back().PrevAt(i)
 }
 
 // Front returns the first entry of list l or nil if the list is empty.
@@ -219,5 +219,19 @@ func (l *List) PushFrontList(other *List) {
 	l.lazyInit()
 	for i, e := other.Len(), other.Back(); i > 0; i, e = i-1, e.Prev() {
 		l.insertValue(e.Value, &l.root)
+	}
+}
+
+// Each Call f for each item in the set
+func (l *List) Each(f func(interface{})) {
+	for e := l.Front(); e != nil; e = e.Next() {
+		f(e.Value)
+	}
+}
+
+// ReverseEach Call f for each item in the set with reverse order
+func (l *List) ReverseEach(f func(interface{})) {
+	for e := l.Back(); e != nil; e = e.Prev() {
+		f(e.Value)
 	}
 }

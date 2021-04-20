@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"regexp"
 	"strings"
+	"unicode/utf8"
 )
 
 // StartsWith Tests if the string s starts with the specified prefix b.
@@ -35,6 +36,26 @@ func EndsWith(s string, b string) bool {
 	}
 
 	a := s[len(s)-len(b):]
+	return a == b
+}
+
+// StartsWithByte Tests if the byte slice s starts with the specified prefix b.
+func StartsWithByte(s string, b byte) bool {
+	if IsEmpty(s) {
+		return false
+	}
+
+	a := s[0]
+	return a == b
+}
+
+// EndsWithByte Tests if the byte slice bs ends with the specified suffix b.
+func EndsWithByte(s string, b byte) bool {
+	if IsEmpty(s) {
+		return false
+	}
+
+	a := s[len(s)-1]
 	return a == b
 }
 
@@ -79,27 +100,68 @@ func RemoveAny(str string, rcs string) string {
 	return bb.String()
 }
 
-// SplitAny split string into string slice by any byte in chars
+// CountAny counts the number of non-overlapping instances of any character of chars in s.
+// If chars is an empty string, Count returns 1 + the number of Unicode code points in s.
+func CountAny(s, chars string) int {
+	// special case
+	if len(chars) < 2 {
+		return strings.Count(s, chars)
+	}
+
+	n := 0
+	for _, c := range s {
+		if strings.ContainsRune(chars, c) {
+			n++
+		}
+	}
+	return n
+}
+
+// SplitAny split string into string slice by any rune in chars
 func SplitAny(s, chars string) []string {
-	if len(chars) == 0 {
+	if len(chars) < 2 {
+		return strings.Split(s, chars)
+	}
+	if s == "" {
 		return []string{s}
 	}
 
-	a := make([]string, 0, 2)
-	b := -1
+	n := CountAny(s, chars)
+	a := make([]string, 0, n)
+	b := 0
 	for i, c := range s {
-		if b < 0 {
-			b = i
+		if strings.ContainsRune(chars, c) {
+			a = append(a, s[b:i])
+			b = i + utf8.RuneLen(c)
 		}
+	}
+
+	a = append(a, s[b:])
+	return a
+}
+
+// SplitAnyNoEmpty split string (exclude empty string) into string slice by any rune in chars
+func SplitAnyNoEmpty(s, chars string) []string {
+	if len(chars) < 1 {
+		return strings.Split(s, chars)
+	}
+	if s == "" {
+		return nil
+	}
+
+	n := CountAny(s, chars)
+	a := make([]string, 0, n)
+	b := 0
+	for i, c := range s {
 		if strings.ContainsRune(chars, c) {
 			if i > b {
 				a = append(a, s[b:i])
 			}
-			b = -1
+			b = i + utf8.RuneLen(c)
 		}
 	}
 
-	if b >= 0 && b < len(s) {
+	if b < len(s) {
 		a = append(a, s[b:])
 	}
 	return a
@@ -110,4 +172,23 @@ func SplitAny(s, chars string) []string {
 func Matches(str, pattern string) bool {
 	match, _ := regexp.MatchString(pattern, str)
 	return match
+}
+
+// TrimSpaces trim every string in the string array.
+func TrimSpaces(ss []string) []string {
+	for i := 0; i < len(ss); i++ {
+		ss[i] = strings.TrimSpace(ss[i])
+	}
+	return ss
+}
+
+// RemoveEmptys remove empty string in the string array ss, and returns the new string array
+func RemoveEmptys(ss []string) []string {
+	ds := make([]string, 0, len(ss))
+	for _, s := range ss {
+		if s != "" {
+			ds = append(ds, s)
+		}
+	}
+	return ds
 }

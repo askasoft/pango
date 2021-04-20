@@ -59,7 +59,15 @@ func TestRemoveAny(t *testing.T) {
 }
 
 func TestSplitAny(t *testing.T) {
-	assert.Equal(t, []string{"http", "a", "b", "c"}, SplitAny("http://a.b.c", ":/."))
-	assert.Equal(t, []string{"http", "あ", "い", "う"}, SplitAny("http://あ.い.う", ":/."))
-	assert.Equal(t, []string{"http", "あ", "い", "う"}, SplitAny("http://あ。い。う", ":/。."))
+	assert.Equal(t, []string{"http://a", "b-", ""}, SplitAny("http://a.b-c", ".c"))
+	assert.Equal(t, []string{"http", "", "", "a", "b", "c"}, SplitAny("http://a.b.c", ":/."))
+	assert.Equal(t, []string{"http", "", "", "あ", "い", "う"}, SplitAny("http://あ.い.う", ":/."))
+	assert.Equal(t, []string{"http", "", "", "あ", "い", "う"}, SplitAny("http://あ。い。う", ":/。."))
+}
+
+func TestSplitAnyNoEmpty(t *testing.T) {
+	assert.Equal(t, []string{"http://a", "b"}, SplitAnyNoEmpty("http://a.b.c", ".c"))
+	assert.Equal(t, []string{"http", "a", "b", "c"}, SplitAnyNoEmpty("http://a.b.c", ":/."))
+	assert.Equal(t, []string{"http", "あ", "い", "う"}, SplitAnyNoEmpty("http://あ.い.う", ":/."))
+	assert.Equal(t, []string{"http", "あ", "い", "う"}, SplitAnyNoEmpty("http://あ。い。う", ":/。."))
 }

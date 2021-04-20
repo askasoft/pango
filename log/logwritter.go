@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+
+	"github.com/pandafw/pango/ref"
 )
 
 // Writer defines the behavior of a log writer.
@@ -56,7 +58,12 @@ func setWriterProp(w Writer, k string, v interface{}) (err error) {
 	m := r.MethodByName("Set" + p)
 	if m.IsValid() && m.Type().NumIn() == 1 {
 		t := m.Type().In(0)
-		i := reflect.ValueOf(v).Convert(t)
+
+		i, err := ref.Convert(v, t)
+		if err != nil {
+			return err
+		}
+
 		m.Call([]reflect.Value{i})
 		return nil
 	}
@@ -64,7 +71,12 @@ func setWriterProp(w Writer, k string, v interface{}) (err error) {
 	f := r.Elem().FieldByName(p)
 	if f.IsValid() && f.CanSet() {
 		t := f.Type()
-		i := reflect.ValueOf(v).Convert(t)
+
+		i, err := ref.Convert(v, t)
+		if err != nil {
+			return err
+		}
+
 		f.Set(i)
 		return nil
 	}

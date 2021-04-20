@@ -122,4 +122,8 @@ func init() {
 	RegisterWriter("conn", func() Writer {
 		return &ConnWriter{}
 	})
+
+	RegisterWriter("tcp", func() Writer {
+		return &ConnWriter{Net: "tcp"}
+	})
 }

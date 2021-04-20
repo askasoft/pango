@@ -45,12 +45,12 @@ func (sw *SMTPWriter) SetFilter(filter string) {
 
 // SetTo set To recipients
 func (sw *SMTPWriter) SetTo(s string) {
-	sw.Tos = str.SplitAny(s, ",;")
+	sw.Tos = str.RemoveEmptys(str.TrimSpaces(str.SplitAnyNoEmpty(s, ",;")))
 }
 
 // SetCc set Cc recipients
 func (sw *SMTPWriter) SetCc(s string) {
-	sw.Ccs = str.SplitAny(s, ",;")
+	sw.Ccs = str.RemoveEmptys(str.TrimSpaces(str.SplitAnyNoEmpty(s, ",;")))
 }
 
 // SetTimeout set timeout

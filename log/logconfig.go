@@ -2,13 +2,28 @@ package log
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
+
+	"github.com/pandafw/pango/ini"
+	"github.com/pandafw/pango/str"
 )
 
 // Config config log by configuration file
-func (log *Log) Config(file string) error {
-	fp, err := os.Open(file)
+func (log *Log) Config(filename string) error {
+	ext := strings.ToLower(filepath.Ext(filename))
+	if ext == ".json" || ext == ".js" {
+		return log.configJSON(filename)
+	}
+	return log.configINI(filename)
+}
+
+func (log *Log) configJSON(filename string) error {
+	fp, err := os.Open(filename)
 	if err != nil {
 		return err
 	}
@@ -21,28 +36,100 @@ func (log *Log) Config(file string) error {
 		return err
 	}
 
-	if err = log.configLogLevel(c); err != nil {
+	if err := log.configLogAsync(c); err != nil {
 		return err
 	}
-	if err = log.configLogFormat(c); err != nil {
+	if err := log.configLogFormat(c); err != nil {
 		return err
 	}
-	if err = log.configLogAsync(c); err != nil {
+
+	if lvl, ok := c["level"]; ok {
+		switch lvls := lvl.(type) {
+		case string:
+			log.SetLevel(ParseLevel(lvls))
+		case map[string]interface{}:
+			if err := log.configLogLevels(lvls); err != nil {
+				return err
+			}
+		}
+	}
+
+	if v, ok := c["writer"]; ok {
+		if a, ok := v.([]interface{}); ok {
+			if err := log.configLogWriter(a); err != nil {
+				return err
+			}
+		} else {
+			return fmt.Errorf("Invalid writer configuration: %v", v)
+		}
+	} else {
+		return errors.New("Missing writer configuration")
+	}
+	return nil
+}
+
+func (log *Log) configINI(filename string) error {
+	ini := ini.NewIni()
+	if err := ini.LoadFile(filename); err != nil {
 		return err
 	}
-	if err = log.configLogWriter(c); err != nil {
+
+	c := ini.Section("").Kvmap()
+
+	if err := log.configLogAsync(c); err != nil {
 		return err
+	}
+	if err := log.configLogFormat(c); err != nil {
+		return err
+	}
+
+	sec := ini.Section("level")
+	if sec != nil {
+		lvls := sec.Kvmap()
+		if err := log.configLogLevels(lvls); err != nil {
+			return err
+		}
+	}
+
+	if v, ok := c["writer"]; ok {
+		if s, ok := v.(string); ok {
+			ss := str.SplitAnyNoEmpty(s, " ,")
+			a := make([]interface{}, len(ss))
+			for i, w := range ss {
+				sec := ini.Section("writer." + w)
+				if sec == nil {
+					return fmt.Errorf("Missing writer configuration: %v", w)
+				}
+
+				es := sec.Kvmap()
+				if _, ok := es["_"]; !ok {
+					es["_"] = w
+				}
+				a[i] = es
+			}
+			if err := log.configLogWriter(a); err != nil {
+				return err
+			}
+		} else {
+			return fmt.Errorf("Invalid writer configuration: %v", v)
+		}
+	} else {
+		return fmt.Errorf("Missing writer configuration")
 	}
 	return nil
 }
 
 func (log *Log) configLogAsync(m map[string]interface{}) error {
 	if v, ok := m["async"]; ok {
-		if i, ok := v.(float64); ok {
+		switch i := v.(type) {
+		case int:
+		case float32:
+		case float64:
 			log.Async(int(i))
-		} else if i, ok := v.(int); ok {
-			log.Async(i)
-		} else {
+		case string:
+			n, _ := strconv.Atoi(i)
+			log.Async(n)
+		default:
 			return fmt.Errorf("Invalid async value: %v", v)
 		}
 	}
@@ -60,61 +147,49 @@ func (log *Log) configLogFormat(m map[string]interface{}) error {
 	return nil
 }
 
-func (log *Log) configLogLevel(m map[string]interface{}) error {
-	if lv, ok := m["level"]; ok {
-		switch lvl := lv.(type) {
-		case string:
-			log.SetLevel(ParseLevel(lvl))
-		case map[string]interface{}:
-			for k, v := range lvl {
-				if s, ok := v.(string); ok {
-					if k == "*" {
-						log.SetLevel(ParseLevel(s))
-					} else {
-						log.SetLoggerLevel(k, ParseLevel(s))
-					}
-				} else {
-					return fmt.Errorf("Invalid level %v", v)
-				}
+func (log *Log) configLogLevels(lvls map[string]interface{}) error {
+	for k, v := range lvls {
+		if s, ok := v.(string); ok {
+			if k == "*" {
+				log.SetLevel(ParseLevel(s))
+			} else {
+				log.SetLoggerLevel(k, ParseLevel(s))
 			}
+		} else {
+			return fmt.Errorf("Invalid level %v", v)
 		}
 	}
 	return nil
 }
 
-func (log *Log) configLogWriter(m map[string]interface{}) error {
-	if v, ok := m["writer"]; ok {
-		if a, ok := v.([]interface{}); ok {
-			var ws []Writer
-			for _, i := range a {
-				if c, ok := i.(map[string]interface{}); ok {
-					if n, ok := c["_"]; ok {
-						w := CreateWriter(n.(string))
-						if w == nil {
-							return fmt.Errorf("Invalid writer name: %v", n)
-						}
-						if err := ConfigWriter(w, c); err != nil {
-							return err
-						}
-						ws = append(ws, w)
-					} else {
-						return fmt.Errorf("Missing writer name: %v", v)
-					}
-				} else {
-					return fmt.Errorf("Invalid writer item: %v", v)
+func (log *Log) configLogWriter(a []interface{}) error {
+	var ws []Writer
+	for _, i := range a {
+		if c, ok := i.(map[string]interface{}); ok {
+			if n, ok := c["_"]; ok {
+				w := CreateWriter(n.(string))
+				if w == nil {
+					return fmt.Errorf("Invalid writer name: %v", n)
 				}
-			}
-			if len(ws) < 0 {
-				return fmt.Errorf("Empty writer settings: %v", v)
-			}
-			if len(ws) == 1 {
-				log.SetWriter(ws[0])
+				if err := ConfigWriter(w, c); err != nil {
+					return err
+				}
+				ws = append(ws, w)
 			} else {
-				log.SetWriter(&MultiWriter{Writers: ws})
+				return fmt.Errorf("Missing writer type: %v", c)
 			}
-			return nil
+		} else {
+			return fmt.Errorf("Invalid writer item: %v", i)
 		}
-		return fmt.Errorf("Invalid writer value: %v", v)
 	}
-	return fmt.Errorf("Missing writer settings: %v", m)
+	if len(ws) < 0 {
+		return fmt.Errorf("Empty writer configuration: %v", a)
+	}
+
+	if len(ws) == 1 {
+		log.SetWriter(ws[0])
+	} else {
+		log.SetWriter(&MultiWriter{Writers: ws})
+	}
+	return nil
 }

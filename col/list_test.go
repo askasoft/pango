@@ -142,13 +142,18 @@ func checkList(t *testing.T, l *List, es []interface{}) {
 		return
 	}
 
-	i := 0
-	for e := l.Front(); e != nil; e = e.Next() {
-		le := e.Value.(int)
-		if le != es[i] {
-			t.Errorf("elt[%d].Value = %v, want %v", i, le, es[i])
+	for i, e := 0, l.Front(); e != nil; i, e = i+1, e.Next() {
+		v := e.Value.(int)
+		if v != es[i] {
+			t.Errorf("elt[%d].Value = %v, want %v", i, v, es[i])
 		}
-		i++
+	}
+
+	vs := l.Values()
+	for i, v := range vs {
+		if v != es[i] {
+			t.Errorf("elt[%d].Value = %v, want %v", i, v, es[i])
+		}
 	}
 }
 
@@ -195,6 +200,20 @@ func TestExtending(t *testing.T) {
 	checkList(t, l1, []interface{}{1, 2, 3})
 	l1.PushFrontList(l3)
 	checkList(t, l1, []interface{}{1, 2, 3})
+
+	l1.Clear()
+	l2.Clear()
+	l3.Clear()
+	l1.PushBackAll(1, 2, 3)
+	checkList(t, l1, []interface{}{1, 2, 3})
+	l2.PushBackAll(4, 5)
+	checkList(t, l2, []interface{}{4, 5})
+	l3.PushBackList(l1)
+	checkList(t, l3, []interface{}{1, 2, 3})
+	l3.PushBackAll(4, 5)
+	checkList(t, l3, []interface{}{1, 2, 3, 4, 5})
+	l3.PushFrontAll(4, 5)
+	checkList(t, l3, []interface{}{4, 5, 1, 2, 3, 4, 5})
 }
 
 func TestRemove(t *testing.T) {

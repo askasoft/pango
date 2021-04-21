@@ -129,9 +129,40 @@ func (l *List) PushFront(v interface{}) *ListEntry {
 	return l.insertValue(v, &l.root)
 }
 
+// PushFrontAll inserts all items of vs at the front of list l.
+func (l *List) PushFrontAll(vs ...interface{}) {
+	e := &l.root
+	for _, v := range vs {
+		e = l.insertValue(v, e)
+	}
+}
+
+// PushFrontList inserts a copy of an other list at the front of list l.
+// The lists l and other may be the same. They must not be nil.
+func (l *List) PushFrontList(other *List) {
+	for i, e := other.Len(), other.Back(); i > 0; i, e = i-1, e.Prev() {
+		l.insertValue(e.Value, &l.root)
+	}
+}
+
 // PushBack inserts a new entry e with value v at the back of list l and returns e.
 func (l *List) PushBack(v interface{}) *ListEntry {
 	return l.insertValue(v, l.root.prev)
+}
+
+// PushBackAll inserts all items of vs at the back of list l.
+func (l *List) PushBackAll(vs ...interface{}) {
+	for _, v := range vs {
+		l.insertValue(v, l.root.prev)
+	}
+}
+
+// PushBackList inserts a copy of an other list at the back of list l.
+// The lists l and other may be the same. They must not be nil.
+func (l *List) PushBackList(other *List) {
+	for i, e := other.Len(), other.Front(); i > 0; i, e = i-1, e.Next() {
+		l.insertValue(e.Value, l.root.prev)
+	}
 }
 
 // InsertBefore inserts a new entry e with value v immediately before mark and returns e.
@@ -198,20 +229,13 @@ func (l *List) MoveAfter(e, mark *ListEntry) {
 	l.move(e, mark)
 }
 
-// PushBackList inserts a copy of an other list at the back of list l.
-// The lists l and other may be the same. They must not be nil.
-func (l *List) PushBackList(other *List) {
-	for i, e := other.Len(), other.Front(); i > 0; i, e = i-1, e.Next() {
-		l.insertValue(e.Value, l.root.prev)
+// Values returns a slice contains all the items of the list l
+func (l *List) Values() []interface{} {
+	a := make([]interface{}, 0, l.Len())
+	for e := l.Front(); e != nil; e = e.Next() {
+		a = append(a, e.Value)
 	}
-}
-
-// PushFrontList inserts a copy of an other list at the front of list l.
-// The lists l and other may be the same. They must not be nil.
-func (l *List) PushFrontList(other *List) {
-	for i, e := other.Len(), other.Back(); i > 0; i, e = i-1, e.Prev() {
-		l.insertValue(e.Value, &l.root)
-	}
+	return a
 }
 
 // Each Call f for each item in the set

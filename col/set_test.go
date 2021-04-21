@@ -24,10 +24,38 @@ func TestSimple(t *testing.T) {
 	if s.Contains(5) {
 		t.Errorf("The set should be empty")
 	}
+}
 
-	// Subset
-	if !s.SubsetOf(s) {
+func TestContainsSet(t *testing.T) {
+	s1 := NewSet()
+	s2 := NewSet()
+
+	if !s1.ContainsSet(s1) {
 		t.Errorf("set should be a subset of itself")
+	}
+
+	if !s1.ContainsSet(s2) {
+		t.Errorf("empty set should contains another empty set")
+	}
+
+	s1.Add(1)
+	if !s1.ContainsSet(s2) {
+		t.Errorf("set should contains another empty set")
+	}
+
+	s2.Add(1)
+	if !s1.ContainsSet(s2) {
+		t.Errorf("set should contains another same set")
+	}
+
+	s1.Add(2)
+	if !s1.ContainsSet(s2) {
+		t.Errorf("set should contains another small set")
+	}
+
+	s2.Add(3)
+	if !s1.ContainsSet(s2) {
+		t.Errorf("set should not contains another different set")
 	}
 }
 

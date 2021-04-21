@@ -15,10 +15,9 @@ func NewSet(vs ...interface{}) *Set {
 	return s
 }
 
-// Contains Test to see whether or not the v is in the set
-func (s *Set) Contains(v interface{}) bool {
-	_, ok := s.hash[v]
-	return ok
+// Len Return the number of items in the set
+func (s *Set) Len() int {
+	return len(s.hash)
 }
 
 // Add Add an v to the set
@@ -40,14 +39,27 @@ func (s *Set) AddSet(a *Set) {
 	}
 }
 
-// Len Return the number of items in the set
-func (s *Set) Len() int {
-	return len(s.hash)
-}
-
 // Remove an v from the set
 func (s *Set) Remove(v interface{}) {
 	delete(s.hash, v)
+}
+
+// Contains Test to see whether or not the v is in the set
+func (s *Set) Contains(v interface{}) bool {
+	return s.hash[v]
+}
+
+// ContainsSet returns true if Set s contains the Set a.
+func (s *Set) ContainsSet(a *Set) bool {
+	if s.Len() < a.Len() {
+		return false
+	}
+	for k := range a.hash {
+		if !a.hash[k] {
+			return false
+		}
+	}
+	return true
 }
 
 // Each Call f for each item in the set
@@ -57,17 +69,13 @@ func (s *Set) Each(f func(interface{})) {
 	}
 }
 
-// SubsetOf Test whether or not s set is a subset of "set"
-func (s *Set) SubsetOf(a *Set) bool {
-	if s.Len() > a.Len() {
-		return false
-	}
+// Values returns a slice contains all the items of the set s
+func (s *Set) Values() []interface{} {
+	a := make([]interface{}, 0, s.Len())
 	for k := range s.hash {
-		if _, ok := a.hash[k]; !ok {
-			return false
-		}
+		a = append(a, k)
 	}
-	return true
+	return a
 }
 
 // Difference Find the difference btween two sets

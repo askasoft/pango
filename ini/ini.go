@@ -24,10 +24,19 @@ type Ini struct {
 
 // NewIni create a Ini
 func NewIni() *Ini {
-	return &Ini{
+	ini := &Ini{
 		sections: col.NewOrderedMap(),
 		EOL:      iox.EOL,
 	}
+
+	ini.sections.Set("", NewSection("")) // init global section
+	return ini
+}
+
+// Clear clears the ini
+func (ini *Ini) Clear() {
+	ini.sections.Clear()
+	ini.sections.Set("", NewSection("")) // init global section
 }
 
 // IsEmpty returns true if the Ini has no entry
@@ -49,38 +58,63 @@ func (ini *Ini) IsEmpty() bool {
 	return true
 }
 
-// Section return a section with specified name
-func (ini *Ini) Section(name string) *Section {
+// SectionNames returns the section array
+func (ini *Ini) SectionNames() []string {
+	ss := make([]string, ini.sections.Len())
+	for s := ini.sections.Front(); s != nil; s = s.Next() {
+		ss = append(ss, s.Key().(string))
+	}
+	return ss
+}
+
+// Sections returns the section array
+func (ini *Ini) Sections() []*Section {
+	ss := make([]*Section, ini.sections.Len())
+	for s := ini.sections.Front(); s != nil; s = s.Next() {
+		ss = append(ss, s.Value.(*Section))
+	}
+	return ss
+}
+
+// Section return a section with the specified name
+func (ini *Ini) Section(names ...string) *Section {
+	name := ""
+	if len(names) > 0 {
+		name = names[0]
+	}
 	if sec, ok := ini.sections.Get(name); ok {
 		return sec.(*Section)
 	}
 	return nil
 }
 
-// NewSection create a section to INI
+// NewSection create a section to INI, overwrite existing section
 func (ini *Ini) NewSection(name string, comments ...string) *Section {
 	section := NewSection(name, comments...)
 	ini.sections.Set(section.name, section)
 	return section
 }
 
+// AddSection add a section to INI, overwrite existing section
+func (ini *Ini) AddSection(section *Section) {
+	ini.sections.Set(section.name, section)
+}
+
 // DeleteSection delete a section from INI
 func (ini *Ini) DeleteSection(name string) *Section {
+	if name == "" {
+		sec := ini.Section()
+		if sec != nil {
+			sec.Clear()
+		}
+		return sec
+	}
+
 	sec, _ := ini.sections.Remove(name)
 	if sec == nil {
 		return nil
 	}
 	return sec.(*Section)
-}
-
-// AddSection add a section to INI
-func (ini *Ini) AddSection(section *Section) {
-	ini.sections.Set(section.name, section)
-}
-
-// RemoveSection remove the section
-func (ini *Ini) RemoveSection(section *Section) {
-	ini.sections.Remove(section.name)
 }
 
 // LoadFile load INI from file
@@ -96,12 +130,11 @@ func (ini *Ini) LoadFile(filename string) error {
 
 // LoadData load INI from io.Reader
 func (ini *Ini) LoadData(r io.Reader) error {
-	lineContinue := false        // line continue flag
-	global := ini.NewSection("") // global section / no name section
-	section := global            // last section
-	var comments []string        // last comments
-	var key string               // last key
-	var val bytes.Buffer         // last value
+	lineContinue := false    // line continue flag
+	section := ini.Section() // last section
+	var comments []string    // last comments
+	var key string           // last key
+	var val bytes.Buffer     // last value
 
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
@@ -143,6 +176,7 @@ func (ini *Ini) LoadData(r io.Reader) error {
 		if len(bs) == 0 {
 			if len(comments) > 0 {
 				if ini.IsEmpty() {
+					global := ini.Section() // global section / no name section
 					if len(global.comments) == 0 {
 						global.comments = comments
 					} else {

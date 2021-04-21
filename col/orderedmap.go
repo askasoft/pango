@@ -71,6 +71,12 @@ func (om *OrderedMap) IsEmpty() bool {
 	return len(om.entries) == 0
 }
 
+// Clear clears the map
+func (om *OrderedMap) Clear() {
+	om.entries = make(map[interface{}]*MapEntry)
+	om.list.Clear()
+}
+
 // Front returns a pointer to the oldest entry. It's meant to be used to iterate on the ordered map's
 // entries from the oldest to the newest, e.g.:
 // for entry := orderedMap.Front(); entry != nil; entry = entry.Next() { fmt.Printf("%v => %v\n", entry.Key(), entry.Value()) }

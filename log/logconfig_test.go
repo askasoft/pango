@@ -42,18 +42,22 @@ func assertLogConfig(t *testing.T, log *Log) {
 	i := 0
 	{
 		w, ok := mw.Writers[i].(*StreamWriter)
+		assert.NotNil(t, w)
 		assert.True(t, ok)
 		assert.False(t, w.Color)
 
 		f, ok := w.Logfil.(*MultiFilter)
+		assert.NotNil(t, f)
 		assert.True(t, ok)
 		assert.Equal(t, 2, len(f.Filters))
 
 		nf, ok := f.Filters[0].(*NameFilter)
+		assert.NotNil(t, nf)
 		assert.True(t, ok)
 		assert.Equal(t, "out", nf.Name)
 
 		lf, ok := f.Filters[1].(*LevelFilter)
+		assert.NotNil(t, lf)
 		assert.True(t, ok)
 		assert.Equal(t, LevelDebug, lf.Level)
 	}
@@ -61,23 +65,21 @@ func assertLogConfig(t *testing.T, log *Log) {
 	i++
 	{
 		w, ok := mw.Writers[i].(*StreamWriter)
+		assert.NotNil(t, w)
 		assert.True(t, ok)
-		assert.True(t, w.Color)
-
-		f, ok := w.Logfil.(*LevelFilter)
-		assert.True(t, ok)
-		assert.Equal(t, LevelError, f.Level)
 	}
 
 	i++
 	{
 		w, ok := mw.Writers[i].(*ConnWriter)
+		assert.NotNil(t, w)
 		assert.True(t, ok)
 		assert.Equal(t, "tcp", w.Net)
 		assert.Equal(t, "localhost:9999", w.Addr)
 		assert.Equal(t, time.Second*5, w.Timeout)
 
 		f, ok := w.Logfil.(*LevelFilter)
+		assert.NotNil(t, f)
 		assert.True(t, ok)
 		assert.Equal(t, LevelError, f.Level)
 	}
@@ -85,12 +87,14 @@ func assertLogConfig(t *testing.T, log *Log) {
 	i++
 	{
 		w, ok := mw.Writers[i].(*FileWriter)
+		assert.NotNil(t, w)
 		assert.True(t, ok)
 		assert.True(t, w.Daily)
 		assert.Equal(t, 7, w.MaxDays)
 		assert.Equal(t, LevelError, w.FlushLevel)
 
 		f, ok := w.Logfil.(*LevelFilter)
+		assert.NotNil(t, f)
 		assert.True(t, ok)
 		assert.Equal(t, LevelError, f.Level)
 	}
@@ -98,6 +102,7 @@ func assertLogConfig(t *testing.T, log *Log) {
 	i++
 	{
 		w, ok := mw.Writers[i].(*SlackWriter)
+		assert.NotNil(t, w)
 		assert.True(t, ok)
 		assert.Equal(t, "develop", w.Channel)
 		assert.Equal(t, "gotest", w.Username)
@@ -105,6 +110,7 @@ func assertLogConfig(t *testing.T, log *Log) {
 		assert.Equal(t, time.Second*5, w.Timeout)
 
 		f, ok := w.Logfil.(*LevelFilter)
+		assert.NotNil(t, f)
 		assert.True(t, ok)
 		assert.Equal(t, LevelError, f.Level)
 	}
@@ -112,6 +118,7 @@ func assertLogConfig(t *testing.T, log *Log) {
 	i++
 	{
 		w, ok := mw.Writers[i].(*SMTPWriter)
+		assert.NotNil(t, w)
 		assert.True(t, ok)
 		assert.Equal(t, "localhost", w.Host)
 		assert.Equal(t, 25, w.Port)
@@ -123,6 +130,7 @@ func assertLogConfig(t *testing.T, log *Log) {
 		assert.Equal(t, time.Second*5, w.Timeout)
 
 		f, ok := w.Logfil.(*LevelFilter)
+		assert.NotNil(t, f)
 		assert.True(t, ok)
 		assert.Equal(t, LevelError, f.Level)
 	}

@@ -96,12 +96,15 @@ func (log *Log) configINI(filename string) error {
 			ss := str.SplitAnyNoEmpty(s, " ,")
 			a := make([]interface{}, len(ss))
 			for i, w := range ss {
+				var es map[string]interface{}
+
 				sec := ini.Section("writer." + w)
 				if sec == nil {
-					return fmt.Errorf("Missing writer configuration: %v", w)
+					es = make(map[string]interface{}, 1)
+				} else {
+					es = sec.Kvmap()
 				}
 
-				es := sec.Kvmap()
 				if _, ok := es["_"]; !ok {
 					es["_"] = w
 				}

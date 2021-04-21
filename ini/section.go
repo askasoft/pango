@@ -1,6 +1,8 @@
 package ini
 
 import (
+	"strconv"
+
 	"github.com/pandafw/pango/col"
 )
 
@@ -78,13 +80,56 @@ func (sec *Section) Set(key string, value string, comments ...string) *Entry {
 	return e
 }
 
-// Get get a key/value entry from the section
+// Get get a value of the key from the section
 func (sec *Section) Get(key string) string {
 	e := sec.GetEntry(key)
 	if e != nil {
 		return e.Value
 	}
 	return ""
+}
+
+// GetString get a string value of the key from the section
+// if not found, returns the default defs[0] string value
+func (sec *Section) GetString(key string, defs ...string) string {
+	e := sec.GetEntry(key)
+	if e != nil {
+		return e.Value
+	}
+	if len(defs) > 0 {
+		return defs[0]
+	}
+	return ""
+}
+
+// GetInt get a int value of the key from the section
+// if not found, returns the default defs[0] int value
+func (sec *Section) GetInt(key string, defs ...int) int {
+	e := sec.GetEntry(key)
+	if e != nil {
+		if i, err := strconv.Atoi(e.Value); err != nil {
+			return i
+		}
+	}
+	if len(defs) > 0 {
+		return defs[0]
+	}
+	return 0
+}
+
+// GetBool get a bool value of the key from the section
+// if not found, returns the default defs[0] int value
+func (sec *Section) GetBool(key string, defs ...bool) bool {
+	e := sec.GetEntry(key)
+	if e != nil {
+		if b, err := strconv.ParseBool(e.Value); err != nil {
+			return b
+		}
+	}
+	if len(defs) > 0 {
+		return defs[0]
+	}
+	return false
 }
 
 func (sec *Section) toStrings(l *col.List) []string {
@@ -119,4 +164,10 @@ func (sec *Section) GetEntry(key string) *Entry {
 		}
 	}
 	return nil
+}
+
+// Clear clear the entries and comments
+func (sec *Section) Clear() {
+	sec.comments = nil
+	sec.entries.Clear()
 }

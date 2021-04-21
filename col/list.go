@@ -13,16 +13,19 @@ type List struct {
 	len  int       // current list length excluding (this) sentinel entry
 }
 
-// Init initializes or clears list l.
-func (l *List) Init() *List {
+// Clear clears list l.
+func (l *List) Clear() {
 	l.root.next = &l.root
 	l.root.prev = &l.root
 	l.len = 0
-	return l
 }
 
 // NewList returns an initialized list.
-func NewList() *List { return new(List).Init() }
+func NewList() *List {
+	l := &List{}
+	l.Clear()
+	return l
+}
 
 // Len returns the number of entries of list l.
 // The complexity is O(1).
@@ -62,13 +65,6 @@ func (l *List) Back() *ListEntry {
 		return nil
 	}
 	return l.root.prev
-}
-
-// lazyInit lazily initializes a zero List value.
-func (l *List) lazyInit() {
-	if l.root.next == nil {
-		l.Init()
-	}
 }
 
 // insert inserts e after at, increments l.len, and returns e.
@@ -130,13 +126,11 @@ func (l *List) Remove(e *ListEntry) interface{} {
 
 // PushFront inserts a new entry e with value v at the front of list l and returns e.
 func (l *List) PushFront(v interface{}) *ListEntry {
-	l.lazyInit()
 	return l.insertValue(v, &l.root)
 }
 
 // PushBack inserts a new entry e with value v at the back of list l and returns e.
 func (l *List) PushBack(v interface{}) *ListEntry {
-	l.lazyInit()
 	return l.insertValue(v, l.root.prev)
 }
 
@@ -207,7 +201,6 @@ func (l *List) MoveAfter(e, mark *ListEntry) {
 // PushBackList inserts a copy of an other list at the back of list l.
 // The lists l and other may be the same. They must not be nil.
 func (l *List) PushBackList(other *List) {
-	l.lazyInit()
 	for i, e := other.Len(), other.Front(); i > 0; i, e = i-1, e.Next() {
 		l.insertValue(e.Value, l.root.prev)
 	}
@@ -216,7 +209,6 @@ func (l *List) PushBackList(other *List) {
 // PushFrontList inserts a copy of an other list at the front of list l.
 // The lists l and other may be the same. They must not be nil.
 func (l *List) PushFrontList(other *List) {
-	l.lazyInit()
 	for i, e := other.Len(), other.Back(); i > 0; i, e = i-1, e.Prev() {
 		l.insertValue(e.Value, &l.root)
 	}

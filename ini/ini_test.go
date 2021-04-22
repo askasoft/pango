@@ -19,6 +19,7 @@ func TestLoadFile(t *testing.T) {
 
 	ini := NewIni()
 	ini.EOL = iox.CRLF
+	ini.Multiple = true
 
 	// load
 	assert.Nil(t, ini.LoadFile(fin))

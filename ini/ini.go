@@ -20,6 +20,7 @@ import (
 type Ini struct {
 	sections *col.OrderedMap // Parsed sections
 	EOL      string          // End of Line
+	Multiple bool            // Multiple entry with same key
 }
 
 // NewIni create a Ini
@@ -238,7 +239,12 @@ func (ini *Ini) LoadData(r io.Reader) error {
 		if err != nil {
 			return err
 		}
-		section.Add(k, s, comments...)
+
+		if ini.Multiple {
+			section.Add(k, s, comments...)
+		} else {
+			section.Set(k, s, comments...)
+		}
 		comments = nil
 	}
 

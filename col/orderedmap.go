@@ -14,6 +14,13 @@ func NewOrderedMap() *OrderedMap {
 	}
 }
 
+// GetEntry looks for the given key, and returns the entry associated with it,
+// or nil if not found. The MapEntry struct can then be used to iterate over the ordered map
+// from that point, either forward or backward.
+func (om *OrderedMap) GetEntry(key interface{}) *MapEntry {
+	return om.entries[key]
+}
+
 // Get looks for the given key, and returns the value associated with it,
 // or nil if not found. The boolean it returns says whether the key is ok in the map.
 func (om *OrderedMap) Get(key interface{}) (interface{}, bool) {
@@ -21,13 +28,6 @@ func (om *OrderedMap) Get(key interface{}) (interface{}, bool) {
 		return me.Value, ok
 	}
 	return nil, false
-}
-
-// GetEntry looks for the given key, and returns the entry associated with it,
-// or nil if not found. The MapEntry struct can then be used to iterate over the ordered map
-// from that point, either forward or backward.
-func (om *OrderedMap) GetEntry(key interface{}) *MapEntry {
-	return om.entries[key]
 }
 
 // Set sets the key-value entry, and returns what `Get` would have returned
@@ -47,6 +47,13 @@ func (om *OrderedMap) Set(key interface{}, value interface{}) (interface{}, bool
 	om.entries[key] = me
 
 	return nil, false
+}
+
+// Copy copy entries from another map am, override the existing entries
+func (om *OrderedMap) Copy(am *OrderedMap) {
+	for e := am.Front(); e != nil; e = e.Next() {
+		om.Set(e.key, e.Value)
+	}
 }
 
 // Remove removes the key-value entry, and returns what `Get` would have returned
@@ -89,4 +96,36 @@ func (om *OrderedMap) Front() *MapEntry {
 // for entry := orderedMap.Back(); entry != nil; entry = entry.Prev() { fmt.Printf("%v => %v\n", entry.Key(), entry.Value()) }
 func (om *OrderedMap) Back() *MapEntry {
 	return toMapEntry(om.list.Back())
+}
+
+// Keys returns the key slice
+func (om *OrderedMap) Keys() []interface{} {
+	ks := make([]interface{}, 0, om.Len())
+	for e := om.Front(); e != nil; e = e.Next() {
+		ks = append(ks, e.Key())
+	}
+	return ks
+}
+
+// Values returns the value slice
+func (om *OrderedMap) Values() []interface{} {
+	vs := make([]interface{}, 0, om.Len())
+	for e := om.Front(); e != nil; e = e.Next() {
+		vs = append(vs, e.Value)
+	}
+	return vs
+}
+
+// Each Call f for each item in the map
+func (om *OrderedMap) Each(f func(*MapEntry)) {
+	for e := om.Front(); e != nil; e = e.Next() {
+		f(e)
+	}
+}
+
+// ReverseEach Call f for each item in the map with reverse order
+func (om *OrderedMap) ReverseEach(f func(*MapEntry)) {
+	for e := om.Back(); e != nil; e = e.Prev() {
+		f(e)
+	}
 }

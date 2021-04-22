@@ -107,7 +107,7 @@ func (sec *Section) GetString(key string, defs ...string) string {
 func (sec *Section) GetInt(key string, defs ...int) int {
 	e := sec.GetEntry(key)
 	if e != nil {
-		if i, err := strconv.Atoi(e.Value); err != nil {
+		if i, err := strconv.Atoi(e.Value); err == nil {
 			return i
 		}
 	}
@@ -122,7 +122,7 @@ func (sec *Section) GetInt(key string, defs ...int) int {
 func (sec *Section) GetBool(key string, defs ...bool) bool {
 	e := sec.GetEntry(key)
 	if e != nil {
-		if b, err := strconv.ParseBool(e.Value); err != nil {
+		if b, err := strconv.ParseBool(e.Value); err == nil {
 			return b
 		}
 	}

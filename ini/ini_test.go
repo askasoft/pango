@@ -23,6 +23,14 @@ func TestLoadFile(t *testing.T) {
 	// load
 	assert.Nil(t, ini.LoadFile(fin))
 
+	// value
+	other := ini.Section("other")
+	assert.NotNil(t, other)
+	assert.Equal(t, 42, other.GetInt("dex"))
+	assert.Equal(t, 42, other.GetInt("hex"))
+	assert.True(t, other.GetBool("true"))
+	assert.False(t, other.GetBool("false"))
+
 	// expected file
 	bexp, _ := ioutil.ReadFile(fexp)
 	sexp := string(bexp)

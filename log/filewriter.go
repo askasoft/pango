@@ -15,7 +15,8 @@ import (
 // It writes messages and rotate by file size limit, daily, hourly.
 type FileWriter struct {
 	Path       string    // Log file path name
-	Perm       uint32    // Log file permission
+	DirPerm    uint32    // Log dir permission
+	FilePerm   uint32    // Log file permission
 	Rotate     bool      // Rotate log files
 	MaxFiles   int       // Max split files
 	MaxSize    int64     // Rotate at size
@@ -140,22 +141,25 @@ func (fw *FileWriter) init() {
 	}
 
 	// init perm
-	if fw.Perm == 0 {
-		fw.Perm = 0660
+	if fw.DirPerm == 0 {
+		fw.DirPerm = 0770
+	}
+	if fw.FilePerm == 0 {
+		fw.FilePerm = 0660
 	}
 
 	// create dirs
-	os.MkdirAll(fw.dir, os.FileMode(fw.Perm))
+	os.MkdirAll(fw.dir, os.FileMode(fw.DirPerm))
 
 	// Open the log file
-	file, err := os.OpenFile(fw.Path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, os.FileMode(fw.Perm))
+	file, err := os.OpenFile(fw.Path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, os.FileMode(fw.FilePerm))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "FileWriter(%q) - OpenFile(): %v\n", fw.Path, err)
 		return
 	}
 
 	// Make sure file perm is user set perm cause of `os.OpenFile` will obey umask
-	os.Chmod(fw.Path, os.FileMode(fw.Perm))
+	os.Chmod(fw.Path, os.FileMode(fw.FilePerm))
 
 	fi, err := file.Stat()
 	if err != nil {
@@ -291,7 +295,7 @@ func (fw *FileWriter) compressFile(src string) {
 
 	// If this file already exists, we presume it was created by
 	// a previous attempt to compress the log file.
-	gzf, err := os.OpenFile(dst, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, os.FileMode(fw.Perm))
+	gzf, err := os.OpenFile(dst, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, os.FileMode(fw.FilePerm))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "FileWriter(%q) - OpenFile(%q): %v\n", fw.Path, dst, err)
 		return

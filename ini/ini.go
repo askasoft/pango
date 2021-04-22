@@ -77,11 +77,7 @@ func (ini *Ini) Sections() []*Section {
 }
 
 // Section return a section with the specified name
-func (ini *Ini) Section(names ...string) *Section {
-	name := ""
-	if len(names) > 0 {
-		name = names[0]
-	}
+func (ini *Ini) Section(name string) *Section {
 	if sec, ok := ini.sections.Get(name); ok {
 		return sec.(*Section)
 	}
@@ -103,7 +99,7 @@ func (ini *Ini) AddSection(section *Section) {
 // DeleteSection delete a section from INI
 func (ini *Ini) DeleteSection(name string) *Section {
 	if name == "" {
-		sec := ini.Section()
+		sec := ini.Section("")
 		if sec != nil {
 			sec.Clear()
 		}
@@ -130,11 +126,11 @@ func (ini *Ini) LoadFile(filename string) error {
 
 // LoadData load INI from io.Reader
 func (ini *Ini) LoadData(r io.Reader) error {
-	lineContinue := false    // line continue flag
-	section := ini.Section() // last section
-	var comments []string    // last comments
-	var key string           // last key
-	var val bytes.Buffer     // last value
+	lineContinue := false      // line continue flag
+	section := ini.Section("") // last section
+	var comments []string      // last comments
+	var key string             // last key
+	var val bytes.Buffer       // last value
 
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
@@ -176,7 +172,7 @@ func (ini *Ini) LoadData(r io.Reader) error {
 		if len(bs) == 0 {
 			if len(comments) > 0 {
 				if ini.IsEmpty() {
-					global := ini.Section() // global section / no name section
+					global := ini.Section("") // global section / no name section
 					if len(global.comments) == 0 {
 						global.comments = comments
 					} else {

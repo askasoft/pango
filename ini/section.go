@@ -57,20 +57,25 @@ func (sec *Section) Kvmap() map[string]interface{} {
 // Add add a key/value entry to the section
 func (sec *Section) Add(key string, value string, comments ...string) *Entry {
 	e := &Entry{Value: value, Comments: comments}
+	sec.add(key, e)
+	return e
+}
 
+// add add a key/value entry to the section
+func (sec *Section) add(key string, e *Entry) {
 	if v, ok := sec.entries.Get(key); ok {
 		if l, ok := v.(*col.List); ok {
 			l.PushBack(e)
-			return e
+			return
 		}
 		l := col.NewList()
 		l.PushBack(v)
 		l.PushBack(e)
 		sec.entries.Set(key, l)
-		return e
+		return
 	}
 
-	return sec.Set(key, value, comments...)
+	sec.entries.Set(key, e)
 }
 
 // Set set a key/value entry to the section
@@ -170,4 +175,20 @@ func (sec *Section) GetEntry(key string) *Entry {
 func (sec *Section) Clear() {
 	sec.comments = nil
 	sec.entries.Clear()
+}
+
+// Copy copy entries from src section, overrite existing entries
+func (sec *Section) Copy(src *Section) {
+	if len(src.comments) > 0 {
+		sec.comments = src.comments
+	}
+	sec.entries.Copy(src.entries)
+}
+
+// Merge merge entries from src section
+func (sec *Section) Merge(src *Section) {
+	sec.comments = append(sec.comments, src.comments...)
+	for e := src.entries.Front(); e != nil; e = e.Next() {
+		sec.add(e.Key().(string), e.Value.(*Entry))
+	}
 }

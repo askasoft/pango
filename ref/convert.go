@@ -21,31 +21,31 @@ func Convert(v interface{}, t reflect.Type) (reflect.Value, error) {
 			i, err := strconv.Atoi(s)
 			return reflect.ValueOf(i), err
 		case reflect.Int8:
-			i, err := strconv.ParseInt(s, 10, 8)
+			i, err := strconv.ParseInt(s, 0, 8)
 			return reflect.ValueOf(int8(i)), err
 		case reflect.Int16:
-			i, err := strconv.ParseInt(s, 10, 16)
+			i, err := strconv.ParseInt(s, 0, 16)
 			return reflect.ValueOf(int16(i)), err
 		case reflect.Int32:
-			i, err := strconv.ParseInt(s, 10, 32)
+			i, err := strconv.ParseInt(s, 0, 32)
 			return reflect.ValueOf(int32(i)), err
 		case reflect.Int64:
-			i, err := strconv.ParseInt(s, 10, 64)
+			i, err := strconv.ParseInt(s, 0, 64)
 			return reflect.ValueOf(int64(i)), err
 		case reflect.Uint:
 			i, err := strconv.Atoi(s)
 			return reflect.ValueOf(uint(i)), err
 		case reflect.Uint8:
-			i, err := strconv.ParseUint(s, 10, 8)
+			i, err := strconv.ParseUint(s, 0, 8)
 			return reflect.ValueOf(uint8(i)), err
 		case reflect.Uint16:
-			i, err := strconv.ParseUint(s, 10, 16)
+			i, err := strconv.ParseUint(s, 0, 16)
 			return reflect.ValueOf(uint16(i)), err
 		case reflect.Uint32:
-			i, err := strconv.ParseUint(s, 10, 32)
+			i, err := strconv.ParseUint(s, 0, 32)
 			return reflect.ValueOf(uint32(i)), err
 		case reflect.Uint64:
-			i, err := strconv.ParseUint(s, 10, 64)
+			i, err := strconv.ParseUint(s, 0, 64)
 			return reflect.ValueOf(uint64(i)), err
 
 		case reflect.Float32:

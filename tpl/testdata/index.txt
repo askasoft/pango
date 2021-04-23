@@ -1,0 +1,4 @@
+{{template "header" .}}
+<p>{{.Message}}</p>
+<p>Time: {{.Time.Format "2006/1/2 15:04:05"}}</p>
+{{template "footer"}}

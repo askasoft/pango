@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
+	"reflect"
 	"strings"
 
 	"github.com/pandafw/pango/ini"
+	"github.com/pandafw/pango/ref"
 	"github.com/pandafw/pango/str"
 )
 
@@ -124,16 +125,12 @@ func (log *Log) configINI(filename string) error {
 
 func (log *Log) configLogAsync(m map[string]interface{}) error {
 	if v, ok := m["async"]; ok {
-		switch i := v.(type) {
-		case int:
-		case float32:
-		case float64:
-			log.Async(int(i))
-		case string:
-			n, _ := strconv.Atoi(i)
-			log.Async(n)
-		default:
-			return fmt.Errorf("Invalid async value: %v", v)
+		if v != nil {
+			n, err := ref.Convert(v, reflect.TypeOf(int(0)))
+			if err != nil {
+				return fmt.Errorf("Invalid async value %v: %s", v, err.Error())
+			}
+			log.Async(n.(int))
 		}
 	}
 	return nil

@@ -36,7 +36,7 @@ func CreateWriter(name string) Writer {
 // ConfigWriter config the writer by the configuration map 'c'
 func ConfigWriter(w Writer, c map[string]interface{}) error {
 	for k, v := range c {
-		if k != "_" {
+		if k != "_" && k != "" && v != nil {
 			if err := setWriterProp(w, k, v); err != nil {
 				return err
 			}
@@ -64,7 +64,7 @@ func setWriterProp(w Writer, k string, v interface{}) (err error) {
 			return err
 		}
 
-		m.Call([]reflect.Value{i})
+		m.Call([]reflect.Value{reflect.ValueOf(i)})
 		return nil
 	}
 
@@ -77,7 +77,7 @@ func setWriterProp(w Writer, k string, v interface{}) (err error) {
 			return err
 		}
 
-		f.Set(i)
+		f.Set(reflect.ValueOf(i))
 		return nil
 	}
 

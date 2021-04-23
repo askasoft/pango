@@ -34,6 +34,7 @@ func assertLogConfig(t *testing.T, log *Log) {
 	_, ok := log.GetFormatter().(*TextFormatter)
 	assert.True(t, ok)
 
+	assert.NotNil(t, log.writer)
 	mw, ok := log.writer.(*MultiWriter)
 	assert.True(t, ok)
 

@@ -27,7 +27,7 @@ func TestLoadFile(t *testing.T) {
 	// value
 	other := ini.Section("other")
 	assert.NotNil(t, other)
-	assert.Equal(t, 42, other.GetInt("dex"))
+	assert.Equal(t, 42, other.GetInt("dec"))
 	assert.Equal(t, 42, other.GetInt("hex"))
 	assert.True(t, other.GetBool("true"))
 	assert.False(t, other.GetBool("false"))
@@ -49,5 +49,11 @@ func TestLoadFile(t *testing.T) {
 		bout, _ := ioutil.ReadFile(fout)
 		sout := string(bout)
 		assert.Equal(t, sexp, sout)
+	}
+
+	// remove section
+	{
+		assert.NotNil(t, ini.RemoveSection(""))
+		assert.Nil(t, ini.RemoveSection("not exist"))
 	}
 }

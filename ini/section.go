@@ -112,8 +112,8 @@ func (sec *Section) GetString(key string, defs ...string) string {
 func (sec *Section) GetInt(key string, defs ...int) int {
 	e := sec.GetEntry(key)
 	if e != nil {
-		if i, err := strconv.Atoi(e.Value); err == nil {
-			return i
+		if i, err := strconv.ParseInt(e.Value, 0, strconv.IntSize); err == nil {
+			return int(i)
 		}
 	}
 	if len(defs) > 0 {

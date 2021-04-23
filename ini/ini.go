@@ -30,14 +30,14 @@ func NewIni() *Ini {
 		EOL:      iox.EOL,
 	}
 
-	ini.sections.Set("", NewSection("")) // init global section
+	ini.NewSection("") // init global section
 	return ini
 }
 
 // Clear clears the ini
 func (ini *Ini) Clear() {
 	ini.sections.Clear()
-	ini.sections.Set("", NewSection("")) // init global section
+	ini.NewSection("") // init global section
 }
 
 // IsEmpty returns true if the Ini has no entry
@@ -97,14 +97,14 @@ func (ini *Ini) AddSection(section *Section) {
 	ini.sections.Set(section.name, section)
 }
 
-// DeleteSection delete a section from INI
-func (ini *Ini) DeleteSection(name string) *Section {
+// RemoveSection remove a section from INI
+func (ini *Ini) RemoveSection(name string) *Section {
 	if name == "" {
-		sec := ini.Section("")
-		if sec != nil {
-			sec.Clear()
+		sec, _ := ini.sections.Set("", NewSection(""))
+		if sec == nil {
+			return nil
 		}
-		return sec
+		return sec.(*Section)
 	}
 
 	sec, _ := ini.sections.Remove(name)

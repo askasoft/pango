@@ -4,7 +4,7 @@
 // import "github.com/pandafw/pango/log"
 //
 //	log := log.NewLog()
-//	log.SetWriter("console", "")
+//	log.SetWriter(&log.StreamWriter{Color: true})
 //	log.Async(1000)
 //
 // Use it like this:

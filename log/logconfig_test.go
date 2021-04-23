@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/pandafw/pango/iox"
+	"github.com/pandafw/pango/iox/fswatch"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -202,10 +203,10 @@ func TestLogConfigFile1toFile2(t *testing.T) {
 	log := Default()
 	assert.Nil(t, log.Config(path))
 
-	fw, err := iox.NewFileWatcher()
+	fw, err := fswatch.NewFileWatcher()
 	assert.Nil(t, err)
 	fw.StartWatch()
-	assert.Nil(t, fw.AddFile(path, func(path string) {
+	assert.Nil(t, fw.AddFile(path, fswatch.WRITE, func(path string, _ uint32) {
 		err := log.Config(path)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to config log by %q: %v\n", path, err)

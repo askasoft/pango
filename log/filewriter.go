@@ -25,7 +25,7 @@ type FileWriter struct {
 	Hourly     bool      // Rotate hourly
 	MaxHours   int       // Max hourly files
 	Gzip       bool      // Compress rotated log files
-	FlushLevel int       // Flush by log level
+	FlushLevel Level     // Flush by log level
 	Logfmt     Formatter // log formatter
 	Logfil     Filter    // log filter
 

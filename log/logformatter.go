@@ -11,8 +11,6 @@ import (
 )
 
 var eol = iox.EOL
-var lvlPrefixs = [LevelTrace + 1]string{"N", "F", "E", "W", "I", "D", "T"}
-var lvlStrings = [LevelTrace + 1]string{"NONE", "FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"}
 
 // Formatter log formater interface
 type Formatter interface {
@@ -338,11 +336,11 @@ func strfmt(s string) fmtfunc {
 }
 
 func lvlpfmt(le *Event) string {
-	return lvlPrefixs[le.Level]
+	return le.Level.Prefix()
 }
 
 func lvlsfmt(le *Event) string {
-	return lvlStrings[le.Level]
+	return le.Level.String()
 }
 
 func namefmt(le *Event) string {

@@ -147,18 +147,25 @@ func (log *Log) configLogFormat(m map[string]interface{}) error {
 	return nil
 }
 
-func (log *Log) configLogLevels(lvls map[string]interface{}) error {
-	for k, v := range lvls {
+func (log *Log) configLogLevels(lls map[string]interface{}) error {
+	lvls := map[string]Level{}
+
+	for k, v := range lls {
 		if s, ok := v.(string); ok {
 			if k == "*" {
 				log.SetLevel(ParseLevel(s))
 			} else {
-				log.SetLoggerLevel(k, ParseLevel(s))
+				lvl := ParseLevel(s)
+				if lvl != LevelNone {
+					lvls[k] = lvl
+				}
 			}
 		} else {
 			return fmt.Errorf("Invalid level %v", v)
 		}
 	}
+
+	log.levels = lvls
 	return nil
 }
 

@@ -7,12 +7,12 @@ import (
 // Logger logger interface
 type Logger interface {
 	GetName() string
-	GetLevel() int
-	SetLevel(l int)
+	GetLevel() Level
+	SetLevel(l Level)
 	GetCallerDepth() int
 	SetCallerDepth(d int)
-	GetTraceLevel() int
-	SetTraceLevel(t int)
+	GetTraceLevel() Level
+	SetTraceLevel(l Level)
 	GetProp(k string) interface{}
 	SetProp(k string, v interface{})
 	GetProps() map[string]interface{}
@@ -20,9 +20,9 @@ type Logger interface {
 	GetFormatter() Formatter
 	SetFormatter(lf Formatter)
 	IsAsync() bool
-	IsLevelEnabled(lvl int) bool
-	Log(lvl int, v ...interface{})
-	Logf(lvl int, f string, v ...interface{})
+	IsLevelEnabled(lvl Level) bool
+	Log(lvl Level, v ...interface{})
+	Logf(lvl Level, f string, v ...interface{})
 	IsFatalEnabled() bool
 	Fatal(v ...interface{})
 	Fatalf(f string, v ...interface{})
@@ -46,9 +46,9 @@ type Logger interface {
 // logger logger interface implement
 type logger struct {
 	name   string
-	level  int
+	level  Level
 	depth  int
-	trace  int
+	trace  Level
 	log    *Log
 	logfmt Formatter
 	props  map[string]interface{}
@@ -65,12 +65,12 @@ func (l *logger) SetName(n string) {
 }
 
 // GetLevel return the logger's level
-func (l *logger) GetLevel() int {
+func (l *logger) GetLevel() Level {
 	return l.level
 }
 
 // SetLevel set the logger's level
-func (l *logger) SetLevel(lvl int) {
+func (l *logger) SetLevel(lvl Level) {
 	l.level = lvl
 }
 
@@ -85,12 +85,12 @@ func (l *logger) SetCallerDepth(d int) {
 }
 
 // GetTraceLevel return the logger's trace level
-func (l *logger) GetTraceLevel() int {
+func (l *logger) GetTraceLevel() Level {
 	return l.trace
 }
 
 // SetTraceLevel set the logger's trace level
-func (l *logger) SetTraceLevel(lvl int) {
+func (l *logger) SetTraceLevel(lvl Level) {
 	l.trace = lvl
 }
 
@@ -136,12 +136,12 @@ func (l *logger) IsAsync() bool {
 }
 
 // IsLevelEnabled is specified level enabled
-func (l *logger) IsLevelEnabled(lvl int) bool {
+func (l *logger) IsLevelEnabled(lvl Level) bool {
 	return l.level >= lvl
 }
 
 // Log log a message at specified level.
-func (l *logger) Log(lvl int, v ...interface{}) {
+func (l *logger) Log(lvl Level, v ...interface{}) {
 	if l.IsLevelEnabled(lvl) {
 		s := printv(v...)
 		le := newEvent(l, lvl, s)
@@ -150,7 +150,7 @@ func (l *logger) Log(lvl int, v ...interface{}) {
 }
 
 // Logf format and log a message at specified level.
-func (l *logger) Logf(lvl int, f string, v ...interface{}) {
+func (l *logger) Logf(lvl Level, f string, v ...interface{}) {
 	if l.IsLevelEnabled(lvl) {
 		s := printf(f, v...)
 		le := newEvent(l, lvl, s)

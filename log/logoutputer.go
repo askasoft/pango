@@ -6,8 +6,8 @@ import (
 
 // outputer a io.Writer implement for go log.SetOutput
 type outputer struct {
-	level  int
 	logger Logger
+	level  Level
 }
 
 // Write io.Writer implement

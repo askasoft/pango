@@ -9,7 +9,7 @@ type Filter interface {
 
 // LevelFilter log level filter
 type LevelFilter struct {
-	Level int
+	Level Level
 }
 
 // Reject filter event by logger name
@@ -18,8 +18,8 @@ func (lf *LevelFilter) Reject(le *Event) bool {
 }
 
 // NewLevelFilter create a level filter
-func NewLevelFilter(level int) *LevelFilter {
-	return &LevelFilter{Level: level}
+func NewLevelFilter(lvl Level) *LevelFilter {
+	return &LevelFilter{Level: lvl}
 }
 
 // NameFilter logger name filter

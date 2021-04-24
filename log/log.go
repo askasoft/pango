@@ -24,8 +24,6 @@ package log
 import (
 	"io"
 	"sync"
-
-	"github.com/fsnotify/fsnotify"
 )
 
 // Log is default logger in application.
@@ -38,12 +36,16 @@ type Log struct {
 	waitg   sync.WaitGroup
 	writer  Writer
 	mutex   sync.Mutex
-	levels  map[string]int
-	watcher *fsnotify.Watcher
+	levels  map[string]Level
 }
 
-// GetLoggerLevel get the named logger level
-func (log *Log) GetLoggerLevel(name string) int {
+// SetLevels set the logger levels
+func (log *Log) SetLevels(lvls map[string]Level) {
+	log.levels = lvls
+}
+
+// getLoggerLevel get the named logger level
+func (log *Log) getLoggerLevel(name string) Level {
 	level := log.levels[name]
 	if level == LevelNone {
 		level = log.GetLevel()
@@ -51,14 +53,9 @@ func (log *Log) GetLoggerLevel(name string) int {
 	return level
 }
 
-// SetLoggerLevel set the named logger level
-func (log *Log) SetLoggerLevel(name string, level int) {
-	log.levels[name] = level
-}
-
 // GetLogger returns a new Logger with name
 func (log *Log) GetLogger(name string) Logger {
-	level := log.GetLoggerLevel(name)
+	level := log.getLoggerLevel(name)
 	return &logger{
 		name:   name,
 		log:    log,
@@ -217,11 +214,6 @@ func (log *Log) Close() {
 	log.mutex.Lock()
 	defer log.mutex.Unlock()
 
-	if log.watcher != nil {
-		log.watcher.Close()
-		log.watcher = nil
-	}
-
 	if log.async {
 		log.execSignal("close")
 		close(log.evtChan)
@@ -235,7 +227,7 @@ func (log *Log) Close() {
 }
 
 // Outputer return a io.Writer for go log.SetOutput
-func (log *Log) Outputer(lvl int) io.Writer {
+func (log *Log) Outputer(lvl Level) io.Writer {
 	lg := log.GetLogger("golog")
 	lg.SetCallerDepth(lg.GetCallerDepth() + 2)
 	return &outputer{logger: lg, level: lvl}
@@ -268,7 +260,7 @@ func newLog(depth int) *Log {
 	log.level = LevelTrace
 	log.depth = depth
 	log.trace = LevelError
-	log.levels = make(map[string]int)
+	log.levels = make(map[string]Level)
 	return log
 }
 
@@ -283,15 +275,16 @@ func GetLogger(name string) Logger {
 }
 
 // Outputer return a io.Writer for go log.SetOutput
-func Outputer(name string, lvl int) io.Writer {
+func Outputer(name string, lvl Level) io.Writer {
 	lg := GetLogger(name)
 	lg.SetCallerDepth(lg.GetCallerDepth() + 2)
 	return &outputer{logger: lg, level: lvl}
 }
 
-// Async set the Log with Async mode and hold msglen messages
-func Async(msgLen int) {
-	_log.Async(msgLen)
+// Async set the log to asynchronous and start the goroutine
+// if size < 1 then stop async goroutine
+func Async(size int) {
+	_log.Async(size)
 }
 
 // IsAsync return the logger's async
@@ -316,14 +309,19 @@ func Close() {
 }
 
 // GetLevel return the logger's level
-func GetLevel() int {
+func GetLevel() Level {
 	return _log.GetLevel()
 }
 
 // SetLevel set the logger's level
-func SetLevel(lvl int) {
+func SetLevel(lvl Level) {
 	_log.SetLevel(lvl)
 	_logger.SetLevel(lvl)
+}
+
+// SetLevels set the logger levels
+func SetLevels(lvls map[string]Level) {
+	_log.SetLevels(lvls)
 }
 
 // GetCallerDepth return the logger's caller depth
@@ -334,7 +332,7 @@ func GetCallerDepth() int {
 // SetCallerDepth set the logger's caller depth (!!SLOW!!), 0: disable runtime.Caller()
 func SetCallerDepth(d int) {
 	_log.SetCallerDepth(d)
-	_logger = newPkgLogger()
+	_logger.SetCallerDepth(d + 1)
 }
 
 // IsFatalEnabled is FATAL level enabled

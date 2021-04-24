@@ -82,7 +82,7 @@ func (sw *SlackWriter) Flush() {
 func (sw *SlackWriter) Close() {
 }
 
-func getIconEmoji(lvl int) string {
+func getIconEmoji(lvl Level) string {
 	switch lvl {
 	case LevelFatal:
 		return ":boom:"
@@ -96,8 +96,9 @@ func getIconEmoji(lvl int) string {
 		return ":bug:"
 	case LevelTrace:
 		return ":ant:"
+	default:
+		return ":ghost:"
 	}
-	return ":ghost:"
 }
 
 func init() {

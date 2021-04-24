@@ -12,7 +12,7 @@ import (
 // Event log event
 type Event struct {
 	Logger Logger    `json:"-"`
-	Level  int       `json:"level"`
+	Level  Level     `json:"level"`
 	Msg    string    `json:"msg"`
 	When   time.Time `json:"when"`
 	File   string    `json:"file"`
@@ -75,7 +75,7 @@ func (le *Event) Caller(depth int, trace bool) {
 }
 
 // newEvent get a log event from pool
-func newEvent(logger Logger, lvl int, msg string) *Event {
+func newEvent(logger Logger, lvl Level, msg string) *Event {
 	le := eventPool.Get().(*Event)
 	le.Logger = logger
 	le.Level = lvl

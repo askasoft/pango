@@ -14,7 +14,7 @@ import (
 func TestGoLogOutputGlobal(t *testing.T) {
 	fmt.Println("\n\n--------------- TestGoLogOutputGlobal ---------------------")
 	SetWriter(testNewConsoleWriter())
-	golog.SetOutput(Outputer(LevelInfo))
+	golog.SetOutput(Outputer("golog", LevelInfo))
 	golog.Print("hello", "golog")
 }
 
@@ -33,7 +33,7 @@ func TestGoLogFileCallerGlobal(t *testing.T) {
 	SetFormatter(NewTextFormatter("%l %S:%L %F() - %m"))
 	SetWriter(&FileWriter{Path: path})
 	golog.SetFlags(0)
-	golog.SetOutput(Outputer(LevelInfo))
+	golog.SetOutput(Outputer("golog", LevelInfo))
 	file, line, ffun := testGetCaller(1)
 	golog.Print("hello", "golog")
 	Close()

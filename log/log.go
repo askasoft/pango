@@ -281,8 +281,8 @@ func GetLogger(name string) Logger {
 }
 
 // Outputer return a io.Writer for go log.SetOutput
-func Outputer(lvl int) io.Writer {
-	lg := GetLogger("golog")
+func Outputer(name string, lvl int) io.Writer {
+	lg := GetLogger(name)
 	lg.SetCallerDepth(lg.GetCallerDepth() + 2)
 	return &outputer{logger: lg, level: lvl}
 }

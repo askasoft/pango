@@ -7,14 +7,26 @@ import (
 	"path/filepath"
 )
 
-// FileExists check if file exists
-func FileExists(path string) error {
-	fi, err := os.Stat(path)
+// DirExists check if the directory dir exists
+func DirExists(dir string) error {
+	fi, err := os.Stat(dir)
+	if err != nil {
+		return err
+	}
+	if !fi.IsDir() {
+		return fmt.Errorf("%q is not a directory", dir)
+	}
+	return nil
+}
+
+// FileExists check if the file exists
+func FileExists(file string) error {
+	fi, err := os.Stat(file)
 	if err != nil {
 		return err
 	}
 	if fi.IsDir() {
-		return fmt.Errorf("%q is directory", path)
+		return fmt.Errorf("%q is directory", file)
 	}
 	return nil
 }

@@ -58,12 +58,15 @@ func (log *Log) SetLoggerLevel(name string, level int) {
 
 // GetLogger returns a new Logger with name
 func (log *Log) GetLogger(name string) Logger {
-	if name == "" || name == ROOT {
-		return log
-	}
-
 	level := log.GetLoggerLevel(name)
-	return &logger{name: name, log: log, logfmt: log.logfmt, depth: log.depth, level: level, trace: log.trace}
+	return &logger{
+		name:   name,
+		log:    log,
+		logfmt: log.logfmt,
+		depth:  log.depth,
+		level:  level,
+		trace:  log.trace,
+	}
 }
 
 // Async set the log to asynchronous and start the goroutine
@@ -242,21 +245,26 @@ func (log *Log) Outputer(lvl int) io.Writer {
 // package functions
 //
 
-// ROOT default logger name
-const ROOT = "_"
-
 // NewLog returns a new Log.
 func NewLog() *Log {
 	return newLog(5)
 }
 
-// default package Log instance
-var log = newLog(6)
+// default Log instance
+var _log = NewLog()
+
+// package logger
+var _logger Logger = newPkgLogger()
+
+func newPkgLogger() Logger {
+	l := _log.GetLogger("")
+	l.SetCallerDepth(l.GetCallerDepth() + 1)
+	return l
+}
 
 func newLog(depth int) *Log {
 	log := &Log{}
 	log.log = log
-	log.name = ROOT
 	log.level = LevelTrace
 	log.depth = depth
 	log.trace = LevelError
@@ -266,18 +274,12 @@ func newLog(depth int) *Log {
 
 // Default get default Log
 func Default() *Log {
-	return log
+	return _log
 }
 
 // GetLogger returns a new logger
 func GetLogger(name string) Logger {
-	if name == "" || name == ROOT {
-		return log
-	}
-
-	l := log.GetLogger(name)
-	l.SetCallerDepth(GetCallerDepth() - 1)
-	return l
+	return _log.GetLogger(name)
 }
 
 // Outputer return a io.Writer for go log.SetOutput
@@ -289,136 +291,138 @@ func Outputer(name string, lvl int) io.Writer {
 
 // Async set the Log with Async mode and hold msglen messages
 func Async(msgLen int) {
-	log.Async(msgLen)
+	_log.Async(msgLen)
 }
 
 // IsAsync return the logger's async
 func IsAsync() bool {
-	return log.async
+	return _log.async
 }
 
 // SetFormatter set the formatter.
 func SetFormatter(lf Formatter) {
-	log.SetFormatter(lf)
+	_log.SetFormatter(lf)
+	_logger.SetFormatter(lf)
 }
 
 // SetWriter set the writer.
 func SetWriter(lw Writer) {
-	log.SetWriter(lw)
+	_log.SetWriter(lw)
 }
 
 // Close will remove all writers and stop async goroutine
 func Close() {
-	log.Close()
+	_log.Close()
 }
 
 // GetLevel return the logger's level
 func GetLevel() int {
-	return log.GetLevel()
+	return _log.GetLevel()
 }
 
 // SetLevel set the logger's level
 func SetLevel(lvl int) {
-	log.SetLevel(lvl)
+	_log.SetLevel(lvl)
+	_logger.SetLevel(lvl)
 }
 
 // GetCallerDepth return the logger's caller depth
 func GetCallerDepth() int {
-	return log.GetCallerDepth()
+	return _log.GetCallerDepth()
 }
 
 // SetCallerDepth set the logger's caller depth (!!SLOW!!), 0: disable runtime.Caller()
 func SetCallerDepth(d int) {
-	log.SetCallerDepth(d)
+	_log.SetCallerDepth(d)
+	_logger = newPkgLogger()
 }
 
 // IsFatalEnabled is FATAL level enabled
 func IsFatalEnabled() bool {
-	return log.IsFatalEnabled()
+	return _logger.IsFatalEnabled()
 }
 
 // Fatal log a message at fatal level.
 func Fatal(v ...interface{}) {
-	log.Fatal(v...)
+	_logger.Fatal(v...)
 }
 
 // Fatalf format and log a message at fatal level.
 func Fatalf(f string, v ...interface{}) {
-	log.Fatalf(f, v...)
+	_logger.Fatalf(f, v...)
 }
 
 // IsErrorEnabled is ERROR level enabled
 func IsErrorEnabled() bool {
-	return log.IsErrorEnabled()
+	return _logger.IsErrorEnabled()
 }
 
 // Error log a message at error level.
 func Error(v ...interface{}) {
-	log.Error(v...)
+	_logger.Error(v...)
 }
 
 // Errorf format and log a message at error level.
 func Errorf(f string, v ...interface{}) {
-	log.Errorf(f, v...)
+	_logger.Errorf(f, v...)
 }
 
 // IsWarnEnabled is WARN level enabled
 func IsWarnEnabled() bool {
-	return log.IsWarnEnabled()
-
+	return _logger.IsWarnEnabled()
 }
 
 // Warn log a message at warning level.
 func Warn(v ...interface{}) {
-	log.Warn(v...)
+	_logger.Warn(v...)
 }
 
 // Warnf format and log a message at warning level.
 func Warnf(f string, v ...interface{}) {
-	log.Warnf(f, v...)
+	_logger.Warnf(f, v...)
 }
 
 // IsInfoEnabled is INFO level enabled
 func IsInfoEnabled() bool {
-	return log.IsInfoEnabled()
+	return _logger.IsInfoEnabled()
 }
 
 // Info log a message at info level.
 func Info(v ...interface{}) {
-	log.Info(v...)
+	_logger.Info(v...)
 }
 
 // Infof format and log a message at info level.
 func Infof(f string, v ...interface{}) {
-	log.Infof(f, v...)
+	_logger.Infof(f, v...)
 }
 
 // IsDebugEnabled is DEBUG level enabled
 func IsDebugEnabled() bool {
-	return log.IsDebugEnabled()
+	return _logger.IsDebugEnabled()
 }
 
 // Debug log a message at debug level.
 func Debug(v ...interface{}) {
-	log.Debug(v...)
+	_logger.Debug(v...)
 }
 
 // Debugf format log a message at debug level.
 func Debugf(f string, v ...interface{}) {
-	log.Debugf(f, v...)
+	_logger.Debugf(f, v...)
 }
 
 // IsTraceEnabled is TRACE level enabled
 func IsTraceEnabled() bool {
-	return log.IsTraceEnabled()
+	return _logger.IsTraceEnabled()
 }
 
 // Trace log a message at trace level.
 func Trace(v ...interface{}) {
-	log.Trace(v...)
+	_logger.Trace(v...)
 }
 
 // Tracef format and log a message at trace level.
 func Tracef(f string, v ...interface{}) {
-	log.Tracef(f, v...)
+	_logger.Tracef(f, v...)
 }

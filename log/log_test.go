@@ -50,7 +50,7 @@ func TestLogNilWriter(t *testing.T) {
 
 func TestLogFuncs(t *testing.T) {
 	fmt.Println("\n\n--------------- TestLogFuncs ---------------------")
-	log.SetWriter(testNewConsoleWriter())
+	SetWriter(testNewConsoleWriter())
 	SetLevel(LevelTrace)
 	for i := 0; i < 1; i++ {
 		Fatal("fatal")
@@ -93,4 +93,22 @@ func TestLogNewLogProp(t *testing.T) {
 	log1.SetWriter(testNewConsoleWriter())
 	log1.SetProp("key", "val")
 	testLoggerCalls(log1)
+}
+
+func TestLogDefault(t *testing.T) {
+	fmt.Println("\n\n-------------- TestLogDefault ----------------")
+	log1 := Default()
+	log1.SetLevel(LevelTrace)
+	log1.SetWriter(testNewConsoleWriter())
+	log1.SetProp("key", "val")
+	testLoggerCalls(log1)
+
+	for i := 0; i < 1; i++ {
+		Fatal("hello", "fatal")
+		Error("hello", "error")
+		Warn("hello", "warning")
+		Info("hello", "info")
+		Debug("hello", "debug")
+		Trace("hello", "trace")
+	}
 }

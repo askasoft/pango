@@ -9,36 +9,12 @@ func IsEmpty(bs []byte) bool {
 
 // StartsWith Tests if the byte slice s starts with the specified prefix b.
 func StartsWith(s []byte, b []byte) bool {
-	if IsEmpty(b) {
-		return true
-	}
-	if IsEmpty(s) {
-		return false
-	}
-	if len(s) < len(b) {
-		return false
-	}
-
-	a := s[0:len(b)]
-	c := bytes.Compare(a, b)
-	return c == 0
+	return bytes.HasPrefix(s, b)
 }
 
 // EndsWith Tests if the byte slice bs ends with the specified suffix b.
 func EndsWith(s []byte, b []byte) bool {
-	if IsEmpty(b) {
-		return true
-	}
-	if IsEmpty(s) {
-		return false
-	}
-	if len(s) < len(b) {
-		return false
-	}
-
-	a := s[len(s)-len(b):]
-	c := bytes.Compare(a, b)
-	return c == 0
+	return bytes.HasSuffix(s, b)
 }
 
 // StartsWithByte Tests if the byte slice s starts with the specified prefix b.

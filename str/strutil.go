@@ -9,34 +9,12 @@ import (
 
 // StartsWith Tests if the string s starts with the specified prefix b.
 func StartsWith(s string, b string) bool {
-	if IsEmpty(b) {
-		return true
-	}
-	if IsEmpty(s) {
-		return false
-	}
-	if len(s) < len(b) {
-		return false
-	}
-
-	a := s[0:len(b)]
-	return a == b
+	return strings.HasPrefix(s, b)
 }
 
 // EndsWith Tests if the string s ends with the specified suffix b.
 func EndsWith(s string, b string) bool {
-	if IsEmpty(b) {
-		return true
-	}
-	if IsEmpty(s) {
-		return false
-	}
-	if len(s) < len(b) {
-		return false
-	}
-
-	a := s[len(s)-len(b):]
-	return a == b
+	return strings.HasSuffix(s, b)
 }
 
 // StartsWithByte Tests if the byte slice s starts with the specified prefix b.

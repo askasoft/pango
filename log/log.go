@@ -93,6 +93,11 @@ func (log *Log) Async(size int) *Log {
 	return log
 }
 
+// GetWriter get the log writer
+func (log *Log) GetWriter() Writer {
+	return log.writer
+}
+
 // SetWriter set the log writer
 func (log *Log) SetWriter(lw Writer) {
 	log.mutex.Lock()

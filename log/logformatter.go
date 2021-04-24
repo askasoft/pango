@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/pandafw/pango/iox"
-	"github.com/pandafw/pango/str"
 )
 
 var eol = iox.EOL
@@ -37,10 +36,10 @@ var JSONFmtDefault = newJSONFormatter(`{"when": %d{2006-01-02T15:04:05.000Z07:00
 // text:[%p] %m%n -> TextFormatter
 // json:{"level":%l, "msg": %m}%n  -> JSONFormatter
 func NewLogFormatter(format string) Formatter {
-	if str.StartsWith(format, "text:") {
+	if strings.HasPrefix(format, "text:") {
 		return NewTextFormatter(format[5:])
 	}
-	if str.StartsWith(format, "json:") {
+	if strings.HasPrefix(format, "json:") {
 		return NewJSONFormatter(format[5:])
 	}
 	return NewTextFormatter(format)

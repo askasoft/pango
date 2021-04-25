@@ -38,8 +38,49 @@ func (sec *Section) Comments() []string {
 	return sec.comments
 }
 
-// Kvmap return the section's entries key/value map
-func (sec *Section) Kvmap() map[string]interface{} {
+// Keys return the section's key string array
+func (sec *Section) Keys() []string {
+	ks := make([]string, 0, sec.entries.Len())
+	for e := sec.entries.Front(); e != nil; e = e.Next() {
+		ks = append(ks, e.Key().(string))
+	}
+	return ks
+}
+
+// StringMap return the section's entries key.(string)/value.(string) map
+func (sec *Section) StringMap() map[string]string {
+	m := make(map[string]string, sec.entries.Len())
+	for e := sec.entries.Front(); e != nil; e = e.Next() {
+		var v string
+		switch se := e.Value.(type) {
+		case *col.List:
+			v = se.Front().Value.(string)
+		case *Entry:
+			v = se.Value
+		}
+		m[e.Key().(string)] = v
+	}
+	return m
+}
+
+// StringsMap return the section's entries key.(string)/value.([]string) map
+func (sec *Section) StringsMap() map[string][]string {
+	m := make(map[string][]string, sec.entries.Len())
+	for e := sec.entries.Front(); e != nil; e = e.Next() {
+		var v []string
+		switch se := e.Value.(type) {
+		case *col.List:
+			v = sec.toStrings(se)
+		case *Entry:
+			v = []string{se.Value}
+		}
+		m[e.Key().(string)] = v
+	}
+	return m
+}
+
+// Map return the section's entries key.(string)/value.(interface{}) map
+func (sec *Section) Map() map[string]interface{} {
 	m := make(map[string]interface{}, sec.entries.Len())
 	for e := sec.entries.Front(); e != nil; e = e.Next() {
 		var v interface{}

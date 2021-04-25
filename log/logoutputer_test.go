@@ -22,7 +22,7 @@ func TestGoLogOutputNewLog(t *testing.T) {
 	fmt.Println("\n\n--------------- TestGoLogOutputNewLog ---------------------")
 	log := NewLog()
 	log.SetWriter(testNewConsoleWriter())
-	golog.SetOutput(log.Outputer(LevelInfo))
+	golog.SetOutput(log.Outputer("std", LevelInfo))
 	golog.Print("hello", "golog")
 }
 
@@ -50,7 +50,7 @@ func TestGoLogFileCallerNewLog(t *testing.T) {
 	log.SetFormatter(NewTextFormatter("%l %S:%L %F() - %m"))
 	log.SetWriter(&FileWriter{Path: path})
 	golog.SetFlags(0)
-	golog.SetOutput(log.Outputer(LevelInfo))
+	golog.SetOutput(log.Outputer("std", LevelInfo))
 	file, line, ffun := testGetCaller(1)
 	golog.Print("hello", "golog")
 	log.Close()

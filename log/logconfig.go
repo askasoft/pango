@@ -75,7 +75,7 @@ func (log *Log) configINI(filename string) error {
 		return err
 	}
 
-	c := ini.Section("").Kvmap()
+	c := ini.Section("").Map()
 
 	if err := log.configLogAsync(c); err != nil {
 		return err
@@ -86,7 +86,7 @@ func (log *Log) configINI(filename string) error {
 
 	sec := ini.Section("level")
 	if sec != nil {
-		lvls := sec.Kvmap()
+		lvls := sec.Map()
 		if err := log.configLogLevels(lvls); err != nil {
 			return err
 		}
@@ -103,7 +103,7 @@ func (log *Log) configINI(filename string) error {
 				if sec == nil {
 					es = make(map[string]interface{}, 1)
 				} else {
-					es = sec.Kvmap()
+					es = sec.Map()
 				}
 
 				if _, ok := es["_"]; !ok {

@@ -59,6 +59,19 @@ func (ini *Ini) IsEmpty() bool {
 	return true
 }
 
+// MAP ini key/section map
+type MAP map[string]map[string]interface{}
+
+// Map convert ini to map
+func (ini *Ini) Map() MAP {
+	m := make(MAP, ini.sections.Len())
+	for s := ini.sections.Front(); s != nil; s = s.Next() {
+		sec := s.Value.(*Section)
+		m[sec.name] = sec.Map()
+	}
+	return m
+}
+
 // SectionNames returns the section array
 func (ini *Ini) SectionNames() []string {
 	ss := make([]string, ini.sections.Len())

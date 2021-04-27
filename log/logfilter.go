@@ -1,6 +1,10 @@
 package log
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/pandafw/pango/str"
+)
 
 // Filter log filter
 type Filter interface {
@@ -28,13 +32,28 @@ type NameFilter struct {
 }
 
 // Reject filter event by logger name
-func (lf *NameFilter) Reject(le *Event) bool {
-	return lf.Name != le.Logger.GetName()
+func (nf *NameFilter) Reject(le *Event) bool {
+	return nf.Name != le.Logger.GetName()
 }
 
 // NewNameFilter create a name filter
 func NewNameFilter(name string) *NameFilter {
 	return &NameFilter{Name: name}
+}
+
+// NameNotFilter logger name filter
+type NameNotFilter struct {
+	Name string
+}
+
+// Reject filter event by logger name
+func (nnf *NameNotFilter) Reject(le *Event) bool {
+	return nnf.Name == le.Logger.GetName()
+}
+
+// NewNameNotFilter create a name filter (not equal)
+func NewNameNotFilter(name string) Filter {
+	return &NameNotFilter{Name: name}
 }
 
 // MultiFilter a multiple filter
@@ -100,6 +119,9 @@ func NewLogFilter(c string) Filter {
 
 func init() {
 	RegisterFilter("name", func(s string) Filter {
+		if str.StartsWithByte(s, '!') {
+			return NewNameNotFilter(s[1:])
+		}
 		return NewNameFilter(s)
 	})
 	RegisterFilter("level", func(s string) Filter {

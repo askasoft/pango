@@ -57,8 +57,17 @@ func GetLogger(name string) Logger {
 }
 
 // Outputer return a io.Writer for go log.SetOutput
-func Outputer(name string, lvl Level) io.Writer {
-	return _log.Outputer(name, lvl)
+// callerDepth: default is 1 (means +1)
+// if the outputer is used by go std log, set callerDepth to 2
+// example:
+//   import (
+//     golog "log"
+//     "github.com/pandafw/pango/log"
+//   )
+//   golog.SetOutput(log.Outputer("GO", log.LevelInfo, 2))
+//
+func Outputer(name string, lvl Level, callerDepth ...int) io.Writer {
+	return _log.Outputer(name, lvl, callerDepth...)
 }
 
 // Async set the log to asynchronous and start the goroutine

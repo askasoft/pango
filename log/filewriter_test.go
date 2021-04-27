@@ -62,6 +62,22 @@ func TestFileCallerNewLog(t *testing.T) {
 	assert.Equal(t, fmt.Sprintf("INFO %s:%d %s() - hello%s", file, line, ffun, eol), string(bs))
 }
 
+func TestFileCallerNewLog2(t *testing.T) {
+	defer os.RemoveAll("filetest")
+
+	path := "filetest/TestFileCallerNewLog2"
+	log := NewLog()
+	log.SetFormatter(NewTextFormatter("%l %S:%L %F() - %m%n%T"))
+	log.SetWriter(&FileWriter{Path: path})
+	file, line, ffun := testGetCaller(1)
+	log.Log(LevelInfo, "hello")
+	log.Close()
+
+	// check lastest file
+	bs, _ := ioutil.ReadFile(path + ".log")
+	assert.Equal(t, fmt.Sprintf("INFO %s:%d %s() - hello%s", file, line, ffun, eol), string(bs))
+}
+
 func TestFileSyncWrite(t *testing.T) {
 	defer os.RemoveAll("filetest")
 

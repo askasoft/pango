@@ -30,6 +30,12 @@ func testNewConsoleWriter() Writer {
 	return &StreamWriter{Color: true}
 }
 
+func testNewFileWriter(path, format string) Writer {
+	fw := &FileWriter{Path: path}
+	fw.SetFormat(format)
+	return fw
+}
+
 // Try each log level in decreasing order of priority.
 func testLoggerCalls(l Logger) {
 	for i := 0; i < 1; i++ {

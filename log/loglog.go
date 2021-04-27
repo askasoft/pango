@@ -221,8 +221,21 @@ func (log *Log) Close() {
 }
 
 // Outputer return a io.Writer for go log.SetOutput
-func (log *Log) Outputer(name string, lvl Level) io.Writer {
+// callerDepth: default is 1 (means +1)
+// if the outputer is used by go std log, set callerDepth to 2
+// example:
+//   import (
+//     golog "log"
+//     "github.com/pandafw/pango/log"
+//   )
+//   golog.SetOutput(log.Outputer("GO", log.LevelInfo, 2))
+//
+func (log *Log) Outputer(name string, lvl Level, callerDepth ...int) io.Writer {
 	lg := log.GetLogger(name)
-	lg.SetCallerDepth(lg.GetCallerDepth() + 2)
+	cd := 1
+	if len(callerDepth) > 0 {
+		cd = callerDepth[0]
+	}
+	lg.SetCallerDepth(lg.GetCallerDepth() + cd)
 	return &outputer{logger: lg, level: lvl}
 }

@@ -4,14 +4,15 @@ import (
 	"strings"
 )
 
-// StringAfterByte Gets the substring after the first occurrence of a separator. The separator is not returned.
+// SubstrAfterByte Gets the substring after the first occurrence of a separator b.
+// The separator b is not returned.
 // If nothing is found, the empty string is returned.
-// StringAfterByte("", *)        = ""
-// StringAfterByte("abc", 'a')   = "bc"
-// StringAfterByte("abcba", 'b') = "cba"
-// StringAfterByte("abc", 'c')   = ""
-// StringAfterByte("abc", 'd')   = ""
-func StringAfterByte(s string, b byte) string {
+// SubstrAfterByte("", *)        = ""
+// SubstrAfterByte("abc", 'a')   = "bc"
+// SubstrAfterByte("abcba", 'b') = "cba"
+// SubstrAfterByte("abc", 'c')   = ""
+// SubstrAfterByte("abc", 'd')   = ""
+func SubstrAfterByte(s string, b byte) string {
 	if s == "" {
 		return s
 	}
@@ -23,14 +24,15 @@ func StringAfterByte(s string, b byte) string {
 	return s[i+1:]
 }
 
-// StringAfterRune Gets the substring after the first occurrence of a separator. The separator is not returned.
+// SubstrAfterRune Gets the substring after the first occurrence of a separator r.
+// The separator r is not returned.
 // If nothing is found, the empty string is returned.
-// StringAfterRune("", *)        = ""
-// StringAfterRune("abc", 'a')   = "bc"
-// StringAfterRune("abcba", 'b') = "cba"
-// StringAfterRune("abc", 'c')   = ""
-// StringAfterRune("abc", 'd')   = ""
-func StringAfterRune(s string, r rune) string {
+// SubstrAfterRune("", *)        = ""
+// SubstrAfterRune("abc", 'a')   = "bc"
+// SubstrAfterRune("abcba", 'b') = "cba"
+// SubstrAfterRune("abc", 'c')   = ""
+// SubstrAfterRune("abc", 'd')   = ""
+func SubstrAfterRune(s string, r rune) string {
 	if s == "" {
 		return s
 	}
@@ -42,16 +44,17 @@ func StringAfterRune(s string, r rune) string {
 	return s[i+1:]
 }
 
-// StringAfterLastByte Gets the substring after the last occurrence of a separator. The separator is not returned.
+// SubstrAfterLastByte Gets the substring after the last occurrence of a separator b.
+// The separator b is not returned.
 // If nothing is found, the empty string is returned.
 //
-// StringAfterLastByte("", *)        = ""
-// StringAfterLastByte("abc", 'a')   = "bc"
-// StringAfterLastByte("abcba", 'b') = "a"
-// StringAfterLastByte("abc", 'c')   = ""
-// StringAfterLastByte("a", 'a')     = ""
-// StringAfterLastByte("a", 'z')     = ""
-func StringAfterLastByte(s string, b byte) string {
+// SubstrAfterLastByte("", *)        = ""
+// SubstrAfterLastByte("abc", 'a')   = "bc"
+// SubstrAfterLastByte("abcba", 'b') = "a"
+// SubstrAfterLastByte("abc", 'c')   = ""
+// SubstrAfterLastByte("a", 'a')     = ""
+// SubstrAfterLastByte("a", 'z')     = ""
+func SubstrAfterLastByte(s string, b byte) string {
 	if s == "" {
 		return s
 	}
@@ -63,23 +66,109 @@ func StringAfterLastByte(s string, b byte) string {
 	return s[i+1:]
 }
 
-// StringAfterLast Gets the substring after the last occurrence of a separator. The separator is not returned.
+// SubstrAfterLast Gets the substring after the last occurrence of a separator b.
+// The separator b is not returned.
 // If nothing is found, the empty string is returned.
 //
-// StringAfterLast("", *)        = ""
-// StringAfterLast("abc", "a")   = "bc"
-// StringAfterLast("abcba", "b") = "a"
-// StringAfterLast("abc", "c")   = ""
-// StringAfterLast("a", "a")     = ""
-// StringAfterLast("a", "z")     = ""
-func StringAfterLast(s string, c string) string {
+// SubstrAfterLast("", *)        = ""
+// SubstrAfterLast("abc", "a")   = "bc"
+// SubstrAfterLast("abcba", "b") = "a"
+// SubstrAfterLast("abc", "c")   = ""
+// SubstrAfterLast("a", "a")     = ""
+// SubstrAfterLast("a", "z")     = ""
+func SubstrAfterLast(s string, b string) string {
 	if s == "" {
 		return s
 	}
 
-	i := strings.LastIndex(s, c)
-	if i < 0 || i == len(s)-len(c) {
+	i := strings.LastIndex(s, b)
+	if i < 0 || i == len(s)-len(b) {
 		return ""
 	}
-	return s[i+len(c):]
+	return s[i+len(b):]
+}
+
+// SubstrBeforeByte Gets the substring before the first occurrence of a separator b.
+// The separator b is not returned.
+// If nothing is found, the empty string is returned.
+// SubstrBeforeByte("", *)        = ""
+// SubstrBeforeByte("abc", 'a')   = ""
+// SubstrBeforeByte("abcba", 'b') = "a"
+// SubstrBeforeByte("abc", 'c')   = "ab"
+// SubstrBeforeByte("abc", 'd')   = ""
+func SubstrBeforeByte(s string, b byte) string {
+	if s == "" {
+		return s
+	}
+
+	i := strings.IndexByte(s, b)
+	if i < 0 {
+		return ""
+	}
+	return s[:i]
+}
+
+// SubstrBeforeRune Gets the substring before the first occurrence of a separator r.
+// The separator r is not returned.
+// If nothing is found, the empty string is returned.
+// SubstrBeforeRune("", *)        = ""
+// SubstrBeforeRune("abc", 'a')   = ""
+// SubstrBeforeRune("abcba", 'b') = "a"
+// SubstrBeforeRune("abc", 'c')   = "ab"
+// SubstrBeforeRune("abc", 'd')   = ""
+func SubstrBeforeRune(s string, r rune) string {
+	if s == "" {
+		return s
+	}
+
+	i := strings.IndexRune(s, r)
+	if i <= 0 {
+		return ""
+	}
+	return s[:i]
+}
+
+// SubstrBeforeLastByte Gets the substring before the last occurrence of a separator b.
+// The separator b is not returned.
+// If nothing is found, the empty string is returned.
+//
+// SubstrBeforeLastByte("", *)        = ""
+// SubstrBeforeLastByte("abc", 'a')   = ""
+// SubstrBeforeLastByte("abcba", 'b') = "abc"
+// SubstrBeforeLastByte("abc", 'c')   = "ab"
+// SubstrBeforeLastByte("a", 'a')     = ""
+// SubstrBeforeLastByte("a", 'z')     = ""
+func SubstrBeforeLastByte(s string, b byte) string {
+	if s == "" {
+		return s
+	}
+
+	i := strings.LastIndexByte(s, b)
+	if i <= 0 {
+		return ""
+	}
+	return s[:i]
+}
+
+// SubstrBeforeLast Gets the substring before the last occurrence of a separator b.
+// The separator b is not returned.
+// If nothing is found, the empty string is returned.
+//
+// SubstrBeforeLast("", *)        = ""
+// SubstrBeforeLast("abc", "a")   = ""
+// SubstrBeforeLast("abcba", "b") = "a"
+// SubstrBeforeLast("abc", "c")   = "ab"
+// SubstrBeforeLast("a", "a")     = ""
+// SubstrBeforeLast("a", "z")     = ""
+// SubstrBeforeLast("a", "")      = "a"
+func SubstrBeforeLast(s string, b string) string {
+	if s == "" {
+		return s
+	}
+
+	i := strings.LastIndex(s, b)
+	if i <= 0 {
+		return ""
+	}
+	return s[:i]
 }

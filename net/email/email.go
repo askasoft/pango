@@ -210,7 +210,7 @@ func (m *Email) GetRcptsByDomain() map[string][]string {
 	rcpts := m.GetRecipients()
 	rs := make(map[string][]string, len(rcpts))
 	for _, r := range rcpts {
-		d := str.StringAfterByte(r, '@')
+		d := str.SubstrAfterByte(r, '@')
 		if d == "" {
 			continue
 		}

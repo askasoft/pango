@@ -12,6 +12,8 @@ import (
 
 var eol = iox.EOL
 
+const defaultTimeFormat = "2006-01-02T15:04:05.000"
+
 // Formatter log formater interface
 type Formatter interface {
 	Write(bb *bytes.Buffer, le *Event)
@@ -24,11 +26,11 @@ var TextFmtSubject = newTextFormatter("[%l] %m")
 // TextFmtSimple simple log format "[%p] %m%n"
 var TextFmtSimple = newTextFormatter("[%p] %m%n")
 
-// TextFmtDefault default log format "%d{2006-01-02T15:04:05.000} %l %S:%L %F() - %m%n%T"
-var TextFmtDefault = newTextFormatter("%d{2006-01-02T15:04:05.000} %l %S:%L %F() - %m%n%T")
+// TextFmtDefault default log format "%t %l %S:%L %F() - %m%n%T"
+var TextFmtDefault = newTextFormatter("%t %l %S:%L %F() - %m%n%T")
 
-// JSONFmtDefault default log format `{"when": %d{2006-01-02T15:04:05.000Z07:00}, "level": %l, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`
-var JSONFmtDefault = newJSONFormatter(`{"when": %d{2006-01-02T15:04:05.000Z07:00}, "level": %l, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
+// JSONFmtDefault default log format `{"when": %t, "level": %l, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`
+var JSONFmtDefault = newJSONFormatter(`{"when": %t, "level": %l, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
 
 // NewLogFormatter create a text or json formatter
 // text:[%p] %m%n -> TextFormatter
@@ -45,8 +47,8 @@ func NewLogFormatter(format string) Formatter {
 
 // NewTextFormatter create a Text Formatter instance
 // Text Format
+// %t{format}: time, if {format} is omitted, '2006-01-02T15:04:05.000' will be used
 // %c: logger name
-// %d{format}: date
 // %m: message
 // %n: EOL('\n')
 // %p: log level prefix
@@ -78,8 +80,8 @@ func newTextFormatter(format string) *TextFormatter {
 
 // NewJSONFormatter create a Json Formatter instance
 // JSON Format
+// %t{format}: time, if {format} is omitted, '2006-01-02T15:04:05.000' will be used
 // %c: logger name
-// %d{format}: date
 // %m: message
 // %n: EOL('\n')
 // %p: log level prefix
@@ -163,7 +165,7 @@ func (tf *TextFormatter) Init(format string) {
 			fmt = linefmt
 		case 'T':
 			fmt = tracefmt
-		case 'd':
+		case 't':
 			p := format[i+1:]
 			if len(p) > 0 && p[0] == '{' {
 				e := strings.IndexByte(p, '}')
@@ -173,7 +175,7 @@ func (tf *TextFormatter) Init(format string) {
 					break
 				}
 			}
-			fmt = datefmt
+			fmt = timefmt(defaultTimeFormat)
 		case 'x':
 			p := format[i+1:]
 			if len(p) > 0 && p[0] == '{' {
@@ -267,7 +269,7 @@ func (jf *JSONFormatter) Init(format string) {
 			fmt = linefmt
 		case 'T':
 			fmt = quotefmt(tracefmt)
-		case 'd':
+		case 't':
 			p := format[i+1:]
 			if len(p) > 0 && p[0] == '{' {
 				e := strings.IndexByte(p, '}')
@@ -277,7 +279,7 @@ func (jf *JSONFormatter) Init(format string) {
 					break
 				}
 			}
-			fmt = quotefmt(datefmt)
+			fmt = quotefmt(timefmt(defaultTimeFormat))
 		case 'x':
 			p := format[i+1:]
 			if len(p) > 0 && p[0] == '{' {
@@ -315,7 +317,7 @@ func write(bb *bytes.Buffer, le *Event, fmts []fmtfunc) {
 }
 
 func format(le *Event, fmts []fmtfunc) string {
-	ss := strings.Builder{}
+	ss := &strings.Builder{}
 	for _, f := range fmts {
 		s := f(le)
 		ss.WriteString(s)
@@ -369,10 +371,6 @@ func linefmt(le *Event) string {
 
 func tracefmt(le *Event) string {
 	return le.Trace
-}
-
-func datefmt(le *Event) string {
-	return fmt.Sprint(le.When)
 }
 
 func timefmt(layout string) fmtfunc {

@@ -18,7 +18,8 @@ func TestWebhook_ESLog(t *testing.T) {
 
 	log := NewLog()
 	log.SetLevel(LevelTrace)
-	log.SetFormatter(JSONFmtDefault)
+	log.SetFormatter(NewJSONFormatter(
+		`{"when": %t{2006-01-02T15:04:05.000Z07:00}, "level": %l, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`))
 	log.SetWriter(NewMultiWriter(
 		&WebhookWriter{
 			Webhook:     url,

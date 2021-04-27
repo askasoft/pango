@@ -26,10 +26,10 @@ func TestTextFormatDefault(t *testing.T) {
 }
 
 func TestTextFormatDate(t *testing.T) {
-	tf := NewTextFormatter("%d - %m")
+	tf := NewTextFormatter("%t - %m")
 	le := newEvent(&logger{}, LevelInfo, "date")
 	le.When = time.Time{}
-	assert.Equal(t, `0001-01-01 00:00:00 +0000 UTC - date`, tf.Format(le))
+	assert.Equal(t, `0001-01-01T00:00:00.000 - date`, tf.Format(le))
 }
 
 func TestTextFormatProp(t *testing.T) {

@@ -100,7 +100,7 @@ func IsRequestURI(rawurl string) bool {
 
 // IsAlpha checks if the string contains only letters (a-zA-Z).
 func IsAlpha(s string) bool {
-	if IsEmpty(s) {
+	if s == "" {
 		return false
 	}
 
@@ -117,7 +117,7 @@ func IsAlpha(s string) bool {
 //IsUTFLetter checks if the string contains only unicode letter characters.
 //Similar to IsAlpha but for all languages.
 func IsUTFLetter(s string) bool {
-	if IsEmpty(s) {
+	if s == "" {
 		return false
 	}
 
@@ -132,7 +132,7 @@ func IsUTFLetter(s string) bool {
 
 // IsAlphanumeric checks if the string contains only letters and numbers.
 func IsAlphanumeric(s string) bool {
-	if IsEmpty(s) {
+	if s == "" {
 		return false
 	}
 
@@ -148,7 +148,7 @@ func IsAlphanumeric(s string) bool {
 
 // IsUTFLetterNumeric checks if the string contains only unicode letters and numbers.
 func IsUTFLetterNumeric(s string) bool {
-	if IsEmpty(s) {
+	if s == "" {
 		return false
 	}
 
@@ -163,7 +163,7 @@ func IsUTFLetterNumeric(s string) bool {
 
 // IsNumeric checks if the string contains only numbers.
 func IsNumeric(s string) bool {
-	if IsEmpty(s) {
+	if s == "" {
 		return false
 	}
 
@@ -180,7 +180,7 @@ func IsNumeric(s string) bool {
 // IsUTFNumeric checks if the string contains only unicode numbers of any kind.
 // Numbers can be 0-9 but also Fractions ¾,Roman Ⅸ and Hangzhou 〩.
 func IsUTFNumeric(s string) bool {
-	if IsEmpty(s) {
+	if s == "" {
 		return false
 	}
 
@@ -202,7 +202,7 @@ func IsUTFNumeric(s string) bool {
 
 // IsUTFDigit checks if the string contains only unicode radix-10 decimal digits.
 func IsUTFDigit(s string) bool {
-	if IsEmpty(s) {
+	if s == "" {
 		return false
 	}
 
@@ -224,7 +224,7 @@ func IsUTFDigit(s string) bool {
 
 // IsHexadecimal checks if the string is a hexadecimal number.
 func IsHexadecimal(s string) bool {
-	if IsEmpty(s) {
+	if s == "" {
 		return false
 	}
 
@@ -250,7 +250,7 @@ func IsRGBcolor(s string) bool {
 
 // IsLowerCase checks if the string is lowercase.
 func IsLowerCase(s string) bool {
-	if IsEmpty(s) {
+	if s == "" {
 		return false
 	}
 
@@ -264,7 +264,7 @@ func IsLowerCase(s string) bool {
 
 // HasLowerCase checks if the string contains at least 1 lowercase.
 func HasLowerCase(s string) bool {
-	if IsEmpty(s) {
+	if s == "" {
 		return false
 	}
 
@@ -278,7 +278,7 @@ func HasLowerCase(s string) bool {
 
 // IsUpperCase checks if the string is uppercase.
 func IsUpperCase(s string) bool {
-	if IsEmpty(s) {
+	if s == "" {
 		return false
 	}
 
@@ -292,7 +292,7 @@ func IsUpperCase(s string) bool {
 
 // HasUpperCase checks if the string contains as least 1 uppercase.
 func HasUpperCase(s string) bool {
-	if IsEmpty(s) {
+	if s == "" {
 		return false
 	}
 
@@ -306,7 +306,7 @@ func HasUpperCase(s string) bool {
 
 // IsInt checks if the string is an integer.
 func IsInt(s string) bool {
-	if IsEmpty(s) {
+	if s == "" {
 		return false
 	}
 	return rxInt.MatchString(s)
@@ -329,7 +329,7 @@ func IsNotEmpty(s string) bool {
 
 // IsWhitespace checks the string only contains whitespace
 func IsWhitespace(s string) bool {
-	if IsEmpty(s) {
+	if s == "" {
 		return false
 	}
 
@@ -343,7 +343,7 @@ func IsWhitespace(s string) bool {
 
 // HasWhitespace checks if the string contains any whitespace
 func HasWhitespace(s string) bool {
-	if IsEmpty(s) {
+	if s == "" {
 		return false
 	}
 
@@ -463,7 +463,7 @@ func IsJSON(s string) bool {
 
 // IsMultibyte checks if the string contains one or more multibyte chars.
 func IsMultibyte(s string) bool {
-	if IsEmpty(s) {
+	if s == "" {
 		return false
 	}
 
@@ -478,7 +478,7 @@ func IsMultibyte(s string) bool {
 
 // IsASCII checks if the string contains ASCII chars only.
 func IsASCII(s string) bool {
-	if IsEmpty(s) {
+	if s == "" {
 		return false
 	}
 
@@ -493,7 +493,7 @@ func IsASCII(s string) bool {
 
 // IsPrintableASCII checks if the string contains printable ASCII chars only.
 func IsPrintableASCII(s string) bool {
-	if IsEmpty(s) {
+	if s == "" {
 		return false
 	}
 
@@ -509,7 +509,7 @@ func IsPrintableASCII(s string) bool {
 
 // IsFullWidth checks if the string contains any full-width chars.
 func IsFullWidth(s string) bool {
-	if IsEmpty(s) {
+	if s == "" {
 		return false
 	}
 
@@ -518,7 +518,7 @@ func IsFullWidth(s string) bool {
 
 // IsHalfWidth checks if the string contains any half-width chars.
 func IsHalfWidth(s string) bool {
-	if IsEmpty(s) {
+	if s == "" {
 		return false
 	}
 	return rxHalfWidth.MatchString(s)
@@ -526,7 +526,7 @@ func IsHalfWidth(s string) bool {
 
 // IsVariableWidth checks if the string contains a mixture of full and half-width chars.
 func IsVariableWidth(s string) bool {
-	if IsEmpty(s) {
+	if s == "" {
 		return false
 	}
 	return rxHalfWidth.MatchString(s) && rxFullWidth.MatchString(s)

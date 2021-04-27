@@ -12,7 +12,7 @@ import (
 // StringAfterByte("abc", 'c')   = ""
 // StringAfterByte("abc", 'd')   = ""
 func StringAfterByte(s string, b byte) string {
-	if len(s) == 0 {
+	if s == "" {
 		return s
 	}
 
@@ -31,7 +31,7 @@ func StringAfterByte(s string, b byte) string {
 // StringAfterRune("abc", 'c')   = ""
 // StringAfterRune("abc", 'd')   = ""
 func StringAfterRune(s string, r rune) string {
-	if len(s) == 0 {
+	if s == "" {
 		return s
 	}
 
@@ -52,7 +52,7 @@ func StringAfterRune(s string, r rune) string {
 // StringAfterLastByte("a", 'a')     = ""
 // StringAfterLastByte("a", 'z')     = ""
 func StringAfterLastByte(s string, b byte) string {
-	if len(s) == 0 {
+	if s == "" {
 		return s
 	}
 
@@ -73,7 +73,7 @@ func StringAfterLastByte(s string, b byte) string {
 // StringAfterLast("a", "a")     = ""
 // StringAfterLast("a", "z")     = ""
 func StringAfterLast(s string, c string) string {
-	if len(s) == 0 {
+	if s == "" {
 		return s
 	}
 

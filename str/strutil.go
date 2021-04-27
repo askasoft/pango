@@ -19,7 +19,7 @@ func EndsWith(s string, b string) bool {
 
 // StartsWithByte Tests if the byte slice s starts with the specified prefix b.
 func StartsWithByte(s string, b byte) bool {
-	if IsEmpty(s) {
+	if s == "" {
 		return false
 	}
 
@@ -29,7 +29,7 @@ func StartsWithByte(s string, b byte) bool {
 
 // EndsWithByte Tests if the byte slice bs ends with the specified suffix b.
 func EndsWithByte(s string, b byte) bool {
-	if IsEmpty(s) {
+	if s == "" {
 		return false
 	}
 
@@ -44,7 +44,7 @@ func ContainsByte(s string, b byte) bool {
 
 // RemoveByte Removes all occurrences of the byte b from the source string str.
 func RemoveByte(s string, b byte) string {
-	if IsEmpty(s) || strings.IndexByte(s, b) < 0 {
+	if s == "" || strings.IndexByte(s, b) < 0 {
 		return s
 	}
 
@@ -62,7 +62,7 @@ func RemoveByte(s string, b byte) string {
 
 // RemoveAny Removes all occurrences of characters from within the source string.
 func RemoveAny(str string, rcs string) string {
-	if IsEmpty(str) || IsEmpty(rcs) {
+	if str == "" || rcs == "" {
 		return str
 	}
 

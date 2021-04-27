@@ -19,7 +19,7 @@ func EndsWith(s []byte, b []byte) bool {
 
 // StartsWithByte Tests if the byte slice s starts with the specified prefix b.
 func StartsWithByte(s []byte, b byte) bool {
-	if IsEmpty(s) {
+	if len(s) == 0 {
 		return false
 	}
 
@@ -29,7 +29,7 @@ func StartsWithByte(s []byte, b byte) bool {
 
 // EndsWithByte Tests if the byte slice bs ends with the specified suffix b.
 func EndsWithByte(s []byte, b byte) bool {
-	if IsEmpty(s) {
+	if len(s) == 0 {
 		return false
 	}
 

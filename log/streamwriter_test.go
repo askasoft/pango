@@ -73,7 +73,7 @@ func TestConsoleNoColor(t *testing.T) {
 // Test console async
 func TestConsoleAsync(t *testing.T) {
 	log := NewLog()
-	log.SetWriter(&StreamWriter{Color: true, Logfmt: NewTextFormatter("%d{2006-01-02T15:04:05.000} [%c] %l - %m%n")})
+	log.SetWriter(&StreamWriter{Color: true, Logfmt: NewTextFormatter("%t{2006-01-02T15:04:05.000} [%c] %l - %m%n")})
 	log.Async(100)
 
 	wg := sync.WaitGroup{}

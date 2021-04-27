@@ -11,7 +11,6 @@
 		"path": "conftest/logs/file1.log",
 		"daily": true,
 		"maxDays": 7,
-		"flushLevel": "error",
 		"format": "%l - %m%n",
 		"filter": "level:error"
 	}]

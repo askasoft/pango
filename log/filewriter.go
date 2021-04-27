@@ -14,20 +14,20 @@ import (
 // FileWriter implements Writer.
 // It writes messages and rotate by file size limit, daily, hourly.
 type FileWriter struct {
-	Path       string    // Log file path name
-	DirPerm    uint32    // Log dir permission
-	FilePerm   uint32    // Log file permission
-	Rotate     bool      // Rotate log files
-	MaxFiles   int       // Max split files
-	MaxSize    int64     // Rotate at size
-	Daily      bool      // Rotate daily
-	MaxDays    int       // Max daily files
-	Hourly     bool      // Rotate hourly
-	MaxHours   int       // Max hourly files
-	Gzip       bool      // Compress rotated log files
-	FlushLevel Level     // Flush by log level
-	Logfmt     Formatter // log formatter
-	Logfil     Filter    // log filter
+	Path      string    // Log file path name
+	DirPerm   uint32    // Log dir permission
+	FilePerm  uint32    // Log file permission
+	Rotate    bool      // Rotate log files
+	MaxFiles  int       // Max split files
+	MaxSize   int64     // Rotate at size
+	Daily     bool      // Rotate daily
+	MaxDays   int       // Max daily files
+	Hourly    bool      // Rotate hourly
+	MaxHours  int       // Max hourly files
+	Gzip      bool      // Compress rotated log files
+	SyncLevel Level     // Call File.Sync() if level <= SyncLevel
+	Logfmt    Formatter // log formatter
+	Logfil    Filter    // log filter
 
 	dir      string
 	prefix   string
@@ -41,9 +41,9 @@ type FileWriter struct {
 	bb       bytes.Buffer
 }
 
-// SetFlushLevel set the flush level
-func (fw *FileWriter) SetFlushLevel(lvl string) {
-	fw.FlushLevel = ParseLevel(lvl)
+// SetSyncLevel set the sync level
+func (fw *FileWriter) SetSyncLevel(lvl string) {
+	fw.SyncLevel = ParseLevel(lvl)
 }
 
 // SetFormat set the log formatter
@@ -93,7 +93,7 @@ func (fw *FileWriter) Write(le *Event) {
 	}
 	fw.fileSize += int64(n)
 
-	if le.Level <= fw.FlushLevel {
+	if le.Level <= fw.SyncLevel {
 		err := fw.file.Sync()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "FileWriter(%q) - Sync(): %v\n", fw.Path, err)

@@ -149,7 +149,6 @@ path = /tmp/gotest/logs/test.log
 dirPerm = 0777
 daily = true
 maxDays = 7
-flushLevel = error
 format = %l %S:%L %F() - %m%n%T
 filter = level:error
 
@@ -182,6 +181,6 @@ filter = level:error
 webhook = http://localhost:9200/pango/logs
 contentType = application/json
 timeout = 5s
-format = json:{"when":%d{2006-01-02T15:04:05.000Z07:00}, "level":%l, "file":%S, "line":%L, "func":%F, "msg": %m, "stack": %T}%n
+format = json:{"when":%t{2006-01-02T15:04:05.000Z07:00}, "level":%l, "file":%S, "line":%L, "func":%F, "msg": %m, "stack": %T}%n
 filter = level:error
 ```

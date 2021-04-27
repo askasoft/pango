@@ -28,7 +28,7 @@
 		"dirPerm": 511,
 		"daily": true,
 		"maxDays": 7,
-		"flushLevel": "error",
+		"syncLevel": "error",
 		"format": "%l %S:%L %F() - %m%n%T",
 		"filter": "level:error"
 	}, {

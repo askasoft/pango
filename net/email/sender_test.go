@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/pandafw/pango/iox"
+	"github.com/pandafw/pango/net/netutil"
 )
 
 func skipTest(t *testing.T, msg string) {
@@ -31,11 +32,11 @@ func testSendEmail(t *testing.T, m *Email) {
 	f := os.Stdout
 	w := iox.SyncWriter(f)
 	s.ConnDebug = func(conn net.Conn) net.Conn {
-		return &iox.ConnDump{
-			Conn: conn,
-			Recv: &iox.WrapWriter{Writer: w, Prefix: iox.ConsoleColor.Magenta + "< ", Suffix: iox.ConsoleColor.Reset},
-			Send: &iox.WrapWriter{Writer: w, Prefix: iox.ConsoleColor.Yellow + "> ", Suffix: iox.ConsoleColor.Reset},
-		}
+		return netutil.DumpConn(
+			conn,
+			iox.WrapWriter(w, iox.ConsoleColor.Magenta+"< ", iox.ConsoleColor.Reset),
+			iox.WrapWriter(w, iox.ConsoleColor.Yellow+"> ", iox.ConsoleColor.Reset),
+		)
 	}
 	// s.DataDebug = func(w io.Writer) io.Writer {
 	// 	return io.MultiWriter(os.Stdout, w)

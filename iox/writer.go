@@ -5,24 +5,23 @@ import (
 	"sync"
 )
 
-// WriterWrapFunc a writer wrapper function
-type WriterWrapFunc func(w io.Writer) io.Writer
+// WrapWriter a prefix/suffix wrap writer
+type wrapWriter struct {
+	writer io.Writer
+	prefix string
+	suffix string
+}
 
-// WriteCloserWrapFunc a write closer wrapper function
-type WriteCloserWrapFunc func(w io.WriteCloser) io.WriteCloser
-
-// WrapWriter a prefix/suffix append writer
-type WrapWriter struct {
-	Writer io.Writer
-	Prefix string
-	Suffix string
+// WrapWriter return a prefix/suffix wrap writer
+func WrapWriter(writer io.Writer, prefix, suffix string) io.Writer {
+	return &wrapWriter{writer, prefix, suffix}
 }
 
 // Write io.Writer implement
-func (ww *WrapWriter) Write(p []byte) (int, error) {
-	ww.Writer.Write([]byte(ww.Prefix))
-	n, err := ww.Writer.Write(p)
-	ww.Writer.Write([]byte(ww.Suffix))
+func (ww *wrapWriter) Write(p []byte) (int, error) {
+	ww.writer.Write([]byte(ww.prefix))
+	n, err := ww.writer.Write(p)
+	ww.writer.Write([]byte(ww.suffix))
 	return n, err
 }
 

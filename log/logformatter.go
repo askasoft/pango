@@ -50,7 +50,7 @@ func NewLogFormatter(format string) Formatter {
 // %t{format}: time, if {format} is omitted, '2006-01-02T15:04:05.000' will be used
 // %c: logger name
 // %m: message
-// %n: EOL('\n')
+// %n: EOL(Windows: "\r\n", Other: "\n")
 // %p: log level prefix
 // %l: log level string
 // %S: caller source file name (!!SLOW!!)
@@ -83,7 +83,7 @@ func newTextFormatter(format string) *TextFormatter {
 // %t{format}: time, if {format} is omitted, '2006-01-02T15:04:05.000' will be used
 // %c: logger name
 // %m: message
-// %n: EOL('\n')
+// %n: EOL(Windows: "\r\n", Other: "\n")
 // %p: log level prefix
 // %l: log level string
 // %S: caller source file name (!!SLOW!!)

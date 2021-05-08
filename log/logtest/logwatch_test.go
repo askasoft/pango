@@ -21,13 +21,12 @@ func TestLogConfigFile1toFile2(t *testing.T) {
 	path := "conftest/log.json"
 
 	iox.CopyFile("../testdata/log-file1.json", path)
-	lg := log.Default()
+	lg := log.NewLog()
 	assert.Nil(t, lg.Config(path))
 
-	fw, err := fswatch.NewFileWatcher()
-	assert.Nil(t, err)
-	fw.StartWatch()
-	defer fw.StopWatch()
+	fw := fswatch.NewFileWatcher()
+	fw.Start()
+	defer fw.Stop()
 
 	assert.Nil(t, fw.Add(path, fswatch.OpWrite, func(path string, _ fswatch.Op) {
 		err := lg.Config(path)
@@ -49,7 +48,7 @@ func TestLogConfigFile1toFile2(t *testing.T) {
 	// Sleep 1s for log watch
 	time.Sleep(time.Second * 1)
 	fmt.Println("Change config file")
-	err = iox.CopyFile("../testdata/log-file2.json", path)
+	err := iox.CopyFile("../testdata/log-file2.json", path)
 	if err != nil {
 		fmt.Printf("Failed to change config %v\n", err)
 		assert.Fail(t, "Failed to change config %v", err)
@@ -73,7 +72,9 @@ func TestLogConfigFile1toFile2(t *testing.T) {
 	tl := lg.GetLogger("test")
 	tl.Warn("This is WARN.")
 	tl.Error("This is ERROR.")
-	log.Close()
+
+	// Close log
+	lg.Close()
 
 	bs, _ = ioutil.ReadFile("conftest/logs/file1.log")
 	if !assert.Equal(t, "ERROR - This is error."+iox.EOL+"ERROR - This is error."+iox.EOL+"ERROR - This is ERROR."+iox.EOL, string(bs)) {

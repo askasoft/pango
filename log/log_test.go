@@ -94,11 +94,15 @@ func TestLogNewLogGetLogger(t *testing.T) {
 func TestLogNewLogProp(t *testing.T) {
 	fmt.Println("\n\n-------------- TestLogNewLogProp ----------------")
 	log1 := NewLog()
-	log1.SetFormatter(NewTextFormatter("%x{key} %x{nil} - %m%T%n"))
+	log1.SetFormatter(NewTextFormatter("%x{k1} %x{k2} %x{nil} - %m%n%T"))
 	log1.SetLevel(LevelTrace)
 	log1.SetWriter(testNewConsoleWriter())
-	log1.SetProp("key", "val")
+	log1.SetProp("k1", "v1")
 	testLoggerCalls(log1)
+
+	log2 := log1.GetLogger("")
+	log2.SetProp("k2", "v2")
+	testLoggerCalls(log2)
 }
 
 func TestLogDefault(t *testing.T) {
@@ -106,8 +110,17 @@ func TestLogDefault(t *testing.T) {
 	log1 := Default()
 	log1.SetLevel(LevelTrace)
 	log1.SetWriter(testNewConsoleWriter())
+	SetFormatter(NewTextFormatter("%t %l %S:%L %F() - %x{key} - %m%n%T"))
 	log1.SetProp("key", "val")
 	testLoggerCalls(log1)
+}
+
+func TestLogPackage(t *testing.T) {
+	fmt.Println("\n\n-------------- TestLogPackage ----------------")
+	SetLevel(LevelTrace)
+	SetWriter(testNewConsoleWriter())
+	SetFormatter(NewTextFormatter("%t %l %S:%L %F() - %x{key} - %m%n%T"))
+	SetProp("key", "val")
 
 	for i := 0; i < 1; i++ {
 		Fatal("hello", "fatal")

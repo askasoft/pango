@@ -96,23 +96,51 @@ func (l *logger) SetTraceLevel(lvl Level) {
 
 // GetProp get logger property
 func (l *logger) GetProp(k string) interface{} {
-	if l.props == nil {
-		return nil
+	ps := l.props
+	if ps != nil {
+		if v, ok := ps[k]; ok {
+			return v
+		}
 	}
-	return l.props[k]
+	return l.log.GetProp(k)
 }
 
 // SetProp set logger property
 func (l *logger) SetProp(k string, v interface{}) {
-	if l.props == nil {
-		l.props = make(map[string]interface{})
+	// copy on write for async
+	om := l.props
+	nm := make(map[string]interface{})
+
+	if om != nil {
+		for k, v := range om {
+			nm[k] = v
+		}
 	}
-	l.props[k] = v
+	nm[k] = v
+	l.props = nm
 }
 
 // GetProps get logger properties
 func (l *logger) GetProps() map[string]interface{} {
-	return l.props
+	tm := l.props
+	if tm == nil {
+		return l.log.GetProps()
+	}
+
+	// parent props
+	pm := l.log.GetProps()
+
+	// new return props
+	nm := make(map[string]interface{}, len(tm)+len(pm))
+	if pm != nil {
+		for k, v := range pm {
+			nm[k] = v
+		}
+	}
+	for k, v := range tm {
+		nm[k] = v
+	}
+	return nm
 }
 
 // SetProps set logger properties

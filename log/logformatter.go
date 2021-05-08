@@ -58,7 +58,7 @@ func NewLogFormatter(format string) Formatter {
 // %F: caller function name (!!SLOW!!)
 // %T: caller stack trace (!!SLOW!!)
 // %x{key}: logger property
-// %X{=| }: logger propertys (operator|separator)
+// %X{=| }: logger properties (operator|separator)
 func NewTextFormatter(format string) *TextFormatter {
 	switch format {
 	case "DEFAULT":
@@ -90,8 +90,8 @@ func newTextFormatter(format string) *TextFormatter {
 // %L: caller source line number (!!SLOW!!)
 // %F: caller function name (!!SLOW!!)
 // %T: caller stack trace (!!SLOW!!)
-// %X{key}: logger value
-// %X: logger propertys
+// %x{key}: logger property
+// %X: logger properties (json format)
 func NewJSONFormatter(format string) *JSONFormatter {
 	switch format {
 	case "DEFAULT":

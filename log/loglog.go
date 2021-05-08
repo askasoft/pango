@@ -239,3 +239,21 @@ func (log *Log) Outputer(name string, lvl Level, callerDepth ...int) io.Writer {
 	lg.SetCallerDepth(lg.GetCallerDepth() + cd)
 	return &outputer{logger: lg, level: lvl}
 }
+
+/*----------------------------------------------------
+ logger method override
+----------------------------------------------------*/
+
+// GetProp get logger property
+func (log *Log) GetProp(k string) interface{} {
+	ps := log.props
+	if ps == nil {
+		return nil
+	}
+	return ps[k]
+}
+
+// GetProps get logger properties
+func (log *Log) GetProps() map[string]interface{} {
+	return log.props
+}

@@ -81,20 +81,25 @@ func IsAsync() bool {
 	return _log.async
 }
 
+// GetFormatter get the formatter
+func GetFormatter() Formatter {
+	return _log.GetFormatter()
+}
+
 // SetFormatter set the formatter.
 func SetFormatter(lf Formatter) {
 	_log.SetFormatter(lf)
 	_logger.SetFormatter(lf)
 }
 
+// GetWriter get the writer
+func GetWriter() Writer {
+	return _log.GetWriter()
+}
+
 // SetWriter set the writer.
 func SetWriter(lw Writer) {
 	_log.SetWriter(lw)
-}
-
-// Close will remove all writers and stop async goroutine
-func Close() {
-	_log.Close()
 }
 
 // GetLevel return the logger's level
@@ -122,6 +127,31 @@ func GetCallerDepth() int {
 func SetCallerDepth(d int) {
 	_log.SetCallerDepth(d)
 	_logger.SetCallerDepth(d + 1)
+}
+
+// GetProp get logger property
+func GetProp(k string) interface{} {
+	return _log.GetProp(k)
+}
+
+// SetProp set logger property
+func SetProp(k string, v interface{}) {
+	_log.SetProp(k, v)
+}
+
+// GetProps get logger properties
+func GetProps() map[string]interface{} {
+	return _log.GetProps()
+}
+
+// SetProps set logger properties
+func SetProps(props map[string]interface{}) {
+	_log.SetProps(props)
+}
+
+// Close will remove all writers and stop async goroutine
+func Close() {
+	_log.Close()
 }
 
 // IsFatalEnabled is FATAL level enabled

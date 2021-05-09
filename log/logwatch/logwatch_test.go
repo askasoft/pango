@@ -1,4 +1,4 @@
-package logtest
+package logwatch
 
 import (
 	"fmt"

@@ -16,7 +16,7 @@ import (
 func testConnTCPServer(sigChan chan string, finChan chan string, revChan chan string) {
 	wg := &sync.WaitGroup{}
 
-	ln, err := net.Listen("tcp", "localhost:9999")
+	ln, err := net.Listen("tcp", ":9999")
 	if err != nil {
 		fmt.Println("Error listening: ", err.Error())
 		os.Exit(1)
@@ -71,6 +71,7 @@ func TestConn(t *testing.T) {
 	revChan := make(chan string, 100)
 	go testConnTCPServer(sigChan, finChan, revChan)
 
+	time.Sleep(time.Second)
 	log := NewLog()
 	log.SetWriter(&ConnWriter{Addr: "localhost:9999"})
 	log.SetFormatter(NewTextFormatter("%m%n"))

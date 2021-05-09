@@ -138,7 +138,9 @@ func (sw *SMTPWriter) Flush() {
 func (sw *SMTPWriter) Close() {
 	if sw.sender != nil {
 		err := sw.sender.Close()
-		fmt.Fprintf(os.Stderr, "SMTPWriter(%s:%d) - Close(): %v\n", sw.Host, sw.Port, err)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "SMTPWriter(%s:%d) - Close(): %v\n", sw.Host, sw.Port, err)
+		}
 		sw.sender = nil
 	}
 }

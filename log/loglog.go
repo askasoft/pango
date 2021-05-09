@@ -114,6 +114,43 @@ func (log *Log) Flush() {
 	log.flush()
 }
 
+// Close close logger, flush all chan data and close the writer.
+func (log *Log) Close() {
+	log.mutex.Lock()
+	defer log.mutex.Unlock()
+
+	if log.async {
+		log.execSignal("close")
+		close(log.evtChan)
+		close(log.sigChan)
+		log.async = false
+		return
+	}
+
+	log.flush()
+	log.close()
+}
+
+// Outputer return a io.Writer for go log.SetOutput
+// callerDepth: default is 1 (means +1)
+// if the outputer is used by go std log, set callerDepth to 2
+// example:
+//   import (
+//     golog "log"
+//     "github.com/pandafw/pango/log"
+//   )
+//   golog.SetOutput(log.Outputer("GO", log.LevelInfo, 3))
+//
+func (log *Log) Outputer(name string, lvl Level, callerDepth ...int) io.Writer {
+	lg := log.GetLogger(name)
+	cd := 1
+	if len(callerDepth) > 0 {
+		cd = callerDepth[0]
+	}
+	lg.SetCallerDepth(lg.GetCallerDepth() + cd)
+	return &outputer{logger: lg, level: lvl}
+}
+
 // startAsync start async log goroutine
 func (log *Log) startAsync() {
 	done := false
@@ -157,9 +194,12 @@ func (log *Log) execSignal(sig string) {
 }
 
 func (log *Log) write(le *Event) {
-	if log.writer != nil {
-		log.writer.Write(le)
+	lw := log.writer
+	if lw != nil {
+		lw.Write(le)
 	}
+
+	// put event back to pool
 	putEvent(le)
 }
 
@@ -176,13 +216,9 @@ func (log *Log) submit(le *Event) {
 }
 
 func (log *Log) drain() {
-	for {
-		if len(log.evtChan) > 0 {
-			le := <-log.evtChan
-			log.write(le)
-			continue
-		}
-		break
+	for len(log.evtChan) > 0 {
+		le := <-log.evtChan
+		log.write(le)
 	}
 }
 
@@ -191,53 +227,17 @@ func (log *Log) flush() {
 		log.drain()
 	}
 
-	if log.writer != nil {
-		log.writer.Flush()
+	lw := log.writer
+	if lw != nil {
+		lw.Flush()
 	}
 }
 
 func (log *Log) close() {
-	if log.writer != nil {
-		log.writer.Close()
-		log.writer = nil
+	lw := log.writer
+	if lw != nil {
+		lw.Close()
 	}
-}
-
-// Close close logger, flush all chan data and close the writer.
-func (log *Log) Close() {
-	log.mutex.Lock()
-	defer log.mutex.Unlock()
-
-	if log.async {
-		log.execSignal("close")
-		close(log.evtChan)
-		close(log.sigChan)
-		log.async = false
-		return
-	}
-
-	log.flush()
-	log.close()
-}
-
-// Outputer return a io.Writer for go log.SetOutput
-// callerDepth: default is 1 (means +1)
-// if the outputer is used by go std log, set callerDepth to 2
-// example:
-//   import (
-//     golog "log"
-//     "github.com/pandafw/pango/log"
-//   )
-//   golog.SetOutput(log.Outputer("GO", log.LevelInfo, 2))
-//
-func (log *Log) Outputer(name string, lvl Level, callerDepth ...int) io.Writer {
-	lg := log.GetLogger(name)
-	cd := 1
-	if len(callerDepth) > 0 {
-		cd = callerDepth[0]
-	}
-	lg.SetCallerDepth(lg.GetCallerDepth() + cd)
-	return &outputer{logger: lg, level: lvl}
 }
 
 /*----------------------------------------------------

@@ -1,5 +1,9 @@
 package col
 
+import (
+	"encoding/json"
+)
+
 // List implements a doubly linked list.
 // The zero value for List is an empty list ready to use.
 //
@@ -21,9 +25,11 @@ func (l *List) Clear() {
 }
 
 // NewList returns an initialized list.
-func NewList() *List {
+// Example: NewList(1, 2, 3)
+func NewList(vs ...interface{}) *List {
 	l := &List{}
 	l.Clear()
+	l.PushBackAll(vs...)
 	return l
 }
 
@@ -251,3 +257,28 @@ func (l *List) ReverseEach(f func(interface{})) {
 		f(e.Value)
 	}
 }
+
+/*------------- JSON -----------------*/
+
+// MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(l)
+func (l *List) MarshalJSON() (res []byte, err error) {
+	if l.IsEmpty() {
+		return []byte("[]"), nil
+	}
+
+	res = append(res, '[')
+	for le := l.Front(); le != nil; le = le.Next() {
+		var b []byte
+		b, err = json.Marshal(le.Value)
+		if err != nil {
+			return
+		}
+		res = append(res, b...)
+		res = append(res, ',')
+	}
+	res[len(res)-1] = '}'
+	return
+}
+
+// UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, l)
+//TODO: func (om *OrderedMap) UnmarshalJSON(data []byte) error {

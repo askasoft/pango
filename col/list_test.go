@@ -158,13 +158,8 @@ func checkList(t *testing.T, l *List, es []interface{}) {
 }
 
 func TestExtending(t *testing.T) {
-	l1 := NewList()
+	l1 := NewList(1, 2, 3)
 	l2 := NewList()
-
-	l1.PushBack(1)
-	l1.PushBack(2)
-	l1.PushBack(3)
-
 	l2.PushBack(4)
 	l2.PushBack(5)
 

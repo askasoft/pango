@@ -1,9 +1,14 @@
 package col
 
 import (
+	"bytes"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"math"
 	"math/rand"
+	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -118,11 +123,7 @@ func TestBasicFeatures(t *testing.T) {
 }
 
 func TestUpdatingDoesntChangePairsOrder(t *testing.T) {
-	om := NewOrderedMap()
-	om.Set("foo", "bar")
-	om.Set(12, 28)
-	om.Set(78, 100)
-	om.Set("bar", "baz")
+	om := NewOrderedMap("foo", "bar", 12, 28, 78, 100, "bar", "baz")
 
 	old, ok := om.Set(78, 102)
 	assert.Equal(t, 100, old)
@@ -273,4 +274,386 @@ func randomHexString(t *testing.T, length int) string {
 	}
 
 	return hex.EncodeToString(randBytes)
+}
+
+/*----------- JOSN Test -----------------*/
+func TestMarshalOrderedMap(t *testing.T) {
+	om := NewOrderedMap()
+	om.Set("a", 34)
+	om.Set("b", []int{3, 4, 5})
+	b, err := json.Marshal(om)
+	if err != nil {
+		t.Fatalf("Marshal OrderedMap: %v", err)
+	}
+	// fmt.Printf("%q\n", b)
+	const expected = "{\"a\":34,\"b\":[3,4,5]}"
+	if !bytes.Equal(b, []byte(expected)) {
+		t.Errorf("Marshal OrderedMap: %q not equal to expected %q", b, expected)
+	}
+}
+
+func ExampleOrderedMap_UnmarshalJSON() {
+	const jsonStream = `{
+  "country"     : "United States",
+  "countryCode" : "US",
+  "region"      : "CA",
+  "regionName"  : "California",
+  "city"        : "Mountain View",
+  "zip"         : "94043",
+  "lat"         : 37.4192,
+  "lon"         : -122.0574,
+  "timezone"    : "America/Los_Angeles",
+  "isp"         : "Google Cloud",
+  "org"         : "Google Cloud",
+  "as"          : "AS15169 Google Inc.",
+  "mobile"      : true,
+  "proxy"       : false,
+  "query"       : "35.192.xx.xxx"
+}`
+
+	// compare with if using a regular generic map, the unmarshalled result
+	//  is a map with unpredictable order of keys
+	var m map[string]interface{}
+	err := json.Unmarshal([]byte(jsonStream), &m)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+	for key := range m {
+		// fmt.Printf("%-12s: %v\n", key, m[key])
+		_ = key
+	}
+
+	// use the OrderedMap to Unmarshal from JSON object
+	var om *OrderedMap = NewOrderedMap()
+	err = json.Unmarshal([]byte(jsonStream), om)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	// loop over all key-value pairs,
+	// it is ok to call Set append-modify new key-value pairs,
+	// but not safe to call Delete during iteration.
+	for me := om.Front(); me != nil; me = me.Next() {
+		fmt.Printf("%-12s: %v\n", me.Key(), me.Value)
+		if me.Key() == "city" {
+			om.Set("mobile", false)
+			om.Set("extra", 42)
+		}
+	}
+
+	// Output:
+	// country     : United States
+	// countryCode : US
+	// region      : CA
+	// regionName  : California
+	// city        : Mountain View
+	// zip         : 94043
+	// lat         : 37.4192
+	// lon         : -122.0574
+	// timezone    : America/Los_Angeles
+	// isp         : Google Cloud
+	// org         : Google Cloud
+	// as          : AS15169 Google Inc.
+	// mobile      : false
+	// proxy       : false
+	// query       : 35.192.xx.xxx
+	// extra       : 42
+}
+
+func TestUnmarshalOrderedMapFromInvalid(t *testing.T) {
+	om := NewOrderedMap()
+
+	om.Set("m", math.NaN())
+	b, err := json.Marshal(om)
+	if err == nil {
+		t.Fatal("Unmarshal OrderedMap: expecting error:", b, err)
+	}
+	// fmt.Println(om, b, err)
+	om.Remove("m")
+
+	err = json.Unmarshal([]byte("[]"), om)
+	if err == nil {
+		t.Fatal("Unmarshal OrderedMap: expecting error")
+	}
+
+	err = json.Unmarshal([]byte("["), om)
+	if err == nil {
+		t.Fatal("Unmarshal OrderedMap: expecting error:", om)
+	}
+
+	err = om.UnmarshalJSON([]byte(nil))
+	if err == nil {
+		t.Fatal("Unmarshal OrderedMap: expecting error:", om)
+	}
+
+	err = om.UnmarshalJSON([]byte("{}3"))
+	if err == nil {
+		t.Fatal("Unmarshal OrderedMap: expecting error:", om)
+	}
+
+	err = om.UnmarshalJSON([]byte("{"))
+	if err == nil {
+		t.Fatal("Unmarshal OrderedMap: expecting error:", om)
+	}
+
+	err = om.UnmarshalJSON([]byte("{]"))
+	if err == nil {
+		t.Fatal("Unmarshal OrderedMap: expecting error:", om)
+	}
+
+	err = om.UnmarshalJSON([]byte(`{"a": 3, "b": [{`))
+	if err == nil {
+		t.Fatal("Unmarshal OrderedMap: expecting error:", om)
+	}
+
+	err = om.UnmarshalJSON([]byte(`{"a": 3, "b": [}`))
+	if err == nil {
+		t.Fatal("Unmarshal OrderedMap: expecting error:", om)
+	}
+	// fmt.Println("error:", om, err)
+}
+
+func TestUnmarshalOrderedMap(t *testing.T) {
+	var (
+		data  = []byte(`{"as":"AS15169 Google Inc.","city":"Mountain View","country":"United States","countryCode":"US","isp":"Google Cloud","lat":37.4192,"lon":-122.0574,"org":"Google Cloud","query":"35.192.25.53","region":"CA","regionName":"California","status":"success","timezone":"America/Los_Angeles","zip":"94043"}`)
+		pairs = []interface{}{
+			"as", "AS15169 Google Inc.",
+			"city", "Mountain View",
+			"country", "United States",
+			"countryCode", "US",
+			"isp", "Google Cloud",
+			"lat", 37.4192,
+			"lon", -122.0574,
+			"org", "Google Cloud",
+			"query", "35.192.25.53",
+			"region", "CA",
+			"regionName", "California",
+			"status", "success",
+			"timezone", "America/Los_Angeles",
+			"zip", "94043",
+		}
+		obj = NewOrderedMap(pairs...)
+	)
+
+	om := NewOrderedMap()
+	err := json.Unmarshal(data, om)
+	if err != nil {
+		t.Fatalf("Unmarshal OrderedMap: %v", err)
+	}
+
+	// check by Has and GetValue
+	for i := 0; i+1 < len(pairs); i += 2 {
+		k := pairs[i]
+		v := pairs[i+1]
+
+		if !om.Has(k) {
+			t.Fatalf("expect key %q exists in Unmarshaled OrderedMap", k)
+		}
+		value, ok := om.Get(k)
+		if !ok || value != v {
+			t.Fatalf("expect for key %q: the value %v should equal to %v, in Unmarshaled OrderedMap", k, value, v)
+		}
+	}
+
+	b, err := json.MarshalIndent(om, "", "  ")
+	if err != nil {
+		t.Fatalf("Unmarshal OrderedMap: %v", err)
+	}
+	const expected = `{
+  "as": "AS15169 Google Inc.",
+  "city": "Mountain View",
+  "country": "United States",
+  "countryCode": "US",
+  "isp": "Google Cloud",
+  "lat": 37.4192,
+  "lon": -122.0574,
+  "org": "Google Cloud",
+  "query": "35.192.25.53",
+  "region": "CA",
+  "regionName": "California",
+  "status": "success",
+  "timezone": "America/Los_Angeles",
+  "zip": "94043"
+}`
+	if !bytes.Equal(b, []byte(expected)) {
+		t.Fatalf("Unmarshal OrderedMap marshal indent from %#v not equal to expected: %q\n", om, expected)
+	}
+
+	if !reflect.DeepEqual(om, obj) {
+		t.Fatalf("Unmarshal OrderedMap not deeply equal: %#v %#v", om, obj)
+	}
+
+	val, ok := om.Remove("org")
+	if !ok {
+		t.Fatalf("org should exist")
+	}
+	om.Set("org", val)
+	b, err = json.MarshalIndent(om, "", "  ")
+	// fmt.Println("after delete", om, string(b), err)
+	if err != nil {
+		t.Fatalf("Unmarshal OrderedMap: %v", err)
+	}
+	const expected2 = `{
+  "as": "AS15169 Google Inc.",
+  "city": "Mountain View",
+  "country": "United States",
+  "countryCode": "US",
+  "isp": "Google Cloud",
+  "lat": 37.4192,
+  "lon": -122.0574,
+  "query": "35.192.25.53",
+  "region": "CA",
+  "regionName": "California",
+  "status": "success",
+  "timezone": "America/Los_Angeles",
+  "zip": "94043",
+  "org": "Google Cloud"
+}`
+	if !bytes.Equal(b, []byte(expected2)) {
+		t.Fatalf("Unmarshal OrderedMap marshal indent from %#v not equal to expected: %s\n", om, expected2)
+	}
+}
+
+func TestUnmarshalNestedOrderedMap(t *testing.T) {
+	var (
+		data = []byte(`{"a": true, "b": [3, 4, { "b": "3", "d": [] }]}`)
+		obj  = NewOrderedMap(
+			"a", true,
+			"b", []interface{}{float64(3), float64(4), NewOrderedMap("b", "3", "d", []interface{}{})},
+		)
+	)
+
+	om := NewOrderedMap()
+	err := json.Unmarshal(data, om)
+	if err != nil {
+		t.Fatalf("Unmarshal OrderedMap: %v", err)
+	}
+
+	if !reflect.DeepEqual(om, obj) {
+		t.Fatalf("Unmarshal OrderedMap not deeply equal: %#v expected %#v", om, obj)
+	}
+}
+
+func ExampleNewOrderedMap() {
+	// initialize from a list of key-value pairs
+	om := NewOrderedMap(
+		"country", "United States",
+		"countryCode", "US",
+		"region", "CA",
+		"regionName", "California",
+		"city", "Mountain View",
+		"zip", "94043",
+		"lat", 37.4192,
+		"lon", -122.0574,
+		"timezone", "America/Los_Angeles",
+		"isp", "Google Cloud",
+		"org", "Google Cloud",
+		"as", "AS15169 Google Inc.",
+		"mobile", true,
+		"proxy", false,
+		"query", "35.192.xx.xxx",
+	)
+
+	for me := om.Back(); me != nil; me = me.Prev() {
+		fmt.Printf("%-12s: %v\n", me.Key(), me.Value)
+	}
+
+	// Output:
+	// query       : 35.192.xx.xxx
+	// proxy       : false
+	// mobile      : true
+	// as          : AS15169 Google Inc.
+	// org         : Google Cloud
+	// isp         : Google Cloud
+	// timezone    : America/Los_Angeles
+	// lon         : -122.0574
+	// lat         : 37.4192
+	// zip         : 94043
+	// city        : Mountain View
+	// regionName  : California
+	// region      : CA
+	// countryCode : US
+	// country     : United States
+}
+
+var unmarshalTests = []struct {
+	in  string
+	new func() interface{}
+	out interface{}
+	err error
+}{
+	{in: "{}", new: func() interface{} { return NewOrderedMap() }, out: *NewOrderedMap()},
+	{in: `{"a": 3}`, new: func() interface{} { return NewOrderedMap() }, out: *NewOrderedMap("a", float64(3))},
+	{in: `{"a": 3, "b": true}`, new: func() interface{} { return NewOrderedMap() }, out: *NewOrderedMap(
+		"a", float64(3), "b", true)},
+	{in: `{"a": 3, "b": true, "c": null}`, new: func() interface{} { return NewOrderedMap() }, out: *NewOrderedMap(
+		"a", float64(3), "b", true, "c", nil)},
+	{in: `{"a": 3, "c": null, "d": []}`, new: func() interface{} { return NewOrderedMap() }, out: *NewOrderedMap(
+		"a", float64(3), "c", nil, "d", []interface{}{})},
+	{in: `{"a": 3, "c": null, "d": [3,4,true]}`, new: func() interface{} { return NewOrderedMap() }, out: *NewOrderedMap(
+		"a", float64(3), "c", nil, "d", []interface{}{
+			float64(3), float64(4), true,
+		})},
+	{in: `{"a": 3, "c": null, "d": [3,4,true, { "inner": "abc" }]}`, new: func() interface{} { return NewOrderedMap() }, out: *NewOrderedMap(
+		"a", float64(3), "c", nil, "d", []interface{}{
+			float64(3), float64(4), true, NewOrderedMap("inner", "abc"),
+		})},
+}
+
+func TestUnmarshal(t *testing.T) {
+	for i, tt := range unmarshalTests {
+		in := []byte(tt.in)
+		if tt.new == nil {
+			continue
+		}
+
+		v := tt.new()
+		dec := json.NewDecoder(bytes.NewReader(in))
+		if err := dec.Decode(v); !reflect.DeepEqual(err, tt.err) {
+			t.Errorf("#%d: %v, want %v", i, err, tt.err)
+			continue
+		} else if err != nil {
+			continue
+		}
+		if !reflect.DeepEqual(reflect.ValueOf(v).Elem().Interface(), tt.out) {
+			t.Errorf("#%d: mismatch\nhave: %#+v\nwant: %#+v", i, v, tt.out)
+			data, _ := json.Marshal(v)
+			println(string(data))
+			data, _ = json.Marshal(tt.out)
+			println(string(data))
+			continue
+		}
+
+		// Check round trip also decodes correctly.
+		if tt.err == nil {
+			enc, err := json.Marshal(v)
+			if err != nil {
+				t.Errorf("#%d: error re-marshaling: %v", i, err)
+				continue
+			}
+			vv := tt.new() // reflect.New(reflect.TypeOf(tt.ptr).Elem())
+			dec = json.NewDecoder(bytes.NewReader(enc))
+			if err := dec.Decode(vv); err != nil {
+				t.Errorf("#%d: error re-unmarshaling %#q: %v", i, enc, err)
+				continue
+			}
+			if !reflect.DeepEqual(v, vv) {
+				t.Errorf("#%d: mismatch\nhave: %#+v\nwant: %#+v", i, v, vv)
+				t.Errorf("     In: %q", strings.Map(noSpace, string(in)))
+				t.Errorf("Marshal: %q", strings.Map(noSpace, string(enc)))
+				continue
+			}
+		}
+	}
+}
+
+func noSpace(c rune) rune {
+	if isSpace(byte(c)) { //only used for ascii
+		return -1
+	}
+	return c
+}
+
+func isSpace(c byte) bool {
+	return c == ' ' || c == '\t' || c == '\r' || c == '\n'
 }

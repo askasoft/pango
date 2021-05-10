@@ -1,5 +1,12 @@
 package col
 
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+)
+
 // OrderedMap implements an ordered map that keeps track of the order in which keys were inserted.
 type OrderedMap struct {
 	entries map[interface{}]*MapEntry
@@ -7,11 +14,16 @@ type OrderedMap struct {
 }
 
 // NewOrderedMap creates a new OrderedMap.
-func NewOrderedMap() *OrderedMap {
-	return &OrderedMap{
+// Example: NewOrderedMap("k1", "v1", "k2", "v2")
+func NewOrderedMap(kvs ...interface{}) *OrderedMap {
+	om := &OrderedMap{
 		entries: make(map[interface{}]*MapEntry),
 		list:    NewList(),
 	}
+	for i := 0; i+1 < len(kvs); i += 2 {
+		om.Set(kvs[i], kvs[i+1])
+	}
+	return om
 }
 
 // GetEntry looks for the given key, and returns the entry associated with it,
@@ -19,6 +31,12 @@ func NewOrderedMap() *OrderedMap {
 // from that point, either forward or backward.
 func (om *OrderedMap) GetEntry(key interface{}) *MapEntry {
 	return om.entries[key]
+}
+
+// Has looks for the given key, and returns true if the key exists in the map.
+func (om *OrderedMap) Has(key interface{}) bool {
+	_, ok := om.entries[key]
+	return ok
 }
 
 // Get looks for the given key, and returns the value associated with it,
@@ -128,4 +146,151 @@ func (om *OrderedMap) ReverseEach(f func(*MapEntry)) {
 	for e := om.Back(); e != nil; e = e.Prev() {
 		f(e)
 	}
+}
+
+/*------------- JSON -----------------*/
+
+// MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(om)
+func (om *OrderedMap) MarshalJSON() (res []byte, err error) {
+	if om.IsEmpty() {
+		return []byte("{}"), nil
+	}
+
+	res = append(res, '{')
+	for me := om.Front(); me != nil; me = me.Next() {
+		k, ok := me.key.(string)
+		if !ok {
+			err = fmt.Errorf("expecting JSON key should be always a string: %T: %v", me.key, me.key)
+			return
+		}
+
+		res = append(res, fmt.Sprintf("%q:", k)...)
+		var b []byte
+		b, err = json.Marshal(me.Value)
+		if err != nil {
+			return
+		}
+		res = append(res, b...)
+		res = append(res, ',')
+	}
+	res[len(res)-1] = '}'
+	return
+}
+
+// UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, om)
+func (om *OrderedMap) UnmarshalJSON(data []byte) error {
+	dec := json.NewDecoder(bytes.NewReader(data))
+
+	// must open with a delim token '{'
+	t, err := dec.Token()
+	if err != nil {
+		return err
+	}
+	if delim, ok := t.(json.Delim); !ok || delim != '{' {
+		return fmt.Errorf("expect JSON object open with '{'")
+	}
+
+	err = om.parseJSONObject(dec)
+	if err != nil {
+		return err
+	}
+
+	t, err = dec.Token()
+	if err != io.EOF {
+		return fmt.Errorf("expect end of JSON object but got more token: %T: %v or err: %v", t, t, err)
+	}
+
+	return nil
+}
+
+func (om *OrderedMap) parseJSONObject(dec *json.Decoder) (err error) {
+	var t json.Token
+	for dec.More() {
+		t, err = dec.Token()
+		if err != nil {
+			return err
+		}
+
+		key, ok := t.(string)
+		if !ok {
+			return fmt.Errorf("expecting JSON key should be always a string: %T: %v", t, t)
+		}
+
+		t, err = dec.Token()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+
+		var value interface{}
+		value, err = handleDelim(t, dec)
+		if err != nil {
+			return err
+		}
+
+		om.Set(key, value)
+	}
+
+	t, err = dec.Token()
+	if err != nil {
+		return err
+	}
+	if delim, ok := t.(json.Delim); !ok || delim != '}' {
+		return fmt.Errorf("expect JSON object close with '}'")
+	}
+
+	return nil
+}
+
+func parseJSONArray(dec *json.Decoder) (arr []interface{}, err error) {
+	var t json.Token
+	arr = make([]interface{}, 0)
+	for dec.More() {
+		t, err = dec.Token()
+		if err != nil {
+			return
+		}
+
+		var value interface{}
+		value, err = handleDelim(t, dec)
+		if err != nil {
+			return
+		}
+		arr = append(arr, value)
+	}
+	t, err = dec.Token()
+	if err != nil {
+		return
+	}
+	if delim, ok := t.(json.Delim); !ok || delim != ']' {
+		err = fmt.Errorf("expect JSON array close with ']'")
+		return
+	}
+
+	return
+}
+
+func handleDelim(t json.Token, dec *json.Decoder) (res interface{}, err error) {
+	if delim, ok := t.(json.Delim); ok {
+		switch delim {
+		case '{':
+			om2 := NewOrderedMap()
+			err = om2.parseJSONObject(dec)
+			if err != nil {
+				return
+			}
+			return om2, nil
+		case '[':
+			var value []interface{}
+			value, err = parseJSONArray(dec)
+			if err != nil {
+				return
+			}
+			return value, nil
+		default:
+			return nil, fmt.Errorf("Unexpected delimiter: %q", delim)
+		}
+	}
+	return t, nil
 }

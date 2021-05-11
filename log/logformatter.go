@@ -26,8 +26,8 @@ var TextFmtSubject = newTextFormatter("[%l] %m")
 // TextFmtSimple simple log format "[%p] %m%n"
 var TextFmtSimple = newTextFormatter("[%p] %m%n")
 
-// TextFmtDefault default log format "%t %l %S:%L %F() - %m%n%T"
-var TextFmtDefault = newTextFormatter("%t %l %S:%L %F() - %m%n%T")
+// TextFmtDefault default log format "%t %l{-5s} %S:%L %F() - %m%n%T"
+var TextFmtDefault = newTextFormatter("%t %l{-5s} %S:%L %F() - %m%n%T")
 
 // JSONFmtDefault default log format `{"when": %t, "level": %l, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`
 var JSONFmtDefault = newJSONFormatter(`{"when": %t, "level": %l, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
@@ -48,17 +48,17 @@ func NewLogFormatter(format string) Formatter {
 // NewTextFormatter create a Text Formatter instance
 // Text Format
 // %t{format}: time, if {format} is omitted, '2006-01-02T15:04:05.000' will be used
-// %c: logger name
-// %m: message
-// %n: EOL(Windows: "\r\n", Other: "\n")
-// %p: log level prefix
-// %l: log level string
+// %c{format}: logger name
+// %p{format}: log level prefix
+// %l{format}: log level string
+// %x{key}: logger property
+// %X{=| }: logger properties (operator|separator)
 // %S: caller source file name (!!SLOW!!)
 // %L: caller source line number (!!SLOW!!)
 // %F: caller function name (!!SLOW!!)
 // %T: caller stack trace (!!SLOW!!)
-// %x{key}: logger property
-// %X{=| }: logger properties (operator|separator)
+// %m: message
+// %n: EOL(Windows: "\r\n", Other: "\n")
 func NewTextFormatter(format string) *TextFormatter {
 	switch format {
 	case "DEFAULT":
@@ -81,17 +81,17 @@ func newTextFormatter(format string) *TextFormatter {
 // NewJSONFormatter create a Json Formatter instance
 // JSON Format
 // %t{format}: time, if {format} is omitted, '2006-01-02T15:04:05.000' will be used
-// %c: logger name
-// %m: message
-// %n: EOL(Windows: "\r\n", Other: "\n")
-// %p: log level prefix
-// %l: log level string
+// %c{format}: logger name
+// %p{format}: log level prefix
+// %l{format}: log level string
+// %x{key}: logger property
+// %X: logger properties (json format)
 // %S: caller source file name (!!SLOW!!)
 // %L: caller source line number (!!SLOW!!)
 // %F: caller function name (!!SLOW!!)
 // %T: caller stack trace (!!SLOW!!)
-// %x{key}: logger property
-// %X: logger properties (json format)
+// %m: message
+// %n: EOL(Windows: "\r\n", Other: "\n")
 func NewJSONFormatter(format string) *JSONFormatter {
 	switch format {
 	case "DEFAULT":
@@ -122,6 +122,18 @@ func (tf *TextFormatter) Format(le *Event) string {
 	return format(le, tf.fmts)
 }
 
+func getFormatOption(format string, i *int) string {
+	p := format[*i+1:]
+	if len(p) > 0 && p[0] == '{' {
+		e := strings.IndexByte(p, '}')
+		if e > 0 {
+			*i += e + 1
+			return p[1:e]
+		}
+	}
+	return ""
+}
+
 // Init initialize the text formatter
 func (tf *TextFormatter) Init(format string) {
 	fmts := make([]fmtfunc, 0, 10)
@@ -135,7 +147,7 @@ func (tf *TextFormatter) Init(format string) {
 
 		// string
 		if s < i {
-			fmts = append(fmts, strfmt(format[s:i]))
+			fmts = append(fmts, strfmtc(format[s:i]))
 		}
 
 		i++
@@ -147,55 +159,56 @@ func (tf *TextFormatter) Init(format string) {
 		// symbol
 		var fmt fmtfunc
 		switch format[i] {
+		case 't':
+			p := getFormatOption(format, &i)
+			if p == "" {
+				p = defaultTimeFormat
+			}
+			fmt = timefmtc(p)
 		case 'c':
-			fmt = namefmt
+			p := getFormatOption(format, &i)
+			if p == "" {
+				fmt = namefmt
+			} else {
+				fmt = namefmtc("%" + p)
+			}
 		case 'p':
-			fmt = lvlpfmt
+			p := getFormatOption(format, &i)
+			if p == "" {
+				fmt = lvlpfmt
+			} else {
+				fmt = lvlpfmtc("%" + p)
+			}
 		case 'l':
-			fmt = lvlsfmt
-		case 'm':
-			fmt = msgfmt
-		case 'n':
-			fmt = eolfmt
-		case 'F':
-			fmt = funcfmt
+			p := getFormatOption(format, &i)
+			if p == "" {
+				fmt = lvlsfmt
+			} else {
+				fmt = lvlsfmtc("%" + p)
+			}
+		case 'x':
+			p := getFormatOption(format, &i)
+			if p != "" {
+				fmt = propfmtc(p)
+			}
+		case 'X':
+			p := getFormatOption(format, &i)
+			if p == "" {
+				p = "=| "
+			}
+			fmt = propsfmtc(p)
 		case 'S':
 			fmt = filefmt
 		case 'L':
 			fmt = linefmt
+		case 'F':
+			fmt = funcfmt
 		case 'T':
 			fmt = tracefmt
-		case 't':
-			p := format[i+1:]
-			if len(p) > 0 && p[0] == '{' {
-				e := strings.IndexByte(p, '}')
-				if e > 0 {
-					fmt = timefmt(p[1:e])
-					i += e + 1
-					break
-				}
-			}
-			fmt = timefmt(defaultTimeFormat)
-		case 'x':
-			p := format[i+1:]
-			if len(p) > 0 && p[0] == '{' {
-				e := strings.IndexByte(p, '}')
-				if e > 0 {
-					fmt = propfmt(p[1:e])
-					i += e + 1
-				}
-			}
-		case 'X':
-			p := format[i+1:]
-			if len(p) > 0 && p[0] == '{' {
-				e := strings.IndexByte(p, '}')
-				if e > 0 {
-					fmt = propsfmt(p[1:e])
-					i += e + 1
-					break
-				}
-			}
-			fmt = propsfmt("=| ")
+		case 'm':
+			fmt = msgfmt
+		case 'n':
+			fmt = eolfmt
 		}
 
 		if fmt != nil {
@@ -205,7 +218,7 @@ func (tf *TextFormatter) Init(format string) {
 	}
 
 	if s < len(format) {
-		fmts = append(fmts, strfmt(format[s:]))
+		fmts = append(fmts, strfmtc(format[s:]))
 	}
 
 	tf.fmts = fmts
@@ -239,7 +252,7 @@ func (jf *JSONFormatter) Init(format string) {
 
 		// string
 		if s < i {
-			fmts = append(fmts, strfmt(format[s:i]))
+			fmts = append(fmts, strfmtc(format[s:i]))
 		}
 
 		i++
@@ -251,46 +264,55 @@ func (jf *JSONFormatter) Init(format string) {
 		// symbol
 		var fmt fmtfunc
 		switch format[i] {
-		case 'c':
-			fmt = quotefmt(namefmt)
-		case 'p':
-			fmt = quotefmt(lvlpfmt)
-		case 'l':
-			fmt = quotefmt(lvlsfmt)
-		case 'm':
-			fmt = quotefmt(msgfmt)
-		case 'n':
-			fmt = eolfmt
-		case 'F':
-			fmt = quotefmt(funcfmt)
-		case 'S':
-			fmt = quotefmt(filefmt)
-		case 'L':
-			fmt = linefmt
-		case 'T':
-			fmt = quotefmt(tracefmt)
 		case 't':
-			p := format[i+1:]
-			if len(p) > 0 && p[0] == '{' {
-				e := strings.IndexByte(p, '}')
-				if e > 0 {
-					fmt = quotefmt(timefmt(p[1:e]))
-					i += e + 1
-					break
-				}
+			p := getFormatOption(format, &i)
+			if p == "" {
+				p = defaultTimeFormat
 			}
-			fmt = quotefmt(timefmt(defaultTimeFormat))
+			fmt = quotefmtc(timefmtc(p))
+		case 'c':
+			p := getFormatOption(format, &i)
+			if p == "" {
+				fmt = namefmt
+			} else {
+				fmt = namefmtc("%" + p)
+			}
+			fmt = quotefmtc(fmt)
+		case 'p':
+			p := getFormatOption(format, &i)
+			if p == "" {
+				fmt = lvlpfmt
+			} else {
+				fmt = lvlpfmtc("%" + p)
+			}
+			fmt = quotefmtc(fmt)
+		case 'l':
+			p := getFormatOption(format, &i)
+			if p == "" {
+				fmt = lvlsfmt
+			} else {
+				fmt = lvlsfmtc("%" + p)
+			}
+			fmt = quotefmtc(fmt)
 		case 'x':
-			p := format[i+1:]
-			if len(p) > 0 && p[0] == '{' {
-				e := strings.IndexByte(p, '}')
-				if e > 0 {
-					fmt = jpropfmt(p[1:e])
-					i += e + 1
-				}
+			p := getFormatOption(format, &i)
+			if p != "" {
+				fmt = jpropfmtc(p)
 			}
 		case 'X':
 			fmt = jpropsfmt
+		case 'S':
+			fmt = quotefmtc(filefmt)
+		case 'L':
+			fmt = linefmt
+		case 'F':
+			fmt = quotefmtc(funcfmt)
+		case 'T':
+			fmt = quotefmtc(tracefmt)
+		case 'm':
+			fmt = quotefmtc(msgfmt)
+		case 'n':
+			fmt = eolfmt
 		}
 
 		if fmt != nil {
@@ -300,7 +322,7 @@ func (jf *JSONFormatter) Init(format string) {
 	}
 
 	if s < len(format) {
-		fmts = append(fmts, strfmt(format[s:]))
+		fmts = append(fmts, strfmtc(format[s:]))
 	}
 	jf.fmts = fmts
 }
@@ -325,15 +347,31 @@ func format(le *Event, fmts []fmtfunc) string {
 	return ss.String()
 }
 
-func quotefmt(ff fmtfunc) fmtfunc {
+func quotefmtc(ff fmtfunc) fmtfunc {
 	return func(le *Event) string {
 		return fmt.Sprintf("%q", ff(le))
 	}
 }
 
-func strfmt(s string) fmtfunc {
+func strfmtc(s string) fmtfunc {
 	return func(le *Event) string {
 		return s
+	}
+}
+
+func timefmtc(layout string) fmtfunc {
+	return func(le *Event) string {
+		return le.When.Format(layout)
+	}
+}
+
+func namefmt(le *Event) string {
+	return le.Logger.GetName()
+}
+
+func namefmtc(f string) fmtfunc {
+	return func(le *Event) string {
+		return fmt.Sprintf(f, le.Logger.GetName())
 	}
 }
 
@@ -341,51 +379,29 @@ func lvlpfmt(le *Event) string {
 	return le.Level.Prefix()
 }
 
+func lvlpfmtc(f string) fmtfunc {
+	return func(le *Event) string {
+		return fmt.Sprintf(f, le.Level.Prefix())
+	}
+}
+
 func lvlsfmt(le *Event) string {
 	return le.Level.String()
 }
 
-func namefmt(le *Event) string {
-	return le.Logger.GetName()
-}
-
-func msgfmt(le *Event) string {
-	return le.Msg
-}
-
-func eolfmt(le *Event) string {
-	return eol
-}
-
-func funcfmt(le *Event) string {
-	return le.Func
-}
-
-func filefmt(le *Event) string {
-	return le.File
-}
-
-func linefmt(le *Event) string {
-	return strconv.Itoa(le.Line)
-}
-
-func tracefmt(le *Event) string {
-	return le.Trace
-}
-
-func timefmt(layout string) fmtfunc {
+func lvlsfmtc(f string) fmtfunc {
 	return func(le *Event) string {
-		return le.When.Format(layout)
+		return fmt.Sprintf(f, le.Level.String())
 	}
 }
 
-func propfmt(key string) fmtfunc {
+func propfmtc(key string) fmtfunc {
 	return func(le *Event) string {
 		return fmt.Sprint(le.Logger.GetProp(key))
 	}
 }
 
-func propsfmt(f string) fmtfunc {
+func propsfmtc(f string) fmtfunc {
 	ss := strings.Split(f, "|")
 	d := ss[0]
 	j := ""
@@ -406,7 +422,7 @@ func propsfmt(f string) fmtfunc {
 	}
 }
 
-func jpropfmt(key string) fmtfunc {
+func jpropfmtc(key string) fmtfunc {
 	return func(le *Event) string {
 		b, _ := json.Marshal(le.Logger.GetProp(key))
 		return string(b)
@@ -416,4 +432,28 @@ func jpropfmt(key string) fmtfunc {
 func jpropsfmt(le *Event) string {
 	b, _ := json.Marshal(le.Logger.GetProps())
 	return string(b)
+}
+
+func funcfmt(le *Event) string {
+	return le.Func
+}
+
+func filefmt(le *Event) string {
+	return le.File
+}
+
+func linefmt(le *Event) string {
+	return strconv.Itoa(le.Line)
+}
+
+func tracefmt(le *Event) string {
+	return le.Trace
+}
+
+func msgfmt(le *Event) string {
+	return le.Msg
+}
+
+func eolfmt(le *Event) string {
+	return eol
 }

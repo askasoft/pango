@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
 	golog "log"
@@ -27,9 +28,11 @@ func TestGoLogOutputNewLog(t *testing.T) {
 }
 
 func TestGoLogFileCallerGlobal(t *testing.T) {
-	defer os.RemoveAll("gologtest")
+	path := "TestGoLogFileCallerGlobal/filetest"
+	dir := filepath.Dir(path)
+	os.RemoveAll(dir)
+	defer os.RemoveAll(dir)
 
-	path := "gologtest/TestGoLogFileCallerGlobal"
 	SetFormatter(NewTextFormatter("%l %S:%L %F() - %m"))
 	SetWriter(&FileWriter{Path: path})
 	golog.SetFlags(0)
@@ -43,9 +46,11 @@ func TestGoLogFileCallerGlobal(t *testing.T) {
 }
 
 func TestGoLogFileCallerNewLog(t *testing.T) {
-	defer os.RemoveAll("gologtest")
+	path := "TestGoLogFileCallerNewLog/filetest"
+	dir := filepath.Dir(path)
+	os.RemoveAll(dir)
+	defer os.RemoveAll(dir)
 
-	path := "gologtest/TestoLogFileCallerNewLog"
 	log := NewLog()
 	log.SetFormatter(NewTextFormatter("%l %S:%L %F() - %m"))
 	log.SetWriter(&FileWriter{Path: path})
@@ -60,9 +65,11 @@ func TestGoLogFileCallerNewLog(t *testing.T) {
 }
 
 func TestIoWriterFileCallerGlobal(t *testing.T) {
-	defer os.RemoveAll("iowtest")
+	path := "TestIoWriterFileCallerGlobal/filetest"
+	dir := filepath.Dir(path)
+	os.RemoveAll(dir)
+	defer os.RemoveAll(dir)
 
-	path := "iowtest/TestIoWriterFileCallerGlobal"
 	SetFormatter(NewTextFormatter("%l %S:%L %F() - %m%n"))
 	SetWriter(&FileWriter{Path: path})
 
@@ -76,9 +83,11 @@ func TestIoWriterFileCallerGlobal(t *testing.T) {
 }
 
 func TestIoWriterFileCallerNewLog(t *testing.T) {
-	defer os.RemoveAll("iowtest")
+	path := "TestIoWriterFileCallerNewLog/filetest"
+	dir := filepath.Dir(path)
+	os.RemoveAll(dir)
+	defer os.RemoveAll(dir)
 
-	path := "iowtest/TestIoWriterFileCallerNewLog"
 	log := NewLog()
 	log.SetFormatter(NewTextFormatter("%l %S:%L %F() - %m%n"))
 	log.SetWriter(&FileWriter{Path: path})

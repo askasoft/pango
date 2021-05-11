@@ -22,7 +22,7 @@ func TestTextFormatDefault(t *testing.T) {
 	le := newEvent(&logger{}, LevelInfo, "default")
 	le.When = time.Time{}
 	le.Caller(2, false)
-	assert.Equal(t, `0001-01-01T00:00:00.000 INFO logformatter_test.go:`+strconv.Itoa(le.Line)+` log.TestTextFormatDefault() - default`+eol, tf.Format(le))
+	assert.Equal(t, `0001-01-01T00:00:00.000 INFO  logformatter_test.go:`+strconv.Itoa(le.Line)+` log.TestTextFormatDefault() - default`+eol, tf.Format(le))
 }
 
 func TestTextFormatDate(t *testing.T) {
@@ -96,7 +96,7 @@ func TestNewTextFormatDefault(t *testing.T) {
 	le := newEvent(&logger{}, LevelInfo, "default")
 	le.When = time.Time{}
 	le.Caller(2, false)
-	assert.Equal(t, `0001-01-01T00:00:00.000 INFO logformatter_test.go:`+strconv.Itoa(le.Line)+` log.TestNewTextFormatDefault() - default`+eol, tf.Format(le))
+	assert.Equal(t, `0001-01-01T00:00:00.000 INFO  logformatter_test.go:`+strconv.Itoa(le.Line)+` log.TestNewTextFormatDefault() - default`+eol, tf.Format(le))
 }
 
 func TestNewLogFormatTextDefault(t *testing.T) {
@@ -104,7 +104,7 @@ func TestNewLogFormatTextDefault(t *testing.T) {
 	le := newEvent(&logger{}, LevelInfo, "default")
 	le.When = time.Time{}
 	le.Caller(2, false)
-	assert.Equal(t, `0001-01-01T00:00:00.000 INFO logformatter_test.go:`+strconv.Itoa(le.Line)+` log.TestNewLogFormatTextDefault() - default`+eol, tf.Format(le))
+	assert.Equal(t, `0001-01-01T00:00:00.000 INFO  logformatter_test.go:`+strconv.Itoa(le.Line)+` log.TestNewLogFormatTextDefault() - default`+eol, tf.Format(le))
 }
 
 func TestJSONFormatDefault(t *testing.T) {

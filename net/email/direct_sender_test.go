@@ -43,8 +43,8 @@ func testDirectSendEmail(t *testing.T, m *Email) {
 
 	m.SetFrom(sf)
 	m.AddTo(st)
-	m.Subject = "direct send subject " + time.Now().String() + strings.Repeat(" あいうえお", 10)
 
+	m.Subject = "direct send subject " + time.Now().String() + strings.Repeat(" あいうえお", 10)
 	err = s.DirectSend(m)
 	if err != nil {
 		t.Error(err)

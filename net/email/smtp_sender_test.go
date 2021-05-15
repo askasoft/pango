@@ -22,7 +22,10 @@ func skipTest(t *testing.T, msg string) {
 func testSendEmail(t *testing.T, m *Email) {
 	var err error
 
-	s := &Sender{Timeout: time.Second * 5, Helo: "localhost"}
+	ss := &SMTPSender{}
+	ss.Timeout = time.Second * 5
+	ss.Helo = "localhost"
+
 	// f, ef := os.OpenFile("D:\\sender.log", os.O_WRONLY|os.O_APPEND|os.O_CREATE, os.FileMode(0666))
 	// if ef != nil {
 	// 	fmt.Println(ef)
@@ -31,38 +34,38 @@ func testSendEmail(t *testing.T, m *Email) {
 	// defer f.Close()
 	f := os.Stdout
 	w := iox.SyncWriter(f)
-	s.ConnDebug = func(conn net.Conn) net.Conn {
+	ss.ConnDebug = func(conn net.Conn) net.Conn {
 		return netutil.DumpConn(
 			conn,
 			iox.WrapWriter(w, iox.ConsoleColor.Magenta+"< ", iox.ConsoleColor.Reset),
 			iox.WrapWriter(w, iox.ConsoleColor.Yellow+"> ", iox.ConsoleColor.Reset),
 		)
 	}
-	// s.DataDebug = func(w io.Writer) io.Writer {
+	// ss.DataDebug = func(w io.Writer) io.Writer {
 	// 	return io.MultiWriter(os.Stdout, w)
 	// }
 
-	// os.Setenv("SMTP_HOST", "smtp.sendgrid.net")
+	// os.Setenv("SMTP_HOST", "smtp.orangeone.jp")
 	// os.Setenv("SMTP_PORT", "25")
 	// os.Setenv("SMTP_USER", "apikey")
 	// os.Setenv("SMTP_PASS", "xx")
 	// os.Setenv("SMTP_FROM", "from@test.com")
 	// os.Setenv("SMTP_TO", "to@test.com")
-	s.Host = os.Getenv("SMTP_HOST")
-	if len(s.Host) < 1 {
+	ss.Host = os.Getenv("SMTP_HOST")
+	if len(ss.Host) < 1 {
 		skipTest(t, "SMTP_HOST not set")
 		return
 	}
 
-	s.Port, _ = strconv.Atoi(os.Getenv("SMTP_PORT"))
-	s.Username = os.Getenv("SMTP_USER")
-	if len(s.Username) < 1 {
+	ss.Port, _ = strconv.Atoi(os.Getenv("SMTP_PORT"))
+	ss.Username = os.Getenv("SMTP_USER")
+	if len(ss.Username) < 1 {
 		skipTest(t, "SMTP_USER not set")
 		return
 	}
 
-	s.Password = os.Getenv("SMTP_PASS")
-	if len(s.Password) < 1 {
+	ss.Password = os.Getenv("SMTP_PASS")
+	if len(ss.Password) < 1 {
 		skipTest(t, "SMTP_PASS not set")
 		return
 	}
@@ -89,10 +92,11 @@ func testSendEmail(t *testing.T, m *Email) {
 		t.Error(st, err)
 		return
 	}
-	m.Subject = "test subject " + time.Now().String() + strings.Repeat(" あいうえお", 10)
 
-	s.TLSConfig = &tls.Config{ServerName: s.Host, InsecureSkipVerify: true}
-	err = s.DialAndSend(m)
+	fmt.Printf("SMTP send %s -> %s\n", m.from, m.GetTos()[0])
+	m.Subject = "test subject " + time.Now().String() + strings.Repeat(" あいうえお", 10)
+	ss.TLSConfig = &tls.Config{ServerName: ss.Host, InsecureSkipVerify: true}
+	err = ss.DialAndSend(m)
 	if err != nil {
 		t.Error("DialAndSend", err)
 		return

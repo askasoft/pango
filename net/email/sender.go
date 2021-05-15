@@ -27,22 +27,6 @@ type Sender struct {
 	// By default, "localhost" is sent.
 	Helo string
 
-	// Host represents the host of the SMTP server.
-	Host string
-
-	// Port represents the port of the SMTP server.
-	Port int
-
-	// Username is the username to use to authenticate to the SMTP server.
-	Username string
-
-	// Password is the password to use to authenticate to the SMTP server.
-	Password string
-
-	// Auth represents the authentication mechanism used to authenticate to the
-	// SMTP server.
-	Auth smtp.Auth
-
 	// Timeout timeout when connect to the SMTP server
 	Timeout time.Duration
 
@@ -67,45 +51,9 @@ type Sender struct {
 	client *smtp.Client
 }
 
-// DialAndSend opens a connection to the SMTP server, sends the given emails and
-// closes the connection.
-func (s *Sender) DialAndSend(ms ...*Email) error {
-	err := s.Dial()
-	if err != nil {
-		return err
-	}
-	defer s.Close()
-
-	return s.Send(ms...)
-}
-
 // IsDialed return true if the sender is dialed
 func (s *Sender) IsDialed() bool {
 	return s.client != nil
-}
-
-// Dial dials and authenticates to an SMTP server.
-// Should call Close() when done.
-func (s *Sender) Dial() error {
-	if s.Port <= 0 {
-		if s.SSL {
-			s.Port = 25
-		} else {
-			s.Port = 465
-		}
-	}
-	return s.dial()
-}
-
-// Send send mail to SMTP server.
-func (s *Sender) Send(ms ...*Email) error {
-	for i, m := range ms {
-		if err := s.send(m); err != nil {
-			return fmt.Errorf("Failed to send email %d: %v", i+1, err)
-		}
-	}
-
-	return nil
 }
 
 // Close close the SMTP client
@@ -133,15 +81,22 @@ func (s *Sender) getConn(i interface{}) net.Conn {
 	return *pc
 }
 
-func (s *Sender) dial() error {
-	addr := s.Host + ":" + strconv.Itoa(s.Port)
+func (s *Sender) tlsConfig(host string) *tls.Config {
+	if s.TLSConfig == nil {
+		s.TLSConfig = &tls.Config{ServerName: host}
+	}
+	return s.TLSConfig
+}
+
+func (s *Sender) dial(host string, port int) error {
+	addr := host + ":" + strconv.Itoa(port)
 	conn, err := net.DialTimeout("tcp", addr, s.Timeout)
 	if err != nil {
 		return fmt.Errorf("Failed to dial %s - %v", addr, err)
 	}
 
 	if s.SSL {
-		conn = tls.Client(conn, s.tlsConfig())
+		conn = tls.Client(conn, s.tlsConfig(host))
 	}
 
 	corg := conn
@@ -149,7 +104,7 @@ func (s *Sender) dial() error {
 		conn = s.ConnDebug(conn)
 	}
 
-	c, err := smtp.NewClient(conn, s.Host)
+	c, err := smtp.NewClient(conn, host)
 	if err != nil {
 		return err
 	}
@@ -167,7 +122,7 @@ func (s *Sender) dial() error {
 			c.Text = textproto.NewConn(corg)
 		}
 		if ok, _ := c.Extension("STARTTLS"); ok {
-			if err := c.StartTLS(s.tlsConfig()); err != nil {
+			if err := c.StartTLS(s.tlsConfig(host)); err != nil {
 				c.Close()
 				return err
 			}
@@ -179,25 +134,6 @@ func (s *Sender) dial() error {
 		}
 	}
 
-	if s.Auth == nil && s.Username != "" {
-		if ok, auths := c.Extension("AUTH"); ok {
-			if strings.Contains(auths, "CRAM-MD5") {
-				s.Auth = smtp.CRAMMD5Auth(s.Username, s.Password)
-			} else if strings.Contains(auths, "LOGIN") && !strings.Contains(auths, "PLAIN") {
-				s.Auth = &loginAuth{host: s.Host, username: s.Username, password: s.Password}
-			} else {
-				s.Auth = smtp.PlainAuth("", s.Username, s.Password, s.Host)
-			}
-		}
-	}
-
-	if s.Auth != nil {
-		if err = c.Auth(s.Auth); err != nil {
-			c.Close()
-			return err
-		}
-	}
-
 	s.client = c
 	return nil
 }
@@ -205,15 +141,7 @@ func (s *Sender) dial() error {
 func (s *Sender) send(mail *Email) error {
 	c := s.client
 	if err := c.Mail(mail.GetSender()); err != nil {
-		if err == io.EOF {
-			// This is probably due to a timeout, so reconnect and try again.
-			derr := s.Dial()
-			if derr != nil {
-				return derr
-			}
-		} else {
-			return err
-		}
+		return err
 	}
 
 	for _, addr := range mail.GetTos() {
@@ -240,11 +168,51 @@ func (s *Sender) send(mail *Email) error {
 	return nil
 }
 
-func (s *Sender) tlsConfig() *tls.Config {
-	if s.TLSConfig == nil {
-		s.TLSConfig = &tls.Config{ServerName: s.Host}
+func (s *Sender) writeMail(w io.Writer, m *Email) error {
+	header := header{}
+
+	header["MIME-Version"] = "1.0"
+	if m.MsgID != "" {
+		header["Message-ID"] = m.MsgID
 	}
-	return s.TLSConfig
+	header["Date"] = formatDate(m.GetDate())
+	header["From"] = m.GetFrom().String()
+	header["To"] = encodeAddress(m.GetTos()...)
+	if len(m.GetCcs()) > 0 {
+		header["Cc"] = encodeAddress(m.GetCcs()...)
+	}
+	if len(m.GetBccs()) > 0 {
+		header["Bcc"] = encodeAddress(m.GetBccs()...)
+	}
+	if len(m.GetReplys()) > 0 {
+		header["Reply-To"] = encodeAddress(m.GetReplys()...)
+	}
+	header["Subject"] = encodeWord(m.Subject)
+
+	var boundary string
+	if m.HTML || len(m.Attachments) > 0 {
+		boundary = str.RandDigitLetters(28)
+		header["Content-Type"] = "multipart/mixed; boundary=" + boundary
+	} else {
+		header["Content-Type"] = "text/plain; charset=UTF-8"
+	}
+
+	enc := "7bit"
+	if !str.IsASCII(m.Message) {
+		enc = "Base64"
+	}
+	header["Content-Transfer-Encoding"] = enc
+
+	if s.DataDebug != nil {
+		w = s.DataDebug(w)
+	}
+
+	err := writeHeader(w, header)
+	if err != nil {
+		return err
+	}
+
+	return writeBody(w, enc, m, boundary)
 }
 
 // header SMTP message header
@@ -404,51 +372,4 @@ func writeAttachments(w io.Writer, as []*Attachment, boundary string) error {
 		}
 	}
 	return nil
-}
-
-func (s *Sender) writeMail(w io.Writer, m *Email) error {
-	header := header{}
-
-	header["MIME-Version"] = "1.0"
-	if m.MsgID != "" {
-		header["Message-ID"] = m.MsgID
-	}
-	header["Date"] = formatDate(m.GetDate())
-	header["From"] = m.GetFrom().String()
-	header["To"] = encodeAddress(m.GetTos()...)
-	if len(m.GetCcs()) > 0 {
-		header["Cc"] = encodeAddress(m.GetCcs()...)
-	}
-	if len(m.GetBccs()) > 0 {
-		header["Bcc"] = encodeAddress(m.GetBccs()...)
-	}
-	if len(m.GetReplys()) > 0 {
-		header["Reply-To"] = encodeAddress(m.GetReplys()...)
-	}
-	header["Subject"] = encodeWord(m.Subject)
-
-	var boundary string
-	if m.HTML || len(m.Attachments) > 0 {
-		boundary = str.RandDigitLetters(28)
-		header["Content-Type"] = "multipart/mixed; boundary=" + boundary
-	} else {
-		header["Content-Type"] = "text/plain; charset=UTF-8"
-	}
-
-	enc := "7bit"
-	if !str.IsASCII(m.Message) {
-		enc = "Base64"
-	}
-	header["Content-Transfer-Encoding"] = enc
-
-	if s.DataDebug != nil {
-		w = s.DataDebug(w)
-	}
-
-	err := writeHeader(w, header)
-	if err != nil {
-		return err
-	}
-
-	return writeBody(w, enc, m, boundary)
 }

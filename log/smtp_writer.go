@@ -24,8 +24,8 @@ type SMTPWriter struct {
 	Logfmt   Formatter // log formatter
 	Logfil   Filter    // log filter
 
-	email  *email.Email  // email
-	sender *email.Sender // email sender
+	email  *email.Email      // email
+	sender *email.SMTPSender // email sender
 }
 
 // SetSubject set the subject formatter
@@ -104,14 +104,14 @@ func (sw *SMTPWriter) Write(le *Event) {
 	}
 
 	if sw.sender == nil {
-		sw.sender = &email.Sender{
-			Host:      sw.Host,
-			Port:      sw.Port,
-			Timeout:   sw.Timeout,
-			Username:  sw.Username,
-			Password:  sw.Password,
-			TLSConfig: &tls.Config{ServerName: sw.Host, InsecureSkipVerify: true},
+		sw.sender = &email.SMTPSender{
+			Host:     sw.Host,
+			Port:     sw.Port,
+			Username: sw.Username,
+			Password: sw.Password,
 		}
+		sw.sender.Timeout = sw.Timeout
+		sw.sender.TLSConfig = &tls.Config{ServerName: sw.Host, InsecureSkipVerify: true}
 	}
 	if !sw.sender.IsDialed() {
 		err := sw.sender.Dial()

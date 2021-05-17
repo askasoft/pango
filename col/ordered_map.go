@@ -119,8 +119,8 @@ func (om *OrderedMap) Back() *MapEntry {
 // Keys returns the key slice
 func (om *OrderedMap) Keys() []interface{} {
 	ks := make([]interface{}, 0, om.Len())
-	for e := om.Front(); e != nil; e = e.Next() {
-		ks = append(ks, e.Key())
+	for me := om.Front(); me != nil; me = me.Next() {
+		ks = append(ks, me.Key())
 	}
 	return ks
 }
@@ -128,23 +128,32 @@ func (om *OrderedMap) Keys() []interface{} {
 // Values returns the value slice
 func (om *OrderedMap) Values() []interface{} {
 	vs := make([]interface{}, 0, om.Len())
-	for e := om.Front(); e != nil; e = e.Next() {
-		vs = append(vs, e.Value)
+	for me := om.Front(); me != nil; me = me.Next() {
+		vs = append(vs, me.Value)
+	}
+	return vs
+}
+
+// Entries returns the mep entry slice
+func (om *OrderedMap) Entries() []*MapEntry {
+	vs := make([]*MapEntry, 0, om.Len())
+	for me := om.Front(); me != nil; me = me.Next() {
+		vs = append(vs, me)
 	}
 	return vs
 }
 
 // Each Call f for each item in the map
 func (om *OrderedMap) Each(f func(*MapEntry)) {
-	for e := om.Front(); e != nil; e = e.Next() {
-		f(e)
+	for me := om.Front(); me != nil; me = me.Next() {
+		f(me)
 	}
 }
 
 // ReverseEach Call f for each item in the map with reverse order
 func (om *OrderedMap) ReverseEach(f func(*MapEntry)) {
-	for e := om.Back(); e != nil; e = e.Prev() {
-		f(e)
+	for me := om.Back(); me != nil; me = me.Prev() {
+		f(me)
 	}
 }
 

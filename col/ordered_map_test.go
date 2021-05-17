@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"math"
 	"math/rand"
 	"reflect"
@@ -43,6 +44,28 @@ func TestBasicFeatures(t *testing.T) {
 		assert.NotNil(t, entry)
 		assert.Equal(t, 2*i, entry.Value)
 	}
+
+	// keys
+	ks := make([]interface{}, n)
+	for i := 0; i < n; i++ {
+		ks[i] = i
+	}
+	assert.Equal(t, ks, om.Keys())
+
+	// entries
+	es := om.Entries()
+	assert.Equal(t, n, len(es))
+	for i := 0; i < n; i++ {
+		assert.Equal(t, i, es[i].Key())
+		assert.Equal(t, i*2, es[i].Value)
+	}
+
+	// values
+	vs := make([]interface{}, n)
+	for i := 0; i < n; i++ {
+		vs[i] = i * 2
+	}
+	assert.Equal(t, vs, om.Values())
 
 	// forward iteration
 	i := 0
@@ -226,8 +249,25 @@ func TestShuffle(t *testing.T) {
 	}
 }
 
-/* Test helpers */
+func TestTemplateRange(t *testing.T) {
+	om := NewOrderedMap("z", "Z", "a", "A")
+	tmpl, err := template.New("test").Parse("{{range $e := .om.Entries}}[ {{$e.Key}} = {{$e.Value}} ]{{end}}")
+	if err != nil {
+		assert.Fail(t, err.Error())
+	}
 
+	cm := map[string]interface{}{
+		"om": om,
+	}
+	sb := &strings.Builder{}
+	err = tmpl.Execute(sb, cm)
+	if err != nil {
+		assert.Fail(t, err.Error())
+	}
+	assert.Equal(t, "[ z = Z ][ a = A ]", sb.String())
+}
+
+/* Test helpers */
 func assertOrderedPairsEqual(t *testing.T, om *OrderedMap, expectedKeys, expectedValues []interface{}) {
 	assertOrderedPairsEqualFromNewest(t, om, expectedKeys, expectedValues)
 	assertOrderedPairsEqualFromOldest(t, om, expectedKeys, expectedValues)
@@ -324,7 +364,7 @@ func ExampleOrderedMap_UnmarshalJSON() {
 	}
 
 	// use the OrderedMap to Unmarshal from JSON object
-	var om *OrderedMap = NewOrderedMap()
+	om := NewOrderedMap()
 	err = json.Unmarshal([]byte(jsonStream), om)
 	if err != nil {
 		fmt.Println("error:", err)

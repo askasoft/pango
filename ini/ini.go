@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"strings"
 	"unicode"
 
 	"github.com/pandafw/pango/bytea"
@@ -90,7 +91,7 @@ func (ini *Ini) Sections() []*Section {
 	return ss
 }
 
-// Section return a section with the specified name
+// Section return a section with the specified name or nil if section not exists
 func (ini *Ini) Section(name string) *Section {
 	if sec, ok := ini.sections.Get(name); ok {
 		return sec.(*Section)
@@ -275,67 +276,6 @@ func (ini *Ini) WriteFile(filename string) error {
 	return ini.WriteData(f)
 }
 
-func (ini *Ini) writeComments(bw *bufio.Writer, comments []string) (err error) {
-	for _, s := range comments {
-		_, err = bw.WriteString(s)
-		_, err = bw.WriteString(ini.EOL)
-	}
-	return err
-}
-
-func (ini *Ini) writeSectionName(bw *bufio.Writer, name string) (err error) {
-	if name != "" {
-		err = bw.WriteByte('[')
-		_, err = bw.WriteString(name)
-		err = bw.WriteByte(']')
-		_, err = bw.WriteString(ini.EOL)
-	}
-	return err
-}
-
-func (ini *Ini) writeSectionEntries(bw *bufio.Writer, sec *Section) (err error) {
-	for me := sec.entries.Front(); me != nil; me = me.Next() {
-		switch se := me.Value.(type) {
-		case *col.List:
-			for le := se.Front(); le != nil; le = le.Next() {
-				if err = ini.writeSectionEntry(bw, me.Key().(string), le.Value.(*Entry)); err != nil {
-					return err
-				}
-			}
-		case *Entry:
-			if err = ini.writeSectionEntry(bw, me.Key().(string), se); err != nil {
-				return err
-			}
-		}
-	}
-	return err
-}
-
-func (ini *Ini) writeSectionEntry(bw *bufio.Writer, key string, ve *Entry) (err error) {
-	if len(ve.Comments) > 0 {
-		_, err = bw.WriteString(ini.EOL)
-		err = ini.writeComments(bw, ve.Comments)
-	}
-
-	_, err = bw.WriteString(key)
-	err = bw.WriteByte(' ')
-	err = bw.WriteByte('=')
-	err = bw.WriteByte(' ')
-	_, err = bw.WriteString(quote(ve.Value))
-	_, err = bw.WriteString(ini.EOL)
-	return err
-}
-
-func (ini *Ini) writeKeyValue(bw *bufio.Writer, key string, val string) (err error) {
-	_, err = bw.WriteString(key)
-	err = bw.WriteByte(' ')
-	err = bw.WriteByte('=')
-	err = bw.WriteByte(' ')
-	_, err = bw.WriteString(quote(val))
-	_, err = bw.WriteString(ini.EOL)
-	return err
-}
-
 // WriteData write INI to io.Writer
 func (ini *Ini) WriteData(w io.Writer) (err error) {
 	bw := bufio.NewWriter(w)
@@ -343,33 +283,19 @@ func (ini *Ini) WriteData(w io.Writer) (err error) {
 	for se := ini.sections.Front(); se != nil; se = se.Next() {
 		sec := se.Value.(*Section)
 
-		// comments
-		if len(sec.comments) > 0 {
-			if err = ini.writeComments(bw, sec.comments); err != nil {
-				return err
-			}
-			if sec.name == "" {
-				_, err = bw.WriteString(ini.EOL)
-			}
-		}
-
-		// section name
-		if err = ini.writeSectionName(bw, sec.name); err != nil {
-			return err
-		}
-
-		// section entries
-		if err = ini.writeSectionEntries(bw, sec); err != nil {
-			return err
-		}
-
-		// blank line
-		if _, err = bw.WriteString(ini.EOL); err != nil {
+		if err := sec.Write(bw, ini.EOL); err != nil {
 			return err
 		}
 	}
 
 	return bw.Flush()
+}
+
+// String write INI to the string
+func (ini *Ini) String() string {
+	sb := &strings.Builder{}
+	ini.WriteData(sb)
+	return sb.String()
 }
 
 func isQuoted(s string) bool {

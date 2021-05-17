@@ -1,9 +1,12 @@
 package ini
 
 import (
+	"bufio"
 	"strconv"
+	"strings"
 
 	"github.com/pandafw/pango/col"
+	"github.com/pandafw/pango/iox"
 )
 
 // Entry ini entry
@@ -149,12 +152,27 @@ func (sec *Section) GetString(key string, defs ...string) string {
 }
 
 // GetInt get a int value of the key from the section
-// if not found, returns the default defs[0] int value
+// if not found or convert error, returns the default defs[0] int value
 func (sec *Section) GetInt(key string, defs ...int) int {
 	e := sec.GetEntry(key)
 	if e != nil {
 		if i, err := strconv.ParseInt(e.Value, 0, strconv.IntSize); err == nil {
 			return int(i)
+		}
+	}
+	if len(defs) > 0 {
+		return defs[0]
+	}
+	return 0
+}
+
+// GetFloat get a float value of the key from the section
+// if not found or convert error, returns the default defs[0] float value
+func (sec *Section) GetFloat(key string, defs ...float64) float64 {
+	e := sec.GetEntry(key)
+	if e != nil {
+		if f, err := strconv.ParseFloat(e.Value, 0); err == nil {
+			return f
 		}
 	}
 	if len(defs) > 0 {
@@ -232,4 +250,99 @@ func (sec *Section) Merge(src *Section) {
 	for e := src.entries.Front(); e != nil; e = e.Next() {
 		sec.add(e.Key().(string), e.Value.(*Entry))
 	}
+}
+
+// String write section to string
+func (sec *Section) String() string {
+	sb := &strings.Builder{}
+	bw := bufio.NewWriter(sb)
+	sec.Write(bw, iox.EOL)
+	bw.Flush()
+	return sb.String()
+}
+
+// Write output section to the writer
+func (sec *Section) Write(bw *bufio.Writer, eol string) error {
+	// comments
+	if err := sec.writeComments(bw, sec.comments, eol); err != nil {
+		return err
+	}
+
+	// section name
+	if err := sec.writeSectionName(bw, eol); err != nil {
+		return err
+	}
+
+	// section entries
+	if err := sec.writeSectionEntries(bw, eol); err != nil {
+		return err
+	}
+
+	// blank line
+	if _, err := bw.WriteString(eol); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (sec *Section) writeComments(bw *bufio.Writer, comments []string, eol string) (err error) {
+	for _, s := range comments {
+		_, err = bw.WriteString(s)
+		_, err = bw.WriteString(eol)
+	}
+	return err
+}
+
+func (sec *Section) writeSectionName(bw *bufio.Writer, eol string) (err error) {
+	if sec.name != "" {
+		err = bw.WriteByte('[')
+		_, err = bw.WriteString(sec.name)
+		err = bw.WriteByte(']')
+	}
+	_, err = bw.WriteString(eol)
+	return err
+}
+
+func (sec *Section) writeSectionEntries(bw *bufio.Writer, eol string) (err error) {
+	for me := sec.entries.Front(); me != nil; me = me.Next() {
+		switch se := me.Value.(type) {
+		case *col.List:
+			for le := se.Front(); le != nil; le = le.Next() {
+				if err = sec.writeSectionEntry(bw, me.Key().(string), le.Value.(*Entry), eol); err != nil {
+					return err
+				}
+			}
+		case *Entry:
+			if err = sec.writeSectionEntry(bw, me.Key().(string), se, eol); err != nil {
+				return err
+			}
+		}
+	}
+	return err
+}
+
+func (sec *Section) writeSectionEntry(bw *bufio.Writer, key string, ve *Entry, eol string) (err error) {
+	if len(ve.Comments) > 0 {
+		_, err = bw.WriteString(eol)
+		err = sec.writeComments(bw, ve.Comments, eol)
+	}
+
+	_, err = bw.WriteString(key)
+	err = bw.WriteByte(' ')
+	err = bw.WriteByte('=')
+	err = bw.WriteByte(' ')
+	_, err = bw.WriteString(quote(ve.Value))
+	_, err = bw.WriteString(eol)
+	return err
+}
+
+func (sec *Section) writeKeyValue(bw *bufio.Writer, key string, val string, eol string) (err error) {
+	_, err = bw.WriteString(key)
+	err = bw.WriteByte(' ')
+	err = bw.WriteByte('=')
+	err = bw.WriteByte(' ')
+	_, err = bw.WriteString(quote(val))
+	_, err = bw.WriteString(eol)
+	return err
 }

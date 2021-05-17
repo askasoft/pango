@@ -49,10 +49,11 @@ func (ew *WebhookWriter) Write(le *Event) {
 		return
 	}
 
-	if ew.Logfmt == nil {
-		ew.Logfmt = le.Logger.GetFormatter()
-		if ew.Logfmt == nil {
-			ew.Logfmt = JSONFmtDefault
+	lf := ew.Logfmt
+	if lf == nil {
+		lf = le.Logger.GetFormatter()
+		if lf == nil {
+			lf = JSONFmtDefault
 		}
 	}
 
@@ -66,7 +67,7 @@ func (ew *WebhookWriter) Write(le *Event) {
 
 	// format msg
 	ew.bb.Reset()
-	ew.Logfmt.Write(&ew.bb, le)
+	lf.Write(&ew.bb, le)
 
 	req, err := http.NewRequest(ew.Method, ew.Webhook, &ew.bb)
 	if err != nil {

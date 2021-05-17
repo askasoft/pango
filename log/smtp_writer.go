@@ -72,10 +72,12 @@ func (sw *SMTPWriter) Write(le *Event) {
 	if sw.Subfmt == nil {
 		sw.Subfmt = TextFmtSubject
 	}
-	if sw.Logfmt == nil {
-		sw.Logfmt = le.Logger.GetFormatter()
-		if sw.Logfmt == nil {
-			sw.Logfmt = TextFmtDefault
+
+	lf := sw.Logfmt
+	if lf == nil {
+		lf = le.Logger.GetFormatter()
+		if lf == nil {
+			lf = TextFmtDefault
 		}
 	}
 
@@ -122,7 +124,7 @@ func (sw *SMTPWriter) Write(le *Event) {
 	}
 
 	sw.email.Subject = sw.Subfmt.Format(le)
-	sw.email.Message = sw.Logfmt.Format(le)
+	sw.email.Message = lf.Format(le)
 
 	err := sw.sender.Send(sw.email)
 	if err != nil {

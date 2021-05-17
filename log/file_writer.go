@@ -62,10 +62,11 @@ func (fw *FileWriter) Write(le *Event) {
 		return
 	}
 
-	if fw.Logfmt == nil {
-		fw.Logfmt = le.Logger.GetFormatter()
-		if fw.Logfmt == nil {
-			fw.Logfmt = TextFmtDefault
+	lf := fw.Logfmt
+	if lf == nil {
+		lf = le.Logger.GetFormatter()
+		if lf == nil {
+			lf = TextFmtDefault
 		}
 	}
 
@@ -84,7 +85,7 @@ func (fw *FileWriter) Write(le *Event) {
 
 	// format msg
 	fw.bb.Reset()
-	fw.Logfmt.Write(&fw.bb, le)
+	lf.Write(&fw.bb, le)
 
 	// write log
 	n, err := fw.file.Write(fw.bb.Bytes())

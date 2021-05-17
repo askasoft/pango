@@ -52,10 +52,12 @@ func (sw *SlackWriter) Write(le *Event) {
 	if sw.Subfmt == nil {
 		sw.Subfmt = TextFmtSubject
 	}
-	if sw.Logfmt == nil {
-		sw.Logfmt = le.Logger.GetFormatter()
-		if sw.Logfmt == nil {
-			sw.Logfmt = TextFmtDefault
+
+	lf := sw.Logfmt
+	if lf == nil {
+		lf = le.Logger.GetFormatter()
+		if lf == nil {
+			lf = TextFmtDefault
 		}
 	}
 
@@ -65,7 +67,7 @@ func (sw *SlackWriter) Write(le *Event) {
 	sm.Username = sw.Username
 	sm.Text = sw.Subfmt.Format(le)
 
-	sa := &slack.Attachment{Text: sw.Logfmt.Format(le)}
+	sa := &slack.Attachment{Text: lf.Format(le)}
 	sm.AddAttachment(sa)
 
 	err := slack.Post(sw.Webhook, sw.Timeout, sm)

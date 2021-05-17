@@ -7,10 +7,10 @@ import (
 // Logger logger interface
 type Logger interface {
 	GetName() string
-	GetLevel() Level
-	SetLevel(l Level)
 	GetCallerDepth() int
 	SetCallerDepth(d int)
+	GetLevel() Level
+	SetLevel(l Level)
 	GetTraceLevel() Level
 	SetTraceLevel(l Level)
 	GetProp(k string) interface{}
@@ -18,8 +18,6 @@ type Logger interface {
 	GetProps() map[string]interface{}
 	SetProps(map[string]interface{})
 	GetFormatter() Formatter
-	SetFormatter(lf Formatter)
-	IsAsync() bool
 	IsLevelEnabled(lvl Level) bool
 	Log(lvl Level, v ...interface{})
 	Logf(lvl Level, f string, v ...interface{})
@@ -45,33 +43,17 @@ type Logger interface {
 
 // logger logger interface implement
 type logger struct {
-	name   string
-	level  Level
-	depth  int
-	trace  Level
-	log    *Log
-	logfmt Formatter
-	props  map[string]interface{}
+	name  string
+	level Level
+	depth int
+	trace Level
+	log   *Log
+	props map[string]interface{}
 }
 
 // GetName return the logger's name
 func (l *logger) GetName() string {
 	return l.name
-}
-
-// SetName set the logger's name
-func (l *logger) SetName(n string) {
-	l.name = n
-}
-
-// GetLevel return the logger's level
-func (l *logger) GetLevel() Level {
-	return l.level
-}
-
-// SetLevel set the logger's level
-func (l *logger) SetLevel(lvl Level) {
-	l.level = lvl
 }
 
 // GetCallerDepth return the logger's depth
@@ -84,8 +66,24 @@ func (l *logger) SetCallerDepth(d int) {
 	l.depth = d
 }
 
+// GetLevel return the logger's level
+func (l *logger) GetLevel() Level {
+	if l.level == LevelNone {
+		return l.log.GetLevel()
+	}
+	return l.level
+}
+
+// SetLevel set the logger's level
+func (l *logger) SetLevel(lvl Level) {
+	l.level = lvl
+}
+
 // GetTraceLevel return the logger's trace level
 func (l *logger) GetTraceLevel() Level {
+	if l.trace == LevelNone {
+		return l.log.GetTraceLevel()
+	}
 	return l.trace
 }
 
@@ -127,15 +125,24 @@ func (l *logger) GetProps() map[string]interface{} {
 		return l.log.GetProps()
 	}
 
-	// parent props
-	pm := l.log.GetProps()
+	// props
+	var nm map[string]interface{}
 
-	// new return props
-	nm := make(map[string]interface{}, len(tm)+len(pm))
+	// parent props
+	pm := l.log.logger.props
 	if pm != nil {
-		for k, v := range pm {
-			nm[k] = v
+		// new return props
+		nm = make(map[string]interface{}, len(tm)+len(pm))
+		if pm != nil {
+			for k, v := range pm {
+				nm[k] = v
+			}
 		}
+	}
+
+	// self props
+	if nm == nil {
+		nm = make(map[string]interface{}, len(tm))
 	}
 	for k, v := range tm {
 		nm[k] = v
@@ -150,22 +157,12 @@ func (l *logger) SetProps(props map[string]interface{}) {
 
 // GetFormatter get logger formatter
 func (l *logger) GetFormatter() Formatter {
-	return l.logfmt
-}
-
-// SetFormatter set logger formatter
-func (l *logger) SetFormatter(lf Formatter) {
-	l.logfmt = lf
-}
-
-// IsAsync return the logger's async
-func (l *logger) IsAsync() bool {
-	return l.log.async
+	return l.log.GetFormatter()
 }
 
 // IsLevelEnabled is specified level enabled
 func (l *logger) IsLevelEnabled(lvl Level) bool {
-	return l.level >= lvl
+	return l.GetLevel() >= lvl
 }
 
 // Log log a message at specified level.

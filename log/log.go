@@ -32,15 +32,6 @@ import (
 // default Log instance
 var _log = NewLog()
 
-// package logger
-var _logger Logger = newPkgLogger()
-
-func newPkgLogger() Logger {
-	l := _log.GetLogger("")
-	l.SetCallerDepth(l.GetCallerDepth() + 1)
-	return l
-}
-
 // Default get default Log
 func Default() *Log {
 	return _log
@@ -89,7 +80,6 @@ func GetFormatter() Formatter {
 // SetFormatter set the formatter.
 func SetFormatter(lf Formatter) {
 	_log.SetFormatter(lf)
-	_logger.SetFormatter(lf)
 }
 
 // GetWriter get the writer
@@ -110,7 +100,6 @@ func GetLevel() Level {
 // SetLevel set the logger's level
 func SetLevel(lvl Level) {
 	_log.SetLevel(lvl)
-	_logger.SetLevel(lvl)
 }
 
 // SetLevels set the logger levels
@@ -126,7 +115,6 @@ func GetCallerDepth() int {
 // SetCallerDepth set the logger's caller depth (!!SLOW!!), 0: disable runtime.Caller()
 func SetCallerDepth(d int) {
 	_log.SetCallerDepth(d)
-	_logger.SetCallerDepth(d + 1)
 }
 
 // GetProp get logger property
@@ -156,90 +144,90 @@ func Close() {
 
 // IsFatalEnabled is FATAL level enabled
 func IsFatalEnabled() bool {
-	return _logger.IsFatalEnabled()
+	return _log.logger.IsFatalEnabled()
 }
 
 // Fatal log a message at fatal level.
 func Fatal(v ...interface{}) {
-	_logger.Fatal(v...)
+	_log.logger._log(LevelFatal, v...)
 }
 
 // Fatalf format and log a message at fatal level.
 func Fatalf(f string, v ...interface{}) {
-	_logger.Fatalf(f, v...)
+	_log.logger._logf(LevelFatal, f, v...)
 }
 
 // IsErrorEnabled is ERROR level enabled
 func IsErrorEnabled() bool {
-	return _logger.IsErrorEnabled()
+	return _log.logger.IsErrorEnabled()
 }
 
 // Error log a message at error level.
 func Error(v ...interface{}) {
-	_logger.Error(v...)
+	_log.logger._log(LevelError, v...)
 }
 
 // Errorf format and log a message at error level.
 func Errorf(f string, v ...interface{}) {
-	_logger.Errorf(f, v...)
+	_log.logger._logf(LevelError, f, v...)
 }
 
 // IsWarnEnabled is WARN level enabled
 func IsWarnEnabled() bool {
-	return _logger.IsWarnEnabled()
+	return _log.logger.IsWarnEnabled()
 }
 
 // Warn log a message at warning level.
 func Warn(v ...interface{}) {
-	_logger.Warn(v...)
+	_log.logger._log(LevelWarn, v...)
 }
 
 // Warnf format and log a message at warning level.
 func Warnf(f string, v ...interface{}) {
-	_logger.Warnf(f, v...)
+	_log.logger._logf(LevelWarn, f, v...)
 }
 
 // IsInfoEnabled is INFO level enabled
 func IsInfoEnabled() bool {
-	return _logger.IsInfoEnabled()
+	return _log.logger.IsInfoEnabled()
 }
 
 // Info log a message at info level.
 func Info(v ...interface{}) {
-	_logger.Info(v...)
+	_log.logger._log(LevelInfo, v...)
 }
 
 // Infof format and log a message at info level.
 func Infof(f string, v ...interface{}) {
-	_logger.Infof(f, v...)
+	_log.logger._logf(LevelInfo, f, v...)
 }
 
 // IsDebugEnabled is DEBUG level enabled
 func IsDebugEnabled() bool {
-	return _logger.IsDebugEnabled()
+	return _log.logger.IsDebugEnabled()
 }
 
 // Debug log a message at debug level.
 func Debug(v ...interface{}) {
-	_logger.Debug(v...)
+	_log.logger._log(LevelDebug, v...)
 }
 
 // Debugf format log a message at debug level.
 func Debugf(f string, v ...interface{}) {
-	_logger.Debugf(f, v...)
+	_log.logger._logf(LevelDebug, f, v...)
 }
 
 // IsTraceEnabled is TRACE level enabled
 func IsTraceEnabled() bool {
-	return _logger.IsTraceEnabled()
+	return _log.logger.IsTraceEnabled()
 }
 
 // Trace log a message at trace level.
 func Trace(v ...interface{}) {
-	_logger.Trace(v...)
+	_log.logger._log(LevelTrace, v...)
 }
 
 // Tracef format and log a message at trace level.
 func Tracef(f string, v ...interface{}) {
-	_logger.Tracef(f, v...)
+	_log.logger._logf(LevelTrace, f, v...)
 }

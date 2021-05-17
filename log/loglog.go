@@ -8,7 +8,7 @@ import (
 // Log is default logger in application.
 // it can contain several writers and log message into all writers.
 type Log struct {
-	logger
+	logger  *logger
 	async   bool
 	evtChan chan *Event
 	sigChan chan string
@@ -16,6 +16,7 @@ type Log struct {
 	writer  Writer
 	mutex   sync.Mutex
 	levels  map[string]Level
+	logfmt  Formatter
 }
 
 // NewLog returns a new Log.
@@ -24,12 +25,15 @@ func NewLog() *Log {
 }
 
 func newLog(depth int) *Log {
-	log := &Log{}
-	log.log = log
-	log.level = LevelTrace
-	log.depth = depth
-	log.trace = LevelError
-	log.levels = make(map[string]Level)
+	log := &Log{
+		logger: &logger{
+			depth: depth,
+			level: LevelTrace,
+			trace: LevelError,
+		},
+		levels: make(map[string]Level),
+	}
+	log.logger.log = log
 	return log
 }
 
@@ -38,25 +42,12 @@ func (log *Log) SetLevels(lvls map[string]Level) {
 	log.levels = lvls
 }
 
-// getLoggerLevel get the named logger level
-func (log *Log) getLoggerLevel(name string) Level {
-	level := log.levels[name]
-	if level == LevelNone {
-		level = log.GetLevel()
-	}
-	return level
-}
-
 // GetLogger returns a new Logger with name
 func (log *Log) GetLogger(name string) Logger {
-	level := log.getLoggerLevel(name)
 	return &logger{
-		name:   name,
-		log:    log,
-		logfmt: log.logfmt,
-		depth:  log.depth,
-		level:  level,
-		trace:  log.trace,
+		name:  name,
+		log:   log,
+		depth: log.logger.depth,
 	}
 }
 
@@ -241,19 +232,189 @@ func (log *Log) close() {
 }
 
 /*----------------------------------------------------
- logger method override
+ logger interface implements
 ----------------------------------------------------*/
+
+// GetName return the logger's name
+func (log *Log) GetName() string {
+	return log.logger.name
+}
+
+// GetCallerDepth return the logger's depth
+func (log *Log) GetCallerDepth() int {
+	return log.logger.depth
+}
+
+// SetCallerDepth set the logger's caller depth (!!SLOW!!), 0: disable runtime.Caller()
+func (log *Log) SetCallerDepth(d int) {
+	log.logger.depth = d
+}
+
+// GetLevel return the logger's level
+func (log *Log) GetLevel() Level {
+	return log.logger.level
+}
+
+// SetLevel set the logger's level
+func (log *Log) SetLevel(lvl Level) {
+	log.logger.level = lvl
+}
+
+// GetTraceLevel return the logger's trace level
+func (log *Log) GetTraceLevel() Level {
+	return log.logger.trace
+}
+
+// SetTraceLevel set the logger's trace level
+func (log *Log) SetTraceLevel(lvl Level) {
+	log.logger.trace = lvl
+}
 
 // GetProp get logger property
 func (log *Log) GetProp(k string) interface{} {
-	ps := log.props
+	ps := log.logger.props
 	if ps == nil {
 		return nil
 	}
 	return ps[k]
 }
 
+// SetProp set logger property
+func (log *Log) SetProp(k string, v interface{}) {
+	log.logger.SetProp(k, v)
+}
+
 // GetProps get logger properties
 func (log *Log) GetProps() map[string]interface{} {
-	return log.props
+	tm := log.logger.props
+	if tm == nil {
+		return nil
+	}
+
+	// new return props
+	nm := make(map[string]interface{}, len(tm))
+	for k, v := range tm {
+		nm[k] = v
+	}
+	return nm
+}
+
+// SetProps set logger properties
+func (log *Log) SetProps(props map[string]interface{}) {
+	log.logger.SetProps(props)
+}
+
+// GetFormatter get logger formatter
+func (log *Log) GetFormatter() Formatter {
+	return log.logfmt
+}
+
+// SetFormatter set logger formatter
+func (log *Log) SetFormatter(lf Formatter) {
+	log.logfmt = lf
+}
+
+// IsLevelEnabled is specified level enabled
+func (log *Log) IsLevelEnabled(lvl Level) bool {
+	return log.logger.level > lvl
+}
+
+// Log log a message at specified level.
+func (log *Log) Log(lvl Level, v ...interface{}) {
+	log.logger._log(lvl, v...)
+}
+
+// Logf format and log a message at specified level.
+func (log *Log) Logf(lvl Level, f string, v ...interface{}) {
+	log.logger._logf(lvl, f, v...)
+}
+
+// IsFatalEnabled is FATAL level enabled
+func (log *Log) IsFatalEnabled() bool {
+	return log.IsLevelEnabled(LevelFatal)
+}
+
+// Fatal log a message at fatal level.
+func (log *Log) Fatal(v ...interface{}) {
+	log.logger._log(LevelFatal, v...)
+}
+
+// Fatalf format and log a message at fatal level.
+func (log *Log) Fatalf(f string, v ...interface{}) {
+	log.logger._logf(LevelFatal, f, v...)
+}
+
+// IsErrorEnabled is ERROR level enabled
+func (log *Log) IsErrorEnabled() bool {
+	return log.IsLevelEnabled(LevelError)
+}
+
+// Error log a message at error level.
+func (log *Log) Error(v ...interface{}) {
+	log.logger._log(LevelError, v...)
+}
+
+// Errorf format and log a message at error level.
+func (log *Log) Errorf(f string, v ...interface{}) {
+	log.logger._logf(LevelError, f, v...)
+}
+
+// IsWarnEnabled is WARN level enabled
+func (log *Log) IsWarnEnabled() bool {
+	return log.IsLevelEnabled(LevelWarn)
+}
+
+// Warn log a message at warning level.
+func (log *Log) Warn(v ...interface{}) {
+	log.logger._log(LevelWarn, v...)
+}
+
+// Warnf format and log a message at warning level.
+func (log *Log) Warnf(f string, v ...interface{}) {
+	log.logger._logf(LevelWarn, f, v...)
+}
+
+// IsInfoEnabled is INFO level enabled
+func (log *Log) IsInfoEnabled() bool {
+	return log.IsLevelEnabled(LevelInfo)
+}
+
+// Info log a message at info level.
+func (log *Log) Info(v ...interface{}) {
+	log.logger._log(LevelInfo, v...)
+}
+
+// Infof format and log a message at info level.
+func (log *Log) Infof(f string, v ...interface{}) {
+	log.logger._logf(LevelInfo, f, v...)
+}
+
+// IsDebugEnabled is DEBUG level enabled
+func (log *Log) IsDebugEnabled() bool {
+	return log.IsLevelEnabled(LevelDebug)
+}
+
+// Debug log a message at debug level.
+func (log *Log) Debug(v ...interface{}) {
+	log.logger._log(LevelDebug, v...)
+}
+
+// Debugf format log a message at debug level.
+func (log *Log) Debugf(f string, v ...interface{}) {
+	log.logger._logf(LevelDebug, f, v...)
+}
+
+// IsTraceEnabled is TRACE level enabled
+func (log *Log) IsTraceEnabled() bool {
+	return log.IsLevelEnabled(LevelTrace)
+}
+
+// Trace log a message at trace level.
+func (log *Log) Trace(v ...interface{}) {
+	log.logger._log(LevelTrace, v...)
+}
+
+// Tracef format and log a message at trace level.
+func (log *Log) Tracef(f string, v ...interface{}) {
+	log.logger._logf(LevelTrace, f, v...)
 }

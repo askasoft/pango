@@ -34,7 +34,7 @@ func TestTextFormatDate(t *testing.T) {
 
 func TestTextFormatProp(t *testing.T) {
 	tf := NewTextFormatter("%x{a} %x{-}")
-	lg := &logger{log: &Log{}}
+	lg := NewLog().GetLogger("")
 	lg.SetProp("a", "av")
 	le := newEvent(lg, LevelInfo, "prop")
 	le.When = time.Time{}
@@ -43,7 +43,7 @@ func TestTextFormatProp(t *testing.T) {
 
 func TestTextFormatProps1(t *testing.T) {
 	tf := NewTextFormatter("%X")
-	lg := &logger{log: &Log{}}
+	lg := NewLog().GetLogger("")
 	lg.SetProp("a", "av")
 	lg.SetProp("b", "bv")
 	lg.SetProp("c", "cv")
@@ -61,7 +61,7 @@ func TestTextFormatProps1(t *testing.T) {
 
 func TestTextFormatProps2(t *testing.T) {
 	tf := NewTextFormatter("%X{=|,}")
-	lg := &logger{log: &Log{}}
+	lg := NewLog().GetLogger("")
 	lg.SetProp("a", "av")
 	lg.SetProp("b", "bv")
 	lg.SetProp("c", "cv")
@@ -117,9 +117,10 @@ func TestJSONFormatDefault(t *testing.T) {
 
 func TestJSONFormatProp(t *testing.T) {
 	jf := NewJSONFormatter(`{"a":%x{a}, "n":%x{n}, "-":%x{-}}`)
-	lg := &logger{log: &Log{}}
+	log := NewLog()
+	lg := log.GetLogger("")
 	lg.SetProp("a", "av")
-	lg.log.SetProp("n", 11)
+	log.SetProp("n", 11)
 	le := newEvent(lg, LevelInfo, "prop")
 	le.When = time.Time{}
 	assert.Equal(t, `{"a":"av", "n":11, "-":null}`, jf.Format(le))
@@ -127,12 +128,13 @@ func TestJSONFormatProp(t *testing.T) {
 
 func TestJSONFormatProps(t *testing.T) {
 	jf := NewJSONFormatter(`{"m":%X}`)
-	lg := &logger{log: &Log{}}
+	log := NewLog()
+	lg := log.GetLogger("")
 	lg.SetProp("a", "av")
 	lg.SetProp("b", "bv")
 	lg.SetProp("c", "cv")
-	lg.log.SetProp("n", 11)
-	lg.log.SetProp("x", nil)
+	log.SetProp("n", 11)
+	log.SetProp("x", nil)
 	le := newEvent(lg, LevelInfo, "props")
 	le.When = time.Time{}
 	assert.Equal(t, `{"m":{"a":"av","b":"bv","c":"cv","n":11,"x":null}}`, jf.Format(le))

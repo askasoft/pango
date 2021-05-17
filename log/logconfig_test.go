@@ -23,7 +23,7 @@ func TestLogConfigINI(t *testing.T) {
 }
 
 func assertLogConfig(t *testing.T, log *Log) {
-	assert.Equal(t, LevelInfo, log.level)
+	assert.Equal(t, LevelInfo, log.GetLevel())
 	assert.Equal(t, 2, len(log.levels))
 	assert.Equal(t, LevelDebug, log.levels["sql"])
 	assert.Equal(t, LevelTrace, log.levels["http"])

@@ -176,7 +176,7 @@ func TestFileRotateMaxSize(t *testing.T) {
 
 	log := NewLog()
 	log.SetFormatter(TextFmtSimple)
-	log.SetWriter(&FileWriter{Path: path, Rotate: true, MaxSize: 10})
+	log.SetWriter(&FileWriter{Path: path, MaxSize: 10})
 	for i := 1; i < 10; i++ {
 		log.Info("hello test ", i)
 	}
@@ -202,7 +202,7 @@ func TestFileRotateMaxSizeGzip(t *testing.T) {
 
 	log := NewLog()
 	log.SetFormatter(TextFmtSimple)
-	log.SetWriter(&FileWriter{Path: path, Rotate: true, MaxSize: 10, Gzip: true})
+	log.SetWriter(&FileWriter{Path: path, MaxSize: 10, Gzip: true})
 	for i := 1; i < 10; i++ {
 		log.Info("hello test ", i)
 	}
@@ -231,7 +231,7 @@ func TestFileRotateMaxSizeDaily(t *testing.T) {
 
 	log := NewLog()
 	log.SetFormatter(TextFmtSimple)
-	log.SetWriter(&FileWriter{Path: path, Rotate: true, Daily: true, MaxSize: 10})
+	log.SetWriter(&FileWriter{Path: path, MaxDays: 100, MaxSize: 10})
 
 	now := time.Now()
 	for i := 1; i < 10; i++ {
@@ -251,15 +251,15 @@ func TestFileRotateMaxSizeDaily(t *testing.T) {
 	assert.Equal(t, fmt.Sprintf(`[I] hello test %d%s`, 9, eol), string(bs))
 }
 
-func TestFileRotateMaxFiles(t *testing.T) {
-	path := "TestFileRotateMaxFiles/filetest.log"
+func TestFileRotateMaxSplit(t *testing.T) {
+	path := "TestFileRotateMaxSplit/filetest.log"
 	dir := filepath.Dir(path)
 	os.RemoveAll(dir)
 	defer os.RemoveAll(dir)
 
 	log := NewLog()
 	log.SetFormatter(TextFmtSimple)
-	log.SetWriter(&FileWriter{Path: path, Rotate: true, MaxFiles: 3, MaxSize: 10})
+	log.SetWriter(&FileWriter{Path: path, MaxSplit: 3, MaxSize: 10})
 	for i := 1; i < 10; i++ {
 		log.Info("hello test ", i)
 	}
@@ -291,7 +291,7 @@ func TestFileRotateMaxFilesHourly(t *testing.T) {
 
 	log := NewLog()
 	log.SetFormatter(TextFmtSimple)
-	log.SetWriter(&FileWriter{Path: path, Rotate: true, MaxFiles: 3, MaxSize: 10, Hourly: true})
+	log.SetWriter(&FileWriter{Path: path, MaxSplit: 3, MaxSize: 10, MaxHours: 100})
 	now := time.Now()
 	for i := 1; i < 10; i++ {
 		log.Info("hello test ", i)
@@ -322,7 +322,7 @@ func TestFileRotateDaily(t *testing.T) {
 	os.RemoveAll(dir)
 	defer os.RemoveAll(dir)
 
-	fw := &FileWriter{Path: path, Rotate: true, Daily: true}
+	fw := &FileWriter{Path: path, MaxDays: 100}
 	lg := NewLog()
 	lg.SetFormatter(TextFmtSimple)
 
@@ -360,7 +360,7 @@ func TestFileRotateDailyOutdated(t *testing.T) {
 	os.RemoveAll(dir)
 	defer os.RemoveAll(dir)
 
-	fw := &FileWriter{Path: path, Rotate: true, Daily: true, MaxDays: 3}
+	fw := &FileWriter{Path: path, MaxDays: 3}
 	lg := NewLog()
 	lg.SetFormatter(TextFmtSimple)
 
@@ -412,7 +412,7 @@ func TestFileRotateHourly(t *testing.T) {
 	os.RemoveAll(dir)
 	defer os.RemoveAll(dir)
 
-	fw := &FileWriter{Path: path, Rotate: true, Hourly: true}
+	fw := &FileWriter{Path: path, MaxHours: 100}
 	lg := NewLog()
 	lg.SetFormatter(TextFmtSimple)
 
@@ -450,7 +450,7 @@ func TestFileRotateHourlyOutdated(t *testing.T) {
 	os.RemoveAll(dir)
 	defer os.RemoveAll(dir)
 
-	fw := &FileWriter{Path: path, Rotate: true, Hourly: true, MaxHours: 3}
+	fw := &FileWriter{Path: path, MaxHours: 3}
 	lg := NewLog()
 	lg.SetFormatter(TextFmtSimple)
 

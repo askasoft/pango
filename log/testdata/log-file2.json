@@ -9,14 +9,12 @@
 	"writer": [{
 		"_": "file",
 		"path": "conftest/logs/file1.log",
-		"daily": true,
 		"maxDays": 7,
 		"format": "%l - %m%n",
 		"filter": "level:error"
 	}, {
 		"_": "file",
 		"path": "conftest/logs/file2.log",
-		"daily": true,
 		"maxDays": 7,
 		"format": "%l - %m%n",
 		"filter": "level:warn name:test"

@@ -88,7 +88,6 @@ func assertLogConfig(t *testing.T, log *Log) {
 		assert.NotNil(t, w)
 		assert.True(t, ok)
 		assert.Equal(t, uint32(0777), w.DirPerm)
-		assert.True(t, w.Daily)
 		assert.Equal(t, 7, w.MaxDays)
 		assert.Equal(t, LevelError, w.SyncLevel)
 

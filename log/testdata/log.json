@@ -26,7 +26,6 @@
 		"_": "file",
 		"path": "/tmp/gotest/logs/test.log",
 		"dirPerm": 511,
-		"daily": true,
 		"maxDays": 7,
 		"syncLevel": "error",
 		"format": "%l %S:%L %F() - %m%n%T",

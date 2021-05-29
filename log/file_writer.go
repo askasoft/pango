@@ -17,12 +17,9 @@ type FileWriter struct {
 	Path      string    // Log file path name
 	DirPerm   uint32    // Log dir permission
 	FilePerm  uint32    // Log file permission
-	Rotate    bool      // Rotate log files
-	MaxFiles  int       // Max split files
+	MaxSplit  int       // Max split files
 	MaxSize   int64     // Rotate at size
-	Daily     bool      // Rotate daily
 	MaxDays   int       // Max daily files
-	Hourly    bool      // Rotate hourly
 	MaxHours  int       // Max hourly files
 	Gzip      bool      // Compress rotated log files
 	SyncLevel Level     // Call File.Sync() if level <= SyncLevel
@@ -75,12 +72,8 @@ func (fw *FileWriter) Write(le *Event) {
 		return
 	}
 
-	if fw.Rotate && fw.fileSize > 0 {
-		d := le.When.Day()
-		h := le.When.Hour()
-		if fw.needRotate(d, h) {
-			fw.rotate(le.When)
-		}
+	if fw.fileSize > 0 && fw.needRotate(le) {
+		fw.rotate(le.When)
 	}
 
 	// format msg
@@ -170,15 +163,17 @@ func (fw *FileWriter) init() {
 
 	// init file info
 	fw.fileSize = fi.Size()
-	fw.openTime = time.Now()
+	fw.openTime = fi.ModTime()
 	fw.openDay = fw.openTime.Day()
 	fw.openHour = fw.openTime.Hour()
 
 	fw.file = file
 }
 
-func (fw *FileWriter) needRotate(day int, hour int) bool {
-	return (fw.MaxSize > 0 && fw.fileSize >= fw.MaxSize) || (fw.Hourly && fw.openHour != hour) || (fw.Daily && fw.openDay != day)
+func (fw *FileWriter) needRotate(le *Event) bool {
+	return (fw.MaxSize > 0 && fw.fileSize >= fw.MaxSize) ||
+		(fw.MaxHours > 0 && fw.openHour != le.When.Hour()) ||
+		(fw.MaxDays > 0 && fw.openDay != le.When.Day())
 }
 
 // DoRotate means it need to write file in new file.
@@ -187,12 +182,12 @@ func (fw *FileWriter) rotate(tm time.Time) {
 	path := "" // rotate file name
 
 	date := ""
-	if fw.Hourly {
+	if fw.MaxHours > 0 {
 		date = fw.openTime.Format("-2006010215")
 		if fw.openHour != tm.Hour() {
 			fw.fileNum = 0
 		}
-	} else if fw.Daily {
+	} else if fw.MaxDays > 0 {
 		date = fw.openTime.Format("-20060102")
 		if fw.openDay != tm.Day() {
 			fw.fileNum = 0
@@ -236,7 +231,7 @@ func (fw *FileWriter) rotate(tm time.Time) {
 	fw.init()
 
 	// delete outdated rotated files
-	if (fw.Hourly && fw.MaxHours > 0) || (fw.Daily && fw.MaxDays > 0) {
+	if fw.MaxHours > 0 || fw.MaxDays > 0 {
 		go fw.deleteOutdatedFiles()
 	}
 }
@@ -259,9 +254,9 @@ func (fw *FileWriter) nextFile(pre string) string {
 		}
 	}
 
-	if fw.MaxFiles > 0 && fw.fileNum > fw.MaxFiles {
+	if fw.MaxSplit > 0 && fw.fileNum > fw.MaxSplit {
 		// remove old splited files
-		for i := fw.fileNum - fw.MaxFiles; i > 0; i-- {
+		for i := fw.fileNum - fw.MaxSplit; i > 0; i-- {
 			p := pre + fmt.Sprintf("-%03d", i) + fw.suffix
 			err := os.Remove(p)
 			if os.IsNotExist(err) {
@@ -326,7 +321,7 @@ func (fw *FileWriter) compressFile(src string) {
 
 func (fw *FileWriter) deleteOutdatedFiles() {
 	var due time.Time
-	if fw.Hourly {
+	if fw.MaxHours > 0 {
 		due = time.Now().Add(-1 * time.Hour * time.Duration(fw.MaxHours))
 	} else {
 		due = time.Now().Add(-24 * time.Hour * time.Duration(fw.MaxDays))

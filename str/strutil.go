@@ -4,8 +4,45 @@ import (
 	"bytes"
 	"regexp"
 	"strings"
+	"unicode"
 	"unicode/utf8"
 )
+
+// IsASCII checks if the string contains ASCII chars only.
+func IsASCII(s string) bool {
+	if s == "" {
+		return false
+	}
+
+	l := len(s)
+	for i := 0; i < l; i++ {
+		if s[i] > unicode.MaxASCII {
+			return false
+		}
+	}
+	return true
+}
+
+// IsPrintableASCII checks if the string contains printable ASCII chars only.
+func IsPrintableASCII(s string) bool {
+	if s == "" {
+		return false
+	}
+
+	l := len(s)
+	for i := 0; i < l; i++ {
+		b := s[i]
+		if b < ' ' || b > unicode.MaxASCII {
+			return false
+		}
+	}
+	return true
+}
+
+// RuneCount returns the number of runes in s.
+func RuneCount(s string) int {
+	return utf8.RuneCountInString(s)
+}
 
 // CountAny counts the number of non-overlapping instances of any character of chars in s.
 // If chars is an empty string, Count returns 1 + the number of Unicode code points in s.
@@ -27,6 +64,29 @@ func CountAny(s, chars string) int {
 // ContainsByte reports whether b is within s.
 func ContainsByte(s string, b byte) bool {
 	return strings.IndexByte(s, b) >= 0
+}
+
+// LastIndexRune returns the index of the last instance of the Unicode code point
+// r, or -1 if rune is not present in s.
+// If r is utf8.RuneError, it returns the last instance of any
+// invalid UTF-8 byte sequence.
+func LastIndexRune(s string, r rune) int {
+	switch {
+	case 0 <= r && r < utf8.RuneSelf:
+		return strings.LastIndexByte(s, byte(r))
+	case r == utf8.RuneError:
+		n := -1
+		for i, r := range s {
+			if r == utf8.RuneError {
+				n = i
+			}
+		}
+		return n
+	case !utf8.ValidRune(r):
+		return -1
+	default:
+		return strings.LastIndex(s, string(r))
+	}
 }
 
 // SplitFunc splits the string s at each run of Unicode code points c satisfying f(c)

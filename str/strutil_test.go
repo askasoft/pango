@@ -34,6 +34,11 @@ func TestEndsWith(t *testing.T) {
 	assert.False(t, EndsWith("あいうえお", "い"))
 }
 
+func TestLastIndexRune(t *testing.T) {
+	assert.Equal(t, 3, LastIndexRune("aabbcc", 'b'))
+	assert.Equal(t, 9, LastIndexRune("ああいいうう", 'い'))
+}
+
 func TestRemoveByte(t *testing.T) {
 	// RemoveByte("", *) = ""
 	assert.Equal(t, "", RemoveByte("", 'a'))

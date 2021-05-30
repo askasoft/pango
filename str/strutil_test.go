@@ -58,16 +58,30 @@ func TestRemoveAny(t *testing.T) {
 	assert.Equal(t, "ありとういます。", RemoveAny("ありがとうございます。", "がござ"))
 }
 
+func TestRemoveAnyByte(t *testing.T) {
+	// RemoveAnyByte("", *) = ""
+	assert.Equal(t, "", RemoveAnyByte("", "ab"))
+	assert.Equal(t, "", RemoveAnyByte("", "ab"))
+	assert.Equal(t, "", RemoveAnyByte("", "ab"))
+
+	assert.Equal(t, "qee", RemoveAnyByte("queued", "ud"))
+	assert.Equal(t, "queued", RemoveAnyByte("queued", "z"))
+}
+
 func TestSplitAny(t *testing.T) {
+	assert.Equal(t, []string{""}, SplitAny("", "c"))
+	assert.Equal(t, []string{""}, SplitAny("", ".c"))
 	assert.Equal(t, []string{"http://a", "b-", ""}, SplitAny("http://a.b-c", ".c"))
 	assert.Equal(t, []string{"http", "", "", "a", "b", "c"}, SplitAny("http://a.b.c", ":/."))
 	assert.Equal(t, []string{"http", "", "", "あ", "い", "う"}, SplitAny("http://あ.い.う", ":/."))
 	assert.Equal(t, []string{"http", "", "", "あ", "い", "う"}, SplitAny("http://あ。い。う", ":/。."))
 }
 
-func TestSplitAnyNoEmpty(t *testing.T) {
-	assert.Equal(t, []string{"http://a", "b"}, SplitAnyNoEmpty("http://a.b.c", ".c"))
-	assert.Equal(t, []string{"http", "a", "b", "c"}, SplitAnyNoEmpty("http://a.b.c", ":/."))
-	assert.Equal(t, []string{"http", "あ", "い", "う"}, SplitAnyNoEmpty("http://あ.い.う", ":/."))
-	assert.Equal(t, []string{"http", "あ", "い", "う"}, SplitAnyNoEmpty("http://あ。い。う", ":/。."))
+func TestFieldsAny(t *testing.T) {
+	assert.Equal(t, []string{}, FieldsAny("", "c"))
+	assert.Equal(t, []string{}, FieldsAny("", ".c"))
+	assert.Equal(t, []string{"http://a", "b"}, FieldsAny("http://a.b.c", ".c"))
+	assert.Equal(t, []string{"http", "a", "b", "c"}, FieldsAny("http://a.b.c", ":/."))
+	assert.Equal(t, []string{"http", "あ", "い", "う"}, FieldsAny("http://あ.い.う", ":/."))
+	assert.Equal(t, []string{"http", "あ", "い", "う"}, FieldsAny("http://あ。い。う", ":/。."))
 }

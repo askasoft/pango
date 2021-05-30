@@ -94,7 +94,7 @@ func (log *Log) configINI(filename string) error {
 
 	if v, ok := c["writer"]; ok {
 		if s, ok := v.(string); ok {
-			ss := str.SplitAnyNoEmpty(s, " ,")
+			ss := str.FieldsAny(s, " ,")
 			a := make([]interface{}, len(ss))
 			for i, w := range ss {
 				var es map[string]interface{}

@@ -1,4 +1,4 @@
-package bytea
+package bye
 
 import "bytes"
 

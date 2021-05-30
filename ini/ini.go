@@ -11,7 +11,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/pandafw/pango/bytea"
+	"github.com/pandafw/pango/bye"
 	"github.com/pandafw/pango/col"
 	"github.com/pandafw/pango/iox"
 	"github.com/pandafw/pango/str"
@@ -153,10 +153,10 @@ func (ini *Ini) LoadData(r io.Reader) error {
 
 		// line continuation
 		if lineContinue {
-			if bytea.EndsWithByte(bs, '\\') {
+			if bye.EndsWithByte(bs, '\\') {
 				if len(bs) == 1 {
 					// a single '\\' line means EOL
-					if bytea.StartsWithByte(val.Bytes(), '"') {
+					if bye.StartsWithByte(val.Bytes(), '"') {
 						qs := quote(ini.EOL)
 						val.WriteString(qs[1 : len(qs)-1])
 					} else {
@@ -241,7 +241,7 @@ func (ini *Ini) LoadData(r io.Reader) error {
 		// entry value
 		v := bytes.TrimSpace(bs[d+1:])
 
-		if bytea.EndsWithByte(v, '\\') { // line continuation
+		if bye.EndsWithByte(v, '\\') { // line continuation
 			val.Write(v[:len(v)-1])
 			key = k
 			lineContinue = true

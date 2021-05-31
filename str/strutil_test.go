@@ -6,6 +6,71 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestIsASCII(t *testing.T) {
+	t.Parallel()
+
+	var tests = []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"ｆｏｏbar", false},
+		{"ｘｙｚ０９８", false},
+		{"１２３456", false},
+		{"ｶﾀｶﾅ", false},
+		{"foobar", true},
+		{"0987654321", true},
+		{"test@example.com", true},
+		{"1234abcDEF", true},
+		{"", false},
+	}
+	for _, test := range tests {
+		actual := IsASCII(test.param)
+		if actual != test.expected {
+			t.Errorf("Expected IsASCII(%q) to be %v, got %v", test.param, test.expected, actual)
+		}
+	}
+}
+
+func TestIsPrintableASCII(t *testing.T) {
+	t.Parallel()
+
+	var tests = []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"ｆｏｏbar", false},
+		{"ｘｙｚ０９８", false},
+		{"１２３456", false},
+		{"ｶﾀｶﾅ", false},
+		{"foobar", true},
+		{"0987654321", true},
+		{"test@example.com", true},
+		{"1234abcDEF", true},
+		{"newline\n", false},
+		{"\x19test\x7F", false},
+	}
+	for _, test := range tests {
+		actual := IsPrintableASCII(test.param)
+		if actual != test.expected {
+			t.Errorf("Expected IsPrintableASCII(%q) to be %v, got %v", test.param, test.expected, actual)
+		}
+	}
+}
+
+func TestCountRune(t *testing.T) {
+	assert.Equal(t, 0, CountRune("123", '0'))
+	assert.Equal(t, 1, CountRune("123", '2'))
+	assert.Equal(t, 2, CountRune("12ああ3", 'あ'))
+}
+
+func TestCountAny(t *testing.T) {
+	assert.Equal(t, 0, CountAny("123", "04"))
+	assert.Equal(t, 1, CountAny("123", "2"))
+	assert.Equal(t, 4, CountAny("12ああ3うう", "あう"))
+}
+
 func TestStartsWith(t *testing.T) {
 	assert.True(t, StartsWith("", ""))
 	assert.True(t, StartsWith("foobar", ""))
@@ -80,6 +145,14 @@ func TestSplitAny(t *testing.T) {
 	assert.Equal(t, []string{"http", "", "", "a", "b", "c"}, SplitAny("http://a.b.c", ":/."))
 	assert.Equal(t, []string{"http", "", "", "あ", "い", "う"}, SplitAny("http://あ.い.う", ":/."))
 	assert.Equal(t, []string{"http", "", "", "あ", "い", "う"}, SplitAny("http://あ。い。う", ":/。."))
+}
+
+func TestFieldsRune(t *testing.T) {
+	assert.Equal(t, []string{}, FieldsRune("", 'c'))
+	assert.Equal(t, []string{"http://a", "b", "c"}, FieldsRune("http://a.b.c", '.'))
+	assert.Equal(t, []string{"http:", "a.b.c"}, FieldsRune("http://a.b.c", '/'))
+	assert.Equal(t, []string{"http://あ", "い", "う"}, FieldsRune("http://あ.い.う", '.'))
+	assert.Equal(t, []string{"http://あ", "い", "う"}, FieldsRune("http://あ。い。う", '。'))
 }
 
 func TestFieldsAny(t *testing.T) {

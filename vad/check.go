@@ -1,4 +1,4 @@
-package str
+package vad
 
 import (
 	"encoding/json"
@@ -8,6 +8,8 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/pandafw/pango/str"
 )
 
 // IsFileName is illegal file name
@@ -17,13 +19,11 @@ func IsFileName(s string) bool {
 
 // IsEmail checks if the string is an email.
 func IsEmail(s string) bool {
-	// TODO uppercase letters are not supported
 	return rxEmail.MatchString(s)
 }
 
 // IsExistingEmail checks if the string is an email of existing domain
 func IsExistingEmail(email string) bool {
-
 	if len(email) < 6 || len(email) > 254 {
 		return false
 	}
@@ -382,7 +382,7 @@ func IsUUID(s string) bool {
 
 // IsCreditCard checks if the string is a credit card.
 func IsCreditCard(s string) bool {
-	sanitized := RemoveAny(s, " -")
+	sanitized := str.RemoveAny(s, " -")
 	if !rxCreditCard.MatchString(sanitized) {
 		return false
 	}
@@ -423,7 +423,7 @@ func IsISBN13(s string) bool {
 // IsISBN checks if the string is an ISBN (version 10 or 13).
 // If version value is not equal to 10 or 13, it will be checks both variants.
 func IsISBN(s string, version int) bool {
-	sanitized := RemoveAny(s, " -")
+	sanitized := str.RemoveAny(s, " -")
 	var checksum int32
 	var i int32
 	if version == 10 {
@@ -478,33 +478,12 @@ func IsMultibyte(s string) bool {
 
 // IsASCII checks if the string contains ASCII chars only.
 func IsASCII(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	l := len(s)
-	for i := 0; i < l; i++ {
-		if s[i] > unicode.MaxASCII {
-			return false
-		}
-	}
-	return true
+	return str.IsASCII(s)
 }
 
 // IsPrintableASCII checks if the string contains printable ASCII chars only.
 func IsPrintableASCII(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	l := len(s)
-	for i := 0; i < l; i++ {
-		b := s[i]
-		if b < ' ' || b > 0x7e {
-			return false
-		}
-	}
-	return true
+	return str.IsPrintableASCII(s)
 }
 
 // IsFullWidth checks if the string contains any full-width chars.
@@ -584,7 +563,7 @@ func IsHash(s string, algorithm string) bool {
 		return false
 	}
 
-	return Matches(s, "^[a-f0-9]{"+len+"}$")
+	return str.Matches(s, "^[a-f0-9]{"+len+"}$")
 }
 
 // IsSHA512 checks is a string is a SHA512 hash. Alias for `IsHash(s, "sha512")`

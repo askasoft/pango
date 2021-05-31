@@ -1,4 +1,4 @@
-package str
+package vad
 
 import (
 	"testing"
@@ -673,21 +673,24 @@ func TestIsEmail(t *testing.T) {
 	}{
 		{"", false},
 		{"foo@bar.com", true},
-		{"x@x.x", true},
+		{"x@x.x", false},
 		{"foo@bar.com.au", true},
 		{"foo+bar@bar.com", true},
 		{"foo@bar.coffee", true},
 		{"foo@bar.coffee..coffee", false},
 		{"foo@bar.bar.coffee", true},
-		{"foo@bar.中文网", true},
 		{"invalidemail@", false},
 		{"invalid.com", false},
 		{"@invalid.com", false},
-		{"test|123@m端ller.com", true},
-		{"hans@m端ller.com", true},
-		{"hans.m端ller@test.com", true},
 		{"NathAn.daVIeS@DomaIn.cOM", true},
 		{"NATHAN.DAVIES@DOMAIN.CO.UK", true},
+		{"la-mia-donna.tomo.@docomo.ne.jp", true},
+		{"y.sawada@ht-meitetsuunyu.co.jp", true},
+		{"xukio-zawamura@ja-nesco.com", true},
+		// {"foo@bar.中文网", true},
+		// {"test|123@m端ller.com", true},
+		// {"hans@m端ller.com", true},
+		// {"hans.m端ller@test.com", true},
 	}
 	for _, test := range tests {
 		actual := IsEmail(test.param)
@@ -1178,59 +1181,6 @@ func TestIsMultibyte(t *testing.T) {
 		actual := IsMultibyte(test.param)
 		if actual != test.expected {
 			t.Errorf("Expected IsMultibyte(%q) to be %v, got %v", test.param, test.expected, actual)
-		}
-	}
-}
-
-func TestIsASCII(t *testing.T) {
-	t.Parallel()
-
-	var tests = []struct {
-		param    string
-		expected bool
-	}{
-		{"", false},
-		{"ｆｏｏbar", false},
-		{"ｘｙｚ０９８", false},
-		{"１２３456", false},
-		{"ｶﾀｶﾅ", false},
-		{"foobar", true},
-		{"0987654321", true},
-		{"test@example.com", true},
-		{"1234abcDEF", true},
-		{"", false},
-	}
-	for _, test := range tests {
-		actual := IsASCII(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsASCII(%q) to be %v, got %v", test.param, test.expected, actual)
-		}
-	}
-}
-
-func TestIsPrintableASCII(t *testing.T) {
-	t.Parallel()
-
-	var tests = []struct {
-		param    string
-		expected bool
-	}{
-		{"", false},
-		{"ｆｏｏbar", false},
-		{"ｘｙｚ０９８", false},
-		{"１２３456", false},
-		{"ｶﾀｶﾅ", false},
-		{"foobar", true},
-		{"0987654321", true},
-		{"test@example.com", true},
-		{"1234abcDEF", true},
-		{"newline\n", false},
-		{"\x19test\x7F", false},
-	}
-	for _, test := range tests {
-		actual := IsPrintableASCII(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsPrintableASCII(%q) to be %v, got %v", test.param, test.expected, actual)
 		}
 	}
 }

@@ -44,6 +44,17 @@ func RuneCount(s string) int {
 	return utf8.RuneCountInString(s)
 }
 
+// CountRune counts the number of non-overlapping instances of rune c in s.
+func CountRune(s string, c rune) int {
+	n := 0
+	for _, r := range s {
+		if r == c {
+			n++
+		}
+	}
+	return n
+}
+
 // CountAny counts the number of non-overlapping instances of any character of chars in s.
 // If chars is an empty string, Count returns 1 + the number of Unicode code points in s.
 func CountAny(s, chars string) int {
@@ -132,6 +143,30 @@ func SplitAny(s, chars string) []string {
 	}
 
 	a = append(a, s[b:])
+	return a
+}
+
+// FieldsRune split string (exclude empty string) into string slice by rune c
+func FieldsRune(s string, c rune) []string {
+	if s == "" {
+		return []string{}
+	}
+
+	n := CountRune(s, c)
+	a := make([]string, 0, n)
+	b := 0
+	for i, r := range s {
+		if r == c {
+			if i > b {
+				a = append(a, s[b:i])
+			}
+			b = i + utf8.RuneLen(c)
+		}
+	}
+
+	if b < len(s) {
+		a = append(a, s[b:])
+	}
 	return a
 }
 

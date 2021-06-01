@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestBasicFeatures(t *testing.T) {
+func TestOrderedMapBasicFeatures(t *testing.T) {
 	n := 100
 	om := NewOrderedMap()
 
@@ -145,7 +145,7 @@ func TestBasicFeatures(t *testing.T) {
 	}
 }
 
-func TestUpdatingDoesntChangePairsOrder(t *testing.T) {
+func TestOrderedMapUpdatingDoesntChangePairsOrder(t *testing.T) {
 	om := NewOrderedMap("foo", "bar", 12, 28, 78, 100, "bar", "baz")
 
 	old, ok := om.Set(78, 102)
@@ -157,7 +157,7 @@ func TestUpdatingDoesntChangePairsOrder(t *testing.T) {
 		[]interface{}{"bar", 28, 102, "baz"})
 }
 
-func TestDeletingAndReinsertingChangesPairsOrder(t *testing.T) {
+func TestOrderedMapDeletingAndReinsertingChangesPairsOrder(t *testing.T) {
 	om := NewOrderedMap()
 	om.Set("foo", "bar")
 	om.Set(12, 28)
@@ -179,7 +179,7 @@ func TestDeletingAndReinsertingChangesPairsOrder(t *testing.T) {
 		[]interface{}{"bar", 28, "baz", 100})
 }
 
-func TestEmptyMapOperations(t *testing.T) {
+func TestOrderedMapEmptyMapOperations(t *testing.T) {
 	om := NewOrderedMap()
 
 	old, ok := om.Get("foo")
@@ -200,7 +200,7 @@ type dummyTestStruct struct {
 	value string
 }
 
-func TestPackUnpackStructs(t *testing.T) {
+func TestOrderedMapPackUnpackStructs(t *testing.T) {
 	om := NewOrderedMap()
 	om.Set("foo", dummyTestStruct{"foo!"})
 	om.Set("bar", dummyTestStruct{"bar!"})
@@ -224,7 +224,7 @@ func TestPackUnpackStructs(t *testing.T) {
 	}
 }
 
-func TestShuffle(t *testing.T) {
+func TestOrderedMapShuffle(t *testing.T) {
 	ranLen := 100
 
 	for _, n := range []int{0, 10, 20, 100, 1000, 10000} {
@@ -249,7 +249,7 @@ func TestShuffle(t *testing.T) {
 	}
 }
 
-func TestTemplateRange(t *testing.T) {
+func TestOrderedMapTemplateRange(t *testing.T) {
 	om := NewOrderedMap("z", "Z", "a", "A")
 	tmpl, err := template.New("test").Parse("{{range $e := .om.Entries}}[ {{$e.Key}} = {{$e.Value}} ]{{end}}")
 	if err != nil {
@@ -317,7 +317,7 @@ func randomHexString(t *testing.T, length int) string {
 }
 
 /*----------- JOSN Test -----------------*/
-func TestMarshalOrderedMap(t *testing.T) {
+func TestOrderedMapMarshal(t *testing.T) {
 	om := NewOrderedMap()
 	om.Set("a", 34)
 	om.Set("b", []int{3, 4, 5})
@@ -400,7 +400,7 @@ func ExampleOrderedMap_UnmarshalJSON() {
 	// extra       : 42
 }
 
-func TestUnmarshalOrderedMapFromInvalid(t *testing.T) {
+func TestOrderedMapUnmarshalFromInvalid(t *testing.T) {
 	om := NewOrderedMap()
 
 	om.Set("m", math.NaN())
@@ -453,7 +453,7 @@ func TestUnmarshalOrderedMapFromInvalid(t *testing.T) {
 	// fmt.Println("error:", om, err)
 }
 
-func TestUnmarshalOrderedMap(t *testing.T) {
+func TestOrderedMapUnmarshal(t *testing.T) {
 	var (
 		data  = []byte(`{"as":"AS15169 Google Inc.","city":"Mountain View","country":"United States","countryCode":"US","isp":"Google Cloud","lat":37.4192,"lon":-122.0574,"org":"Google Cloud","query":"35.192.25.53","region":"CA","regionName":"California","status":"success","timezone":"America/Los_Angeles","zip":"94043"}`)
 		pairs = []interface{}{
@@ -554,12 +554,12 @@ func TestUnmarshalOrderedMap(t *testing.T) {
 	}
 }
 
-func TestUnmarshalNestedOrderedMap(t *testing.T) {
+func TestOrderedMapUnmarshalNested(t *testing.T) {
 	var (
 		data = []byte(`{"a": true, "b": [3, 4, { "b": "3", "d": [] }]}`)
 		obj  = NewOrderedMap(
 			"a", true,
-			"b", []interface{}{float64(3), float64(4), NewOrderedMap("b", "3", "d", []interface{}{})},
+			"b", JSONArray{float64(3), float64(4), NewOrderedMap("b", "3", "d", JSONArray{})},
 		)
 	)
 
@@ -618,36 +618,29 @@ func ExampleNewOrderedMap() {
 
 var unmarshalTests = []struct {
 	in  string
-	new func() interface{}
 	out interface{}
-	err error
+	err interface{}
 }{
-	{in: "{}", new: func() interface{} { return NewOrderedMap() }, out: *NewOrderedMap()},
-	{in: `{"a": 3}`, new: func() interface{} { return NewOrderedMap() }, out: *NewOrderedMap("a", float64(3))},
-	{in: `{"a": 3, "b": true}`, new: func() interface{} { return NewOrderedMap() }, out: *NewOrderedMap(
-		"a", float64(3), "b", true)},
-	{in: `{"a": 3, "b": true, "c": null}`, new: func() interface{} { return NewOrderedMap() }, out: *NewOrderedMap(
-		"a", float64(3), "b", true, "c", nil)},
-	{in: `{"a": 3, "c": null, "d": []}`, new: func() interface{} { return NewOrderedMap() }, out: *NewOrderedMap(
-		"a", float64(3), "c", nil, "d", []interface{}{})},
-	{in: `{"a": 3, "c": null, "d": [3,4,true]}`, new: func() interface{} { return NewOrderedMap() }, out: *NewOrderedMap(
-		"a", float64(3), "c", nil, "d", []interface{}{
+	{in: "{}", out: NewOrderedMap()},
+	{in: `{"a": 3}`, out: NewOrderedMap("a", float64(3))},
+	{in: `{"a": 3, "b": true}`, out: NewOrderedMap("a", float64(3), "b", true)},
+	{in: `{"a": 3, "b": true, "c": null}`, out: NewOrderedMap("a", float64(3), "b", true, "c", nil)},
+	{in: `{"a": 3, "c": null, "d": []}`, out: NewOrderedMap("a", float64(3), "c", nil, "d", JSONArray{})},
+	{in: `{"a": 3, "c": null, "d": [3,4,true]}`, out: NewOrderedMap(
+		"a", float64(3), "c", nil, "d", JSONArray{
 			float64(3), float64(4), true,
 		})},
-	{in: `{"a": 3, "c": null, "d": [3,4,true, { "inner": "abc" }]}`, new: func() interface{} { return NewOrderedMap() }, out: *NewOrderedMap(
-		"a", float64(3), "c", nil, "d", []interface{}{
+	{in: `{"a": 3, "c": null, "d": [3,4,true, { "inner": "abc" }]}`, out: NewOrderedMap(
+		"a", float64(3), "c", nil, "d", JSONArray([]interface{}{
 			float64(3), float64(4), true, NewOrderedMap("inner", "abc"),
-		})},
+		}))},
 }
 
-func TestUnmarshal(t *testing.T) {
+func TestOrderedMapUnmarshals(t *testing.T) {
 	for i, tt := range unmarshalTests {
 		in := []byte(tt.in)
-		if tt.new == nil {
-			continue
-		}
 
-		v := tt.new()
+		v := NewOrderedMap()
 		dec := json.NewDecoder(bytes.NewReader(in))
 		if err := dec.Decode(v); !reflect.DeepEqual(err, tt.err) {
 			t.Errorf("#%d: %v, want %v", i, err, tt.err)
@@ -655,12 +648,11 @@ func TestUnmarshal(t *testing.T) {
 		} else if err != nil {
 			continue
 		}
-		if !reflect.DeepEqual(reflect.ValueOf(v).Elem().Interface(), tt.out) {
-			t.Errorf("#%d: mismatch\nhave: %#+v\nwant: %#+v", i, v, tt.out)
-			data, _ := json.Marshal(v)
-			println(string(data))
-			data, _ = json.Marshal(tt.out)
-			println(string(data))
+
+		if !reflect.DeepEqual(v, tt.out) {
+			act, _ := json.Marshal(v)
+			exp, _ := json.Marshal(tt.out)
+			t.Errorf("#%d: mismatch\nhave: %#+v\nwant: %#+v\nact: %s\nexp:%s", i, v, tt.out, string(act), string(exp))
 			continue
 		}
 
@@ -671,7 +663,8 @@ func TestUnmarshal(t *testing.T) {
 				t.Errorf("#%d: error re-marshaling: %v", i, err)
 				continue
 			}
-			vv := tt.new() // reflect.New(reflect.TypeOf(tt.ptr).Elem())
+
+			vv := NewOrderedMap()
 			dec = json.NewDecoder(bytes.NewReader(enc))
 			if err := dec.Decode(vv); err != nil {
 				t.Errorf("#%d: error re-unmarshaling %#q: %v", i, enc, err)

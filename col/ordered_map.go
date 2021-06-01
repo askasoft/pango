@@ -1,15 +1,36 @@
 package col
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 )
+
+// OrderedMapEntry key/value entry
+type OrderedMapEntry struct {
+	MapEntry
+	entry *ListEntry
+}
+
+// Next returns a pointer to the next entry.
+func (e *OrderedMapEntry) Next() *OrderedMapEntry {
+	return toOrderedMapEntry(e.entry.Next())
+}
+
+// Prev returns a pointer to the previous entry.
+func (e *OrderedMapEntry) Prev() *OrderedMapEntry {
+	return toOrderedMapEntry(e.entry.Prev())
+}
+
+func toOrderedMapEntry(le *ListEntry) *OrderedMapEntry {
+	if le == nil {
+		return nil
+	}
+	return le.Value.(*OrderedMapEntry)
+}
 
 // OrderedMap implements an ordered map that keeps track of the order in which keys were inserted.
 type OrderedMap struct {
-	entries map[interface{}]*MapEntry
+	entries map[interface{}]*OrderedMapEntry
 	list    *List
 }
 
@@ -17,7 +38,7 @@ type OrderedMap struct {
 // Example: NewOrderedMap("k1", "v1", "k2", "v2")
 func NewOrderedMap(kvs ...interface{}) *OrderedMap {
 	om := &OrderedMap{
-		entries: make(map[interface{}]*MapEntry),
+		entries: make(map[interface{}]*OrderedMapEntry),
 		list:    NewList(),
 	}
 	for i := 0; i+1 < len(kvs); i += 2 {
@@ -27,9 +48,9 @@ func NewOrderedMap(kvs ...interface{}) *OrderedMap {
 }
 
 // GetEntry looks for the given key, and returns the entry associated with it,
-// or nil if not found. The MapEntry struct can then be used to iterate over the ordered map
+// or nil if not found. The OrderedMapEntry struct can then be used to iterate over the ordered map
 // from that point, either forward or backward.
-func (om *OrderedMap) GetEntry(key interface{}) *MapEntry {
+func (om *OrderedMap) GetEntry(key interface{}) *OrderedMapEntry {
 	return om.entries[key]
 }
 
@@ -57,10 +78,9 @@ func (om *OrderedMap) Set(key interface{}, value interface{}) (interface{}, bool
 		return old, true
 	}
 
-	me := &MapEntry{
-		key:   key,
-		Value: value,
-	}
+	me := &OrderedMapEntry{}
+	me.key = key
+	me.Value = value
 	me.entry = om.list.PushBack(me)
 	om.entries[key] = me
 
@@ -98,22 +118,22 @@ func (om *OrderedMap) IsEmpty() bool {
 
 // Clear clears the map
 func (om *OrderedMap) Clear() {
-	om.entries = make(map[interface{}]*MapEntry)
+	om.entries = make(map[interface{}]*OrderedMapEntry)
 	om.list.Clear()
 }
 
 // Front returns a pointer to the oldest entry. It's meant to be used to iterate on the ordered map's
 // entries from the oldest to the newest, e.g.:
 // for entry := orderedMap.Front(); entry != nil; entry = entry.Next() { fmt.Printf("%v => %v\n", entry.Key(), entry.Value()) }
-func (om *OrderedMap) Front() *MapEntry {
-	return toMapEntry(om.list.Front())
+func (om *OrderedMap) Front() *OrderedMapEntry {
+	return toOrderedMapEntry(om.list.Front())
 }
 
 // Back returns a pointer to the newest entry. It's meant to be used to iterate on the ordered map's
 // entries from the newest to the oldest, e.g.:
 // for entry := orderedMap.Back(); entry != nil; entry = entry.Prev() { fmt.Printf("%v => %v\n", entry.Key(), entry.Value()) }
-func (om *OrderedMap) Back() *MapEntry {
-	return toMapEntry(om.list.Back())
+func (om *OrderedMap) Back() *OrderedMapEntry {
+	return toOrderedMapEntry(om.list.Back())
 }
 
 // Keys returns the key slice
@@ -135,8 +155,8 @@ func (om *OrderedMap) Values() []interface{} {
 }
 
 // Entries returns the mep entry slice
-func (om *OrderedMap) Entries() []*MapEntry {
-	vs := make([]*MapEntry, 0, om.Len())
+func (om *OrderedMap) Entries() []*OrderedMapEntry {
+	vs := make([]*OrderedMapEntry, 0, om.Len())
 	for me := om.Front(); me != nil; me = me.Next() {
 		vs = append(vs, me)
 	}
@@ -144,20 +164,28 @@ func (om *OrderedMap) Entries() []*MapEntry {
 }
 
 // Each Call f for each item in the map
-func (om *OrderedMap) Each(f func(*MapEntry)) {
+func (om *OrderedMap) Each(f func(*OrderedMapEntry)) {
 	for me := om.Front(); me != nil; me = me.Next() {
 		f(me)
 	}
 }
 
 // ReverseEach Call f for each item in the map with reverse order
-func (om *OrderedMap) ReverseEach(f func(*MapEntry)) {
+func (om *OrderedMap) ReverseEach(f func(*OrderedMapEntry)) {
 	for me := om.Back(); me != nil; me = me.Prev() {
 		f(me)
 	}
 }
 
 /*------------- JSON -----------------*/
+func newJSONObjectAsOrderedMap() jsonObject {
+	return NewOrderedMap()
+}
+
+func (om *OrderedMap) addJSONObjectItem(k string, v interface{}) jsonObject {
+	om.Set(k, v)
+	return om
+}
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(om)
 func (om *OrderedMap) MarshalJSON() (res []byte, err error) {
@@ -188,118 +216,9 @@ func (om *OrderedMap) MarshalJSON() (res []byte, err error) {
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, om)
 func (om *OrderedMap) UnmarshalJSON(data []byte) error {
-	dec := json.NewDecoder(bytes.NewReader(data))
-
-	// must open with a delim token '{'
-	t, err := dec.Token()
-	if err != nil {
-		return err
+	ju := &jsonUnmarshaler{
+		newArray:  newJSONArray,
+		newObject: newJSONObjectAsOrderedMap,
 	}
-	if delim, ok := t.(json.Delim); !ok || delim != '{' {
-		return fmt.Errorf("expect JSON object open with '{'")
-	}
-
-	err = om.parseJSONObject(dec)
-	if err != nil {
-		return err
-	}
-
-	t, err = dec.Token()
-	if err != io.EOF {
-		return fmt.Errorf("expect end of JSON object but got more token: %T: %v or err: %v", t, t, err)
-	}
-
-	return nil
-}
-
-func (om *OrderedMap) parseJSONObject(dec *json.Decoder) (err error) {
-	var t json.Token
-	for dec.More() {
-		t, err = dec.Token()
-		if err != nil {
-			return err
-		}
-
-		key, ok := t.(string)
-		if !ok {
-			return fmt.Errorf("expecting JSON key should be always a string: %T: %v", t, t)
-		}
-
-		t, err = dec.Token()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			return err
-		}
-
-		var value interface{}
-		value, err = handleDelim(t, dec)
-		if err != nil {
-			return err
-		}
-
-		om.Set(key, value)
-	}
-
-	t, err = dec.Token()
-	if err != nil {
-		return err
-	}
-	if delim, ok := t.(json.Delim); !ok || delim != '}' {
-		return fmt.Errorf("expect JSON object close with '}'")
-	}
-
-	return nil
-}
-
-func parseJSONArray(dec *json.Decoder) (arr []interface{}, err error) {
-	var t json.Token
-	arr = make([]interface{}, 0)
-	for dec.More() {
-		t, err = dec.Token()
-		if err != nil {
-			return
-		}
-
-		var value interface{}
-		value, err = handleDelim(t, dec)
-		if err != nil {
-			return
-		}
-		arr = append(arr, value)
-	}
-	t, err = dec.Token()
-	if err != nil {
-		return
-	}
-	if delim, ok := t.(json.Delim); !ok || delim != ']' {
-		err = fmt.Errorf("expect JSON array close with ']'")
-		return
-	}
-
-	return
-}
-
-func handleDelim(t json.Token, dec *json.Decoder) (res interface{}, err error) {
-	if delim, ok := t.(json.Delim); ok {
-		switch delim {
-		case '{':
-			om2 := NewOrderedMap()
-			err = om2.parseJSONObject(dec)
-			if err != nil {
-				return
-			}
-			return om2, nil
-		case '[':
-			var value []interface{}
-			value, err = parseJSONArray(dec)
-			if err != nil {
-				return
-			}
-			return value, nil
-		default:
-			return nil, fmt.Errorf("Unexpected delimiter: %q", delim)
-		}
-	}
-	return t, nil
+	return ju.unmarshalJSONObject(data, om)
 }

@@ -1,7 +1,10 @@
 package col
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
+	"io"
 )
 
 // List implements a doubly linked list.
@@ -50,11 +53,11 @@ func (l *List) At(i int) *ListEntry {
 		return nil
 	}
 
-	if i < l.len/2 {
-		return l.Front().NextAt(i)
+	if i >= l.len/2 {
+		return l.Back().Move(-i)
 	}
 
-	return l.Back().PrevAt(i)
+	return l.Front().Move(i)
 }
 
 // Front returns the first entry of list l or nil if the list is empty.
@@ -71,6 +74,25 @@ func (l *List) Back() *ListEntry {
 		return nil
 	}
 	return l.root.prev
+}
+
+// Contains Test to see whether or not the v is in the list
+func (l *List) Contains(v interface{}) bool {
+	_, e := l.Search(v)
+	return e != nil
+}
+
+// Search linear search v
+// returns index, entry if it's value is v
+// if not found, returns -1, nil
+func (l *List) Search(v interface{}) (int, *ListEntry) {
+	for i, e := 0, l.Front(); e != nil; e = e.Next() {
+		if e.Value == v {
+			return i, e
+		}
+		i++
+	}
+	return -1, nil
 }
 
 // insert inserts e after at, increments l.len, and returns e.
@@ -276,9 +298,127 @@ func (l *List) MarshalJSON() (res []byte, err error) {
 		res = append(res, b...)
 		res = append(res, ',')
 	}
-	res[len(res)-1] = '}'
+	res[len(res)-1] = ']'
 	return
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, l)
-//TODO: func (om *OrderedMap) UnmarshalJSON(data []byte) error {
+func (l *List) UnmarshalJSON(data []byte) error {
+	dec := json.NewDecoder(bytes.NewReader(data))
+
+	// must open with a delim token '{'
+	t, err := dec.Token()
+	if err != nil {
+		return err
+	}
+	if delim, ok := t.(json.Delim); !ok || delim != '[' {
+		return fmt.Errorf("expect JSON array open with '['")
+	}
+
+	err = l.parseJSONArray(dec)
+	if err != nil {
+		return err
+	}
+
+	t, err = dec.Token()
+	if err != io.EOF {
+		return fmt.Errorf("expect end of JSON array but got more token: %T: %v or err: %v", t, t, err)
+	}
+
+	return nil
+}
+
+func (l *List) parseJSONArray(dec *json.Decoder) (err error) {
+	var t json.Token
+	var v interface{}
+	for dec.More() {
+		t, err = dec.Token()
+		if err != nil {
+			return
+		}
+
+		v, err = l.handleDelim(t, dec)
+		if err != nil {
+			return
+		}
+		l.PushBack(v)
+	}
+	t, err = dec.Token()
+	if err != nil {
+		return
+	}
+	if delim, ok := t.(json.Delim); !ok || delim != ']' {
+		err = fmt.Errorf("expect JSON array close with ']'")
+		return
+	}
+
+	return
+}
+
+func (l *List) parseJSONObject(dec *json.Decoder) (jo map[string]interface{}, err error) {
+	var t json.Token
+	var v interface{}
+
+	jo = make(map[string]interface{})
+	for dec.More() {
+		t, err = dec.Token()
+		if err != nil {
+			return
+		}
+
+		key, ok := t.(string)
+		if !ok {
+			err = fmt.Errorf("expecting JSON key should be always a string: %T: %v", t, t)
+			return
+		}
+
+		t, err = dec.Token()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return
+		}
+
+		v, err = l.handleDelim(t, dec)
+		if err != nil {
+			return
+		}
+
+		jo[key] = v
+	}
+
+	t, err = dec.Token()
+	if err != nil {
+		return
+	}
+	if delim, ok := t.(json.Delim); !ok || delim != '}' {
+		err = fmt.Errorf("expect JSON object close with '}'")
+		return
+	}
+
+	return
+}
+
+func (l *List) handleDelim(t json.Token, dec *json.Decoder) (res interface{}, err error) {
+	if delim, ok := t.(json.Delim); ok {
+		switch delim {
+		case '{':
+			var v interface{}
+			v, err = l.parseJSONObject(dec)
+			if err != nil {
+				return
+			}
+			return v, nil
+		case '[':
+			l = NewList()
+			err = l.parseJSONArray(dec)
+			if err != nil {
+				return
+			}
+			return l, nil
+		default:
+			return nil, fmt.Errorf("Unexpected delimiter: %q", delim)
+		}
+	}
+	return t, nil
+}

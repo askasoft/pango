@@ -1,6 +1,14 @@
 package col
 
-import "testing"
+import (
+	"encoding/json"
+	"fmt"
+	"reflect"
+	"strings"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 func checkListLen(t *testing.T, l *List, len int) bool {
 	if n := l.Len(); n != len {
@@ -157,7 +165,7 @@ func checkList(t *testing.T, l *List, es []interface{}) {
 	}
 }
 
-func TestExtending(t *testing.T) {
+func TestListExtending(t *testing.T) {
 	l1 := NewList(1, 2, 3)
 	l2 := NewList()
 	l2.PushBack(4)
@@ -211,7 +219,7 @@ func TestExtending(t *testing.T) {
 	checkList(t, l3, []interface{}{4, 5, 1, 2, 3, 4, 5})
 }
 
-func TestRemove(t *testing.T) {
+func TestListRemove(t *testing.T) {
 	l := NewList()
 	e1 := l.PushBack(1)
 	e2 := l.PushBack(2)
@@ -223,7 +231,7 @@ func TestRemove(t *testing.T) {
 	checkListPointers(t, l, []*ListEntry{e2})
 }
 
-func TestIssue4103(t *testing.T) {
+func TestListInsertBefore(t *testing.T) {
 	l1 := NewList()
 	l1.PushBack(1)
 	l1.PushBack(2)
@@ -244,7 +252,7 @@ func TestIssue4103(t *testing.T) {
 	}
 }
 
-func TestIssue6349(t *testing.T) {
+func TestListRemove1(t *testing.T) {
 	l := NewList()
 	l.PushBack(1)
 	l.PushBack(2)
@@ -262,7 +270,7 @@ func TestIssue6349(t *testing.T) {
 	}
 }
 
-func TestMove(t *testing.T) {
+func TestListMove(t *testing.T) {
 	l := NewList()
 	e1 := l.PushBack(1)
 	e2 := l.PushBack(2)
@@ -297,7 +305,7 @@ func TestMove(t *testing.T) {
 }
 
 // Test that a list l is not modified when calling InsertBefore with a mark that is not an entry of l.
-func TestInsertBeforeUnknownMark(t *testing.T) {
+func TestListInsertBeforeUnknownMark(t *testing.T) {
 	l := NewList()
 	l.PushBack(1)
 	l.PushBack(2)
@@ -307,7 +315,7 @@ func TestInsertBeforeUnknownMark(t *testing.T) {
 }
 
 // Test that a list l is not modified when calling InsertAfter with a mark that is not an entry of l.
-func TestInsertAfterUnknownMark(t *testing.T) {
+func TestListInsertAfterUnknownMark(t *testing.T) {
 	l := NewList()
 	l.PushBack(1)
 	l.PushBack(2)
@@ -317,7 +325,7 @@ func TestInsertAfterUnknownMark(t *testing.T) {
 }
 
 // Test that a list l is not modified when calling MoveAfter or MoveBefore with a mark that is not an entry of l.
-func TestMoveUnknownMark(t *testing.T) {
+func TestListMoveUnknownMark(t *testing.T) {
 	l1 := NewList()
 	e1 := l1.PushBack(1)
 
@@ -331,4 +339,112 @@ func TestMoveUnknownMark(t *testing.T) {
 	l1.MoveBefore(e1, e2)
 	checkList(t, l1, []interface{}{1})
 	checkList(t, l2, []interface{}{2})
+}
+
+func TestListContains(t *testing.T) {
+	l := NewList(1, 11, 111, "1", "11", "111")
+
+	n := (100+1)/101 + 110
+
+	if !l.Contains(n) {
+		t.Errorf("List [%v] should contains %v", l, n)
+	}
+
+	n++
+	if l.Contains(n) {
+		t.Errorf("List [%v] should not contains %v", l, n)
+	}
+
+	sb := &strings.Builder{}
+	for i := 0; i < 3; i++ {
+		sb.WriteRune('1')
+	}
+	s := sb.String()
+
+	if !l.Contains(s) {
+		t.Errorf("List [%v] should contains %v", l, s)
+	}
+
+	s += "0"
+	if l.Contains(s) {
+		t.Errorf("List [%v] should not contains %v", l, s)
+	}
+}
+
+func TestListSearch(t *testing.T) {
+	l := NewList(1, 11)
+
+	n111 := l.PushBack(111)
+
+	l.PushBackAll("1", "11")
+	s111 := l.PushBack("111")
+
+	n := (100+1)/101 + 110
+
+	sn, se := l.Search(n)
+	if n111 != se || sn != 2 {
+		t.Errorf("List [%v] should contains %v", l, n)
+	}
+
+	n++
+	sn, se = l.Search(n)
+	if se != nil || sn != -1 {
+		t.Errorf("List [%v] should not contains %v", l, n)
+	}
+
+	sb := &strings.Builder{}
+	for i := 0; i < 3; i++ {
+		sb.WriteRune('1')
+	}
+	s := sb.String()
+
+	sn, se = l.Search(s)
+	if s111 != se || sn != 5 {
+		t.Errorf("List [%v] should contains %v", l, s)
+	}
+
+	s += "0"
+	sn, se = l.Search(s)
+	if se != nil || sn != -1 {
+		t.Errorf("List [%v] should not contains %v", l, s)
+	}
+}
+
+func TestListMarshalJSON(t *testing.T) {
+	type Case struct {
+		list *List
+		json string
+	}
+
+	cs := []Case{
+		{NewList(0, 1, "0", "1", 0.0, 1.0, true, false), `[0,1,"0","1",0,1,true,false]`},
+		{NewList(0, "1", 2.0, []int{1, 2}, map[int]int{1: 10, 2: 20}), `[0,"1",2,[1,2],{"1":10,"2":20}]`},
+	}
+
+	for i, c := range cs {
+		bs, err := json.Marshal(c.list)
+		assert.Nil(t, err)
+		assert.Equal(t, c.json, string(bs), fmt.Sprintf("Marshal [%d]", i))
+	}
+}
+
+func TestListUnmarshalJSON(t *testing.T) {
+	type Case struct {
+		json string
+		list *List
+	}
+
+	cs := []Case{
+		{`["0","1",0,1,true,false]`, NewList("0", "1", 0.0, 1.0, true, false)},
+		{`["1",2,[1,2],{"1":10,"2":20}]`, NewList("1", 2.0, NewList(1.0, 2.0), map[string]interface{}{"1": 10.0, "2": 20.0})},
+	}
+
+	for i, c := range cs {
+		a := NewList()
+		err := json.Unmarshal([]byte(c.json), a)
+		assert.Nil(t, err)
+		if !reflect.DeepEqual(a, c.list) {
+			t.Fatalf("Unmarshal List [%d] not deeply equal: %#v expected %#v", i, a, c.list)
+		}
+	}
 }

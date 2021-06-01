@@ -24,12 +24,25 @@ func (e *ListEntry) Next() *ListEntry {
 	return nil
 }
 
-// NextAt returns the next i list entry or nil.
-func (e *ListEntry) NextAt(i int) (n *ListEntry) {
-	for n = e; n != nil && i > 0; i-- {
-		n = n.Next()
+// Move returns the next +n or previous -n list entry or nil.
+func (e *ListEntry) Move(n int) *ListEntry {
+	if n == 0 {
+		return e
 	}
-	return n
+
+	if n > 0 {
+		for e != nil && n > 0 {
+			e = e.Next()
+			n--
+		}
+		return e
+	}
+
+	for e != nil && n < 0 {
+		e = e.Prev()
+		n++
+	}
+	return e
 }
 
 // Prev returns the previous list entry or nil.
@@ -38,12 +51,4 @@ func (e *ListEntry) Prev() *ListEntry {
 		return p
 	}
 	return nil
-}
-
-// PrevAt returns the previous i list entry or nil.
-func (e *ListEntry) PrevAt(i int) (p *ListEntry) {
-	for p = e; p != nil && i > 0; i-- {
-		p = p.Prev()
-	}
-	return p
 }

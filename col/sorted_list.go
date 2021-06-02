@@ -82,6 +82,18 @@ func (sl *SortedList) Contains(v interface{}) bool {
 // returns index, entry if it's value is v
 // if not found, returns -1, nil
 func (sl *SortedList) Search(v interface{}) (int, *ListEntry) {
+	n, e := sl.binarySearch(v)
+	if e != nil && e.Value == v {
+		return n, e
+	}
+
+	return -1, nil
+}
+
+// binarySearch binary search v
+// returns index, entry if it's value is >= v
+// if not found, returns -1, nil
+func (sl *SortedList) binarySearch(v interface{}) (int, *ListEntry) {
 	if sl.IsEmpty() {
 		return -1, nil
 	}
@@ -113,7 +125,7 @@ func (sl *SortedList) Add(v interface{}) *ListEntry {
 		return sl.list.PushBack(v)
 	}
 
-	_, e := sl.Search(v)
+	_, e := sl.binarySearch(v)
 	if e != nil {
 		return sl.list.InsertBefore(v, e)
 	}

@@ -8,6 +8,7 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/pandafw/pango/str"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -80,6 +81,39 @@ func TestSortedListRandom(t *testing.T) {
 
 		sort.Sort(inta(a))
 		assert.Equal(t, a, sl.Values())
+	}
+}
+
+func TestSortedListContains(t *testing.T) {
+	sl := NewSortedList(LessString, "1", "11", "111", "1", "11", "111")
+
+	n := str.Repeat("1", 3)
+
+	if !sl.Contains(n) {
+		t.Errorf("SortedList [%v] should contains %v", sl, n)
+	}
+
+	n += "1"
+	if sl.Contains(n) {
+		t.Errorf("SortedList [%v] should not contains %v", sl, n)
+	}
+}
+
+func TestSetSearch(t *testing.T) {
+	sl := NewSortedList(LessInt, 1, 11)
+
+	n111 := sl.Add(111)
+
+	n := 1 + 10 + 100
+	sn, se := sl.Search(n)
+	if n111 != se || sn != 2 {
+		t.Errorf("SortedList [%v] should contains %v", sl, n)
+	}
+
+	n++
+	sn, se = sl.Search(n)
+	if se != nil || sn != -1 {
+		t.Errorf("SortedList [%v] should not contains %v", sl, n)
 	}
 }
 

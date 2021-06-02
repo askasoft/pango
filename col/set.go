@@ -1,5 +1,7 @@
 package col
 
+import "encoding/json"
+
 // Set an unordered collection of unique values.
 // http://en.wikipedia.org/wiki/Set_(computer_science%29)
 type Set struct {
@@ -18,6 +20,11 @@ func NewSet(vs ...interface{}) *Set {
 // Len Return the number of items in the set
 func (s *Set) Len() int {
 	return len(s.hash)
+}
+
+// IsEmpty returns true if the set's length == 0
+func (s *Set) IsEmpty() bool {
+	return s.Len() == 0
 }
 
 // Add Add an v to the set
@@ -102,4 +109,44 @@ func (s *Set) Intersection(a *Set) *Set {
 	}
 
 	return &Set{b}
+}
+
+/*------------- JSON -----------------*/
+
+func newJSONArrayAsSet() jsonArray {
+	return NewSet()
+}
+
+func (s *Set) addJSONArrayItem(v interface{}) jsonArray {
+	s.Add(v)
+	return s
+}
+
+// MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(s)
+func (s *Set) MarshalJSON() (res []byte, err error) {
+	if s.IsEmpty() {
+		return []byte("[]"), nil
+	}
+
+	res = append(res, '[')
+	for v := range s.hash {
+		var b []byte
+		b, err = json.Marshal(v)
+		if err != nil {
+			return
+		}
+		res = append(res, b...)
+		res = append(res, ',')
+	}
+	res[len(res)-1] = ']'
+	return
+}
+
+// UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, s)
+func (s *Set) UnmarshalJSON(data []byte) error {
+	ju := &jsonUnmarshaler{
+		newArray:  newJSONArray,
+		newObject: newJSONObject,
+	}
+	return ju.unmarshalJSONArray(data, s)
 }

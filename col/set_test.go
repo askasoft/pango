@@ -1,6 +1,15 @@
 package col
 
-import "testing"
+import (
+	"encoding/json"
+	"fmt"
+	"reflect"
+	"sort"
+	"testing"
+
+	"github.com/pandafw/pango/str"
+	"github.com/stretchr/testify/assert"
+)
 
 func TestSimple(t *testing.T) {
 	s := NewSet()
@@ -102,6 +111,54 @@ func TestAddSet(t *testing.T) {
 	for i := 4; i <= 9; i++ {
 		if !(s1.Contains(i)) {
 			t.Errorf("Set should contains %d", i)
+		}
+	}
+}
+
+func sortSetJSON(s string) string {
+	s = str.TrimRight(str.TrimLeft(s, "["), "]")
+	a := str.FieldsAny(s, ",")
+	sort.Strings(a)
+	return str.Join(a, ",")
+}
+
+func TestSetMarshalJSON(t *testing.T) {
+	type Case struct {
+		set  *Set
+		json string
+	}
+
+	cs := []Case{
+		{NewSet(0, 1, "0", "1", 0.1, 1.2, true, false, "0", "1"), `[0,1,"0","1",0.1,1.2,true,false]`},
+		//TODO		{NewSet(0, "1", 2.0, 0, "1", 2.0, []int{1, 2}, map[int]int{1: 10, 2: 20}), `[0,"1",2,[1,2],{"1":10,"2":20}]`},
+	}
+
+	for i, c := range cs {
+		bs, err := json.Marshal(c.set)
+		assert.Nil(t, err)
+		act := sortSetJSON(string(bs))
+		exp := sortSetJSON(c.json)
+		assert.Equal(t, exp, act, fmt.Sprintf("Marshal [%d]", i))
+	}
+}
+
+func TestSetUnmarshalJSON(t *testing.T) {
+	type Case struct {
+		json string
+		set  *Set
+	}
+
+	cs := []Case{
+		{`["0","1",0,1,true,false]`, NewSet("0", "1", 0.0, 1.0, true, false)},
+		//TODO		{`["1",2,[1,2],{"1":10,"2":20}]`, NewList("1", 2.0, NewList(1.0, 2.0), map[string]interface{}{"1": 10.0, "2": 20.0})},
+	}
+
+	for i, c := range cs {
+		a := NewSet()
+		err := json.Unmarshal([]byte(c.json), a)
+		assert.Nil(t, err)
+		if !reflect.DeepEqual(a, c.set) {
+			t.Fatalf("Unmarshal List [%d] not deeply equal: %#v expected %#v", i, a, c.set)
 		}
 	}
 }

@@ -177,6 +177,12 @@ func (om *OrderedMap) ReverseEach(f func(*OrderedMapEntry)) {
 	}
 }
 
+// String print map to string
+func (om *OrderedMap) String() string {
+	bs, _ := json.Marshal(om)
+	return string(bs)
+}
+
 /*------------- JSON -----------------*/
 func newJSONObjectAsOrderedMap() jsonObject {
 	return NewOrderedMap()

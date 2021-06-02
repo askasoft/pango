@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"strings"
 	"testing"
 
+	"github.com/pandafw/pango/str"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -355,11 +355,7 @@ func TestListContains(t *testing.T) {
 		t.Errorf("List [%v] should not contains %v", l, n)
 	}
 
-	sb := &strings.Builder{}
-	for i := 0; i < 3; i++ {
-		sb.WriteRune('1')
-	}
-	s := sb.String()
+	s := str.Repeat("1", 3)
 
 	if !l.Contains(s) {
 		t.Errorf("List [%v] should contains %v", l, s)
@@ -392,11 +388,7 @@ func TestListSearch(t *testing.T) {
 		t.Errorf("List [%v] should not contains %v", l, n)
 	}
 
-	sb := &strings.Builder{}
-	for i := 0; i < 3; i++ {
-		sb.WriteRune('1')
-	}
-	s := sb.String()
+	s := str.Repeat("1", 3)
 
 	sn, se = l.Search(s)
 	if s111 != se || sn != 5 {
@@ -408,6 +400,10 @@ func TestListSearch(t *testing.T) {
 	if se != nil || sn != -1 {
 		t.Errorf("List [%v] should not contains %v", l, s)
 	}
+}
+
+func TestListString(t *testing.T) {
+	assert.Equal(t, "[1,3,2]", fmt.Sprintf("%s", NewList(1, 3, 2)))
 }
 
 func TestListMarshalJSON(t *testing.T) {

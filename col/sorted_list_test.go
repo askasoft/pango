@@ -117,6 +117,10 @@ func TestSetSearch(t *testing.T) {
 	}
 }
 
+func TestSortedListString(t *testing.T) {
+	assert.Equal(t, "[1,2,3]", fmt.Sprintf("%s", NewSortedList(LessInt, 1, 3, 2)))
+}
+
 func TestSortedListMarshalJSON(t *testing.T) {
 	type Case struct {
 		list *SortedList

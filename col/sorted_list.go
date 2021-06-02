@@ -168,6 +168,11 @@ func (sl *SortedList) ReverseEach(f func(interface{})) {
 	sl.list.ReverseEach(f)
 }
 
+// String print list to string
+func (sl *SortedList) String() string {
+	return sl.list.String()
+}
+
 /*------------- JSON -----------------*/
 
 func newJSONArrayAsSortedList() jsonArray {

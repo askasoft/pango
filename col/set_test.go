@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSimple(t *testing.T) {
+func TestSetSimple(t *testing.T) {
 	s := NewSet()
 
 	s.Add(5)
@@ -35,7 +35,7 @@ func TestSimple(t *testing.T) {
 	}
 }
 
-func TestContainsSet(t *testing.T) {
+func TestSetContainsSet(t *testing.T) {
 	s1 := NewSet()
 	s2 := NewSet()
 
@@ -68,7 +68,7 @@ func TestContainsSet(t *testing.T) {
 	}
 }
 
-func TestDifference(t *testing.T) {
+func TestSetDifference(t *testing.T) {
 	// Difference
 	s1 := NewSet(1, 2, 3, 4, 5, 6)
 	s2 := NewSet(4, 5, 6)
@@ -83,7 +83,7 @@ func TestDifference(t *testing.T) {
 	}
 }
 
-func TestIntersection(t *testing.T) {
+func TestSetIntersection(t *testing.T) {
 	s1 := NewSet(1, 2, 3, 4, 5, 6)
 	s2 := NewSet(4, 5, 6)
 
@@ -98,7 +98,7 @@ func TestIntersection(t *testing.T) {
 	}
 }
 
-func TestAddSet(t *testing.T) {
+func TestSetAddSet(t *testing.T) {
 	// AddSet
 	s1 := NewSet(4, 5, 6)
 	s2 := NewSet(7, 8, 9)

@@ -316,6 +316,10 @@ func randomHexString(t *testing.T, length int) string {
 	return hex.EncodeToString(randBytes)
 }
 
+func TestOrderedMapString(t *testing.T) {
+	assert.Equal(t, `{"1":1,"3":3,"2":2}`, fmt.Sprintf("%s", NewOrderedMap("1", 1, "3", 3, "2", 2)))
+}
+
 /*----------- JOSN Test -----------------*/
 func TestOrderedMapMarshal(t *testing.T) {
 	om := NewOrderedMap()

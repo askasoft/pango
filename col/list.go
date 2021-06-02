@@ -277,6 +277,12 @@ func (l *List) ReverseEach(f func(interface{})) {
 	}
 }
 
+// String print list to string
+func (l *List) String() string {
+	bs, _ := json.Marshal(l)
+	return string(bs)
+}
+
 /*------------- JSON -----------------*/
 
 func newJSONArrayList() jsonArray {

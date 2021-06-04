@@ -1,4 +1,4 @@
-package ary
+package ars
 
 import "bytes"
 

@@ -8,20 +8,13 @@ import (
 // The zero value for List is an empty list ready to use.
 //
 // To iterate over a list (where l is a *List):
-//	for e := l.Front(); e != nil; e = e.Next() {
-//		// do something with e.Value
+//	for li := l.Front(); li != nil; li = li.Next() {
+//		// do something with li.Value
 //	}
 //
 type List struct {
-	root ListEntry // sentinel list entry, only &root, root.prev, and root.next are used
-	len  int       // current list length excluding (this) sentinel entry
-}
-
-// Clear clears list l.
-func (l *List) Clear() {
-	l.root.next = &l.root
-	l.root.prev = &l.root
-	l.len = 0
+	root ListItem // sentinel list item, only &root, root.prev, and root.next are used
+	len  int      // current list length excluding (this) sentinel item
 }
 
 // NewList returns an initialized list.
@@ -33,7 +26,7 @@ func NewList(vs ...interface{}) *List {
 	return l
 }
 
-// Len returns the number of entries of list l.
+// Len returns the length of the list.
 // The complexity is O(1).
 func (l *List) Len() int {
 	return l.len
@@ -44,29 +37,34 @@ func (l *List) IsEmpty() bool {
 	return l.len == 0
 }
 
-// At returns the entry at the specified index
-func (l *List) At(i int) *ListEntry {
-	if i < 0 || i >= l.Len() {
+// Item returns the item at the specified index
+// if i < -l.Len() or i >= l.Len(), returns nil
+// if i < 0, returns l.Item(l.Len() + i)
+func (l *List) Item(i int) *ListItem {
+	if i < -l.len || i >= l.len {
 		return nil
 	}
 
+	if i < 0 {
+		i += l.len
+	}
 	if i >= l.len/2 {
-		return l.Back().Move(-i)
+		return l.Back().Offset(i + 1 - l.len)
 	}
 
-	return l.Front().Move(i)
+	return l.Front().Offset(i)
 }
 
-// Front returns the first entry of list l or nil if the list is empty.
-func (l *List) Front() *ListEntry {
+// Front returns the first item of list l or nil if the list is empty.
+func (l *List) Front() *ListItem {
 	if l.len == 0 {
 		return nil
 	}
 	return l.root.next
 }
 
-// Back returns the last entry of list l or nil if the list is empty.
-func (l *List) Back() *ListEntry {
+// Back returns the last item of list l or nil if the list is empty.
+func (l *List) Back() *ListItem {
 	if l.len == 0 {
 		return nil
 	}
@@ -75,103 +73,137 @@ func (l *List) Back() *ListEntry {
 
 // Contains Test to see whether or not the v is in the list
 func (l *List) Contains(v interface{}) bool {
-	_, e := l.Search(v)
-	return e != nil
+	_, li := l.Search(v)
+	return li != nil
 }
 
 // Search linear search v
-// returns index, entry if it's value is v
+// returns index, item if it's value is v
 // if not found, returns -1, nil
-func (l *List) Search(v interface{}) (int, *ListEntry) {
-	for i, e := 0, l.Front(); e != nil; e = e.Next() {
-		if e.Value == v {
-			return i, e
+func (l *List) Search(v interface{}) (int, *ListItem) {
+	for i, li := 0, l.Front(); li != nil; li = li.Next() {
+		if li.Value == v {
+			return i, li
 		}
 		i++
 	}
 	return -1, nil
 }
 
-// insert inserts e after at, increments l.len, and returns e.
-func (l *List) insert(e, at *ListEntry) *ListEntry {
-	n := at.next
-	at.next = e
-	e.prev = at
-	e.next = n
-	n.prev = e
-	e.list = l
+// Clear clears list l.
+func (l *List) Clear() {
+	l.root.next = &l.root
+	l.root.prev = &l.root
+	l.len = 0
+}
+
+// insert inserts item li after at, increments l.len, and returns li.
+func (l *List) insert(li, at *ListItem) *ListItem {
+	ni := at.next
+	at.next = li
+	li.prev = at
+	li.next = ni
+	ni.prev = li
+	li.list = l
 	l.len++
-	return e
+	return li
 }
 
-// insertValue is a convenience wrapper for insert(&Entry{Value: v}, at).
-func (l *List) insertValue(v interface{}, at *ListEntry) *ListEntry {
-	return l.insert(&ListEntry{Value: v}, at)
+// insertValue is a convenience wrapper for insert(&ListItem{Value: v}, at).
+func (l *List) insertValue(v interface{}, at *ListItem) *ListItem {
+	return l.insert(&ListItem{Value: v}, at)
 }
 
-// remove removes e from its list, decrements l.len, and returns e.
-func (l *List) remove(e *ListEntry) *ListEntry {
-	e.prev.next = e.next
-	e.next.prev = e.prev
-	e.next = nil // avoid memory leaks
-	e.prev = nil // avoid memory leaks
-	e.list = nil
+// remove removes the item li from its list, decrements l.len, and returns li.
+func (l *List) remove(li *ListItem) *ListItem {
+	li.prev.next = li.next
+	li.next.prev = li.prev
+	li.next = nil // avoid memory leaks
+	li.prev = nil // avoid memory leaks
+	li.list = nil
 	l.len--
-	return e
+	return li
 }
 
-// move moves e to next to at and returns e.
-func (l *List) move(e, at *ListEntry) *ListEntry {
-	if e == at {
-		return e
+// move moves the item li to next to at and returns li.
+func (l *List) move(li, at *ListItem) *ListItem {
+	if li == at {
+		return li
 	}
-	e.prev.next = e.next
-	e.next.prev = e.prev
+	li.prev.next = li.next
+	li.next.prev = li.prev
 
 	n := at.next
-	at.next = e
-	e.prev = at
-	e.next = n
-	n.prev = e
+	at.next = li
+	li.prev = at
+	li.next = n
+	n.prev = li
 
-	return e
+	return li
 }
 
-// Remove removes e from l if e is an entry of list l.
-// It returns the entry value e.Value.
-// The entry must not be nil.
-func (l *List) Remove(e *ListEntry) interface{} {
-	if e.list == l {
-		// if e.list == l, l must have been initialized when e was inserted
-		// in l or l == nil (e is a zero Entry) and l.remove will crash
-		l.remove(e)
+// Delete delete the first item with associated value v
+// returns true if v is in the list
+// returns false if the the list is not changed
+func (l *List) Delete(v interface{}) bool {
+	_, li := l.Search(v)
+	if li != nil {
+		l.remove(li)
+		return true
 	}
-	return e.Value
+
+	return false
 }
 
-// PushFront inserts a new entry e with value v at the front of list l and returns e.
-func (l *List) PushFront(v interface{}) *ListEntry {
+// DeleteAll delete all items with associated value v
+// returns the deleted count
+func (l *List) DeleteAll(v interface{}) int {
+	n := 0
+	for li := l.Front(); li != nil; {
+		ni := li.Next()
+		if li.Value == v {
+			l.remove(li)
+			n++
+		}
+		li = ni
+	}
+
+	return n
+}
+
+// Remove removes the item li from l if li is an item of list l.
+// The item li must not be nil.
+func (l *List) Remove(li *ListItem) {
+	if li.list == l {
+		// if li.list == l, l must have been initialized when li was inserted
+		// in l or l == nil (li is a zero item) and l.remove will crash
+		l.remove(li)
+	}
+}
+
+// PushFront inserts a new item li with value v at the front of list l and returns li.
+func (l *List) PushFront(v interface{}) *ListItem {
 	return l.insertValue(v, &l.root)
 }
 
 // PushFrontAll inserts all items of vs at the front of list l.
 func (l *List) PushFrontAll(vs ...interface{}) {
-	e := &l.root
+	li := &l.root
 	for _, v := range vs {
-		e = l.insertValue(v, e)
+		li = l.insertValue(v, li)
 	}
 }
 
 // PushFrontList inserts a copy of an other list at the front of list l.
 // The lists l and other may be the same. They must not be nil.
 func (l *List) PushFrontList(other *List) {
-	for i, e := other.Len(), other.Back(); i > 0; i, e = i-1, e.Prev() {
-		l.insertValue(e.Value, &l.root)
+	for i, li := other.Len(), other.Back(); i > 0; i, li = i-1, li.Prev() {
+		l.insertValue(li.Value, &l.root)
 	}
 }
 
-// PushBack inserts a new entry e with value v at the back of list l and returns e.
-func (l *List) PushBack(v interface{}) *ListEntry {
+// PushBack inserts a new item li with value v at the back of list l and returns li.
+func (l *List) PushBack(v interface{}) *ListItem {
 	return l.insertValue(v, l.root.prev)
 }
 
@@ -185,95 +217,115 @@ func (l *List) PushBackAll(vs ...interface{}) {
 // PushBackList inserts a copy of an other list at the back of list l.
 // The lists l and other may be the same. They must not be nil.
 func (l *List) PushBackList(other *List) {
-	for i, e := other.Len(), other.Front(); i > 0; i, e = i-1, e.Next() {
-		l.insertValue(e.Value, l.root.prev)
+	for i, li := other.Len(), other.Front(); i > 0; i, li = i-1, li.Next() {
+		l.insertValue(li.Value, l.root.prev)
 	}
 }
 
-// InsertBefore inserts a new entry e with value v immediately before mark and returns e.
-// If mark is not an entry of l, the list is not modified.
-// The mark must not be nil.
-func (l *List) InsertBefore(v interface{}, mark *ListEntry) *ListEntry {
-	if mark.list != l {
+// InsertBefore inserts a new item li with value v immediately before at and returns li.
+// If at is not an item of l, the list is not modified.
+// The at must not be nil.
+func (l *List) InsertBefore(v interface{}, at *ListItem) *ListItem {
+	if at.list != l {
 		return nil
 	}
 	// see comment in List.Remove about initialization of l
-	return l.insertValue(v, mark.prev)
+	return l.insertValue(v, at.prev)
 }
 
-// InsertAfter inserts a new entry e with value v immediately after mark and returns e.
-// If mark is not an entry of l, the list is not modified.
-// The mark must not be nil.
-func (l *List) InsertAfter(v interface{}, mark *ListEntry) *ListEntry {
-	if mark.list != l {
+// InsertAfter inserts a new item li with value v immediately after at and returns li.
+// If at is not an item of l, the list is not modified.
+// The at must not be nil.
+func (l *List) InsertAfter(v interface{}, at *ListItem) *ListItem {
+	if at.list != l {
 		return nil
 	}
 	// see comment in List.Remove about initialization of l
-	return l.insertValue(v, mark)
+	return l.insertValue(v, at)
 }
 
-// MoveToFront moves entry e to the front of list l.
-// If e is not an entry of l, the list is not modified.
-// The entry must not be nil.
-func (l *List) MoveToFront(e *ListEntry) {
-	if e.list != l || l.root.next == e {
-		return
+// MoveToFront moves item li to the front of list l.
+// If li is not an item of l, the list is not modified.
+// The item must not be nil.
+// Returns true if list is modified.
+func (l *List) MoveToFront(li *ListItem) bool {
+	if li.list != l || l.root.next == li {
+		return false
 	}
 	// see comment in List.Remove about initialization of l
-	l.move(e, &l.root)
+	l.move(li, &l.root)
+	return true
 }
 
-// MoveToBack moves entry e to the back of list l.
-// If e is not an entry of l, the list is not modified.
-// The entry must not be nil.
-func (l *List) MoveToBack(e *ListEntry) {
-	if e.list != l || l.root.prev == e {
-		return
+// MoveToBack moves item li to the back of list l.
+// If li is not an item of l, the list is not modified.
+// The item must not be nil.
+// Returns true if list is modified.
+func (l *List) MoveToBack(li *ListItem) bool {
+	if li.list != l || l.root.prev == li {
+		return false
 	}
 	// see comment in List.Remove about initialization of l
-	l.move(e, l.root.prev)
+	l.move(li, l.root.prev)
+	return true
 }
 
-// MoveBefore moves entry e to its new position before mark.
-// If e or mark is not an entry of l, or e == mark, the list is not modified.
-// The entry and mark must not be nil.
-func (l *List) MoveBefore(e, mark *ListEntry) {
-	if e.list != l || e == mark || mark.list != l {
-		return
+// MoveBefore moves item li to its new position before at.
+// If li or at is not an item of l, or li == at, the list is not modified.
+// The item and at must not be nil.
+// Returns true if list is modified.
+func (l *List) MoveBefore(li, at *ListItem) bool {
+	if li.list != l || li == at || at.list != l {
+		return false
 	}
-	l.move(e, mark.prev)
+	l.move(li, at.prev)
+	return true
 }
 
-// MoveAfter moves entry e to its new position after mark.
-// If e or mark is not an entry of l, or e == mark, the list is not modified.
-// The entry and mark must not be nil.
-func (l *List) MoveAfter(e, mark *ListEntry) {
-	if e.list != l || e == mark || mark.list != l {
-		return
+// MoveAfter moves item li to its new position after at.
+// If li or at is not an item of l, or li == at, the list is not modified.
+// The item and at must not be nil.
+// Returns true if list is modified.
+func (l *List) MoveAfter(li, at *ListItem) bool {
+	if li.list != l || li == at || at.list != l {
+		return false
 	}
-	l.move(e, mark)
+	l.move(li, at)
+	return true
+}
+
+// Swap swap item's value of ia, ib.
+// If ia or ib is not an item of l, or ia == ib, the list is not modified.
+// The item and at must not be nil.
+// Returns true if list is modified.
+func (l *List) Swap(ia, ib *ListItem) bool {
+	if ia.list != l || ia == ib || ib.list != l {
+		return false
+	}
+	ia.Value, ib.Value = ib.Value, ia.Value
+	return true
 }
 
 // Values returns a slice contains all the items of the list l
 func (l *List) Values() []interface{} {
 	a := make([]interface{}, 0, l.Len())
-	for e := l.Front(); e != nil; e = e.Next() {
-		a = append(a, e.Value)
+	for li := l.Front(); li != nil; li = li.Next() {
+		a = append(a, li.Value)
 	}
 	return a
 }
 
 // Each Call f for each item in the set
 func (l *List) Each(f func(interface{})) {
-	for e := l.Front(); e != nil; e = e.Next() {
-		f(e.Value)
+	for li := l.Front(); li != nil; li = li.Next() {
+		f(li.Value)
 	}
 }
 
 // ReverseEach Call f for each item in the set with reverse order
 func (l *List) ReverseEach(f func(interface{})) {
-	for e := l.Back(); e != nil; e = e.Prev() {
-		f(e.Value)
+	for li := l.Back(); li != nil; li = li.Prev() {
+		f(li.Value)
 	}
 }
 
@@ -301,9 +353,9 @@ func (l *List) MarshalJSON() (res []byte, err error) {
 	}
 
 	res = append(res, '[')
-	for le := l.Front(); le != nil; le = le.Next() {
+	for li := l.Front(); li != nil; li = li.Next() {
 		var b []byte
-		b, err = json.Marshal(le.Value)
+		b, err = json.Marshal(li.Value)
 		if err != nil {
 			return
 		}

@@ -21,12 +21,22 @@ func TestOrderedMapBasicFeatures(t *testing.T) {
 
 	// set(i, 2 * i)
 	for i := 0; i < n; i++ {
+		ov, ok := interface{}(nil), false
+
 		assertLenEqual(t, om, i)
-		old, ok := om.Set(i, 2*i)
+		if i%2 == 0 {
+			ov, ok = om.Set(i, 2*i)
+		} else {
+			ov, ok = om.SetIfAbsent(i, 2*i)
+		}
 		assertLenEqual(t, om, i+1)
 
-		assert.Nil(t, old)
+		assert.Nil(t, ov)
 		assert.False(t, ok)
+
+		ov, ok = om.SetIfAbsent(i, 3*i)
+		assert.Equal(t, 2*i, ov)
+		assert.True(t, ok)
 	}
 
 	// get what we just set
@@ -37,12 +47,12 @@ func TestOrderedMapBasicFeatures(t *testing.T) {
 		assert.True(t, ok)
 	}
 
-	// get entries of what we just set
+	// get items of what we just set
 	for i := 0; i < n; i++ {
-		entry := om.GetEntry(i)
+		item := om.Item(i)
 
-		assert.NotNil(t, entry)
-		assert.Equal(t, 2*i, entry.Value)
+		assert.NotNil(t, item)
+		assert.Equal(t, 2*i, item.Value)
 	}
 
 	// keys
@@ -52,12 +62,12 @@ func TestOrderedMapBasicFeatures(t *testing.T) {
 	}
 	assert.Equal(t, ks, om.Keys())
 
-	// entries
-	es := om.Entries()
-	assert.Equal(t, n, len(es))
+	// items
+	mis := om.Items()
+	assert.Equal(t, n, len(mis))
 	for i := 0; i < n; i++ {
-		assert.Equal(t, i, es[i].Key())
-		assert.Equal(t, i*2, es[i].Value)
+		assert.Equal(t, i, mis[i].Key())
+		assert.Equal(t, i*2, mis[i].Value)
 	}
 
 	// values
@@ -69,29 +79,29 @@ func TestOrderedMapBasicFeatures(t *testing.T) {
 
 	// forward iteration
 	i := 0
-	for entry := om.Front(); entry != nil; entry = entry.Next() {
-		assert.Equal(t, i, entry.key)
-		assert.Equal(t, 2*i, entry.Value)
+	for mi := om.Front(); mi != nil; mi = mi.Next() {
+		assert.Equal(t, i, mi.key)
+		assert.Equal(t, 2*i, mi.Value)
 		i++
 	}
 
 	// backward iteration
 	i = n - 1
-	for entry := om.Back(); entry != nil; entry = entry.Prev() {
-		assert.Equal(t, i, entry.key)
-		assert.Equal(t, 2*i, entry.Value)
+	for mi := om.Back(); mi != nil; mi = mi.Prev() {
+		assert.Equal(t, i, mi.key)
+		assert.Equal(t, 2*i, mi.Value)
 		i--
 	}
 
 	// forward iteration starting from known key
 	i = 42
-	for entry := om.GetEntry(i); entry != nil; entry = entry.Next() {
-		assert.Equal(t, i, entry.key)
-		assert.Equal(t, 2*i, entry.Value)
+	for mi := om.Item(i); mi != nil; mi = mi.Next() {
+		assert.Equal(t, i, mi.key)
+		assert.Equal(t, 2*i, mi.Value)
 		i++
 	}
 
-	// double values for entries with even keys
+	// double values for items with even keys
 	for j := 0; j < n/2; j++ {
 		i = 2 * j
 		old, ok := om.Set(i, 4*i)
@@ -100,18 +110,18 @@ func TestOrderedMapBasicFeatures(t *testing.T) {
 		assert.True(t, ok)
 	}
 
-	// and delete entries with odd keys
+	// and delete itmes with odd keys
 	for j := 0; j < n/2; j++ {
 		i = 2*j + 1
 		assertLenEqual(t, om, n-j)
-		value, ok := om.Remove(i)
+		value, ok := om.Delete(i)
 		assertLenEqual(t, om, n-j-1)
 
 		assert.Equal(t, 2*i, value)
 		assert.True(t, ok)
 
 		// deleting again shouldn't change anything
-		value, ok = om.Remove(i)
+		value, ok = om.Delete(i)
 		assertLenEqual(t, om, n-j-1)
 		assert.Nil(t, value)
 		assert.False(t, ok)
@@ -132,15 +142,15 @@ func TestOrderedMapBasicFeatures(t *testing.T) {
 
 	// check iterations again
 	i = 0
-	for entry := om.Front(); entry != nil; entry = entry.Next() {
-		assert.Equal(t, i, entry.key)
-		assert.Equal(t, 4*i, entry.Value)
+	for mi := om.Front(); mi != nil; mi = mi.Next() {
+		assert.Equal(t, i, mi.key)
+		assert.Equal(t, 4*i, mi.Value)
 		i += 2
 	}
 	i = 2 * ((n - 1) / 2)
-	for entry := om.Back(); entry != nil; entry = entry.Prev() {
-		assert.Equal(t, i, entry.key)
-		assert.Equal(t, 4*i, entry.Value)
+	for mi := om.Back(); mi != nil; mi = mi.Prev() {
+		assert.Equal(t, i, mi.key)
+		assert.Equal(t, 4*i, mi.Value)
 		i -= 2
 	}
 }
@@ -164,12 +174,12 @@ func TestOrderedMapDeletingAndReinsertingChangesPairsOrder(t *testing.T) {
 	om.Set(78, 100)
 	om.Set("bar", "baz")
 
-	// delete a entry
-	old, ok := om.Remove(78)
+	// delete a item
+	old, ok := om.Delete(78)
 	assert.Equal(t, 100, old)
 	assert.True(t, ok)
 
-	// re-insert the same entry
+	// re-insert the same item
 	old, ok = om.Set(78, 100)
 	assert.Nil(t, old)
 	assert.False(t, ok)
@@ -186,7 +196,7 @@ func TestOrderedMapEmptyMapOperations(t *testing.T) {
 	assert.Nil(t, old)
 	assert.False(t, ok)
 
-	old, ok = om.Remove("bar")
+	old, ok = om.Delete("bar")
 	assert.Nil(t, old)
 	assert.False(t, ok)
 
@@ -251,7 +261,7 @@ func TestOrderedMapShuffle(t *testing.T) {
 
 func TestOrderedMapTemplateRange(t *testing.T) {
 	om := NewOrderedMap("z", "Z", "a", "A")
-	tmpl, err := template.New("test").Parse("{{range $e := .om.Entries}}[ {{$e.Key}} = {{$e.Value}} ]{{end}}")
+	tmpl, err := template.New("test").Parse("{{range $e := .om.Items}}[ {{$e.Key}} = {{$e.Value}} ]{{end}}")
 	if err != nil {
 		assert.Fail(t, err.Error())
 	}
@@ -276,9 +286,9 @@ func assertOrderedPairsEqual(t *testing.T, om *OrderedMap, expectedKeys, expecte
 func assertOrderedPairsEqualFromNewest(t *testing.T, om *OrderedMap, expectedKeys, expectedValues []interface{}) {
 	if assert.Equal(t, len(expectedKeys), len(expectedValues)) && assert.Equal(t, len(expectedKeys), om.Len()) {
 		i := om.Len() - 1
-		for entry := om.Back(); entry != nil; entry = entry.Prev() {
-			assert.Equal(t, expectedKeys[i], entry.key)
-			assert.Equal(t, expectedValues[i], entry.Value)
+		for item := om.Back(); item != nil; item = item.Prev() {
+			assert.Equal(t, expectedKeys[i], item.key)
+			assert.Equal(t, expectedValues[i], item.Value)
 			i--
 		}
 	}
@@ -287,9 +297,9 @@ func assertOrderedPairsEqualFromNewest(t *testing.T, om *OrderedMap, expectedKey
 func assertOrderedPairsEqualFromOldest(t *testing.T, om *OrderedMap, expectedKeys, expectedValues []interface{}) {
 	if assert.Equal(t, len(expectedKeys), len(expectedValues)) && assert.Equal(t, len(expectedKeys), om.Len()) {
 		i := om.Len() - 1
-		for entry := om.Back(); entry != nil; entry = entry.Prev() {
-			assert.Equal(t, expectedKeys[i], entry.key)
-			assert.Equal(t, expectedValues[i], entry.Value)
+		for item := om.Back(); item != nil; item = item.Prev() {
+			assert.Equal(t, expectedKeys[i], item.key)
+			assert.Equal(t, expectedValues[i], item.Value)
 			i--
 		}
 	}
@@ -413,7 +423,7 @@ func TestOrderedMapUnmarshalFromInvalid(t *testing.T) {
 		t.Fatal("Unmarshal OrderedMap: expecting error:", b, err)
 	}
 	// fmt.Println(om, b, err)
-	om.Remove("m")
+	om.Delete("m")
 
 	err = json.Unmarshal([]byte("[]"), om)
 	if err == nil {
@@ -527,7 +537,7 @@ func TestOrderedMapUnmarshal(t *testing.T) {
 		t.Fatalf("Unmarshal OrderedMap not deeply equal: %#v %#v", om, obj)
 	}
 
-	val, ok := om.Remove("org")
+	val, ok := om.Delete("org")
 	if !ok {
 		t.Fatalf("org should exist")
 	}

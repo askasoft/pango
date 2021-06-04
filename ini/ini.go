@@ -121,7 +121,7 @@ func (ini *Ini) RemoveSection(name string) *Section {
 		return sec.(*Section)
 	}
 
-	sec, _ := ini.sections.Remove(name)
+	sec, _ := ini.sections.Delete(name)
 	if sec == nil {
 		return nil
 	}

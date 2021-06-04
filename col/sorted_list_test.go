@@ -102,12 +102,19 @@ func TestSortedListContains(t *testing.T) {
 func TestSetSearch(t *testing.T) {
 	sl := NewSortedList(LessInt, 1, 11)
 
-	n111 := sl.Add(111)
-
-	n := 1 + 10 + 100
+	n := 10 + 1
 	sn, se := sl.Search(n)
-	if n111 != se || sn != 2 {
+	if se == nil || sn != 1 {
 		t.Errorf("SortedList [%v] should contains %v", sl, n)
+	}
+
+	n = 1 + 10 + 100
+	for i := 0; i < 100; i++ {
+		n111 := sl.Add(111)
+		sn, se = sl.Search(n)
+		if se != n111 || sn != 2 {
+			t.Errorf("SortedList [%v] should contains %v", sl, n)
+		}
 	}
 
 	n++
@@ -115,6 +122,38 @@ func TestSetSearch(t *testing.T) {
 	if se != nil || sn != -1 {
 		t.Errorf("SortedList [%v] should not contains %v", sl, n)
 	}
+}
+
+func TestSortedListDelete(t *testing.T) {
+	sl := NewSortedList(LessInt)
+
+	for i := 0; i < 100; i++ {
+		sl.Add(i)
+	}
+
+	assert.False(t, sl.Delete(100))
+	for i := 0; i < 100; i++ {
+		assert.True(t, sl.Delete(i))
+	}
+	assert.True(t, sl.IsEmpty())
+}
+
+func TestSortedListDeleteAll(t *testing.T) {
+	sl := NewSortedList(LessInt)
+
+	for i := 0; i < 100; i++ {
+		z := i % 10
+		for j := 0; j < z; j++ {
+			sl.Add(i)
+		}
+	}
+
+	assert.Equal(t, 0, sl.DeleteAll(100))
+	for i := 0; i < 100; i++ {
+		z := i % 10
+		assert.Equal(t, z, sl.DeleteAll(i), i)
+	}
+	assert.True(t, sl.IsEmpty())
 }
 
 func TestSortedListString(t *testing.T) {

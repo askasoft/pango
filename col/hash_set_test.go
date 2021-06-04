@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSetSimple(t *testing.T) {
-	s := NewSet()
+func TestHashSetSimple(t *testing.T) {
+	s := NewHashSet()
 
 	s.Add(5)
 
@@ -24,7 +24,7 @@ func TestSetSimple(t *testing.T) {
 		t.Errorf("Membership test failed")
 	}
 
-	s.Remove(5)
+	s.Delete(5)
 
 	if s.Len() != 0 {
 		t.Errorf("Length should be 0")
@@ -35,9 +35,9 @@ func TestSetSimple(t *testing.T) {
 	}
 }
 
-func TestSetContainsSet(t *testing.T) {
-	s1 := NewSet()
-	s2 := NewSet()
+func TestHashSetContainsSet(t *testing.T) {
+	s1 := NewHashSet()
+	s2 := NewHashSet()
 
 	if !s1.ContainsSet(s1) {
 		t.Errorf("set should be a subset of itself")
@@ -68,10 +68,10 @@ func TestSetContainsSet(t *testing.T) {
 	}
 }
 
-func TestSetDifference(t *testing.T) {
+func TestHashSetDifference(t *testing.T) {
 	// Difference
-	s1 := NewSet(1, 2, 3, 4, 5, 6)
-	s2 := NewSet(4, 5, 6)
+	s1 := NewHashSet(1, 2, 3, 4, 5, 6)
+	s2 := NewHashSet(4, 5, 6)
 	s3 := s1.Difference(s2)
 
 	if s3.Len() != 3 {
@@ -83,9 +83,9 @@ func TestSetDifference(t *testing.T) {
 	}
 }
 
-func TestSetIntersection(t *testing.T) {
-	s1 := NewSet(1, 2, 3, 4, 5, 6)
-	s2 := NewSet(4, 5, 6)
+func TestHashSetIntersection(t *testing.T) {
+	s1 := NewHashSet(1, 2, 3, 4, 5, 6)
+	s2 := NewHashSet(4, 5, 6)
 
 	// Intersection
 	s3 := s1.Intersection(s2)
@@ -98,10 +98,10 @@ func TestSetIntersection(t *testing.T) {
 	}
 }
 
-func TestSetAddSet(t *testing.T) {
+func TestHashSetAddSet(t *testing.T) {
 	// AddSet
-	s1 := NewSet(4, 5, 6)
-	s2 := NewSet(7, 8, 9)
+	s1 := NewHashSet(4, 5, 6)
+	s2 := NewHashSet(7, 8, 9)
 	s1.AddSet(s2)
 
 	if s1.Len() != 6 {
@@ -122,19 +122,19 @@ func sortSetJSON(s string) string {
 	return str.Join(a, ",")
 }
 
-func TestSetMarshalJSON(t *testing.T) {
+func TestHashSetMarshalJSON(t *testing.T) {
 	type Case struct {
-		set  *Set
+		hset *HashSet
 		json string
 	}
 
 	cs := []Case{
-		{NewSet(0, 1, "0", "1", 0.1, 1.2, true, false, "0", "1"), `[0,1,"0","1",0.1,1.2,true,false]`},
-		//TODO		{NewSet(0, "1", 2.0, 0, "1", 2.0, []int{1, 2}, map[int]int{1: 10, 2: 20}), `[0,"1",2,[1,2],{"1":10,"2":20}]`},
+		{NewHashSet(0, 1, "0", "1", 0.1, 1.2, true, false, "0", "1"), `[0,1,"0","1",0.1,1.2,true,false]`},
+		//TODO		{NewHashSet(0, "1", 2.0, 0, "1", 2.0, []int{1, 2}, map[int]int{1: 10, 2: 20}), `[0,"1",2,[1,2],{"1":10,"2":20}]`},
 	}
 
 	for i, c := range cs {
-		bs, err := json.Marshal(c.set)
+		bs, err := json.Marshal(c.hset)
 		assert.Nil(t, err)
 		act := sortSetJSON(string(bs))
 		exp := sortSetJSON(c.json)
@@ -142,23 +142,23 @@ func TestSetMarshalJSON(t *testing.T) {
 	}
 }
 
-func TestSetUnmarshalJSON(t *testing.T) {
+func TestHashSetUnmarshalJSON(t *testing.T) {
 	type Case struct {
 		json string
-		set  *Set
+		hset *HashSet
 	}
 
 	cs := []Case{
-		{`["0","1",0,1,true,false]`, NewSet("0", "1", 0.0, 1.0, true, false)},
+		{`["0","1",0,1,true,false]`, NewHashSet("0", "1", 0.0, 1.0, true, false)},
 		//TODO		{`["1",2,[1,2],{"1":10,"2":20}]`, NewList("1", 2.0, NewList(1.0, 2.0), map[string]interface{}{"1": 10.0, "2": 20.0})},
 	}
 
 	for i, c := range cs {
-		a := NewSet()
+		a := NewHashSet()
 		err := json.Unmarshal([]byte(c.json), a)
 		assert.Nil(t, err)
-		if !reflect.DeepEqual(a, c.set) {
-			t.Fatalf("Unmarshal List [%d] not deeply equal: %#v expected %#v", i, a, c.set)
+		if !reflect.DeepEqual(a, c.hset) {
+			t.Fatalf("Unmarshal List [%d] not deeply equal: %#v expected %#v", i, a, c.hset)
 		}
 	}
 }

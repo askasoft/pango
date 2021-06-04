@@ -1,36 +1,6 @@
 package col
 
-// LessString string less function
-func LessString(a interface{}, b interface{}) bool {
-	return a.(string) < b.(string)
-}
-
-// LessInt int less function
-func LessInt(a interface{}, b interface{}) bool {
-	return a.(int) < b.(int)
-}
-
-// LessInt32 int32 less function
-func LessInt32(a interface{}, b interface{}) bool {
-	return a.(int32) < b.(int32)
-}
-
-// LessInt64 int64 less function
-func LessInt64(a interface{}, b interface{}) bool {
-	return a.(int64) < b.(int64)
-}
-
-// LessFloat32 float32 less function
-func LessFloat32(a interface{}, b interface{}) bool {
-	return a.(float32) < b.(float32)
-}
-
-// LessFloat64 float64 less function
-func LessFloat64(a interface{}, b interface{}) bool {
-	return a.(float64) < b.(float64)
-}
-
-// SortedList implements an sorted entry list.
+// SortedList implements an sorted list.
 type SortedList struct {
 	list *List
 	less func(a, b interface{}) bool
@@ -46,7 +16,7 @@ func NewSortedList(less func(a, b interface{}) bool, vs ...interface{}) *SortedL
 	return sl
 }
 
-// Len returns the number of entries of list l.
+// Len returns the length of the list.
 // The complexity is O(1).
 func (sl *SortedList) Len() int {
 	return sl.list.Len()
@@ -57,55 +27,55 @@ func (sl *SortedList) IsEmpty() bool {
 	return sl.list.IsEmpty()
 }
 
-// At returns the entry at the specified index
-func (sl *SortedList) At(i int) *ListEntry {
-	return sl.list.At(i)
+// Item returns the item at the specified index
+func (sl *SortedList) Item(i int) *ListItem {
+	return sl.list.Item(i)
 }
 
-// Front returns the first entry of list l or nil if the list is empty.
-func (sl *SortedList) Front() *ListEntry {
+// Front returns the first item of list l or nil if the list is empty.
+func (sl *SortedList) Front() *ListItem {
 	return sl.list.Front()
 }
 
-// Back returns the last entry of list l or nil if the list is empty.
-func (sl *SortedList) Back() *ListEntry {
+// Back returns the last item of list l or nil if the list is empty.
+func (sl *SortedList) Back() *ListItem {
 	return sl.list.Back()
 }
 
 // Contains Test to see whether or not the v is in the list
 func (sl *SortedList) Contains(v interface{}) bool {
-	_, e := sl.Search(v)
-	return e != nil
+	_, li := sl.Search(v)
+	return li != nil
 }
 
 // Search binary search v
-// returns index, entry if it's value is v
-// if not found, returns -1, nil
-func (sl *SortedList) Search(v interface{}) (int, *ListEntry) {
-	n, e := sl.binarySearch(v)
-	if e != nil && e.Value == v {
-		return n, e
+// returns (index, item) if it's value is v
+// if not found, returns (-1, nil)
+func (sl *SortedList) Search(v interface{}) (int, *ListItem) {
+	n, li := sl.binarySearch(v)
+	if li != nil && li.Value == v {
+		return n, li
 	}
 
 	return -1, nil
 }
 
 // binarySearch binary search v
-// returns index, entry if it's value is >= v
-// if not found, returns -1, nil
-func (sl *SortedList) binarySearch(v interface{}) (int, *ListEntry) {
+// returns (index, item) if it's value is >= v
+// if not found, returns (-1, nil)
+func (sl *SortedList) binarySearch(v interface{}) (int, *ListItem) {
 	if sl.IsEmpty() {
 		return -1, nil
 	}
 
-	e := sl.Front()
+	li := sl.Front()
 	p, i, j := 0, 0, sl.Len()
-	for i < j && e != nil {
+	for i < j && li != nil {
 		h := int(uint(i+j) >> 1) // avoid overflow when computing h
-		e = e.Move(h - p)
+		li = li.Offset(h - p)
 		p = h
 		// i ≤ h < j
-		if sl.less(e.Value, v) {
+		if sl.less(li.Value, v) {
 			i = h + 1
 		} else {
 			j = h
@@ -113,32 +83,24 @@ func (sl *SortedList) binarySearch(v interface{}) (int, *ListEntry) {
 	}
 
 	if i < sl.Len() {
-		e = e.Move(i - p)
-		return i, e
+		li = li.Offset(i - p)
+		return i, li
 	}
 	return -1, nil
 }
 
-// Add inserts a new entry e with value v and returns e.
-func (sl *SortedList) Add(v interface{}) *ListEntry {
+// Add inserts a new item li with value v and returns li.
+func (sl *SortedList) Add(v interface{}) *ListItem {
 	if sl.IsEmpty() {
 		return sl.list.PushBack(v)
 	}
 
-	_, e := sl.binarySearch(v)
-	if e != nil {
-		return sl.list.InsertBefore(v, e)
+	_, li := sl.binarySearch(v)
+	if li != nil {
+		return sl.list.InsertBefore(v, li)
 	}
 
 	return sl.list.PushBack(v)
-}
-
-// AddList adds a copy of another list.
-// The lists l and other may be the same. They must not be nil.
-func (sl *SortedList) AddList(other *List) {
-	for e := other.Front(); e != nil; e = e.Next() {
-		sl.Add(e.Value)
-	}
 }
 
 // AddAll adds all items of vs.
@@ -148,9 +110,46 @@ func (sl *SortedList) AddAll(vs ...interface{}) {
 	}
 }
 
-// Remove The entry must not be nil.
-func (sl *SortedList) Remove(e *ListEntry) interface{} {
-	return sl.list.Remove(e)
+// AddList adds a copy of another list.
+// The lists l and other may be the same. They must not be nil.
+func (sl *SortedList) AddList(other *List) {
+	for li := other.Front(); li != nil; li = li.Next() {
+		sl.Add(li.Value)
+	}
+}
+
+// Delete delete the first item with associated value v
+// returns true if v is in the list
+// returns false if the the list is not changed
+func (sl *SortedList) Delete(v interface{}) bool {
+	_, li := sl.Search(v)
+	if li != nil {
+		sl.list.remove(li)
+		return true
+	}
+
+	return false
+}
+
+// DeleteAll delete all items with associated value v
+// returns the deleted count
+func (sl *SortedList) DeleteAll(v interface{}) int {
+	n := 0
+
+	_, li := sl.binarySearch(v)
+	for li != nil && li.Value == v {
+		ni := li.Next()
+		sl.list.remove(li)
+		n++
+		li = ni
+	}
+
+	return n
+}
+
+// Remove The item must not be nil.
+func (sl *SortedList) Remove(li *ListItem) {
+	sl.list.Remove(li)
 }
 
 // Values returns a slice contains all the items of the list l
@@ -174,10 +173,6 @@ func (sl *SortedList) String() string {
 }
 
 /*------------- JSON -----------------*/
-
-func newJSONArrayAsSortedList() jsonArray {
-	return NewSet()
-}
 
 func (sl *SortedList) addJSONArrayItem(v interface{}) jsonArray {
 	sl.Add(v)

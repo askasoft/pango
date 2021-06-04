@@ -5,41 +5,18 @@ import (
 	"fmt"
 )
 
-// OrderedMapEntry key/value entry
-type OrderedMapEntry struct {
-	MapEntry
-	entry *ListEntry
-}
-
-// Next returns a pointer to the next entry.
-func (e *OrderedMapEntry) Next() *OrderedMapEntry {
-	return toOrderedMapEntry(e.entry.Next())
-}
-
-// Prev returns a pointer to the previous entry.
-func (e *OrderedMapEntry) Prev() *OrderedMapEntry {
-	return toOrderedMapEntry(e.entry.Prev())
-}
-
-func toOrderedMapEntry(le *ListEntry) *OrderedMapEntry {
-	if le == nil {
-		return nil
-	}
-	return le.Value.(*OrderedMapEntry)
-}
-
 // OrderedMap implements an ordered map that keeps track of the order in which keys were inserted.
 type OrderedMap struct {
-	entries map[interface{}]*OrderedMapEntry
-	list    *List
+	hash map[interface{}]*OrderedMapItem
+	list *List
 }
 
 // NewOrderedMap creates a new OrderedMap.
 // Example: NewOrderedMap("k1", "v1", "k2", "v2")
 func NewOrderedMap(kvs ...interface{}) *OrderedMap {
 	om := &OrderedMap{
-		entries: make(map[interface{}]*OrderedMapEntry),
-		list:    NewList(),
+		hash: make(map[interface{}]*OrderedMapItem),
+		list: NewList(),
 	}
 	for i := 0; i+1 < len(kvs); i += 2 {
 		om.Set(kvs[i], kvs[i+1])
@@ -47,100 +24,115 @@ func NewOrderedMap(kvs ...interface{}) *OrderedMap {
 	return om
 }
 
-// GetEntry looks for the given key, and returns the entry associated with it,
-// or nil if not found. The OrderedMapEntry struct can then be used to iterate over the ordered map
+// Len returns the length of the ordered map.
+func (om *OrderedMap) Len() int {
+	return len(om.hash)
+}
+
+// IsEmpty returns true if the map has no items
+func (om *OrderedMap) IsEmpty() bool {
+	return len(om.hash) == 0
+}
+
+// Item looks for the given key, and returns the item associated with it,
+// or nil if not found. The OrderedMapItem struct can then be used to iterate over the ordered map
 // from that point, either forward or backward.
-func (om *OrderedMap) GetEntry(key interface{}) *OrderedMapEntry {
-	return om.entries[key]
+func (om *OrderedMap) Item(key interface{}) *OrderedMapItem {
+	return om.hash[key]
 }
 
 // Has looks for the given key, and returns true if the key exists in the map.
 func (om *OrderedMap) Has(key interface{}) bool {
-	_, ok := om.entries[key]
+	_, ok := om.hash[key]
 	return ok
 }
 
 // Get looks for the given key, and returns the value associated with it,
 // or nil if not found. The boolean it returns says whether the key is ok in the map.
 func (om *OrderedMap) Get(key interface{}) (interface{}, bool) {
-	if me, ok := om.entries[key]; ok {
-		return me.Value, ok
+	if mi, ok := om.hash[key]; ok {
+		return mi.Value, ok
 	}
 	return nil, false
 }
 
-// Set sets the key-value entry, and returns what `Get` would have returned
+func (om *OrderedMap) put(key interface{}, value interface{}) {
+	mi := &OrderedMapItem{}
+	mi.key = key
+	mi.Value = value
+	mi.item = om.list.PushBack(mi)
+	om.hash[key] = mi
+}
+
+// Set sets the key-value item, and returns what `Get` would have returned
 // on that key prior to the call to `Set`.
 func (om *OrderedMap) Set(key interface{}, value interface{}) (interface{}, bool) {
-	if me, ok := om.entries[key]; ok {
-		old := me.Value
-		me.Value = value
-		return old, true
+	if mi, ok := om.hash[key]; ok {
+		ov := mi.Value
+		mi.Value = value
+		return ov, true
 	}
 
-	me := &OrderedMapEntry{}
-	me.key = key
-	me.Value = value
-	me.entry = om.list.PushBack(me)
-	om.entries[key] = me
-
+	om.put(key, value)
 	return nil, false
 }
 
-// Copy copy entries from another map am, override the existing entries
+// SetIfAbsent sets the key-value item if the key does not exists in the map,
+// and returns what `Get` would have returned
+// on that key prior to the call to `Set`.
+func (om *OrderedMap) SetIfAbsent(key interface{}, value interface{}) (interface{}, bool) {
+	if mi, ok := om.hash[key]; ok {
+		return mi.Value, true
+	}
+
+	om.put(key, value)
+	return nil, false
+}
+
+// Copy copy items from another map am, override the existing items
 func (om *OrderedMap) Copy(am *OrderedMap) {
-	for e := am.Front(); e != nil; e = e.Next() {
-		om.Set(e.key, e.Value)
+	for mi := am.Front(); mi != nil; mi = mi.Next() {
+		om.Set(mi.key, mi.Value)
 	}
 }
 
-// Remove removes the key-value entry, and returns what `Get` would have returned
-// on that key prior to the call to `Remove`.
-func (om *OrderedMap) Remove(key interface{}) (interface{}, bool) {
-	if me, ok := om.entries[key]; ok {
-		om.list.Remove(me.entry)
-		delete(om.entries, key)
-		return me.Value, true
+// Delete delete the item with key, and returns what `Get` would have returned
+// on that key prior to the call to `Delete`.
+func (om *OrderedMap) Delete(key interface{}) (interface{}, bool) {
+	if mi, ok := om.hash[key]; ok {
+		om.list.Remove(mi.item)
+		delete(om.hash, key)
+		return mi.Value, true
 	}
 
 	return nil, false
-}
-
-// Len returns the length of the ordered map.
-func (om *OrderedMap) Len() int {
-	return len(om.entries)
-}
-
-// IsEmpty returns true if the map has no entries
-func (om *OrderedMap) IsEmpty() bool {
-	return len(om.entries) == 0
 }
 
 // Clear clears the map
 func (om *OrderedMap) Clear() {
-	om.entries = make(map[interface{}]*OrderedMapEntry)
+	om.hash = make(map[interface{}]*OrderedMapItem)
 	om.list.Clear()
 }
 
-// Front returns a pointer to the oldest entry. It's meant to be used to iterate on the ordered map's
-// entries from the oldest to the newest, e.g.:
-// for entry := orderedMap.Front(); entry != nil; entry = entry.Next() { fmt.Printf("%v => %v\n", entry.Key(), entry.Value()) }
-func (om *OrderedMap) Front() *OrderedMapEntry {
-	return toOrderedMapEntry(om.list.Front())
+// Front returns a pointer to the oldest item. It's meant to be used to iterate on the ordered map's
+// items from the oldest to the newest, e.g.:
+// for item := orderedMap.Front(); item != nil; item = item.Next() { fmt.Printf("%v => %v\n", item.Key(), item.Value()) }
+func (om *OrderedMap) Front() *OrderedMapItem {
+	return toOrderedMapItem(om.list.Front())
 }
 
-// Back returns a pointer to the newest entry. It's meant to be used to iterate on the ordered map's
-// entries from the newest to the oldest, e.g.:
-// for entry := orderedMap.Back(); entry != nil; entry = entry.Prev() { fmt.Printf("%v => %v\n", entry.Key(), entry.Value()) }
-func (om *OrderedMap) Back() *OrderedMapEntry {
-	return toOrderedMapEntry(om.list.Back())
+// Back returns a pointer to the newest item. It's meant to be used to iterate on the ordered map's
+// items from the newest to the oldest, e.g.:
+// for item := orderedMap.Back(); item != nil; item = item.Prev() { fmt.Printf("%v => %v\n", item.Key(), item.Value()) }
+func (om *OrderedMap) Back() *OrderedMapItem {
+	return toOrderedMapItem(om.list.Back())
 }
 
 // Keys returns the key slice
 func (om *OrderedMap) Keys() []interface{} {
 	ks := make([]interface{}, 0, om.Len())
-	for me := om.Front(); me != nil; me = me.Next() {
-		ks = append(ks, me.Key())
+	for mi := om.Front(); mi != nil; mi = mi.Next() {
+		ks = append(ks, mi.Key())
 	}
 	return ks
 }
@@ -148,32 +140,32 @@ func (om *OrderedMap) Keys() []interface{} {
 // Values returns the value slice
 func (om *OrderedMap) Values() []interface{} {
 	vs := make([]interface{}, 0, om.Len())
-	for me := om.Front(); me != nil; me = me.Next() {
-		vs = append(vs, me.Value)
+	for mi := om.Front(); mi != nil; mi = mi.Next() {
+		vs = append(vs, mi.Value)
 	}
 	return vs
 }
 
-// Entries returns the mep entry slice
-func (om *OrderedMap) Entries() []*OrderedMapEntry {
-	vs := make([]*OrderedMapEntry, 0, om.Len())
-	for me := om.Front(); me != nil; me = me.Next() {
-		vs = append(vs, me)
+// Items returns the mep item slice
+func (om *OrderedMap) Items() []*OrderedMapItem {
+	vs := make([]*OrderedMapItem, 0, om.Len())
+	for mi := om.Front(); mi != nil; mi = mi.Next() {
+		vs = append(vs, mi)
 	}
 	return vs
 }
 
 // Each Call f for each item in the map
-func (om *OrderedMap) Each(f func(*OrderedMapEntry)) {
-	for me := om.Front(); me != nil; me = me.Next() {
-		f(me)
+func (om *OrderedMap) Each(f func(*OrderedMapItem)) {
+	for mi := om.Front(); mi != nil; mi = mi.Next() {
+		f(mi)
 	}
 }
 
 // ReverseEach Call f for each item in the map with reverse order
-func (om *OrderedMap) ReverseEach(f func(*OrderedMapEntry)) {
-	for me := om.Back(); me != nil; me = me.Prev() {
-		f(me)
+func (om *OrderedMap) ReverseEach(f func(*OrderedMapItem)) {
+	for mi := om.Back(); mi != nil; mi = mi.Prev() {
+		f(mi)
 	}
 }
 
@@ -200,16 +192,16 @@ func (om *OrderedMap) MarshalJSON() (res []byte, err error) {
 	}
 
 	res = append(res, '{')
-	for me := om.Front(); me != nil; me = me.Next() {
-		k, ok := me.key.(string)
+	for mi := om.Front(); mi != nil; mi = mi.Next() {
+		k, ok := mi.key.(string)
 		if !ok {
-			err = fmt.Errorf("expecting JSON key should be always a string: %T: %v", me.key, me.key)
+			err = fmt.Errorf("expecting JSON key should be always a string: %T: %v", mi.key, mi.key)
 			return
 		}
 
 		res = append(res, fmt.Sprintf("%q:", k)...)
 		var b []byte
-		b, err = json.Marshal(me.Value)
+		b, err = json.Marshal(mi.Value)
 		if err != nil {
 			return
 		}

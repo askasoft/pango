@@ -120,7 +120,6 @@ func TestJapanConvert(t *testing.T) {
 			assert.Equal(t, zen.String(), ToZenkaku(s), "z:"+s)
 		}
 	}
-
 }
 
 func TestConvertDaku(t *testing.T) {

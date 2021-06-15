@@ -69,7 +69,7 @@ func testPrint(t *testing.T, name, zens, hans string, fz2h func(c rune) rune, fh
 			h2z := fh2z(h)
 			assert.Equal(t, h, z2h, string(h)+" <> "+string(z2h))
 			sz := specialZ(z)
-			assert.Equal(t, sz, h2z, string(z)+" <> "+string(h2z))
+			assert.Equal(t, sz, h2z, string(sz)+" <> "+string(h2z))
 		}
 		fmt.Printf("'\\u%04X': '\\u%04X', // %s => %s\n", z, h, string(z), string(h))
 	}

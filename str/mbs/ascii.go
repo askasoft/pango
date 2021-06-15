@@ -114,7 +114,7 @@ var (
 		'\u301C': '\u007E', // 〜 => ~
 	}
 
-	// m2s single-byte rune to multi-byte rune
+	// s2m single-byte rune to multi-byte rune
 	s2m = initS2M()
 )
 

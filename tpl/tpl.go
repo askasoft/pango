@@ -2,7 +2,8 @@ package tpl
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io/fs"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -22,12 +23,15 @@ type Delims struct {
 	Right string
 }
 
-// FileHandler file handler function to load file content
-type FileHandler func(path string) (text string, err error)
+// readFile read file content to string
+func readFile(fsys fs.FS, path string) (text string, err error) {
+	var data []byte
+	if fsys == nil {
+		data, err = os.ReadFile(path)
+	} else {
+		data, err = fs.ReadFile(fsys, path)
+	}
 
-// DefaultFileHandler new default file handler
-func DefaultFileHandler(path string) (string, error) {
-	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		return "", fmt.Errorf("Failed to read template %v, error: %v", path, err)
 	}

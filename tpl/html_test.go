@@ -1,6 +1,7 @@
 package tpl
 
 import (
+	"embed"
 	"fmt"
 	"strings"
 	"testing"
@@ -9,12 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestLoadHTML(t *testing.T) {
-	ht := NewHTMLTemplate()
-	root := "testdata"
-
-	assert.Nil(t, ht.Load(root))
-
+func htmlTestLoad(t *testing.T, ht *HTMLTemplate) {
 	sb := &strings.Builder{}
 
 	ctx := map[string]interface{}{
@@ -35,4 +31,25 @@ func TestLoadHTML(t *testing.T) {
 	assert.Nil(t, ht.Render(sb, "admin/admin", ctx))
 	fmt.Println(strings.Repeat("-", 60))
 	fmt.Println(sb.String())
+}
+
+func TestLoadHTML(t *testing.T) {
+	ht := NewHTMLTemplate()
+	root := "testdata"
+
+	assert.Nil(t, ht.Load(root))
+
+	htmlTestLoad(t, ht)
+}
+
+//go:embed testdata
+var testdata embed.FS
+
+func TestFSLoadHTML(t *testing.T) {
+	ht := NewHTMLTemplate()
+	root := "testdata"
+
+	assert.Nil(t, ht.LoadFS(testdata, root))
+
+	htmlTestLoad(t, ht)
 }

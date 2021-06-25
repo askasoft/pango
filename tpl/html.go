@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 )
 
 // HTMLTemplate html template engine
 type HTMLTemplate struct {
-	Extension   string      // template extension
-	Funcs       FuncMap     // template functions
-	Delims      Delims      // delimeters
-	FileHandler FileHandler // file handler
+	Extension string  // template extension
+	Funcs     FuncMap // template functions
+	Delims    Delims  // delimeters
 
 	template *template.Template
 }
@@ -21,10 +21,9 @@ type HTMLTemplate struct {
 // NewHTMLTemplate new template engine
 func NewHTMLTemplate() *HTMLTemplate {
 	return &HTMLTemplate{
-		Extension:   ".html",
-		Delims:      Delims{Left: "{{", Right: "}}"},
-		FileHandler: DefaultFileHandler,
-		template:    template.New(""),
+		Extension: ".html",
+		Delims:    Delims{Left: "{{", Right: "}}"},
+		template:  template.New(""),
 	}
 }
 
@@ -38,23 +37,7 @@ func (ht *HTMLTemplate) Load(root string) error {
 			return nil
 		}
 
-		if filepath.Ext(path) != ht.Extension {
-			return nil
-		}
-
-		text, err := ht.FileHandler(path)
-		if err != nil {
-			return fmt.Errorf("HTMLTemplate load template %q error: %v", path, err)
-		}
-
-		path = toTemplateName(root, path, ht.Extension)
-
-		t2 := tpl.New(path)
-		_, err = t2.Parse(text)
-		if err != nil {
-			return fmt.Errorf("HTMLTemplate parse template %q error: %v", path, err)
-		}
-		return nil
+		return ht.loadFile(tpl, nil, root, path)
 	})
 
 	if err != nil {
@@ -62,6 +45,48 @@ func (ht *HTMLTemplate) Load(root string) error {
 	}
 
 	ht.template = tpl
+	return nil
+}
+
+// LoadFS glob and parse template files from FS
+func (ht *HTMLTemplate) LoadFS(fsys fs.FS, root string) error {
+	tpl := template.New("")
+	tpl.Funcs(template.FuncMap(ht.Funcs))
+
+	err := fs.WalkDir(fsys, root, func(path string, d fs.DirEntry, err error) error {
+		if d.IsDir() {
+			return nil
+		}
+
+		return ht.loadFile(tpl, fsys, root, path)
+	})
+
+	if err != nil {
+		return err
+	}
+
+	ht.template = tpl
+	return nil
+}
+
+// loadFile load template file
+func (ht *HTMLTemplate) loadFile(tpl *template.Template, fsys fs.FS, root, path string) error {
+	if filepath.Ext(path) != ht.Extension {
+		return nil
+	}
+
+	text, err := readFile(fsys, path)
+	if err != nil {
+		return fmt.Errorf("HTMLTemplate load template %q error: %v", path, err)
+	}
+
+	path = toTemplateName(root, path, ht.Extension)
+
+	tpl = tpl.New(path)
+	_, err = tpl.Parse(text)
+	if err != nil {
+		return fmt.Errorf("HTMLTemplate parse template %q error: %v", path, err)
+	}
 	return nil
 }
 

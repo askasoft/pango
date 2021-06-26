@@ -25,7 +25,7 @@ func getCacheControlWriter(c *gin.Context, cacheControl string) http.ResponseWri
 
 // Static serves files from the given file system root.
 func Static(g *gin.RouterGroup, relativePath, localPath, cacheControl string) {
-	StaticFS(g, relativePath, http.Dir(localPath), cacheControl)
+	StaticFS(g, relativePath, "", http.Dir(localPath), cacheControl)
 }
 
 // StaticFile registers a single route in order to serve a single file of the local filesystem.
@@ -44,14 +44,20 @@ func StaticFile(g *gin.RouterGroup, relativePath, localPath, cacheControl string
 }
 
 // StaticFS works just like `Static()` but a custom `http.FileSystem` can be used instead.
-// Gin by default user: gin.Dir()
-func StaticFS(g *gin.RouterGroup, relativePath string, hfs http.FileSystem, cacheControl string) {
+func StaticFS(g *gin.RouterGroup, relativePath string, localPath string, hfs http.FileSystem, cacheControl string) {
 	if strings.Contains(relativePath, ":") || strings.Contains(relativePath, "*") {
 		panic("URL parameters can not be used when serving a static folder")
 	}
 
 	prefix := path.Join(g.BasePath(), relativePath)
-	fileServer := http.StripPrefix(prefix, http.FileServer(hfs))
+	fileServer := http.FileServer(hfs)
+	if prefix == "" || prefix == "/" {
+		fileServer = httpx.AppendPrefix(localPath, fileServer)
+	} else if localPath == "" || localPath == "." {
+		fileServer = http.StripPrefix(prefix, fileServer)
+	} else {
+		fileServer = httpx.URLReplace(prefix, localPath, fileServer)
+	}
 
 	handler := func(c *gin.Context) {
 		ccw := getCacheControlWriter(c, cacheControl)
@@ -88,7 +94,7 @@ func StaticFSFile(g *gin.RouterGroup, relativePath, filePath string, hfs http.Fi
 }
 
 // StaticContent registers a single route in order to serve a single file of the data.
-// go:embed favicon.ico
+// //go:embed favicon.ico
 // var favicon []byte
 // ginfile.StaticContent(gin, "favicon.ico", favicon, "public")
 func StaticContent(g *gin.RouterGroup, relativePath string, data []byte, cacheControl string) {

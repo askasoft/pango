@@ -96,19 +96,21 @@ func StaticFSFile(g *gin.RouterGroup, relativePath, filePath string, hfs http.Fi
 // StaticContent registers a single route in order to serve a single file of the data.
 // //go:embed favicon.ico
 // var favicon []byte
-// ginfile.StaticContent(gin, "favicon.ico", favicon, "public")
-func StaticContent(g *gin.RouterGroup, relativePath string, data []byte, cacheControl string) {
+// ginfile.StaticContent(gin, "favicon.ico", favicon, time.Now(), "public")
+func StaticContent(g *gin.RouterGroup, relativePath string, data []byte, modtime time.Time, cacheControl string) {
 	if strings.Contains(relativePath, ":") || strings.Contains(relativePath, "*") {
 		panic("URL parameters can not be used when serving a static file")
 	}
 
-	t := time.Time{}
+	if modtime.IsZero() {
+		modtime = time.Now()
+	}
 	handler := func(c *gin.Context) {
 		if cacheControl != "" {
 			c.Header("Cache-Control", cacheControl)
 		}
 		name := filepath.Base(c.Request.URL.Path)
-		http.ServeContent(c.Writer, c.Request, name, t, bytes.NewReader(data))
+		http.ServeContent(c.Writer, c.Request, name, modtime, bytes.NewReader(data))
 	}
 	g.GET(relativePath, handler)
 	g.HEAD(relativePath, handler)

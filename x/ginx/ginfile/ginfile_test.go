@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -95,6 +96,6 @@ func TestStaticFSFile(t *testing.T) {
 
 func TestStaticContent(t *testing.T) {
 	r := gin.Default()
-	StaticContent(&r.RouterGroup, "/d1/d1f1.txt", d1f1, "no-store")
+	StaticContent(&r.RouterGroup, "/d1/d1f1.txt", d1f1, time.Now(), "no-store")
 	testGetFile(t, r, "/d1/d1f1.txt", "no-store")
 }

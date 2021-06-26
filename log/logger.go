@@ -7,17 +7,15 @@ import (
 // Logger logger interface
 type Logger interface {
 	GetName() string
+	GetLevel() Level
+	GetTraceLevel() Level
+	GetFormatter() Formatter
 	GetCallerDepth() int
 	SetCallerDepth(d int)
-	GetLevel() Level
-	SetLevel(l Level)
-	GetTraceLevel() Level
-	SetTraceLevel(l Level)
 	GetProp(k string) interface{}
 	SetProp(k string, v interface{})
 	GetProps() map[string]interface{}
 	SetProps(map[string]interface{})
-	GetFormatter() Formatter
 	IsLevelEnabled(lvl Level) bool
 	Log(lvl Level, v ...interface{})
 	Logf(lvl Level, f string, v ...interface{})
@@ -43,11 +41,9 @@ type Logger interface {
 
 // logger logger interface implement
 type logger struct {
-	name  string
-	level Level
-	depth int
-	trace Level
 	log   *Log
+	name  string
+	depth int
 	props map[string]interface{}
 }
 
@@ -68,28 +64,16 @@ func (l *logger) SetCallerDepth(d int) {
 
 // GetLevel return the logger's level
 func (l *logger) GetLevel() Level {
-	if l.level == LevelNone {
+	lvl := l.log.getLoggerLevel(l.name)
+	if lvl == LevelNone {
 		return l.log.GetLevel()
 	}
-	return l.level
-}
-
-// SetLevel set the logger's level
-func (l *logger) SetLevel(lvl Level) {
-	l.level = lvl
+	return lvl
 }
 
 // GetTraceLevel return the logger's trace level
 func (l *logger) GetTraceLevel() Level {
-	if l.trace == LevelNone {
-		return l.log.GetTraceLevel()
-	}
-	return l.trace
-}
-
-// SetTraceLevel set the logger's trace level
-func (l *logger) SetTraceLevel(lvl Level) {
-	l.trace = lvl
+	return l.log.GetTraceLevel()
 }
 
 // GetProp get logger property

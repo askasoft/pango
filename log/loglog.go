@@ -8,7 +8,10 @@ import (
 // Log is default logger in application.
 // it can contain several writers and log message into all writers.
 type Log struct {
-	logger  *logger
+	logger *logger
+	level  Level
+	trace  Level
+
 	async   bool
 	evtChan chan *Event
 	sigChan chan string
@@ -28,9 +31,9 @@ func newLog(depth int) *Log {
 	log := &Log{
 		logger: &logger{
 			depth: depth,
-			level: LevelTrace,
-			trace: LevelError,
 		},
+		level:  LevelTrace,
+		trace:  LevelError,
 		levels: make(map[string]Level),
 	}
 	log.logger.log = log
@@ -42,11 +45,20 @@ func (log *Log) SetLevels(lvls map[string]Level) {
 	log.levels = lvls
 }
 
+// getLoggerLevel get the named logger level
+func (log *Log) getLoggerLevel(name string) Level {
+	level := log.levels[name]
+	if level == LevelNone {
+		level = log.GetLevel()
+	}
+	return level
+}
+
 // GetLogger returns a new Logger with name
 func (log *Log) GetLogger(name string) Logger {
 	return &logger{
-		name:  name,
 		log:   log,
+		name:  name,
 		depth: log.logger.depth,
 	}
 }
@@ -252,22 +264,22 @@ func (log *Log) SetCallerDepth(d int) {
 
 // GetLevel return the logger's level
 func (log *Log) GetLevel() Level {
-	return log.logger.level
+	return log.level
 }
 
 // SetLevel set the logger's level
 func (log *Log) SetLevel(lvl Level) {
-	log.logger.level = lvl
+	log.level = lvl
 }
 
 // GetTraceLevel return the logger's trace level
 func (log *Log) GetTraceLevel() Level {
-	return log.logger.trace
+	return log.trace
 }
 
 // SetTraceLevel set the logger's trace level
 func (log *Log) SetTraceLevel(lvl Level) {
-	log.logger.trace = lvl
+	log.trace = lvl
 }
 
 // GetProp get logger property
@@ -316,7 +328,7 @@ func (log *Log) SetFormatter(lf Formatter) {
 
 // IsLevelEnabled is specified level enabled
 func (log *Log) IsLevelEnabled(lvl Level) bool {
-	return log.logger.level > lvl
+	return log.level > lvl
 }
 
 // Log log a message at specified level.

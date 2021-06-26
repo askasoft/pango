@@ -28,6 +28,12 @@ func assertLogConfig(t *testing.T, log *Log) {
 	assert.Equal(t, LevelDebug, log.levels["sql"])
 	assert.Equal(t, LevelTrace, log.levels["http"])
 
+	lgsql := log.GetLogger("sql")
+	assert.Equal(t, LevelDebug, lgsql.GetLevel())
+
+	lghttp := log.GetLogger("http")
+	assert.Equal(t, LevelTrace, lghttp.GetLevel())
+
 	_, ok := log.GetFormatter().(*TextFormatter)
 	assert.True(t, ok)
 

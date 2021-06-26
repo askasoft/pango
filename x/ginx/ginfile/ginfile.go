@@ -1,18 +1,27 @@
 package ginfile
 
 import (
+	"bytes"
 	"net/http"
-	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/pandafw/pango/net/httpx"
 )
 
 // Public1Year Cache-Control: public, max-age=31536000
 const Public1Year = "public, max-age=31536000"
+
+func getCacheControlWriter(c *gin.Context, cacheControl string) http.ResponseWriter {
+	if cacheControl == "" {
+		return c.Writer
+	}
+	h := map[string]string{"Cache-Control": cacheControl}
+	return httpx.NewHeaderAppender(c.Writer, h)
+}
 
 // Static serves files from the given file system root.
 func Static(g *gin.RouterGroup, relativePath, localPath, cacheControl string) {
@@ -22,8 +31,16 @@ func Static(g *gin.RouterGroup, relativePath, localPath, cacheControl string) {
 // StaticFile registers a single route in order to serve a single file of the local filesystem.
 // ginfile.StaticFSFile(gin, "favicon.ico", "./resources/favicon.ico", "public")
 func StaticFile(g *gin.RouterGroup, relativePath, localPath, cacheControl string) {
-	dir := filepath.Dir(localPath)
-	StaticFSFile(g, relativePath, localPath, http.Dir(dir), cacheControl)
+	if strings.Contains(relativePath, ":") || strings.Contains(relativePath, "*") {
+		panic("URL parameters can not be used when serving a static file")
+	}
+
+	handler := func(c *gin.Context) {
+		ccw := getCacheControlWriter(c, cacheControl)
+		http.ServeFile(ccw, c.Request, localPath)
+	}
+	g.GET(relativePath, handler)
+	g.HEAD(relativePath, handler)
 }
 
 // StaticFS works just like `Static()` but a custom `http.FileSystem` can be used instead.
@@ -37,20 +54,8 @@ func StaticFS(g *gin.RouterGroup, relativePath string, hfs http.FileSystem, cach
 	fileServer := http.StripPrefix(prefix, http.FileServer(hfs))
 
 	handler := func(c *gin.Context) {
-		file := c.Param("path")
-		// Check if file exists and/or if we have permission to access it
-		f, err := hfs.Open(file)
-		if err != nil {
-			msg, code := toHTTPError(err)
-			http.Error(c.Writer, msg, code)
-			return
-		}
-		f.Close()
-
-		if cacheControl != "" {
-			c.Header("Cache-Control", cacheControl)
-		}
-		fileServer.ServeHTTP(c.Writer, c.Request)
+		ccw := getCacheControlWriter(c, cacheControl)
+		fileServer.ServeHTTP(ccw, c.Request)
 	}
 
 	urlPattern := path.Join(relativePath, "/*path")
@@ -66,42 +71,39 @@ func StaticFSFile(g *gin.RouterGroup, relativePath, filePath string, hfs http.Fi
 	if strings.Contains(relativePath, ":") || strings.Contains(relativePath, "*") {
 		panic("URL parameters can not be used when serving a static file")
 	}
+
 	handler := func(c *gin.Context) {
-		name := filepath.Base(relativePath)
-		f, err := hfs.Open(filePath)
-		if err != nil {
-			msg, code := toHTTPError(err)
-			http.Error(c.Writer, msg, code)
-			return
-		}
-		f.Close()
+		defer func(old string) {
+			c.Request.URL.Path = old
+		}(c.Request.URL.Path)
 
-		if cacheControl != "" {
-			c.Header("Cache-Control", cacheControl)
-		}
+		c.Request.URL.Path = filePath
+		ccw := getCacheControlWriter(c, cacheControl)
 
-		t := time.Time{}
-		if fi, err := f.Stat(); err == nil {
-			t = fi.ModTime()
-		}
-		http.ServeContent(c.Writer, c.Request, name, t, f)
+		http.FileServer(hfs).ServeHTTP(ccw, c.Request)
 	}
+
 	g.GET(relativePath, handler)
 	g.HEAD(relativePath, handler)
 }
 
-// toHTTPError returns a non-specific HTTP error message and status code
-// for a given non-nil error value. It's important that toHTTPError does not
-// actually return err.Error(), since msg and httpStatus are returned to users,
-// and historically Go's ServeContent always returned just "404 Not Found" for
-// all errors. We don't want to start leaking information in error messages.
-func toHTTPError(err error) (msg string, httpStatus int) {
-	if os.IsNotExist(err) {
-		return "404 page not found", http.StatusNotFound
+// StaticContent registers a single route in order to serve a single file of the data.
+// go:embed favicon.ico
+// var favicon []byte
+// ginfile.StaticContent(gin, "favicon.ico", favicon, "public")
+func StaticContent(g *gin.RouterGroup, relativePath string, data []byte, cacheControl string) {
+	if strings.Contains(relativePath, ":") || strings.Contains(relativePath, "*") {
+		panic("URL parameters can not be used when serving a static file")
 	}
-	if os.IsPermission(err) {
-		return "403 Forbidden", http.StatusForbidden
+
+	t := time.Time{}
+	handler := func(c *gin.Context) {
+		if cacheControl != "" {
+			c.Header("Cache-Control", cacheControl)
+		}
+		name := filepath.Base(c.Request.URL.Path)
+		http.ServeContent(c.Writer, c.Request, name, t, bytes.NewReader(data))
 	}
-	// Default:
-	return "500 Internal Server Error", http.StatusInternalServerError
+	g.GET(relativePath, handler)
+	g.HEAD(relativePath, handler)
 }

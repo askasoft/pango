@@ -41,28 +41,33 @@ func (d *Dumper) Disable(disabled bool) {
 // Handler returns the gin.HandlerFunc
 func (d *Dumper) Handler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		w := d.outputer
-		if w == nil || d.disabled {
-			c.Next()
-			return
-		}
-
-		// dump request
-		id := dumpRequest(w, c.Request)
-
-		dw := &dumpWriter{c.Writer, &http.Response{
-			Proto:      c.Request.Proto,
-			ProtoMajor: c.Request.ProtoMajor,
-			ProtoMinor: c.Request.ProtoMinor,
-		}, &bytes.Buffer{}}
-		c.Writer = dw
-
-		// process request
-		c.Next()
-
-		// dump response
-		dumpResponse(w, id, dw)
+		d.handle(c)
 	}
+}
+
+// handle process gin request
+func (d *Dumper) handle(c *gin.Context) {
+	w := d.outputer
+	if w == nil || d.disabled {
+		c.Next()
+		return
+	}
+
+	// dump request
+	id := dumpRequest(w, c.Request)
+
+	dw := &dumpWriter{c.Writer, &http.Response{
+		Proto:      c.Request.Proto,
+		ProtoMajor: c.Request.ProtoMajor,
+		ProtoMinor: c.Request.ProtoMinor,
+	}, &bytes.Buffer{}}
+	c.Writer = dw
+
+	// process request
+	c.Next()
+
+	// dump response
+	dumpResponse(w, id, dw)
 }
 
 // SetOutput set the access log output writer

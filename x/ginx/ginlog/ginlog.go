@@ -71,30 +71,35 @@ func (log *Logger) Disable(disabled bool) {
 // Handler returns the gin.HandlerFunc
 func (log *Logger) Handler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		w := log.outputer
-		if w == nil || log.disabled {
-			c.Next()
-			return
-		}
-
-		p := &param{Start: time.Now(), Ctx: c}
-
-		// process request
-		c.Next()
-
-		p.End = time.Now()
-
-		// log.formats can be modified concurrently
-		fmts := log.formats
-
-		// write access log
-		bb := &bytes.Buffer{}
-		for _, f := range fmts {
-			s := f(p)
-			bb.WriteString(s)
-		}
-		w.Write(bb.Bytes())
+		log.handle(c)
 	}
+}
+
+// handle process gin request
+func (log *Logger) handle(c *gin.Context) {
+	w := log.outputer
+	if w == nil || log.disabled {
+		c.Next()
+		return
+	}
+
+	p := &param{Start: time.Now(), Ctx: c}
+
+	// process request
+	c.Next()
+
+	p.End = time.Now()
+
+	// log.formats can be modified concurrently
+	fmts := log.formats
+
+	// write access log
+	bb := &bytes.Buffer{}
+	for _, f := range fmts {
+		s := f(p)
+		bb.WriteString(s)
+	}
+	w.Write(bb.Bytes())
 }
 
 // SetOutput set the access log output writer

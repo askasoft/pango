@@ -26,6 +26,17 @@ func NewList(vs ...interface{}) *List {
 	return l
 }
 
+// NewStrList returns an initialized list.
+// Example: NewList("1", "2", "3")
+func NewStrList(ss ...string) *List {
+	l := &List{}
+	l.Clear()
+	for _, s := range ss {
+		l.insertValue(s, l.root.prev)
+	}
+	return l
+}
+
 // Len returns the length of the list.
 // The complexity is O(1).
 func (l *List) Len() int {

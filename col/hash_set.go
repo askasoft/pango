@@ -18,6 +18,15 @@ func NewHashSet(vs ...interface{}) *HashSet {
 	return hs
 }
 
+// NewStrHashSet Create a new hash set
+func NewStrHashSet(ss ...string) *HashSet {
+	hs := &HashSet{make(map[interface{}]bool)}
+	for _, s := range ss {
+		hs.hash[s] = true
+	}
+	return hs
+}
+
 // Len Return the number of items in the set
 func (hs *HashSet) Len() int {
 	return len(hs.hash)

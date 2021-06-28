@@ -18,6 +18,10 @@ var testdata embed.FS
 //go:embed testdata/d1/d1f1.txt
 var d1f1 []byte
 
+func init() {
+	gin.SetMode(gin.ReleaseMode)
+}
+
 func testGetFile(t *testing.T, r *gin.Engine, path string, cache string) {
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", path, nil)
@@ -77,15 +81,6 @@ func TestStaticFS_URLReplace2(t *testing.T) {
 	StaticFS(g, "/", "/testdata", http.FS(testdata), "private")
 	testGetFile(t, r, "/web/r1.txt", "private")
 	testGetFile(t, r, "/web/d1/d1f1.txt", "private")
-}
-
-func TestStaticFS_URLReplace4(t *testing.T) {
-	r := gin.Default()
-	g := r.Group("/web")
-
-	StaticFS(g, "/", "/testdata", http.FS(testdata), "private")
-	testGetFile(t, r, "/web/testdata/r1.txt", "private")
-	testGetFile(t, r, "/web/testdata/d1/d1f1.txt", "private")
 }
 
 func TestStaticFSFile(t *testing.T) {

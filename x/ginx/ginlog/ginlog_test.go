@@ -12,6 +12,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func init() {
+	gin.SetMode(gin.ReleaseMode)
+}
+
 func TestLogger(t *testing.T) {
 	buffer := new(bytes.Buffer)
 	router := gin.New()

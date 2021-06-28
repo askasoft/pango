@@ -1,8 +1,6 @@
 package log
 
-import (
-	"unsafe"
-)
+import "github.com/pandafw/pango/bye"
 
 // outputer a io.Writer implement for go log.SetOutput
 type outputer struct {
@@ -12,11 +10,6 @@ type outputer struct {
 
 // Write io.Writer implement
 func (o *outputer) Write(p []byte) (int, error) {
-	o.logger.Log(o.level, o.string(p))
+	o.logger.Log(o.level, bye.UnsafeString(p))
 	return len(p), nil
-}
-
-// string cast []byte to string
-func (o *outputer) string(p []byte) string {
-	return *(*string)(unsafe.Pointer(&p))
 }

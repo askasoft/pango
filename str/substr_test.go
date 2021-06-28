@@ -52,7 +52,7 @@ func TestSubstrBeforeByte(t *testing.T) {
 	assert.Equal(t, "", SubstrBeforeByte("abc", 'a'))
 	assert.Equal(t, "a", SubstrBeforeByte("abcba", 'b'))
 	assert.Equal(t, "ab", SubstrBeforeByte("abc", 'c'))
-	assert.Equal(t, "", SubstrBeforeByte("abc", 'd'))
+	assert.Equal(t, "abc", SubstrBeforeByte("abc", 'd'))
 }
 
 func TestSubstrBeforeRune(t *testing.T) {
@@ -60,17 +60,18 @@ func TestSubstrBeforeRune(t *testing.T) {
 	assert.Equal(t, "", SubstrBeforeRune("abc", 'a'))
 	assert.Equal(t, "a", SubstrBeforeRune("abcba", 'b'))
 	assert.Equal(t, "ab", SubstrBeforeRune("abc", 'c'))
-	assert.Equal(t, "", SubstrBeforeRune("abc", 'd'))
+	assert.Equal(t, "abc", SubstrBeforeRune("abc", 'd'))
 }
 
 func TestSubstrBeforeLastByte(t *testing.T) {
 	assert.Equal(t, "", SubstrBeforeLastByte("", 'a'))
-	assert.Equal(t, "", SubstrBeforeLastByte("foo", 'b'))
+	assert.Equal(t, "foo", SubstrBeforeLastByte("foo", 'b'))
 	assert.Equal(t, "fo", SubstrBeforeLastByte("foot", 'o'))
 	assert.Equal(t, "", SubstrBeforeLastByte("abc", 'a'))
 	assert.Equal(t, "abc", SubstrBeforeLastByte("abcba", 'b'))
 	assert.Equal(t, "ab", SubstrBeforeLastByte("abc", 'c'))
 	assert.Equal(t, "", SubstrBeforeLastByte("", 'd'))
+	assert.Equal(t, "abc", SubstrBeforeLastByte("abc", 'd'))
 }
 
 func TestSubstrBeforeLast(t *testing.T) {
@@ -79,11 +80,12 @@ func TestSubstrBeforeLast(t *testing.T) {
 	assert.Equal(t, "", SubstrBeforeLast("", ""))
 	assert.Equal(t, "", SubstrBeforeLast("", "a"))
 
-	assert.Equal(t, "", SubstrBeforeLast("foo", "b"))
+	assert.Equal(t, "foo", SubstrBeforeLast("foo", "b"))
 	assert.Equal(t, "fo", SubstrBeforeLast("foot", "o"))
 	assert.Equal(t, "", SubstrBeforeLast("abc", "a"))
 	assert.Equal(t, "abc", SubstrBeforeLast("abcba", "b"))
 	assert.Equal(t, "ab", SubstrBeforeLast("abc", "c"))
 	assert.Equal(t, "", SubstrBeforeLast("", "d"))
 	assert.Equal(t, "abc", SubstrBeforeLast("abc", ""))
+	assert.Equal(t, "abc", SubstrBeforeLast("abc", "d"))
 }

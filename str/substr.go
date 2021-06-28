@@ -95,7 +95,7 @@ func SubstrAfterLast(s string, b string) string {
 // SubstrBeforeByte("abc", 'a')   = ""
 // SubstrBeforeByte("abcba", 'b') = "a"
 // SubstrBeforeByte("abc", 'c')   = "ab"
-// SubstrBeforeByte("abc", 'd')   = ""
+// SubstrBeforeByte("abc", 'd')   = "abc"
 func SubstrBeforeByte(s string, b byte) string {
 	if s == "" {
 		return s
@@ -103,7 +103,7 @@ func SubstrBeforeByte(s string, b byte) string {
 
 	i := strings.IndexByte(s, b)
 	if i < 0 {
-		return ""
+		return s
 	}
 	return s[:i]
 }
@@ -115,15 +115,15 @@ func SubstrBeforeByte(s string, b byte) string {
 // SubstrBeforeRune("abc", 'a')   = ""
 // SubstrBeforeRune("abcba", 'b') = "a"
 // SubstrBeforeRune("abc", 'c')   = "ab"
-// SubstrBeforeRune("abc", 'd')   = ""
+// SubstrBeforeRune("abc", 'd')   = "abc"
 func SubstrBeforeRune(s string, r rune) string {
 	if s == "" {
 		return s
 	}
 
 	i := strings.IndexRune(s, r)
-	if i <= 0 {
-		return ""
+	if i < 0 {
+		return s
 	}
 	return s[:i]
 }
@@ -137,15 +137,15 @@ func SubstrBeforeRune(s string, r rune) string {
 // SubstrBeforeLastByte("abcba", 'b') = "abc"
 // SubstrBeforeLastByte("abc", 'c')   = "ab"
 // SubstrBeforeLastByte("a", 'a')     = ""
-// SubstrBeforeLastByte("a", 'z')     = ""
+// SubstrBeforeLastByte("a", 'z')     = "a"
 func SubstrBeforeLastByte(s string, b byte) string {
 	if s == "" {
 		return s
 	}
 
 	i := strings.LastIndexByte(s, b)
-	if i <= 0 {
-		return ""
+	if i < 0 {
+		return s
 	}
 	return s[:i]
 }
@@ -159,7 +159,7 @@ func SubstrBeforeLastByte(s string, b byte) string {
 // SubstrBeforeLast("abcba", "b") = "a"
 // SubstrBeforeLast("abc", "c")   = "ab"
 // SubstrBeforeLast("a", "a")     = ""
-// SubstrBeforeLast("a", "z")     = ""
+// SubstrBeforeLast("a", "z")     = "a"
 // SubstrBeforeLast("a", "")      = "a"
 func SubstrBeforeLast(s string, b string) string {
 	if s == "" {
@@ -167,8 +167,8 @@ func SubstrBeforeLast(s string, b string) string {
 	}
 
 	i := strings.LastIndex(s, b)
-	if i <= 0 {
-		return ""
+	if i < 0 {
+		return s
 	}
 	return s[:i]
 }

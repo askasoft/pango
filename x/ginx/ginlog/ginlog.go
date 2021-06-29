@@ -2,6 +2,7 @@ package ginlog
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -18,8 +19,12 @@ import (
 // DefaultTimeFormat default log time format
 const DefaultTimeFormat = "2006-01-02T15:04:05.000"
 
-// DefaultLogFormat default log format
-const DefaultLogFormat = "%t\t%S\t%T\t%L\t%c\t%r\t%A\t%m\t%h\t%u%n"
+// DefaultTextLogFormat default log format
+// TIME STATUS LATENCY LENGTH CLIENT_IP REMOTE_ADDR LISTEN METHOD HOST URL
+const DefaultTextLogFormat = "text:%t\t%S\t%T\t%L\t%c\t%r\t%A\t%m\t%h\t%u%n"
+
+// DefaultJSONLogFormat default log format
+const DefaultJSONLogFormat = `json:{"when": %t, "status": %S, "latency": %T, "length": %L, "clientIP": %c, "remoteAddr": %r, "listen": %A, "method": %m, "host": %h, "url": %u}%n`
 
 // Logger access loger for GIN
 type Logger struct {
@@ -37,13 +42,14 @@ type param struct {
 type fmtfunc func(p *param) string
 
 // Default create a default log
-// Equals to: New(log.Outputer("GIN", log.LevelTrace), DefaultLogFormt)
+// Equals to: New(log.Outputer("GIN", log.LevelTrace), DefaultTextLogFormt)
 func Default() *Logger {
-	return New(log.Outputer("GIN", log.LevelTrace), DefaultLogFormat)
+	return New(log.Outputer("GIN", log.LevelTrace), DefaultTextLogFormat)
 }
 
 // New create a log middleware for gin access log
 // Access Log Format:
+// text:...     json:...
 //   %t{format} - Request start time, if {format} is omitted, '2006-01-02T15:04:05.000' is used.
 //   %c - Client IP ([X-Forwarded-For, X-Real-Ip] or RemoteIP())
 //   %r - Remote IP:Port
@@ -113,6 +119,16 @@ func (log *Logger) SetFormat(format string) {
 }
 
 func parseFormat(format string) []fmtfunc {
+	if strings.HasPrefix(format, "text:") {
+		return parseTextFormat(format[5:])
+	}
+	if strings.HasPrefix(format, "json:") {
+		return parseJSONFormat(format[5:])
+	}
+	return parseTextFormat(format)
+}
+
+func parseTextFormat(format string) []fmtfunc {
 	fmts := make([]fmtfunc, 0, 10)
 
 	s := 0
@@ -124,7 +140,7 @@ func parseFormat(format string) []fmtfunc {
 
 		// string
 		if s < i {
-			fmts = append(fmts, strfmt(format[s:i]))
+			fmts = append(fmts, strfmtc(format[s:i]))
 		}
 
 		i++
@@ -149,27 +165,17 @@ func parseFormat(format string) []fmtfunc {
 		case 'q':
 			fmt = requestQuery
 		case 'h':
-			p := format[i+1:]
-			if len(p) > 0 && p[0] == '{' {
-				e := strings.IndexByte(p, '}')
-				if e > 0 {
-					fmt = requestHeader(p[1:e])
-					i += e + 1
-					break
-				}
+			p := getFormatOption(format, &i)
+			if p != "" {
+				fmt = requestHeader(p)
 			}
 			fmt = requestHost
 		case 't':
-			p := format[i+1:]
-			if len(p) > 0 && p[0] == '{' {
-				e := strings.IndexByte(p, '}')
-				if e > 0 {
-					fmt = timefmt(p[1:e])
-					i += e + 1
-					break
-				}
+			p := getFormatOption(format, &i)
+			if p == "" {
+				p = DefaultTimeFormat
 			}
-			fmt = timefmt(DefaultTimeFormat)
+			fmt = timefmtc(p)
 		case 'A':
 			fmt = listenAddr
 		case 'S':
@@ -179,14 +185,9 @@ func parseFormat(format string) []fmtfunc {
 		case 'L':
 			fmt = responseBodyLen
 		case 'H':
-			p := format[i+1:]
-			if len(p) > 0 && p[0] == '{' {
-				e := strings.IndexByte(p, '}')
-				if e > 0 {
-					fmt = responseHeader(p[1:e])
-					i += e + 1
-					break
-				}
+			p := getFormatOption(format, &i)
+			if p != "" {
+				fmt = responseHeader(p)
 			}
 		case 'n':
 			fmt = eolfmt
@@ -199,20 +200,118 @@ func parseFormat(format string) []fmtfunc {
 	}
 
 	if s < len(format) {
-		fmts = append(fmts, strfmt(format[s:]))
+		fmts = append(fmts, strfmtc(format[s:]))
 	}
 
 	return fmts
 }
 
+func parseJSONFormat(format string) []fmtfunc {
+	fmts := make([]fmtfunc, 0, 10)
+
+	s := 0
+	for i := 0; i < len(format); i++ {
+		c := format[i]
+		if c != '%' {
+			continue
+		}
+
+		// string
+		if s < i {
+			fmts = append(fmts, strfmtc(format[s:i]))
+		}
+
+		i++
+		s = i
+		if i >= len(format) {
+			break
+		}
+
+		// symbol
+		var fmt fmtfunc
+		switch format[i] {
+		case 'c':
+			fmt = quotefmtc(clientIP)
+		case 'r':
+			fmt = quotefmtc(remoteAddr)
+		case 'u':
+			fmt = quotefmtc(requestURL)
+		case 'p':
+			fmt = quotefmtc(requestProto)
+		case 'm':
+			fmt = quotefmtc(requestMethod)
+		case 'q':
+			fmt = quotefmtc(requestQuery)
+		case 'h':
+			p := getFormatOption(format, &i)
+			if p != "" {
+				fmt = requestHeader(p)
+			} else {
+				fmt = requestHost
+			}
+			fmt = quotefmtc(fmt)
+		case 't':
+			p := getFormatOption(format, &i)
+			if p == "" {
+				p = DefaultTimeFormat
+			}
+			fmt = quotefmtc(timefmtc(p))
+		case 'A':
+			fmt = quotefmtc(listenAddr)
+		case 'S':
+			fmt = statusCode
+		case 'T':
+			fmt = latency
+		case 'L':
+			fmt = responseBodyLen
+		case 'H':
+			p := getFormatOption(format, &i)
+			if p != "" {
+				fmt = quotefmtc(responseHeader(p))
+			}
+		case 'n':
+			fmt = eolfmt
+		}
+
+		if fmt != nil {
+			fmts = append(fmts, fmt)
+			s = i + 1
+		}
+	}
+
+	if s < len(format) {
+		fmts = append(fmts, strfmtc(format[s:]))
+	}
+
+	return fmts
+}
+
+func getFormatOption(format string, i *int) string {
+	p := format[*i+1:]
+	if len(p) > 0 && p[0] == '{' {
+		e := strings.IndexByte(p, '}')
+		if e > 0 {
+			*i += e + 1
+			return p[1:e]
+		}
+	}
+	return ""
+}
+
 //-------------------------------------------------
-func strfmt(s string) fmtfunc {
+func quotefmtc(ff fmtfunc) fmtfunc {
+	return func(p *param) string {
+		return fmt.Sprintf("%q", ff(p))
+	}
+}
+
+func strfmtc(s string) fmtfunc {
 	return func(p *param) string {
 		return s
 	}
 }
 
-func timefmt(layout string) fmtfunc {
+func timefmtc(layout string) fmtfunc {
 	return func(p *param) string {
 		return p.Start.Format(layout)
 	}

@@ -2,6 +2,7 @@ package ginlog
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -16,30 +17,22 @@ func init() {
 	gin.SetMode(gin.ReleaseMode)
 }
 
-func TestLogger(t *testing.T) {
+func TestTextLog(t *testing.T) {
 	buffer := new(bytes.Buffer)
 	router := gin.New()
 
 	writer := io.MultiWriter(buffer, os.Stdout)
-	router.Use(New(writer, DefaultLogFormat+"\n").Handler())
+	router.Use(New(writer, DefaultTextLogFormat).Handler())
 
-	router.GET("/example", func(c *gin.Context) {})
-	router.POST("/example", func(c *gin.Context) {})
-	router.PUT("/example", func(c *gin.Context) {})
-	router.DELETE("/example", func(c *gin.Context) {})
-	router.PATCH("/example", func(c *gin.Context) {})
-	router.HEAD("/example", func(c *gin.Context) {})
-	router.OPTIONS("/example", func(c *gin.Context) {})
+	router.Any("/example", func(c *gin.Context) {})
 
+	buffer.Reset()
 	performRequest(router, "GET", "/example?a=100")
 	assert.Contains(t, buffer.String(), "200")
 	assert.Contains(t, buffer.String(), "GET")
 	assert.Contains(t, buffer.String(), "/example")
 	assert.Contains(t, buffer.String(), "a=100")
 
-	// I wrote these first (extending the above) but then realized they are more
-	// like integration tests because they test the whole logging process rather
-	// than individual functions.  Im not sure where these should go.
 	buffer.Reset()
 	performRequest(router, "POST", "/example")
 	assert.Contains(t, buffer.String(), "200")
@@ -81,6 +74,73 @@ func TestLogger(t *testing.T) {
 	assert.Contains(t, buffer.String(), "404")
 	assert.Contains(t, buffer.String(), "GET")
 	assert.Contains(t, buffer.String(), "/notfound")
+}
+
+func TestJSONLog(t *testing.T) {
+	result := make(map[string]interface{})
+	buffer := new(bytes.Buffer)
+	router := gin.New()
+
+	writer := io.MultiWriter(buffer, os.Stdout)
+	router.Use(New(writer, DefaultJSONLogFormat).Handler())
+
+	router.Any("/example", func(c *gin.Context) {})
+
+	buffer.Reset()
+	performRequest(router, "GET", "/example?a=100")
+	json.Unmarshal(buffer.Bytes(), &result)
+	assert.Equal(t, result["status"], float64(200))
+	assert.Equal(t, result["method"], "GET")
+	assert.Equal(t, result["url"], "/example?a=100")
+
+	buffer.Reset()
+	performRequest(router, "POST", "/example")
+	json.Unmarshal(buffer.Bytes(), &result)
+	assert.Equal(t, result["status"], float64(200))
+	assert.Equal(t, result["method"], "POST")
+	assert.Equal(t, result["url"], "/example")
+
+	buffer.Reset()
+	performRequest(router, "PUT", "/example")
+	json.Unmarshal(buffer.Bytes(), &result)
+	assert.Equal(t, result["status"], float64(200))
+	assert.Equal(t, result["method"], "PUT")
+	assert.Equal(t, result["url"], "/example")
+
+	buffer.Reset()
+	performRequest(router, "DELETE", "/example")
+	json.Unmarshal(buffer.Bytes(), &result)
+	assert.Equal(t, result["status"], float64(200))
+	assert.Equal(t, result["method"], "DELETE")
+	assert.Equal(t, result["url"], "/example")
+
+	buffer.Reset()
+	performRequest(router, "PATCH", "/example")
+	json.Unmarshal(buffer.Bytes(), &result)
+	assert.Equal(t, result["status"], float64(200))
+	assert.Equal(t, result["method"], "PATCH")
+	assert.Equal(t, result["url"], "/example")
+
+	buffer.Reset()
+	performRequest(router, "HEAD", "/example")
+	json.Unmarshal(buffer.Bytes(), &result)
+	assert.Equal(t, result["status"], float64(200))
+	assert.Equal(t, result["method"], "HEAD")
+	assert.Equal(t, result["url"], "/example")
+
+	buffer.Reset()
+	performRequest(router, "OPTIONS", "/example")
+	json.Unmarshal(buffer.Bytes(), &result)
+	assert.Equal(t, result["status"], float64(200))
+	assert.Equal(t, result["method"], "OPTIONS")
+	assert.Equal(t, result["url"], "/example")
+
+	buffer.Reset()
+	performRequest(router, "GET", "/notfound")
+	json.Unmarshal(buffer.Bytes(), &result)
+	assert.Equal(t, result["status"], float64(404))
+	assert.Equal(t, result["method"], "GET")
+	assert.Equal(t, result["url"], "/notfound")
 }
 
 func performRequest(r http.Handler, method, path string) *httptest.ResponseRecorder {

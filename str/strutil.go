@@ -72,9 +72,43 @@ func CountAny(s, chars string) int {
 	return n
 }
 
+// ContainsFold reports whether substr is within s (case insensitive).
+func ContainsFold(s, substr string) bool {
+	return IndexFold(s, substr) >= 0
+}
+
 // ContainsByte reports whether b is within s.
 func ContainsByte(s string, b byte) bool {
 	return strings.IndexByte(s, b) >= 0
+}
+
+// IndexFold returns the index of the first instance of substr in s (case insensitive), or -1 if substr is not present in s.
+func IndexFold(s, substr string) int {
+	ns := len(s)
+	nb := len(substr)
+	if ns < nb {
+		return -1
+	}
+	if nb == 0 {
+		return 0
+	}
+	if ns == nb {
+		if strings.EqualFold(s, substr) {
+			return 0
+		}
+		return -1
+	}
+
+	l := ns - nb
+	for i := 0; i <= l; {
+		src := s[i : i+nb]
+		if strings.EqualFold(src, substr) {
+			return i
+		}
+		_, z := utf8.DecodeRuneInString(src)
+		i += z
+	}
+	return -1
 }
 
 // LastIndexRune returns the index of the last instance of the Unicode code point

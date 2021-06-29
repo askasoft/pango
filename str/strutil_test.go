@@ -71,6 +71,22 @@ func TestCountAny(t *testing.T) {
 	assert.Equal(t, 4, CountAny("12ああ3うう", "あう"))
 }
 
+func TestContainsFold(t *testing.T) {
+	assert.Equal(t, true, ContainsFold("ABCDEF", "abc"))
+	assert.Equal(t, false, ContainsFold("ABCDEF", "Z"))
+}
+
+func TestIndexFold(t *testing.T) {
+	assert.Equal(t, 0, IndexFold("", ""))
+	assert.Equal(t, -1, IndexFold("", "a"))
+	assert.Equal(t, 0, IndexFold("ABCDEF", ""))
+	assert.Equal(t, 0, IndexFold("ABCDEF", "abc"))
+	assert.Equal(t, 1, IndexFold("ABCDEF", "bc"))
+	assert.Equal(t, 4, IndexFold("ABCDEF", "ef"))
+	assert.Equal(t, 6, IndexFold("あBCDEF", "ef"))
+	assert.Equal(t, 4, IndexFold("ABCDえF", "えf"))
+}
+
 func TestStartsWith(t *testing.T) {
 	assert.True(t, StartsWith("", ""))
 	assert.True(t, StartsWith("foobar", ""))

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"io"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pandafw/pango/str"
@@ -36,6 +37,9 @@ func (g *gzipWriter) Close() {
 		g.gzw.Flush()
 	}
 	g.ctx.Writer = g.ResponseWriter
+	if g.state == stateGzip {
+		g.ctx.Header("Content-Length", strconv.Itoa(g.ctx.Writer.Size()))
+	}
 	g.reset()
 }
 
@@ -54,7 +58,7 @@ func (g *gzipWriter) checkHeader() {
 	}
 
 	h := g.ResponseWriter.Header()
-	if str.Contains(h.Get("Content-Encoding"), "gzip") {
+	if str.ContainsFold(h.Get("Content-Encoding"), "gzip") {
 		g.state = stateSkip
 		return
 	}
@@ -67,38 +71,38 @@ func (g *gzipWriter) checkHeader() {
 		}
 	}
 
-	if g.ctx.Request.Header.Get("Via") != "" && g.zipper.Proxied&ProxiedAny == 0 {
-		if g.zipper.Proxied&ProxiedExpired == ProxiedExpired {
+	if g.ctx.Request.Header.Get("Via") != "" && g.zipper.proxied&ProxiedAny == 0 {
+		if g.zipper.proxied&ProxiedExpired == ProxiedExpired {
 			if h.Get("Expires") == "" {
 				g.state = stateSkip
 				return
 			}
 		}
-		if g.zipper.Proxied&ProxiedNoCache == ProxiedNoCache {
-			if !str.Contains(h.Get("Cache-Control"), "no-cache") {
+		if g.zipper.proxied&ProxiedNoCache == ProxiedNoCache {
+			if !str.ContainsFold(h.Get("Cache-Control"), "no-cache") {
 				g.state = stateSkip
 				return
 			}
 		}
-		if g.zipper.Proxied&ProxiedNoStore == ProxiedNoStore {
-			if !str.Contains(h.Get("Cache-Control"), "no-store") {
+		if g.zipper.proxied&ProxiedNoStore == ProxiedNoStore {
+			if !str.ContainsFold(h.Get("Cache-Control"), "no-store") {
 				g.state = stateSkip
 				return
 			}
 		}
-		if g.zipper.Proxied&ProxiedPrivate == ProxiedPrivate {
-			if !str.Contains(h.Get("Cache-Control"), "private") {
+		if g.zipper.proxied&ProxiedPrivate == ProxiedPrivate {
+			if !str.ContainsFold(h.Get("Cache-Control"), "private") {
 				g.state = stateSkip
 				return
 			}
 		}
-		if g.zipper.Proxied&ProxiedNoLastModified == ProxiedNoLastModified {
+		if g.zipper.proxied&ProxiedNoLastModified == ProxiedNoLastModified {
 			if h.Get("Last-Modified") != "" {
 				g.state = stateSkip
 				return
 			}
 		}
-		if g.zipper.Proxied&ProxiedNoETag == ProxiedNoETag {
+		if g.zipper.proxied&ProxiedNoETag == ProxiedNoETag {
 			if h.Get("ETag") != "" {
 				g.state = stateSkip
 				return
@@ -132,7 +136,7 @@ func (g *gzipWriter) modifyHeader() {
 
 	h.Del("Content-Length")
 	h.Set("Content-Encoding", "gzip")
-	if g.zipper.Vary {
+	if g.zipper.vary {
 		h.Set("Vary", "Accept-Encoding")
 	}
 }

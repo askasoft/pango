@@ -5,11 +5,11 @@ import (
 	"io"
 	"net/http"
 	"regexp"
-	"strings"
 	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pandafw/pango/col"
+	"github.com/pandafw/pango/str"
 )
 
 // http://nginx.org/en/docs/http/ngx_http_gzip_module.html
@@ -22,55 +22,23 @@ const (
 	NoCompression      = gzip.NoCompression
 )
 
-// Proxied option flags
-const (
-	ProxiedOff = 1 << iota
-	ProxiedExpired
-	ProxiedNoCache
-	ProxiedNoStore
-	ProxiedPrivate
-	ProxiedNoLastModified
-	ProxiedNoETag
-	ProxiedAuth
-	ProxiedAny
-)
-
 // Zipper Compresses responses using the “gzip” method
 type Zipper struct {
-	// ProtoMajor Sets the minimum HTTP Major version of a request required to compress a response.
+	// protoMajor Sets the minimum HTTP Major version of a request required to compress a response.
 	// Default: 1
-	ProtoMajor int
+	protoMajor int
 
-	// ProtoMinor Sets the minimum HTTP Minor version of a request required to compress a response.
+	// protoMinor Sets the minimum HTTP Minor version of a request required to compress a response.
 	// Default: 1
-	ProtoMinor int
+	protoMinor int
 
 	// Proxied Enables or disables gzipping of responses for proxied requests depending on the request and response.
 	// The fact that the request is proxied is determined by the presence of the “Via” request header field.
-	// The directive accepts multiple parameters:
-	// off (Default)
-	//     disables compression for all proxied requests, ignoring other parameters;
-	// expired
-	//     enables compression if a response header includes the “Expires” field with a value that disables caching;
-	// no-cache
-	//     enables compression if a response header includes the “Cache-Control” field with the “no-cache” parameter;
-	// no-store
-	//     enables compression if a response header includes the “Cache-Control” field with the “no-store” parameter;
-	// private
-	//     enables compression if a response header includes the “Cache-Control” field with the “private” parameter;
-	// no_last_modified
-	//     enables compression if a response header does not include the “Last-Modified” field;
-	// no_etag
-	//     enables compression if a response header does not include the “ETag” field;
-	// auth
-	//     enables compression if a request header includes the “Authorization” field;
-	// any
-	//     enables compression for all proxied requests.
-	Proxied int
+	proxied ProxiedFlag
 
 	// Vary Enables or disables inserting the “Vary: Accept-Encoding” response header field.
 	// Default: true
-	Vary bool
+	vary bool
 
 	// the minimum length of a response that will be gzipped.
 	// Default: 1024
@@ -81,22 +49,6 @@ type Zipper struct {
 	compressLevel int
 
 	// mimeTypes Enables gzipping of responses for the specified MIME types.
-	// Default:
-	//   text/html
-	//   text/plain
-	//   text/xml
-	//   text/css
-	//   text/javascript
-	//   text/json
-	//   text/comma-separated-values
-	//   text/tab-separated-values
-	//   application/xml
-	//   application/xhtml+xml
-	//   application/rss+xml
-	//   application/atom_xml
-	//   application/json
-	//   application/javascript
-	//   application/x-javascript
 	mimeTypes *col.HashSet
 
 	// ignorePathPrefixs Ignored URL Path Prefixs
@@ -119,9 +71,9 @@ func Default() *Zipper {
 // NewZipper create a zipper
 func NewZipper(compressLevel, minLength int) *Zipper {
 	z := &Zipper{
-		ProtoMajor:    1,
-		ProtoMinor:    1,
-		Vary:          true,
+		protoMajor:    1,
+		protoMinor:    1,
+		vary:          true,
 		compressLevel: compressLevel,
 		minLength:     minLength,
 	}
@@ -157,30 +109,61 @@ func NewZipper(compressLevel, minLength int) *Zipper {
 	return z
 }
 
-type prefixs []string
-
-func (ps prefixs) Contains(uri string) bool {
-	for _, path := range ps {
-		if strings.HasPrefix(uri, path) {
-			return true
-		}
-	}
-	return false
+// SetHTTPVersion Sets the minimum HTTP Proto version of a request required to compress a response.
+func (z *Zipper) SetHTTPVersion(major, minor int) {
+	z.protoMajor = major
+	z.protoMinor = minor
 }
 
-type regexps []*regexp.Regexp
+// SetProxied Enables or disables gzipping of responses for proxied requests depending on the request and response.
+// The fact that the request is proxied is determined by the presence of the “Via” request header field.
+// The directive accepts multiple parameters:
+// off (Default)
+//     disables compression for all proxied requests, ignoring other parameters;
+// expired
+//     enables compression if a response header includes the “Expires” field with a value that disables caching;
+// no-cache
+//     enables compression if a response header includes the “Cache-Control” field with the “no-cache” parameter;
+// no-store
+//     enables compression if a response header includes the “Cache-Control” field with the “no-store” parameter;
+// private
+//     enables compression if a response header includes the “Cache-Control” field with the “private” parameter;
+// no_last_modified
+//     enables compression if a response header does not include the “Last-Modified” field;
+// no_etag
+//     enables compression if a response header does not include the “ETag” field;
+// auth
+//     enables compression if a request header includes the “Authorization” field;
+// any
+//     enables compression for all proxied requests.
+func (z *Zipper) SetProxied(ps ...string) {
+	z.proxied = toProxiedFlag(ps...)
+}
 
-func (rs regexps) Contains(uri string) bool {
-	for _, re := range rs {
-		if re.MatchString(uri) {
-			return true
-		}
-	}
-	return false
+// Vary Enables or disables inserting the “Vary: Accept-Encoding” response header field.
+// Default: true
+func (z *Zipper) Vary(vary bool) {
+	z.vary = vary
 }
 
 // SetMimeTypes Enables gzipping of responses for the specified MIME types.
 // The special value "*" matches any MIME type.
+// Default:
+//   text/html
+//   text/plain
+//   text/xml
+//   text/css
+//   text/javascript
+//   text/json
+//   text/comma-separated-values
+//   text/tab-separated-values
+//   application/xml
+//   application/xhtml+xml
+//   application/rss+xml
+//   application/atom_xml
+//   application/json
+//   application/javascript
+//   application/x-javascript
 func (z *Zipper) SetMimeTypes(mts ...string) {
 	if len(mts) == 0 {
 		z.mimeTypes = nil
@@ -242,19 +225,19 @@ func (z *Zipper) handle(c *gin.Context) {
 
 func (z *Zipper) shouldCompress(req *http.Request) bool {
 	if z.disabled ||
-		!req.ProtoAtLeast(z.ProtoMajor, z.ProtoMinor) ||
-		!strings.Contains(req.Header.Get("Accept-Encoding"), "gzip") ||
-		strings.Contains(req.Header.Get("Connection"), "Upgrade") ||
-		strings.Contains(req.Header.Get("Content-Type"), "text/event-stream") {
+		!req.ProtoAtLeast(z.protoMajor, z.protoMinor) ||
+		!str.ContainsFold(req.Header.Get("Accept-Encoding"), "gzip") ||
+		str.ContainsFold(req.Header.Get("Connection"), "Upgrade") ||
+		str.ContainsFold(req.Header.Get("Content-Type"), "text/event-stream") {
 
 		return false
 	}
 
 	if req.Header.Get("Via") != "" {
-		if z.Proxied == ProxiedOff {
+		if z.proxied == ProxiedOff {
 			return false
 		}
-		if z.Proxied&ProxiedAuth == ProxiedAuth {
+		if z.proxied&ProxiedAuth == ProxiedAuth {
 			if req.Header.Get("Authorization") == "" {
 				return false
 			}

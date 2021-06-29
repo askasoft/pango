@@ -2,9 +2,11 @@ package ginzip
 
 import (
 	"compress/gzip"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -28,7 +30,7 @@ func assertGzipEnable(t *testing.T, rr *httptest.ResponseRecorder, body string) 
 	assert.Equal(t, 200, rr.Code)
 	assert.Equal(t, "gzip", rr.Header().Get("Content-Encoding"))
 	assert.Equal(t, "Accept-Encoding", rr.Header().Get("Vary"))
-	assert.Equal(t, "", rr.Header().Get("Content-Length"))
+	assert.Equal(t, strconv.Itoa(rr.Body.Len()), rr.Header().Get("Content-Length"))
 	assert.NotEqual(t, len(body), rr.Body.Len())
 
 	gr, err := gzip.NewReader(rr.Body)
@@ -149,14 +151,14 @@ func TestGzipIgnorePathRegexp(t *testing.T) {
 	assertGzipIgnore(t, rr, body)
 }
 
-func testGzipIgnoreProxied(t *testing.T, proxied int, hand gin.HandlerFunc) {
+func testGzipIgnoreProxied(t *testing.T, proxied string, hand gin.HandlerFunc) {
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Encoding", "gzip")
 	req.Header.Add("Via", "test")
 
 	router := gin.New()
 	zp := Default()
-	zp.Proxied = proxied
+	zp.SetProxied(proxied)
 	router.Use(zp.Handler())
 
 	body := strings.Repeat("This is proxy!\n", 1000)
@@ -173,45 +175,45 @@ func testGzipIgnoreProxied(t *testing.T, proxied int, hand gin.HandlerFunc) {
 }
 
 func TestGzipIgnoreProxiedOff(t *testing.T) {
-	testGzipIgnoreProxied(t, ProxiedOff, nil)
+	testGzipIgnoreProxied(t, "off", nil)
 }
 
 func TestGzipIgnoreProxiedExpired(t *testing.T) {
-	testGzipIgnoreProxied(t, ProxiedExpired, nil)
+	testGzipIgnoreProxied(t, "expired", nil)
 }
 
 func TestGzipIgnoreProxiedNoCache(t *testing.T) {
-	testGzipIgnoreProxied(t, ProxiedNoCache, nil)
+	testGzipIgnoreProxied(t, "no-Cache", nil)
 }
 
 func TestGzipIgnoreProxiedNoStore(t *testing.T) {
-	testGzipIgnoreProxied(t, ProxiedNoStore, nil)
+	testGzipIgnoreProxied(t, "No-Store", nil)
 }
 
 func TestGzipIgnoreProxiedPrivate(t *testing.T) {
-	testGzipIgnoreProxied(t, ProxiedPrivate, nil)
+	testGzipIgnoreProxied(t, "Private", nil)
 }
 
 func TestGzipIgnoreProxiedNoLastModified(t *testing.T) {
-	testGzipIgnoreProxied(t, ProxiedNoLastModified, func(c *gin.Context) {
+	testGzipIgnoreProxied(t, "no_Last_Modified", func(c *gin.Context) {
 		c.Header("Last-Modified", "Wed, 21 Oct 2015 07:28:00 GMT")
 	})
 }
 
 func TestGzipIgnoreProxiedNoETag(t *testing.T) {
-	testGzipIgnoreProxied(t, ProxiedNoETag, func(c *gin.Context) {
+	testGzipIgnoreProxied(t, "No_ETag", func(c *gin.Context) {
 		c.Header("ETag", "13932423424")
 	})
 }
 
-func testGzipEnableProxied(t *testing.T, proxied int, hand gin.HandlerFunc) {
+func testGzipEnableProxied(t *testing.T, proxied string, hand gin.HandlerFunc) {
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Add("Accept-Encoding", "gzip")
 	req.Header.Add("Via", "test")
 
 	router := gin.New()
 	zp := Default()
-	zp.Proxied = proxied
+	zp.SetProxied(proxied)
 	router.Use(zp.Handler())
 
 	body := strings.Repeat("This is proxy!\n", 1000)
@@ -228,37 +230,38 @@ func testGzipEnableProxied(t *testing.T, proxied int, hand gin.HandlerFunc) {
 }
 
 func TestGzipEnableProxiedExpired(t *testing.T) {
-	testGzipEnableProxied(t, ProxiedExpired, func(c *gin.Context) {
+	testGzipEnableProxied(t, "Expired", func(c *gin.Context) {
 		c.Header("Expires", "Wed, 21 Oct 2015 07:28:00 GMT")
 	})
 }
 
 func TestGzipEnableProxiedNoCache(t *testing.T) {
-	testGzipEnableProxied(t, ProxiedNoCache, func(c *gin.Context) {
+	testGzipEnableProxied(t, "No-Cache", func(c *gin.Context) {
 		c.Header("Cache-Control", "no-cache")
 	})
 }
 
 func TestGzipEnableProxiedNoStore(t *testing.T) {
-	testGzipEnableProxied(t, ProxiedNoStore, func(c *gin.Context) {
+	testGzipEnableProxied(t, "No-Store", func(c *gin.Context) {
 		c.Header("Cache-Control", "no-store")
 	})
 }
 
 func TestGzipEnableProxiedPrivate(t *testing.T) {
-	testGzipEnableProxied(t, ProxiedPrivate, func(c *gin.Context) {
-		c.Header("Cache-Control", "private")
+	testGzipEnableProxied(t, "Private", func(c *gin.Context) {
+		c.Header("Cache-Control", "Private")
 	})
 }
 
 func TestGzipEnableProxiedNoLastModified(t *testing.T) {
-	testGzipEnableProxied(t, ProxiedNoLastModified, nil)
+	testGzipEnableProxied(t, "No_Last_Modified", nil)
 }
 
 func TestGzipEnableProxiedNoETag(t *testing.T) {
-	testGzipEnableProxied(t, ProxiedNoETag, nil)
+	testGzipEnableProxied(t, "No_ETag", nil)
 }
 
 func TestGzipEnableProxiedAny(t *testing.T) {
-	testGzipEnableProxied(t, ProxiedAny, nil)
+	testGzipEnableProxied(t, "Any", nil)
+	fmt.Printf("%d\n", ProxiedOff)
 }

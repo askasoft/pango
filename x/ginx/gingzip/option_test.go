@@ -1,4 +1,4 @@
-package ginzip
+package gingzip
 
 import (
 	"testing"

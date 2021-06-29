@@ -1,4 +1,4 @@
-package ginzip
+package gingzip
 
 import (
 	"compress/gzip"

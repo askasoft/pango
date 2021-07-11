@@ -34,6 +34,7 @@ type Zipper struct {
 
 	// Proxied Enables or disables gzipping of responses for proxied requests depending on the request and response.
 	// The fact that the request is proxied is determined by the presence of the “Via” request header field.
+	// Default: any
 	proxied ProxiedFlag
 
 	// Vary Enables or disables inserting the “Vary: Accept-Encoding” response header field.
@@ -57,8 +58,11 @@ type Zipper struct {
 	// ignoreRegexps Ignored URL Path Regexp
 	ignorePathRegexps regexps
 
+	// disabled Disable gzip
+	// Default: false
 	disabled bool
 
+	// pool gzip writer pool
 	pool *sync.Pool
 }
 
@@ -69,10 +73,14 @@ func Default() *Zipper {
 }
 
 // NewZipper create a zipper
+// proxied: ProxiedAny
+// vary: true
+// minLength: 1024
 func NewZipper(compressLevel, minLength int) *Zipper {
 	z := &Zipper{
 		protoMajor:    1,
 		protoMinor:    1,
+		proxied:       ProxiedAny,
 		vary:          true,
 		compressLevel: compressLevel,
 		minLength:     minLength,
@@ -118,8 +126,12 @@ func (z *Zipper) SetHTTPVersion(major, minor int) {
 // SetProxied Enables or disables gzipping of responses for proxied requests depending on the request and response.
 // The fact that the request is proxied is determined by the presence of the “Via” request header field.
 // The directive accepts multiple parameters:
-// off (Default)
+// off
 //     disables compression for all proxied requests, ignoring other parameters;
+// any (Default)
+//     enables compression for all proxied requests.
+// auth
+//     enables compression if a request header includes the “Authorization” field;
 // expired
 //     enables compression if a response header includes the “Expires” field with a value that disables caching;
 // no-cache
@@ -132,10 +144,6 @@ func (z *Zipper) SetHTTPVersion(major, minor int) {
 //     enables compression if a response header does not include the “Last-Modified” field;
 // no_etag
 //     enables compression if a response header does not include the “ETag” field;
-// auth
-//     enables compression if a request header includes the “Authorization” field;
-// any
-//     enables compression for all proxied requests.
 func (z *Zipper) SetProxied(ps ...string) {
 	z.proxied = toProxiedFlag(ps...)
 }

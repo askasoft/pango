@@ -71,7 +71,7 @@ func (g *gzipWriter) checkHeader() {
 		}
 	}
 
-	if g.ctx.Request.Header.Get("Via") != "" && g.zipper.proxied&ProxiedAny == 0 {
+	if g.ctx.Request.Header.Get("Via") != "" {
 		if g.zipper.proxied&ProxiedExpired == ProxiedExpired {
 			if h.Get("Expires") == "" {
 				g.state = stateSkip

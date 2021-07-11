@@ -10,14 +10,14 @@ type ProxiedFlag int
 
 // Proxied option flags
 const (
-	ProxiedExpired ProxiedFlag = 1 << iota
+	ProxiedAny ProxiedFlag = 1 << iota
+	ProxiedAuth
+	ProxiedExpired
 	ProxiedNoCache
 	ProxiedNoStore
 	ProxiedPrivate
 	ProxiedNoLastModified
 	ProxiedNoETag
-	ProxiedAuth
-	ProxiedAny
 	ProxiedOff = 0
 )
 
@@ -28,6 +28,12 @@ func (pf ProxiedFlag) String() string {
 	}
 
 	fs := make([]string, 0, 9)
+	if pf&ProxiedAny == ProxiedAny {
+		fs = append(fs, "any")
+	}
+	if pf&ProxiedAuth == ProxiedAuth {
+		fs = append(fs, "auth")
+	}
 	if pf&ProxiedExpired == ProxiedExpired {
 		fs = append(fs, "expired")
 	}
@@ -46,12 +52,6 @@ func (pf ProxiedFlag) String() string {
 	if pf&ProxiedNoETag == ProxiedNoETag {
 		fs = append(fs, "no_etag")
 	}
-	if pf&ProxiedAuth == ProxiedAuth {
-		fs = append(fs, "auth")
-	}
-	if pf&ProxiedAny == ProxiedAny {
-		fs = append(fs, "any")
-	}
 
 	return strings.Join(fs, " ")
 }
@@ -63,6 +63,10 @@ func toProxiedFlag(ps ...string) (pf ProxiedFlag) {
 		switch s {
 		case "off":
 			return ProxiedOff
+		case "any":
+			pf |= ProxiedAny
+		case "auth":
+			pf |= ProxiedAuth
 		case "expired":
 			pf |= ProxiedExpired
 		case "no-cache":
@@ -75,10 +79,6 @@ func toProxiedFlag(ps ...string) (pf ProxiedFlag) {
 			pf |= ProxiedNoLastModified
 		case "no_etag":
 			pf |= ProxiedNoETag
-		case "auth":
-			pf |= ProxiedAuth
-		case "any":
-			pf |= ProxiedAny
 		}
 	}
 

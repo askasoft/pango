@@ -10,6 +10,10 @@ func TestGzipProxiedFlag(t *testing.T) {
 	i := 0
 	assert.Equal(t, i, int(ProxiedOff))
 	i = 1
+	assert.Equal(t, i, int(ProxiedAny))
+	i <<= 1
+	assert.Equal(t, i, int(ProxiedAuth))
+	i <<= 1
 	assert.Equal(t, i, int(ProxiedExpired))
 	i <<= 1
 	assert.Equal(t, i, int(ProxiedNoCache))
@@ -21,8 +25,4 @@ func TestGzipProxiedFlag(t *testing.T) {
 	assert.Equal(t, i, int(ProxiedNoLastModified))
 	i <<= 1
 	assert.Equal(t, i, int(ProxiedNoETag))
-	i <<= 1
-	assert.Equal(t, i, int(ProxiedAuth))
-	i <<= 1
-	assert.Equal(t, i, int(ProxiedAny))
 }

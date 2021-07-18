@@ -5,7 +5,6 @@ import (
 	"net"
 	"net/url"
 	"strconv"
-	"strings"
 	"unicode"
 	"unicode/utf8"
 
@@ -14,7 +13,7 @@ import (
 
 // IsFileName is illegal file name
 func IsFileName(s string) bool {
-	return !strings.ContainsAny(s, `\/:*?"<>|`)
+	return !str.ContainsAny(s, `\/:*?"<>|`)
 }
 
 // IsEmail checks if the string is an email.
@@ -27,7 +26,7 @@ func IsExistingEmail(email string) bool {
 	if len(email) < 6 || len(email) > 254 {
 		return false
 	}
-	at := strings.LastIndex(email, "@")
+	at := str.LastIndex(email, "@")
 	if at <= 0 || at > len(email)-3 {
 		return false
 	}
@@ -54,11 +53,11 @@ const minURLRuneCount = 3
 
 // IsURL checks if the string is an URL.
 func IsURL(s string) bool {
-	if s == "" || utf8.RuneCountInString(s) >= maxURLRuneCount || len(s) <= minURLRuneCount || strings.HasPrefix(s, ".") {
+	if s == "" || utf8.RuneCountInString(s) >= maxURLRuneCount || len(s) <= minURLRuneCount || str.HasPrefix(s, ".") {
 		return false
 	}
 	strTemp := s
-	if strings.Contains(s, ":") && !strings.Contains(s, "://") {
+	if str.Contains(s, ":") && !str.Contains(s, "://") {
 		// support no indicated urlscheme but with colon for port number
 		// http:// is appended so url.Parse will succeed, strTemp used so it does not impact rxURL.MatchString
 		strTemp = "http://" + s
@@ -67,10 +66,10 @@ func IsURL(s string) bool {
 	if err != nil {
 		return false
 	}
-	if strings.HasPrefix(u.Host, ".") {
+	if str.HasPrefix(u.Host, ".") {
 		return false
 	}
-	if u.Host == "" && (u.Path != "" && !strings.Contains(u.Path, ".")) {
+	if u.Host == "" && (u.Path != "" && !str.Contains(u.Path, ".")) {
 		return false
 	}
 	return rxURL.MatchString(s)
@@ -184,12 +183,12 @@ func IsUTFNumeric(s string) bool {
 		return false
 	}
 
-	if strings.IndexAny(s, "+-") > 0 {
+	if str.IndexAny(s, "+-") > 0 {
 		return false
 	}
 	if len(s) > 1 {
-		s = strings.TrimPrefix(s, "-")
-		s = strings.TrimPrefix(s, "+")
+		s = str.TrimPrefix(s, "-")
+		s = str.TrimPrefix(s, "+")
 	}
 	for _, c := range s {
 		if !unicode.IsNumber(c) { //numbers && minus sign are ok
@@ -206,12 +205,12 @@ func IsUTFDigit(s string) bool {
 		return false
 	}
 
-	if strings.IndexAny(s, "+-") > 0 {
+	if str.IndexAny(s, "+-") > 0 {
 		return false
 	}
 	if len(s) > 1 {
-		s = strings.TrimPrefix(s, "-")
-		s = strings.TrimPrefix(s, "+")
+		s = str.TrimPrefix(s, "-")
+		s = str.TrimPrefix(s, "+")
 	}
 	for _, c := range s {
 		if !unicode.IsDigit(c) { //digits && minus sign are ok
@@ -518,7 +517,7 @@ func IsBase64(s string) bool {
 
 // IsDataURI checks if a string is base64 encoded data URI such as an image
 func IsDataURI(s string) bool {
-	dataURI := strings.Split(s, ",")
+	dataURI := str.Split(s, ",")
 	if !rxDataURI.MatchString(dataURI[0]) {
 		return false
 	}
@@ -532,7 +531,7 @@ func IsMagnetURI(s string) bool {
 
 // IsDNSName will validate the given string as a DNS name
 func IsDNSName(s string) bool {
-	if s == "" || len(strings.Replace(s, ".", "", -1)) > 255 {
+	if s == "" || len(str.Replace(s, ".", "", -1)) > 255 {
 		// constraints already violated
 		return false
 	}
@@ -543,7 +542,7 @@ func IsDNSName(s string) bool {
 // Algorithm is one of ['md4', 'md5', 'sha1', 'sha256', 'sha384', 'sha512', 'ripemd128', 'ripemd160', 'tiger128', 'tiger160', 'tiger192', 'crc32', 'crc32b']
 func IsHash(s string, algorithm string) bool {
 	var len string
-	algo := strings.ToLower(algorithm)
+	algo := str.ToLower(algorithm)
 
 	if algo == "crc32" || algo == "crc32b" {
 		len = "8"
@@ -656,13 +655,13 @@ func IsPort(s string) bool {
 // IsIPv4 checks if the string is an IP version 4.
 func IsIPv4(s string) bool {
 	ip := net.ParseIP(s)
-	return ip != nil && strings.Contains(s, ".")
+	return ip != nil && str.Contains(s, ".")
 }
 
 // IsIPv6 checks if the string is an IP version 6.
 func IsIPv6(s string) bool {
 	ip := net.ParseIP(s)
-	return ip != nil && strings.Contains(s, ":")
+	return ip != nil && str.Contains(s, ":")
 }
 
 // IsCIDR checks if the string is an valid CIDR notiation (IPV4 & IPV6)

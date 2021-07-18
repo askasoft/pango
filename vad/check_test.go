@@ -2,26 +2,37 @@ package vad
 
 import (
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestIsFileName(t *testing.T) {
-	assert.True(t, IsFileName("a.txT"))
-	assert.True(t, IsFileName("_"))
+	t.Parallel()
 
-	assert.False(t, IsFileName("a.tx/t"))
-	assert.False(t, IsFileName("a.tx\\t"))
-	assert.False(t, IsFileName("a.tx*t"))
-	assert.False(t, IsFileName("a.tx?t"))
+	cs := []struct {
+		w bool
+		s string
+	}{
+		{true, "a.txT"},
+		{true, "_"},
+		{false, "a.tx/t"},
+		{false, "a.tx\\t"},
+		{false, "a.tx*t"},
+		{false, "a.tx?t"},
+	}
+
+	for i, c := range cs {
+		a := IsFileName(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsFileName(%q) = %v, want %v", i, c.s, a, c.w)
+		}
+	}
 }
 
 func TestIsAlpha(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"\n", false},
 		{"\r", false},
@@ -67,10 +78,10 @@ func TestIsAlpha(t *testing.T) {
 		{"++", false},
 		{"+1", false},
 	}
-	for _, test := range tests {
-		actual := IsAlpha(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsAlpha(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsAlpha(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsAlpha(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -78,9 +89,9 @@ func TestIsAlpha(t *testing.T) {
 func TestIsUTFLetter(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"\n", false},
 		{"\r", false},
@@ -127,10 +138,10 @@ func TestIsUTFLetter(t *testing.T) {
 		{"++", false},
 		{"+1", false},
 	}
-	for _, test := range tests {
-		actual := IsUTFLetter(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsUTFLetter(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsUTFLetter(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsUTFLetter(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -138,9 +149,9 @@ func TestIsUTFLetter(t *testing.T) {
 func TestIsAlphanumeric(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"\n", false},
 		{"\r", false},
@@ -188,10 +199,10 @@ func TestIsAlphanumeric(t *testing.T) {
 		{"++", false},
 		{"+1", false},
 	}
-	for _, test := range tests {
-		actual := IsAlphanumeric(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsAlphanumeric(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsAlphanumeric(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsAlphanumeric(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -199,9 +210,9 @@ func TestIsAlphanumeric(t *testing.T) {
 func TestIsUTFLetterNumeric(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"\n", false},
 		{"\r", false},
@@ -247,10 +258,10 @@ func TestIsUTFLetterNumeric(t *testing.T) {
 		{"++", false},
 		{"+1", false},
 	}
-	for _, test := range tests {
-		actual := IsUTFLetterNumeric(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsUTFLetterNumeric(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsUTFLetterNumeric(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsUTFLetterNumeric(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -258,9 +269,9 @@ func TestIsUTFLetterNumeric(t *testing.T) {
 func TestIsNumeric(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"\n", false},
 		{"\r", false},
@@ -308,10 +319,10 @@ func TestIsNumeric(t *testing.T) {
 		{"++", false},
 		{"+1", false},
 	}
-	for _, test := range tests {
-		actual := IsNumeric(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsNumeric(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsNumeric(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsNumeric(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -319,9 +330,9 @@ func TestIsNumeric(t *testing.T) {
 func TestIsUTFNumeric(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"\n", false},
 		{"\r", false},
@@ -366,10 +377,10 @@ func TestIsUTFNumeric(t *testing.T) {
 		{"++", false},
 		{"+1", true},
 	}
-	for _, test := range tests {
-		actual := IsUTFNumeric(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsUTFNumeric(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsUTFNumeric(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsUTFNumeric(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -377,9 +388,9 @@ func TestIsUTFNumeric(t *testing.T) {
 func TestIsUTFDigit(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 
 		{"\n", false},
@@ -429,10 +440,10 @@ func TestIsUTFDigit(t *testing.T) {
 		{"++", false},
 		{"+1", true},
 	}
-	for _, test := range tests {
-		actual := IsUTFDigit(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsUTFDigit(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsUTFDigit(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsUTFDigit(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -440,9 +451,9 @@ func TestIsUTFDigit(t *testing.T) {
 func TestIsLowerCase(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"abc123", true},
@@ -460,10 +471,10 @@ func TestIsLowerCase(t *testing.T) {
 		{"fooBar", false},
 		{"abacaba123", true},
 	}
-	for _, test := range tests {
-		actual := IsLowerCase(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsLowerCase(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsLowerCase(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsLowerCase(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -471,9 +482,9 @@ func TestIsLowerCase(t *testing.T) {
 func TestIsUpperCase(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"abc123", false},
@@ -491,10 +502,10 @@ func TestIsUpperCase(t *testing.T) {
 		{"fooBar", false},
 		{"abacaba123", false},
 	}
-	for _, test := range tests {
-		actual := IsUpperCase(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsUpperCase(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsUpperCase(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsUpperCase(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -502,9 +513,9 @@ func TestIsUpperCase(t *testing.T) {
 func TestHasLowerCase(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"abc123", true},
@@ -525,10 +536,10 @@ func TestHasLowerCase(t *testing.T) {
 		{"fòôbàř", true},
 		{"fÒÔBÀŘ", true},
 	}
-	for _, test := range tests {
-		actual := HasLowerCase(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected HasLowerCase(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := HasLowerCase(c.s)
+		if a != c.w {
+			t.Errorf("[%d] HasLowerCase(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -536,9 +547,9 @@ func TestHasLowerCase(t *testing.T) {
 func TestHasUpperCase(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"abc123", false},
@@ -559,10 +570,10 @@ func TestHasUpperCase(t *testing.T) {
 		{"fòôbàř", false},
 		{"Fòôbàř", true},
 	}
-	for _, test := range tests {
-		actual := HasUpperCase(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected HasUpperCase(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := HasUpperCase(c.s)
+		if a != c.w {
+			t.Errorf("[%d] HasUpperCase(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -570,9 +581,9 @@ func TestHasUpperCase(t *testing.T) {
 func TestIsInt(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"-2147483648", true},          //Signed 32 Bit Min Int
 		{"2147483647", true},           //Signed 32 Bit Max Int
@@ -596,10 +607,10 @@ func TestIsInt(t *testing.T) {
 		{" ", false},
 		{"000", false},
 	}
-	for _, test := range tests {
-		actual := IsInt(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsInt(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsInt(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsInt(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -607,10 +618,10 @@ func TestIsInt(t *testing.T) {
 func TestIsHash(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		algo     string
-		expected bool
+	cs := []struct {
+		s    string
+		algo string
+		w    bool
 	}{
 		{"3ca25ae354e192b26879f651a51d92aa8a34d8d3", "sha1", true},
 		{"3ca25ae354e192b26879f651a51d34d8d3", "sha1", false},
@@ -626,10 +637,10 @@ func TestIsHash(t *testing.T) {
 		{"46fc0125a148788a3ac1d649566fc04eb84a746f1a6$$%@^", "TIGER192", false},
 		{"46fc0125a148788a3ac1d649566fc04eb84a746f1a6$$%@^", "SOMEHASH", false},
 	}
-	for _, test := range tests {
-		actual := IsHash(test.param, test.algo)
-		if actual != test.expected {
-			t.Errorf("Expected IsHash(%q, %q) to be %v, got %v", test.param, test.algo, test.expected, actual)
+	for i, c := range cs {
+		a := IsHash(c.s, c.algo)
+		if a != c.w {
+			t.Errorf("[%d] IsHash(%q, %q) = %v, want %v", i, c.s, c.algo, a, c.w)
 		}
 	}
 }
@@ -637,9 +648,9 @@ func TestIsHash(t *testing.T) {
 func TestIsExistingEmail(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"foo@bar.com", true},
@@ -656,10 +667,10 @@ func TestIsExistingEmail(t *testing.T) {
 		{"sizeofuserismorethansixtyfour0123sizeofuserismorethansixtyfour0123@DOMAIN.CO.UK", false},
 		{"nosuchdomain@bar.nosuchdomainsuffix", false},
 	}
-	for _, test := range tests {
-		actual := IsExistingEmail(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsExistingEmail(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsExistingEmail(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsExistingEmail(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -667,9 +678,9 @@ func TestIsExistingEmail(t *testing.T) {
 func TestIsEmail(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"foo@bar.com", true},
@@ -690,12 +701,12 @@ func TestIsEmail(t *testing.T) {
 		// {"foo@bar.中文网", true},
 		// {"test|123@m端ller.com", true},
 		// {"hans@m端ller.com", true},
-		// {"hans.m端ller@test.com", true},
+		// {"hans.m端ller@c.com", true},
 	}
-	for _, test := range tests {
-		actual := IsEmail(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsEmail(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsEmail(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsEmail(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -703,9 +714,9 @@ func TestIsEmail(t *testing.T) {
 func TestIsURL(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"http://foo.bar#com", true},
@@ -778,8 +789,8 @@ func TestIsURL(t *testing.T) {
 		{"http://cant-end-with-hyphen-.example.com", false},
 		{"http://-cant-start-with-hyphen.example.com", false},
 		{"http://www.domain-can-have-dashes.com", true},
-		{"http://m.abcd.com/test.html", true},
-		{"http://m.abcd.com/a/b/c/d/test.html?args=a&b=c", true},
+		{"http://m.abcd.com/c.html", true},
+		{"http://m.abcd.com/a/b/c/d/c.html?args=a&b=c", true},
 		{"http://[::1]:9093", true},
 		{"http://[::1]:909388", false},
 		{"1200::AB00:1234::2552:7777:1313", false},
@@ -800,10 +811,10 @@ func TestIsURL(t *testing.T) {
 		{"foo_bar-fizz-buzz:13:13", false},
 		{"foo_bar-fizz-buzz://1313", false},
 	}
-	for _, test := range tests {
-		actual := IsURL(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsURL(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsURL(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsURL(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -811,9 +822,9 @@ func TestIsURL(t *testing.T) {
 func TestIsRequestURL(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"http://foo.bar/#com", true},
@@ -849,10 +860,10 @@ func TestIsRequestURL(t *testing.T) {
 		{"/abs/test/dir", false},
 		{"./rel/test/dir", false},
 	}
-	for _, test := range tests {
-		actual := IsRequestURL(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsRequestURL(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsRequestURL(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsRequestURL(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -860,9 +871,9 @@ func TestIsRequestURL(t *testing.T) {
 func TestIsRequestURI(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"http://foo.bar/#com", true},
@@ -897,10 +908,10 @@ func TestIsRequestURI(t *testing.T) {
 		{"/abs/test/dir", true},
 		{"./rel/test/dir", false},
 	}
-	for _, test := range tests {
-		actual := IsRequestURI(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsRequestURI(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsRequestURI(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsRequestURI(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -908,9 +919,9 @@ func TestIsRequestURI(t *testing.T) {
 func TestIsFloat(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"  ", false},
@@ -932,10 +943,10 @@ func TestIsFloat(t *testing.T) {
 		{"-0.22250738585072011e-307", true},
 		{"+0.22250738585072011e-307", true},
 	}
-	for _, test := range tests {
-		actual := IsFloat(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsFloat(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsFloat(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsFloat(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -943,9 +954,9 @@ func TestIsFloat(t *testing.T) {
 func TestIsHexadecimal(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"abcdefg", false},
 		{"", false},
@@ -953,10 +964,10 @@ func TestIsHexadecimal(t *testing.T) {
 		{"deadBEEF", true},
 		{"ff0044", true},
 	}
-	for _, test := range tests {
-		actual := IsHexadecimal(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsHexadecimal(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsHexadecimal(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsHexadecimal(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -964,9 +975,9 @@ func TestIsHexadecimal(t *testing.T) {
 func TestIsHexcolor(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"#ff", false},
@@ -976,10 +987,10 @@ func TestIsHexcolor(t *testing.T) {
 		{"fff", true},
 		{"#f00", true},
 	}
-	for _, test := range tests {
-		actual := IsHexcolor(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsHexcolor(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsHexcolor(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsHexcolor(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -987,9 +998,9 @@ func TestIsHexcolor(t *testing.T) {
 func TestIsRGBcolor(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"rgb(0,31,255)", true},
@@ -999,10 +1010,10 @@ func TestIsRGBcolor(t *testing.T) {
 		{"rgba(0,31,255)", false},
 		{"rgb(0,  31, 255)", true},
 	}
-	for _, test := range tests {
-		actual := IsRGBcolor(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsRGBcolor(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsRGBcolor(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsRGBcolor(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -1010,17 +1021,17 @@ func TestIsRGBcolor(t *testing.T) {
 func TestIsEmpty(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"abacaba", false},
 		{"", true},
 	}
-	for _, test := range tests {
-		actual := IsEmpty(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsEmpty(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsEmpty(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsEmpty(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -1028,35 +1039,35 @@ func TestIsEmpty(t *testing.T) {
 func TestIsNotEmpty(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"abacaba", true},
 		{"", false},
 	}
-	for _, test := range tests {
-		actual := IsNotEmpty(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsEmpty(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsNotEmpty(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsEmpty(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
 
 func TestIsIMEI(t *testing.T) {
-	tests := []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"990000862471854", true},
 		{"351756051523999", true},
 		{"9900008624718541", false},
 		{"1", false},
 	}
-	for _, test := range tests {
-		actual := IsIMEI(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsIMEI(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsIMEI(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsIMEI(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -1064,9 +1075,9 @@ func TestIsIMEI(t *testing.T) {
 func TestIsWhitespace(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"abacaba", false},
 		{"", false},
@@ -1078,10 +1089,10 @@ func TestIsWhitespace(t *testing.T) {
 		{"x\n\t\t\t\t", false},
 		{"\f\n\t  \n\n\n   \v\r\f", true},
 	}
-	for _, test := range tests {
-		actual := IsWhitespace(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsWhitespace(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsWhitespace(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsWhitespace(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -1089,9 +1100,9 @@ func TestIsWhitespace(t *testing.T) {
 func TestHasWhitespace(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"abacaba", false},
 		{"", false},
@@ -1103,10 +1114,10 @@ func TestHasWhitespace(t *testing.T) {
 		{"x\n\t\t\t\t", true},
 		{"\f\n\t  \n\n\n   \v\r\f", true},
 	}
-	for _, test := range tests {
-		actual := HasWhitespace(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected HasWhitespace(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := HasWhitespace(c.s)
+		if a != c.w {
+			t.Errorf("[%d] HasWhitespace(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -1114,11 +1125,11 @@ func TestHasWhitespace(t *testing.T) {
 func TestIsByteLength(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param1   string
-		param2   int
-		param3   int
-		expected bool
+	cs := []struct {
+		s   string
+		min int
+		max int
+		w   bool
 	}{
 		{"abacaba", 100, -1, false},
 		{"abacaba", 1, 3, false},
@@ -1126,10 +1137,10 @@ func TestIsByteLength(t *testing.T) {
 		{"abacaba", 0, 8, true},
 		{"\ufff0", 1, 1, false},
 	}
-	for _, test := range tests {
-		actual := IsByteLength(test.param1, test.param2, test.param3)
-		if actual != test.expected {
-			t.Errorf("Expected IsByteLength(%q, %q, %q) to be %v, got %v", test.param1, test.param2, test.param3, test.expected, actual)
+	for i, c := range cs {
+		a := IsByteLength(c.s, c.min, c.max)
+		if a != c.w {
+			t.Errorf("[%d] IsByteLength(%q, %q, %q) = %v, want %v", i, c.s, c.min, c.max, a, c.w)
 		}
 	}
 }
@@ -1137,9 +1148,9 @@ func TestIsByteLength(t *testing.T) {
 func TestIsJSON(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"145", true},
@@ -1151,10 +1162,10 @@ func TestIsJSON(t *testing.T) {
 		{"[]", true},
 		{"null", true},
 	}
-	for _, test := range tests {
-		actual := IsJSON(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsJSON(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsJSON(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsJSON(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -1162,9 +1173,9 @@ func TestIsJSON(t *testing.T) {
 func TestIsMultibyte(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"abc", false},
 		{"123", false},
@@ -1177,10 +1188,65 @@ func TestIsMultibyte(t *testing.T) {
 		{"ｶﾀｶﾅ", true},
 		{"", false},
 	}
-	for _, test := range tests {
-		actual := IsMultibyte(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsMultibyte(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsMultibyte(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsMultibyte(%q) = %v, want %v", i, c.s, a, c.w)
+		}
+	}
+}
+
+func TestIsASCII(t *testing.T) {
+	t.Parallel()
+
+	cs := []struct {
+		w bool
+		s string
+	}{
+		{false, ""},
+		{false, "ｆｏｏbar"},
+		{false, "ｘｙｚ０９８"},
+		{false, "１２３456"},
+		{false, "ｶﾀｶﾅ"},
+		{true, "foobar"},
+		{true, "0987654321"},
+		{true, "test@example.com"},
+		{true, "1234abcDEF"},
+		{false, ""},
+	}
+
+	for i, c := range cs {
+		a := IsASCII(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsASCII(%q) = %v, want %v", i, c.s, a, c.w)
+		}
+	}
+}
+
+func TestIsPrintableASCII(t *testing.T) {
+	t.Parallel()
+
+	cs := []struct {
+		w bool
+		s string
+	}{
+		{false, ""},
+		{false, "ｆｏｏbar"},
+		{false, "ｘｙｚ０９８"},
+		{false, "１２３456"},
+		{false, "ｶﾀｶﾅ"},
+		{true, "foobar"},
+		{true, "0987654321"},
+		{true, "test@example.com"},
+		{true, "1234abcDEF"},
+		{false, "newline\n"},
+		{false, "\x19test\x7F"},
+	}
+
+	for i, c := range cs {
+		a := IsPrintableASCII(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsPrintableASCII(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -1188,9 +1254,9 @@ func TestIsMultibyte(t *testing.T) {
 func TestIsFullWidth(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"abc", false},
@@ -1202,10 +1268,10 @@ func TestIsFullWidth(t *testing.T) {
 		{"Good＝Parts", true},
 		{"", false},
 	}
-	for _, test := range tests {
-		actual := IsFullWidth(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsFullWidth(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsFullWidth(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsFullWidth(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -1213,9 +1279,9 @@ func TestIsFullWidth(t *testing.T) {
 func TestIsHalfWidth(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"あいうえお", false},
@@ -1226,10 +1292,10 @@ func TestIsHalfWidth(t *testing.T) {
 		{"ｶﾀｶﾅﾞﾬ￩", true},
 		{"", false},
 	}
-	for _, test := range tests {
-		actual := IsHalfWidth(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsHalfWidth(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsHalfWidth(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsHalfWidth(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -1237,9 +1303,9 @@ func TestIsHalfWidth(t *testing.T) {
 func TestIsVariableWidth(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"ひらがなカタカナ漢字ABCDE", true},
@@ -1254,10 +1320,10 @@ func TestIsVariableWidth(t *testing.T) {
 		{"１２３４５６", false},
 		{"ｶﾀｶﾅﾞﾬ", false},
 	}
-	for _, test := range tests {
-		actual := IsVariableWidth(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsVariableWidth(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsVariableWidth(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsVariableWidth(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -1266,9 +1332,9 @@ func TestIsUUID(t *testing.T) {
 	t.Parallel()
 
 	// Tests without version
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"xxxa987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
@@ -1279,17 +1345,17 @@ func TestIsUUID(t *testing.T) {
 		{"aaaaaaaa-1111-1111-aaag-111111111111", false},
 		{"a987fbc9-4bed-3078-cf07-9141ba07c9f3", true},
 	}
-	for _, test := range tests {
-		actual := IsUUID(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsUUID(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsUUID(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsUUID(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 
 	// UUID ver. 3
-	tests = []struct {
-		param    string
-		expected bool
+	cs = []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"412452646", false},
@@ -1297,17 +1363,17 @@ func TestIsUUID(t *testing.T) {
 		{"a987fbc9-4bed-4078-8f07-9141ba07c9f3", false},
 		{"a987fbc9-4bed-3078-cf07-9141ba07c9f3", true},
 	}
-	for _, test := range tests {
-		actual := IsUUIDv3(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsUUIDv3(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsUUIDv3(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsUUIDv3(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 
 	// UUID ver. 4
-	tests = []struct {
-		param    string
-		expected bool
+	cs = []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"xxxa987fbc9-4bed-3078-cf07-9141ba07c9f3", false},
@@ -1316,17 +1382,17 @@ func TestIsUUID(t *testing.T) {
 		{"57b73598-8764-4ad0-a76a-679bb6640eb1", true},
 		{"625e63f3-58f5-40b7-83a1-a72ad31acffb", true},
 	}
-	for _, test := range tests {
-		actual := IsUUIDv4(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsUUIDv4(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsUUIDv4(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsUUIDv4(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 
 	// UUID ver. 5
-	tests = []struct {
-		param    string
-		expected bool
+	cs = []struct {
+		s string
+		w bool
 	}{
 
 		{"", false},
@@ -1336,10 +1402,10 @@ func TestIsUUID(t *testing.T) {
 		{"987fbc97-4bed-5078-af07-9141ba07c9f3", true},
 		{"987fbc97-4bed-5078-9f07-9141ba07c9f3", true},
 	}
-	for _, test := range tests {
-		actual := IsUUIDv5(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsUUIDv5(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsUUIDv5(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsUUIDv5(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -1383,9 +1449,9 @@ func TestIsISBN(t *testing.T) {
 	t.Parallel()
 
 	// Without version
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"foo", false},
@@ -1398,17 +1464,17 @@ func TestIsISBN(t *testing.T) {
 		{"978 3401013190", true},
 		{"978-3-8362-2119-1", true},
 	}
-	for _, test := range tests {
-		actual := IsISBN(test.param, -1)
-		if actual != test.expected {
-			t.Errorf("Expected IsISBN(%q, -1) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsISBN(c.s, -1)
+		if a != c.w {
+			t.Errorf("[%d] IsISBN(%q, -1) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 
 	// ISBN 10
-	tests = []struct {
-		param    string
-		expected bool
+	cs = []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"foo", false},
@@ -1421,17 +1487,17 @@ func TestIsISBN(t *testing.T) {
 		{"3 423 21412 0", true},
 		{"3 401 01319 X", true},
 	}
-	for _, test := range tests {
-		actual := IsISBN10(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsISBN10(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsISBN10(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsISBN10(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 
 	// ISBN 13
-	tests = []struct {
-		param    string
-		expected bool
+	cs = []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"foo", false},
@@ -1443,10 +1509,10 @@ func TestIsISBN(t *testing.T) {
 		{"978 3401013190", true},
 		{"978-3-8362-2119-1", true},
 	}
-	for _, test := range tests {
-		actual := IsISBN13(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsISBN13(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsISBN13(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsISBN13(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -1454,9 +1520,9 @@ func TestIsISBN(t *testing.T) {
 func TestIsDataURI(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"data:image/png;base64,TG9yZW0gaXBzdW0gZG9sb3Igc2l0IGFtZXQsIGNvbnNlY3RldHVyIGFkaXBpc2NpbmcgZWxpdC4=", true},
 		{"data:text/plain;base64,Vml2YW11cyBmZXJtZW50dW0gc2VtcGVyIHBvcnRhLg==", true},
@@ -1471,10 +1537,10 @@ func TestIsDataURI(t *testing.T) {
 		{"", false},
 		{"data:text,:;base85,U3VzcGVuZGlzc2UgbGVjdHVzIGxlbw==", false},
 	}
-	for _, test := range tests {
-		actual := IsDataURI(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsDataURI(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsDataURI(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsDataURI(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -1482,9 +1548,9 @@ func TestIsDataURI(t *testing.T) {
 func TestIsMagnetURI(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"magnet:?xt=urn:btih:06E2A9683BF4DA92C73A661AC56F0ECC9C63C5B4&dn=helloword2000&tr=udp://helloworld:1337/announce", true},
 		{"magnet:?xt=urn:btih:3E30322D5BFC7444B7B1D8DD42404B75D0531DFB&dn=world&tr=udp://world.com:1337", true},
@@ -1492,7 +1558,7 @@ func TestIsMagnetURI(t *testing.T) {
 		{"magnet:?xt=urn:btih:1GSHJVBDVDVJFYEHKFHEFIO8573898434JBFEGHD&dn=foo&tr=udp://foo.com:1337", true},
 		{"magnet:?xt=urn:btih:MCJDCYUFHEUD6E2752T7UJNEKHSUGEJFGTFHVBJS&dn=bar&tr=udp://bar.com:1337", true},
 		{"magnet:?xt=urn:btih:LAKDHWDHEBFRFVUFJENBYYTEUY837562JH2GEFYH&dn=foobar&tr=udp://foobar.com:1337", true},
-		{"magnet:?xt=urn:btih:MKCJBHCBJDCU725TGEB3Y6RE8EJ2U267UNJFGUID&dn=test&tr=udp://test.com:1337", true},
+		{"magnet:?xt=urn:btih:MKCJBHCBJDCU725TGEB3Y6RE8EJ2U267UNJFGUID&dn=test&tr=udp://c.com:1337", true},
 		{"magnet:?xt=urn:btih:UHWY2892JNEJ2GTEYOMDNU67E8ICGICYE92JDUGH&dn=baz&tr=udp://baz.com:1337", true},
 		{"magnet:?xt=urn:btih:HS263FG8U3GFIDHWD7829BYFCIXB78XIHG7CWCUG&dn=foz&tr=udp://foz.com:1337", true},
 		{"", false},
@@ -1502,14 +1568,14 @@ func TestIsMagnetURI(t *testing.T) {
 		{"magneta:?xt=urn:btih:1GSHJVBDVDVJFYEHKFHEFIO8573898434JBFEGHD&dn=foo&tr=udp://foo.com:1337", false},
 		{"magnet:?xt=uarn:btih:MCJDCYUFHEUD6E2752T7UJNEKHSUGEJFGTFHVBJS&dn=bar&tr=udp://bar.com:1337", false},
 		{"magnet:?xt=urn:btihz&dn=foobar&tr=udp://foobar.com:1337", false},
-		{"magnet:?xat=urn:btih:MKCJBHCBJDCU725TGEB3Y6RE8EJ2U267UNJFGUID&dn=test&tr=udp://test.com:1337", false},
+		{"magnet:?xat=urn:btih:MKCJBHCBJDCU725TGEB3Y6RE8EJ2U267UNJFGUID&dn=test&tr=udp://c.com:1337", false},
 		{"magnet::?xt=urn:btih:UHWY2892JNEJ2GTEYOMDNU67E8ICGICYE92JDUGH&dn=baz&tr=udp://baz.com:1337", false},
 		{"magnet:?xt:btih:HS263FG8U3GFIDHWD7829BYFCIXB78XIHG7CWCUG&dn=foz&tr=udp://foz.com:1337", false},
 	}
-	for _, test := range tests {
-		actual := IsMagnetURI(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsMagnetURI(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsMagnetURI(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsMagnetURI(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -1517,9 +1583,9 @@ func TestIsMagnetURI(t *testing.T) {
 func TestIsBase64(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"TG9yZW0gaXBzdW0gZG9sb3Igc2l0IGFtZXQsIGNvbnNlY3RldHVyIGFkaXBpc2NpbmcgZWxpdC4=", true},
 		{"Vml2YW11cyBmZXJtZW50dW0gc2VtcGVyIHBvcnRhLg==", true},
@@ -1534,10 +1600,10 @@ func TestIsBase64(t *testing.T) {
 		{"", false},
 		{"Vml2YW11cyBmZXJtZtesting123", false},
 	}
-	for _, test := range tests {
-		actual := IsBase64(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsBase64(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsBase64(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsBase64(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -1546,9 +1612,9 @@ func TestIsIP(t *testing.T) {
 	t.Parallel()
 
 	// Without version
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"127.0.0.1", true},
@@ -1559,17 +1625,17 @@ func TestIsIP(t *testing.T) {
 		{"2001:db8:0000:1:1:1:1:1", true},
 		{"300.0.0.0", false},
 	}
-	for _, test := range tests {
-		actual := IsIP(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsIP(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsIP(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsIP(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 
 	// IPv4
-	tests = []struct {
-		param    string
-		expected bool
+	cs = []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"127.0.0.1", true},
@@ -1580,17 +1646,17 @@ func TestIsIP(t *testing.T) {
 		{"2001:db8:0000:1:1:1:1:1", false},
 		{"300.0.0.0", false},
 	}
-	for _, test := range tests {
-		actual := IsIPv4(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsIPv4(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsIPv4(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsIPv4(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 
 	// IPv6
-	tests = []struct {
-		param    string
-		expected bool
+	cs = []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"127.0.0.1", false},
@@ -1601,10 +1667,10 @@ func TestIsIP(t *testing.T) {
 		{"2001:db8:0000:1:1:1:1:1", true},
 		{"300.0.0.0", false},
 	}
-	for _, test := range tests {
-		actual := IsIPv6(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsIPv6(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsIPv6(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsIPv6(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -1612,9 +1678,9 @@ func TestIsIP(t *testing.T) {
 func TestIsPort(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"1", true},
 		{"65535", true},
@@ -1623,10 +1689,10 @@ func TestIsPort(t *testing.T) {
 		{"65538", false},
 	}
 
-	for _, test := range tests {
-		actual := IsPort(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsPort(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsPort(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsPort(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -1634,9 +1700,9 @@ func TestIsPort(t *testing.T) {
 func TestIsDNSName(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"localhost", true},
 		{"a.bc", true},
@@ -1665,19 +1731,19 @@ func TestIsDNSName(t *testing.T) {
 		{"www.jubfvq1v3p38i51622y0dvmdk1mymowjyeu26gbtw9andgynj1gg8z3msb1kl5z6906k846pj3sulm4kiyk82ln5teqj9nsht59opr0cs5ssltx78lfyvml19lfq1wp4usbl0o36cmiykch1vywbttcus1p9yu0669h8fj4ll7a6bmop505908s1m83q2ec2qr9nbvql2589adma3xsq2o38os2z3dmfh2tth4is4ixyfasasasefqwe4t2ub2fz1rme.de", false},
 	}
 
-	for _, test := range tests {
-		actual := IsDNSName(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsDNS(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsDNSName(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsDNS(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
 
 func TestIsHost(t *testing.T) {
 	t.Parallel()
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"localhost", true},
 		{"localhost.localdomain", true},
@@ -1689,10 +1755,10 @@ func TestIsHost(t *testing.T) {
 		{"-localhost", false},
 		{".localhost", false},
 	}
-	for _, test := range tests {
-		actual := IsHost(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsHost(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsHost(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsHost(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 
@@ -1701,9 +1767,9 @@ func TestIsHost(t *testing.T) {
 func TestIsDialString(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"localhost.local:1", true},
 		{"localhost.localdomain:9090", true},
@@ -1719,10 +1785,10 @@ func TestIsDialString(t *testing.T) {
 		{"www.jubfvq1v3p38i51622y0dvmdk1mymowjyeu26gbtw9andgynj1gg8z3msb1kl5z6906k846pj3sulm4kiyk82ln5teqj9nsht59opr0cs5ssltx78lfyvml19lfq1wp4usbl0o36cmiykch1vywbttcus1p9yu0669h8fj4ll7a6bmop505908s1m83q2ec2qr9nbvql2589adma3xsq2o38os2z3dmfh2tth4is4ixyfasasasefqwe4t2ub2fz1rme.de:20000", false},
 	}
 
-	for _, test := range tests {
-		actual := IsDialString(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsDialString(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsDialString(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsDialString(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -1730,9 +1796,9 @@ func TestIsDialString(t *testing.T) {
 func TestIsMAC(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"3D:F2:C9:A6:B3:4F", true},
 		{"3D-F2-C9-A6-B3:4F", false},
@@ -1740,10 +1806,10 @@ func TestIsMAC(t *testing.T) {
 		{"", false},
 		{"abacaba", false},
 	}
-	for _, test := range tests {
-		actual := IsMAC(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsMAC(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsMAC(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsMAC(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -1751,9 +1817,9 @@ func TestIsMAC(t *testing.T) {
 func TestIsLatitude(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"-90.000", true},
@@ -1762,10 +1828,10 @@ func TestIsLatitude(t *testing.T) {
 		{"+99.9", false},
 		{"108", false},
 	}
-	for _, test := range tests {
-		actual := IsLatitude(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsLatitude(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsLatitude(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsLatitude(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -1773,9 +1839,9 @@ func TestIsLatitude(t *testing.T) {
 func TestIsLongitude(t *testing.T) {
 	t.Parallel()
 
-	var tests = []struct {
-		param    string
-		expected bool
+	cs := []struct {
+		s string
+		w bool
 	}{
 		{"", false},
 		{"-180.000", true},
@@ -1784,10 +1850,10 @@ func TestIsLongitude(t *testing.T) {
 		{"+382.3811", false},
 		{"23.11111111", true},
 	}
-	for _, test := range tests {
-		actual := IsLongitude(test.param)
-		if actual != test.expected {
-			t.Errorf("Expected IsLongitude(%q) to be %v, got %v", test.param, test.expected, actual)
+	for i, c := range cs {
+		a := IsLongitude(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsLongitude(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }

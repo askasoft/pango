@@ -5,8 +5,6 @@ import (
 	"math/rand"
 	"strings"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -116,8 +114,17 @@ func TestJapanConvert(t *testing.T) {
 			zen.WriteRune(z)
 
 			s := src.String()
-			assert.Equal(t, han.String(), ToHankaku(s), "h:"+s)
-			assert.Equal(t, zen.String(), ToZenkaku(s), "z:"+s)
+			e := han.String()
+			a := ToHankaku(s)
+			if a != e {
+				t.Errorf("ToHankaku(%q) = %q, want %q", s, a, e)
+			}
+
+			e = zen.String()
+			a = ToZenkaku(s)
+			if a != e {
+				t.Errorf("ToZenkaku(%q) = %q, want %q", s, a, e)
+			}
 		}
 	}
 }
@@ -129,8 +136,20 @@ func TestConvertDaku(t *testing.T) {
 		sb.WriteRune('ﾞ')
 	}
 	han := sb.String()
-	assert.Equal(t, han, ToHankaku(zenkakuDaku))
-	assert.Equal(t, zenkakuDaku, ToZenkaku(han))
+
+	s := zenkakuDaku
+	a := ToHankaku(s)
+	e := han
+	if a != e {
+		t.Errorf("ToHankaku(%q) = %q, want %q", s, a, e)
+	}
+
+	s = han
+	a = ToZenkaku(s)
+	e = zenkakuDaku
+	if a != e {
+		t.Errorf("ToZenkaku(%q) = %q, want %q", s, a, e)
+	}
 }
 
 func TestConvertHandaku(t *testing.T) {
@@ -140,30 +159,54 @@ func TestConvertHandaku(t *testing.T) {
 		sb.WriteRune('ﾟ')
 	}
 	han := sb.String()
-	assert.Equal(t, han, ToHankaku(zenkakuHandaku))
-	assert.Equal(t, zenkakuHandaku, ToZenkaku(han))
+
+	e := han
+	s := zenkakuHandaku
+	a := ToHankaku(s)
+	if a != e {
+		t.Errorf("ToHankaku(%q) = %q, want %q", s, a, e)
+	}
+
+	s = han
+	a = ToZenkaku(s)
+	e = zenkakuHandaku
+	if a != e {
+		t.Errorf("ToZenkaku(%q) = %q, want %q", s, a, e)
+	}
 }
 
 func TestIsHankakuKatakanaRune(t *testing.T) {
 	fmt.Println(hankakuKatakana)
 	for _, c := range hankakuKatakana {
-		assert.True(t, IsHankakuKatakanaRune(c), fmt.Sprintf("%04X %s", c, string(c)))
+		a := IsHankakuKatakanaRune(c)
+		if !a {
+			t.Errorf("IsHankakuKatakanaRune(%q) = %v, want %v", c, a, true)
+		}
 	}
 }
 
 func TestIsHankakuKatakana(t *testing.T) {
 	fmt.Println(hankakuKatakana)
-	assert.True(t, IsHankakuKatakana(hankakuKatakana), hankakuKatakana)
+	a := IsHankakuKatakana(hankakuKatakana)
+	if !a {
+		t.Errorf("IsHankakuKatakana(%q) = %v, want %v", hankakuKatakana, a, true)
+	}
 }
 
 func TestIsZenkakuKatakanaRune(t *testing.T) {
 	fmt.Println(zenkakuKatakana)
 	for _, c := range zenkakuKatakana {
-		assert.True(t, IsZenkakuKatakanaRune(c), fmt.Sprintf("%04X %s", c, string(c)))
+		a := IsZenkakuKatakanaRune(c)
+		if !a {
+			t.Errorf("IsZenkakuKatakanaRune(%q) = %v, want %v", c, a, true)
+		}
 	}
 }
 
 func TestIsZenkakuKatakana(t *testing.T) {
 	fmt.Println(zenkakuKatakana)
-	assert.True(t, IsZenkakuKatakana(zenkakuKatakana), zenkakuKatakana)
+	a := IsZenkakuKatakana(zenkakuKatakana)
+	if !a {
+		t.Errorf("IsZenkakuKatakana(%q) = %v, want %v", zenkakuKatakana, a, true)
+	}
 }

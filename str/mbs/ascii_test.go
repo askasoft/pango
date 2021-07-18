@@ -5,8 +5,6 @@ import (
 	"math/rand"
 	"strings"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -57,7 +55,11 @@ func specialZ(c rune) rune {
 func testPrint(t *testing.T, name, zens, hans string, fz2h func(c rune) rune, fh2z func(c rune) rune) {
 	zen := []rune(zens)
 	han := []rune(hans)
-	assert.Equal(t, len(zen), len(han), name)
+
+	if len(zen) != len(han) {
+		t.Errorf("[%s] len(%q) != len(%q)", name, zen, han)
+		return
+	}
 
 	fmt.Println("// " + name)
 	for i := 0; i < len(zen) && i < len(han); i++ {
@@ -67,9 +69,15 @@ func testPrint(t *testing.T, name, zens, hans string, fz2h func(c rune) rune, fh
 		if fh2z != nil && fz2h != nil {
 			z2h := fz2h(z)
 			h2z := fh2z(h)
-			assert.Equal(t, h, z2h, string(h)+" <> "+string(z2h))
+
+			if h != z2h {
+				t.Errorf("[%s] %q != %q", name, h, z2h)
+			}
+
 			sz := specialZ(z)
-			assert.Equal(t, sz, h2z, string(sz)+" <> "+string(h2z))
+			if sz != h2z {
+				t.Errorf("[%s] %q != %q", name, sz, h2z)
+			}
 		}
 		fmt.Printf("'\\u%04X': '\\u%04X', // %s => %s\n", z, h, string(z), string(h))
 	}
@@ -102,8 +110,18 @@ func TestASCIIConvert(t *testing.T) {
 			zen.WriteRune(z)
 
 			s := src.String()
-			assert.Equal(t, han.String(), ToHalfWidth(s), s)
-			assert.Equal(t, zen.String(), ToFullWidth(s), s)
+
+			e := han.String()
+			a := ToHalfWidth(s)
+			if e != a {
+				t.Errorf("ToHalfWidth(%q) = %q, want %q", s, a, e)
+			}
+
+			e = zen.String()
+			a = ToFullWidth(s)
+			if e != a {
+				t.Errorf("ToFullWidth(%q) = %q, want %q", s, a, e)
+			}
 		}
 	}
 }

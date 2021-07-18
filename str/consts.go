@@ -1,24 +1,27 @@
 package str
 
 const (
-	// Digits A String for digits "0123456789"
-	Digits = "0123456789"
+	// LettersLower A String for lower letters "a-z"
+	LettersLower = "abcdefghijklmnopqrstuvwxyz"
 
-	// LowerLetters A String for lower letters "abcdefghijklmnopqrstuvwxyz"
-	LowerLetters = "abcdefghijklmnopqrstuvwxyz"
+	// LettersUpper A String for upper letters "A-Z"
+	LettersUpper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-	// UpperLetters A String for upper letters "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	UpperLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	// Letters A String for letters "a-zA-Z"
+	Letters = LettersLower + LettersUpper
+
+	// Numbers A String for numbers "0123456789"
+	Numbers = "0123456789"
 
 	// Symbols A String for symbols "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
 	Symbols = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
 
-	// DigitLetters A String for digits and letters
-	DigitLetters = Digits + LowerLetters + UpperLetters
+	// LetterNumbers A String for letters and numbers
+	LetterNumbers = Letters + Numbers
 
-	// SymbolDigits A String for symbols and digits "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~0123456789"
-	SymbolDigits = Symbols + Digits
+	// SymbolNumbers A String for symbols and numbers "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~0123456789"
+	SymbolNumbers = Symbols + Numbers
 
-	// SymbolDigitLetters A String for symbols, digits and letters
-	SymbolDigitLetters = Symbols + DigitLetters
+	// LetterNumberSymbols A String for letters, numbers and symbols
+	LetterNumberSymbols = Symbols + Letters + Numbers
 )

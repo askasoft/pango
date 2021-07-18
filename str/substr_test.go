@@ -2,90 +2,286 @@ package str
 
 import (
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
+func TestSubstrAfter(t *testing.T) {
+	cs := []struct {
+		w string
+		s string
+		b string
+	}{
+		{"", "", "c"},
+		{"", "abc", "c"},
+		{"", "abc", "d"},
+		{"ot", "foot", "o"},
+		{"bc", "abc", "a"},
+		{"cba", "abcba", "b"},
+		{"ba世界", "abc世界ba世界", "世界"},
+	}
+
+	for i, c := range cs {
+		a := SubstrAfter(c.s, c.b)
+		if a != c.w {
+			t.Errorf("[%d] SubstrAfter(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+		}
+	}
+}
+
 func TestSubstrAfterByte(t *testing.T) {
-	assert.Equal(t, "ot", SubstrAfterByte("foot", 'o'))
-	assert.Equal(t, "bc", SubstrAfterByte("abc", 'a'))
-	assert.Equal(t, "cba", SubstrAfterByte("abcba", 'b'))
-	assert.Equal(t, "", SubstrAfterByte("abc", 'c'))
-	assert.Equal(t, "", SubstrAfterByte("abc", 'd'))
+	cs := []struct {
+		w string
+		s string
+		b byte
+	}{
+		{"ot", "foot", 'o'},
+		{"bc", "abc", 'a'},
+		{"cba", "abcba", 'b'},
+		{"", "abc", 'c'},
+		{"", "abc", 'd'},
+	}
+
+	for i, c := range cs {
+		a := SubstrAfterByte(c.s, c.b)
+		if a != c.w {
+			t.Errorf("[%d] SubstrAfterByte(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+		}
+	}
 }
 
 func TestSubstrAfterRune(t *testing.T) {
-	assert.Equal(t, "ot", SubstrAfterRune("foot", 'o'))
-	assert.Equal(t, "bc", SubstrAfterRune("abc", 'a'))
-	assert.Equal(t, "cba", SubstrAfterRune("abcba", 'b'))
-	assert.Equal(t, "", SubstrAfterRune("abc", 'c'))
-	assert.Equal(t, "", SubstrAfterRune("abc", 'd'))
-}
+	cs := []struct {
+		w string
+		s string
+		b rune
+	}{
+		{"", "abc", 'c'},
+		{"", "abc", 'd'},
+		{"ot", "foot", 'o'},
+		{"bc", "abc", 'a'},
+		{"cba", "abcba", 'b'},
+		{"ba世界", "abc世界ba世界", '界'},
+	}
 
-func TestSubstrAfterLastByte(t *testing.T) {
-	assert.Equal(t, "", SubstrAfterLastByte("", 'a'))
-	assert.Equal(t, "", SubstrAfterLastByte("foo", 'b'))
-	assert.Equal(t, "t", SubstrAfterLastByte("foot", 'o'))
-	assert.Equal(t, "bc", SubstrAfterLastByte("abc", 'a'))
-	assert.Equal(t, "a", SubstrAfterLastByte("abcba", 'b'))
-	assert.Equal(t, "", SubstrAfterLastByte("abc", 'c'))
-	assert.Equal(t, "", SubstrAfterLastByte("", 'd'))
+	for i, c := range cs {
+		a := SubstrAfterRune(c.s, c.b)
+		if a != c.w {
+			t.Errorf("[%d] SubstrAfterRune(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+		}
+	}
 }
 
 func TestSubstrAfterLast(t *testing.T) {
-	assert.Equal(t, "baz", SubstrAfterLast("fooXXbarXXbaz", "XX"))
+	cs := []struct {
+		w string
+		s string
+		b string
+	}{
+		{"", "", ""},
+		{"", "", "a"},
+		{"", "foo", "b"},
+		{"", "abc", "c"},
+		{"", "", "d"},
+		{"", "abc", ""},
+		{"t", "foot", "o"},
+		{"bc", "abc", "a"},
+		{"a", "abcba", "b"},
+		{"baz", "fooXXbarXXbaz", "XX"},
+		{"ef", "ab世界cd世界ef", "世界"},
+	}
 
-	assert.Equal(t, "", SubstrAfterLast("", ""))
-	assert.Equal(t, "", SubstrAfterLast("", "a"))
+	for i, c := range cs {
+		a := SubstrAfterLast(c.s, c.b)
+		if a != c.w {
+			t.Errorf("[%d] SubstrAfterLast(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+		}
+	}
+}
 
-	assert.Equal(t, "", SubstrAfterLast("foo", "b"))
-	assert.Equal(t, "t", SubstrAfterLast("foot", "o"))
-	assert.Equal(t, "bc", SubstrAfterLast("abc", "a"))
-	assert.Equal(t, "a", SubstrAfterLast("abcba", "b"))
-	assert.Equal(t, "", SubstrAfterLast("abc", "c"))
-	assert.Equal(t, "", SubstrAfterLast("", "d"))
-	assert.Equal(t, "", SubstrAfterLast("abc", ""))
+func TestSubstrAfterLastByte(t *testing.T) {
+	cs := []struct {
+		w string
+		s string
+		b byte
+	}{
+		{"", "", 'a'},
+		{"", "foo", 'b'},
+		{"t", "foot", 'o'},
+		{"bc", "abc", 'a'},
+		{"a", "abcba", 'b'},
+		{"", "abc", 'c'},
+		{"", "", 'd'},
+	}
+
+	for i, c := range cs {
+		a := SubstrAfterLastByte(c.s, c.b)
+		if a != c.w {
+			t.Errorf("[%d] SubstrAfterLastByte(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+		}
+	}
+}
+
+func TestSubstrAfterLastRune(t *testing.T) {
+	cs := []struct {
+		w string
+		s string
+		b rune
+	}{
+		{"", "", 'a'},
+		{"", "foo", 'b'},
+		{"t", "foot", 'o'},
+		{"bc", "abc", 'a'},
+		{"a", "abcba", 'b'},
+		{"", "abc", 'c'},
+		{"", "", 'd'},
+		{"bc", "a界世界bc", '界'},
+	}
+
+	for i, c := range cs {
+		a := SubstrAfterLastRune(c.s, c.b)
+		if a != c.w {
+			t.Errorf("[%d] SubstrAfterLastRune(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+		}
+	}
+}
+
+func TestSubstrBefore(t *testing.T) {
+	cs := []struct {
+		w string
+		s string
+		b string
+	}{
+		{"", "", "a"},
+		{"", "abc", "a"},
+		{"f", "foot", "o"},
+		{"a", "abcba", "b"},
+		{"ab", "abc", "c"},
+		{"abc", "abc", "d"},
+		{"abc", "abc世界efg世界xyz", "世界"},
+	}
+
+	for i, c := range cs {
+		a := SubstrBefore(c.s, c.b)
+		if a != c.w {
+			t.Errorf("[%d] SubstrBefore(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+		}
+	}
 }
 
 func TestSubstrBeforeByte(t *testing.T) {
-	assert.Equal(t, "f", SubstrBeforeByte("foot", 'o'))
-	assert.Equal(t, "", SubstrBeforeByte("abc", 'a'))
-	assert.Equal(t, "a", SubstrBeforeByte("abcba", 'b'))
-	assert.Equal(t, "ab", SubstrBeforeByte("abc", 'c'))
-	assert.Equal(t, "abc", SubstrBeforeByte("abc", 'd'))
+	cs := []struct {
+		w string
+		s string
+		b byte
+	}{
+		{"", "abc", 'a'},
+		{"f", "foot", 'o'},
+		{"a", "abcba", 'b'},
+		{"ab", "abc", 'c'},
+		{"abc", "abc", 'd'},
+	}
+
+	for i, c := range cs {
+		a := SubstrBeforeByte(c.s, c.b)
+		if a != c.w {
+			t.Errorf("[%d] SubstrBeforeByte(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+		}
+	}
 }
 
 func TestSubstrBeforeRune(t *testing.T) {
-	assert.Equal(t, "f", SubstrBeforeRune("foot", 'o'))
-	assert.Equal(t, "", SubstrBeforeRune("abc", 'a'))
-	assert.Equal(t, "a", SubstrBeforeRune("abcba", 'b'))
-	assert.Equal(t, "ab", SubstrBeforeRune("abc", 'c'))
-	assert.Equal(t, "abc", SubstrBeforeRune("abc", 'd'))
-}
+	cs := []struct {
+		w string
+		s string
+		b rune
+	}{
+		{"f", "foot", 'o'},
+		{"", "abc", 'a'},
+		{"a", "abcba", 'b'},
+		{"ab", "abc", 'c'},
+		{"abc", "abc", 'd'},
+	}
 
-func TestSubstrBeforeLastByte(t *testing.T) {
-	assert.Equal(t, "", SubstrBeforeLastByte("", 'a'))
-	assert.Equal(t, "foo", SubstrBeforeLastByte("foo", 'b'))
-	assert.Equal(t, "fo", SubstrBeforeLastByte("foot", 'o'))
-	assert.Equal(t, "", SubstrBeforeLastByte("abc", 'a'))
-	assert.Equal(t, "abc", SubstrBeforeLastByte("abcba", 'b'))
-	assert.Equal(t, "ab", SubstrBeforeLastByte("abc", 'c'))
-	assert.Equal(t, "", SubstrBeforeLastByte("", 'd'))
-	assert.Equal(t, "abc", SubstrBeforeLastByte("abc", 'd'))
+	for i, c := range cs {
+		a := SubstrBeforeRune(c.s, c.b)
+		if a != c.w {
+			t.Errorf("[%d] SubstrBeforeRune(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+		}
+	}
 }
 
 func TestSubstrBeforeLast(t *testing.T) {
-	assert.Equal(t, "fooXXbar", SubstrBeforeLast("fooXXbarXXbaz", "XX"))
+	cs := []struct {
+		w string
+		s string
+		b string
+	}{
+		{"", "", ""},
+		{"", "", "a"},
+		{"foo", "foo", "b"},
+		{"fo", "foot", "o"},
+		{"", "abc", "a"},
+		{"abc", "abcba", "b"},
+		{"ab", "abc", "c"},
+		{"", "", "d"},
+		{"abc", "abc", ""},
+		{"abc", "abc", "d"},
+		{"fooXXbar", "fooXXbarXXbaz", "XX"},
+		{"abc世界efg", "abc世界efg世界xyz", "世界"},
+	}
 
-	assert.Equal(t, "", SubstrBeforeLast("", ""))
-	assert.Equal(t, "", SubstrBeforeLast("", "a"))
+	for i, c := range cs {
+		a := SubstrBeforeLast(c.s, c.b)
+		if a != c.w {
+			t.Errorf("[%d] SubstrBeforeLast(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+		}
+	}
+}
 
-	assert.Equal(t, "foo", SubstrBeforeLast("foo", "b"))
-	assert.Equal(t, "fo", SubstrBeforeLast("foot", "o"))
-	assert.Equal(t, "", SubstrBeforeLast("abc", "a"))
-	assert.Equal(t, "abc", SubstrBeforeLast("abcba", "b"))
-	assert.Equal(t, "ab", SubstrBeforeLast("abc", "c"))
-	assert.Equal(t, "", SubstrBeforeLast("", "d"))
-	assert.Equal(t, "abc", SubstrBeforeLast("abc", ""))
-	assert.Equal(t, "abc", SubstrBeforeLast("abc", "d"))
+func TestSubstrBeforeLastByte(t *testing.T) {
+	cs := []struct {
+		w string
+		s string
+		b byte
+	}{
+		{"", "", 'a'},
+		{"foo", "foo", 'b'},
+		{"fo", "foot", 'o'},
+		{"", "abc", 'a'},
+		{"abc", "abcba", 'b'},
+		{"ab", "abc", 'c'},
+		{"", "", 'd'},
+		{"abc", "abc", 'd'},
+	}
+
+	for i, c := range cs {
+		a := SubstrBeforeLastByte(c.s, c.b)
+		if a != c.w {
+			t.Errorf("[%d] SubstrBeforeLastByte(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+		}
+	}
+}
+
+func TestSubstrBeforeLastRune(t *testing.T) {
+	cs := []struct {
+		w string
+		s string
+		b rune
+	}{
+		{"", "", 'a'},
+		{"foo", "foo", 'b'},
+		{"fo", "foot", 'o'},
+		{"", "abc", 'a'},
+		{"abc", "abcba", 'b'},
+		{"ab", "abc", 'c'},
+		{"", "", 'd'},
+		{"abc", "abc", 'd'},
+		{"abc世界", "abc世界世ba", '世'},
+	}
+
+	for i, c := range cs {
+		a := SubstrBeforeLastRune(c.s, c.b)
+		if a != c.w {
+			t.Errorf("[%d] SubstrBeforeLastRune(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+		}
+	}
 }

@@ -361,43 +361,43 @@ func strfmtc(s string) fmtfunc {
 
 func timefmtc(layout string) fmtfunc {
 	return func(le *Event) string {
-		return le.When.Format(layout)
+		return le.When().Format(layout)
 	}
 }
 
 func namefmt(le *Event) string {
-	return le.Logger.GetName()
+	return le.Logger().GetName()
 }
 
 func namefmtc(f string) fmtfunc {
 	return func(le *Event) string {
-		return fmt.Sprintf(f, le.Logger.GetName())
+		return fmt.Sprintf(f, le.Logger().GetName())
 	}
 }
 
 func lvlpfmt(le *Event) string {
-	return le.Level.Prefix()
+	return le.Level().Prefix()
 }
 
 func lvlpfmtc(f string) fmtfunc {
 	return func(le *Event) string {
-		return fmt.Sprintf(f, le.Level.Prefix())
+		return fmt.Sprintf(f, le.Level().Prefix())
 	}
 }
 
 func lvlsfmt(le *Event) string {
-	return le.Level.String()
+	return le.Level().String()
 }
 
 func lvlsfmtc(f string) fmtfunc {
 	return func(le *Event) string {
-		return fmt.Sprintf(f, le.Level.String())
+		return fmt.Sprintf(f, le.Level().String())
 	}
 }
 
 func propfmtc(key string) fmtfunc {
 	return func(le *Event) string {
-		return fmt.Sprint(le.Logger.GetProp(key))
+		return fmt.Sprint(le.Logger().GetProp(key))
 	}
 }
 
@@ -409,7 +409,7 @@ func propsfmtc(f string) fmtfunc {
 		j = ss[1]
 	}
 	return func(le *Event) string {
-		m := le.Logger.GetProps()
+		m := le.Logger().GetProps()
 		if m == nil {
 			return ""
 		}
@@ -424,34 +424,34 @@ func propsfmtc(f string) fmtfunc {
 
 func jpropfmtc(key string) fmtfunc {
 	return func(le *Event) string {
-		b, _ := json.Marshal(le.Logger.GetProp(key))
+		b, _ := json.Marshal(le.Logger().GetProp(key))
 		return string(b)
 	}
 }
 
 func jpropsfmt(le *Event) string {
-	b, _ := json.Marshal(le.Logger.GetProps())
+	b, _ := json.Marshal(le.Logger().GetProps())
 	return string(b)
 }
 
 func funcfmt(le *Event) string {
-	return le.Func
+	return le.Func()
 }
 
 func filefmt(le *Event) string {
-	return le.File
+	return le.File()
 }
 
 func linefmt(le *Event) string {
-	return strconv.Itoa(le.Line)
+	return strconv.Itoa(le.Line())
 }
 
 func tracefmt(le *Event) string {
-	return le.Trace
+	return le.Trace()
 }
 
 func msgfmt(le *Event) string {
-	return le.Msg
+	return le.Msg()
 }
 
 func eolfmt(le *Event) string {

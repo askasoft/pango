@@ -1,32 +1,53 @@
 package log
 
 import (
-	"encoding/json"
-	"strconv"
+	"strings"
 	"testing"
 	"time"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestEventCaller(t *testing.T) {
 	le := newEvent(&logger{}, LevelInfo, "caller")
-	le.When = time.Time{}
+	le.when = time.Time{}
 	le.Caller(2, false)
-	b, err := json.Marshal(le)
-	if err != nil {
-		t.Error(err)
+
+	if le.file != "logevent_test.go" {
+		t.Errorf("le.file = %v, want %v", le.file, "logevent_test.go")
 	}
-	assert.Equal(t, `{"level":4,"msg":"caller","when":"0001-01-01T00:00:00Z","file":"logevent_test.go","line":`+
-		strconv.Itoa(le.Line)+`,"func":"log.TestEventCaller","trace":""}`, string(b))
+	if le._func != "log.TestEventCaller" {
+		t.Errorf("le._func = %v, want %v", le._func, "log.TestEventCaller")
+	}
+	if le.line == 0 {
+		t.Errorf("le.line = %v, want != %v", le.line, 0)
+	}
 }
 
-func TestEventJsonMarshal(t *testing.T) {
-	le := newEvent(&logger{}, LevelInfo, "marshal")
-	le.When = time.Time{}
-	b, err := json.Marshal(le)
-	if err != nil {
-		t.Error(err)
-	}
-	assert.Equal(t, `{"level":4,"msg":"marshal","when":"0001-01-01T00:00:00Z","file":"","line":0,"func":"","trace":""}`, string(b))
+func BenchmarkEventPool(b *testing.B) {
+	b.RunParallel(func(pb *testing.PB) {
+		sb := &strings.Builder{}
+		for pb.Next() {
+			le := eventPool.Get().(*Event)
+			le.logger = &logger{}
+			le.level = LevelInfo
+			le.msg = "simple"
+			le.when = time.Now()
+			TextFmtSimple.Write(sb, le)
+			le.clear()
+			eventPool.Put(le)
+		}
+	})
+}
+
+func BenchmarkEventNew(b *testing.B) {
+	b.RunParallel(func(pb *testing.PB) {
+		sb := &strings.Builder{}
+		for pb.Next() {
+			le := &Event{}
+			le.logger = &logger{}
+			le.level = LevelInfo
+			le.msg = "simple"
+			le.when = time.Now()
+			TextFmtSimple.Write(sb, le)
+		}
+	})
 }

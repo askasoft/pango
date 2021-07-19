@@ -55,14 +55,14 @@ func (sw *SlackWriter) Write(le *Event) {
 
 	lf := sw.Logfmt
 	if lf == nil {
-		lf = le.Logger.GetFormatter()
+		lf = le.Logger().GetFormatter()
 		if lf == nil {
 			lf = TextFmtDefault
 		}
 	}
 
 	sm := &slack.Message{}
-	sm.IconEmoji = getIconEmoji(le.Level)
+	sm.IconEmoji = getIconEmoji(le.Level())
 	sm.Channel = sw.Channel
 	sm.Username = sw.Username
 	sm.Text = sw.Subfmt.Format(le)

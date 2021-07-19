@@ -18,7 +18,7 @@ type LevelFilter struct {
 
 // Reject filter event by logger name
 func (lf *LevelFilter) Reject(le *Event) bool {
-	return lf.Level < le.Level
+	return lf.Level < le.Level()
 }
 
 // NewLevelFilter create a level filter
@@ -33,7 +33,7 @@ type NameFilter struct {
 
 // Reject filter event by logger name
 func (nf *NameFilter) Reject(le *Event) bool {
-	return nf.Name != le.Logger.GetName()
+	return nf.Name != le.Logger().GetName()
 }
 
 // NewNameFilter create a name filter
@@ -48,7 +48,7 @@ type NameNotFilter struct {
 
 // Reject filter event by logger name
 func (nnf *NameNotFilter) Reject(le *Event) bool {
-	return nnf.Name == le.Logger.GetName()
+	return nnf.Name == le.Logger().GetName()
 }
 
 // NewNameNotFilter create a name filter (not equal)

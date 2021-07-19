@@ -3,6 +3,7 @@ package log
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/pandafw/pango/net/slack"
@@ -17,6 +18,9 @@ type SlackWriter struct {
 	Subfmt   Formatter // subject formatter
 	Logfmt   Formatter // log formatter
 	Logfil   Filter    // log filter
+
+	sb *strings.Builder // subject builder
+	bb *strings.Builder // text builder
 }
 
 // SetSubject set the subject formatter
@@ -44,13 +48,11 @@ func (sw *SlackWriter) SetTimeout(timeout string) error {
 	return nil
 }
 
-// Write send log message to slack
-func (sw *SlackWriter) Write(le *Event) {
-	if sw.Logfil != nil && sw.Logfil.Reject(le) {
-		return
-	}
-	if sw.Subfmt == nil {
-		sw.Subfmt = TextFmtSubject
+// Format format log event to (subject, body)
+func (sw *SlackWriter) Format(le *Event) (sb, bb string) {
+	sf := sw.Subfmt
+	if sf == nil {
+		sf = TextFmtSubject
 	}
 
 	lf := sw.Logfmt
@@ -61,13 +63,32 @@ func (sw *SlackWriter) Write(le *Event) {
 		}
 	}
 
+	sw.sb.Reset()
+	sf.Write(sw.sb, le)
+	sb = sw.sb.String()
+
+	sw.bb.Reset()
+	lf.Write(sw.bb, le)
+	bb = sw.bb.String()
+
+	return
+}
+
+// Write send log message to slack
+func (sw *SlackWriter) Write(le *Event) {
+	if sw.Logfil != nil && sw.Logfil.Reject(le) {
+		return
+	}
+
+	sb, bb := sw.Format(le)
+
 	sm := &slack.Message{}
 	sm.IconEmoji = getIconEmoji(le.Level())
 	sm.Channel = sw.Channel
 	sm.Username = sw.Username
-	sm.Text = sw.Subfmt.Format(le)
+	sm.Text = sb
 
-	sa := &slack.Attachment{Text: lf.Format(le)}
+	sa := &slack.Attachment{Text: bb}
 	sm.AddAttachment(sa)
 
 	err := slack.Post(sw.Webhook, sw.Timeout, sm)

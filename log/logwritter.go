@@ -8,11 +8,12 @@ import (
 	"github.com/pandafw/pango/ref"
 )
 
-// Writer defines the behavior of a log writer.
+// Writer log writer interface
+// log writer's method is called synchronized by Log.
 type Writer interface {
 	Write(le *Event)
-	Close()
 	Flush()
+	Close()
 }
 
 // WriterCreator writer create function

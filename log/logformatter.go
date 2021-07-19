@@ -1,9 +1,9 @@
 package log
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"strconv"
 	"strings"
 
@@ -16,8 +16,7 @@ const defaultTimeFormat = "2006-01-02T15:04:05.000"
 
 // Formatter log formater interface
 type Formatter interface {
-	Write(bb *bytes.Buffer, le *Event)
-	Format(le *Event) string
+	Write(w io.Writer, le *Event)
 }
 
 // TextFmtSubject subject log format "[%l] %m"
@@ -112,14 +111,9 @@ type TextFormatter struct {
 	fmts []fmtfunc
 }
 
-// Format format the log event to the buffer 'bb'
-func (tf *TextFormatter) Write(bb *bytes.Buffer, le *Event) {
-	write(bb, le, tf.fmts)
-}
-
-// Format format the log event to a string
-func (tf *TextFormatter) Format(le *Event) string {
-	return format(le, tf.fmts)
+// Format format the log event to the writer w
+func (tf *TextFormatter) Write(w io.Writer, le *Event) {
+	write(w, le, tf.fmts)
 }
 
 func getFormatOption(format string, i *int) string {
@@ -229,14 +223,9 @@ type JSONFormatter struct {
 	fmts []fmtfunc
 }
 
-// Write format the log event as a json string to the buffer 'bb'
-func (jf *JSONFormatter) Write(bb *bytes.Buffer, le *Event) {
-	write(bb, le, jf.fmts)
-}
-
-// Format format the log event to a json string
-func (jf *JSONFormatter) Format(le *Event) string {
-	return format(le, jf.fmts)
+// Write format the log event as a json string to the writer w
+func (jf *JSONFormatter) Write(w io.Writer, le *Event) {
+	write(w, le, jf.fmts)
 }
 
 // Init initialize the json formatter
@@ -331,20 +320,11 @@ func (jf *JSONFormatter) Init(format string) {
 
 type fmtfunc func(le *Event) string
 
-func write(bb *bytes.Buffer, le *Event, fmts []fmtfunc) {
+func write(w io.Writer, le *Event, fmts []fmtfunc) {
 	for _, f := range fmts {
 		s := f(le)
-		bb.WriteString(s)
+		io.WriteString(w, s)
 	}
-}
-
-func format(le *Event, fmts []fmtfunc) string {
-	ss := &strings.Builder{}
-	for _, f := range fmts {
-		s := f(le)
-		ss.WriteString(s)
-	}
-	return ss.String()
 }
 
 func quotefmtc(ff fmtfunc) fmtfunc {

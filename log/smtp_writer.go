@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/pandafw/pango/net/email"
@@ -26,6 +27,9 @@ type SMTPWriter struct {
 
 	email  *email.Email      // email
 	sender *email.SMTPSender // email sender
+
+	sb *strings.Builder // subject builder
+	bb *strings.Builder // text builder
 }
 
 // SetSubject set the subject formatter
@@ -63,14 +67,11 @@ func (sw *SMTPWriter) SetTimeout(timeout string) error {
 	return nil
 }
 
-// Write send log message to smtp server.
-func (sw *SMTPWriter) Write(le *Event) {
-	if sw.Logfil != nil && sw.Logfil.Reject(le) {
-		return
-	}
-
-	if sw.Subfmt == nil {
-		sw.Subfmt = TextFmtSubject
+// Format format log event to (subject, body)
+func (sw *SMTPWriter) Format(le *Event) (sb, bb string) {
+	sf := sw.Subfmt
+	if sf == nil {
+		sf = TextFmtSubject
 	}
 
 	lf := sw.Logfmt
@@ -79,6 +80,23 @@ func (sw *SMTPWriter) Write(le *Event) {
 		if lf == nil {
 			lf = TextFmtDefault
 		}
+	}
+
+	sw.sb.Reset()
+	sf.Write(sw.sb, le)
+	sb = sw.sb.String()
+
+	sw.bb.Reset()
+	lf.Write(sw.bb, le)
+	bb = sw.bb.String()
+
+	return
+}
+
+// Write send log message to smtp server.
+func (sw *SMTPWriter) Write(le *Event) {
+	if sw.Logfil != nil && sw.Logfil.Reject(le) {
+		return
 	}
 
 	if sw.email == nil {
@@ -123,8 +141,9 @@ func (sw *SMTPWriter) Write(le *Event) {
 		}
 	}
 
-	sw.email.Subject = sw.Subfmt.Format(le)
-	sw.email.Message = lf.Format(le)
+	sb, bb := sw.Format(le)
+	sw.email.Subject = sb
+	sw.email.Message = bb
 
 	err := sw.sender.Send(sw.email)
 	if err != nil {

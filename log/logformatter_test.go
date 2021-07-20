@@ -1,7 +1,6 @@
 package log
 
 import (
-	"reflect"
 	"sort"
 	"strconv"
 	"strings"
@@ -28,7 +27,7 @@ func TestTextFormatSimple(t *testing.T) {
 	le := newEvent(&logger{}, LevelInfo, "simple")
 	le.when = time.Time{}
 
-	assertFormatEvent(t, tf, le, `[I] simple`+eol)
+	assertFormatEvent(t, tf, le, `[I] simple`+EOL)
 }
 
 func TestTextFormatDefault(t *testing.T) {
@@ -38,7 +37,7 @@ func TestTextFormatDefault(t *testing.T) {
 	le.caller(2, false)
 
 	assertFormatEvent(t, tf, le, `0001-01-01T00:00:00.000 INFO  logformatter_test.go:`+
-		strconv.Itoa(le.Line())+` log.TestTextFormatDefault() - default`+eol)
+		strconv.Itoa(le.Line())+` log.TestTextFormatDefault() - default`+EOL)
 }
 
 func TestTextFormatDate(t *testing.T) {
@@ -70,13 +69,12 @@ func TestTextFormatProps1(t *testing.T) {
 	le := newEvent(lg, LevelInfo, "props")
 	le.when = time.Time{}
 
-	exp := strings.Split(`a=av b=bv c=cv n=11 x=<nil>`, " ")
-	sort.Strings(exp)
-	act := strings.Split(testFormatEvent(tf, le), " ")
-	sort.Strings(act)
-
-	if reflect.DeepEqual(exp, act) {
-		t.Errorf("\nactual: %v\nexcept: %v", act, exp)
+	w := `a=av b=bv c=cv n=11 x=<nil>`
+	as := strings.Split(testFormatEvent(tf, le), " ")
+	sort.Strings(as)
+	a := strings.Join(as, " ")
+	if w != a {
+		t.Errorf("\nactual: %v\nexcept: %v", a, w)
 	}
 }
 
@@ -91,13 +89,12 @@ func TestTextFormatProps2(t *testing.T) {
 	le := newEvent(lg, LevelInfo, "props")
 	le.when = time.Time{}
 
-	exp := strings.Split(`a=av,b=bv,c=cv,n=11,x=<nil>`, ",")
-	sort.Strings(exp)
-	act := strings.Split(testFormatEvent(tf, le), ",")
-	sort.Strings(act)
-
-	if reflect.DeepEqual(exp, act) {
-		t.Errorf("\nactual: %v\nexcept: %v", act, exp)
+	w := `a=av,b=bv,c=cv,n=11,x=<nil>`
+	as := strings.Split(testFormatEvent(tf, le), ",")
+	sort.Strings(as)
+	a := strings.Join(as, ",")
+	if w != a {
+		t.Errorf("\nactual: %v\nexcept: %v", a, w)
 	}
 }
 
@@ -106,7 +103,7 @@ func TestNewTextFormatSimple(t *testing.T) {
 	le := newEvent(&logger{}, LevelInfo, "simple")
 	le.when = time.Time{}
 
-	assertFormatEvent(t, tf, le, `[I] simple`+eol)
+	assertFormatEvent(t, tf, le, `[I] simple`+EOL)
 }
 
 func TestNewTextFormatSubject(t *testing.T) {
@@ -124,7 +121,7 @@ func TestNewTextFormatDefault(t *testing.T) {
 	le.caller(2, false)
 
 	assertFormatEvent(t, tf, le, `0001-01-01T00:00:00.000 INFO  logformatter_test.go:`+
-		strconv.Itoa(le.Line())+` log.TestNewTextFormatDefault() - default`+eol)
+		strconv.Itoa(le.Line())+` log.TestNewTextFormatDefault() - default`+EOL)
 }
 
 func TestNewLogFormatTextDefault(t *testing.T) {
@@ -134,7 +131,7 @@ func TestNewLogFormatTextDefault(t *testing.T) {
 	le.caller(2, false)
 
 	assertFormatEvent(t, tf, le, `0001-01-01T00:00:00.000 INFO  logformatter_test.go:`+
-		strconv.Itoa(le.Line())+` log.TestNewLogFormatTextDefault() - default`+eol)
+		strconv.Itoa(le.Line())+` log.TestNewLogFormatTextDefault() - default`+EOL)
 }
 
 func TestJSONFormatDefault(t *testing.T) {
@@ -145,7 +142,7 @@ func TestJSONFormatDefault(t *testing.T) {
 
 	assertFormatEvent(t, jf, le, `{"when": "`+le.when.Format(defaultTimeFormat)+
 		`", "level": "INFO", "file": "logformatter_test.go", "line": `+strconv.Itoa(le.Line())+
-		`, "func": "log.TestJSONFormatDefault", "msg": "default", "trace": ""}`+eol)
+		`, "func": "log.TestJSONFormatDefault", "msg": "default", "trace": ""}`+EOL)
 }
 
 func TestJSONFormatProp(t *testing.T) {
@@ -183,7 +180,7 @@ func TestNewJSONFormatDefault(t *testing.T) {
 
 	assertFormatEvent(t, jf, le, `{"when": "`+le.when.Format(defaultTimeFormat)+
 		`", "level": "INFO", "file": "logformatter_test.go", "line": `+strconv.Itoa(le.Line())+
-		`, "func": "log.TestNewJSONFormatDefault", "msg": "default", "trace": ""}`+eol)
+		`, "func": "log.TestNewJSONFormatDefault", "msg": "default", "trace": ""}`+EOL)
 }
 
 func TestNewLogFormatJSONDefault(t *testing.T) {
@@ -194,5 +191,5 @@ func TestNewLogFormatJSONDefault(t *testing.T) {
 
 	assertFormatEvent(t, jf, le, `{"when": "`+le.when.Format(defaultTimeFormat)+
 		`", "level": "INFO", "file": "logformatter_test.go", "line": `+strconv.Itoa(le.Line())+
-		`, "func": "log.TestNewLogFormatJSONDefault", "msg": "default", "trace": ""}`+eol)
+		`, "func": "log.TestNewLogFormatJSONDefault", "msg": "default", "trace": ""}`+EOL)
 }

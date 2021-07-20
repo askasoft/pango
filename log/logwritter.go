@@ -9,7 +9,6 @@ import (
 )
 
 // Writer log writer interface
-// log writer's method is called synchronized by Log.
 type Writer interface {
 	Write(le *Event)
 	Flush()

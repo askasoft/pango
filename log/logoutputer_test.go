@@ -8,8 +8,6 @@ import (
 	"testing"
 
 	golog "log"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestGoLogOutputGlobal(t *testing.T) {
@@ -42,7 +40,11 @@ func TestGoLogFileCallerGlobal(t *testing.T) {
 	Close()
 
 	bs, _ := ioutil.ReadFile(path + ".log")
-	assert.Equal(t, fmt.Sprintf("INFO %s:%d %s() - hellogolog\n", file, line, ffun), string(bs))
+	a := string(bs)
+	w := fmt.Sprintf("INFO %s:%d %s() - hellogolog\n", file, line, ffun)
+	if a != w {
+		t.Errorf("%q = %v\n, want = %v", path, a, w)
+	}
 }
 
 func TestGoLogFileCallerNewLog(t *testing.T) {
@@ -61,7 +63,11 @@ func TestGoLogFileCallerNewLog(t *testing.T) {
 	log.Close()
 
 	bs, _ := ioutil.ReadFile(path + ".log")
-	assert.Equal(t, fmt.Sprintf("INFO %s:%d %s() - hellogolog\n", file, line, ffun), string(bs))
+	a := string(bs)
+	w := fmt.Sprintf("INFO %s:%d %s() - hellogolog\n", file, line, ffun)
+	if a != w {
+		t.Errorf("%q = %v\n, want = %v", path, a, w)
+	}
 }
 
 func TestIoWriterFileCallerGlobal(t *testing.T) {
@@ -79,7 +85,11 @@ func TestIoWriterFileCallerGlobal(t *testing.T) {
 	Close()
 
 	bs, _ := ioutil.ReadFile(path + ".log")
-	assert.Equal(t, fmt.Sprintf("INFO %s:%d %s() - hello writer"+eol, file, line, ffun), string(bs))
+	a := string(bs)
+	w := fmt.Sprintf("INFO %s:%d %s() - hello writer"+EOL, file, line, ffun)
+	if a != w {
+		t.Errorf("%q = %v\n, want = %v", path, a, w)
+	}
 }
 
 func TestIoWriterFileCallerNewLog(t *testing.T) {
@@ -98,5 +108,9 @@ func TestIoWriterFileCallerNewLog(t *testing.T) {
 	log.Close()
 
 	bs, _ := ioutil.ReadFile(path + ".log")
-	assert.Equal(t, fmt.Sprintf("INFO %s:%d %s() - hello writer"+eol, file, line, ffun), string(bs))
+	a := string(bs)
+	w := fmt.Sprintf("INFO %s:%d %s() - hello writer"+EOL, file, line, ffun)
+	if a != w {
+		t.Errorf("%q = %v\n, want = %v", path, a, w)
+	}
 }

@@ -30,7 +30,7 @@ func TestConsoleFilterInfo(t *testing.T) {
 	log.SetWriter(&StreamWriter{Color: true, Logfil: NewLevelFilter(LevelInfo)})
 	log.SetFormatter(NewTextFormatter("[%c] %l - %m%n"))
 	testConsoleCalls(log, 1)
-	log.close()
+	log.Close()
 }
 
 // Test console name filter
@@ -44,7 +44,7 @@ func TestConsoleFilterName(t *testing.T) {
 
 	log2 := log.GetLogger("out")
 	testConsoleCalls(log2, 1)
-	log.close()
+	log.Close()
 }
 
 // Test console multi filter
@@ -58,7 +58,7 @@ func TestConsoleFilterMulti(t *testing.T) {
 
 	log2 := log.GetLogger("out")
 	testConsoleCalls(log2, 1)
-	log.close()
+	log.Close()
 }
 
 // Test console without color
@@ -67,14 +67,15 @@ func TestConsoleNoColor(t *testing.T) {
 	log.SetWriter(&StreamWriter{Color: false})
 	log.SetFormatter(NewTextFormatter("[%c] %l - %m%n"))
 	testConsoleCalls(log, 1)
-	log.close()
+	log.Close()
 }
 
 // Test console async
 func TestConsoleAsync(t *testing.T) {
 	log := NewLog()
-	log.SetWriter(&StreamWriter{Color: true, Logfmt: NewTextFormatter("%t{2006-01-02T15:04:05.000} [%c] %l - %m%n")})
-	log.Async(100)
+	sw := &StreamWriter{Color: true, Logfmt: NewTextFormatter("%t{2006-01-02T15:04:05.000} [%c] %l - %m%n")}
+	aw := NewAsyncWriter(sw, 100)
+	log.SetWriter(aw)
 
 	wg := sync.WaitGroup{}
 	for i := 1; i < 10; i++ {

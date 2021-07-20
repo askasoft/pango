@@ -253,7 +253,7 @@ func (l *logger) _log(lvl Level, v ...interface{}) {
 	if l.IsLevelEnabled(lvl) {
 		s := l._printv(v...)
 		le := newEvent(l, lvl, s)
-		l.log.submit(le)
+		l.log.write(le)
 	}
 }
 
@@ -261,7 +261,7 @@ func (l *logger) _logf(lvl Level, f string, v ...interface{}) {
 	if l.IsLevelEnabled(lvl) {
 		s := l._printf(f, v...)
 		le := newEvent(l, lvl, s)
-		l.log.submit(le)
+		l.log.write(le)
 	}
 }
 

@@ -11,7 +11,6 @@ import (
 	"github.com/pandafw/pango/iox"
 	"github.com/pandafw/pango/iox/fswatch"
 	"github.com/pandafw/pango/log"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestLogConfigFile1toFile2(t *testing.T) {
@@ -22,47 +21,66 @@ func TestLogConfigFile1toFile2(t *testing.T) {
 
 	iox.CopyFile("../testdata/log-file1.json", path)
 	lg := log.NewLog()
-	assert.Nil(t, lg.Config(path))
+	err := lg.Config(path)
+	if err != nil {
+		t.Errorf("lg.Config(%q) = %v", path, err)
+	}
 
 	fw := fswatch.NewFileWatcher()
 	fw.Start()
 	defer fw.Stop()
 
-	assert.Nil(t, fw.Add(path, fswatch.OpWrite, func(path string, _ fswatch.Op) {
+	reconfiged := false
+	err = fw.Add(path, fswatch.OpWrite, func(path string, _ fswatch.Op) {
 		err := lg.Config(path)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to config log by %q: %v\n", path, err)
+			t.Fatalf("Failed to config log by %q: %v\n", path, err)
 		}
-	}))
+		reconfiged = true
+	})
+	if err != nil {
+		t.Errorf("fw.Add(%q) = %v", path, err)
+	}
 
 	lg.Info("This is info.")
 	lg.Warn("This is warn.")
 	lg.Error("This is error.")
 	lg.Flush()
 
-	bs, _ := ioutil.ReadFile("conftest/logs/file1.log")
-	assert.Equal(t, "ERROR - This is error."+iox.EOL, string(bs))
+	// Sleep for async flush
+	time.Sleep(time.Second)
 
-	assert.NotNil(t, iox.FileExists("conftest/logs/file2.log"))
+	bs, _ := ioutil.ReadFile("conftest/logs/file1.log")
+	a := string(bs)
+	w := "ERROR - This is error." + iox.EOL
+	if a != w {
+		t.Errorf(`%q = %v, want %v`, "conftest/logs/file1.log", a, w)
+	}
+
+	err = iox.FileExists("conftest/logs/file2.log")
+	if err == nil {
+		t.Errorf("%q not exists", "conftest/logs/file2.log")
+	}
 
 	// Sleep 1s for log watch
 	time.Sleep(time.Second * 1)
 	fmt.Println("Change config file")
-	err := iox.CopyFile("../testdata/log-file2.json", path)
+	err = iox.CopyFile("../testdata/log-file2.json", path)
 	if err != nil {
 		fmt.Printf("Failed to change config %v\n", err)
-		assert.Fail(t, "Failed to change config %v", err)
+		t.Fatalf("Failed to change config %v", err)
 		return
 	}
 
 	// wait for file change event and log config reload
-	for i := 0; i < 10; i++ {
-		_, ok := lg.GetWriter().(*log.MultiWriter)
-		if ok {
+	for i := 0; i < 50; i++ {
+		if reconfiged {
 			break
 		}
-		fmt.Println(strconv.Itoa(i) + " - Sleep 1s for log config reload")
-		time.Sleep(time.Second * 1)
+		if i%10 == 0 {
+			fmt.Println(strconv.Itoa(i) + " - Sleep 1s for log config reload")
+		}
+		time.Sleep(time.Millisecond * 100)
 	}
 
 	lg.Info("This is info.")
@@ -77,12 +95,16 @@ func TestLogConfigFile1toFile2(t *testing.T) {
 	lg.Close()
 
 	bs, _ = ioutil.ReadFile("conftest/logs/file1.log")
-	if !assert.Equal(t, "ERROR - This is error."+iox.EOL+"ERROR - This is error."+iox.EOL+"ERROR - This is ERROR."+iox.EOL, string(bs)) {
-		return
+	a = string(bs)
+	w = "ERROR - This is error." + iox.EOL + "ERROR - This is error." + iox.EOL + "ERROR - This is ERROR." + iox.EOL
+	if a != w {
+		t.Errorf(`%q = %v, want %v`, "conftest/logs/file1.log", a, w)
 	}
 
 	bs, _ = ioutil.ReadFile("conftest/logs/file2.log")
-	if !assert.Equal(t, "WARN - This is WARN."+iox.EOL+"ERROR - This is ERROR."+iox.EOL, string(bs)) {
-		return
+	a = string(bs)
+	w = "WARN - This is WARN." + iox.EOL + "ERROR - This is ERROR." + iox.EOL
+	if a != w {
+		t.Errorf(`%q = %v, want %v`, "conftest/logs/file2.log", a, w)
 	}
 }

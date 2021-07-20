@@ -6,154 +6,187 @@ import (
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestLogConfigJSON(t *testing.T) {
 	log := Default()
-	assert.Nil(t, log.Config("testdata/log.json"))
+	if err := log.Config("testdata/log.json"); err != nil {
+		t.Fatalf(`log.Config("testdata/log.json") = %v`, err)
+	}
 	assertLogConfig(t, log)
 }
 
 func TestLogConfigINI(t *testing.T) {
 	log := Default()
-	assert.Nil(t, log.Config("testdata/log.ini"))
+	if err := log.Config("testdata/log.ini"); err != nil {
+		t.Fatalf(`log.Config("testdata/log.ini") = %v`, err)
+	}
 	assertLogConfig(t, log)
 }
 
+func assertLogEqual(t *testing.T, msg string, want interface{}, val interface{}) {
+	if want != val {
+		t.Errorf("msg = %v, want %v", val, want)
+	}
+}
+
 func assertLogConfig(t *testing.T, log *Log) {
-	assert.Equal(t, LevelInfo, log.GetLevel())
-	assert.Equal(t, 2, len(log.levels))
-	assert.Equal(t, LevelDebug, log.levels["sql"])
-	assert.Equal(t, LevelTrace, log.levels["http"])
+	assertLogEqual(t, `log.GetLevel()`, LevelInfo, log.GetLevel())
+	assertLogEqual(t, `len(log.levels)`, 2, len(log.levels))
+	assertLogEqual(t, `log.levels["sql"]`, LevelDebug, log.levels["sql"])
+	assertLogEqual(t, `log.levels["http"]`, LevelTrace, log.levels["http"])
 
 	lgsql := log.GetLogger("sql")
-	assert.Equal(t, LevelDebug, lgsql.GetLevel())
+	assertLogEqual(t, `lgsql.GetLevel()`, LevelDebug, lgsql.GetLevel())
 
 	lghttp := log.GetLogger("http")
-	assert.Equal(t, LevelTrace, lghttp.GetLevel())
+	assertLogEqual(t, `lghttp.GetLevel()`, LevelTrace, lghttp.GetLevel())
 
-	_, ok := log.GetFormatter().(*TextFormatter)
-	assert.True(t, ok)
+	if _, ok := log.GetFormatter().(*TextFormatter); !ok {
+		t.Fatalf("Not TextFormatter")
+	}
 
-	assert.NotNil(t, log.writer)
-	mw, ok := log.writer.(*MultiWriter)
-	assert.True(t, ok)
+	aw, ok := log.writer.(*asyncWriter)
+	if !ok {
+		t.Fatalf("Not asyncWriter")
+	}
 
-	assert.Equal(t, 7, len(mw.Writers))
+	mw, ok := aw.writer.(*MultiWriter)
+	if !ok {
+		t.Fatalf("Not MultiWriter")
+	}
+
+	assertLogEqual(t, `len(mw.Writers)`, 7, len(mw.Writers))
 
 	i := 0
 	{
 		w, ok := mw.Writers[i].(*StreamWriter)
-		assert.NotNil(t, w)
-		assert.True(t, ok)
-		assert.False(t, w.Color)
+		if !ok {
+			t.Fatalf("Not StreamWriter")
+		}
+		assertLogEqual(t, `w.Color`, false, w.Color)
 
 		f, ok := w.Logfil.(*MultiFilter)
-		assert.NotNil(t, f)
-		assert.True(t, ok)
-		assert.Equal(t, 2, len(f.Filters))
+		if !ok {
+			t.Fatalf("Not MultiFilter")
+		}
+		assertLogEqual(t, `len(f.Filters)`, 2, len(f.Filters))
 
 		nf, ok := f.Filters[0].(*NameFilter)
-		assert.NotNil(t, nf)
-		assert.True(t, ok)
-		assert.Equal(t, "out", nf.Name)
+		if !ok {
+			t.Fatalf("Not NameFilter")
+		}
+		assertLogEqual(t, `nf.Name`, "out", nf.Name)
 
 		lf, ok := f.Filters[1].(*LevelFilter)
-		assert.NotNil(t, lf)
-		assert.True(t, ok)
-		assert.Equal(t, LevelDebug, lf.Level)
+		if !ok {
+			t.Fatalf("Not LevelFilter")
+		}
+		assertLogEqual(t, `lf.Level`, LevelDebug, lf.Level)
 	}
 
 	i++
 	{
-		w, ok := mw.Writers[i].(*StreamWriter)
-		assert.NotNil(t, w)
-		assert.True(t, ok)
+		_, ok := mw.Writers[i].(*StreamWriter)
+		if !ok {
+			t.Fatalf("Not StreamWriter")
+		}
 	}
 
 	i++
 	{
 		w, ok := mw.Writers[i].(*ConnWriter)
-		assert.NotNil(t, w)
-		assert.True(t, ok)
-		assert.Equal(t, "tcp", w.Net)
-		assert.Equal(t, "localhost:9999", w.Addr)
-		assert.Equal(t, time.Second*5, w.Timeout)
+		if !ok {
+			t.Fatalf("Not ConnWriter")
+		}
+		assertLogEqual(t, `w.Net`, "tcp", w.Net)
+		assertLogEqual(t, `w.Addr`, "localhost:9999", w.Addr)
+		assertLogEqual(t, `w.Timeout`, time.Second*5, w.Timeout)
 
 		f, ok := w.Logfil.(*LevelFilter)
-		assert.NotNil(t, f)
-		assert.True(t, ok)
-		assert.Equal(t, LevelError, f.Level)
+		if !ok {
+			t.Fatalf("Not LevelFilter")
+		}
+		assertLogEqual(t, `f.Level`, LevelError, f.Level)
 	}
 
 	i++
 	{
 		w, ok := mw.Writers[i].(*FileWriter)
-		assert.NotNil(t, w)
-		assert.True(t, ok)
-		assert.Equal(t, uint32(0777), w.DirPerm)
-		assert.Equal(t, 7, w.MaxDays)
-		assert.Equal(t, LevelError, w.SyncLevel)
+		if !ok {
+			t.Fatalf("Not FileWriter")
+		}
+		assertLogEqual(t, `w.DirPerm`, uint32(0777), w.DirPerm)
+		assertLogEqual(t, `w.MaxDays`, 7, w.MaxDays)
+		assertLogEqual(t, `w.SyncLevel`, LevelError, w.SyncLevel)
 
 		f, ok := w.Logfil.(*LevelFilter)
-		assert.NotNil(t, f)
-		assert.True(t, ok)
-		assert.Equal(t, LevelError, f.Level)
+		if !ok {
+			t.Fatalf("Not LevelFilter")
+		}
+		assertLogEqual(t, `f.Level`, LevelError, f.Level)
 	}
 
 	i++
 	{
 		w, ok := mw.Writers[i].(*SlackWriter)
-		assert.NotNil(t, w)
-		assert.True(t, ok)
-		assert.Equal(t, "develop", w.Channel)
-		assert.Equal(t, "gotest", w.Username)
-		assert.Equal(t, "https://hooks.slack.com/services/...", w.Webhook)
-		assert.Equal(t, time.Second*5, w.Timeout)
+		if !ok {
+			t.Fatalf("Not SlackWriter")
+		}
+		assertLogEqual(t, `w.Channel`, "develop", w.Channel)
+		assertLogEqual(t, `w.Username`, "gotest", w.Username)
+		assertLogEqual(t, `w.Webhook`, "https://hooks.slack.com/services/...", w.Webhook)
+		assertLogEqual(t, `w.Timeout`, time.Second*5, w.Timeout)
 
 		f, ok := w.Logfil.(*LevelFilter)
-		assert.NotNil(t, f)
-		assert.True(t, ok)
-		assert.Equal(t, LevelError, f.Level)
+		if !ok {
+			t.Fatalf("Not LevelFilter")
+		}
+		assertLogEqual(t, `f.Level`, LevelError, f.Level)
 	}
 
 	i++
 	{
 		w, ok := mw.Writers[i].(*SMTPWriter)
-		assert.NotNil(t, w)
-		assert.True(t, ok)
-		assert.Equal(t, "localhost", w.Host)
-		assert.Equal(t, 25, w.Port)
-		assert.Equal(t, "-----", w.Username)
-		assert.Equal(t, "xxxxxxx", w.Password)
-		assert.Equal(t, "pango@google.com", w.From)
-		assert.Equal(t, "to1@test.com to2@test.com", strings.Join(w.Tos, " "))
-		assert.Equal(t, "cc1@test.com cc2@test.com", strings.Join(w.Ccs, " "))
-		assert.Equal(t, time.Second*5, w.Timeout)
+		if !ok {
+			t.Fatalf("Not SMTPWriter")
+		}
+		assertLogEqual(t, `w.Host`, "localhost", w.Host)
+		assertLogEqual(t, `w.Port`, 25, w.Port)
+		assertLogEqual(t, `w.Username`, "-----", w.Username)
+		assertLogEqual(t, `w.Password`, "xxxxxxx", w.Password)
+		assertLogEqual(t, `w.From`, "pango@google.com", w.From)
+		assertLogEqual(t, `w.Tos`, "to1@test.com to2@test.com", strings.Join(w.Tos, " "))
+		assertLogEqual(t, `w.Ccs`, "cc1@test.com cc2@test.com", strings.Join(w.Ccs, " "))
+		assertLogEqual(t, `w.Timeout`, time.Second*5, w.Timeout)
 
 		f, ok := w.Logfil.(*LevelFilter)
-		assert.NotNil(t, f)
-		assert.True(t, ok)
-		assert.Equal(t, LevelError, f.Level)
+		if !ok {
+			t.Fatalf("Not LevelFilter")
+		}
+		assertLogEqual(t, `f.Level`, LevelError, f.Level)
 	}
 
 	i++
 	{
 		w, ok := mw.Writers[i].(*WebhookWriter)
-		assert.True(t, ok)
-		assert.Equal(t, "http://localhost:9200/pango/logs", w.Webhook)
-		assert.Equal(t, "application/json", w.ContentType)
-		assert.Equal(t, time.Second*5, w.Timeout)
+		if !ok {
+			t.Fatalf("Not WebhookWriter")
+		}
+		assertLogEqual(t, `w.Webhook`, "http://localhost:9200/pango/logs", w.Webhook)
+		assertLogEqual(t, `w.ContentType`, "application/json", w.ContentType)
+		assertLogEqual(t, `w.Timeout`, time.Second*5, w.Timeout)
 
-		o, ok := w.Logfmt.(*JSONFormatter)
-		assert.NotNil(t, o)
-		assert.True(t, ok)
+		jf, ok := w.Logfmt.(*JSONFormatter)
+		if jf == nil || !ok {
+			t.Fatalf("Not JSONFormatter")
+		}
 
 		f, ok := w.Logfil.(*LevelFilter)
-		assert.True(t, ok)
-		assert.Equal(t, LevelError, f.Level)
+		if !ok {
+			t.Fatalf("Not LevelFilter")
+		}
+		assertLogEqual(t, `f.Level`, LevelError, f.Level)
 	}
 }
 
@@ -162,14 +195,20 @@ func TestLogConfigFile1(t *testing.T) {
 	defer os.RemoveAll("conftest")
 
 	log := Default()
-	assert.Nil(t, log.Config("testdata/log-file1.json"))
+	if err := log.Config("testdata/log-file1.json"); err != nil {
+		t.Fatalf(`log.Config("testdata/log-file1.json") = %v`, err)
+	}
 	log.Info("This is info.")
 	log.Warn("This is warn.")
 	log.Error("This is error.")
 	log.Close()
 
 	bs, _ := ioutil.ReadFile("conftest/logs/file1.log")
-	assert.Equal(t, "ERROR - This is error."+eol, string(bs))
+	a := string(bs)
+	w := "ERROR - This is error." + EOL
+	if a != w {
+		t.Errorf("\nactual = %v\nexpect = %v", a, w)
+	}
 }
 
 func TestLogConfigFile2(t *testing.T) {
@@ -177,7 +216,9 @@ func TestLogConfigFile2(t *testing.T) {
 	defer os.RemoveAll("conftest")
 
 	log := Default()
-	assert.Nil(t, log.Config("testdata/log-file2.json"))
+	if err := log.Config("testdata/log-file2.json"); err != nil {
+		t.Fatalf(`log.Config("testdata/log-file2.json") = %v`, err)
+	}
 	log.Info("This is info.")
 	log.Warn("This is warn.")
 	log.Error("This is error.")
@@ -188,8 +229,16 @@ func TestLogConfigFile2(t *testing.T) {
 	log.Close()
 
 	bs, _ := ioutil.ReadFile("conftest/logs/file1.log")
-	assert.Equal(t, "ERROR - This is error."+eol+"ERROR - This is ERROR."+eol, string(bs))
+	a := string(bs)
+	w := "ERROR - This is error." + EOL + "ERROR - This is ERROR." + EOL
+	if a != w {
+		t.Errorf("\nactual = %v\nexpect = %v", a, w)
+	}
 
 	bs, _ = ioutil.ReadFile("conftest/logs/file2.log")
-	assert.Equal(t, "WARN - This is WARN."+eol+"ERROR - This is ERROR."+eol, string(bs))
+	a = string(bs)
+	w = "WARN - This is WARN." + EOL + "ERROR - This is ERROR." + EOL
+	if a != w {
+		t.Errorf("\nactual = %v\nexpect = %v", a, w)
+	}
 }

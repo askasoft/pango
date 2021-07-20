@@ -10,7 +10,8 @@ import (
 	"github.com/pandafw/pango/iox"
 )
 
-var eol = iox.EOL
+// EOL windows: "\r\n" other: "\n"
+var EOL = iox.EOL
 
 const defaultTimeFormat = "2006-01-02T15:04:05.000"
 
@@ -435,5 +436,5 @@ func msgfmt(le *Event) string {
 }
 
 func eolfmt(le *Event) string {
-	return eol
+	return EOL
 }

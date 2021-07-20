@@ -1,5 +1,5 @@
 ## log
-log is a Go log manager. It can use many log writers. The repo is inspired by https://github.com/pandafw/panda/tree/master/panda-core/src/main/java/panda/log .
+log is a Go log manager. It can use many log writers. This package is inspired by https://github.com/pandafw/panda/tree/master/panda-core/src/main/java/panda/log .
 
 
 ## How to install?
@@ -147,7 +147,6 @@ filter = level:error
 _ = file
 path = /tmp/gotest/logs/test.log
 dirPerm = 0777
-daily = true
 maxDays = 7
 format = %l %S:%L %F() - %m%n%T
 filter = level:error

@@ -84,7 +84,7 @@ func (le *Event) caller(depth int, trace bool) {
 				sb.WriteString(" ")
 				sb.WriteString(frame.Function)
 				sb.WriteString("()")
-				sb.WriteString(eol)
+				sb.WriteString(EOL)
 			}
 			le.trace = sb.String()
 		}

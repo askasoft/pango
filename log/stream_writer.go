@@ -74,14 +74,23 @@ var colors = []string{
 	iox.ConsoleColor.Gray,    // Trace
 }
 
+// NewConsoleWriter create a color console log writer
+func NewConsoleWriter() Writer {
+	return &StreamWriter{Output: os.Stdout, Color: true}
+}
+
+// NewStdoutWriter create a stdout log writer
+func NewStdoutWriter() Writer {
+	return &StreamWriter{Output: os.Stdout}
+}
+
+// NewStderrWriter create a stderr writer
+func NewStderrWriter() Writer {
+	return &StreamWriter{Output: os.Stderr}
+}
+
 func init() {
-	RegisterWriter("console", func() Writer {
-		return &StreamWriter{Output: os.Stdout, Color: true}
-	})
-	RegisterWriter("stdout", func() Writer {
-		return &StreamWriter{Output: os.Stdout}
-	})
-	RegisterWriter("stderr", func() Writer {
-		return &StreamWriter{Output: os.Stderr}
-	})
+	RegisterWriter("console", NewConsoleWriter)
+	RegisterWriter("stdout", NewStdoutWriter)
+	RegisterWriter("stderr", NewStderrWriter)
 }

@@ -17,14 +17,14 @@ func (mw *MultiWriter) Write(le *Event) {
 	}
 }
 
-// Close implementing method. empty.
+// Close close multiple writers.
 func (mw *MultiWriter) Close() {
 	for _, w := range mw.Writers {
 		w.Close()
 	}
 }
 
-// Flush implementing method. empty.
+// Flush flush multiple writers.
 func (mw *MultiWriter) Flush() {
 	for _, w := range mw.Writers {
 		w.Flush()

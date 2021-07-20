@@ -4,8 +4,7 @@
 // import "github.com/pandafw/pango/log"
 //
 //	log := log.NewLog()
-//	log.SetWriter(&log.StreamWriter{Color: true})
-//	log.Async(1000)
+//	log.SetWriter(log.NewAsyncWriter(log.NewConsoleWriter()))
 //
 // Use it like this:
 //	log.Fatal("fatal")
@@ -59,17 +58,6 @@ func GetLogger(name string) Logger {
 //
 func Outputer(name string, lvl Level, callerDepth ...int) io.Writer {
 	return _log.Outputer(name, lvl, callerDepth...)
-}
-
-// Async set the log to asynchronous and start the goroutine
-// if size < 1 then stop async goroutine
-func Async(size int) {
-	_log.Async(size)
-}
-
-// IsAsync return the logger's async
-func IsAsync() bool {
-	return _log.async
 }
 
 // GetFormatter get the formatter

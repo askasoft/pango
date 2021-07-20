@@ -5,7 +5,6 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -61,26 +60,8 @@ func (le *Event) Trace() string {
 	return le.trace
 }
 
-// eventPool log event pool
-var eventPool = &sync.Pool{
-	New: func() interface{} {
-		return &Event{}
-	},
-}
-
-// clear clear event values
-func (le *Event) clear() {
-	le.logger = nil
-	le.level = LevelNone
-	le.msg = ""
-	le.file = ""
-	le.line = 0
-	le._func = ""
-	le.trace = ""
-}
-
-// Caller get caller filename and line number
-func (le *Event) Caller(depth int, trace bool) {
+// caller get caller filename and line number
+func (le *Event) caller(depth int, trace bool) {
 	dep := 1
 	if trace {
 		dep = 30
@@ -116,19 +97,13 @@ func (le *Event) Caller(depth int, trace bool) {
 
 // newEvent get a log event from pool
 func newEvent(logger Logger, lvl Level, msg string) *Event {
-	le := eventPool.Get().(*Event)
+	le := &Event{}
 	le.logger = logger
 	le.level = lvl
 	le.msg = msg
 	le.when = time.Now()
 	if logger.GetCallerDepth() > 0 {
-		le.Caller(logger.GetCallerDepth(), logger.GetTraceLevel() >= lvl)
+		le.caller(logger.GetCallerDepth(), logger.GetTraceLevel() >= lvl)
 	}
 	return le
-}
-
-// putEvent put event back to pool
-func putEvent(le *Event) {
-	le.clear()
-	eventPool.Put(le)
 }

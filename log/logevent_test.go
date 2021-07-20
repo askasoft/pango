@@ -2,6 +2,7 @@ package log
 
 import (
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -9,7 +10,7 @@ import (
 func TestEventCaller(t *testing.T) {
 	le := newEvent(&logger{}, LevelInfo, "caller")
 	le.when = time.Time{}
-	le.Caller(2, false)
+	le.caller(2, false)
 
 	if le.file != "logevent_test.go" {
 		t.Errorf("le.file = %v, want %v", le.file, "logevent_test.go")
@@ -23,6 +24,13 @@ func TestEventCaller(t *testing.T) {
 }
 
 func BenchmarkEventPool(b *testing.B) {
+	// eventPool log event pool
+	var eventPool = &sync.Pool{
+		New: func() interface{} {
+			return &Event{}
+		},
+	}
+
 	b.RunParallel(func(pb *testing.PB) {
 		sb := &strings.Builder{}
 		for pb.Next() {
@@ -32,7 +40,6 @@ func BenchmarkEventPool(b *testing.B) {
 			le.msg = "simple"
 			le.when = time.Now()
 			TextFmtSimple.Write(sb, le)
-			le.clear()
 			eventPool.Put(le)
 		}
 	})

@@ -201,9 +201,6 @@ func (log *Log) write(le *Event) {
 	if lw != nil {
 		lw.Write(le)
 	}
-
-	// put event back to pool
-	putEvent(le)
 }
 
 // submit submit a log event

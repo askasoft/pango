@@ -35,7 +35,7 @@ func TestTextFormatDefault(t *testing.T) {
 	tf := TextFmtDefault
 	le := newEvent(&logger{}, LevelInfo, "default")
 	le.when = time.Time{}
-	le.Caller(2, false)
+	le.caller(2, false)
 
 	assertFormatEvent(t, tf, le, `0001-01-01T00:00:00.000 INFO  logformatter_test.go:`+
 		strconv.Itoa(le.Line())+` log.TestTextFormatDefault() - default`+eol)
@@ -121,7 +121,7 @@ func TestNewTextFormatDefault(t *testing.T) {
 	tf := NewTextFormatter("DEFAULT")
 	le := newEvent(&logger{}, LevelInfo, "default")
 	le.when = time.Time{}
-	le.Caller(2, false)
+	le.caller(2, false)
 
 	assertFormatEvent(t, tf, le, `0001-01-01T00:00:00.000 INFO  logformatter_test.go:`+
 		strconv.Itoa(le.Line())+` log.TestNewTextFormatDefault() - default`+eol)
@@ -131,7 +131,7 @@ func TestNewLogFormatTextDefault(t *testing.T) {
 	tf := NewLogFormatter("text:DEFAULT")
 	le := newEvent(&logger{}, LevelInfo, "default")
 	le.when = time.Time{}
-	le.Caller(2, false)
+	le.caller(2, false)
 
 	assertFormatEvent(t, tf, le, `0001-01-01T00:00:00.000 INFO  logformatter_test.go:`+
 		strconv.Itoa(le.Line())+` log.TestNewLogFormatTextDefault() - default`+eol)
@@ -141,7 +141,7 @@ func TestJSONFormatDefault(t *testing.T) {
 	jf := JSONFmtDefault
 	le := newEvent(&logger{}, LevelInfo, "default")
 	le.when = time.Now()
-	le.Caller(2, false)
+	le.caller(2, false)
 
 	assertFormatEvent(t, jf, le, `{"when": "`+le.when.Format(defaultTimeFormat)+
 		`", "level": "INFO", "file": "logformatter_test.go", "line": `+strconv.Itoa(le.Line())+
@@ -179,7 +179,7 @@ func TestNewJSONFormatDefault(t *testing.T) {
 	jf := NewJSONFormatter("DEFAULT")
 	le := newEvent(&logger{}, LevelInfo, "default")
 	le.when = time.Now()
-	le.Caller(2, false)
+	le.caller(2, false)
 
 	assertFormatEvent(t, jf, le, `{"when": "`+le.when.Format(defaultTimeFormat)+
 		`", "level": "INFO", "file": "logformatter_test.go", "line": `+strconv.Itoa(le.Line())+
@@ -190,7 +190,7 @@ func TestNewLogFormatJSONDefault(t *testing.T) {
 	jf := NewLogFormatter("json:DEFAULT")
 	le := newEvent(&logger{}, LevelInfo, "default")
 	le.when = time.Now()
-	le.Caller(2, false)
+	le.caller(2, false)
 
 	assertFormatEvent(t, jf, le, `{"when": "`+le.when.Format(defaultTimeFormat)+
 		`", "level": "INFO", "file": "logformatter_test.go", "line": `+strconv.Itoa(le.Line())+

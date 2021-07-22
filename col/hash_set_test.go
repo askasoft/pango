@@ -12,6 +12,11 @@ import (
 func TestHashSetSimple(t *testing.T) {
 	s := NewHashSet()
 
+	var c Collection = s
+	if c == nil {
+		t.Error("HashSet is not a Collection")
+	}
+
 	s.Add(5)
 
 	if s.Len() != 1 {

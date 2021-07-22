@@ -37,6 +37,20 @@ func (hs *HashSet) IsEmpty() bool {
 	return hs.Len() == 0
 }
 
+// Clear clears the hash set.
+func (hs *HashSet) Clear() {
+	hs.hash = make(map[interface{}]bool)
+}
+
+// Values returns a slice contains all the items of the set hs
+func (hs *HashSet) Values() []interface{} {
+	a := make([]interface{}, 0, hs.Len())
+	for k := range hs.hash {
+		a = append(a, k)
+	}
+	return a
+}
+
 // Add Add an v to the set
 func (hs *HashSet) Add(v interface{}) {
 	hs.hash[v] = true
@@ -54,11 +68,6 @@ func (hs *HashSet) AddSet(a *HashSet) {
 	for k := range a.hash {
 		hs.hash[k] = true
 	}
-}
-
-// Clear clears the hash set.
-func (hs *HashSet) Clear() {
-	hs.hash = make(map[interface{}]bool)
 }
 
 // Delete an v from the set
@@ -89,15 +98,6 @@ func (hs *HashSet) Each(f func(interface{})) {
 	for k := range hs.hash {
 		f(k)
 	}
-}
-
-// Values returns a slice contains all the items of the set hs
-func (hs *HashSet) Values() []interface{} {
-	a := make([]interface{}, 0, hs.Len())
-	for k := range hs.hash {
-		a = append(a, k)
-	}
-	return a
 }
 
 // Difference Find the difference btween two sets

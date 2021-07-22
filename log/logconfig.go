@@ -199,7 +199,7 @@ func (log *Log) configLogWriter(a []interface{}, async int) error {
 	if len(ws) == 1 {
 		lw = ws[0]
 	} else {
-		lw = &MultiWriter{Writers: ws}
+		lw = NewMultiWriter(ws...)
 	}
 
 	if async > 0 {

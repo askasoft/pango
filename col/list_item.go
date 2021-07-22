@@ -19,43 +19,60 @@ type ListItem struct {
 }
 
 // Next returns the next list item or nil.
-func (le *ListItem) Next() *ListItem {
-	if ni := le.next; le.list != nil && ni != &le.list.root {
+func (li *ListItem) Next() *ListItem {
+	if ni := li.next; li.list != nil && ni != &li.list.root {
 		return ni
 	}
 	return nil
 }
 
 // Prev returns the previous list item or nil.
-func (le *ListItem) Prev() *ListItem {
-	if pi := le.prev; le.list != nil && pi != &le.list.root {
+func (li *ListItem) Prev() *ListItem {
+	if pi := li.prev; li.list != nil && pi != &li.list.root {
 		return pi
 	}
 	return nil
 }
 
 // Offset returns the next +n or previous -n list item or nil.
-func (le *ListItem) Offset(n int) *ListItem {
+func (li *ListItem) Offset(n int) *ListItem {
 	if n == 0 {
-		return le
+		return li
 	}
 
 	if n > 0 {
-		for le != nil && n > 0 {
-			le = le.Next()
+		for li != nil && n > 0 {
+			li = li.Next()
 			n--
 		}
-		return le
+		return li
 	}
 
-	for le != nil && n < 0 {
-		le = le.Prev()
+	for li != nil && n < 0 {
+		li = li.Prev()
 		n++
 	}
-	return le
+	return li
+}
+
+// Remove removes the item li from it's onwer list
+func (li *ListItem) Remove() {
+	if li.list == nil {
+		return
+	}
+
+	li.list.len--
+
+	li.prev.next = li.next
+	li.next.prev = li.prev
+
+	// avoid memory leaks
+	li.next = nil
+	li.prev = nil
+	li.list = nil
 }
 
 // String print the list item to string
-func (le *ListItem) String() string {
-	return fmt.Sprintf("%v", le.Value)
+func (li *ListItem) String() string {
+	return fmt.Sprintf("%v", li.Value)
 }

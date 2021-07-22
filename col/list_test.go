@@ -65,6 +65,12 @@ func checkListPointers(t *testing.T, l *List, lis []*ListItem) {
 
 func TestList(t *testing.T) {
 	l := NewList()
+
+	var c Collection = l
+	if c == nil {
+		t.Error("List is not Collection")
+	}
+
 	checkListPointers(t, l, []*ListItem{})
 
 	// Single item list

@@ -26,17 +26,6 @@ func NewList(vs ...interface{}) *List {
 	return l
 }
 
-// NewStrList returns an initialized list.
-// Example: NewList("1", "2", "3")
-func NewStrList(ss ...string) *List {
-	l := &List{}
-	l.Clear()
-	for _, s := range ss {
-		l.insertValue(s, l.root.prev)
-	}
-	return l
-}
-
 // Len returns the length of the list.
 // The complexity is O(1).
 func (l *List) Len() int {
@@ -46,6 +35,29 @@ func (l *List) Len() int {
 // IsEmpty returns true if the list length == 0
 func (l *List) IsEmpty() bool {
 	return l.len == 0
+}
+
+// Clear clears list l.
+func (l *List) Clear() {
+	l.root.next = &l.root
+	l.root.prev = &l.root
+	l.len = 0
+}
+
+// Values returns a slice contains all the items of the list l
+func (l *List) Values() []interface{} {
+	a := make([]interface{}, 0, l.Len())
+	for li := l.Front(); li != nil; li = li.Next() {
+		a = append(a, li.Value)
+	}
+	return a
+}
+
+// lazyInit lazily initializes a zero List value.
+func (l *List) lazyInit() {
+	if l.root.next == nil {
+		l.Clear()
+	}
 }
 
 // Item returns the item at the specified index
@@ -101,15 +113,9 @@ func (l *List) Search(v interface{}) (int, *ListItem) {
 	return -1, nil
 }
 
-// Clear clears list l.
-func (l *List) Clear() {
-	l.root.next = &l.root
-	l.root.prev = &l.root
-	l.len = 0
-}
-
-// insert inserts item li after at, increments l.len, and returns li.
-func (l *List) insert(li, at *ListItem) *ListItem {
+// insertAfter inserts value v after item at, increments l.len, and returns v's ListItem.
+func (l *List) insertAfter(v interface{}, at *ListItem) *ListItem {
+	li := &ListItem{Value: v}
 	ni := at.next
 	at.next = li
 	li.prev = at
@@ -117,22 +123,6 @@ func (l *List) insert(li, at *ListItem) *ListItem {
 	ni.prev = li
 	li.list = l
 	l.len++
-	return li
-}
-
-// insertValue is a convenience wrapper for insert(&ListItem{Value: v}, at).
-func (l *List) insertValue(v interface{}, at *ListItem) *ListItem {
-	return l.insert(&ListItem{Value: v}, at)
-}
-
-// remove removes the item li from its list, decrements l.len, and returns li.
-func (l *List) remove(li *ListItem) *ListItem {
-	li.prev.next = li.next
-	li.next.prev = li.prev
-	li.next = nil // avoid memory leaks
-	li.prev = nil // avoid memory leaks
-	li.list = nil
-	l.len--
 	return li
 }
 
@@ -159,7 +149,7 @@ func (l *List) move(li, at *ListItem) *ListItem {
 func (l *List) Delete(v interface{}) bool {
 	_, li := l.Search(v)
 	if li != nil {
-		l.remove(li)
+		li.Remove()
 		return true
 	}
 
@@ -173,7 +163,7 @@ func (l *List) DeleteAll(v interface{}) int {
 	for li := l.Front(); li != nil; {
 		ni := li.Next()
 		if li.Value == v {
-			l.remove(li)
+			li.Remove()
 			n++
 		}
 		li = ni
@@ -183,53 +173,78 @@ func (l *List) DeleteAll(v interface{}) int {
 }
 
 // Remove removes the item li from l if li is an item of list l.
+// It returns the item value li.Value.
 // The item li must not be nil.
-func (l *List) Remove(li *ListItem) {
+func (l *List) Remove(li *ListItem) interface{} {
 	if li.list == l {
-		// if li.list == l, l must have been initialized when li was inserted
-		// in l or l == nil (li is a zero item) and l.remove will crash
-		l.remove(li)
+		li.Remove()
 	}
+	return li.Value
 }
 
 // PushFront inserts a new item li with value v at the front of list l and returns li.
 func (l *List) PushFront(v interface{}) *ListItem {
-	return l.insertValue(v, &l.root)
+	l.lazyInit()
+	return l.insertAfter(v, &l.root)
 }
 
 // PushFrontAll inserts all items of vs at the front of list l.
 func (l *List) PushFrontAll(vs ...interface{}) {
-	li := &l.root
+	l.lazyInit()
+	at := &l.root
 	for _, v := range vs {
-		li = l.insertValue(v, li)
+		at = l.insertAfter(v, at)
 	}
 }
 
 // PushFrontList inserts a copy of an other list at the front of list l.
 // The lists l and other may be the same. They must not be nil.
 func (l *List) PushFrontList(other *List) {
-	for i, li := other.Len(), other.Back(); i > 0; i, li = i-1, li.Prev() {
-		l.insertValue(li.Value, &l.root)
+	l.PushFrontItems(other.Front(), other.Len())
+}
+
+// PushFrontItems inserts max n items's value at the front of list l.
+func (l *List) PushFrontItems(li *ListItem, n int) {
+	l.lazyInit()
+
+	at := &l.root
+	for li != nil && n > 0 {
+		ni := li.Next()
+		at = l.insertAfter(li.Value, at)
+		li = ni
+		n--
 	}
 }
 
 // PushBack inserts a new item li with value v at the back of list l and returns li.
 func (l *List) PushBack(v interface{}) *ListItem {
-	return l.insertValue(v, l.root.prev)
+	l.lazyInit()
+	return l.insertAfter(v, l.root.prev)
 }
 
 // PushBackAll inserts all items of vs at the back of list l.
 func (l *List) PushBackAll(vs ...interface{}) {
+	l.lazyInit()
 	for _, v := range vs {
-		l.insertValue(v, l.root.prev)
+		l.insertAfter(v, l.root.prev)
 	}
 }
 
 // PushBackList inserts a copy of an other list at the back of list l.
 // The lists l and other may be the same. They must not be nil.
 func (l *List) PushBackList(other *List) {
-	for i, li := other.Len(), other.Front(); i > 0; i, li = i-1, li.Next() {
-		l.insertValue(li.Value, l.root.prev)
+	l.PushBackItems(other.Front(), other.Len())
+}
+
+// PushBackItems inserts max n items's value at the back of list l.
+func (l *List) PushBackItems(li *ListItem, n int) {
+	l.lazyInit()
+
+	for li != nil && n > 0 {
+		ni := li.Next()
+		l.insertAfter(li.Value, l.root.prev)
+		li = ni
+		n--
 	}
 }
 
@@ -240,8 +255,7 @@ func (l *List) InsertBefore(v interface{}, at *ListItem) *ListItem {
 	if at.list != l {
 		return nil
 	}
-	// see comment in List.Remove about initialization of l
-	return l.insertValue(v, at.prev)
+	return l.insertAfter(v, at.prev)
 }
 
 // InsertAfter inserts a new item li with value v immediately after at and returns li.
@@ -251,8 +265,7 @@ func (l *List) InsertAfter(v interface{}, at *ListItem) *ListItem {
 	if at.list != l {
 		return nil
 	}
-	// see comment in List.Remove about initialization of l
-	return l.insertValue(v, at)
+	return l.insertAfter(v, at)
 }
 
 // MoveToFront moves item li to the front of list l.
@@ -315,15 +328,6 @@ func (l *List) Swap(ia, ib *ListItem) bool {
 	}
 	ia.Value, ib.Value = ib.Value, ia.Value
 	return true
-}
-
-// Values returns a slice contains all the items of the list l
-func (l *List) Values() []interface{} {
-	a := make([]interface{}, 0, l.Len())
-	for li := l.Front(); li != nil; li = li.Next() {
-		a = append(a, li.Value)
-	}
-	return a
 }
 
 // Each Call f for each item in the set

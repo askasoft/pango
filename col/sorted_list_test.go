@@ -29,6 +29,15 @@ func (a inta) Swap(i, j int) {
 	a[i], a[j] = a[j], a[i]
 }
 
+func TestSortedListCollection(t *testing.T) {
+	var c Collection = NewSortedList(func(a, b interface{}) bool {
+		return a.(int) < b.(int)
+	})
+	if c == nil {
+		t.Error("SortedList is not a Collection")
+	}
+}
+
 func TestSortedListAsc(t *testing.T) {
 	for i := 1; i < 100; i++ {
 		sl := NewSortedList(func(a, b interface{}) bool {
@@ -232,7 +241,7 @@ func TestSortedListUnmarshalJSON(t *testing.T) {
 			t.Fatalf("[%d] json.Unmarshal(%v) error: %v", i, c.json, err)
 		}
 
-		if !reflect.DeepEqual(a.list, c.list) {
+		if !reflect.DeepEqual(a.list.Values(), c.list.Values()) {
 			t.Fatalf("[%d] json.Marshal(%v) = %v, want %v", i, c.json, a.list, c.list)
 		}
 	}

@@ -1,15 +1,14 @@
 package col
 
-// SortedList implements an sorted list.
+// SortedList implements a sorted list.
 type SortedList struct {
-	list *List
+	list List
 	less func(a, b interface{}) bool
 }
 
-// NewSortedList returns an initialized list.
+// NewSortedList returns an initialized sorted list.
 func NewSortedList(less func(a, b interface{}) bool, vs ...interface{}) *SortedList {
 	sl := &SortedList{
-		list: NewList(),
 		less: less,
 	}
 	sl.AddAll(vs...)
@@ -25,6 +24,16 @@ func (sl *SortedList) Len() int {
 // IsEmpty checks if the list is empty.
 func (sl *SortedList) IsEmpty() bool {
 	return sl.list.IsEmpty()
+}
+
+// Clear clears list sl.
+func (sl *SortedList) Clear() {
+	sl.list.Clear()
+}
+
+// Values returns a slice contains all the items of the list l
+func (sl *SortedList) Values() []interface{} {
+	return sl.list.Values()
 }
 
 // Item returns the item at the specified index
@@ -110,11 +119,17 @@ func (sl *SortedList) AddAll(vs ...interface{}) {
 	}
 }
 
-// AddList adds a copy of another list.
-// The lists l and other may be the same. They must not be nil.
-func (sl *SortedList) AddList(other *List) {
-	for li := other.Front(); li != nil; li = li.Next() {
+// AddItems adds max n items's value from the ListItem li.
+// Same as:
+// for i := 0; li != nil && i < n; i, li = i+1, li.Next() {
+//     sl.Add(li.Value)
+// }
+func (sl *SortedList) AddItems(li *ListItem, n int) {
+	for li != nil && n > 0 {
+		ni := li.Next()
 		sl.Add(li.Value)
+		li = ni
+		n--
 	}
 }
 
@@ -124,7 +139,7 @@ func (sl *SortedList) AddList(other *List) {
 func (sl *SortedList) Delete(v interface{}) bool {
 	_, li := sl.Search(v)
 	if li != nil {
-		sl.list.remove(li)
+		li.Remove()
 		return true
 	}
 
@@ -139,7 +154,7 @@ func (sl *SortedList) DeleteAll(v interface{}) int {
 	_, li := sl.binarySearch(v)
 	for li != nil && li.Value == v {
 		ni := li.Next()
-		sl.list.remove(li)
+		li.Remove()
 		n++
 		li = ni
 	}
@@ -150,11 +165,6 @@ func (sl *SortedList) DeleteAll(v interface{}) int {
 // Remove The item must not be nil.
 func (sl *SortedList) Remove(li *ListItem) {
 	sl.list.Remove(li)
-}
-
-// Values returns a slice contains all the items of the list l
-func (sl *SortedList) Values() []interface{} {
-	return sl.list.Values()
 }
 
 // Each Call f for each item in the set

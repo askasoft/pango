@@ -1,24 +1,62 @@
 package col
 
+import "fmt"
+
 // OrderedMapItem key/value item
 type OrderedMapItem struct {
-	MapItem
-	item *ListItem
+	// Next and previous pointers in the doubly-linked list of items.
+	// To simplify the implementation, internally a list l is implemented
+	// as a ring, such that &l.root is both the next item of the last
+	// list item (l.Back()) and the previous item of the first list
+	// item (l.Front()).
+	next, prev *OrderedMapItem
+
+	// The ordered map to which this item belongs.
+	omap *OrderedMap
+
+	key   interface{}
+	Value interface{}
 }
 
-// Next returns a pointer to the next item.
+// Key returns the item's key
+func (mi *OrderedMapItem) Key() interface{} {
+	return mi.key
+}
+
+// Next returns the next list item or nil.
 func (mi *OrderedMapItem) Next() *OrderedMapItem {
-	return toOrderedMapItem(mi.item.Next())
-}
-
-// Prev returns a pointer to the previous item.
-func (mi *OrderedMapItem) Prev() *OrderedMapItem {
-	return toOrderedMapItem(mi.item.Prev())
-}
-
-func toOrderedMapItem(li *ListItem) *OrderedMapItem {
-	if li == nil {
-		return nil
+	if ni := mi.next; mi.omap != nil && ni != &mi.omap.root {
+		return ni
 	}
-	return li.Value.(*OrderedMapItem)
+	return nil
+}
+
+// Prev returns the previous list item or nil.
+func (mi *OrderedMapItem) Prev() *OrderedMapItem {
+	if pi := mi.prev; mi.omap != nil && pi != &mi.omap.root {
+		return pi
+	}
+	return nil
+}
+
+// Remove remove this item from the map
+func (mi *OrderedMapItem) Remove() {
+	if mi.omap == nil {
+		return
+	}
+
+	delete(mi.omap.hash, mi.key)
+
+	mi.prev.next = mi.next
+	mi.next.prev = mi.prev
+
+	// avoid memory leaks
+	mi.next = nil
+	mi.prev = nil
+	mi.omap = nil
+}
+
+// String print the item to string
+func (mi *OrderedMapItem) String() string {
+	return fmt.Sprintf("%v => %v", mi.key, mi.Value)
 }

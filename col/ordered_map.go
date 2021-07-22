@@ -6,18 +6,23 @@ import (
 )
 
 // OrderedMap implements an ordered map that keeps track of the order in which keys were inserted.
+// The zero value for OrderedMap is an empty map ready to use.
+//
+// To iterate over a ordered map (where om is a *OrderedMap):
+//	for mi := om.Front(); mi != nil; mi = mim.Next() {
+//		// do something with mi.Key(), mi.Value
+//	}
+//
 type OrderedMap struct {
 	hash map[interface{}]*OrderedMapItem
-	list *List
+	root OrderedMapItem // sentinel list item, only &root, root.prev, and root.next are used
 }
 
 // NewOrderedMap creates a new OrderedMap.
 // Example: NewOrderedMap("k1", "v1", "k2", "v2")
 func NewOrderedMap(kvs ...interface{}) *OrderedMap {
-	om := &OrderedMap{
-		hash: make(map[interface{}]*OrderedMapItem),
-		list: NewList(),
-	}
+	om := &OrderedMap{}
+	om.Clear()
 	for i := 0; i+1 < len(kvs); i += 2 {
 		om.Set(kvs[i], kvs[i+1])
 	}
@@ -38,7 +43,11 @@ func (om *OrderedMap) IsEmpty() bool {
 // or nil if not found. The OrderedMapItem struct can then be used to iterate over the ordered map
 // from that point, either forward or backward.
 func (om *OrderedMap) Item(key interface{}) *OrderedMapItem {
-	return om.hash[key]
+	mi, ok := om.hash[key]
+	if ok {
+		return mi
+	}
+	return nil
 }
 
 // Has looks for the given key, and returns true if the key exists in the map.
@@ -56,17 +65,34 @@ func (om *OrderedMap) Get(key interface{}) (interface{}, bool) {
 	return nil, false
 }
 
+// lazyInit lazily initializes a zero OrderedMap value.
+func (om *OrderedMap) lazyInit() {
+	if om.hash == nil {
+		om.Clear()
+	}
+}
+
 func (om *OrderedMap) put(key interface{}, value interface{}) {
 	mi := &OrderedMapItem{}
 	mi.key = key
 	mi.Value = value
-	mi.item = om.list.PushBack(mi)
+
+	at := om.root.prev
+	ni := at.next
+	at.next = mi
+	mi.prev = at
+	mi.next = ni
+	ni.prev = mi
+	mi.omap = om
+
 	om.hash[key] = mi
 }
 
 // Set sets the key-value item, and returns what `Get` would have returned
 // on that key prior to the call to `Set`.
 func (om *OrderedMap) Set(key interface{}, value interface{}) (interface{}, bool) {
+	om.lazyInit()
+
 	if mi, ok := om.hash[key]; ok {
 		ov := mi.Value
 		mi.Value = value
@@ -81,6 +107,8 @@ func (om *OrderedMap) Set(key interface{}, value interface{}) (interface{}, bool
 // and returns what `Get` would have returned
 // on that key prior to the call to `Set`.
 func (om *OrderedMap) SetIfAbsent(key interface{}, value interface{}) (interface{}, bool) {
+	om.lazyInit()
+
 	if mi, ok := om.hash[key]; ok {
 		return mi.Value, true
 	}
@@ -99,10 +127,11 @@ func (om *OrderedMap) Copy(am *OrderedMap) {
 // Delete delete the item with key, and returns what `Get` would have returned
 // on that key prior to the call to `Delete`.
 func (om *OrderedMap) Delete(key interface{}) (interface{}, bool) {
-	if mi, ok := om.hash[key]; ok {
-		om.list.Remove(mi.item)
-		delete(om.hash, key)
-		return mi.Value, true
+	if om.hash != nil {
+		if mi, ok := om.hash[key]; ok {
+			mi.Remove()
+			return mi.Value, true
+		}
 	}
 
 	return nil, false
@@ -111,21 +140,28 @@ func (om *OrderedMap) Delete(key interface{}) (interface{}, bool) {
 // Clear clears the map
 func (om *OrderedMap) Clear() {
 	om.hash = make(map[interface{}]*OrderedMapItem)
-	om.list.Clear()
+	om.root.next = &om.root
+	om.root.prev = &om.root
 }
 
 // Front returns a pointer to the oldest item. It's meant to be used to iterate on the ordered map's
 // items from the oldest to the newest, e.g.:
 // for item := orderedMap.Front(); item != nil; item = item.Next() { fmt.Printf("%v => %v\n", item.Key(), item.Value()) }
 func (om *OrderedMap) Front() *OrderedMapItem {
-	return toOrderedMapItem(om.list.Front())
+	if om.Len() == 0 {
+		return nil
+	}
+	return om.root.next
 }
 
 // Back returns a pointer to the newest item. It's meant to be used to iterate on the ordered map's
 // items from the newest to the oldest, e.g.:
 // for item := orderedMap.Back(); item != nil; item = item.Prev() { fmt.Printf("%v => %v\n", item.Key(), item.Value()) }
 func (om *OrderedMap) Back() *OrderedMapItem {
-	return toOrderedMapItem(om.list.Back())
+	if om.Len() == 0 {
+		return nil
+	}
+	return om.root.prev
 }
 
 // Keys returns the key slice

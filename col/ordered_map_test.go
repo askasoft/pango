@@ -14,9 +14,14 @@ import (
 )
 
 func TestOrderedMapBasicFeatures(t *testing.T) {
-	n := 100
 	om := NewOrderedMap()
 
+	var c Collection = om
+	if c == nil {
+		t.Error("OrderedMap is not a Collection")
+	}
+
+	n := 100
 	// set(i, 2 * i)
 	for i := 0; i < n; i++ {
 		ov, ok := interface{}(nil), false
@@ -450,9 +455,6 @@ func assertOrderedPairsEqualFromOldest(t *testing.T, om *OrderedMap, eks, evs []
 func assertLenEqual(n string, t *testing.T, om *OrderedMap, w int) {
 	if om.Len() != w {
 		t.Errorf("%s: om.Len() != %v", n, w)
-	}
-	if om.list.Len() != w {
-		t.Errorf("%s: om.list.Len() != %v", n, w)
 	}
 }
 

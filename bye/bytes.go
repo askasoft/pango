@@ -32,12 +32,12 @@ func Contains(b, subslice []byte) bool {
 
 // ContainsAny reports whether any of the UTF-8-encoded code points in chars are within b.
 func ContainsAny(b []byte, chars string) bool {
-	return ContainsAny(b, chars)
+	return bytes.ContainsAny(b, chars)
 }
 
 // ContainsRune reports whether the rune is contained in the UTF-8-encoded byte slice b.
 func ContainsRune(b []byte, r rune) bool {
-	return ContainsRune(b, r)
+	return bytes.ContainsRune(b, r)
 }
 
 // IndexByte returns the index of the first instance of c in b, or -1 if c is not present in b.

@@ -242,6 +242,13 @@ func (al *ArrayList) Insert(index int, vs ...interface{}) {
 	copy(al.data[index:], vs)
 }
 
+// InsertAll inserts values of another collection ac at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
+// Does not do anything if position is bigger than list's size
+// Note: position equal to list's size is valid, i.e. append.
+func (al *ArrayList) InsertAll(index int, ac Collection) {
+	al.Insert(index, ac.Values()...)
+}
+
 // Index returns the index of the first occurrence of the specified v in this list, or -1 if this list does not contain v.
 func (al *ArrayList) Index(v interface{}) int {
 	for i, d := range al.data {

@@ -171,6 +171,25 @@ func (ll *LinkedList) Each(f func(interface{})) {
 //-----------------------------------------------------------
 // implements List interface
 
+// Get returns the element at the specified position in this list
+func (ll *LinkedList) Get(index int) (interface{}, bool) {
+	li := ll.Item(index)
+	if li == nil {
+		return nil, false
+	}
+	return li.Value(), true
+}
+
+// Set set the v at the specified index in this list and returns the old value.
+func (ll *LinkedList) Set(index int, v interface{}) (ov interface{}) {
+	li := ll.Item(index)
+	if li != nil {
+		ov = li.Value()
+		li.SetValue(v)
+	}
+	return
+}
+
 // Insert inserts values at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
 // Does not do anything if position is bigger than list's size
 // Note: position equal to list's size is valid, i.e. append.
@@ -201,23 +220,34 @@ func (ll *LinkedList) Insert(index int, vs ...interface{}) {
 	}
 }
 
-// Get returns the element at the specified position in this list
-func (ll *LinkedList) Get(index int) (interface{}, bool) {
-	li := ll.Item(index)
-	if li == nil {
-		return nil, false
+// InsertAll inserts values of another collection ac at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
+// Does not do anything if position is bigger than list's size
+// Note: position equal to list's size is valid, i.e. append.
+func (ll *LinkedList) InsertAll(index int, ac Collection) {
+	n := ac.Len()
+	if n == 0 {
+		return
 	}
-	return li.Value(), true
-}
 
-// Set set the v at the specified index in this list and returns the old value.
-func (ll *LinkedList) Set(index int, v interface{}) (ov interface{}) {
+	len := ll.Len()
+	if index < -len || index > len {
+		return
+	}
+
+	if index < 0 {
+		index += len
+	}
+
+	if index == len {
+		// Append
+		ll.AddAll(ac)
+		return
+	}
+
 	li := ll.Item(index)
 	if li != nil {
-		ov = li.Value()
-		li.SetValue(v)
+		ll.InsertAllBefore(li, ac)
 	}
-	return
 }
 
 // Index returns the index of the first occurrence of the specified v in this list, or -1 if this list does not contain v.

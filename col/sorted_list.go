@@ -81,10 +81,37 @@ func (sl *SortedList) add(v interface{}) (li *SortedListItem) {
 }
 
 //-----------------------------------------------------------
+// callback by SortedListItem
+
+func (sl *SortedList) onValueChanged(li *SortedListItem) {
+	if sl.len == 1 {
+		return
+	}
+
+	// remove and add again
+	li.Remove()
+
+	_, at := sl.binarySearch(li.value)
+	if at != nil {
+		li.insertAfter(at.prev)
+		return
+	}
+
+	li.insertAfter(sl.root.prev)
+}
+
+func (sl *SortedList) onItemInserted(li *SortedListItem) {
+	sl.len++
+}
+
+func (sl *SortedList) onItemRemoved(li *SortedListItem) {
+	sl.len--
+}
+
+//-----------------------------------------------------------
 // implements Collection interface
 
 // Len returns the length of the list.
-// The complexity is O(1).
 func (sl *SortedList) Len() int {
 	return sl.len
 }
@@ -116,6 +143,19 @@ func (sl *SortedList) Add(vs ...interface{}) {
 
 // AddAll adds all items of another collection
 func (sl *SortedList) AddAll(ac Collection) {
+	if sl == ac {
+		sl.Add(ac.Values()...)
+		return
+	}
+
+	if ic, ok := ac.(Iterable); ok {
+		it := ic.Iterator()
+		for it.Next() {
+			sl.Add(it.Value())
+		}
+		return
+	}
+
 	sl.Add(ac.Values()...)
 }
 
@@ -198,23 +238,6 @@ func (sl *SortedList) Each(f func(interface{})) {
 //-----------------------------------------------------------
 // implements List interface
 
-// Insert inserts values, same as: Adds(...)
-// Just implements the List.Insert() method
-// Does not do anything if position is bigger than list's size
-func (sl *SortedList) Insert(index int, vs ...interface{}) {
-	n := len(vs)
-	if n == 0 {
-		return
-	}
-
-	len := sl.Len()
-	if index < -len || index > len {
-		return
-	}
-
-	sl.Add(vs...)
-}
-
 // Get returns the element at the specified position in this list
 func (sl *SortedList) Get(index int) (interface{}, bool) {
 	li := sl.Item(index)
@@ -234,6 +257,48 @@ func (sl *SortedList) Set(index int, v interface{}) (ov interface{}) {
 	return
 }
 
+// Insert inserts values, same as: Adds(...)
+// Just implements the List.Insert() method
+// Does not do anything if position is bigger than list's size
+func (sl *SortedList) Insert(index int, vs ...interface{}) {
+	n := len(vs)
+	if n == 0 {
+		return
+	}
+
+	len := sl.Len()
+	if index < -len || index > len {
+		return
+	}
+
+	sl.Add(vs...)
+}
+
+// InsertAll inserts values of another collection ac at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
+// Does not do anything if position is bigger than list's size
+// Note: position equal to list's size is valid, i.e. append.
+func (sl *SortedList) InsertAll(index int, ac Collection) {
+	n := ac.Len()
+	if n == 0 {
+		return
+	}
+
+	len := sl.Len()
+	if index < -len || index > len {
+		return
+	}
+
+	if ic, ok := ac.(Iterable); ok {
+		it := ic.Iterator()
+		for it.Next() {
+			sl.Add(it.Value())
+		}
+		return
+	}
+
+	sl.Add(ac.Values()...)
+}
+
 // Index returns the index of the first occurrence of the specified v in this list, or -1 if this list does not contain v.
 func (sl *SortedList) Index(v interface{}) int {
 	i, _ := sl.Search(v)
@@ -251,6 +316,7 @@ func (sl *SortedList) Remove(index int) {
 }
 
 // Swap swaps values of two items at the given index.
+// Do nothing because all items are sorted.
 func (sl *SortedList) Swap(i, j int) {
 	// do nothing
 }
@@ -267,25 +333,7 @@ func (sl *SortedList) Iterator() Iterator {
 	return &sortedListItemIterator{sl, &sl.root}
 }
 
-// AddList inserts a copy of another list at the back of list sl.
-// The lists sl and al may be the same. They must not be nil.
-func (sl *SortedList) AddList(al List) {
-	if al.IsEmpty() {
-		return
-	}
-
-	if sl == al {
-		sl.Add(al.Values()...)
-		return
-	}
-
-	sl.lazyInit()
-
-	it := al.Iterator()
-	for it.Next() {
-		sl.add(it.Value())
-	}
-}
+//--------------------------------------------------------------------
 
 // Front returns the first item of list l or nil if the list is empty.
 func (sl *SortedList) Front() *SortedListItem {
@@ -331,34 +379,6 @@ func (sl *SortedList) Search(v interface{}) (int, *SortedListItem) {
 	}
 
 	return -1, nil
-}
-
-//-----------------------------------------------------------
-// callback by SortedListItem
-
-func (sl *SortedList) onValueChanged(li *SortedListItem) {
-	if sl.len == 1 {
-		return
-	}
-
-	// remove and add again
-	li.Remove()
-
-	_, at := sl.binarySearch(li.value)
-	if at != nil {
-		li.insertAfter(at.prev)
-		return
-	}
-
-	li.insertAfter(sl.root.prev)
-}
-
-func (sl *SortedList) onItemInserted(li *SortedListItem) {
-	sl.len++
-}
-
-func (sl *SortedList) onItemRemoved(li *SortedListItem) {
-	sl.len--
 }
 
 // String print list to string

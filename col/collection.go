@@ -68,6 +68,11 @@ type List interface {
 	// Note: position equal to list's size is valid, i.e. append.
 	Insert(index int, vs ...interface{})
 
+	// InsertAll inserts values of another collection ac at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
+	// Does not do anything if position is bigger than list's size
+	// Note: position equal to list's size is valid, i.e. append.
+	InsertAll(index int, ac Collection)
+
 	// Index returns the index of the first occurrence of the specified v in this list, or -1 if this list does not contain v.
 	Index(v interface{}) int
 

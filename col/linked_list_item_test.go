@@ -14,9 +14,10 @@ func TestListItemString(t *testing.T) {
 	}
 
 	for _, c := range cs {
-		a := (&ListItem{Value: c.s}).String()
+		i := &LinkedListItem{value: c.s}
+		a := i.String()
 		if a != c.e {
-			t.Errorf("ListIem(%v).String() = %q, want %q", c.s, a, c.e)
+			t.Errorf("LinkedListItem(%v).String() = %q, want %q", c.s, a, c.e)
 		}
 	}
 }

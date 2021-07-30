@@ -8,6 +8,7 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/pandafw/pango/cmp"
 	"github.com/pandafw/pango/str"
 )
 
@@ -29,20 +30,16 @@ func (a inta) Swap(i, j int) {
 	a[i], a[j] = a[j], a[i]
 }
 
-func TestSortedListCollection(t *testing.T) {
-	var c Collection = NewSortedList(func(a, b interface{}) bool {
-		return a.(int) < b.(int)
-	})
-	if c == nil {
-		t.Error("SortedList is not a Collection")
+func TestSortedListInterface(t *testing.T) {
+	var l List = NewSortedList(cmp.LessInt)
+	if l == nil {
+		t.Error("SortedList is not a List")
 	}
 }
 
 func TestSortedListAsc(t *testing.T) {
 	for i := 1; i < 100; i++ {
-		sl := NewSortedList(func(a, b interface{}) bool {
-			return a.(int) < b.(int)
-		})
+		sl := NewSortedList(cmp.LessInt)
 		a := make([]interface{}, 0, 100)
 		for n := i; n < 100; n++ {
 			a = append(a, n)
@@ -63,7 +60,7 @@ func TestSortedListAsc(t *testing.T) {
 
 func TestSortedListDesc(t *testing.T) {
 	for i := 1; i < 100; i++ {
-		sl := NewSortedList(LessInt)
+		sl := NewSortedList(cmp.LessInt)
 		a := make([]interface{}, 0, 100)
 		for n := i; n < 100; n++ {
 			a = append(a, n)
@@ -84,9 +81,7 @@ func TestSortedListDesc(t *testing.T) {
 
 func TestSortedListRandom(t *testing.T) {
 	for i := 1; i < 100; i++ {
-		sl := NewSortedList(func(a, b interface{}) bool {
-			return a.(int) < b.(int)
-		})
+		sl := NewSortedList(cmp.LessInt)
 		a := make([]interface{}, 0, 100)
 		for n := i; n < 100; n++ {
 			a = append(a, rand.Intn(20))
@@ -108,8 +103,7 @@ func TestSortedListRandom(t *testing.T) {
 }
 
 func TestSortedListContains(t *testing.T) {
-	sl := NewSortedList(LessString, "1", "11", "111", "1", "11", "111")
-
+	sl := NewSortedList(cmp.LessString, "1", "11", "111", "1", "11", "111")
 	n := str.Repeat("1", 3)
 
 	if !sl.Contains(n) {
@@ -123,7 +117,7 @@ func TestSortedListContains(t *testing.T) {
 }
 
 func TestSetSearch(t *testing.T) {
-	sl := NewSortedList(LessInt, 1, 11)
+	sl := NewSortedList(cmp.LessInt, 1, 11)
 
 	n := 10 + 1
 	sn, se := sl.Search(n)
@@ -133,9 +127,9 @@ func TestSetSearch(t *testing.T) {
 
 	n = 1 + 10 + 100
 	for i := 0; i < 100; i++ {
-		n111 := sl.Add(111)
+		sl.Add(111)
 		sn, se = sl.Search(n)
-		if se != n111 || sn != 2 {
+		if se == nil || sn != 2 {
 			t.Errorf("SortedList [%v] should contains %v", sl, n)
 		}
 	}
@@ -148,18 +142,20 @@ func TestSetSearch(t *testing.T) {
 }
 
 func TestSortedListDelete(t *testing.T) {
-	sl := NewSortedList(LessInt)
+	sl := NewSortedList(cmp.LessInt)
 
-	for i := 0; i < 100; i++ {
+	for i := 1; i <= 100; i++ {
 		sl.Add(i)
 	}
 
-	if sl.Delete(100) {
-		t.Error("sl.Delete(100)=true, want false")
+	sl.Delete(101)
+	if sl.Len() != 100 {
+		t.Error("SortedList.Delete(101) should do nothing")
 	}
-	for i := 0; i < 100; i++ {
-		if !sl.Delete(i) {
-			t.Errorf("sl.Delete(%v)=false, want true", i)
+	for i := 1; i <= 100; i++ {
+		sl.Delete(i)
+		if sl.Len() != 100-i {
+			t.Errorf("SortedList.Delete(%v) failed, l.Len() = %v, want %v", i, sl.Len(), 100-i)
 		}
 	}
 	if !sl.IsEmpty() {
@@ -168,7 +164,7 @@ func TestSortedListDelete(t *testing.T) {
 }
 
 func TestSortedListDeleteAll(t *testing.T) {
-	sl := NewSortedList(LessInt)
+	sl := NewSortedList(cmp.LessInt)
 
 	for i := 0; i < 100; i++ {
 		z := i % 10
@@ -177,15 +173,18 @@ func TestSortedListDeleteAll(t *testing.T) {
 		}
 	}
 
-	if sl.DeleteAll(100) != 0 {
-		t.Error("sl.DeleteAll(100) != 0")
+	n := sl.Len()
+	sl.Delete(100)
+	if sl.Len() != n {
+		t.Errorf("SortedList.Delete(100).Len() = %v, want %v", sl.Len(), n)
 	}
 	for i := 0; i < 100; i++ {
-		w := i % 10
-
-		a := sl.DeleteAll(i)
-		if a != w {
-			t.Errorf("sl.DeleteAll(%d) = %v, want %v", i, a, w)
+		n = sl.Len()
+		z := i % 10
+		sl.Delete(i)
+		a := n - sl.Len()
+		if a != z {
+			t.Errorf("SortdList.Delete(%v) = %v, want %v", i, a, z)
 		}
 	}
 	if !sl.IsEmpty() {
@@ -193,9 +192,96 @@ func TestSortedListDeleteAll(t *testing.T) {
 	}
 }
 
+func TestSortedListIteratorRemove(t *testing.T) {
+	for i := 20; i < 50; i++ {
+		l := NewSortedList(cmp.LessInt)
+
+		for n := 0; n < i; n++ {
+			l.Add(n)
+		}
+
+		it := l.Iterator()
+
+		it.Remove()
+		if l.Len() != i {
+			t.Errorf("[%d] l.Len() == %v, want %v", i, l.Len(), i)
+		}
+
+		// remove middle
+		x := rand.Intn(i-4) + 1
+		for j := 0; j <= x; j++ {
+			it.Next()
+		}
+
+		v := it.Value().(int)
+		it.Remove()
+		if l.Len() != i-1 {
+			t.Errorf("[%d] l.Len() == %v, want %v", i, l.Len(), i-1)
+		}
+		if l.Contains(v) {
+			t.Errorf("[%d] l.Contains(%v) = true", i, v)
+		}
+
+		it.Next()
+		if v+1 != it.Value() {
+			t.Errorf("[%d] it.Value() = %v, want %v", i, it.Value(), v+1)
+		}
+		it.Remove()
+		if l.Contains(v + 1) {
+			t.Errorf("[%d] l.Contains(%v) = true", i, v+1)
+		}
+
+		it.Prev()
+		if v-1 != it.Value() {
+			t.Errorf("[%d] it.Value() = %v, want %v", i, it.Value(), v-1)
+		}
+		it.Remove()
+		if l.Contains(v - 1) {
+			t.Errorf("[%d] l.Contains(%v) = true", i, v-1)
+		}
+
+		// remove first
+		for it.Prev() {
+		}
+		it.Remove()
+		if l.Contains(0) {
+			t.Errorf("[%d] l.Contains(%v) = true", i, 0)
+		}
+		if it.Prev() {
+			t.Errorf("[%d] l.Prev() = true", i)
+		}
+
+		// remove last
+		for it.Next() {
+		}
+		it.Remove()
+		if l.Contains(i - 1) {
+			t.Errorf("[%d] l.Contains(%v) = true", i, i-1)
+		}
+		if it.Next() {
+			t.Errorf("[%d] l.Next() = true", i)
+		}
+
+		// remove all
+		it.Reset()
+		if i%2 == 0 {
+			for it.Prev() {
+				it.Remove()
+			}
+		} else {
+			for it.Next() {
+				it.Remove()
+			}
+		}
+		if !l.IsEmpty() {
+			t.Errorf("[%d] l.IsEmpty() = true", i)
+		}
+	}
+}
+
 func TestSortedListString(t *testing.T) {
 	w := "[1,2,3]"
-	a := fmt.Sprintf("%s", NewSortedList(LessInt, 1, 3, 2))
+	a := fmt.Sprintf("%s", NewSortedList(cmp.LessInt, 1, 3, 2))
 	if w != a {
 		t.Errorf("SortedList.String() = %v, want %v", a, w)
 	}
@@ -208,7 +294,7 @@ func TestSortedListMarshalJSON(t *testing.T) {
 	}
 
 	cs := []Case{
-		{NewSortedList(LessString, "2", "1", "0"), `["0","1","2"]`},
+		{NewSortedList(cmp.LessString, "2", "1", "0"), `["0","1","2"]`},
 	}
 
 	for i, c := range cs {
@@ -228,21 +314,21 @@ func TestSortedListMarshalJSON(t *testing.T) {
 func TestSortedListUnmarshalJSON(t *testing.T) {
 	cs := []struct {
 		json string
-		list *List
+		list List
 	}{
-		{`["2","0","1"]`, NewList("0", "1", "2")},
+		{`["2","0","1"]`, NewLinkedList("0", "1", "2")},
 	}
 
 	for i, c := range cs {
-		a := NewSortedList(LessString)
+		a := NewSortedList(cmp.LessString)
 		err := json.Unmarshal([]byte(c.json), a)
 
 		if err != nil {
 			t.Fatalf("[%d] json.Unmarshal(%v) error: %v", i, c.json, err)
 		}
 
-		if !reflect.DeepEqual(a.list.Values(), c.list.Values()) {
-			t.Fatalf("[%d] json.Marshal(%v) = %v, want %v", i, c.json, a.list, c.list)
+		if !reflect.DeepEqual(a.Values(), c.list.Values()) {
+			t.Fatalf("[%d] json.Marshal(%v) = %v, want %v", i, c.json, a.Values(), c.list.Values())
 		}
 	}
 }

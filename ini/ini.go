@@ -19,15 +19,15 @@ import (
 
 // Ini INI file reader / writer
 type Ini struct {
-	sections *col.OrderedMap // Parsed sections
-	EOL      string          // End of Line
-	Multiple bool            // Multiple entry with same key
+	sections *col.LinkedHashMap // Parsed sections
+	EOL      string             // End of Line
+	Multiple bool               // Multiple entry with same key
 }
 
 // NewIni create a Ini
 func NewIni() *Ini {
 	ini := &Ini{
-		sections: col.NewOrderedMap(),
+		sections: col.NewLinkedHashMap(),
 		EOL:      iox.EOL,
 	}
 
@@ -48,7 +48,7 @@ func (ini *Ini) IsEmpty() bool {
 	}
 
 	for e := ini.sections.Front(); e != nil; e = e.Next() {
-		s := e.Value.(*Section)
+		s := e.Value().(*Section)
 		if s.name != "" {
 			return false
 		}
@@ -67,7 +67,7 @@ type MAP map[string]map[string]interface{}
 func (ini *Ini) Map() MAP {
 	m := make(MAP, ini.sections.Len())
 	for s := ini.sections.Front(); s != nil; s = s.Next() {
-		sec := s.Value.(*Section)
+		sec := s.Value().(*Section)
 		m[sec.name] = sec.Map()
 	}
 	return m
@@ -86,7 +86,7 @@ func (ini *Ini) SectionNames() []string {
 func (ini *Ini) Sections() []*Section {
 	ss := make([]*Section, ini.sections.Len())
 	for s := ini.sections.Front(); s != nil; s = s.Next() {
-		ss = append(ss, s.Value.(*Section))
+		ss = append(ss, s.Value().(*Section))
 	}
 	return ss
 }
@@ -281,7 +281,7 @@ func (ini *Ini) WriteData(w io.Writer) (err error) {
 	bw := bufio.NewWriter(w)
 
 	for se := ini.sections.Front(); se != nil; se = se.Next() {
-		sec := se.Value.(*Section)
+		sec := se.Value().(*Section)
 
 		if err := sec.Write(bw, ini.EOL); err != nil {
 			return err

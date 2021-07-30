@@ -17,9 +17,9 @@ type Entry struct {
 
 // Section ini section
 type Section struct {
-	name     string          // Name for tihs section.
-	comments []string        // Comment for this section.
-	entries  *col.OrderedMap // Entries for this section.
+	name     string             // Name for tihs section.
+	comments []string           // Comment for this section.
+	entries  *col.LinkedHashMap // Entries for this section.
 }
 
 // NewSection create a INI section
@@ -27,7 +27,7 @@ func NewSection(name string, comments ...string) *Section {
 	return &Section{
 		name:     name,
 		comments: comments,
-		entries:  col.NewOrderedMap(),
+		entries:  col.NewLinkedHashMap(),
 	}
 }
 
@@ -43,9 +43,9 @@ func (sec *Section) Comments() []string {
 
 // Keys return the section's key string array
 func (sec *Section) Keys() []string {
-	ks := make([]string, 0, sec.entries.Len())
-	for e := sec.entries.Front(); e != nil; e = e.Next() {
-		ks = append(ks, e.Key().(string))
+	ks := make([]string, sec.entries.Len())
+	for i, e := 0, sec.entries.Front(); e != nil; i, e = i+1, e.Next() {
+		ks[i] = e.Key().(string)
 	}
 	return ks
 }
@@ -55,9 +55,9 @@ func (sec *Section) StringMap() map[string]string {
 	m := make(map[string]string, sec.entries.Len())
 	for e := sec.entries.Front(); e != nil; e = e.Next() {
 		var v string
-		switch se := e.Value.(type) {
-		case *col.List:
-			v = se.Front().Value.(string)
+		switch se := e.Value().(type) {
+		case *col.LinkedList:
+			v = se.Front().Value().(string)
 		case *Entry:
 			v = se.Value
 		}
@@ -71,8 +71,8 @@ func (sec *Section) StringsMap() map[string][]string {
 	m := make(map[string][]string, sec.entries.Len())
 	for e := sec.entries.Front(); e != nil; e = e.Next() {
 		var v []string
-		switch se := e.Value.(type) {
-		case *col.List:
+		switch se := e.Value().(type) {
+		case *col.LinkedList:
 			v = sec.toStrings(se)
 		case *Entry:
 			v = []string{se.Value}
@@ -87,8 +87,8 @@ func (sec *Section) Map() map[string]interface{} {
 	m := make(map[string]interface{}, sec.entries.Len())
 	for e := sec.entries.Front(); e != nil; e = e.Next() {
 		var v interface{}
-		switch se := e.Value.(type) {
-		case *col.List:
+		switch se := e.Value().(type) {
+		case *col.LinkedList:
 			v = sec.toStrings(se)
 		case *Entry:
 			v = se.Value
@@ -108,11 +108,11 @@ func (sec *Section) Add(key string, value string, comments ...string) *Entry {
 // add add a key/value entry to the section
 func (sec *Section) add(key string, e *Entry) {
 	if v, ok := sec.entries.Get(key); ok {
-		if l, ok := v.(*col.List); ok {
+		if l, ok := v.(*col.LinkedList); ok {
 			l.PushBack(e)
 			return
 		}
-		l := col.NewList()
+		l := col.NewLinkedList()
 		l.PushBack(v)
 		l.PushBack(e)
 		sec.entries.Set(key, l)
@@ -196,10 +196,10 @@ func (sec *Section) GetBool(key string, defs ...bool) bool {
 	return false
 }
 
-func (sec *Section) toStrings(l *col.List) []string {
+func (sec *Section) toStrings(l *col.LinkedList) []string {
 	ss := make([]string, 0, l.Len())
 	for e := l.Front(); e != nil; e = e.Next() {
-		ss = append(ss, e.Value.(*Entry).Value)
+		ss = append(ss, e.Value().(*Entry).Value)
 	}
 	return ss
 }
@@ -208,7 +208,7 @@ func (sec *Section) toStrings(l *col.List) []string {
 func (sec *Section) GetValues(key string) []string {
 	if v, ok := sec.entries.Get(key); ok {
 		switch se := v.(type) {
-		case *col.List:
+		case *col.LinkedList:
 			return sec.toStrings(se)
 		case *Entry:
 			return []string{se.Value}
@@ -221,8 +221,8 @@ func (sec *Section) GetValues(key string) []string {
 func (sec *Section) GetEntry(key string) *Entry {
 	if v, ok := sec.entries.Get(key); ok {
 		switch se := v.(type) {
-		case *col.List:
-			return se.Front().Value.(*Entry)
+		case *col.LinkedList:
+			return se.Front().Value().(*Entry)
 		case *Entry:
 			return se
 		}
@@ -241,14 +241,14 @@ func (sec *Section) Copy(src *Section) {
 	if len(src.comments) > 0 {
 		sec.comments = src.comments
 	}
-	sec.entries.Copy(src.entries)
+	sec.entries.SetAll(src.entries)
 }
 
 // Merge merge entries from src section
 func (sec *Section) Merge(src *Section) {
 	sec.comments = append(sec.comments, src.comments...)
 	for e := src.entries.Front(); e != nil; e = e.Next() {
-		sec.add(e.Key().(string), e.Value.(*Entry))
+		sec.add(e.Key().(string), e.Value().(*Entry))
 	}
 }
 
@@ -306,10 +306,10 @@ func (sec *Section) writeSectionName(bw *bufio.Writer, eol string) (err error) {
 
 func (sec *Section) writeSectionEntries(bw *bufio.Writer, eol string) (err error) {
 	for me := sec.entries.Front(); me != nil; me = me.Next() {
-		switch se := me.Value.(type) {
-		case *col.List:
+		switch se := me.Value().(type) {
+		case *col.LinkedList:
 			for le := se.Front(); le != nil; le = le.Next() {
-				if err = sec.writeSectionEntry(bw, me.Key().(string), le.Value.(*Entry), eol); err != nil {
+				if err = sec.writeSectionEntry(bw, me.Key().(string), le.Value().(*Entry), eol); err != nil {
 					return err
 				}
 			}

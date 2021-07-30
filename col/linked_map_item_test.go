@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestOrderedMapItemString(t *testing.T) {
+func TestLinkedMapItemString(t *testing.T) {
 	cs := []struct {
 		e string
 		k interface{}
@@ -14,9 +14,9 @@ func TestOrderedMapItemString(t *testing.T) {
 	}
 
 	for i, c := range cs {
-		a := (&OrderedMapItem{key: c.k, Value: c.v}).String()
+		a := (&LinkedMapItem{key: c.k, value: c.v}).String()
 		if a != c.e {
-			t.Errorf("[%d] OrderedMapItem{%v, %v}.String() = %q, want %q", i, c.k, c.v, a, c.e)
+			t.Errorf("[%d] LinkedMapItem{%v, %v}.String() = %q, want %q", i, c.k, c.v, a, c.e)
 		}
 	}
 }

@@ -181,3 +181,78 @@ func (jd *jsonUnmarshaler) handleDelim(dec *json.Decoder, t json.Token) (interfa
 	}
 	return t, nil
 }
+
+//---------------------------------------------------------------------
+
+func jsonMarshalList(list List) (res []byte, err error) {
+	if list.IsEmpty() {
+		return []byte("[]"), nil
+	}
+
+	res = append(res, '[')
+	it := list.Iterator()
+	for it.Next() {
+		var b []byte
+		b, err = json.Marshal(it.Value())
+		if err != nil {
+			return
+		}
+		res = append(res, b...)
+		res = append(res, ',')
+	}
+	res[len(res)-1] = ']'
+	return
+}
+
+func jsonMarshalHashMap(hmap map[interface{}]interface{}) (res []byte, err error) {
+	if len(hmap) == 0 {
+		return []byte("{}"), nil
+	}
+
+	res = append(res, '{')
+	for k, v := range hmap {
+		_, ok := k.(string)
+		if !ok {
+			err = fmt.Errorf("expecting JSON key should be always a string: %T: %v", k, k)
+			return
+		}
+
+		res = append(res, fmt.Sprintf("%q:", k)...)
+		var b []byte
+		b, err = json.Marshal(v)
+		if err != nil {
+			return
+		}
+		res = append(res, b...)
+		res = append(res, ',')
+	}
+	res[len(res)-1] = '}'
+	return
+}
+
+func jsonMarshalMap(im IterableMap) (res []byte, err error) {
+	if im.IsEmpty() {
+		return []byte("{}"), nil
+	}
+
+	res = append(res, '{')
+	it := im.Iterator()
+	for it.Next() {
+		k, ok := it.Key().(string)
+		if !ok {
+			err = fmt.Errorf("expecting JSON key should be always a string: %T: %v", it.Key(), it.Key())
+			return
+		}
+
+		res = append(res, fmt.Sprintf("%q:", k)...)
+		var b []byte
+		b, err = json.Marshal(it.Value())
+		if err != nil {
+			return
+		}
+		res = append(res, b...)
+		res = append(res, ',')
+	}
+	res[len(res)-1] = '}'
+	return
+}

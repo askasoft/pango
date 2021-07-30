@@ -178,7 +178,7 @@ func (z *Zipper) SetMimeTypes(mts ...string) {
 		return
 	}
 
-	hs := col.NewStrHashSet(mts...)
+	hs := col.NewStringHashSet(mts...)
 	if hs.Contains("*") {
 		hs = nil
 	}

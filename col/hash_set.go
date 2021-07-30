@@ -5,27 +5,41 @@ import (
 	"fmt"
 )
 
+// NewHashSet Create a new hash set
+func NewHashSet(vs ...interface{}) *HashSet {
+	hs := &HashSet{}
+	hs.Add(vs...)
+	return hs
+}
+
+// NewStringHashSet Create a new hash set
+func NewStringHashSet(vs ...string) *HashSet {
+	hs := &HashSet{}
+	if len(vs) > 0 {
+		hs.lazyInit()
+		for _, v := range vs {
+			hs.hash[v] = true
+		}
+	}
+	return hs
+}
+
 // HashSet an unordered collection of unique values.
+// The zero value for HashSet is an empty set ready to use.
 // http://en.wikipedia.org/wiki/Set_(computer_science%29)
 type HashSet struct {
 	hash map[interface{}]bool
 }
 
-// NewHashSet Create a new hash set
-func NewHashSet(vs ...interface{}) *HashSet {
-	hs := &HashSet{make(map[interface{}]bool)}
-	hs.AddAll(vs...)
-	return hs
+// lazyInit lazily initializes a zero List value.
+func (hs *HashSet) lazyInit() {
+	if hs.hash == nil {
+		hs.hash = make(map[interface{}]bool)
+	}
 }
 
-// NewStrHashSet Create a new hash set
-func NewStrHashSet(ss ...string) *HashSet {
-	hs := &HashSet{make(map[interface{}]bool)}
-	for _, s := range ss {
-		hs.hash[s] = true
-	}
-	return hs
-}
+//-----------------------------------------------------------
+// implements Collection interface
 
 // Len Return the number of items in the set
 func (hs *HashSet) Len() int {
@@ -39,58 +53,99 @@ func (hs *HashSet) IsEmpty() bool {
 
 // Clear clears the hash set.
 func (hs *HashSet) Clear() {
-	hs.hash = make(map[interface{}]bool)
+	hs.hash = nil
 }
 
-// Values returns a slice contains all the items of the set hs
-func (hs *HashSet) Values() []interface{} {
-	a := make([]interface{}, 0, hs.Len())
-	for k := range hs.hash {
-		a = append(a, k)
+// Add Adds all items of vs to the set
+func (hs *HashSet) Add(vs ...interface{}) {
+	if len(vs) == 0 {
+		return
 	}
-	return a
-}
 
-// Add Add an v to the set
-func (hs *HashSet) Add(v interface{}) {
-	hs.hash[v] = true
-}
-
-// AddAll Add values vs to the set
-func (hs *HashSet) AddAll(vs ...interface{}) {
+	hs.lazyInit()
 	for _, v := range vs {
 		hs.hash[v] = true
 	}
 }
 
-// AddSet Add values of another set a
-func (hs *HashSet) AddSet(a *HashSet) {
-	for k := range a.hash {
-		hs.hash[k] = true
+// AddAll adds all items of another collection
+func (hs *HashSet) AddAll(ac Collection) {
+	hs.Add(ac.Values()...)
+}
+
+// Delete delete items of vs
+func (hs *HashSet) Delete(vs ...interface{}) {
+	if len(hs.hash) == 0 {
+		return
+	}
+
+	for _, v := range vs {
+		delete(hs.hash, v)
 	}
 }
 
-// Delete an v from the set
-func (hs *HashSet) Delete(v interface{}) {
-	delete(hs.hash, v)
+// DeleteAll delete all of this collection's elements that are also contained in the specified collection
+func (hs *HashSet) DeleteAll(ac Collection) {
+	hs.Delete(ac.Values()...)
 }
 
-// Contains Test to see whether or not the v is in the set
-func (hs *HashSet) Contains(v interface{}) bool {
-	return hs.hash[v]
-}
+// Contains Test to see if the collection contains all items of vs
+func (hs *HashSet) Contains(vs ...interface{}) bool {
+	if len(vs) == 0 {
+		return true
+	}
 
-// ContainsSet returns true if HashSet hs contains the HashSet a.
-func (hs *HashSet) ContainsSet(a *HashSet) bool {
-	if hs.Len() < a.Len() {
+	if hs.IsEmpty() {
 		return false
 	}
-	for k := range a.hash {
-		if !a.hash[k] {
+
+	for _, v := range vs {
+		if _, ok := hs.hash[v]; !ok {
 			return false
 		}
 	}
 	return true
+}
+
+// ContainsAll Test to see if the collection contains all items of another collection
+func (hs *HashSet) ContainsAll(ac Collection) bool {
+	if hs == ac {
+		return true
+	}
+	return hs.Contains(ac.Values()...)
+}
+
+// Retain Retains only the elements in this collection that are contained in the argument array vs.
+func (hs *HashSet) Retain(vs ...interface{}) {
+	if hs.IsEmpty() || len(vs) == 0 {
+		return
+	}
+
+	hs.RetainAll(NewArrayList(vs...))
+}
+
+// RetainAll Retains only the elements in this collection that are contained in the specified collection.
+func (hs *HashSet) RetainAll(ac Collection) {
+	if hs.IsEmpty() || ac.IsEmpty() || hs == ac {
+		return
+	}
+
+	for k := range hs.hash {
+		if !ac.Contains(k) {
+			delete(hs.hash, k)
+		}
+	}
+}
+
+// Values returns a slice contains all the items of the set hs
+func (hs *HashSet) Values() []interface{} {
+	vs := make([]interface{}, hs.Len())
+	i := 0
+	for k := range hs.hash {
+		vs[i] = k
+		i++
+	}
+	return vs
 }
 
 // Each Call f for each item in the set
@@ -98,6 +153,34 @@ func (hs *HashSet) Each(f func(interface{})) {
 	for k := range hs.hash {
 		f(k)
 	}
+}
+
+//-----------------------------------------------------------
+
+// AddSet Add values of another set a
+func (hs *HashSet) AddSet(a *HashSet) {
+	if a.IsEmpty() {
+		return
+	}
+
+	hs.lazyInit()
+	for k := range a.hash {
+		hs.hash[k] = true
+	}
+}
+
+// ContainsSet returns true if HashSet hs contains the HashSet a.
+func (hs *HashSet) ContainsSet(a *HashSet) bool {
+	if hs.Len() < a.Len() {
+		return false
+	}
+
+	for k := range a.hash {
+		if !a.hash[k] {
+			return false
+		}
+	}
+	return true
 }
 
 // Difference Find the difference btween two sets
@@ -131,7 +214,8 @@ func (hs *HashSet) String() string {
 	return fmt.Sprintf("%v", hs.hash)
 }
 
-/*------------- JSON -----------------*/
+//-----------------------------------------------------------
+// implements JSON Marshaller/Unmarshaller interface
 
 func (hs *HashSet) addJSONArrayItem(v interface{}) jsonArray {
 	hs.Add(v)

@@ -9,16 +9,87 @@ import (
 	"github.com/pandafw/pango/str"
 )
 
-func TestHashSetSimple(t *testing.T) {
-	s := NewHashSet()
+func TestHashSetInterface(t *testing.T) {
+	hs := NewHashSet()
 
-	var c Collection = s
+	var c Collection = hs
 	if c == nil {
 		t.Error("HashSet is not a Collection")
 	}
 
-	s.Add(5)
+	var s Set = hs
+	if s == nil {
+		t.Error("HashSet is not a Set")
+	}
+}
 
+func TestHashSetLazyInit(t *testing.T) {
+	{
+		hs := &HashSet{}
+		if hs.Len() != 0 {
+			t.Error("hs.Len() != 0")
+		}
+		if !hs.IsEmpty() {
+			t.Error("hs.IsEmpty() = true")
+		}
+		if len(hs.Values()) != 0 {
+			t.Error("len(hs.Values()) != 0")
+		}
+		if hs.Contains(1) {
+			t.Error("hs.Contains(1) = true, want false")
+		}
+		if hs.Len() != 0 {
+			t.Error("hs.Len() != 0")
+		}
+		if !hs.ContainsSet(&HashSet{}) {
+			t.Error("&HashSet{}.ContainsSet(&HashSet{}) = true, want false")
+		}
+	}
+	{
+		hs := &HashSet{}
+		hs.Add(1)
+		if hs.Len() != 1 {
+			t.Errorf("hs.Len() = %v, want 1", hs.Len())
+		}
+	}
+	{
+		hs := &HashSet{}
+		hs.AddSet(NewHashSet(1))
+		if hs.Len() != 1 {
+			t.Errorf("hs.Len() = %v, want 1", hs.Len())
+		}
+	}
+	{
+		hs := &HashSet{}
+		hs.Delete(1)
+		if hs.Len() != 0 {
+			t.Error("hs.Len() != 0")
+		}
+	}
+	{
+		hs := &HashSet{}
+		hs.Each(func(v interface{}) {})
+	}
+	{
+		hs := &HashSet{}
+		as := hs.Difference(&HashSet{})
+		if as.Len() != 0 {
+			t.Errorf("hs.Difference(&HashSet{}) == %v, want %v", as, hs)
+		}
+	}
+	{
+		hs := &HashSet{}
+		as := hs.Intersection(&HashSet{})
+		if as.Len() != 0 {
+			t.Errorf("hs.Intersection(&HashSet{}) == %v, want %v", as, hs)
+		}
+	}
+}
+
+func TestHashSetSimple(t *testing.T) {
+	s := NewHashSet()
+
+	s.Add(5)
 	if s.Len() != 1 {
 		t.Errorf("Length should be 1")
 	}
@@ -35,6 +106,77 @@ func TestHashSetSimple(t *testing.T) {
 
 	if s.Contains(5) {
 		t.Errorf("The set should be empty")
+	}
+}
+
+func TestHashSetNewHashSet(t *testing.T) {
+	set := NewHashSet(2, 1)
+
+	if av := set.Len(); av != 2 {
+		t.Errorf("Got %v expected %v", av, 2)
+	}
+	if av := set.Contains(1); av != true {
+		t.Errorf("Got %v expected %v", av, true)
+	}
+	if av := set.Contains(2); av != true {
+		t.Errorf("Got %v expected %v", av, true)
+	}
+	if av := set.Contains(3); av != false {
+		t.Errorf("Got %v expected %v", av, true)
+	}
+}
+
+func TestHashSetAdd(t *testing.T) {
+	set := NewHashSet()
+	set.Add()
+	set.Add(1)
+	set.Add(2)
+	set.Add(2, 3)
+	set.Add()
+	if av := set.IsEmpty(); av != false {
+		t.Errorf("Got %v expected %v", av, false)
+	}
+	if av := set.Len(); av != 3 {
+		t.Errorf("Got %v expected %v", av, 3)
+	}
+}
+
+func TestHashSetContains(t *testing.T) {
+	set := NewHashSet()
+	set.Add(3, 1, 2)
+	set.Add(2, 3)
+	set.Add()
+	if av := set.Contains(); av != true {
+		t.Errorf("Got %v expected %v", av, true)
+	}
+	if av := set.Contains(1); av != true {
+		t.Errorf("Got %v expected %v", av, true)
+	}
+	if av := set.Contains(1, 2, 3); av != true {
+		t.Errorf("Got %v expected %v", av, true)
+	}
+	if av := set.Contains(1, 2, 3, 4); av != false {
+		t.Errorf("Got %v expected %v", av, false)
+	}
+}
+
+func TestHashSetDelete(t *testing.T) {
+	set := NewHashSet()
+	set.Add(3, 1, 2)
+	set.Delete()
+	if av := set.Len(); av != 3 {
+		t.Errorf("Got %v expected %v", av, 3)
+	}
+	set.Delete(1)
+	if av := set.Len(); av != 2 {
+		t.Errorf("Got %v expected %v", av, 2)
+	}
+	set.Delete(3)
+	set.Delete(3)
+	set.Delete()
+	set.Delete(2)
+	if av := set.Len(); av != 0 {
+		t.Errorf("Got %v expected %v", av, 0)
 	}
 }
 

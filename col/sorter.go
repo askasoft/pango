@@ -4,22 +4,33 @@ import (
 	"github.com/pandafw/pango/cmp"
 )
 
-// listSorter A list sorter implements sort.Interface
-type listSorter struct {
-	list List
+type sortable interface {
+	// Len returns the length of the collection.
+	Len() int
+
+	// Get returns the value at the specified index in this list
+	Get(index int) (interface{}, bool)
+
+	// Swap swaps values of two items at the given index.
+	Swap(i, j int)
+}
+
+// sorter A sortable collection sorter implements sort.Interface
+type sorter struct {
+	scol sortable
 	less cmp.Less
 }
 
-func (ls *listSorter) Len() int {
-	return ls.list.Len()
+func (ss *sorter) Len() int {
+	return ss.scol.Len()
 }
 
-func (ls *listSorter) Swap(i, j int) {
-	ls.list.Swap(i, j)
+func (ss *sorter) Swap(i, j int) {
+	ss.scol.Swap(i, j)
 }
 
-func (ls *listSorter) Less(i, j int) bool {
-	vi, _ := ls.list.Get(i)
-	vj, _ := ls.list.Get(j)
-	return ls.less(vi, vj)
+func (ss *sorter) Less(i, j int) bool {
+	vi, _ := ss.scol.Get(i)
+	vj, _ := ss.scol.Get(j)
+	return ss.less(vi, vj)
 }

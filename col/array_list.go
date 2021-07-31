@@ -313,7 +313,7 @@ func (al *ArrayList) Sort(less cmp.Less) {
 	if al.Len() < 2 {
 		return
 	}
-	sort.Sort(&listSorter{al, less})
+	sort.Sort(&sorter{al, less})
 }
 
 // String print list to string

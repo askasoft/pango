@@ -1,7 +1,6 @@
 package col
 
 import (
-	"encoding/json"
 	"fmt"
 )
 
@@ -70,6 +69,19 @@ func (hs *HashSet) Add(vs ...interface{}) {
 
 // AddAll adds all items of another collection
 func (hs *HashSet) AddAll(ac Collection) {
+	if ac.IsEmpty() {
+		return
+	}
+
+	hs.lazyInit()
+	if ic, ok := ac.(Iterable); ok {
+		it := ic.Iterator()
+		for it.Next() {
+			hs.hash[it.Value()] = true
+		}
+		return
+	}
+
 	hs.Add(ac.Values()...)
 }
 
@@ -112,6 +124,17 @@ func (hs *HashSet) ContainsAll(ac Collection) bool {
 	if hs == ac {
 		return true
 	}
+
+	if ic, ok := ac.(Iterable); ok {
+		it := ic.Iterator()
+		for it.Next() {
+			if _, ok := hs.hash[it.Value()]; !ok {
+				return false
+			}
+		}
+		return true
+	}
+
 	return hs.Contains(ac.Values()...)
 }
 
@@ -157,32 +180,6 @@ func (hs *HashSet) Each(f func(interface{})) {
 
 //-----------------------------------------------------------
 
-// AddSet Add values of another set a
-func (hs *HashSet) AddSet(a *HashSet) {
-	if a.IsEmpty() {
-		return
-	}
-
-	hs.lazyInit()
-	for k := range a.hash {
-		hs.hash[k] = true
-	}
-}
-
-// ContainsSet returns true if HashSet hs contains the HashSet a.
-func (hs *HashSet) ContainsSet(a *HashSet) bool {
-	if hs.Len() < a.Len() {
-		return false
-	}
-
-	for k := range a.hash {
-		if !a.hash[k] {
-			return false
-		}
-	}
-	return true
-}
-
 // Difference Find the difference btween two sets
 func (hs *HashSet) Difference(a *HashSet) *HashSet {
 	b := make(map[interface{}]bool)
@@ -224,22 +221,7 @@ func (hs *HashSet) addJSONArrayItem(v interface{}) jsonArray {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(hs)
 func (hs *HashSet) MarshalJSON() (res []byte, err error) {
-	if hs.IsEmpty() {
-		return []byte("[]"), nil
-	}
-
-	res = append(res, '[')
-	for v := range hs.hash {
-		var b []byte
-		b, err = json.Marshal(v)
-		if err != nil {
-			return
-		}
-		res = append(res, b...)
-		res = append(res, ',')
-	}
-	res[len(res)-1] = ']'
-	return
+	return jsonMarshalSet(hs)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, hs)

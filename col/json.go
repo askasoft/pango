@@ -183,14 +183,8 @@ func (jd *jsonUnmarshaler) handleDelim(dec *json.Decoder, t json.Token) (interfa
 }
 
 //---------------------------------------------------------------------
-
-func jsonMarshalList(list List) (res []byte, err error) {
-	if list.IsEmpty() {
-		return []byte("[]"), nil
-	}
-
+func jsonMarshalIter(it Iterator) (res []byte, err error) {
 	res = append(res, '[')
-	it := list.Iterator()
 	for it.Next() {
 		var b []byte
 		b, err = json.Marshal(it.Value())
@@ -204,11 +198,43 @@ func jsonMarshalList(list List) (res []byte, err error) {
 	return
 }
 
+func jsonMarshalSet(set Set) (res []byte, err error) {
+	if set.IsEmpty() {
+		return []byte("[]"), nil
+	}
+
+	if ic, ok := set.(Iterable); ok {
+		return jsonMarshalIter(ic.Iterator())
+	}
+
+	var bs []byte
+	res = append(res, '[')
+	set.Each(func(v interface{}) {
+		bs, err = json.Marshal(v)
+		if err != nil {
+			return
+		}
+		res = append(res, bs...)
+		res = append(res, ',')
+	})
+	res[len(res)-1] = ']'
+	return
+}
+
+func jsonMarshalList(list List) (res []byte, err error) {
+	if list.IsEmpty() {
+		return []byte("[]"), nil
+	}
+
+	return jsonMarshalIter(list.Iterator())
+}
+
 func jsonMarshalHashMap(hmap map[interface{}]interface{}) (res []byte, err error) {
 	if len(hmap) == 0 {
 		return []byte("{}"), nil
 	}
 
+	var bs []byte
 	res = append(res, '{')
 	for k, v := range hmap {
 		_, ok := k.(string)
@@ -218,12 +244,11 @@ func jsonMarshalHashMap(hmap map[interface{}]interface{}) (res []byte, err error
 		}
 
 		res = append(res, fmt.Sprintf("%q:", k)...)
-		var b []byte
-		b, err = json.Marshal(v)
+		bs, err = json.Marshal(v)
 		if err != nil {
 			return
 		}
-		res = append(res, b...)
+		res = append(res, bs...)
 		res = append(res, ',')
 	}
 	res[len(res)-1] = '}'
@@ -235,6 +260,8 @@ func jsonMarshalMap(im IterableMap) (res []byte, err error) {
 		return []byte("{}"), nil
 	}
 
+	var bs []byte
+
 	res = append(res, '{')
 	it := im.Iterator()
 	for it.Next() {
@@ -245,12 +272,11 @@ func jsonMarshalMap(im IterableMap) (res []byte, err error) {
 		}
 
 		res = append(res, fmt.Sprintf("%q:", k)...)
-		var b []byte
-		b, err = json.Marshal(it.Value())
+		bs, err = json.Marshal(it.Value())
 		if err != nil {
 			return
 		}
-		res = append(res, b...)
+		res = append(res, bs...)
 		res = append(res, ',')
 	}
 	res[len(res)-1] = '}'

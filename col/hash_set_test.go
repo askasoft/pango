@@ -41,8 +41,8 @@ func TestHashSetLazyInit(t *testing.T) {
 		if hs.Len() != 0 {
 			t.Error("hs.Len() != 0")
 		}
-		if !hs.ContainsSet(&HashSet{}) {
-			t.Error("&HashSet{}.ContainsSet(&HashSet{}) = true, want false")
+		if !hs.ContainsAll(&HashSet{}) {
+			t.Error("&HashSet{}.ContainsAll(&HashSet{}) = true, want false")
 		}
 	}
 	{
@@ -54,7 +54,7 @@ func TestHashSetLazyInit(t *testing.T) {
 	}
 	{
 		hs := &HashSet{}
-		hs.AddSet(NewHashSet(1))
+		hs.AddAll(NewHashSet(1))
 		if hs.Len() != 1 {
 			t.Errorf("hs.Len() = %v, want 1", hs.Len())
 		}
@@ -180,35 +180,35 @@ func TestHashSetDelete(t *testing.T) {
 	}
 }
 
-func TestHashSetContainsSet(t *testing.T) {
+func TestHashSetContainsAll(t *testing.T) {
 	s1 := NewHashSet()
 	s2 := NewHashSet()
 
-	if !s1.ContainsSet(s1) {
+	if !s1.ContainsAll(s1) {
 		t.Errorf("set should be a subset of itself")
 	}
 
-	if !s1.ContainsSet(s2) {
+	if !s1.ContainsAll(s2) {
 		t.Errorf("empty set should contains another empty set")
 	}
 
 	s1.Add(1)
-	if !s1.ContainsSet(s2) {
+	if !s1.ContainsAll(s2) {
 		t.Errorf("set should contains another empty set")
 	}
 
 	s2.Add(1)
-	if !s1.ContainsSet(s2) {
+	if !s1.ContainsAll(s2) {
 		t.Errorf("set should contains another same set")
 	}
 
 	s1.Add(2)
-	if !s1.ContainsSet(s2) {
+	if !s1.ContainsAll(s2) {
 		t.Errorf("set should contains another small set")
 	}
 
 	s2.Add(3)
-	if !s1.ContainsSet(s2) {
+	if s1.ContainsAll(s2) {
 		t.Errorf("set should not contains another different set")
 	}
 }
@@ -247,7 +247,7 @@ func TestHashSetAddSet(t *testing.T) {
 	// AddSet
 	s1 := NewHashSet(4, 5, 6)
 	s2 := NewHashSet(7, 8, 9)
-	s1.AddSet(s2)
+	s1.AddAll(s2)
 
 	if s1.Len() != 6 {
 		t.Errorf("Length should be 6 after union")

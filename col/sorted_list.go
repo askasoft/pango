@@ -47,7 +47,7 @@ func (sl *SortedList) binarySearch(v interface{}) (int, *SortedListItem) {
 		li = li.Offset(h - p)
 		p = h
 		// i ≤ h < j
-		if sl.less(li.Value(), v) {
+		if sl.less(li.value, v) {
 			i = h + 1
 		} else {
 			j = h
@@ -159,23 +159,44 @@ func (sl *SortedList) AddAll(ac Collection) {
 	sl.Add(ac.Values()...)
 }
 
+func (sl *SortedList) deleteAll(v interface{}) {
+	_, li := sl.binarySearch(v)
+	for li != nil && li.value == v {
+		li.Remove()
+		li = li.Next()
+	}
+}
+
 // Delete delete all items with associated value v of vs
 func (sl *SortedList) Delete(vs ...interface{}) {
-	if sl.len == 0 {
+	if sl.IsEmpty() {
 		return
 	}
+
 	for _, v := range vs {
-		_, li := sl.binarySearch(v)
-		for li != nil && li != &sl.root && li.Value() == v {
-			ni := li.next
-			li.Remove()
-			li = ni
-		}
+		sl.deleteAll(v)
 	}
 }
 
 // DeleteAll delete all of this collection's elements that are also contained in the specified collection
 func (sl *SortedList) DeleteAll(ac Collection) {
+	if sl.IsEmpty() || ac.IsEmpty() {
+		return
+	}
+
+	if sl == ac {
+		sl.Clear()
+		return
+	}
+
+	if ic, ok := ac.(Iterable); ok {
+		it := ic.Iterator()
+		for it.Next() {
+			sl.deleteAll(it.Value())
+		}
+		return
+	}
+
 	sl.Delete(ac.Values()...)
 }
 
@@ -194,6 +215,17 @@ func (sl *SortedList) ContainsAll(ac Collection) bool {
 	if sl == ac {
 		return true
 	}
+
+	if ic, ok := ac.(Iterable); ok {
+		it := ic.Iterator()
+		for it.Next() {
+			if sl.Index(it.Value()) < 0 {
+				return false
+			}
+		}
+		return true
+	}
+
 	return sl.Contains(ac.Values()...)
 }
 

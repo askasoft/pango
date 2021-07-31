@@ -11,7 +11,7 @@ import (
 // Example: NewLinkedList(1, 2, 3)
 func NewLinkedList(vs ...interface{}) *LinkedList {
 	ll := &LinkedList{}
-	ll.PushBack(vs...)
+	ll.Add(vs...)
 	return ll
 }
 
@@ -94,26 +94,54 @@ func (ll *LinkedList) AddAll(ac Collection) {
 	ll.PushBackAll(ac)
 }
 
+func (ll *LinkedList) deleteAll(v interface{}) {
+	for li := ll.Front(); li != nil; li = li.Next() {
+		if li.Value() == v {
+			li.Remove()
+		}
+	}
+}
+
 // Delete delete all items with associated value v of vs
 func (ll *LinkedList) Delete(vs ...interface{}) {
 	for _, v := range vs {
-		for li := ll.Front(); li != nil; {
-			ni := li.Next()
-			if li.Value() == v {
-				li.Remove()
-			}
-			li = ni
-		}
+		ll.deleteAll(v)
 	}
 }
 
 // DeleteAll delete all of this collection's elements that are also contained in the specified collection
 func (ll *LinkedList) DeleteAll(ac Collection) {
+	if ac.IsEmpty() {
+		return
+	}
+
+	if ll == ac {
+		ll.Clear()
+		return
+	}
+
+	if ic, ok := ac.(Iterable); ok {
+		it := ic.Iterator()
+		for it.Next() {
+			v := it.Value()
+			ll.deleteAll(v)
+		}
+		return
+	}
+
 	ll.Delete(ac.Values()...)
 }
 
 // Contains Test to see if the collection contains all items of vs
 func (ll *LinkedList) Contains(vs ...interface{}) bool {
+	if len(vs) == 0 {
+		return true
+	}
+
+	if ll.IsEmpty() {
+		return false
+	}
+
 	for _, v := range vs {
 		if ll.Index(v) < 0 {
 			return false
@@ -127,6 +155,17 @@ func (ll *LinkedList) ContainsAll(ac Collection) bool {
 	if ll == ac {
 		return true
 	}
+
+	if ic, ok := ac.(Iterable); ok {
+		it := ic.Iterator()
+		for it.Next() {
+			if ll.Index(it.Value()) < 0 {
+				return false
+			}
+		}
+		return true
+	}
+
 	return ll.Contains(ac.Values()...)
 }
 
@@ -184,8 +223,7 @@ func (ll *LinkedList) Get(index int) (interface{}, bool) {
 func (ll *LinkedList) Set(index int, v interface{}) (ov interface{}) {
 	li := ll.Item(index)
 	if li != nil {
-		ov = li.Value()
-		li.SetValue(v)
+		ov, li.value = li.value, v
 	}
 	return
 }
@@ -275,9 +313,7 @@ func (ll *LinkedList) Swap(i, j int) {
 	ii := ll.Item(i)
 	ij := ll.Item(j)
 	if ii != nil && ij != nil && ii != ij {
-		vi, vj := ii.Value(), ij.Value()
-		ii.SetValue(vj)
-		ij.SetValue(vi)
+		ii.value, ij.value = ij.value, ii.value
 	}
 }
 
@@ -347,7 +383,7 @@ func (ll *LinkedList) Sort(less cmp.Less) {
 	if ll.Len() < 2 {
 		return
 	}
-	sort.Sort(&listSorter{ll, less})
+	sort.Sort(&sorter{ll, less})
 }
 
 // PushBack inserts all items of vs at the back of list ll.
@@ -562,7 +598,7 @@ func newJSONArrayLinkedList() jsonArray {
 }
 
 func (ll *LinkedList) addJSONArrayItem(v interface{}) jsonArray {
-	ll.PushBack(v)
+	ll.Add(v)
 	return ll
 }
 

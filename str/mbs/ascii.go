@@ -2,8 +2,11 @@ package mbs
 
 import (
 	"strings"
+	"unicode"
 	"unicode/utf8"
 )
+
+// https://en.wikipedia.org/wiki/Halfwidth_and_Fullwidth_Forms_(Unicode_block)
 
 var (
 	// m2s multi-byte rune to single-byte rune
@@ -149,8 +152,8 @@ func initS2M() map[rune]rune {
 	return s2m
 }
 
-// ToHalfRune convert multi ascii rune c to single ascii rune
-func ToHalfRune(c rune) rune {
+// ToASCIIRune convert multi ascii rune c to single ascii rune
+func ToASCIIRune(c rune) rune {
 	if c < utf8.RuneSelf {
 		return c
 	}
@@ -171,15 +174,15 @@ func ToFullRune(c rune) rune {
 	return c
 }
 
-// ToHalfWidth convert the string from multi ascii to single ascii
-func ToHalfWidth(s string) string {
+// ToASCII convert the string from multi byte to single byte ascii
+func ToASCII(s string) string {
 	if s == "" {
 		return s
 	}
 
 	sb := &strings.Builder{}
 	for i, c := range s {
-		r := ToHalfRune(c)
+		r := ToASCIIRune(c)
 		if r != c {
 			if sb.Len() == 0 {
 				sb.Grow(len(s))
@@ -229,4 +232,69 @@ func ToFullWidth(s string) string {
 	}
 
 	return s
+}
+
+// IsHalfRune checks if the rune c is unicode half-width char.
+// \u0000-\u00FF\uFF61-\uFFDF\uFFE8-\uFFEE
+func IsHalfRune(c rune) bool {
+	if c <= unicode.MaxASCII ||
+		(c >= '\uFF61' && c <= '\uFFDF') ||
+		(c >= '\uFFE8' && c <= '\uFFEF') {
+		return true
+	}
+	return false
+}
+
+// HasHalfWidth checks if the string contains any unicode half-width chars.
+func HasHalfWidth(s string) bool {
+	if s == "" {
+		return false
+	}
+
+	for _, c := range s {
+		if IsHalfRune(c) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// IsHalfWidth checks if the string contains half-width chars only.
+func IsHalfWidth(s string) bool {
+	if s == "" {
+		return false
+	}
+
+	for _, c := range s {
+		if !IsHalfRune(c) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// HasFullWidth checks if the string contains any full-width chars.
+func HasFullWidth(s string) bool {
+	if s == "" {
+		return false
+	}
+
+	for _, c := range s {
+		if !IsHalfRune(c) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// IsFullWidth checks if the string contains full-width chars only.
+func IsFullWidth(s string) bool {
+	if s == "" {
+		return false
+	}
+
+	return !IsHalfWidth(s)
 }

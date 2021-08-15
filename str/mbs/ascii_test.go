@@ -36,7 +36,7 @@ var (
 )
 
 func testASCII(t *testing.T, name, zen, han string) {
-	testPrint(t, name, zen, han, ToHalfRune, ToFullRune)
+	testPrint(t, name, zen, han, ToASCIIRune, ToFullRune)
 }
 
 func specialZ(c rune) rune {
@@ -112,7 +112,7 @@ func TestASCIIConvert(t *testing.T) {
 			s := src.String()
 
 			e := han.String()
-			a := ToHalfWidth(s)
+			a := ToASCII(s)
 			if e != a {
 				t.Errorf("ToHalfWidth(%q) = %q, want %q", s, a, e)
 			}

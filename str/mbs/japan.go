@@ -168,7 +168,7 @@ func ToHankakuRune(c rune) rune {
 	if r, ok := z2h[c]; ok {
 		return r
 	}
-	return ToHalfRune(c)
+	return ToASCIIRune(c)
 }
 
 // ToZenkakuDakuRune convert the rune c to zenkaku Daku

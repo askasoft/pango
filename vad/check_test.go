@@ -951,7 +951,7 @@ func TestIsFloat(t *testing.T) {
 	}
 }
 
-func TestIsHexadecimal(t *testing.T) {
+func TestIsHexDecimal(t *testing.T) {
 	t.Parallel()
 
 	cs := []struct {
@@ -965,14 +965,14 @@ func TestIsHexadecimal(t *testing.T) {
 		{"ff0044", true},
 	}
 	for i, c := range cs {
-		a := IsHexadecimal(c.s)
+		a := IsHexDecimal(c.s)
 		if a != c.w {
-			t.Errorf("[%d] IsHexadecimal(%q) = %v, want %v", i, c.s, a, c.w)
+			t.Errorf("[%d] IsHexDecimal(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
 
-func TestIsHexcolor(t *testing.T) {
+func TestIsHexColor(t *testing.T) {
 	t.Parallel()
 
 	cs := []struct {
@@ -983,14 +983,14 @@ func TestIsHexcolor(t *testing.T) {
 		{"#ff", false},
 		{"fff0", false},
 		{"#ff12FG", false},
-		{"CCccCC", true},
-		{"fff", true},
+		{"#CCccCC", true},
 		{"#f00", true},
+		{"fff", false},
 	}
 	for i, c := range cs {
-		a := IsHexcolor(c.s)
+		a := IsHexColor(c.s)
 		if a != c.w {
-			t.Errorf("[%d] IsHexcolor(%q) = %v, want %v", i, c.s, a, c.w)
+			t.Errorf("[%d] IsHexColor(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -1011,7 +1011,7 @@ func TestIsRGBcolor(t *testing.T) {
 		{"rgb(0,  31, 255)", true},
 	}
 	for i, c := range cs {
-		a := IsRGBcolor(c.s)
+		a := IsRGBColor(c.s)
 		if a != c.w {
 			t.Errorf("[%d] IsRGBcolor(%q) = %v, want %v", i, c.s, a, c.w)
 		}
@@ -1196,7 +1196,7 @@ func TestIsMultibyte(t *testing.T) {
 	}
 }
 
-func TestIsFullWidth(t *testing.T) {
+func TestHasFullWidth(t *testing.T) {
 	t.Parallel()
 
 	cs := []struct {
@@ -1214,14 +1214,14 @@ func TestIsFullWidth(t *testing.T) {
 		{"", false},
 	}
 	for i, c := range cs {
-		a := IsFullWidth(c.s)
+		a := HasFullWidth(c.s)
 		if a != c.w {
-			t.Errorf("[%d] IsFullWidth(%q) = %v, want %v", i, c.s, a, c.w)
+			t.Errorf("[%d] HasFullWidth(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
 
-func TestIsHalfWidth(t *testing.T) {
+func TestHasHalfWidth(t *testing.T) {
 	t.Parallel()
 
 	cs := []struct {
@@ -1238,9 +1238,9 @@ func TestIsHalfWidth(t *testing.T) {
 		{"", false},
 	}
 	for i, c := range cs {
-		a := IsHalfWidth(c.s)
+		a := HasHalfWidth(c.s)
 		if a != c.w {
-			t.Errorf("[%d] IsHalfWidth(%q) = %v, want %v", i, c.s, a, c.w)
+			t.Errorf("[%d] HasHalfWidth(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }

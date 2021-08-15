@@ -14,10 +14,7 @@ const (
 	UUID         = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
 	Int          = "^(?:[-+]?(?:0|[1-9][0-9]*))$"
 	Float        = "^(?:[-+]?(?:[0-9]+))?(?:\\.[0-9]*)?(?:[eE][\\+\\-]?(?:[0-9]+))?$"
-	Hexcolor     = "^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
 	RGBcolor     = "^rgb\\(\\s*(0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])\\s*,\\s*(0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])\\s*,\\s*(0|[1-9]\\d?|1\\d\\d?|2[0-4]\\d|25[0-5])\\s*\\)$"
-	FullWidth    = "[^\u0020-\u007E\uFF61-\uFF9F\uFFA0-\uFFDC\uFFE8-\uFFEE0-9a-zA-Z]"
-	HalfWidth    = "[\u0020-\u007E\uFF61-\uFF9F\uFFA0-\uFFDC\uFFE8-\uFFEE0-9a-zA-Z]"
 	Base64       = "^(?:[A-Za-z0-9+\\/]{4})*(?:[A-Za-z0-9+\\/]{2}==|[A-Za-z0-9+\\/]{3}=|[A-Za-z0-9+\\/]{4})$"
 	DataURI      = "^data:.+\\/(.+);base64$"
 	MagnetURI    = "^magnet:\\?xt=urn:[a-zA-Z0-9]+:[a-zA-Z0-9]{32,40}&dn=.+&tr=.+$"
@@ -51,10 +48,7 @@ var (
 	rxUUID        = regexp.MustCompile(UUID)
 	rxInt         = regexp.MustCompile(Int)
 	rxFloat       = regexp.MustCompile(Float)
-	rxHexcolor    = regexp.MustCompile(Hexcolor)
 	rxRGBcolor    = regexp.MustCompile(RGBcolor)
-	rxFullWidth   = regexp.MustCompile(FullWidth)
-	rxHalfWidth   = regexp.MustCompile(HalfWidth)
 	rxBase64      = regexp.MustCompile(Base64)
 	rxDataURI     = regexp.MustCompile(DataURI)
 	rxMagnetURI   = regexp.MustCompile(MagnetURI)

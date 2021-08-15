@@ -9,6 +9,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/pandafw/pango/str"
+	"github.com/pandafw/pango/str/mbs"
 )
 
 // IsFileName is illegal file name
@@ -221,8 +222,8 @@ func IsUTFDigit(s string) bool {
 
 }
 
-// IsHexadecimal checks if the string is a hexadecimal number.
-func IsHexadecimal(s string) bool {
+// IsHexDecimal checks if the string is a hexadecimal number.
+func IsHexDecimal(s string) bool {
 	if s == "" {
 		return false
 	}
@@ -237,13 +238,23 @@ func IsHexadecimal(s string) bool {
 	return true
 }
 
-// IsHexcolor checks if the string is a hexadecimal color.
-func IsHexcolor(s string) bool {
-	return rxHexcolor.MatchString(s)
+// IsHexColor checks if the string is a hex decimal color.
+func IsHexColor(s string) bool {
+	if s == "" || s[0] != '#' {
+		return false
+	}
+
+	s = s[1:]
+	switch len(s) {
+	case 3, 6:
+		return IsHexDecimal(s)
+	default:
+		return false
+	}
 }
 
-// IsRGBcolor checks if the string is a valid RGB color in form rgb(RRR, GGG, BBB).
-func IsRGBcolor(s string) bool {
+// IsRGBColor checks if the string is a valid RGB color in form rgb(RRR, GGG, BBB).
+func IsRGBColor(s string) bool {
 	return rxRGBcolor.MatchString(s)
 }
 
@@ -485,21 +496,24 @@ func IsPrintableASCII(s string) bool {
 	return str.IsPrintableASCII(s)
 }
 
-// IsFullWidth checks if the string contains any full-width chars.
-func IsFullWidth(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	return rxFullWidth.MatchString(s)
+// HasFullWidth checks if the string contains any full-width chars.
+func HasFullWidth(s string) bool {
+	return mbs.HasFullWidth(s)
 }
 
-// IsHalfWidth checks if the string contains any half-width chars.
+// HasHalfWidth checks if the string contains any half-width chars.
+func HasHalfWidth(s string) bool {
+	return mbs.HasHalfWidth(s)
+}
+
+// IsFullWidth checks if the string contains full-width chars only.
+func IsFullWidth(s string) bool {
+	return mbs.IsFullWidth(s)
+}
+
+// IsHalfWidth checks if the string contains half-width chars only.
 func IsHalfWidth(s string) bool {
-	if s == "" {
-		return false
-	}
-	return rxHalfWidth.MatchString(s)
+	return mbs.IsHalfWidth(s)
 }
 
 // IsVariableWidth checks if the string contains a mixture of full and half-width chars.
@@ -507,7 +521,7 @@ func IsVariableWidth(s string) bool {
 	if s == "" {
 		return false
 	}
-	return rxHalfWidth.MatchString(s) && rxFullWidth.MatchString(s)
+	return HasHalfWidth(s) && HasFullWidth(s)
 }
 
 // IsBase64 checks if a string is base64 encoded.

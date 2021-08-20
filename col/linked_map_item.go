@@ -105,11 +105,10 @@ func (mi *LinkedMapItem) Remove() {
 	mi.prev.next = mi.next
 	mi.next.prev = mi.prev
 
-	mi.lmap.onItemRemoved(mi)
-
-	mi.lmap = nil
+	delete(mi.lmap.hash, mi.key)
 
 	// remain prev/next for iterator to Prev()/Next()
+	mi.lmap = nil
 }
 
 // insertAfter inserts item mi after item at
@@ -121,7 +120,7 @@ func (mi *LinkedMapItem) insertAfter(at *LinkedMapItem) {
 	ni.prev = mi
 	mi.lmap = at.lmap
 
-	mi.lmap.onItemInserted(mi)
+	mi.lmap.hash[mi.key] = mi
 }
 
 // moveAfter moves the item mi to next to at

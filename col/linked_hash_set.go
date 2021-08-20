@@ -62,30 +62,6 @@ func (ls *LinkedHashSet) insertBefore(at *LinkedSetItem, v interface{}) (*Linked
 	return li, true
 }
 
-//------------------------------------------------------------------
-// callback by LinkedSetItem
-
-func (ls *LinkedHashSet) onItemInserted(li *LinkedSetItem) {
-	ls.hash[li.value] = li
-}
-
-func (ls *LinkedHashSet) onItemRemoved(li *LinkedSetItem) {
-	delete(ls.hash, li.value)
-}
-
-func (ls *LinkedHashSet) onItemChanged(li *LinkedSetItem, ov interface{}) {
-	// delete old item
-	delete(ls.hash, ov)
-
-	// delete duplicated item
-	if di, ok := ls.hash[li.value]; ok {
-		di.Remove()
-	}
-
-	// add new item
-	ls.hash[li.value] = li
-}
-
 //-----------------------------------------------------------
 // implements Collection interface
 

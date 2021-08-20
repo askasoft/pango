@@ -52,17 +52,6 @@ func (ll *LinkedList) insertBefore(at *LinkedListItem, v interface{}) *LinkedLis
 	return li
 }
 
-//------------------------------------------------------------------
-// callback by LinkedListItem
-
-func (ll *LinkedList) onItemInserted(li *LinkedListItem) {
-	ll.len++
-}
-
-func (ll *LinkedList) onItemRemoved(li *LinkedListItem) {
-	ll.len--
-}
-
 //-----------------------------------------------------------
 // implements Collection interface
 

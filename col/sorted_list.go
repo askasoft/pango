@@ -81,34 +81,6 @@ func (sl *SortedList) add(v interface{}) (li *SortedListItem) {
 }
 
 //-----------------------------------------------------------
-// callback by SortedListItem
-
-func (sl *SortedList) onValueChanged(li *SortedListItem) {
-	if sl.len == 1 {
-		return
-	}
-
-	// remove and add again
-	li.Remove()
-
-	_, at := sl.binarySearch(li.value)
-	if at != nil {
-		li.insertAfter(at.prev)
-		return
-	}
-
-	li.insertAfter(sl.root.prev)
-}
-
-func (sl *SortedList) onItemInserted(li *SortedListItem) {
-	sl.len++
-}
-
-func (sl *SortedList) onItemRemoved(li *SortedListItem) {
-	sl.len--
-}
-
-//-----------------------------------------------------------
 // implements Collection interface
 
 // Len returns the length of the list.

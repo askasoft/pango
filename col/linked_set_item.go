@@ -36,11 +36,21 @@ func (li *LinkedSetItem) Value() interface{} {
 
 // SetValue set the value to the item
 func (li *LinkedSetItem) SetValue(v interface{}) {
-	if li.value != v {
-		ov := li.value
-		li.value = v
-		li.lset.onItemChanged(li, ov)
+	if li.value == v {
+		return
 	}
+
+	// delete old item
+	delete(li.lset.hash, li.value)
+
+	// delete duplicated item
+	if di, ok := li.lset.hash[v]; ok {
+		di.Remove()
+	}
+
+	// add new item
+	li.value = v
+	li.lset.hash[v] = li
 }
 
 // Next returns the next list item or nil.
@@ -100,11 +110,10 @@ func (li *LinkedSetItem) Remove() {
 	li.prev.next = li.next
 	li.next.prev = li.prev
 
-	li.lset.onItemRemoved(li)
-
-	li.lset = nil
+	delete(li.lset.hash, li.value)
 
 	// remain prev/next for iterator to Prev()/Next()
+	li.lset = nil
 }
 
 // insertAfter inserts item li after item at
@@ -116,7 +125,7 @@ func (li *LinkedSetItem) insertAfter(at *LinkedSetItem) {
 	ni.prev = li
 	li.lset = at.lset
 
-	li.lset.onItemInserted(li)
+	li.lset.hash[li.value] = li
 }
 
 // moveAfter moves the item li to next to at

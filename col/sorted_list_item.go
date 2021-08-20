@@ -36,9 +36,24 @@ func (li *SortedListItem) SetValue(v interface{}) {
 	}
 
 	li.value = v
-	if li.list != nil {
-		li.list.onValueChanged(li)
+	if li.list == nil {
+		return
 	}
+
+	if li.list.len == 1 {
+		return
+	}
+
+	// remove and add again
+	li.Remove()
+
+	_, at := li.list.binarySearch(li.value)
+	if at != nil {
+		li.insertAfter(at.prev)
+		return
+	}
+
+	li.insertAfter(li.list.root.prev)
 }
 
 // root returns the root item of list.
@@ -111,11 +126,10 @@ func (li *SortedListItem) Remove() {
 	li.prev.next = li.next
 	li.next.prev = li.prev
 
-	li.list.onItemRemoved(li)
-
-	li.list = nil
+	li.list.len--
 
 	// remain prev/next for iterator to Prev()/Next()
+	li.list = nil
 }
 
 // insertAfter inserts item li after item at
@@ -127,7 +141,7 @@ func (li *SortedListItem) insertAfter(at *SortedListItem) {
 	ni.prev = li
 	li.list = at.list
 
-	li.list.onItemInserted(li)
+	li.list.len++
 }
 
 // moveAfter moves the item li to next to at

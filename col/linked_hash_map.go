@@ -41,21 +41,6 @@ func (lm *LinkedHashMap) add(key interface{}, value interface{}) {
 }
 
 //-----------------------------------------------------------
-// implements LinkedMap interface
-
-func (lm *LinkedHashMap) rootItem() *LinkedMapItem {
-	return &lm.root
-}
-
-func (lm *LinkedHashMap) onItemInserted(mi *LinkedMapItem) {
-	lm.hash[mi.key] = mi
-}
-
-func (lm *LinkedHashMap) onItemRemoved(mi *LinkedMapItem) {
-	delete(lm.hash, mi.key)
-}
-
-//-----------------------------------------------------------
 // implements Container interface
 
 // Len returns the length of the linked map.

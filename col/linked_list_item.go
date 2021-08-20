@@ -100,11 +100,10 @@ func (li *LinkedListItem) Remove() {
 	li.prev.next = li.next
 	li.next.prev = li.prev
 
-	li.list.onItemRemoved(li)
-
-	li.list = nil
+	li.list.len--
 
 	// remain prev/next for iterator to Prev()/Next()
+	li.list = nil
 }
 
 // insertAfter inserts item li after item at
@@ -116,7 +115,7 @@ func (li *LinkedListItem) insertAfter(at *LinkedListItem) {
 	ni.prev = li
 	li.list = at.list
 
-	li.list.onItemInserted(li)
+	li.list.len++
 }
 
 // moveAfter moves the item li to next to at

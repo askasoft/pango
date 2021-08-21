@@ -47,8 +47,8 @@ func (ini *Ini) IsEmpty() bool {
 		return true
 	}
 
-	for e := ini.sections.Front(); e != nil; e = e.Next() {
-		s := e.Value().(*Section)
+	for it := ini.sections.Iterator(); it.Next(); {
+		s := it.Value().(*Section)
 		if s.name != "" {
 			return false
 		}
@@ -66,8 +66,8 @@ type MAP map[string]map[string]interface{}
 // Map convert ini to map
 func (ini *Ini) Map() MAP {
 	m := make(MAP, ini.sections.Len())
-	for s := ini.sections.Front(); s != nil; s = s.Next() {
-		sec := s.Value().(*Section)
+	for it := ini.sections.Iterator(); it.Next(); {
+		sec := it.Value().(*Section)
 		m[sec.name] = sec.Map()
 	}
 	return m
@@ -76,8 +76,8 @@ func (ini *Ini) Map() MAP {
 // SectionNames returns the section array
 func (ini *Ini) SectionNames() []string {
 	ss := make([]string, ini.sections.Len())
-	for s := ini.sections.Front(); s != nil; s = s.Next() {
-		ss = append(ss, s.Key().(string))
+	for it := ini.sections.Iterator(); it.Next(); {
+		ss = append(ss, it.Key().(string))
 	}
 	return ss
 }
@@ -85,8 +85,8 @@ func (ini *Ini) SectionNames() []string {
 // Sections returns the section array
 func (ini *Ini) Sections() []*Section {
 	ss := make([]*Section, ini.sections.Len())
-	for s := ini.sections.Front(); s != nil; s = s.Next() {
-		ss = append(ss, s.Value().(*Section))
+	for it := ini.sections.Iterator(); it.Next(); {
+		ss = append(ss, it.Value().(*Section))
 	}
 	return ss
 }
@@ -280,8 +280,8 @@ func (ini *Ini) WriteFile(filename string) error {
 func (ini *Ini) WriteData(w io.Writer) (err error) {
 	bw := bufio.NewWriter(w)
 
-	for se := ini.sections.Front(); se != nil; se = se.Next() {
-		sec := se.Value().(*Section)
+	for it := ini.sections.Iterator(); it.Next(); {
+		sec := it.Value().(*Section)
 
 		if err := sec.Write(bw, ini.EOL); err != nil {
 			return err

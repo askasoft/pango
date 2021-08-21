@@ -46,6 +46,7 @@ func (hm *HashMap) IsEmpty() bool {
 
 // Clear clears the map
 func (hm *HashMap) Clear() {
+	// for AsHashMap()
 	for k := range hm.hash {
 		delete(hm.hash, k)
 	}

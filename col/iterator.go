@@ -20,28 +20,28 @@ type Iterable interface {
 
 // Iterator is stateful iterator for collection.
 type Iterator interface {
-	// Prev moves the iterator to the previous element and returns true if there was a previous element in collection.
-	// If Prev() returns true, then previous element's index and value can be retrieved by Index() and Value().
+	// Prev moves the iterator to the previous item and returns true if there was a previous item in collection.
+	// If Prev() returns true, then previous item's index and value can be retrieved by Index() and Value().
 	// Modifies the state of the iterator.
 	Prev() bool
 
-	// Next moves the iterator to the next element and returns true if there was a next element in the collection.
-	// If Next() returns true, then next element's value can be retrieved by Value().
-	// If Next() was called for the first time, then it will point the iterator to the first element if it exists.
+	// Next moves the iterator to the next item and returns true if there was a next item in the collection.
+	// If Next() returns true, then next item's value can be retrieved by Value().
+	// If Next() was called for the first time, then it will point the iterator to the first item if it exists.
 	// Modifies the state of the iterator.
 	Next() bool
 
-	// Value returns the current element's value.
+	// Value returns the current item's value.
 	Value() interface{}
 
-	// SetValue set the value to the item
+	// SetValue set the current item's value.
 	SetValue(v interface{})
 
-	// Remove remove the current element
+	// Remove remove the current item
 	Remove()
 
 	// Reset resets the iterator to its initial state (one-before-first/one-after-last)
-	// Call Next()/Prev() to fetch the first/last element if any.
+	// Call Next()/Prev() to fetch the first/last item if any.
 	Reset()
 }
 
@@ -67,6 +67,6 @@ type Iterable2 interface {
 type Iterator2 interface {
 	Iterator
 
-	// Key returns the current element's key.
+	// Key returns the current item's key.
 	Key() interface{}
 }

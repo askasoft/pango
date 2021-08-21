@@ -2,11 +2,13 @@ package col
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/pandafw/pango/cmp"
 )
 
 // NewSortedList returns an initialized sorted list.
+// Example: NewSortedList(cmp.LessInt, 1, 2, 3)
 func NewSortedList(less cmp.Less, vs ...interface{}) *SortedList {
 	sl := &SortedList{
 		less: less,
@@ -15,69 +17,11 @@ func NewSortedList(less cmp.Less, vs ...interface{}) *SortedList {
 	return sl
 }
 
-// SortedList implements a sorted list.
+// SortedList implements a doubly linked sorted list.
 type SortedList struct {
-	less cmp.Less
-	root SortedListItem
-	len  int
-}
-
-// lazyInit lazily initializes a zero LinkedList value.
-func (sl *SortedList) lazyInit() {
-	if sl.root.next == nil {
-		sl.root.list = sl
-		sl.root.next = &sl.root
-		sl.root.prev = &sl.root
-		sl.len = 0
-	}
-}
-
-// binarySearch binary search v
-// returns (index, item) if it's value is >= v
-// if not found, returns (-1, nil)
-func (sl *SortedList) binarySearch(v interface{}) (int, *SortedListItem) {
-	if sl.IsEmpty() {
-		return -1, nil
-	}
-
-	li := sl.root.next
-	p, i, j := 0, 0, sl.Len()
-	for i < j && li != nil {
-		h := int(uint(i+j) >> 1) // avoid overflow when computing h
-		li = li.Offset(h - p)
-		p = h
-		// i ≤ h < j
-		if sl.less(li.value, v) {
-			i = h + 1
-		} else {
-			j = h
-		}
-	}
-
-	if i < sl.Len() {
-		li = li.Offset(i - p)
-		return i, li
-	}
-	return -1, nil
-}
-
-// add inserts a new item li with value v and returns li.
-func (sl *SortedList) add(v interface{}) (li *SortedListItem) {
-	li = &SortedListItem{value: v}
-
-	if sl.IsEmpty() {
-		li.insertAfter(sl.root.prev)
-		return
-	}
-
-	_, at := sl.binarySearch(v)
-	if at != nil {
-		li.insertAfter(at.prev)
-		return
-	}
-
-	li.insertAfter(sl.root.prev)
-	return
+	front, back *sortedListNode
+	less        cmp.Less
+	len         int
 }
 
 //-----------------------------------------------------------
@@ -95,9 +39,8 @@ func (sl *SortedList) IsEmpty() bool {
 
 // Clear clears list sl.
 func (sl *SortedList) Clear() {
-	sl.root.list = nil
-	sl.root.next = nil
-	sl.root.prev = nil
+	sl.front = nil
+	sl.back = nil
 	sl.len = 0
 }
 
@@ -107,7 +50,6 @@ func (sl *SortedList) Add(vs ...interface{}) {
 		return
 	}
 
-	sl.lazyInit()
 	for _, v := range vs {
 		sl.add(v)
 	}
@@ -115,28 +57,7 @@ func (sl *SortedList) Add(vs ...interface{}) {
 
 // AddAll adds all items of another collection
 func (sl *SortedList) AddAll(ac Collection) {
-	if sl == ac {
-		sl.Add(ac.Values()...)
-		return
-	}
-
-	if ic, ok := ac.(Iterable); ok {
-		it := ic.Iterator()
-		for it.Next() {
-			sl.Add(it.Value())
-		}
-		return
-	}
-
 	sl.Add(ac.Values()...)
-}
-
-func (sl *SortedList) deleteAll(v interface{}) {
-	_, li := sl.binarySearch(v)
-	for li != nil && li.value == v {
-		li.Remove()
-		li = li.Next()
-	}
 }
 
 // Delete delete all items with associated value v of vs
@@ -174,6 +95,14 @@ func (sl *SortedList) DeleteAll(ac Collection) {
 
 // Contains Test to see if the collection contains all items of vs
 func (sl *SortedList) Contains(vs ...interface{}) bool {
+	if len(vs) == 0 {
+		return true
+	}
+
+	if sl.IsEmpty() {
+		return false
+	}
+
 	for _, v := range vs {
 		if sl.Index(v) < 0 {
 			return false
@@ -184,8 +113,12 @@ func (sl *SortedList) Contains(vs ...interface{}) bool {
 
 // ContainsAll Test to see if the collection contains all items of another collection
 func (sl *SortedList) ContainsAll(ac Collection) bool {
-	if sl == ac {
+	if sl == ac || ac.IsEmpty() {
 		return true
+	}
+
+	if sl.IsEmpty() {
+		return false
 	}
 
 	if ic, ok := ac.(Iterable); ok {
@@ -216,9 +149,9 @@ func (sl *SortedList) RetainAll(ac Collection) {
 		return
 	}
 
-	for li := sl.Front(); li != nil; li = li.Next() {
-		if !ac.Contains(li.Value()) {
-			li.Remove()
+	for ln := sl.front; ln != nil; ln = ln.next {
+		if !ac.Contains(ln.value) {
+			sl.deleteNode(ln)
 		}
 	}
 }
@@ -226,16 +159,16 @@ func (sl *SortedList) RetainAll(ac Collection) {
 // Values returns a slice contains all the items of the list l
 func (sl *SortedList) Values() []interface{} {
 	vs := make([]interface{}, sl.Len())
-	for i, li := 0, sl.Front(); li != nil; i, li = i+1, li.Next() {
-		vs[i] = li.Value()
+	for i, ln := 0, sl.front; ln != nil; i, ln = i+1, ln.next {
+		vs[i] = ln.value
 	}
 	return vs
 }
 
 // Each call f for each item in the list
 func (sl *SortedList) Each(f func(interface{})) {
-	for li := sl.Front(); li != nil; li = li.Next() {
-		f(li.Value())
+	for ln := sl.front; ln != nil; ln = ln.next {
+		f(ln.value)
 	}
 }
 
@@ -243,80 +176,59 @@ func (sl *SortedList) Each(f func(interface{})) {
 // implements List interface
 
 // Get returns the element at the specified position in this list
-func (sl *SortedList) Get(index int) (interface{}, bool) {
-	li := sl.Item(index)
-	if li == nil {
-		return nil, false
-	}
-	return li.Value(), true
+// if i < -sl.Len() or i >= sl.Len(), panic
+// if i < 0, returns sl.Get(sl.Len() + i)
+func (sl *SortedList) Get(index int) interface{} {
+	index = sl.checkItemIndex(index)
+
+	return sl.node(index).value
 }
 
 // Set set the v at the specified index in this list and returns the old value.
+// Just implements the List.Set() method
+// Same as sl.Delete(sl.Get(index)), sl.Add(v)
 func (sl *SortedList) Set(index int, v interface{}) (ov interface{}) {
-	li := sl.Item(index)
-	if li != nil {
-		ov = li.Value()
-		li.SetValue(v)
-	}
+	index = sl.checkItemIndex(index)
+
+	ln := sl.node(index)
+	ov = ln.value
+	sl.setValue(ln, v)
 	return
 }
 
-// Insert inserts values, same as: Adds(...)
+// Insert inserts values, same as Add(...)
 // Just implements the List.Insert() method
-// Does not do anything if position is bigger than list's size
+// Panic if position is bigger than list's size
 func (sl *SortedList) Insert(index int, vs ...interface{}) {
-	n := len(vs)
-	if n == 0 {
-		return
-	}
-
-	len := sl.Len()
-	if index < -len || index > len {
-		return
-	}
-
+	sl.checkSizeIndex(index)
 	sl.Add(vs...)
 }
 
-// InsertAll inserts values of another collection ac at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
-// Does not do anything if position is bigger than list's size
-// Note: position equal to list's size is valid, i.e. append.
+// InsertAll inserts values, same as AddAll(...)
+// Just implements the List.InsertAll() method
+// Panic if position is bigger than list's size
 func (sl *SortedList) InsertAll(index int, ac Collection) {
-	n := ac.Len()
-	if n == 0 {
-		return
-	}
-
-	len := sl.Len()
-	if index < -len || index > len {
-		return
-	}
-
-	if ic, ok := ac.(Iterable); ok {
-		it := ic.Iterator()
-		for it.Next() {
-			sl.Add(it.Value())
-		}
-		return
-	}
-
-	sl.Add(ac.Values()...)
+	sl.checkSizeIndex(index)
+	sl.AddAll(ac)
 }
 
 // Index returns the index of the first occurrence of the specified v in this list, or -1 if this list does not contain v.
 func (sl *SortedList) Index(v interface{}) int {
-	i, _ := sl.Search(v)
-	return i
+	i, ln := sl.binarySearch(v)
+	if ln != nil && ln.value == v {
+		return i
+	}
+	return -1
 }
 
 // Remove removes the item li from l if li is an item of list l.
 // It returns the item's value.
 // The item li must not be nil.
 func (sl *SortedList) Remove(index int) {
-	li := sl.Item(index)
-	if li != nil {
-		li.Remove()
-	}
+	index = sl.checkItemIndex(index)
+
+	ln := sl.node(index)
+	sl.deleteNode(ln)
 }
 
 // Swap swaps values of two items at the given index.
@@ -327,68 +239,326 @@ func (sl *SortedList) Swap(i, j int) {
 
 // ReverseEach Call f for each item in the list with reverse order
 func (sl *SortedList) ReverseEach(f func(interface{})) {
-	for li := sl.Back(); li != nil; li = li.Prev() {
-		f(li.Value())
+	for ln := sl.back; ln != nil; ln = ln.prev {
+		f(ln.value)
 	}
 }
 
 // Iterator returns a iterator for the list
 func (sl *SortedList) Iterator() Iterator {
-	return &sortedListItemIterator{sl, &sl.root}
+	return &sortedListIterator{list: sl}
 }
 
 //--------------------------------------------------------------------
 
 // Front returns the first item of list l or nil if the list is empty.
-func (sl *SortedList) Front() *SortedListItem {
-	if sl.len == 0 {
+func (sl *SortedList) Front() interface{} {
+	if sl.front == nil {
 		return nil
 	}
-	return sl.root.next
+	return sl.front.value
 }
 
 // Back returns the last item of list l or nil if the list is empty.
-func (sl *SortedList) Back() *SortedListItem {
-	if sl.len == 0 {
+func (sl *SortedList) Back() interface{} {
+	if sl.back == nil {
 		return nil
 	}
-	return sl.root.prev
+	return sl.back.value
 }
 
-// Item returns the item at the specified index
-// if i < -l.Len() or i >= l.Len(), returns nil
-// if i < 0, returns l.Item(l.Len() + i)
-func (sl *SortedList) Item(i int) *SortedListItem {
-	if i < -sl.len || i >= sl.len {
-		return nil
+// PopFront remove the first item of list.
+func (sl *SortedList) PopFront() (v interface{}) {
+	if sl.front != nil {
+		v = sl.front.value
+		sl.deleteNode(sl.front)
 	}
-
-	if i < 0 {
-		i += sl.len
-	}
-	if i >= sl.len/2 {
-		return sl.Back().Offset(i + 1 - sl.len)
-	}
-
-	return sl.Front().Offset(i)
+	return
 }
 
-// Search binary search v
-// returns (index, item) if it's value is v
-// if not found, returns (-1, nil)
-func (sl *SortedList) Search(v interface{}) (int, *SortedListItem) {
-	n, li := sl.binarySearch(v)
-	if li != nil && li.Value() == v {
-		return n, li
+// PopBack remove the last item of list.
+func (sl *SortedList) PopBack() (v interface{}) {
+	if sl.back != nil {
+		v = sl.back.value
+		sl.deleteNode(sl.back)
 	}
-
-	return -1, nil
+	return
 }
 
 // String print list to string
 func (sl *SortedList) String() string {
 	bs, _ := json.Marshal(sl)
 	return string(bs)
+}
+
+//-----------------------------------------------------------
+
+func (sl *SortedList) checkItemIndex(index int) int {
+	if index >= sl.len || index < -sl.len {
+		panic(fmt.Sprintf("SortedList out of bounds: index=%d, len=%d", index, sl.len))
+	}
+
+	if index < 0 {
+		index += sl.len
+	}
+	return index
+}
+
+func (sl *SortedList) checkSizeIndex(index int) int {
+	if index > sl.len || index < -sl.len {
+		panic(fmt.Sprintf("SortedList out of bounds: index=%d, len=%d", index, sl.len))
+	}
+
+	if index < 0 {
+		index += sl.len
+	}
+	return index
+}
+
+// node returns the node at the specified index i.
+func (sl *SortedList) node(i int) *sortedListNode {
+	if i < (sl.len >> 1) {
+		ln := sl.front
+		for ; i > 0; i-- {
+			ln = ln.next
+		}
+		return ln
+	}
+
+	ln := sl.back
+	for i = sl.len - i - 1; i > 0; i-- {
+		ln = ln.prev
+	}
+	return ln
+}
+
+// add inserts a new item with value v.
+func (sl *SortedList) add(v interface{}) (ln *sortedListNode) {
+	ln = &sortedListNode{value: v}
+
+	if sl.IsEmpty() {
+		// Assert key is of less's type for initial list
+		sl.less(v, v)
+
+		sl.front, sl.back = ln, ln
+		sl.len++
+		return
+	}
+
+	_, at := sl.binarySearch(v)
+	if at != nil {
+		ln.next = at
+		ln.prev = at.prev
+		at.prev = ln
+		if ln.prev == nil {
+			sl.front = ln
+		} else {
+			ln.prev.next = ln
+		}
+		sl.len++
+		return
+	}
+
+	ln.prev = sl.back
+	ln.prev.next = ln
+	sl.back = ln
+	sl.len++
+	return
+}
+
+func (sl *SortedList) setValue(ln *sortedListNode, v interface{}) *sortedListNode {
+	if ln.value == v {
+		return ln
+	}
+
+	// delete and insert again
+	sl.deleteNode(ln)
+	return sl.add(v)
+}
+
+func (sl *SortedList) deleteAll(v interface{}) {
+	_, ln := sl.binarySearch(v)
+	for ln != nil && ln.value == v {
+		sl.deleteNode(ln)
+		ln = ln.next
+	}
+}
+
+func (sl *SortedList) deleteNode(ln *sortedListNode) {
+	if ln.prev == nil {
+		sl.front = ln.next
+	} else {
+		ln.prev.next = ln.next
+	}
+
+	if ln.next == nil {
+		sl.back = ln.prev
+	} else {
+		ln.next.prev = ln.prev
+	}
+
+	sl.len--
+}
+
+// binarySearch binary search v
+// returns (index, item) if it's value is >= v
+// if not found, returns (-1, nil)
+func (sl *SortedList) binarySearch(v interface{}) (int, *sortedListNode) {
+	if sl.IsEmpty() {
+		return -1, nil
+	}
+
+	ln := sl.front
+	p, i, j := 0, 0, sl.Len()
+	for i < j && ln != nil {
+		h := int(uint(i+j) >> 1) // avoid overflow when computing h
+		ln = ln.offset(h - p)
+		p = h
+		// i ≤ h < j
+		if sl.less(ln.value, v) {
+			i = h + 1
+		} else {
+			j = h
+		}
+	}
+
+	if i < sl.Len() {
+		ln = ln.offset(i - p)
+		return i, ln
+	}
+	return -1, nil
+}
+
+//-----------------------------------------------------
+// sortedListNode is a node of a doublly-linked list.
+type sortedListNode struct {
+	prev  *sortedListNode
+	next  *sortedListNode
+	value interface{}
+}
+
+// String print the list item to string
+func (ln *sortedListNode) String() string {
+	return fmt.Sprintf("%v", ln.value)
+}
+
+// offset returns the next +n or previous -n list item.
+func (ln *sortedListNode) offset(n int) *sortedListNode {
+	if n == 0 {
+		return ln
+	}
+
+	if n > 0 {
+		ni := ln
+		for ; n > 0; n-- {
+			ni = ni.next
+		}
+		return ni
+	}
+
+	pi := ln
+	for ; n < 0; n++ {
+		pi = pi.prev
+	}
+	return pi
+}
+
+//-----------------------------------------------------
+// sortedListIterator a iterator for sortedListNode
+type sortedListIterator struct {
+	list    *SortedList
+	node    *sortedListNode
+	removed bool
+}
+
+// Prev moves the iterator to the previous element and returns true if there was a previous element in the container.
+// If Prev() returns true, then previous element's index and value can be retrieved by Index() and Value().
+// Modifies the state of the iterator.
+func (it *sortedListIterator) Prev() bool {
+	if it.list.IsEmpty() {
+		return false
+	}
+
+	if it.node == nil {
+		it.node = it.list.back
+		it.removed = false
+		return true
+	}
+
+	if pi := it.node.prev; pi != nil {
+		it.node = pi
+		it.removed = false
+		return true
+	}
+	return false
+}
+
+// Next moves the iterator to the next element and returns true if there was a next element in the collection.
+// If Next() returns true, then next element's value can be retrieved by Value().
+// If Next() was called for the first time, then it will point the iterator to the first element if it exists.
+// Modifies the state of the iterator.
+func (it *sortedListIterator) Next() bool {
+	if it.list.IsEmpty() {
+		return false
+	}
+
+	if it.node == nil {
+		it.node = it.list.front
+		it.removed = false
+		return true
+	}
+
+	if ni := it.node.next; ni != nil {
+		it.node = ni
+		it.removed = false
+		return true
+	}
+	return false
+}
+
+// Value returns the current element's value.
+func (it *sortedListIterator) Value() interface{} {
+	if it.node == nil {
+		return nil
+	}
+	return it.node.value
+}
+
+// SetValue set the value to the item
+// NOTE: Prev()/Next() will change
+func (it *sortedListIterator) SetValue(v interface{}) {
+	if it.node == nil {
+		return
+	}
+
+	if it.removed {
+		// unlinked item
+		it.node.value = v
+		return
+	}
+
+	it.node = it.list.setValue(it.node, v)
+}
+
+// Remove remove the current element
+func (it *sortedListIterator) Remove() {
+	if it.node == nil {
+		return
+	}
+
+	if it.removed {
+		panic("SortedList can't remove a unlinked item")
+	}
+
+	it.list.deleteNode(it.node)
+	it.removed = true
+}
+
+// Reset resets the iterator to its initial state (one-before-first/one-after-last)
+// Call Next()/Prev() to fetch the first/last element if any.
+func (it *sortedListIterator) Reset() {
+	it.node = nil
+	it.removed = false
 }
 
 //-----------------------------------------------------------

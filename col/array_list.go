@@ -2,6 +2,7 @@ package col
 
 import (
 	"encoding/json"
+	"fmt"
 	"sort"
 
 	"github.com/pandafw/pango/ars"
@@ -15,7 +16,7 @@ func NewArrayList(vs ...interface{}) *ArrayList {
 	return al
 }
 
-// ArrayList implements a list holdes the element in a array.
+// ArrayList implements a list holdes the item in a array.
 // The zero value for ArrayList is an empty list ready to use.
 //
 // To iterate over a list (where al is a *ArrayList):
@@ -25,51 +26,6 @@ func NewArrayList(vs ...interface{}) *ArrayList {
 //
 type ArrayList struct {
 	data []interface{}
-}
-
-const nblock = 0x1F
-
-// roundup round up size
-func (al *ArrayList) roundup(n int) int {
-	if (n & nblock) == 0 {
-		return n
-	}
-
-	return (n + nblock) & (^nblock)
-}
-
-// grow grows the buffer to guarantee space for n more elements.
-func (al *ArrayList) grow(n int) {
-	if al.data == nil {
-		c := al.roundup(n)
-		al.data = make([]interface{}, n, c)
-		return
-	}
-
-	l := len(al.data)
-	if n <= cap(al.data)-l {
-		al.data = al.data[:l+n]
-		return
-	}
-
-	c := al.roundup(l + n)
-	data := make([]interface{}, l+n, c)
-	copy(data, al.data)
-	al.data = data
-}
-
-func (al *ArrayList) checkIndex(index int) int {
-	len := al.Len()
-
-	if index < -len || index >= len {
-		return -1
-	}
-
-	if index < 0 {
-		index += len
-	}
-
-	return index
 }
 
 //-----------------------------------------------------------
@@ -138,6 +94,14 @@ func (al *ArrayList) DeleteAll(ac Collection) {
 
 // Contains Test to see if the list contains the value v
 func (al *ArrayList) Contains(vs ...interface{}) bool {
+	if len(vs) == 0 {
+		return true
+	}
+
+	if al.IsEmpty() {
+		return false
+	}
+
 	for _, v := range vs {
 		if al.Index(v) < 0 {
 			return false
@@ -148,9 +112,14 @@ func (al *ArrayList) Contains(vs ...interface{}) bool {
 
 // ContainsAll Test to see if the collection contains all items of another collection
 func (al *ArrayList) ContainsAll(ac Collection) bool {
-	if al == ac {
+	if al == ac || ac.IsEmpty() {
 		return true
 	}
+
+	if al.IsEmpty() {
+		return false
+	}
+
 	return al.Contains(ac.Values()...)
 }
 
@@ -188,25 +157,33 @@ func (al *ArrayList) Each(f func(interface{})) {
 	}
 }
 
+// ReverseEach call f for each item in the list with reverse order
+func (al *ArrayList) ReverseEach(f func(interface{})) {
+	for i := al.Len() - 1; i >= 0; i-- {
+		f(al.data[i])
+	}
+}
+
+// Iterator returns a iterator for the list
+func (al *ArrayList) Iterator() Iterator {
+	return &arrayListIterator{al, -1, -1}
+}
+
 //-----------------------------------------------------------
 // implements List interface
 
-// Get returns the element at the specified position in this list
-func (al *ArrayList) Get(index int) (interface{}, bool) {
-	index = al.checkIndex(index)
-	if index < 0 {
-		return nil, false
-	}
+// Get returns the item at the specified position in this list
+// if i < -al.Len() or i >= al.Len(), panic
+// if i < 0, returns al.Get(al.Len() + i)
+func (al *ArrayList) Get(index int) interface{} {
+	index = al.checkItemIndex(index)
 
-	return al.data[index], true
+	return al.data[index]
 }
 
 // Set set the v at the specified index in this list and returns the old value.
 func (al *ArrayList) Set(index int, v interface{}) (ov interface{}) {
-	index = al.checkIndex(index)
-	if index < 0 {
-		return nil
-	}
+	index = al.checkItemIndex(index)
 
 	ov = al.data[index]
 	al.data[index] = v
@@ -214,25 +191,18 @@ func (al *ArrayList) Set(index int, v interface{}) (ov interface{}) {
 }
 
 // Insert inserts values at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
-// Does not do anything if position is bigger than list's size
+// Panic if position is bigger than list's size
 // Note: position equal to list's size is valid, i.e. append.
 func (al *ArrayList) Insert(index int, vs ...interface{}) {
+	index = al.checkSizeIndex(index)
+
 	n := len(vs)
 	if n == 0 {
 		return
 	}
 
 	len := al.Len()
-	if index < -len || index > len {
-		return
-	}
-
-	if index < 0 {
-		index += len
-	}
-
 	if index == len {
-		// Append
 		al.Add(vs...)
 		return
 	}
@@ -243,9 +213,10 @@ func (al *ArrayList) Insert(index int, vs ...interface{}) {
 }
 
 // InsertAll inserts values of another collection ac at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
-// Does not do anything if position is bigger than list's size
+// Panic if position is bigger than list's size
 // Note: position equal to list's size is valid, i.e. append.
 func (al *ArrayList) InsertAll(index int, ac Collection) {
+	index = al.checkSizeIndex(index)
 	al.Insert(index, ac.Values()...)
 }
 
@@ -259,14 +230,9 @@ func (al *ArrayList) Index(v interface{}) int {
 	return -1
 }
 
-// Remove removes the item li from al if li is an item of list al.
-// It returns the item's value.
-// The item li must not be nil.
+// Remove removes the item at the specified position in this list.
 func (al *ArrayList) Remove(index int) {
-	index = al.checkIndex(index)
-	if index < 0 {
-		return
-	}
+	index = al.checkItemIndex(index)
 
 	al.data[index] = nil
 	copy(al.data[index:], al.data[index+1:])
@@ -275,25 +241,100 @@ func (al *ArrayList) Remove(index int) {
 
 // Swap swaps values of two items at the given index.
 func (al *ArrayList) Swap(i, j int) {
-	i = al.checkIndex(i)
-	j = al.checkIndex(j)
-	if i < 0 || j < 0 || i == j {
+	i = al.checkItemIndex(i)
+	j = al.checkItemIndex(j)
+
+	if i != j {
+		al.data[i], al.data[j] = al.data[j], al.data[i]
+	}
+}
+
+// Sort Sorts this list according to the order induced by the specified Comparator.
+func (al *ArrayList) Sort(less cmp.Less) {
+	if al.Len() < 2 {
+		return
+	}
+	sort.Sort(&sorter{al, less})
+}
+
+//--------------------------------------------------------------------
+
+// Front returns the first item of list al or nil if the list is empty.
+func (al *ArrayList) Front() interface{} {
+	if al.IsEmpty() {
+		return nil
+	}
+
+	return al.data[0]
+}
+
+// Back returns the last item of list al or nil if the list is empty.
+func (al *ArrayList) Back() interface{} {
+	if al.IsEmpty() {
+		return nil
+	}
+
+	return al.data[al.Len()-1]
+}
+
+// PopFront remove the first item of list.
+func (al *ArrayList) PopFront() (v interface{}) {
+	if al.IsEmpty() {
 		return
 	}
 
-	al.data[i], al.data[j] = al.data[j], al.data[i]
+	v = al.data[0]
+	al.Remove(0)
+	return
 }
 
-// ReverseEach call f for each item in the list with reverse order
-func (al *ArrayList) ReverseEach(f func(interface{})) {
-	for i := al.Len() - 1; i >= 0; i-- {
-		f(al.data[i])
+// PopBack remove the last item of list.
+func (al *ArrayList) PopBack() (v interface{}) {
+	if al.IsEmpty() {
+		return
 	}
+
+	v = al.data[al.Len()-1]
+	al.data = al.data[:al.Len()-1]
+	return
 }
 
-// Iterator returns a iterator for the list
-func (al *ArrayList) Iterator() Iterator {
-	return &ArrayListIterator{al, -1, -1}
+// PushFront inserts all items of vs at the front of list al.
+func (al *ArrayList) PushFront(vs ...interface{}) {
+	if len(vs) == 0 {
+		return
+	}
+
+	al.Insert(0, vs...)
+}
+
+// PushFrontAll inserts a copy of another collection at the front of list al.
+// The al and ac may be the same. They must not be nil.
+func (al *ArrayList) PushFrontAll(ac Collection) {
+	if ac.IsEmpty() {
+		return
+	}
+
+	al.InsertAll(0, ac)
+}
+
+// PushBack inserts all items of vs at the back of list al.
+func (al *ArrayList) PushBack(vs ...interface{}) {
+	if len(vs) == 0 {
+		return
+	}
+
+	al.Insert(al.Len(), vs...)
+}
+
+// PushBackAll inserts a copy of another collection at the back of list al.
+// The al and ac may be the same. They must not be nil.
+func (al *ArrayList) PushBackAll(ac Collection) {
+	if ac.IsEmpty() {
+		return
+	}
+
+	al.InsertAll(al.Len(), ac)
 }
 
 //------------------------------------------------------------
@@ -308,18 +349,154 @@ func (al *ArrayList) Reserve(n int) {
 	}
 }
 
-// Sort Sorts this list according to the order induced by the specified Comparator.
-func (al *ArrayList) Sort(less cmp.Less) {
-	if al.Len() < 2 {
-		return
-	}
-	sort.Sort(&sorter{al, less})
-}
-
 // String print list to string
 func (al *ArrayList) String() string {
 	bs, _ := json.Marshal(al)
 	return string(bs)
+}
+
+//-----------------------------------------------------------
+const nblock = 0x1F
+
+// roundup round up size
+func (al *ArrayList) roundup(n int) int {
+	if (n & nblock) == 0 {
+		return n
+	}
+
+	return (n + nblock) & (^nblock)
+}
+
+// grow grows the buffer to guarantee space for n more elements.
+func (al *ArrayList) grow(n int) {
+	if al.data == nil {
+		c := al.roundup(n)
+		al.data = make([]interface{}, n, c)
+		return
+	}
+
+	l := len(al.data)
+	if n <= cap(al.data)-l {
+		al.data = al.data[:l+n]
+		return
+	}
+
+	c := al.roundup(l + n)
+	data := make([]interface{}, l+n, c)
+	copy(data, al.data)
+	al.data = data
+}
+
+func (al *ArrayList) checkItemIndex(index int) int {
+	len := al.Len()
+	if index >= len || index < -len {
+		panic(fmt.Sprintf("ArrayList out of bounds: index=%d, len=%d", index, len))
+	}
+
+	if index < 0 {
+		index += len
+	}
+	return index
+}
+
+func (al *ArrayList) checkSizeIndex(index int) int {
+	len := al.Len()
+	if index > len || index < -len {
+		panic(fmt.Sprintf("ArrayList out of bounds: index=%d, len=%d", index, len))
+	}
+
+	if index < 0 {
+		index += len
+	}
+	return index
+}
+
+//-----------------------------------------------------
+
+// arrayListIterator a iterator for array list
+type arrayListIterator struct {
+	list  *ArrayList
+	start int
+	index int
+}
+
+// Prev moves the iterator to the previous item and returns true if there was a previous item in the container.
+// If Prev() returns true, then previous item's value can be retrieved by Value().
+// Modifies the state of the iterator.
+func (it *arrayListIterator) Prev() bool {
+	if it.list.IsEmpty() {
+		return false
+	}
+
+	if it.index < 0 && it.start >= 0 {
+		it.index = it.start
+	}
+
+	if it.index == 0 {
+		return false
+	}
+
+	if it.index < 0 {
+		it.index = it.list.Len() - 1
+		return true
+	}
+	if it.index > it.list.Len() {
+		return false
+	}
+	it.index--
+	return true
+}
+
+// Next moves the iterator to the next item and returns true if there was a next item in the collection.
+// If Next() returns true, then next item's value can be retrieved by Value().
+// If Next() was called for the first time, then it will point the iterator to the first item if it exists.
+// Modifies the state of the iterator.
+func (it *arrayListIterator) Next() bool {
+	if it.list.IsEmpty() {
+		return false
+	}
+
+	if it.index < 0 && it.start > 0 {
+		it.index = it.start - 1
+	}
+	if it.index < -1 || it.index >= it.list.Len()-1 {
+		return false
+	}
+	it.index++
+	return true
+}
+
+// Value returns the current item's value.
+func (it *arrayListIterator) Value() interface{} {
+	if it.index >= 0 && it.index < it.list.Len() {
+		return it.list.data[it.index]
+	}
+	return nil
+}
+
+// SetValue set the value to the item
+func (it *arrayListIterator) SetValue(v interface{}) {
+	if it.index >= 0 && it.index < it.list.Len() {
+		it.list.data[it.index] = v
+	}
+}
+
+// Remove remove the current item
+func (it *arrayListIterator) Remove() {
+	if it.index < 0 {
+		return
+	}
+
+	it.list.Remove(it.index)
+	it.start = it.index
+	it.index = -1
+}
+
+// Reset resets the iterator to its initial state (one-before-first/one-after-last)
+// Call Next()/Prev() to fetch the first/last item if any.
+func (it *arrayListIterator) Reset() {
+	it.start = -1
+	it.index = -1
 }
 
 //-----------------------------------------------------------

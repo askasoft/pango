@@ -73,14 +73,12 @@ func TestLinkedMapBasicFeatures(t *testing.T) {
 
 	// get items of what we just set
 	for i := 0; i < n; i++ {
-		mi := lm.Search(i)
-
-		if mi == nil {
-			t.Errorf("[%d] mi = %v, want %v", i, mi, "not nil")
-		}
 		w := 2 * i
-		if mi.Value() != w {
-			t.Errorf("[%d] mi.Value() = %v, want %v", i, mi.Value(), w)
+
+		v, ok := lm.Get(i)
+
+		if v != w || !ok {
+			t.Errorf("lm[%d] = %v, want %v", i, v, w)
 		}
 	}
 
@@ -118,38 +116,38 @@ func TestLinkedMapBasicFeatures(t *testing.T) {
 
 	// forward iteration
 	i := 0
-	for mi := lm.Front(); mi != nil; mi = mi.Next() {
-		if i != mi.Key() {
-			t.Errorf("[%d] mi.Key() = %v, want %v", i, mi.Key(), i)
+	for it := lm.Iterator(); it.Next(); {
+		if i != it.Key() {
+			t.Errorf("[%d] it.Key() = %v, want %v", i, it.Key(), i)
 		}
-		if i*2 != mi.Value() {
-			t.Errorf("[%d] mi.Value() = %v, want %v", i, mi.Value(), i*2)
+		if i*2 != it.Value() {
+			t.Errorf("[%d] it.Value() = %v, want %v", i, it.Value(), i*2)
 		}
 		i++
 	}
 
 	// backward iteration
 	i = n - 1
-	for mi := lm.Back(); mi != nil; mi = mi.Prev() {
-		if i != mi.Key() {
-			t.Errorf("[%d] mi.Key() = %v, want %v", i, mi.Key(), i)
+	for it := lm.Iterator(); it.Prev(); {
+		if i != it.Key() {
+			t.Errorf("[%d] it.Key() = %v, want %v", i, it.Key(), i)
 		}
-		if i*2 != mi.Value() {
-			t.Errorf("[%d] mi.Value() = %v, want %v", i, mi.Value(), i*2)
+		if i*2 != it.Value() {
+			t.Errorf("[%d] it.Value() = %v, want %v", i, it.Value(), i*2)
 		}
 		i--
 	}
 
 	// forward iteration starting from known key
 	i = 42
-	for mi := lm.Search(i); mi != nil; mi = mi.Next() {
-		if i != mi.Key() {
-			t.Errorf("[%d] mi.Key() = %v, want %v", i, mi.Key(), i)
-		}
-		if i*2 != mi.Value() {
-			t.Errorf("[%d] mi.Value() = %v, want %v", i, mi.Value(), i*2)
-		}
+	for it := lm.IteratorOf(i); it.Next(); {
 		i++
+		if i != it.Key() {
+			t.Errorf("[%d] it.Key() = %v, want %v", i, it.Key(), i)
+		}
+		if i*2 != it.Value() {
+			t.Errorf("[%d] it.Value() = %v, want %v", i, it.Value(), i*2)
+		}
 	}
 
 	// double values for items with even keys
@@ -200,22 +198,22 @@ func TestLinkedMapBasicFeatures(t *testing.T) {
 
 	// check iterations again
 	i = 0
-	for mi := lm.Front(); mi != nil; mi = mi.Next() {
-		if i != mi.Key() {
-			t.Errorf("[%d] mi.Key() = %v, want %v", i, mi.Key(), i)
+	for it := lm.Iterator(); it.Next(); {
+		if i != it.Key() {
+			t.Errorf("[%d] it.Key() = %v, want %v", i, it.Key(), i)
 		}
-		if i*4 != mi.Value() {
-			t.Errorf("[%d] mi.Value() = %v, want %v", i, mi.Value(), i*4)
+		if i*4 != it.Value() {
+			t.Errorf("[%d] it.Value() = %v, want %v", i, it.Value(), i*4)
 		}
 		i += 2
 	}
 	i = 2 * ((n - 1) / 2)
-	for mi := lm.Back(); mi != nil; mi = mi.Prev() {
-		if i != mi.Key() {
-			t.Errorf("[%d] mi.Key() = %v, want %v", i, mi.Key(), i)
+	for it := lm.Iterator(); it.Prev(); {
+		if i != it.Key() {
+			t.Errorf("[%d] it.Key() = %v, want %v", i, it.Key(), i)
 		}
-		if i*4 != mi.Value() {
-			t.Errorf("[%d] mi.Value() = %v, want %v", i, mi.Value(), i*4)
+		if i*4 != it.Value() {
+			t.Errorf("[%d] it.Value() = %v, want %v", i, it.Value(), i*4)
 		}
 		i -= 2
 	}
@@ -272,13 +270,14 @@ func TestLinkedMapEmptyMapOperations(t *testing.T) {
 	lm.Delete("bar")
 	assertLenEqual("TestLinkedMapEmptyMapOperations", t, lm, 0)
 
-	oi := lm.Front()
-	if oi != nil {
-		t.Errorf("lm.Front() = %v, want %v", oi, nil)
+	fn := lm.Front()
+	if fn != nil {
+		t.Errorf("lm.Front() = %v, want %v", fn, nil)
 	}
-	oi = lm.Back()
-	if oi != nil {
-		t.Errorf("lm.Back() = %v, want %v", oi, nil)
+
+	bn := lm.Back()
+	if bn != nil {
+		t.Errorf("lm.Back() = %v, want %v", bn, nil)
 	}
 }
 
@@ -386,13 +385,13 @@ func assertOrderedPairsEqualFromNewest(t *testing.T, lm *LinkedHashMap, eks, evs
 	}
 
 	i := lm.Len() - 1
-	for mi := lm.Back(); mi != nil; mi = mi.Prev() {
-		if eks[i] != mi.Key() {
-			t.Errorf("[%d] key = %v, want %v", i, mi.Key(), eks[i])
+	for it := lm.Iterator(); it.Prev(); {
+		if eks[i] != it.Key() {
+			t.Errorf("[%d] key = %v, want %v", i, it.Key(), eks[i])
 		}
 
-		if evs[i] != mi.Value() {
-			t.Errorf("[%d] val = %v, want %v", i, mi.Value(), evs[i])
+		if evs[i] != it.Value() {
+			t.Errorf("[%d] val = %v, want %v", i, it.Value(), evs[i])
 		}
 		i--
 	}
@@ -410,13 +409,13 @@ func assertOrderedPairsEqualFromOldest(t *testing.T, lm *LinkedHashMap, eks, evs
 	}
 
 	i := 0
-	for mi := lm.Front(); mi != nil; mi = mi.Next() {
-		if eks[i] != mi.Key() {
-			t.Errorf("[%d] key = %v, want %v", i, mi.Key(), eks[i])
+	for it := lm.Iterator(); it.Next(); {
+		if eks[i] != it.Key() {
+			t.Errorf("[%d] key = %v, want %v", i, it.Key(), eks[i])
 		}
 
-		if evs[i] != mi.Value() {
-			t.Errorf("[%d] val = %v, want %v", i, mi.Value(), evs[i])
+		if evs[i] != it.Value() {
+			t.Errorf("[%d] val = %v, want %v", i, it.Value(), evs[i])
 		}
 		i++
 	}
@@ -424,7 +423,7 @@ func assertOrderedPairsEqualFromOldest(t *testing.T, lm *LinkedHashMap, eks, evs
 
 func assertLenEqual(n string, t *testing.T, lm *LinkedHashMap, w int) {
 	if lm.Len() != w {
-		t.Errorf("%s: lm.Len() != %v", n, w)
+		t.Fatalf("%s: lm.Len() != %v", n, w)
 	}
 }
 
@@ -723,89 +722,119 @@ func TestLinkedHashMapIteratorReset(t *testing.T) {
 	}
 }
 
+func assertLinkedHashMapIteratorRemove(t *testing.T, i int, it Iterator2, w *LinkedHashMap) int {
+	it.Remove()
+
+	k := it.Key()
+	w.Delete(k)
+
+	it.SetValue(9999)
+
+	m := it.(*linkedHashMapIterator).lmap
+	if m.Contains(k) {
+		t.Fatalf("[%d] w.Contains(%v) = true", i, k)
+	}
+
+	if m.String() != w.String() {
+		t.Fatalf("[%d] (%v) %v != %v", i, k, m.String(), w.String())
+	}
+
+	return k.(int)
+}
+
 func TestLinkedHashMapIteratorRemove(t *testing.T) {
 	for i := 20; i < 50; i++ {
 		m := NewLinkedHashMap()
+		w := NewLinkedHashMap()
 
 		for n := 0; n < i; n++ {
 			m.Set(n, -n)
+			w.Set(n, -n)
 		}
 
 		it := m.Iterator()
 
+		// remove nothing
 		it.Remove()
+		w.Delete(it.Key())
+		it.SetValue(9999)
 		if m.Len() != i {
-			t.Errorf("[%d] m.Len() == %v, want %v", i, m.Len(), i)
+			t.Fatalf("[%d] m.Len() == %v, want %v", i, m.Len(), i)
 		}
 
 		// remove middle
-		x := rand.Intn(i-4) + 1
-		for j := 0; j <= x; j++ {
+		for j := 0; j <= m.Len()/2; j++ {
 			it.Next()
 		}
 
-		v := it.Key().(int)
-		it.Remove()
-		if m.Len() != i-1 {
-			t.Errorf("[%d] m.Len() == %v, want %v", i, m.Len(), i-1)
-		}
-		if m.Contains(v) {
-			t.Errorf("[%d] m.Contains(%v) = true", i, v)
-		}
+		v := assertLinkedHashMapIteratorRemove(t, i, it, w)
 
 		it.Next()
 		if v+1 != it.Key() {
-			t.Errorf("[%d] it.Key() = %v, want %v", i, it.Key(), v+1)
+			t.Fatalf("[%d] it.Key() = %v, want %v", i, it.Key(), v+1)
 		}
-		it.Remove()
-		if m.Contains(v + 1) {
-			t.Errorf("[%d] m.Contains(%v) = true", i, v+1)
-		}
+		assertLinkedHashMapIteratorRemove(t, i, it, w)
 
 		it.Prev()
 		if v-1 != it.Key() {
-			t.Errorf("[%d] it.Key() = %v, want %v", i, it.Key(), v-1)
+			t.Fatalf("[%d] it.Key() = %v, want %v", i, it.Key(), v-1)
 		}
-		it.Remove()
-		if m.Contains(v - 1) {
-			t.Errorf("[%d] m.Contains(%v) = true", i, v-1)
-		}
+		assertLinkedHashMapIteratorRemove(t, i, it, w)
 
 		// remove first
 		for it.Prev() {
 		}
-		it.Remove()
-		if m.Contains(0) {
-			t.Errorf("[%d] m.Contains(%v) = true", i, 0)
-		}
-		if it.Prev() {
-			t.Errorf("[%d] m.Prev() = true", i)
-		}
+		assertLinkedHashMapIteratorRemove(t, i, it, w)
 
 		// remove last
 		for it.Next() {
 		}
-		it.Remove()
-		if m.Contains(i - 1) {
-			t.Errorf("[%d] m.Contains(%v) = true", i, i-1)
-		}
-		if it.Next() {
-			t.Errorf("[%d] m.Next() = true", i)
-		}
+		assertLinkedHashMapIteratorRemove(t, i, it, w)
 
 		// remove all
 		it.Reset()
 		if i%2 == 0 {
 			for it.Prev() {
-				it.Remove()
+				assertLinkedHashMapIteratorRemove(t, i, it, w)
 			}
 		} else {
 			for it.Next() {
-				it.Remove()
+				assertLinkedHashMapIteratorRemove(t, i, it, w)
 			}
 		}
 		if !m.IsEmpty() {
-			t.Errorf("[%d] m.IsEmpty() = true", i)
+			t.Fatalf("[%d] m.IsEmpty() = true", i)
+		}
+	}
+}
+
+func TestLinkedHashMapIteratorSetValue(t *testing.T) {
+	m := NewLinkedHashMap()
+	for i := 1; i <= 100; i++ {
+		m.Set(i, i)
+	}
+
+	// forward
+	for it := m.Iterator(); it.Next(); {
+		it.SetValue(it.Value().(int) + 100)
+	}
+	for i := 1; i <= m.Len(); i++ {
+		v, _ := m.Get(i)
+		w := i + 100
+		if v != w {
+			t.Fatalf("Hash[%d] = %v, want %v", i, v, w)
+		}
+	}
+
+	// backward
+	for it := m.Iterator(); it.Prev(); {
+		it.SetValue(it.Value().(int) + 100)
+	}
+	for i := 1; i <= m.Len(); i++ {
+		v, _ := m.Get(i)
+		w := i + 200
+		if v != w {
+			t.Fatalf("Hash[%d] = %v, want %v", i, v, w)
 		}
 	}
 }

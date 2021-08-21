@@ -273,7 +273,6 @@ func TestHashSetMarshalJSON(t *testing.T) {
 		json string
 	}{
 		{NewHashSet(0, 1, "0", "1", 0.1, 1.2, true, false, "0", "1"), `[0,1,"0","1",0.1,1.2,true,false]`},
-		//TODO		{NewHashSet(0, "1", 2.0, 0, "1", 2.0, []int{1, 2}, map[int]int{1: 10, 2: 20}), `[0,"1",2,[1,2],{"1":10,"2":20}]`},
 	}
 
 	for i, c := range cs {
@@ -298,7 +297,6 @@ func TestHashSetUnmarshalJSON(t *testing.T) {
 		hset *HashSet
 	}{
 		{`["0","1",0,1,true,false]`, NewHashSet("0", "1", 0.0, 1.0, true, false)},
-		//TODO		{`["1",2,[1,2],{"1":10,"2":20}]`, NewList("1", 2.0, NewList(1.0, 2.0), map[string]interface{}{"1": 10.0, "2": 20.0})},
 	}
 
 	for i, c := range cs {

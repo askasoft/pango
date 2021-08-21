@@ -58,7 +58,7 @@ type List interface {
 	Iterable
 
 	// Get returns the value at the specified index in this list
-	Get(index int) (interface{}, bool)
+	Get(index int) interface{}
 
 	// Set set the v at the specified index in this list and returns the old value.
 	Set(index int, v interface{}) interface{}

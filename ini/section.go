@@ -44,8 +44,9 @@ func (sec *Section) Comments() []string {
 // Keys return the section's key string array
 func (sec *Section) Keys() []string {
 	ks := make([]string, sec.entries.Len())
-	for i, e := 0, sec.entries.Front(); e != nil; i, e = i+1, e.Next() {
-		ks[i] = e.Key().(string)
+	for i, it := 0, sec.entries.Iterator(); it.Next(); {
+		ks[i] = it.Key().(string)
+		i++
 	}
 	return ks
 }
@@ -53,15 +54,15 @@ func (sec *Section) Keys() []string {
 // StringMap return the section's entries key.(string)/value.(string) map
 func (sec *Section) StringMap() map[string]string {
 	m := make(map[string]string, sec.entries.Len())
-	for e := sec.entries.Front(); e != nil; e = e.Next() {
+	for it := sec.entries.Iterator(); it.Next(); {
 		var v string
-		switch se := e.Value().(type) {
+		switch se := it.Value().(type) {
 		case *col.LinkedList:
-			v = se.Front().Value().(string)
+			v = se.Front().(string)
 		case *Entry:
 			v = se.Value
 		}
-		m[e.Key().(string)] = v
+		m[it.Key().(string)] = v
 	}
 	return m
 }
@@ -69,15 +70,15 @@ func (sec *Section) StringMap() map[string]string {
 // StringsMap return the section's entries key.(string)/value.([]string) map
 func (sec *Section) StringsMap() map[string][]string {
 	m := make(map[string][]string, sec.entries.Len())
-	for e := sec.entries.Front(); e != nil; e = e.Next() {
+	for it := sec.entries.Iterator(); it.Next(); {
 		var v []string
-		switch se := e.Value().(type) {
+		switch se := it.Value().(type) {
 		case *col.LinkedList:
 			v = sec.toStrings(se)
 		case *Entry:
 			v = []string{se.Value}
 		}
-		m[e.Key().(string)] = v
+		m[it.Key().(string)] = v
 	}
 	return m
 }
@@ -85,15 +86,15 @@ func (sec *Section) StringsMap() map[string][]string {
 // Map return the section's entries key.(string)/value.(interface{}) map
 func (sec *Section) Map() map[string]interface{} {
 	m := make(map[string]interface{}, sec.entries.Len())
-	for e := sec.entries.Front(); e != nil; e = e.Next() {
+	for it := sec.entries.Iterator(); it.Next(); {
 		var v interface{}
-		switch se := e.Value().(type) {
+		switch se := it.Value().(type) {
 		case *col.LinkedList:
 			v = sec.toStrings(se)
 		case *Entry:
 			v = se.Value
 		}
-		m[e.Key().(string)] = v
+		m[it.Key().(string)] = v
 	}
 	return m
 }
@@ -198,8 +199,8 @@ func (sec *Section) GetBool(key string, defs ...bool) bool {
 
 func (sec *Section) toStrings(l *col.LinkedList) []string {
 	ss := make([]string, 0, l.Len())
-	for e := l.Front(); e != nil; e = e.Next() {
-		ss = append(ss, e.Value().(*Entry).Value)
+	for it := l.Iterator(); it.Next(); {
+		ss = append(ss, it.Value().(*Entry).Value)
 	}
 	return ss
 }
@@ -222,7 +223,7 @@ func (sec *Section) GetEntry(key string) *Entry {
 	if v, ok := sec.entries.Get(key); ok {
 		switch se := v.(type) {
 		case *col.LinkedList:
-			return se.Front().Value().(*Entry)
+			return se.Front().(*Entry)
 		case *Entry:
 			return se
 		}
@@ -247,8 +248,8 @@ func (sec *Section) Copy(src *Section) {
 // Merge merge entries from src section
 func (sec *Section) Merge(src *Section) {
 	sec.comments = append(sec.comments, src.comments...)
-	for e := src.entries.Front(); e != nil; e = e.Next() {
-		sec.add(e.Key().(string), e.Value().(*Entry))
+	for it := src.entries.Iterator(); it.Next(); {
+		sec.add(it.Key().(string), it.Value().(*Entry))
 	}
 }
 
@@ -305,16 +306,16 @@ func (sec *Section) writeSectionName(bw *bufio.Writer, eol string) (err error) {
 }
 
 func (sec *Section) writeSectionEntries(bw *bufio.Writer, eol string) (err error) {
-	for me := sec.entries.Front(); me != nil; me = me.Next() {
-		switch se := me.Value().(type) {
+	for sei := sec.entries.Iterator(); sei.Next(); {
+		switch se := sei.Value().(type) {
 		case *col.LinkedList:
-			for le := se.Front(); le != nil; le = le.Next() {
-				if err = sec.writeSectionEntry(bw, me.Key().(string), le.Value().(*Entry), eol); err != nil {
+			for it := se.Iterator(); it.Next(); {
+				if err = sec.writeSectionEntry(bw, sei.Key().(string), it.Value().(*Entry), eol); err != nil {
 					return err
 				}
 			}
 		case *Entry:
-			if err = sec.writeSectionEntry(bw, me.Key().(string), se, eol); err != nil {
+			if err = sec.writeSectionEntry(bw, sei.Key().(string), se, eol); err != nil {
 				return err
 			}
 		}

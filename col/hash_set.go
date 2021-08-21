@@ -69,7 +69,7 @@ func (hs *HashSet) Add(vs ...interface{}) {
 
 // AddAll adds all items of another collection
 func (hs *HashSet) AddAll(ac Collection) {
-	if ac.IsEmpty() {
+	if ac.IsEmpty() || hs == ac {
 		return
 	}
 
@@ -98,6 +98,19 @@ func (hs *HashSet) Delete(vs ...interface{}) {
 
 // DeleteAll delete all of this collection's elements that are also contained in the specified collection
 func (hs *HashSet) DeleteAll(ac Collection) {
+	if hs == ac {
+		hs.Clear()
+		return
+	}
+
+	if ic, ok := ac.(Iterable); ok {
+		it := ic.Iterator()
+		for it.Next() {
+			delete(hs.hash, it.Value())
+		}
+		return
+	}
+
 	hs.Delete(ac.Values()...)
 }
 
@@ -121,8 +134,12 @@ func (hs *HashSet) Contains(vs ...interface{}) bool {
 
 // ContainsAll Test to see if the collection contains all items of another collection
 func (hs *HashSet) ContainsAll(ac Collection) bool {
-	if hs == ac {
+	if hs == ac || ac.IsEmpty() {
 		return true
+	}
+
+	if hs.IsEmpty() {
+		return false
 	}
 
 	if ic, ok := ac.(Iterable); ok {

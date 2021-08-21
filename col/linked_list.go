@@ -2,6 +2,7 @@ package col
 
 import (
 	"encoding/json"
+	"fmt"
 	"sort"
 
 	"github.com/pandafw/pango/cmp"
@@ -19,37 +20,14 @@ func NewLinkedList(vs ...interface{}) *LinkedList {
 // The zero value for LinkedList is an empty list ready to use.
 //
 // To iterate over a list (where ll is a *LinkedList):
-//	for li := ll.Front(); li != nil; li = li.Next() {
-//		// do something with li.Value()
+//	it := ll.Iterator()
+//	for it.Next() {
+//		// do something with it.Value()
 //	}
 //
 type LinkedList struct {
-	root LinkedListItem
-	len  int
-}
-
-// lazyInit lazily initializes a zero LinkedList value.
-func (ll *LinkedList) lazyInit() {
-	if ll.root.next == nil {
-		ll.root.list = ll
-		ll.root.next = &ll.root
-		ll.root.prev = &ll.root
-		ll.len = 0
-	}
-}
-
-// insertAfter inserts item with value v after item at, increments l.len, and returns v's LinkedListItem.
-func (ll *LinkedList) insertAfter(at *LinkedListItem, v interface{}) *LinkedListItem {
-	li := &LinkedListItem{value: v}
-	li.insertAfter(at)
-	return li
-}
-
-// insertBefore inserts item with value v before item at, increments l.len, and returns v's LinkedListItem.
-func (ll *LinkedList) insertBefore(at *LinkedListItem, v interface{}) *LinkedListItem {
-	li := &LinkedListItem{value: v}
-	li.insertAfter(at.prev)
-	return li
+	front, back *linkedListNode
+	len         int
 }
 
 //-----------------------------------------------------------
@@ -67,28 +45,19 @@ func (ll *LinkedList) IsEmpty() bool {
 
 // Clear clears list ll.
 func (ll *LinkedList) Clear() {
-	ll.root.list = nil
-	ll.root.next = nil
-	ll.root.prev = nil
+	ll.front = nil
+	ll.back = nil
 	ll.len = 0
 }
 
 // Add adds all items of vs and returns the last added item.
 func (ll *LinkedList) Add(vs ...interface{}) {
-	ll.PushBack(vs...)
+	ll.Insert(ll.len, vs...)
 }
 
 // AddAll adds all items of another collection
 func (ll *LinkedList) AddAll(ac Collection) {
-	ll.PushBackAll(ac)
-}
-
-func (ll *LinkedList) deleteAll(v interface{}) {
-	for li := ll.Front(); li != nil; li = li.Next() {
-		if li.Value() == v {
-			li.Remove()
-		}
-	}
+	ll.InsertAll(ll.len, ac)
 }
 
 // Delete delete all items with associated value v of vs
@@ -100,7 +69,7 @@ func (ll *LinkedList) Delete(vs ...interface{}) {
 
 // DeleteAll delete all of this collection's elements that are also contained in the specified collection
 func (ll *LinkedList) DeleteAll(ac Collection) {
-	if ac.IsEmpty() {
+	if ll.IsEmpty() || ac.IsEmpty() {
 		return
 	}
 
@@ -112,8 +81,7 @@ func (ll *LinkedList) DeleteAll(ac Collection) {
 	if ic, ok := ac.(Iterable); ok {
 		it := ic.Iterator()
 		for it.Next() {
-			v := it.Value()
-			ll.deleteAll(v)
+			ll.deleteAll(it.Value())
 		}
 		return
 	}
@@ -141,8 +109,12 @@ func (ll *LinkedList) Contains(vs ...interface{}) bool {
 
 // ContainsAll Test to see if the collection contains all items of another collection
 func (ll *LinkedList) ContainsAll(ac Collection) bool {
-	if ll == ac {
+	if ll == ac || ac.IsEmpty() {
 		return true
+	}
+
+	if ll.IsEmpty() {
+		return false
 	}
 
 	if ic, ok := ac.(Iterable); ok {
@@ -173,9 +145,9 @@ func (ll *LinkedList) RetainAll(ac Collection) {
 		return
 	}
 
-	for li := ll.Front(); li != nil; li = li.Next() {
-		if !ac.Contains(li.Value()) {
-			li.Remove()
+	for ln := ll.front; ln != nil; ln = ln.next {
+		if !ac.Contains(ln.value) {
+			ll.deleteNode(ln)
 		}
 	}
 }
@@ -183,188 +155,143 @@ func (ll *LinkedList) RetainAll(ac Collection) {
 // Values returns a slice contains all the items of the list ll
 func (ll *LinkedList) Values() []interface{} {
 	vs := make([]interface{}, ll.Len())
-	for i, li := 0, ll.Front(); li != nil; i, li = i+1, li.Next() {
-		vs[i] = li.Value()
+	for i, ln := 0, ll.front; ln != nil; i, ln = i+1, ln.next {
+		vs[i] = ln.value
 	}
 	return vs
 }
 
 // Each call f for each item in the list
 func (ll *LinkedList) Each(f func(interface{})) {
-	for li := ll.Front(); li != nil; li = li.Next() {
-		f(li.Value())
+	for ln := ll.front; ln != nil; ln = ln.next {
+		f(ln.value)
 	}
+}
+
+// ReverseEach call f for each item in the list with reverse order
+func (ll *LinkedList) ReverseEach(f func(interface{})) {
+	for ln := ll.back; ln != nil; ln = ln.prev {
+		f(ln.value)
+	}
+}
+
+// Iterator returns a iterator for the list
+func (ll *LinkedList) Iterator() Iterator {
+	return &linkedListIterator{list: ll}
 }
 
 //-----------------------------------------------------------
 // implements List interface
 
 // Get returns the element at the specified position in this list
-func (ll *LinkedList) Get(index int) (interface{}, bool) {
-	li := ll.Item(index)
-	if li == nil {
-		return nil, false
-	}
-	return li.Value(), true
+// if i < -ll.Len() or i >= ll.Len(), panic
+// if i < 0, returns ll.Get(ll.Len() + i)
+func (ll *LinkedList) Get(index int) interface{} {
+	index = ll.checkItemIndex(index)
+
+	return ll.node(index).value
 }
 
 // Set set the v at the specified index in this list and returns the old value.
 func (ll *LinkedList) Set(index int, v interface{}) (ov interface{}) {
-	li := ll.Item(index)
-	if li != nil {
-		ov, li.value = li.value, v
-	}
+	index = ll.checkItemIndex(index)
+
+	ln := ll.node(index)
+	ov, ln.value = ln.value, v
 	return
 }
 
 // Insert inserts values at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
-// Does not do anything if position is bigger than list's size
+// Panic if position is bigger than list's size
 // Note: position equal to list's size is valid, i.e. append.
 func (ll *LinkedList) Insert(index int, vs ...interface{}) {
-	n := len(vs)
-	if n == 0 {
+	index = ll.checkSizeIndex(index)
+
+	if len(vs) == 0 {
 		return
 	}
 
-	len := ll.Len()
-	if index < -len || index > len {
-		return
+	var prev, next *linkedListNode
+	if index == ll.len {
+		next = nil
+		prev = ll.back
+	} else {
+		next = ll.node(index)
+		prev = next.prev
 	}
 
-	if index < 0 {
-		index += len
+	for _, v := range vs {
+		nn := &linkedListNode{prev: prev, value: v, next: nil}
+		if prev == nil {
+			ll.front = nn
+		} else {
+			prev.next = nn
+		}
+		prev = nn
 	}
 
-	if index == len {
-		// Append
-		ll.Add(vs...)
-		return
+	if next == nil {
+		ll.back = prev
+	} else {
+		prev.next = next
+		next.prev = prev
 	}
 
-	li := ll.Item(index)
-	if li != nil {
-		ll.InsertBefore(li, vs...)
-	}
+	ll.len += len(vs)
 }
 
 // InsertAll inserts values of another collection ac at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
-// Does not do anything if position is bigger than list's size
+// Panic if position is bigger than list's size
 // Note: position equal to list's size is valid, i.e. append.
 func (ll *LinkedList) InsertAll(index int, ac Collection) {
-	n := ac.Len()
-	if n == 0 {
+	index = ll.checkSizeIndex(index)
+
+	if ac.IsEmpty() {
 		return
 	}
 
-	len := ll.Len()
-	if index < -len || index > len {
-		return
-	}
-
-	if index < 0 {
-		index += len
-	}
-
-	if index == len {
-		// Append
-		ll.AddAll(ac)
-		return
-	}
-
-	li := ll.Item(index)
-	if li != nil {
-		ll.InsertAllBefore(li, ac)
-	}
+	ll.Insert(index, ac.Values()...)
 }
 
 // Index returns the index of the first occurrence of the specified v in this list, or -1 if this list does not contain v.
 func (ll *LinkedList) Index(v interface{}) int {
-	i, _ := ll.Search(v)
-	return i
+	for i, ln := 0, ll.front; ln != nil; ln = ln.next {
+		if ln.value == v {
+			return i
+		}
+		i++
+	}
+	return -1
 }
 
-// Remove removes the item li from ll if li is an item of list ll.
-// It returns the item's value.
-// The item li must not be nil.
-func (ll *LinkedList) Remove(index int) {
-	li := ll.Item(index)
-	if li != nil {
-		li.Remove()
+// LastIndex returns the index of the last occurrence of the specified v in this list, or -1 if this list does not contain v.
+func (ll *LinkedList) LastIndex(v interface{}) int {
+	for i, ln := 0, ll.back; ln != nil; ln = ln.prev {
+		if ln.value == v {
+			return i
+		}
+		i++
 	}
+	return -1
+}
+
+// Remove removes the element at the specified position in this list.
+func (ll *LinkedList) Remove(index int) {
+	index = ll.checkItemIndex(index)
+
+	ln := ll.node(index)
+	ll.deleteNode(ln)
 }
 
 // Swap swaps values of two items at the given index.
 func (ll *LinkedList) Swap(i, j int) {
-	if i == j {
-		return
+	i = ll.checkItemIndex(i)
+	j = ll.checkItemIndex(j)
+
+	if i != j {
+		ni, nj := ll.node(i), ll.node(j)
+		ni.value, nj.value = nj.value, ni.value
 	}
-
-	ii := ll.Item(i)
-	ij := ll.Item(j)
-	if ii != nil && ij != nil && ii != ij {
-		ii.value, ij.value = ij.value, ii.value
-	}
-}
-
-// ReverseEach call f for each item in the list with reverse order
-func (ll *LinkedList) ReverseEach(f func(interface{})) {
-	for li := ll.Back(); li != nil; li = li.Prev() {
-		f(li.Value())
-	}
-}
-
-// Iterator returns a iterator for the list
-func (ll *LinkedList) Iterator() Iterator {
-	return &linkedListItemIterator{ll, &ll.root}
-}
-
-//--------------------------------------------------------------------
-
-// Front returns the first item of list ll or nil if the list is empty.
-func (ll *LinkedList) Front() *LinkedListItem {
-	if ll.len == 0 {
-		return nil
-	}
-	return ll.root.next
-}
-
-// Back returns the last item of list ll or nil if the list is empty.
-func (ll *LinkedList) Back() *LinkedListItem {
-	if ll.len == 0 {
-		return nil
-	}
-	return ll.root.prev
-}
-
-// Item returns the item at the specified index i.
-// if i < -ll.Len() or i >= ll.Len(), returns nil
-// if i < 0, returns ll.Item(ll.Len() + i)
-func (ll *LinkedList) Item(i int) *LinkedListItem {
-	if i < -ll.len || i >= ll.len {
-		return nil
-	}
-
-	if i < 0 {
-		i += ll.len
-	}
-	if i >= ll.len/2 {
-		return ll.Back().Offset(i + 1 - ll.len)
-	}
-
-	return ll.Front().Offset(i)
-}
-
-// Search linear search v
-// returns (index, item) if it's value is v
-// if not found, returns (-1, nil)
-func (ll *LinkedList) Search(v interface{}) (int, *LinkedListItem) {
-	for i, li := 0, ll.Front(); li != nil; li = li.Next() {
-		if li.Value() == v {
-			return i, li
-		}
-		i++
-	}
-	return -1, nil
 }
 
 // Sort Sorts this list according to the order induced by the specified Comparator.
@@ -375,208 +302,249 @@ func (ll *LinkedList) Sort(less cmp.Less) {
 	sort.Sort(&sorter{ll, less})
 }
 
-// PushBack inserts all items of vs at the back of list ll.
-// returns the last inserted item.
-func (ll *LinkedList) PushBack(vs ...interface{}) *LinkedListItem {
-	if len(vs) == 0 {
+//--------------------------------------------------------------------
+
+// Front returns the first item of list ll or nil if the list is empty.
+func (ll *LinkedList) Front() interface{} {
+	if ll.front == nil {
 		return nil
 	}
-
-	ll.lazyInit()
-	return ll.InsertBefore(&ll.root, vs...)
+	return ll.front.value
 }
 
-// PushBackAll inserts a copy of another collection at the back of list ll.
-// The ll and ac may be the same. They must not be nil.
-func (ll *LinkedList) PushBackAll(ac Collection) *LinkedListItem {
-	if ac.IsEmpty() {
+// Back returns the last item of list ll or nil if the list is empty.
+func (ll *LinkedList) Back() interface{} {
+	if ll.back == nil {
 		return nil
 	}
+	return ll.back.value
+}
 
-	ll.lazyInit()
-	return ll.InsertAllBefore(&ll.root, ac)
+// PopFront remove the first item of list.
+func (ll *LinkedList) PopFront() (v interface{}) {
+	if ll.front != nil {
+		v = ll.front.value
+		ll.deleteNode(ll.front)
+	}
+	return
+}
+
+// PopBack remove the last item of list.
+func (ll *LinkedList) PopBack() (v interface{}) {
+	if ll.back != nil {
+		v = ll.back.value
+		ll.deleteNode(ll.back)
+	}
+	return
 }
 
 // PushFront inserts all items of vs at the front of list ll.
-// returns the last inserted item.
-func (ll *LinkedList) PushFront(vs ...interface{}) *LinkedListItem {
+func (ll *LinkedList) PushFront(vs ...interface{}) {
 	if len(vs) == 0 {
-		return nil
+		return
 	}
 
-	ll.lazyInit()
-	return ll.InsertAfter(&ll.root, vs...)
+	ll.Insert(0, vs...)
 }
 
 // PushFrontAll inserts a copy of another collection at the front of list ll.
 // The ll and ac may be the same. They must not be nil.
-func (ll *LinkedList) PushFrontAll(ac Collection) *LinkedListItem {
+func (ll *LinkedList) PushFrontAll(ac Collection) {
 	if ac.IsEmpty() {
-		return nil
-	}
-
-	ll.lazyInit()
-	return ll.InsertAllAfter(&ll.root, ac)
-}
-
-// InsertAfter inserts all items of vs immediately after the item at and returns the last inserted item li.
-// If at is not an item of ll, the list is not modified.
-// The at must not be nil.
-func (ll *LinkedList) InsertAfter(at *LinkedListItem, vs ...interface{}) *LinkedListItem {
-	if at.list != ll || len(vs) == 0 {
-		return nil
-	}
-
-	li := at
-	for _, v := range vs {
-		li = ll.insertAfter(li, v)
-	}
-	return li
-}
-
-// InsertAllAfter inserts all items of another collection ac immediately after the item at and returns the last inserted item li.
-// If at is not an item of ll, the list is not modified.
-// The at must not be nil.
-func (ll *LinkedList) InsertAllAfter(at *LinkedListItem, ac Collection) *LinkedListItem {
-	if at.list != ll || ac.IsEmpty() {
-		return nil
-	}
-
-	if ic, ok := ac.(Iterable); ok {
-		return ll.insertIterAfter(at, ic.Iterator(), ac.Len())
-	}
-	return ll.InsertAfter(at, ac.Values()...)
-}
-
-// insertIterAfter inserts max n items of iterator it immediately after the item at and returns the last inserted item li.
-// If at is not an item of ll, the list is not modified.
-// The at must not be nil.
-func (ll *LinkedList) insertIterAfter(at *LinkedListItem, it Iterator, n int) (li *LinkedListItem) {
-	if at.list != ll || n < 1 {
 		return
 	}
 
-	for ; it.Next() && n > 0; n-- {
-		li = ll.insertAfter(at, it.Value())
-		at = li
-	}
-	return
+	ll.InsertAll(0, ac)
 }
 
-// InsertBefore inserts all items of vs immediately before the item at and returns the last inserted item li.
-// If at is not an item of ll, the list is not modified.
-// The at must not be nil.
-func (ll *LinkedList) InsertBefore(at *LinkedListItem, vs ...interface{}) (li *LinkedListItem) {
-	if at.list != ll || len(vs) == 0 {
+// PushBack inserts all items of vs at the back of list ll.
+func (ll *LinkedList) PushBack(vs ...interface{}) {
+	if len(vs) == 0 {
 		return
 	}
 
-	for _, v := range vs {
-		li = ll.insertBefore(at, v)
-	}
-	return
+	ll.Insert(ll.len, vs...)
 }
 
-// InsertAllBefore inserts all items of another collection immediately before the item at and returns the last inserted item li.
-// If at is not an item of ll, the list is not modified.
-// The at must not be nil.
-func (ll *LinkedList) InsertAllBefore(at *LinkedListItem, ac Collection) *LinkedListItem {
-	if at.list != ll || ac.IsEmpty() {
-		return nil
-	}
-
-	if ic, ok := ac.(Iterable); ok {
-		return ll.insertIterBefore(at, ic.Iterator(), ac.Len())
-	}
-
-	return ll.InsertBefore(at, ac.Values()...)
-}
-
-// insertIterBefore inserts max n items's value before the item at and returns the last inserted item li.
-// If at is not an item of ll, the list is not modified.
-// The at must not be nil.
-func (ll *LinkedList) insertIterBefore(at *LinkedListItem, it Iterator, n int) (li *LinkedListItem) {
-	if at.list != ll || n < 1 {
+// PushBackAll inserts a copy of another collection at the back of list ll.
+// The ll and ac may be the same. They must not be nil.
+func (ll *LinkedList) PushBackAll(ac Collection) {
+	if ac.IsEmpty() {
 		return
 	}
 
-	ll.lazyInit()
-
-	for ; it.Next() && n > 0; n-- {
-		li = ll.insertBefore(at, it.Value())
-	}
-	return
-}
-
-// MoveToFront moves item li to the front of list ll.
-// If li is not an item of ll, the list is not modified.
-// The item li must not be nil.
-// Returns true if list is modified.
-func (ll *LinkedList) MoveToFront(li *LinkedListItem) bool {
-	if li.list != ll || ll.root.next == li {
-		return false
-	}
-
-	li.moveAfter(&ll.root)
-	return true
-}
-
-// MoveToBack moves item li to the back of list ll.
-// If li is not an item of ll, the list is not modified.
-// The item li must not be nil.
-// Returns true if list is modified.
-func (ll *LinkedList) MoveToBack(li *LinkedListItem) bool {
-	if li.list != ll || ll.root.prev == li {
-		return false
-	}
-
-	li.moveAfter(ll.root.prev)
-	return true
-}
-
-// MoveBefore moves item li to its new position before at.
-// If li or at is not an item of ll, or li == at, the list is not modified.
-// The item li and at must not be nil.
-// Returns true if list is modified.
-func (ll *LinkedList) MoveBefore(at, li *LinkedListItem) bool {
-	if li.list != ll || li == at || at.list != ll {
-		return false
-	}
-
-	li.moveAfter(at.prev)
-	return true
-}
-
-// MoveAfter moves item li to its new position after at.
-// If li or at is not an item of ll, or li == at, the list is not modified.
-// The item li and at must not be nil.
-// Returns true if list is modified.
-func (ll *LinkedList) MoveAfter(at, li *LinkedListItem) bool {
-	if li.list != ll || li == at || at.list != ll {
-		return false
-	}
-
-	li.moveAfter(at)
-	return true
-}
-
-// SwapItem swap item's value of a, b.
-// If a or b is not an item of ll, or a == b, the list is not modified.
-// The item a and b must not be nil.
-// Returns true if list is modified.
-func (ll *LinkedList) SwapItem(a, b *LinkedListItem) bool {
-	if a.list != ll || a == b || b.list != ll {
-		return false
-	}
-
-	a.value, b.value = b.value, a.value
-	return true
+	ll.InsertAll(ll.len, ac)
 }
 
 // String print list to string
 func (ll *LinkedList) String() string {
 	bs, _ := json.Marshal(ll)
 	return string(bs)
+}
+
+//-----------------------------------------------------------
+func (ll *LinkedList) deleteAll(v interface{}) {
+	for ln := ll.front; ln != nil; ln = ln.next {
+		if ln.value == v {
+			ll.deleteNode(ln)
+		}
+	}
+}
+
+func (ll *LinkedList) deleteNode(ln *linkedListNode) {
+	if ln.prev == nil {
+		ll.front = ln.next
+	} else {
+		ln.prev.next = ln.next
+	}
+
+	if ln.next == nil {
+		ll.back = ln.prev
+	} else {
+		ln.next.prev = ln.prev
+	}
+
+	ll.len--
+}
+
+// node returns the node at the specified index i.
+func (ll *LinkedList) node(i int) *linkedListNode {
+	if i < (ll.len >> 1) {
+		ln := ll.front
+		for ; i > 0; i-- {
+			ln = ln.next
+		}
+		return ln
+	}
+
+	ln := ll.back
+	for i = ll.len - i - 1; i > 0; i-- {
+		ln = ln.prev
+	}
+	return ln
+}
+
+func (ll *LinkedList) checkItemIndex(index int) int {
+	if index >= ll.len || index < -ll.len {
+		panic(fmt.Sprintf("LinkedList out of bounds: index=%d, len=%d", index, ll.len))
+	}
+
+	if index < 0 {
+		index += ll.len
+	}
+	return index
+}
+
+func (ll *LinkedList) checkSizeIndex(index int) int {
+	if index > ll.len || index < -ll.len {
+		panic(fmt.Sprintf("LinkedList out of bounds: index=%d, len=%d", index, ll.len))
+	}
+
+	if index < 0 {
+		index += ll.len
+	}
+	return index
+}
+
+//-----------------------------------------------------
+// linkedListNode is a node of a doublly-linked list.
+type linkedListNode struct {
+	prev  *linkedListNode
+	next  *linkedListNode
+	value interface{}
+}
+
+// String print the list item to string
+func (ln *linkedListNode) String() string {
+	return fmt.Sprintf("%v", ln.value)
+}
+
+// linkedListIterator a iterator for linkedListNode
+type linkedListIterator struct {
+	list    *LinkedList
+	node    *linkedListNode
+	removed bool
+}
+
+// Prev moves the iterator to the previous element and returns true if there was a previous element in the container.
+// If Prev() returns true, then previous element's index and value can be retrieved by Index() and Value().
+// Modifies the state of the iterator.
+func (it *linkedListIterator) Prev() bool {
+	if it.list.IsEmpty() {
+		return false
+	}
+
+	if it.node == nil {
+		it.node = it.list.back
+		it.removed = false
+		return true
+	}
+
+	if pi := it.node.prev; pi != nil {
+		it.node = pi
+		it.removed = false
+		return true
+	}
+	return false
+}
+
+// Next moves the iterator to the next element and returns true if there was a next element in the collection.
+// If Next() returns true, then next element's value can be retrieved by Value().
+// If Next() was called for the first time, then it will point the iterator to the first element if it exists.
+// Modifies the state of the iterator.
+func (it *linkedListIterator) Next() bool {
+	if it.list.IsEmpty() {
+		return false
+	}
+
+	if it.node == nil {
+		it.node = it.list.front
+		it.removed = false
+		return true
+	}
+
+	if ni := it.node.next; ni != nil {
+		it.node = ni
+		it.removed = false
+		return true
+	}
+	return false
+}
+
+// Value returns the current element's value.
+func (it *linkedListIterator) Value() interface{} {
+	if it.node == nil {
+		return nil
+	}
+	return it.node.value
+}
+
+// SetValue set the value to the item
+func (it *linkedListIterator) SetValue(v interface{}) {
+	if it.node != nil {
+		it.node.value = v
+	}
+}
+
+// Remove remove the current element
+func (it *linkedListIterator) Remove() {
+	if it.node == nil {
+		return
+	}
+
+	if it.removed {
+		panic("LinkedList can't remove a unlinked item")
+	}
+
+	it.list.deleteNode(it.node)
+	it.removed = true
+}
+
+// Reset resets the iterator to its initial state (one-before-first/one-after-last)
+// Call Next()/Prev() to fetch the first/last element if any.
+func (it *linkedListIterator) Reset() {
+	it.node = nil
+	it.removed = false
 }
 
 //-----------------------------------------------------------

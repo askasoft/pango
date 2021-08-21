@@ -25,26 +25,26 @@ func ExampleNewLinkedHashMap() {
 		"query", "35.192.xx.xxx",
 	)
 
-	for mi := lm.Back(); mi != nil; mi = mi.Prev() {
-		fmt.Printf("%-12s: %v\n", mi.Key(), mi.Value())
+	for it := lm.Iterator(); it.Next(); {
+		fmt.Printf("%-12s: %v\n", it.Key(), it.Value())
 	}
 
 	// Output:
-	// query       : 35.192.xx.xxx
-	// proxy       : false
-	// mobile      : true
-	// as          : AS15169 Google Inc.
-	// org         : Google Cloud
-	// isp         : Google Cloud
-	// timezone    : America/Los_Angeles
-	// lon         : -122.0574
-	// lat         : 37.4192
-	// zip         : 94043
-	// city        : Mountain View
-	// regionName  : California
-	// region      : CA
-	// countryCode : US
 	// country     : United States
+	// countryCode : US
+	// region      : CA
+	// regionName  : California
+	// city        : Mountain View
+	// zip         : 94043
+	// lat         : 37.4192
+	// lon         : -122.0574
+	// timezone    : America/Los_Angeles
+	// isp         : Google Cloud
+	// org         : Google Cloud
+	// as          : AS15169 Google Inc.
+	// mobile      : true
+	// proxy       : false
+	// query       : 35.192.xx.xxx
 }
 
 func ExampleLinkedHashMap_UnmarshalJSON() {
@@ -88,9 +88,9 @@ func ExampleLinkedHashMap_UnmarshalJSON() {
 	// loop over all key-value pairs,
 	// it is ok to call Set append-modify new key-value pairs,
 	// but not safe to call Delete during iteration.
-	for mi := lm.Front(); mi != nil; mi = mi.Next() {
-		fmt.Printf("%-12s: %v\n", mi.Key(), mi.Value())
-		if mi.Key() == "city" {
+	for it := lm.Iterator(); it.Next(); {
+		fmt.Printf("%-12s: %v\n", it.Key(), it.Value())
+		if it.Key() == "city" {
 			lm.Set("mobile", false)
 			lm.Set("extra", 42)
 		}

@@ -2,6 +2,7 @@ package col
 
 import (
 	"encoding/json"
+	"fmt"
 	"sort"
 
 	"github.com/pandafw/pango/cmp"
@@ -21,45 +22,14 @@ func NewLinkedHashSet(vs ...interface{}) *LinkedHashSet {
 // (An element e is reinserted into a set s if s.Add(e) is invoked when s.Contains(e) would return true immediately prior to the invocation.)
 //
 // To iterate over a set (where ls is a *LinkedHashSet):
-//	for li := ls.Front(); li != nil; li = li.Next() {
-//		// do something with li.Value()
+//	it := ls.Iterator()
+//	for it.Next() {
+//		// do something with it.Value()
 //	}
 //
 type LinkedHashSet struct {
-	hash map[interface{}]*LinkedSetItem
-	root LinkedSetItem
-}
-
-// lazyInit lazily initializes a zero LinkedHashSet value.
-func (ls *LinkedHashSet) lazyInit() {
-	if ls.hash == nil {
-		ls.hash = make(map[interface{}]*LinkedSetItem)
-		ls.root.lset = ls
-		ls.root.next = &ls.root
-		ls.root.prev = &ls.root
-	}
-}
-
-// insertAfter inserts item with value v after item at, increments l.len, and returns v's LinkedSetItem.
-func (ls *LinkedHashSet) insertAfter(at *LinkedSetItem, v interface{}) (*LinkedSetItem, bool) {
-	if li, ok := ls.hash[v]; ok {
-		return li, false
-	}
-
-	li := &LinkedSetItem{value: v}
-	li.insertAfter(at)
-	return li, true
-}
-
-// insertBefore inserts item with value v before item at, increments l.len, and returns v's LinkedSetItem.
-func (ls *LinkedHashSet) insertBefore(at *LinkedSetItem, v interface{}) (*LinkedSetItem, bool) {
-	if li, ok := ls.hash[v]; ok {
-		return li, false
-	}
-
-	li := &LinkedSetItem{value: v}
-	li.insertAfter(at.prev)
-	return li, true
+	front, back *linkedSetNode
+	hash        map[interface{}]*linkedSetNode
 }
 
 //-----------------------------------------------------------
@@ -78,21 +48,20 @@ func (ls *LinkedHashSet) IsEmpty() bool {
 // Clear clears set ls.
 func (ls *LinkedHashSet) Clear() {
 	ls.hash = nil
-	ls.root.lset = nil
-	ls.root.next = nil
-	ls.root.prev = nil
+	ls.front = nil
+	ls.back = nil
 }
 
 // Add adds all items of vs and returns the last added item.
 // Note: existing item's order will not change.
 func (ls *LinkedHashSet) Add(vs ...interface{}) {
-	ls.PushBack(vs...)
+	ls.Insert(ls.Len(), vs...)
 }
 
 // AddAll adds all items of another collection
 // Note: existing item's order will not change.
 func (ls *LinkedHashSet) AddAll(ac Collection) {
-	ls.PushBackAll(ac)
+	ls.InsertAll(ls.Len(), ac)
 }
 
 // Delete delete all items with associated value v of vs
@@ -102,8 +71,8 @@ func (ls *LinkedHashSet) Delete(vs ...interface{}) {
 	}
 
 	for _, v := range vs {
-		if li, ok := ls.hash[v]; ok {
-			li.Remove()
+		if ln, ok := ls.hash[v]; ok {
+			ls.deleteNode(ln)
 		}
 	}
 }
@@ -122,8 +91,8 @@ func (ls *LinkedHashSet) DeleteAll(ac Collection) {
 	if ic, ok := ac.(Iterable); ok {
 		it := ic.Iterator()
 		for it.Next() {
-			if li, ok := ls.hash[it.Value()]; ok {
-				li.Remove()
+			if ln, ok := ls.hash[it.Value()]; ok {
+				ls.deleteNode(ln)
 			}
 		}
 		return
@@ -152,8 +121,12 @@ func (ls *LinkedHashSet) Contains(vs ...interface{}) bool {
 
 // ContainsAll Test to see if the collection contains all items of another collection
 func (ls *LinkedHashSet) ContainsAll(ac Collection) bool {
-	if ls == ac {
+	if ls == ac || ac.IsEmpty() {
 		return true
+	}
+
+	if ls.IsEmpty() {
+		return false
 	}
 
 	if ic, ok := ac.(Iterable); ok {
@@ -184,9 +157,9 @@ func (ls *LinkedHashSet) RetainAll(ac Collection) {
 		return
 	}
 
-	for li := ls.Front(); li != nil; li = li.Next() {
-		if !ac.Contains(li.Value()) {
-			li.Remove()
+	for ln := ls.front; ln != nil; ln = ln.next {
+		if !ac.Contains(ln.value) {
+			ls.deleteNode(ln)
 		}
 	}
 }
@@ -194,186 +167,203 @@ func (ls *LinkedHashSet) RetainAll(ac Collection) {
 // Values returns a slice contains all the items of the set ls
 func (ls *LinkedHashSet) Values() []interface{} {
 	vs := make([]interface{}, ls.Len())
-	for i, li := 0, ls.Front(); li != nil; i, li = i+1, li.Next() {
-		vs[i] = li.Value()
+	for i, ln := 0, ls.front; ln != nil; i, ln = i+1, ln.next {
+		vs[i] = ln.value
 	}
 	return vs
 }
 
 // Each call f for each item in the set
 func (ls *LinkedHashSet) Each(f func(interface{})) {
-	for li := ls.Front(); li != nil; li = li.Next() {
-		f(li.Value())
+	for ln := ls.front; ln != nil; ln = ln.next {
+		f(ln.value)
 	}
+}
+
+// ReverseEach call f for each item in the set with reverse order
+func (ls *LinkedHashSet) ReverseEach(f func(interface{})) {
+	for ln := ls.back; ln != nil; ln = ln.prev {
+		f(ln.value)
+	}
+}
+
+// Iterator returns a iterator for the set
+func (ls *LinkedHashSet) Iterator() Iterator {
+	return &linkedHashSetIterator{lset: ls}
 }
 
 //-----------------------------------------------------------
 // implements List interface (LinkedSet behave like List)
 
 // Get returns the element at the specified position in this set
-func (ls *LinkedHashSet) Get(index int) (interface{}, bool) {
-	li := ls.Item(index)
-	if li == nil {
-		return nil, false
-	}
-	return li.Value(), true
+// if i < -ls.Len() or i >= ls.Len(), panic
+// if i < 0, returns ls.Get(ls.Len() + i)
+func (ls *LinkedHashSet) Get(index int) interface{} {
+	index = ls.checkItemIndex(index)
+
+	return ls.node(index).value
 }
 
 // Set set the v at the specified index in this set and returns the old value.
-// Old item with value v will be removed.
+// Old item at index will be removed.
 func (ls *LinkedHashSet) Set(index int, v interface{}) (ov interface{}) {
-	li := ls.Item(index)
-	if li != nil {
-		ov = li.Value()
-		li.SetValue(v)
-	}
+	index = ls.checkItemIndex(index)
+
+	ln := ls.node(index)
+	ov = ln.value
+	ls.setValue(ln, v)
 	return
 }
 
+// SetValue set the value to the node
+func (ls *LinkedHashSet) setValue(ln *linkedSetNode, v interface{}) {
+	if ln.value == v {
+		return
+	}
+
+	// delete old item
+	delete(ls.hash, ln.value)
+
+	// delete duplicated item
+	if dn, ok := ls.hash[v]; ok {
+		ls.deleteNode(dn)
+	}
+
+	// add new item
+	ln.value = v
+	ls.hash[v] = ln
+}
+
 // Insert inserts values at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
-// Does not do anything if position is bigger than set's size
+// Panic if position is bigger than set's size
 // Note: position equal to set's size is valid, i.e. append.
 // Note: existing item's order will not change.
 func (ls *LinkedHashSet) Insert(index int, vs ...interface{}) {
+	index = ls.checkSizeIndex(index)
+
 	n := len(vs)
 	if n == 0 {
 		return
 	}
 
-	len := ls.Len()
-	if index < -len || index > len {
-		return
+	if ls.hash == nil {
+		ls.hash = make(map[interface{}]*linkedSetNode)
 	}
 
-	if index < 0 {
-		index += len
+	var prev, next *linkedSetNode
+	if index == ls.Len() {
+		next = nil
+		prev = ls.back
+	} else {
+		next = ls.node(index)
+		prev = next.prev
 	}
 
-	if index == len {
-		// Append
-		ls.Add(vs...)
-		return
+	for _, v := range vs {
+		if _, ok := ls.hash[v]; ok {
+			continue
+		}
+
+		nn := &linkedSetNode{prev: prev, value: v, next: nil}
+		if prev == nil {
+			ls.front = nn
+		} else {
+			prev.next = nn
+		}
+		prev = nn
+		ls.hash[v] = nn
 	}
 
-	li := ls.Item(index)
-	if li != nil {
-		ls.InsertBefore(li, vs...)
+	if next == nil {
+		ls.back = prev
+	} else if prev != nil {
+		prev.next = next
+		next.prev = prev
 	}
 }
 
 // InsertAll inserts values of another collection ac at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
-// Does not do anything if position is bigger than list's size
+// Panic if position is bigger than list's size
 // Note: position equal to list's size is valid, i.e. append.
 // Note: existing item's order will not change.
 func (ls *LinkedHashSet) InsertAll(index int, ac Collection) {
-	n := ac.Len()
-	if n == 0 {
+	index = ls.checkSizeIndex(index)
+
+	if ac.IsEmpty() || ls == ac {
 		return
 	}
 
-	len := ls.Len()
-	if index < -len || index > len {
+	if ls.hash == nil {
+		ls.hash = make(map[interface{}]*linkedSetNode)
+	}
+
+	if ic, ok := ac.(Iterable); ok {
+		var prev, next *linkedSetNode
+		if index == ls.Len() {
+			next = nil
+			prev = ls.back
+		} else {
+			next = ls.node(index)
+			prev = next.prev
+		}
+
+		it := ic.Iterator()
+		for it.Next() {
+			v := it.Value()
+			if _, ok := ls.hash[v]; ok {
+				continue
+			}
+
+			nn := &linkedSetNode{prev: prev, value: v, next: nil}
+			if prev == nil {
+				ls.front = nn
+			} else {
+				prev.next = nn
+			}
+			prev = nn
+			ls.hash[v] = nn
+		}
+
+		if next == nil {
+			ls.back = prev
+		} else if prev != nil {
+			prev.next = next
+			next.prev = prev
+		}
 		return
 	}
 
-	if index < 0 {
-		index += len
-	}
-
-	if index == len {
-		// Append
-		ls.AddAll(ac)
-		return
-	}
-
-	li := ls.Item(index)
-	if li != nil {
-		ls.InsertAllBefore(li, ac)
-	}
+	ls.Insert(index, ac.Values()...)
 }
 
-// Remove removes the item li from ls if li is an item of set ls.
-// It returns the item's value.
-// The item li must not be nil.
-func (ls *LinkedHashSet) Remove(index int) {
-	li := ls.Item(index)
-	if li != nil {
-		li.Remove()
+// Index returns the index of the specified v in this set, or -1 if this set does not contain v.
+func (ls *LinkedHashSet) Index(v interface{}) int {
+	for i, ln := 0, ls.front; ln != nil; ln = ln.next {
+		if ln.value == v {
+			return i
+		}
+		i++
 	}
+	return -1
+}
+
+// Remove removes the element at the specified position in this set.
+func (ls *LinkedHashSet) Remove(index int) {
+	index = ls.checkItemIndex(index)
+
+	ln := ls.node(index)
+	ls.deleteNode(ln)
 }
 
 // Swap swaps values of two items at the given index.
 func (ls *LinkedHashSet) Swap(i, j int) {
-	if i == j {
-		return
+	i = ls.checkItemIndex(i)
+	j = ls.checkItemIndex(j)
+
+	if i != j {
+		ni, nj := ls.node(i), ls.node(j)
+		ni.value, nj.value = nj.value, ni.value
 	}
-
-	ii := ls.Item(i)
-	ij := ls.Item(j)
-	if ii != nil && ij != nil && ii != ij {
-		ii.value, ij.value = ij.value, ii.value
-	}
-}
-
-// ReverseEach call f for each item in the set with reverse order
-func (ls *LinkedHashSet) ReverseEach(f func(interface{})) {
-	for li := ls.Back(); li != nil; li = li.Prev() {
-		f(li.Value())
-	}
-}
-
-// Iterator returns a iterator for the set
-func (ls *LinkedHashSet) Iterator() Iterator {
-	return &linkedSetItemIterator{ls, &ls.root}
-}
-
-//--------------------------------------------------------------------
-
-// Front returns the first item of set ls or nil if the set is empty.
-func (ls *LinkedHashSet) Front() *LinkedSetItem {
-	if ls.IsEmpty() {
-		return nil
-	}
-	return ls.root.next
-}
-
-// Back returns the last item of set ls or nil if the set is empty.
-func (ls *LinkedHashSet) Back() *LinkedSetItem {
-	if ls.IsEmpty() {
-		return nil
-	}
-	return ls.root.prev
-}
-
-// Item returns the item at the specified index i.
-// if i < -ls.Len() or i >= ls.Len(), returns nil
-// if i < 0, returns ls.Item(ls.Len() + i)
-func (ls *LinkedHashSet) Item(i int) *LinkedSetItem {
-	len := ls.Len()
-
-	if i < -len || i >= len {
-		return nil
-	}
-
-	if i < 0 {
-		i += len
-	}
-	if i >= len/2 {
-		return ls.Back().Offset(i + 1 - len)
-	}
-
-	return ls.Front().Offset(i)
-}
-
-// Search looks for the given v, and returns the item associated with it,
-// or nil if not found. The LinkedSetItem struct can then be used to iterate over the linked set
-// from that point, either forward or backward.
-func (ls *LinkedHashSet) Search(v interface{}) *LinkedSetItem {
-	li, ok := ls.hash[v]
-	if ok {
-		return li
-	}
-	return nil
 }
 
 // Sort Sorts this set according to the order induced by the specified Comparator.
@@ -384,221 +374,251 @@ func (ls *LinkedHashSet) Sort(less cmp.Less) {
 	sort.Sort(&sorter{ls, less})
 }
 
-// PushBack inserts all items of vs at the back of list ll.
-// returns the last inserted item.
-// Note: existing item's order will not change.
-func (ls *LinkedHashSet) PushBack(vs ...interface{}) *LinkedSetItem {
+//--------------------------------------------------------------------
+
+// Front returns the first item of list ls or nil if the list is empty.
+func (ls *LinkedHashSet) Front() interface{} {
+	if ls.front == nil {
+		return nil
+	}
+	return ls.front.value
+}
+
+// Back returns the last item of list ls or nil if the list is empty.
+func (ls *LinkedHashSet) Back() interface{} {
+	if ls.back == nil {
+		return nil
+	}
+	return ls.back.value
+}
+
+// PopFront remove the first item of list.
+func (ls *LinkedHashSet) PopFront() (v interface{}) {
+	if ls.front != nil {
+		v = ls.front.value
+		ls.deleteNode(ls.front)
+	}
+	return
+}
+
+// PopBack remove the last item of list.
+func (ls *LinkedHashSet) PopBack() (v interface{}) {
+	if ls.back != nil {
+		v = ls.back.value
+		ls.deleteNode(ls.back)
+	}
+	return
+}
+
+// PushFront inserts all items of vs at the front of list ls.
+func (ls *LinkedHashSet) PushFront(vs ...interface{}) {
 	if len(vs) == 0 {
-		return nil
+		return
 	}
 
-	ls.lazyInit()
-	return ls.InsertBefore(&ls.root, vs...)
+	ls.Insert(0, vs...)
 }
 
-// PushBackAll inserts a copy of another collection at the back of list ll.
-// The ll and ac may be the same. They must not be nil.
-// Note: existing item's order will not change.
-func (ls *LinkedHashSet) PushBackAll(ac Collection) *LinkedSetItem {
-	if ac.IsEmpty() {
-		return nil
+// PushFrontAll inserts a copy of another collection at the front of list ls.
+// The ls and ac may be the same. They must not be nil.
+func (ls *LinkedHashSet) PushFrontAll(ac Collection) {
+	if ac.IsEmpty() || ls == ac {
+		return
 	}
 
-	ls.lazyInit()
-	return ls.InsertAllBefore(&ls.root, ac)
+	ls.InsertAll(0, ac)
 }
 
-// PushFront inserts all items of vs at the front of list ll.
-// returns the last inserted item.
-// Note: existing item's order will not change.
-func (ls *LinkedHashSet) PushFront(vs ...interface{}) *LinkedSetItem {
+// PushBack inserts all items of vs at the back of list ls.
+func (ls *LinkedHashSet) PushBack(vs ...interface{}) {
 	if len(vs) == 0 {
-		return nil
-	}
-
-	ls.lazyInit()
-	return ls.InsertAfter(&ls.root, vs...)
-}
-
-// PushFrontAll inserts a copy of another collection at the front of list ll.
-// The ll and ac may be the same. They must not be nil.
-// Note: existing item's order will not change.
-func (ls *LinkedHashSet) PushFrontAll(ac Collection) *LinkedSetItem {
-	if ac.IsEmpty() {
-		return nil
-	}
-
-	ls.lazyInit()
-	return ls.InsertAllAfter(&ls.root, ac)
-}
-
-// InsertAfter inserts all items of vs immediately after the item at and returns the last inserted item li.
-// If at is not an item of ll, the list is not modified.
-// The at must not be nil.
-// Note: existing item's order will not change.
-func (ls *LinkedHashSet) InsertAfter(at *LinkedSetItem, vs ...interface{}) (li *LinkedSetItem) {
-	if at.lset != ls || len(vs) == 0 {
 		return
 	}
 
-	var ok bool
-	for _, v := range vs {
-		if li, ok = ls.insertAfter(at, v); ok {
-			at = li
-		}
-	}
-	return
+	ls.Insert(ls.Len(), vs...)
 }
 
-// InsertAllAfter inserts all items of another collection ac immediately after the item at and returns the last inserted item li.
-// If at is not an item of ll, the list is not modified.
-// The at must not be nil.
-// Note: existing item's order will not change.
-func (ls *LinkedHashSet) InsertAllAfter(at *LinkedSetItem, ac Collection) *LinkedSetItem {
-	if at.lset != ls || ac.IsEmpty() {
-		return nil
-	}
-
-	if ic, ok := ac.(Iterable); ok {
-		return ls.insertIterAfter(at, ic.Iterator(), ac.Len())
-	}
-	return ls.InsertAfter(at, ac.Values()...)
-}
-
-// insertIterAfter inserts max n items of iterator it immediately after the item at and returns the last inserted item li.
-// If at is not an item of ll, the list is not modified.
-// The at must not be nil.
-// Note: existing item's order will not change.
-func (ls *LinkedHashSet) insertIterAfter(at *LinkedSetItem, it Iterator, n int) (li *LinkedSetItem) {
-	if at.lset != ls || n < 1 {
+// PushBackAll inserts a copy of another collection at the back of list ls.
+// The ls and ac may be the same. They must not be nil.
+func (ls *LinkedHashSet) PushBackAll(ac Collection) {
+	if ac.IsEmpty() || ls == ac {
 		return
 	}
 
-	var ok bool
-	for ; it.Next() && n > 0; n-- {
-		if li, ok = ls.insertAfter(at, it.Value()); ok {
-			at = li
-		}
-	}
-	return
+	ls.InsertAll(ls.Len(), ac)
 }
 
-// InsertBefore inserts all items of vs immediately before the item at and returns the last inserted item li.
-// If at is not an item of ll, the list is not modified.
-// The at must not be nil.
-// Note: existing item's order will not change.
-func (ls *LinkedHashSet) InsertBefore(at *LinkedSetItem, vs ...interface{}) (li *LinkedSetItem) {
-	if at.lset != ls || len(vs) == 0 {
-		return
-	}
-
-	for _, v := range vs {
-		li, _ = ls.insertBefore(at, v)
-	}
-	return
-}
-
-// InsertAllBefore inserts all items of another collection immediately before the item at and returns the last inserted item li.
-// If at is not an item of ll, the list is not modified.
-// The at must not be nil.
-// Note: existing item's order will not change.
-func (ls *LinkedHashSet) InsertAllBefore(at *LinkedSetItem, ac Collection) *LinkedSetItem {
-	if at.lset != ls || ac.IsEmpty() {
-		return nil
-	}
-
-	if ic, ok := ac.(Iterable); ok {
-		return ls.insertIterBefore(at, ic.Iterator(), ac.Len())
-	}
-
-	return ls.InsertBefore(at, ac.Values()...)
-}
-
-// insertIterBefore inserts max n items's value before the item at and returns the last inserted item li.
-// If at is not an item of ll, the list is not modified.
-// The at must not be nil.
-// Note: existing item's order will not change.
-func (ls *LinkedHashSet) insertIterBefore(at *LinkedSetItem, it Iterator, n int) (li *LinkedSetItem) {
-	if at.lset != ls || n < 1 {
-		return
-	}
-
-	ls.lazyInit()
-	for ; it.Next() && n > 0; n-- {
-		li, _ = ls.insertBefore(at, it.Value())
-	}
-	return
-}
-
-// MoveToFront moves item li to the front of set ls.
-// If li is not an item of ls, the set is not modified.
-// The item li must not be nil.
-// Returns true if set is modified.
-func (ls *LinkedHashSet) MoveToFront(li *LinkedSetItem) bool {
-	if li.lset != ls || ls.root.next == li {
-		return false
-	}
-
-	li.moveAfter(&ls.root)
-	return true
-}
-
-// MoveToBack moves item li to the back of set ls.
-// If li is not an item of ls, the set is not modified.
-// The item li must not be nil.
-// Returns true if set is modified.
-func (ls *LinkedHashSet) MoveToBack(li *LinkedSetItem) bool {
-	if li.lset != ls || ls.root.prev == li {
-		return false
-	}
-
-	li.moveAfter(ls.root.prev)
-	return true
-}
-
-// MoveBefore moves item li to its new position before at.
-// If li or at is not an item of ls, or li == at, the set is not modified.
-// The item li and at must not be nil.
-// Returns true if set is modified.
-func (ls *LinkedHashSet) MoveBefore(at, li *LinkedSetItem) bool {
-	if li.lset != ls || li == at || at.lset != ls {
-		return false
-	}
-
-	li.moveAfter(at.prev)
-	return true
-}
-
-// MoveAfter moves item li to its new position after at.
-// If li or at is not an item of ls, or li == at, the set is not modified.
-// The item li and at must not be nil.
-// Returns true if set is modified.
-func (ls *LinkedHashSet) MoveAfter(at, li *LinkedSetItem) bool {
-	if li.lset != ls || li == at || at.lset != ls {
-		return false
-	}
-
-	li.moveAfter(at)
-	return true
-}
-
-// SwapItem swap item's value of a, b.
-// If a or b is not an item of ls, or a == b, the set is not modified.
-// The item a and b must not be nil.
-// Returns true if set is modified.
-func (ls *LinkedHashSet) SwapItem(a, b *LinkedSetItem) bool {
-	if a.lset != ls || a == b || b.lset != ls {
-		return false
-	}
-
-	a.value, b.value = b.value, a.value
-	return true
-}
-
-// String print set to string
+// String print list to string
 func (ls *LinkedHashSet) String() string {
 	bs, _ := json.Marshal(ls)
 	return string(bs)
+}
+
+//-----------------------------------------------------------
+func (ls *LinkedHashSet) deleteNode(ln *linkedSetNode) {
+	if ln.prev == nil {
+		ls.front = ln.next
+	} else {
+		ln.prev.next = ln.next
+	}
+
+	if ln.next == nil {
+		ls.back = ln.prev
+	} else {
+		ln.next.prev = ln.prev
+	}
+
+	delete(ls.hash, ln.value)
+}
+
+// node returns the node at the specified index i.
+func (ls *LinkedHashSet) node(i int) *linkedSetNode {
+	if i < (ls.Len() >> 1) {
+		ln := ls.front
+		for ; i > 0; i-- {
+			ln = ln.next
+		}
+		return ln
+	}
+
+	ln := ls.back
+	for i = ls.Len() - i - 1; i > 0; i-- {
+		ln = ln.prev
+	}
+	return ln
+}
+
+func (ls *LinkedHashSet) checkItemIndex(index int) int {
+	len := ls.Len()
+	if index >= len || index < -len {
+		panic(fmt.Sprintf("LinkedHashSet out of bounds: index=%d, len=%d", index, len))
+	}
+
+	if index < 0 {
+		index += len
+	}
+	return index
+}
+
+func (ls *LinkedHashSet) checkSizeIndex(index int) int {
+	len := ls.Len()
+	if index > len || index < -len {
+		panic(fmt.Sprintf("LinkedHashSet out of bounds: index=%d, len=%d", index, len))
+	}
+
+	if index < 0 {
+		index += len
+	}
+	return index
+}
+
+//-----------------------------------------------------
+// linkedSetNode is a node of a doublly-linked list.
+type linkedSetNode struct {
+	prev  *linkedSetNode
+	next  *linkedSetNode
+	value interface{}
+}
+
+// String print the list item to string
+func (ln *linkedSetNode) String() string {
+	return fmt.Sprintf("%v", ln.value)
+}
+
+// linkedHashSetIterator a iterator for linkedSetNode
+type linkedHashSetIterator struct {
+	lset    *LinkedHashSet
+	node    *linkedSetNode
+	removed bool
+}
+
+// Prev moves the iterator to the previous element and returns true if there was a previous element in the container.
+// If Prev() returns true, then previous element's index and value can be retrieved by Index() and Value().
+// Modifies the state of the iterator.
+func (it *linkedHashSetIterator) Prev() bool {
+	if it.lset.IsEmpty() {
+		return false
+	}
+
+	if it.node == nil {
+		it.node = it.lset.back
+		it.removed = false
+		return true
+	}
+
+	if pi := it.node.prev; pi != nil {
+		it.node = pi
+		it.removed = false
+		return true
+	}
+	return false
+}
+
+// Next moves the iterator to the next element and returns true if there was a next element in the collection.
+// If Next() returns true, then next element's value can be retrieved by Value().
+// If Next() was called for the first time, then it will point the iterator to the first element if it exists.
+// Modifies the state of the iterator.
+func (it *linkedHashSetIterator) Next() bool {
+	if it.lset.IsEmpty() {
+		return false
+	}
+
+	if it.node == nil {
+		it.node = it.lset.front
+		it.removed = false
+		return true
+	}
+
+	if ni := it.node.next; ni != nil {
+		it.node = ni
+		it.removed = false
+		return true
+	}
+	return false
+}
+
+// Value returns the current element's value.
+func (it *linkedHashSetIterator) Value() interface{} {
+	if it.node == nil {
+		return nil
+	}
+	return it.node.value
+}
+
+// SetValue set the value to the item
+func (it *linkedHashSetIterator) SetValue(v interface{}) {
+	if it.node == nil {
+		return
+	}
+
+	if it.removed {
+		// unlinked item
+		it.node.value = v
+		return
+	}
+
+	it.lset.setValue(it.node, v)
+}
+
+// Remove remove the current element
+func (it *linkedHashSetIterator) Remove() {
+	if it.node == nil {
+		return
+	}
+
+	if it.removed {
+		panic("LinkedHashSet can't remove a unlinked item")
+	}
+
+	it.lset.deleteNode(it.node)
+	it.removed = true
+}
+
+// Reset resets the iterator to its initial state (one-before-first/one-after-last)
+// Call Next()/Prev() to fetch the first/last element if any.
+func (it *linkedHashSetIterator) Reset() {
+	it.node = nil
+	it.removed = false
 }
 
 //-----------------------------------------------------------

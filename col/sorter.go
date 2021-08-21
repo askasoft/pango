@@ -9,7 +9,7 @@ type sortable interface {
 	Len() int
 
 	// Get returns the value at the specified index in this list
-	Get(index int) (interface{}, bool)
+	Get(index int) interface{}
 
 	// Swap swaps values of two items at the given index.
 	Swap(i, j int)
@@ -30,7 +30,7 @@ func (ss *sorter) Swap(i, j int) {
 }
 
 func (ss *sorter) Less(i, j int) bool {
-	vi, _ := ss.scol.Get(i)
-	vj, _ := ss.scol.Get(j)
+	vi := ss.scol.Get(i)
+	vj := ss.scol.Get(j)
 	return ss.less(vi, vj)
 }

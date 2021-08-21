@@ -14,12 +14,22 @@ func TestHashMapInterface(t *testing.T) {
 }
 
 func TestHashMapAsHashMap(t *testing.T) {
-	hm := AsHashMap(map[interface{}]interface{}{
+	m := map[interface{}]interface{}{
 		"a": 1,
 		"b": 2,
-	})
-	if hm.Len() != 2 {
-		t.Error("hm.Len() != 2")
+	}
+	hm := AsHashMap(m)
+
+	if hm.Len() != len(m) {
+		t.Fatal("hm.Len() != len(m)")
+	}
+	hm.Clear()
+
+	if hm.Len() != 0 {
+		t.Fatal("hm.Len() != 0")
+	}
+	if hm.Len() != len(m) {
+		t.Fatal("hm.Len() != len(m)")
 	}
 }
 

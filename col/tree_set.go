@@ -316,6 +316,12 @@ func (ts *TreeSet) setValue(tn *treeSetNode, v interface{}) *treeSetNode {
 		return tn
 	}
 
+	// compare equals, just set the node's value
+	if ts.compare(v, tn.value) == 0 {
+		tn.value = v
+		return tn
+	}
+
 	// delete and insert again
 	ts.deleteNode(tn)
 	return ts.add(v)

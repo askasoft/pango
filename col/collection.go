@@ -1,5 +1,13 @@
 package col
 
+import "github.com/pandafw/pango/cmp"
+
+// Sortable a value each interface for collection
+type Sortable interface {
+	// Sorts this container according to the order induced by the specified Comparator.
+	Sort(less cmp.Less)
+}
+
 // Container the base container interface
 type Container interface {
 	// Len returns the length of the container.
@@ -49,7 +57,7 @@ type Collection interface {
 // Set a set interface
 type Set = Collection
 
-// List a double linked list interface
+// List a doubly linked list interface
 type List interface {
 	Collection
 

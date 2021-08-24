@@ -17,6 +17,11 @@ func TestLinkedListInterface(t *testing.T) {
 	if l == nil {
 		t.Error("LinkedList is not a List")
 	}
+
+	var st Sortable = NewLinkedList()
+	if st == nil {
+		t.Error("LinkedList is not a Sortable")
+	}
 }
 
 func TestLinkedListNew(t *testing.T) {

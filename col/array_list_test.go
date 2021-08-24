@@ -17,6 +17,11 @@ func TestArrayListInterface(t *testing.T) {
 	if l == nil {
 		t.Error("ArrayList is not a List")
 	}
+
+	var s Sortable = NewArrayList()
+	if s == nil {
+		t.Error("ArrayList is not a Sortable")
+	}
 }
 
 func TestArrayListRoundup(t *testing.T) {

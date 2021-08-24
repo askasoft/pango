@@ -18,6 +18,11 @@ func TestLinkedHashSetInterface(t *testing.T) {
 	if s == nil {
 		t.Error("LinkedHashSet is not a Set")
 	}
+
+	var st Sortable = NewLinkedHashSet()
+	if st == nil {
+		t.Error("LinkedHashSet is not a Sortable")
+	}
 }
 
 func TestLinkedHashSetNew(t *testing.T) {

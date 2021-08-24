@@ -7,7 +7,7 @@ import (
 // Compare will make type assertion (see CompareString(a,b) for example),
 // which will panic if a or b are not of the asserted type.
 //
-// Should return a number:
+// Should return a int:
 //    negative , if a < b
 //    zero     , if a == b
 //    positive , if a > b

@@ -7,25 +7,36 @@
 
 Pango is a GO development utility library.
 
-* col				- a Collection/Container package
-* ini				- a INI file read/write package
-* iox				- a IO utility package
-* iox/fswatch		- recursive directory notifications built as a wrapper around fsnotify (golang)
-* log				- a Log like Log4j
-* net/email			- a email sender package
-* net/httpx			- a package for http
-* net/slack			- a slack webhook sender package
-* str				- a strings package wrapper and provides some useful utility functions
-* tpl				- a text/template, html/template wrapper for recursively load template file
-* x/ginx/gindump	- a http request/response dumper middleware for gin
-* x/ginx/ginfile	- a static file handler with Cache-Control header support for gin
-* x/ginx/gingzip	- a gzip encoding support middleware for gin
-* x/ginx/ginlog		- a access logger middleware for gin
+| **Package**                     | **Description**                         |
+| :------------------------------- | :-------------------------------------- |
+| [cmp](#compare)                  | a Compare/Less helper functions package |
+| [col](#col-collectioncontainer)  | a Collection/Container package          |
+| [ini](#int)                      | a INI file read/write package           |
+| iox                              | a IO utility package                    |
+| [iox/fswatch](#ioxfswatch)       | recursive directory notifications built as a wrapper around fsnotify (golang) |
+| [log](#log)                      | a Log like Log4j                        |
+| [net/email](#netemail)           | a email sender package                  |
+| [net/httpx](#nethttpx)           | a package for http                      |
+| [net/slack](#netslack)           | a slack webhook sender package          |
+| [str](#str)                      | a strings package wrapper and provides some useful utility functions      |
+| [tpl](#tpl)                      | a text/template, html/template wrapper for recursively load template file |
+| [x/ginx/gindump](#xginxgindump)  | a http request/response dumper middleware for gin                         |
+| [x/ginx/ginfile](#xginxginfile)  | a static file handler with Cache-Control header support for gin           |
+| [x/ginx/gingzip](#xginxginzip)   | a gzip encoding support middleware for gin                                |
+| [x/ginx/ginlog](#xginxginlog)    | a access logger middleware for gin                                        |
+
+
+### How to install?
+
+	go get github.com/pandafw/pango
+
 
 
  col (Collection/Container)
 -----------------------------------------------------------------------
 All data structures implement the container interface with the following methods:
+
+### Container
 
 ```go
 // Container the base container interface
@@ -43,19 +54,21 @@ type Container interface {
 
 Containers are either ordered or unordered. All ordered containers provide [stateful iterators](#iterator).
 
-| **Structure** | **Ordered** | **[Iterator](#iterator)** |
-| :--- | :---: | :---: | :---: |
-| [ArrayList](#arraylist)         | yes | yes |
-| [HashSet](#hashset)             | no  | no   |
-| [LinkedHashSet](#linkedhashset) | yes | yes |
-| [TreeSet](#treeset)             | yes | yes |
-| [HashMap](#hashmap)             | no  | no   |
-| [LinkedHashMap](#linkedhashmap) | yes | yes |
-| [TreeMap](#treemap)             | yes | yes |
+| **Structure**                   | **Ordered** | **Iterator** | **Sortable** |
+| :------------------------------ | :---------: | :----------: | :----------: |
+| [ArrayList](#arraylist)         |      Y      |      Y       |      Y       |
+| [LinkedList](#linkedlist)       |             |      Y       |      Y       |
+| [SortedList](#sortedlist)       |      Y      |      Y       |              |
+| [HashSet](#hashset)             |             |              |              |
+| [LinkedHashSet](#linkedhashset) |      Y      |      Y       |      Y       |
+| [TreeSet](#treeset)             |      Y      |      Y       |              |
+| [HashMap](#hashmap)             |             |              |              |
+| [LinkedHashMap](#linkedhashmap) |      Y      |      Y       |              |
+| [TreeMap](#treemap)             |      Y      |      Y       |              |
 
 
 ### Collection
-Base interface for [List](#list)/[Set](#set).
+Base interface for [List](#list) and [Set](#set).
 
 Extends [Container](#container) interface.
 
@@ -140,7 +153,7 @@ type List interface {
 
 #### ArrayList
 
-A [list](#lists) backed by a dynamic array that grows implicitly.
+A [list](#list) backed by a dynamic array that grows implicitly.
 
 Implements [List](#list), [Iterator](#iterator) interfaces.
 
@@ -157,8 +170,8 @@ func main() {
 	list.Add("a")                         // ["a"]
 	list.Add("c", "b")                    // ["a","c","b"]
 	list.Sort(cmp.LessString)             // ["a","b","c"]
-	_, _ = list.Get(0)                    // "a"
-	_, _ = list.Get(100)                  // panic
+	_ = list.Get(0)                       // "a"
+	_ = list.Get(100)                     // panic
 	_ = list.Contains("a", "b", "c")      // true
 	_ = list.Contains("a", "b", "c", "d") // false
 	list.Swap(0, 1)                       // ["b","a",c"]
@@ -177,7 +190,7 @@ func main() {
 
 #### LinkedList
 
-A [list](#lists) where each element points to the next and previous elements in the list.
+A [list](#list) where each element points to the next and previous elements in the list.
 
 Implements [List](#list), [Iterator](#iterator) interfaces.
 
@@ -194,8 +207,8 @@ func main() {
 	list.Add("a")                         // ["a"]
 	list.Add("c", "b")                    // ["a","c","b"]
 	list.Sort(cmp.LessString)             // ["a","b","c"]
-	_, _ = list.Get(0)                    // "a"
-	_, _ = list.Get(100)                  // panic
+	_ = list.Get(0)                       // "a"
+	_ = list.Get(100)                     // panic
 	_ = list.Contains("a", "b", "c")      // true
 	_ = list.Contains("a", "b", "c", "d") // false
 	list.Swap(0, 1)                       // ["b","a",c"]
@@ -211,6 +224,39 @@ func main() {
 	list.Insert(0, "a")                   // ["a","b"]
 }
 ```
+
+#### SortedList
+
+A [list](#list) where each element points to the next and previous elements in the list and automatically keep the elements ordered with respect to the comparator.
+
+Implements [List](#list), [Iterator](#iterator) interfaces.
+
+```go
+package main
+
+import (
+	"github.com/pandafw/pango/col"
+	"github.com/pandafw/pango/cmp"
+)
+
+func main() {
+	list := NewSortedList(cmp.LessInt) // empty (keys are of type int)
+	list.Add(1)                        // 1
+	list.Add(2, 2, 3, 4, 5)            // 1, 2, 2, 3, 4, 5 (in order)
+	_ = list.Get(0)                    // 1
+	_ = list.Get(100)                  // panic
+	list.Delete(4)                     // 1, 2, 2, 3, 5 (in order)
+	list.Delete(2, 3)                  // 1, 5 (in order)
+	list.Contains(1)                   // true
+	list.Contains(1, 5)                // true
+	list.Contains(1, 6)                // false
+	_ = list.Values()                  // []int{1,5} (in order)
+	list.Clear()                       // empty
+	list.IsEmpty()                     // true
+	list.Len()                         // 0
+}
+```
+
 
 ### Set
 
@@ -450,9 +496,53 @@ func main() {
 }
 ```
 
-## Functions
+### Iterator
 
-Various helper functions used throughout the library.
+All ordered containers have stateful iterators. Typically an iterator is obtained by _Iterator()_ function of an ordered container. Once obtained, iterator's _Next()_ function moves the iterator to the next element and returns true if there was a next element. If there was an element, then element's can be obtained by iterator's _Value()_ function.
+
+Note: it is unsafe to use Iterator.Remove() element or Iterator.SetValue() while iterating, 
+but the iterator's Prev()/Next() may be different after SetValue().
+
+Typical usage:
+```go
+// forward
+for it := list.Iterator(); it.Next(); {
+	value := it.Value()
+	...
+}
+
+// backward
+for it := list.Iterator(); it.Prev(); {
+	value := it.Value()
+	...
+}
+```
+
+### Iterator2
+
+All ordered maps have stateful iterators. Typically an iterator is obtained by _Iterator()_ function of an ordered map. Once obtained, iterator's _Next()_ function moves the iterator to the next element and returns true if there was a next element. If there was an element, then element's can be obtained by iterator's _Key()_, _Value()_ function.
+
+Note: it is unsafe to use Iterator.Remove() element or Iterator.SetValue() while iterating.
+
+Typical usage:
+```go
+// forward
+for it := list.Iterator(); it.Next(); {
+	key, value := it.Key(), it.Value()
+	...
+}
+
+// backward
+for it := list.Iterator(); it.Prev(); {
+	key, value := it.Key(), it.Value()
+	...
+}
+```
+
+ Compare
+-----------------------------------------------------------------------
+
+Various helper functions used by [Collection](colcontainercollection) package.
 
 ### Comparator
 
@@ -460,12 +550,11 @@ Some data structures (e.g. TreeMap, TreeSet) require a comparator function to au
 
 Comparator is defined as:
 
-Return values (int):
-
 ```go
-negative , if a < b
-zero     , if a == b
-positive , if a > b
+// Should return a int:
+//   negative : if a < b
+//   zero     : if a == b
+//   positive : if a > b
 ```
 
 Comparator signature:
@@ -474,7 +563,7 @@ Comparator signature:
 type Compare func(a, b interface{}) int
 ```
 
-All common comparators for builtin types are included in the library:
+All common comparators for builtin types are included in the package:
 
 ```go
 func CompareString(a, b interface{}) int
@@ -538,51 +627,44 @@ func main() {
 }
 ```
 
-### Iterator
+### Less
 
-All ordered containers have stateful iterators. Typically an iterator is obtained by _Iterator()_ function of an ordered container. Once obtained, iterator's _Next()_ function moves the iterator to the next element and returns true if there was a next element. If there was an element, then element's can be obtained by iterator's _Value()_ function.
+Some data structures (e.g. SortedList) require a Less compare function to automatically keep their elements sorted upon insertion. 
+This comparator is necessary during the initalization. 
+Some data structures require a less compare function to sort it's elements (e.g. ArrayList.Sort()).
 
-Note: it is unsafe to use Iterator.Remove() element or Iterator.SetValue() while iterating, 
-but the iterator's Prev()/Next() may be different after SetValue().
+Less comparator is defined as:
 
-Typical usage:
 ```go
-// forward
-it := list.Iterator()
-for it.Next() {
-	value := it.Value()
-	...
-}
-
-// backward
-it := list.Iterator()
-for it.Prev() {
-	value := it.Value()
-	...
-}
+// Should return a bool:
+//    true : if a < b
+//    false: if a >= b
 ```
 
-### Iterator2
+Comparator signature:
 
-All ordered maps have stateful iterators. Typically an iterator is obtained by _Iterator()_ function of an ordered map. Once obtained, iterator's _Next()_ function moves the iterator to the next element and returns true if there was a next element. If there was an element, then element's can be obtained by iterator's _Key()_, _Value()_ function.
-
-Note: it is unsafe to use Iterator.Remove() element or Iterator.SetValue() while iterating.
-
-Typical usage:
 ```go
-// forward
-it := list.Iterator()
-for it.Next() {
-	key, value := it.Key(), it.Value()
-	...
-}
+type Less func(a, b interface{}) bool
+```
 
-// backward
-it := list.Iterator()
-for it.Prev() {
-	key, value := it.Key(), it.Value()
-	...
-}
+All common comparators for builtin types are included in the package:
+
+```go
+func LessString(a, b interface{}) bool
+func LessByte(a, b interface{}) bool
+func LessRune(a, b interface{}) bool
+func LessInt(a, b interface{}) bool
+func LessInt8(a, b interface{}) bool
+func LessInt16(a, b interface{}) bool
+func LessInt32(a, b interface{}) bool
+func LessInt64(a, b interface{}) bool
+func LessUint(a, b interface{}) bool
+func LessUint8(a, b interface{}) bool
+func LessUint16(a, b interface{}) bool
+func LessUint32(a, b interface{}) bool
+func LessUint64(a, b interface{}) bool
+func LessFloat32(a, b interface{}) bool
+func LessFloat64(a, b interface{}) bool
 ```
 
 
@@ -613,11 +695,6 @@ it allows you to monitor all folders underneath the folder you specify.
  log
 -----------------------------------------------------------------------
 log is a Go log manager. It can use many log writers. This package is inspired by https://github.com/pandafw/panda/tree/master/panda-core/src/main/java/panda/log .
-
-
-### How to install?
-
-	go get github.com/pandafw/pango
 
 
 ### What writers are supported?

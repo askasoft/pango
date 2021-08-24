@@ -2,13 +2,13 @@ package col
 
 // Container the base container interface
 type Container interface {
-	// Len returns the length of the collection.
+	// Len returns the length of the container.
 	Len() int
 
-	// IsEmpty returns true if the collection length == 0
+	// IsEmpty returns true if the container length == 0
 	IsEmpty() bool
 
-	// Clear clears the collection
+	// Clear clears the container
 	Clear()
 }
 

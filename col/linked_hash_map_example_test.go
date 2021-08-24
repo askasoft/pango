@@ -5,6 +5,21 @@ import (
 	"fmt"
 )
 
+func ExampleLinkedHashMap() {
+	m := NewLinkedHashMap() // empty (keys are of type int)
+	m.Set(2, "b")           // 2->b
+	m.Set(1, "x")           // 2->b, 1->x (insertion-order)
+	m.Set(1, "a")           // 2->b, 1->a (insertion-order)
+	_, _ = m.Get(2)         // b, true
+	_, _ = m.Get(3)         // nil, false
+	_ = m.Values()          // []interface {}{"b", "a"} (insertion-order)
+	_ = m.Keys()            // []interface {}{2, 1} (insertion-order)
+	m.Delete(1)             // 2->b
+	m.Clear()               // empty
+	m.IsEmpty()             // true
+	m.Len()                 // 0
+}
+
 func ExampleNewLinkedHashMap() {
 	// initialize from a list of key-value pairs
 	lm := NewLinkedHashMap(

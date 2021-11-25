@@ -38,7 +38,7 @@ func (log *Log) configJSON(filename string) error {
 	}
 
 	async := 0
-	if async, err = log.configGetLogAsync(c); err != nil {
+	if async, err = log.configGetIntValue(c, "async"); err != nil {
 		return err
 	}
 	if err := log.configLogFormat(c); err != nil {
@@ -79,7 +79,7 @@ func (log *Log) configINI(filename string) (err error) {
 	c := ini.Section("").Map()
 
 	async := 0
-	if async, err = log.configGetLogAsync(c); err != nil {
+	if async, err = log.configGetIntValue(c, "async"); err != nil {
 		return err
 	}
 	if err = log.configLogFormat(c); err != nil {
@@ -125,12 +125,12 @@ func (log *Log) configINI(filename string) (err error) {
 	return nil
 }
 
-func (log *Log) configGetLogAsync(m map[string]interface{}) (int, error) {
-	if v, ok := m["async"]; ok {
+func (log *Log) configGetIntValue(m map[string]interface{}, k string) (int, error) {
+	if v, ok := m[k]; ok {
 		if v != nil {
 			n, err := ref.Convert(v, reflect.TypeOf(int(0)))
 			if err != nil {
-				return 0, fmt.Errorf("Invalid async value %v: %s", v, err.Error())
+				return 0, fmt.Errorf("Invalid %s value %v: %s", k, v, err.Error())
 			}
 			return n.(int), nil
 		}
@@ -171,7 +171,7 @@ func (log *Log) configLogLevels(lls map[string]interface{}) error {
 	return nil
 }
 
-func (log *Log) configLogWriter(a []interface{}, async int) error {
+func (log *Log) configLogWriter(a []interface{}, async int) (err error) {
 	var ws []Writer
 	for _, i := range a {
 		if c, ok := i.(map[string]interface{}); ok {
@@ -180,8 +180,16 @@ func (log *Log) configLogWriter(a []interface{}, async int) error {
 				if w == nil {
 					return fmt.Errorf("Invalid writer name: %v", n)
 				}
-				if err := ConfigWriter(w, c); err != nil {
+				if err = ConfigWriter(w, c); err != nil {
 					return err
+				}
+
+				a := 0
+				if a, err = log.configGetIntValue(c, "_async"); err != nil {
+					return err
+				}
+				if a > 0 {
+					w = NewAsyncWriter(w, a)
 				}
 				ws = append(ws, w)
 			} else {

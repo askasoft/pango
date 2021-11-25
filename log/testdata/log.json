@@ -1,5 +1,4 @@
 {
-	"async": 1000,
 	"format": "text:%l %S %F() - %m%n%T",
 	"level": {
 		"*": "info",
@@ -17,6 +16,7 @@
 		"filter": "level:error"
 	}, {
 		"_": "conn",
+		"_async": 1000,
 		"net": "tcp",
 		"addr": "localhost:9999",
 		"timeout": "5s",
@@ -24,6 +24,7 @@
 		"filter": "level:error"
 	}, {
 		"_": "file",
+		"_async": 1000,
 		"path": "/tmp/gotest/logs/test.log",
 		"dirPerm": 511,
 		"maxDays": 7,
@@ -32,6 +33,7 @@
 		"filter": "level:error"
 	}, {
 		"_": "slack",
+		"_async": 1000,
 		"subject": "%l - %m", 
 		"channel": "develop",
 		"username": "gotest",
@@ -41,6 +43,7 @@
 		"filter": "level:error"
 	}, {
 		"_": "smtp",
+		"_async": 1000,
 		"host": "localhost",
 		"port": 25,
 		"username": "-----",
@@ -54,6 +57,7 @@
 		"filter": "level:error"
 	}, {
 		"_": "webhook",
+		"_async": 1000,
 		"webhook": "http://localhost:9200/pango/logs",
 		"contentType": "application/json",
 		"timeout": "5s",

@@ -838,10 +838,10 @@ Configure like this:
 ```ini
 # log configuration #
 
-### log async ###
-async = 1000
+### global log async ###
+#async = 1000
 
-### log format ###
+### global log format ###
 #format=json:{"level":%l, "file":%S, "func":%F, "msg": %m}%n
 format=text:%l %S %F() - %m%n%T
 
@@ -861,6 +861,7 @@ filter = name:out level:debug
 
 ### tcp writer ###
 [writer.tcp]
+_async = 1000
 addr = localhost:9999
 timeout = 5s
 format = %l - %m%n%T
@@ -877,6 +878,7 @@ filter = level:error
 
 ### slack writer ###
 [writer.slack]
+_async = 1000
 subject = %l - %m 
 channel = develop
 username = gotest
@@ -887,6 +889,7 @@ filter = level:error
 
 ### smtp writer ###
 [writer.smtp]
+_async = 1000
 host = localhost
 port = 25
 username = -----
@@ -901,6 +904,7 @@ filter = level:error
 
 ### webhook writer ###
 [writer.webhook]
+_async = 1000
 webhook = http://localhost:9200/pango/logs
 contentType = application/json
 timeout = 5s

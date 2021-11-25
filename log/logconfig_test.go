@@ -46,12 +46,7 @@ func assertLogConfig(t *testing.T, log *Log) {
 		t.Fatalf("Not TextFormatter")
 	}
 
-	aw, ok := log.writer.(*asyncWriter)
-	if !ok {
-		t.Fatalf("Not asyncWriter")
-	}
-
-	mw, ok := aw.writer.(*MultiWriter)
+	mw, ok := log.writer.(*MultiWriter)
 	if !ok {
 		t.Fatalf("Not MultiWriter")
 	}
@@ -95,7 +90,12 @@ func assertLogConfig(t *testing.T, log *Log) {
 
 	i++
 	{
-		w, ok := mw.Writers[i].(*ConnWriter)
+		aw, ok := mw.Writers[i].(*asyncWriter)
+		if !ok {
+			t.Fatalf("Not asyncWriter")
+		}
+
+		w, ok := aw.writer.(*ConnWriter)
 		if !ok {
 			t.Fatalf("Not ConnWriter")
 		}
@@ -112,7 +112,12 @@ func assertLogConfig(t *testing.T, log *Log) {
 
 	i++
 	{
-		w, ok := mw.Writers[i].(*FileWriter)
+		aw, ok := mw.Writers[i].(*asyncWriter)
+		if !ok {
+			t.Fatalf("Not asyncWriter")
+		}
+
+		w, ok := aw.writer.(*FileWriter)
 		if !ok {
 			t.Fatalf("Not FileWriter")
 		}
@@ -129,7 +134,12 @@ func assertLogConfig(t *testing.T, log *Log) {
 
 	i++
 	{
-		w, ok := mw.Writers[i].(*SlackWriter)
+		aw, ok := mw.Writers[i].(*asyncWriter)
+		if !ok {
+			t.Fatalf("Not asyncWriter")
+		}
+
+		w, ok := aw.writer.(*SlackWriter)
 		if !ok {
 			t.Fatalf("Not SlackWriter")
 		}
@@ -147,7 +157,12 @@ func assertLogConfig(t *testing.T, log *Log) {
 
 	i++
 	{
-		w, ok := mw.Writers[i].(*SMTPWriter)
+		aw, ok := mw.Writers[i].(*asyncWriter)
+		if !ok {
+			t.Fatalf("Not asyncWriter")
+		}
+
+		w, ok := aw.writer.(*SMTPWriter)
 		if !ok {
 			t.Fatalf("Not SMTPWriter")
 		}
@@ -169,7 +184,12 @@ func assertLogConfig(t *testing.T, log *Log) {
 
 	i++
 	{
-		w, ok := mw.Writers[i].(*WebhookWriter)
+		aw, ok := mw.Writers[i].(*asyncWriter)
+		if !ok {
+			t.Fatalf("Not asyncWriter")
+		}
+
+		w, ok := aw.writer.(*WebhookWriter)
 		if !ok {
 			t.Fatalf("Not WebhookWriter")
 		}

@@ -3,30 +3,33 @@ package log
 import "sync"
 
 // NewSyncWriter create a sync writer
-func NewSyncWriter(w Writer) Writer {
-	sw := &syncWriter{writer: w}
+func NewSyncWriter(w Writer) *SyncWriter {
+	sw := &SyncWriter{writer: w}
 	return sw
 }
 
-// syncWriter synchronized log writer
-type syncWriter struct {
+// SyncWriter synchronized log writer
+type SyncWriter struct {
 	writer Writer
 	mutex  sync.Mutex
 }
 
-func (sw *syncWriter) Write(le *Event) {
+// Write synchronize write log event
+func (sw *SyncWriter) Write(le *Event) {
 	sw.mutex.Lock()
 	defer sw.mutex.Unlock()
 	sw.writer.Write(le)
 }
 
-func (sw *syncWriter) Flush() {
+// Flush synchronize flush the underlying writer
+func (sw *SyncWriter) Flush() {
 	sw.mutex.Lock()
 	defer sw.mutex.Unlock()
 	sw.writer.Flush()
 }
 
-func (sw *syncWriter) Close() {
+// Close synchronize close the underlying writer
+func (sw *SyncWriter) Close() {
 	sw.mutex.Lock()
 	defer sw.mutex.Unlock()
 	sw.writer.Close()

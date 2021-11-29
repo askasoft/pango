@@ -24,17 +24,6 @@ func (mw *MultiWriter) Close() {
 	}
 }
 
-// SyncClose Close the multiple writers and wait them for done
-func (mw *MultiWriter) SyncClose() {
-	for _, w := range mw.Writers {
-		if aw, ok := w.(AsyncWriter); ok {
-			aw.SyncClose()
-		} else {
-			w.Close()
-		}
-	}
-}
-
 // Flush flush multiple writers.
 func (mw *MultiWriter) Flush() {
 	for _, w := range mw.Writers {

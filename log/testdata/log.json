@@ -1,4 +1,5 @@
 {
+	"async": 1000,
 	"format": "text:%l %S %F() - %m%n%T",
 	"level": {
 		"*": "info",

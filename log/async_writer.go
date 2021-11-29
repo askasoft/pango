@@ -2,22 +2,15 @@ package log
 
 import "sync"
 
-// AsyncWriter async log writer interface
-type AsyncWriter interface {
-	Writer
-
-	SyncClose()
-}
-
 // NewAsyncWriter create a async writer
-func NewAsyncWriter(w Writer, size int) AsyncWriter {
-	aw := &asyncWriter{writer: w}
-	aw.startAsync(size)
+func NewAsyncWriter(w Writer, size int) *AsyncWriter {
+	aw := &AsyncWriter{writer: w}
+	aw.Start(size)
 	return aw
 }
 
-// asyncWriter write log to multiple writers.
-type asyncWriter struct {
+// AsyncWriter write log to multiple writers.
+type AsyncWriter struct {
 	writer Writer
 
 	evtChan chan *Event
@@ -25,42 +18,40 @@ type asyncWriter struct {
 	waitg   sync.WaitGroup
 }
 
-func (aw *asyncWriter) Write(le *Event) {
+// Write async write the log event
+func (aw *AsyncWriter) Write(le *Event) {
 	ec := aw.evtChan
 	if ec != nil {
 		ec <- le
 	}
 }
 
-func (aw *asyncWriter) Flush() {
+// Flush async flush the underlying writer
+func (aw *AsyncWriter) Flush() {
 	sc := aw.sigChan
 	if sc != nil {
 		sc <- "flush"
 	}
 }
 
-func (aw *asyncWriter) Close() {
+// Close Close the underlying writer and wait it for done
+func (aw *AsyncWriter) Close() {
 	sc := aw.sigChan
 	if sc != nil {
 		sc <- "close"
 	}
-}
-
-// SyncClose Close the writer and wait for done
-func (aw *asyncWriter) SyncClose() {
-	aw.Close()
 	aw.waitg.Wait()
 }
 
-// startAsync set the log to asynchronous and start the goroutine
-func (aw *asyncWriter) startAsync(size int) {
+// Start start the goroutine
+func (aw *AsyncWriter) Start(size int) {
 	aw.evtChan = make(chan *Event, size)
 	aw.sigChan = make(chan string, 1)
 	aw.waitg.Add(1)
 	go aw.run()
 }
 
-func (aw *asyncWriter) drain() {
+func (aw *AsyncWriter) drain() {
 	for len(aw.evtChan) > 0 {
 		le := <-aw.evtChan
 		aw.writer.Write(le)
@@ -68,7 +59,7 @@ func (aw *asyncWriter) drain() {
 }
 
 // run start async log goroutine
-func (aw *asyncWriter) run() {
+func (aw *AsyncWriter) run() {
 	done := false
 	for {
 		select {
@@ -81,8 +72,6 @@ func (aw *asyncWriter) run() {
 				aw.writer.Flush()
 			case "close":
 				aw.writer.Close()
-				done = true
-			case "done":
 				done = true
 			}
 		}

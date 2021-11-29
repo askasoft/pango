@@ -66,8 +66,10 @@ func (log *Log) GetWriter() Writer {
 // SetWriter set the log writer
 func (log *Log) SetWriter(lw Writer) {
 	log.writer.Close()
-	if _, ok := lw.(AsyncWriter); !ok {
-		lw = NewSyncWriter(lw)
+	if _, ok := lw.(*AsyncWriter); !ok {
+		if _, ok = lw.(*SyncWriter); !ok {
+			lw = NewSyncWriter(lw)
+		}
 	}
 	log.writer = lw
 }
@@ -79,11 +81,7 @@ func (log *Log) Flush() {
 
 // Close close logger, flush all data and close the writer.
 func (log *Log) Close() {
-	if aw, ok := log.writer.(AsyncWriter); ok {
-		aw.SyncClose()
-	} else {
-		log.writer.Close()
-	}
+	log.writer.Close()
 }
 
 // write write a log event

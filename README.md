@@ -839,7 +839,7 @@ Configure like this:
 # log configuration #
 
 ### global log async ###
-#async = 1000
+async = 1000
 
 ### global log format ###
 #format=json:{"level":%l, "file":%S, "func":%F, "msg": %m}%n

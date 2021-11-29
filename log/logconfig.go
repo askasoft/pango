@@ -211,7 +211,7 @@ func (log *Log) configLogWriter(a []interface{}, async int) (err error) {
 	}
 
 	if async > 0 {
-		if _, ok := lw.(AsyncWriter); !ok {
+		if _, ok := lw.(*AsyncWriter); !ok {
 			lw = NewAsyncWriter(lw, async)
 		}
 	}

@@ -168,6 +168,54 @@ func (s *Sender) send(mail *Email) error {
 	return nil
 }
 
+// header SMTP message header
+type header map[string]string
+
+func formatDate(t time.Time) string {
+	return t.Format(time.RFC1123Z)
+}
+
+// Encode a RFC 822 "word" token into mail-safe form as per RFC 2047.
+func encodeWord(s string) string {
+	return mime.QEncoding.Encode("UTF-8", s)
+}
+
+func encodeBody(s string) string {
+	sb := strings.Builder{}
+	b := base64.NewEncoder(base64.StdEncoding, iox.NewMimeChunkWriter(&sb))
+	b.Write(str.UnsafeBytes(s))
+	b.Close()
+	return sb.String()
+}
+
+func encodeAddress(as ...*mail.Address) string {
+	sb := strings.Builder{}
+	for i, a := range as {
+		sb.WriteString(a.String())
+		if i < len(as)-1 {
+			sb.WriteString(", ")
+		}
+	}
+	return sb.String()
+}
+
+func writeBoundary(w io.Writer, b string) (err error) {
+	_, err = w.Write([]byte{'-', '-'})
+	err = writeString(w, b)
+	err = writeEOL(w)
+	return
+}
+
+func writeEOL(w io.Writer) (err error) {
+	_, err = w.Write([]byte{'\r', '\n'})
+	return
+}
+
+func writeString(w io.Writer, s string) (err error) {
+	_, err = w.Write(str.UnsafeBytes(s))
+	return
+}
+
 func (s *Sender) writeMail(w io.Writer, m *Email) error {
 	header := header{}
 
@@ -212,54 +260,27 @@ func (s *Sender) writeMail(w io.Writer, m *Email) error {
 		return err
 	}
 
+	err = writeEOL(w)
+	if err != nil {
+		return err
+	}
+
 	return writeBody(w, enc, m, boundary)
 }
 
-// header SMTP message header
-type header map[string]string
-
-func formatDate(t time.Time) string {
-	return t.Format(time.RFC1123Z)
-}
-
-// Encode a RFC 822 "word" token into mail-safe form as per RFC 2047.
-func encodeWord(s string) string {
-	return mime.QEncoding.Encode("UTF-8", s)
-}
-
-func encodeBody(s string) string {
-	sb := strings.Builder{}
-	b := base64.NewEncoder(base64.StdEncoding, iox.NewMimeChunkWriter(&sb))
-	b.Write([]byte(s))
-	b.Close()
-	return sb.String()
-}
-
-func encodeAddress(as ...*mail.Address) string {
-	sb := strings.Builder{}
-	for i, a := range as {
-		sb.WriteString(a.String())
-		if i < len(as)-1 {
-			sb.WriteString(", ")
-		}
-	}
-	return sb.String()
-}
-
 // http://www.faqs.org/rfcs/rfc2822.html
-func writeHeader(w io.Writer, h header) error {
-	var err error
+func writeHeader(w io.Writer, h header) (err error) {
 	for k, v := range h {
 		err = writeString(w, k)
-		err = writeString(w, ": ")
+		_, err = w.Write([]byte{':', ' '})
 		if len(k)+len(v) > 74 {
 			// folding header
 			v = strings.ReplaceAll(v, " ", "\r\n ")
 		}
 		err = writeString(w, v)
-		err = writeString(w, "\r\n")
+		err = writeEOL(w)
 	}
-	return err
+	return
 }
 
 func closeAttach(r io.Reader) {
@@ -292,17 +313,10 @@ func writeMsg(w io.Writer, encoding string, msg string) error {
 	return writeString(w, msg)
 }
 
-func writeString(w io.Writer, s string) error {
-	_, err := w.Write([]byte(s))
-	return err
-}
-
-func writeBody(w io.Writer, enc string, m *Email, boundary string) error {
+func writeBody(w io.Writer, enc string, m *Email, boundary string) (err error) {
 	if boundary == "" {
 		return writeMsg(w, enc, m.Message)
 	}
-
-	var err error
 
 	header := header{}
 	if m.HTML {
@@ -314,27 +328,28 @@ func writeBody(w io.Writer, enc string, m *Email, boundary string) error {
 	header["Content-Transfer-Encoding"] = enc
 
 	// Write the message part
-	err = writeString(w, "--"+boundary+"\n")
+	err = writeBoundary(w, boundary)
 	err = writeHeader(w, header)
-	err = writeString(w, "\r\n")
+	err = writeEOL(w)
 	if err != nil {
-		return err
+		return
 	}
 
 	err = writeMsg(w, enc, m.Message)
-	err = writeString(w, "\r\n")
+	err = writeEOL(w)
 	if err != nil {
-		return err
+		return
 	}
 
 	// Append attachments
 	err = writeAttachments(w, m.Attachments, boundary)
 	if err != nil {
-		return err
+		return
 	}
 
-	err = writeString(w, "--"+boundary+"--\r\n\r\n")
-	return err
+	err = writeBoundary(w, boundary)
+	err = writeEOL(w)
+	return
 }
 
 func writeAttachments(w io.Writer, as []*Attachment, boundary string) error {
@@ -357,16 +372,16 @@ func writeAttachments(w io.Writer, as []*Attachment, boundary string) error {
 		}
 		header["Content-Transfer-Encoding"] = "Base64"
 
-		err = writeString(w, "--"+boundary+"\r\n")
+		err = writeBoundary(w, boundary)
 		err = writeHeader(w, header)
-		err = writeString(w, "\r\n")
+		err = writeEOL(w)
 
 		err = copyAttach(w, a.Data)
 		if err != nil {
 			return err
 		}
 
-		err = writeString(w, "\r\n")
+		err = writeEOL(w)
 		if err != nil {
 			return err
 		}

@@ -45,39 +45,33 @@ func testSendEmail(t *testing.T, m *Email) {
 	// 	return io.MultiWriter(os.Stdout, w)
 	// }
 
-	// os.Setenv("SMTP_HOST", "smtp.orangeone.jp")
-	// os.Setenv("SMTP_PORT", "25")
-	// os.Setenv("SMTP_USER", "apikey")
-	// os.Setenv("SMTP_PASS", "xx")
-	// os.Setenv("SMTP_FROM", "from@test.com")
-	// os.Setenv("SMTP_TO", "to@test.com")
 	ss.Host = os.Getenv("SMTP_HOST")
-	if len(ss.Host) < 1 {
+	if ss.Host == "" {
 		skipTest(t, "SMTP_HOST not set")
 		return
 	}
 
 	ss.Port, _ = strconv.Atoi(os.Getenv("SMTP_PORT"))
 	ss.Username = os.Getenv("SMTP_USER")
-	if len(ss.Username) < 1 {
+	if ss.Username == "" {
 		skipTest(t, "SMTP_USER not set")
 		return
 	}
 
 	ss.Password = os.Getenv("SMTP_PASS")
-	if len(ss.Password) < 1 {
+	if ss.Password == "" {
 		skipTest(t, "SMTP_PASS not set")
 		return
 	}
 
 	sf := os.Getenv("SMTP_FROM")
-	if len(sf) < 1 {
+	if sf == "" {
 		skipTest(t, "SMTP_FROM not set")
 		return
 	}
 
 	st := os.Getenv("SMTP_TO")
-	if len(st) < 1 {
+	if st == "" {
 		skipTest(t, "SMTP_TO not set")
 		return
 	}
@@ -94,7 +88,6 @@ func testSendEmail(t *testing.T, m *Email) {
 	}
 
 	fmt.Printf("SMTP send %s -> %s\n", m.from, m.GetTos()[0])
-	m.Subject = "test subject " + time.Now().String() + strings.Repeat(" 一二三四五", 10)
 	ss.TLSConfig = &tls.Config{ServerName: ss.Host, InsecureSkipVerify: true}
 	err = ss.DialAndSend(m)
 	if err != nil {
@@ -105,13 +98,15 @@ func testSendEmail(t *testing.T, m *Email) {
 
 func TestSendTextEmailOnly(t *testing.T) {
 	email := &Email{}
-	email.Message = ".\nthis is a test email " + time.Now().String() + " from example.com. 一二三四五"
+	email.Subject = "test subject " + time.Now().String()
+	email.Message = "this is a test email " + time.Now().String()
 	testSendEmail(t, email)
 }
 
 func TestSendTextEmailAttach(t *testing.T) {
 	email := &Email{}
 
+	email.Subject = "test subject " + time.Now().String() + strings.Repeat(" 一二三四五", 10)
 	email.Message = ".\nthis is a test email " + time.Now().String() + " from example.com. 一二三四五"
 	email.AttachString("string.txt", strings.Repeat("abcdefg一二三四五\r\n", 10))
 	err := email.EmbedFile("panda.png", "testdata/panda.png")
@@ -125,6 +120,8 @@ func TestSendTextEmailAttach(t *testing.T) {
 
 func TestSendHtmlEmailOnly(t *testing.T) {
 	email := &Email{}
+
+	email.Subject = "test subject " + time.Now().String() + strings.Repeat(" 一二三四五", 10)
 	email.SetHTMLMsg("<pre><font color=red>.\nthis is a test email " + time.Now().String() + " from example.com. 一二三四五</font></pre>")
 
 	testSendEmail(t, email)
@@ -133,6 +130,7 @@ func TestSendHtmlEmailOnly(t *testing.T) {
 func TestSendHtmlEmailAttach(t *testing.T) {
 	email := &Email{}
 
+	email.Subject = "test subject " + time.Now().String() + strings.Repeat(" 一二三四五", 10)
 	email.SetHTMLMsg("<pre><IMG src=\"cid:panda.png\"> <font color=red>.\nthis is a test email " + time.Now().String() + " from example.com. 一二三四五</font></pre>")
 	email.AttachString("string.txt", strings.Repeat("abcdefg一二三四五\r\n", 10))
 

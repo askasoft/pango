@@ -1,8 +1,6 @@
 package log
 
 import (
-	"strconv"
-	"sync"
 	"testing"
 )
 
@@ -67,26 +65,6 @@ func TestConsoleNoColor(t *testing.T) {
 	log.SetWriter(&StreamWriter{Color: false})
 	log.SetFormatter(NewTextFormatter("[%c] %l - %m%n"))
 	testConsoleCalls(log, 1)
-	log.Close()
-}
-
-// Test console async
-func TestConsoleAsync(t *testing.T) {
-	log := NewLog()
-	sw := &StreamWriter{Color: true, Logfmt: NewTextFormatter("%t{2006-01-02T15:04:05.000} [%c] %l - %m%n")}
-	aw := NewAsyncWriter(sw, 100)
-	log.SetWriter(aw)
-
-	wg := sync.WaitGroup{}
-	for i := 1; i < 10; i++ {
-		l := log.GetLogger(strconv.Itoa(i))
-		wg.Add(1)
-		go func() {
-			testConsoleCalls(l, 10)
-			wg.Done()
-		}()
-	}
-	wg.Wait()
 	log.Close()
 }
 

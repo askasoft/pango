@@ -26,10 +26,6 @@ func testGetCaller(offset int) (string, int, string) {
 	return "???", 0, "???"
 }
 
-func testNewConsoleWriter() Writer {
-	return &StreamWriter{Color: true}
-}
-
 func testNewFileWriter(path, format string) Writer {
 	fw := &FileWriter{Path: path}
 	fw.SetFormat(format)
@@ -56,7 +52,7 @@ func TestLogNilWriter(t *testing.T) {
 
 func TestLogFuncs(t *testing.T) {
 	fmt.Println("\n\n--------------- TestLogFuncs ---------------------")
-	SetWriter(testNewConsoleWriter())
+	SetWriter(NewConsoleWriter())
 	SetLevel(LevelTrace)
 	for i := 0; i < 1; i++ {
 		Fatal("fatal")
@@ -78,7 +74,7 @@ func TestLogNewLog(t *testing.T) {
 	fmt.Println("\n\n-------------- TestLogNewLog ---------------------")
 	log1 := NewLog()
 	log1.SetLevel(LevelTrace)
-	log1.SetWriter(testNewConsoleWriter())
+	log1.SetWriter(NewConsoleWriter())
 	testLoggerCalls(log1)
 }
 
@@ -86,7 +82,7 @@ func TestLogNewLogGetLogger(t *testing.T) {
 	fmt.Println("\n\n-------------- TestLogNewLogGetLogger ---------")
 	log1 := NewLog()
 	log1.SetLevel(LevelTrace)
-	log1.SetWriter(testNewConsoleWriter())
+	log1.SetWriter(NewConsoleWriter())
 	log2 := log1.GetLogger("hello")
 	testLoggerCalls(log2)
 }
@@ -96,7 +92,7 @@ func TestLogNewLogProp(t *testing.T) {
 	log1 := NewLog()
 	log1.SetFormatter(NewTextFormatter("%x{k1} %x{k2} %x{nil} - %m%n%T"))
 	log1.SetLevel(LevelTrace)
-	log1.SetWriter(testNewConsoleWriter())
+	log1.SetWriter(NewConsoleWriter())
 	log1.SetProp("k1", "v1")
 	testLoggerCalls(log1)
 
@@ -109,7 +105,7 @@ func TestLogDefault(t *testing.T) {
 	fmt.Println("\n\n-------------- TestLogDefault ----------------")
 	log1 := Default()
 	log1.SetLevel(LevelTrace)
-	log1.SetWriter(testNewConsoleWriter())
+	log1.SetWriter(NewConsoleWriter())
 	SetFormatter(NewTextFormatter("%t %l %S:%L %F() - %x{key} - %m%n%T"))
 	log1.SetProp("key", "val")
 	testLoggerCalls(log1)
@@ -118,7 +114,7 @@ func TestLogDefault(t *testing.T) {
 func TestLogPackage(t *testing.T) {
 	fmt.Println("\n\n-------------- TestLogPackage ----------------")
 	SetLevel(LevelTrace)
-	SetWriter(testNewConsoleWriter())
+	SetWriter(NewConsoleWriter())
 	SetFormatter(NewTextFormatter("%t %l %S:%L %F() - %x{key} - %m%n%T"))
 	SetProp("key", "val")
 

@@ -65,12 +65,27 @@ func (log *Log) GetWriter() Writer {
 
 // SetWriter set the log writer
 func (log *Log) SetWriter(lw Writer) {
-	log.writer.Close()
-	if _, ok := lw.(*AsyncWriter); !ok {
-		if _, ok = lw.(*SyncWriter); !ok {
-			lw = NewSyncWriter(lw)
-		}
+	log.writer = lw
+}
+
+// SwitchWriter use lw to replace the log writer
+func (log *Log) SwitchWriter(lw Writer) {
+	ow := log.writer
+
+	if osw, ok := ow.(*SyncWriter); ok {
+		osw.SetWriter(lw)
+		log.writer = lw
+		return
 	}
+
+	if oaw, ok := ow.(*AsyncWriter); ok {
+		oaw.Close()
+		oaw.SyncWriter(lw)
+		log.writer = lw
+		return
+	}
+
+	ow.Close()
 	log.writer = lw
 }
 

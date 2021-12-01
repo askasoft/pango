@@ -97,10 +97,11 @@ func (fw *FileWriter) Write(le *Event) {
 
 // Flush flush file logger.
 // there are no buffering messages in file logger in memory.
-// flush file means sync file from disk.
+// flush file means sync file to disk.
 func (fw *FileWriter) Flush() {
-	if fw.file != nil {
-		err := fw.file.Sync()
+	file := fw.file
+	if file != nil {
+		err := file.Sync()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "FileWriter(%q) - Sync(): %v\n", fw.Path, err)
 		}
@@ -109,8 +110,9 @@ func (fw *FileWriter) Flush() {
 
 // Close close the file description, close file writer.
 func (fw *FileWriter) Close() {
-	if fw.file != nil {
-		err := fw.file.Close()
+	file := fw.file
+	if file != nil {
+		err := file.Close()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "FileWriter(%q) - Close(): %v\n", fw.Path, err)
 		}

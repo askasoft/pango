@@ -2,7 +2,7 @@ package log
 
 import "sync"
 
-// NewSyncWriter create a sync writer
+// NewSyncWriter create a synchronized writer
 func NewSyncWriter(w Writer) *SyncWriter {
 	sw := &SyncWriter{writer: w}
 	return sw
@@ -33,4 +33,13 @@ func (sw *SyncWriter) Close() {
 	sw.mutex.Lock()
 	defer sw.mutex.Unlock()
 	sw.writer.Close()
+	sw.writer = nopWriter
+}
+
+// SetWriter synchronize close the old log writer then set the new log writer
+func (sw *SyncWriter) SetWriter(w Writer) {
+	sw.mutex.Lock()
+	defer sw.mutex.Unlock()
+	sw.writer.Close()
+	sw.writer = w
 }

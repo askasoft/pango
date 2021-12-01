@@ -72,7 +72,9 @@ func TestConnWriter(t *testing.T) {
 
 	time.Sleep(time.Second)
 	log := NewLog()
-	log.SetWriter(&ConnWriter{Addr: "localhost:9999"})
+
+	cw := &ConnWriter{Addr: "localhost:9999"}
+	log.SetWriter(cw)
 	log.SetFormatter(NewTextFormatter("%m%n"))
 
 	ss := []string{

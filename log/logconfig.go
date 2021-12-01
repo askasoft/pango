@@ -190,6 +190,8 @@ func (log *Log) configLogWriter(a []interface{}, async int) (err error) {
 				}
 				if a > 0 {
 					w = NewAsyncWriter(w, a)
+				} else if a < 0 {
+					w = NewSyncWriter(w)
 				}
 				ws = append(ws, w)
 			} else {
@@ -214,8 +216,12 @@ func (log *Log) configLogWriter(a []interface{}, async int) (err error) {
 		if _, ok := lw.(*AsyncWriter); !ok {
 			lw = NewAsyncWriter(lw, async)
 		}
+	} else if async < 0 {
+		if _, ok := lw.(*SyncWriter); !ok {
+			lw = NewSyncWriter(lw)
+		}
 	}
 
-	log.SetWriter(lw)
+	log.SwitchWriter(lw)
 	return nil
 }

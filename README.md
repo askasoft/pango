@@ -716,7 +716,7 @@ Then init a Log (example with console writer)
 
 ```golang
 	log := log.NewLog()
-	log.SetWriter(&log.StreamWriter{Color:true})
+	log.SetWriter(log.NewSyncWriter(&log.StreamWriter{Color:true}))
 ```
 
 Use it like this:
@@ -735,7 +735,7 @@ Configure file writer like this:
 
 ```golang
 	log := log.NewLog()
-	log.SetWriter(&log.FileWriter{Path:"test.log"})
+	log.SetWriter(log.NewSyncWriter(&log.FileWriter{Path:"test.log"}))
 ```
 
 #### Conn writer
@@ -744,7 +744,7 @@ Configure like this:
 
 ```golang
 	log := log.NewLog()
-	log.SetWriter(&log.ConnWriter{Net:"tcp",Addr:":7020"})
+	log.SetWriter(log.NewSyncWriter(&log.ConnWriter{Net:"tcp",Addr:":7020"}))
 	log.Info("info")
 ```
 
@@ -754,11 +754,11 @@ Configure like this:
 
 ```golang
 	log := log.NewLog()
-	log.SetWriter(&log.SlackWriter{
+	log.SetWriter(log.NewSyncWriter(&log.SlackWriter{
 		Webhook: "https://hooks.slack.com/services/...",
 		Channel: "alert",
 		Username: "gotest",
-	})
+	}))
 	log.Error("error")
 ```
 
@@ -768,14 +768,14 @@ Configure like this:
 
 ```golang
 	log := log.NewLog()
-	log.SetWriter(&log.SMTPWriter{
+	log.SetWriter(log.NewSyncWriter(&log.SMTPWriter{
 		Host: "smtp.gmail.com",
 		Port: 587,
 		Username: "pangotest@gmail.com",
 		Password: "xxxxxxxx",
 		From: "xxxx@gmail.com",
 		Tos: []string{"someone@gmail.com"},
-	})
+	}))
 	log.Fatal("oh my god!")
 ```
 
@@ -785,11 +785,11 @@ Configure like this:
 
 ```golang
 	log := log.NewLog()
-	log.SetWriter(&log.WebhookWriter{
+	log.SetWriter(log.NewSyncWriter(&log.WebhookWriter{
 		Webhook: "http://localhost:9200/pango/logs",
 		ContentType: "application/json",
 		Timeout: time.Second*5,
-	})
+	}))
 	log.Fatal("fatal error!")
 ```
 
@@ -805,7 +805,7 @@ Configure like this:
 		ContentType: "application/json",
 		Timeout: time.Second*5,
 	}
-	log.SetWriter(log.NewMultiWriter(fw, ww))
+	log.SetWriter(log.NewSyncWriter(log.NewMultiWriter(fw, ww)))
 	log.Fatal("fatal error!")
 ```
 
@@ -838,7 +838,10 @@ Configure like this:
 ```ini
 # log configuration #
 
-### global log async ###
+### log async ###
+# > 0 : do asynchronize wrap 
+# < 0 : do synchronize wrap
+# = 0 : do nothing (default)
 async = 1000
 
 ### global log format ###

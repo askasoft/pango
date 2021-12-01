@@ -12,7 +12,7 @@ import (
 
 func TestGoLogOutputGlobal(t *testing.T) {
 	fmt.Println("\n\n--------------- TestGoLogOutputGlobal ---------------------")
-	SetWriter(testNewConsoleWriter())
+	SetWriter(NewConsoleWriter())
 	golog.SetOutput(Outputer("golog", LevelInfo))
 	golog.Print("hello", "golog")
 }
@@ -20,7 +20,7 @@ func TestGoLogOutputGlobal(t *testing.T) {
 func TestGoLogOutputNewLog(t *testing.T) {
 	fmt.Println("\n\n--------------- TestGoLogOutputNewLog ---------------------")
 	log := NewLog()
-	log.SetWriter(testNewConsoleWriter())
+	log.SetWriter(NewConsoleWriter())
 	golog.SetOutput(log.Outputer("std", LevelInfo))
 	golog.Print("hello", "golog")
 }

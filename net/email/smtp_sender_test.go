@@ -98,7 +98,7 @@ func testSendEmail(t *testing.T, m *Email) {
 
 func TestSendTextEmailOnly(t *testing.T) {
 	email := &Email{}
-	email.Subject = "test subject " + time.Now().String()
+	email.Subject = "TestSendTextEmailOnly " + time.Now().String()
 	email.Message = "this is a test email " + time.Now().String()
 	testSendEmail(t, email)
 }
@@ -106,7 +106,7 @@ func TestSendTextEmailOnly(t *testing.T) {
 func TestSendTextEmailAttach(t *testing.T) {
 	email := &Email{}
 
-	email.Subject = "test subject " + time.Now().String() + strings.Repeat(" 一二三四五", 10)
+	email.Subject = "TestSendTextEmailAttach " + time.Now().String() + strings.Repeat(" 一二三四五", 10)
 	email.Message = ".\nthis is a test email " + time.Now().String() + " from example.com. 一二三四五"
 	email.AttachString("string.txt", strings.Repeat("abcdefg一二三四五\r\n", 10))
 	err := email.EmbedFile("panda.png", "testdata/panda.png")
@@ -121,7 +121,7 @@ func TestSendTextEmailAttach(t *testing.T) {
 func TestSendHtmlEmailOnly(t *testing.T) {
 	email := &Email{}
 
-	email.Subject = "test subject " + time.Now().String() + strings.Repeat(" 一二三四五", 10)
+	email.Subject = "TestSendHtmlEmailOnly " + time.Now().String() + strings.Repeat(" 一二三四五", 10)
 	email.SetHTMLMsg("<pre><font color=red>.\nthis is a test email " + time.Now().String() + " from example.com. 一二三四五</font></pre>")
 
 	testSendEmail(t, email)
@@ -130,8 +130,8 @@ func TestSendHtmlEmailOnly(t *testing.T) {
 func TestSendHtmlEmailAttach(t *testing.T) {
 	email := &Email{}
 
-	email.Subject = "test subject " + time.Now().String() + strings.Repeat(" 一二三四五", 10)
-	email.SetHTMLMsg("<pre><IMG src=\"cid:panda.png\"> <font color=red>.\nthis is a test email " + time.Now().String() + " from example.com. 一二三四五</font></pre>")
+	email.Subject = "TestSendHtmlEmailAttach " + time.Now().String() + strings.Repeat(" 一二三四五", 10)
+	email.SetHTMLMsg("<pre>Image: <img src=\"cid:panda.png\">\r\n<font color=red>This is a test email " + time.Now().String() + " from example.com. 一二三四五</font></pre>")
 	email.AttachString("string.txt", strings.Repeat("abcdefg一二三四五\r\n", 10))
 
 	err := email.EmbedFile("panda.png", "testdata/panda.png")

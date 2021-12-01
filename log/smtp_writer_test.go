@@ -15,18 +15,69 @@
 package log
 
 import (
+	"net"
+	"os"
+	"strconv"
 	"testing"
+
+	"github.com/pandafw/pango/iox"
+	"github.com/pandafw/pango/net/netutil"
 )
 
-func TestSmtp(t *testing.T) {
+func TestSmtpWriter(t *testing.T) {
+	host := os.Getenv("SMTP_HOST")
+	if host == "" {
+		skipTest(t, "SMTP_HOST not set")
+		return
+	}
+
+	port, _ := strconv.Atoi(os.Getenv("SMTP_PORT"))
+	user := os.Getenv("SMTP_USER")
+	if user == "" {
+		skipTest(t, "SMTP_USER not set")
+		return
+	}
+
+	pass := os.Getenv("SMTP_PASS")
+	if pass == "" {
+		skipTest(t, "SMTP_PASS not set")
+		return
+	}
+
+	sf := os.Getenv("SMTP_FROM")
+	if sf == "" {
+		skipTest(t, "SMTP_FROM not set")
+		return
+	}
+
+	st := os.Getenv("SMTP_TO")
+	if st == "" {
+		skipTest(t, "SMTP_TO not set")
+		return
+	}
+
 	log := NewLog()
-	log.SetWriter(&SMTPWriter{
-		Host:     "smtp.gmail.com",
-		Port:     587,
-		Username: "xxx@gmail.com",
-		Password: "xxxxxx",
-		From:     "xxxx@gmail.com",
-		Tos:      []string{"xxx@gmail.com"},
-	})
-	//log.Fatal("sendmail fatal")
+	sw := &SMTPWriter{
+		Host:     host,
+		Port:     port,
+		Username: user,
+		Password: pass,
+		From:     sf,
+		Tos:      []string{st},
+		Subfmt:   newTextFormatter("%t [%l] %m"),
+	}
+	log.SetWriter(sw)
+
+	sw.initSender()
+	f := os.Stdout
+	w := iox.SyncWriter(f)
+	sw.sender.ConnDebug = func(conn net.Conn) net.Conn {
+		return netutil.DumpConn(
+			conn,
+			iox.WrapWriter(w, iox.ConsoleColor.Magenta+"< ", iox.ConsoleColor.Reset),
+			iox.WrapWriter(w, iox.ConsoleColor.Yellow+"> ", iox.ConsoleColor.Reset),
+		)
+	}
+
+	log.Fatal("smtp log fatal test!")
 }

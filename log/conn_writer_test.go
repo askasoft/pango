@@ -15,7 +15,7 @@ import (
 func testConnTCPServer(sigChan chan string, finChan chan string, revChan chan string) {
 	wg := &sync.WaitGroup{}
 
-	ln, err := net.Listen("tcp", ":9999")
+	ln, err := net.Listen("tcp", "127.0.0.1:9999")
 	if err != nil {
 		fmt.Println("Error listening: ", err.Error())
 		os.Exit(1)

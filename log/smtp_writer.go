@@ -1,12 +1,13 @@
 package log
 
 import (
+	"bytes"
 	"crypto/tls"
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
+	"github.com/pandafw/pango/bye"
 	"github.com/pandafw/pango/net/email"
 	"github.com/pandafw/pango/str"
 )
@@ -28,8 +29,8 @@ type SMTPWriter struct {
 	email  *email.Email      // email
 	sender *email.SMTPSender // email sender
 
-	sb *strings.Builder // subject builder
-	bb *strings.Builder // text builder
+	sb bytes.Buffer // subject buffer
+	mb bytes.Buffer // message buffer
 }
 
 // SetSubject set the subject formatter
@@ -67,8 +68,8 @@ func (sw *SMTPWriter) SetTimeout(timeout string) error {
 	return nil
 }
 
-// Format format log event to (subject, body)
-func (sw *SMTPWriter) Format(le *Event) (sb, bb string) {
+// Format format log event to (subject, message)
+func (sw *SMTPWriter) Format(le *Event) (sb, mb string) {
 	sf := sw.Subfmt
 	if sf == nil {
 		sf = TextFmtSubject
@@ -83,14 +84,26 @@ func (sw *SMTPWriter) Format(le *Event) (sb, bb string) {
 	}
 
 	sw.sb.Reset()
-	sf.Write(sw.sb, le)
-	sb = sw.sb.String()
+	sf.Write(&sw.sb, le)
+	sb = bye.UnsafeString(sw.sb.Bytes())
 
-	sw.bb.Reset()
-	lf.Write(sw.bb, le)
-	bb = sw.bb.String()
+	sw.mb.Reset()
+	lf.Write(&sw.mb, le)
+	mb = bye.UnsafeString(sw.mb.Bytes())
 
 	return
+}
+
+func (sw *SMTPWriter) initSender() {
+	sw.sender = &email.SMTPSender{
+		Host:     sw.Host,
+		Port:     sw.Port,
+		Username: sw.Username,
+		Password: sw.Password,
+	}
+	sw.sender.Helo = "localhost"
+	sw.sender.Timeout = sw.Timeout
+	sw.sender.TLSConfig = &tls.Config{ServerName: sw.Host, InsecureSkipVerify: true}
 }
 
 // Write send log message to smtp server.
@@ -124,26 +137,27 @@ func (sw *SMTPWriter) Write(le *Event) {
 	}
 
 	if sw.sender == nil {
-		sw.sender = &email.SMTPSender{
-			Host:     sw.Host,
-			Port:     sw.Port,
-			Username: sw.Username,
-			Password: sw.Password,
-		}
-		sw.sender.Timeout = sw.Timeout
-		sw.sender.TLSConfig = &tls.Config{ServerName: sw.Host, InsecureSkipVerify: true}
+		sw.initSender()
 	}
+
 	if !sw.sender.IsDialed() {
 		err := sw.sender.Dial()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "SMTPWriter(%s:%d) - Dial(): %v\n", sw.Host, sw.Port, err)
 			return
 		}
+
+		err = sw.sender.Login()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "SMTPWriter(%s:%d) - Login(%s, %s): %v\n", sw.Host, sw.Port, sw.Username, sw.Password, err)
+			sw.sender.Close()
+			return
+		}
 	}
 
-	sb, bb := sw.Format(le)
+	sb, mb := sw.Format(le)
 	sw.email.Subject = sb
-	sw.email.Message = bb
+	sw.email.Message = mb
 
 	err := sw.sender.Send(sw.email)
 	if err != nil {

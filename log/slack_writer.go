@@ -1,11 +1,12 @@
 package log
 
 import (
+	"bytes"
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
+	"github.com/pandafw/pango/bye"
 	"github.com/pandafw/pango/net/slack"
 )
 
@@ -19,8 +20,8 @@ type SlackWriter struct {
 	Logfmt   Formatter // log formatter
 	Logfil   Filter    // log filter
 
-	sb *strings.Builder // subject builder
-	bb *strings.Builder // text builder
+	sb bytes.Buffer // subject buffer
+	mb bytes.Buffer // message buffer
 }
 
 // SetSubject set the subject formatter
@@ -48,8 +49,8 @@ func (sw *SlackWriter) SetTimeout(timeout string) error {
 	return nil
 }
 
-// Format format log event to (subject, body)
-func (sw *SlackWriter) Format(le *Event) (sb, bb string) {
+// Format format log event to (subject, message)
+func (sw *SlackWriter) Format(le *Event) (sb, mb string) {
 	sf := sw.Subfmt
 	if sf == nil {
 		sf = TextFmtSubject
@@ -64,12 +65,12 @@ func (sw *SlackWriter) Format(le *Event) (sb, bb string) {
 	}
 
 	sw.sb.Reset()
-	sf.Write(sw.sb, le)
-	sb = sw.sb.String()
+	sf.Write(&sw.sb, le)
+	sb = bye.UnsafeString(sw.sb.Bytes())
 
-	sw.bb.Reset()
-	lf.Write(sw.bb, le)
-	bb = sw.bb.String()
+	sw.mb.Reset()
+	lf.Write(&sw.mb, le)
+	mb = bye.UnsafeString(sw.mb.Bytes())
 
 	return
 }
@@ -80,7 +81,7 @@ func (sw *SlackWriter) Write(le *Event) {
 		return
 	}
 
-	sb, bb := sw.Format(le)
+	sb, mb := sw.Format(le)
 
 	sm := &slack.Message{}
 	sm.IconEmoji = getIconEmoji(le.Level())
@@ -88,7 +89,7 @@ func (sw *SlackWriter) Write(le *Event) {
 	sm.Username = sw.Username
 	sm.Text = sb
 
-	sa := &slack.Attachment{Text: bb}
+	sa := &slack.Attachment{Text: mb}
 	sm.AddAttachment(sa)
 
 	err := slack.Post(sw.Webhook, sw.Timeout, sm)

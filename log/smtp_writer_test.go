@@ -22,6 +22,7 @@ import (
 
 	"github.com/pandafw/pango/iox"
 	"github.com/pandafw/pango/net/netutil"
+	"github.com/pandafw/pango/str"
 )
 
 func TestSmtpWriter(t *testing.T) {
@@ -50,8 +51,8 @@ func TestSmtpWriter(t *testing.T) {
 		return
 	}
 
-	st := os.Getenv("SMTP_TO")
-	if st == "" {
+	sts := str.RemoveEmptys(str.TrimSpaces(str.Split(os.Getenv("SMTP_TO"), ";")))
+	if len(sts) < 1 {
 		skipTest(t, "SMTP_TO not set")
 		return
 	}
@@ -63,7 +64,7 @@ func TestSmtpWriter(t *testing.T) {
 		Username: user,
 		Password: pass,
 		From:     sf,
-		Tos:      []string{st},
+		Tos:      sts,
 		Subfmt:   newTextFormatter("%t [%l] %m"),
 	}
 	log.SetWriter(sw)

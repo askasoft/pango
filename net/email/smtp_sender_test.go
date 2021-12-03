@@ -12,11 +12,16 @@ import (
 
 	"github.com/pandafw/pango/iox"
 	"github.com/pandafw/pango/net/netutil"
+	"github.com/pandafw/pango/str"
 )
 
 func skipTest(t *testing.T, msg string) {
 	fmt.Println(msg)
 	t.Skip(msg)
+}
+
+func testSendMailTime() string {
+	return time.Now().Format("2006-01-02T15:04:05.000000")
 }
 
 func testSendEmail(t *testing.T, m *Email) {
@@ -70,8 +75,8 @@ func testSendEmail(t *testing.T, m *Email) {
 		return
 	}
 
-	st := os.Getenv("SMTP_TO")
-	if st == "" {
+	sts := str.RemoveEmptys(str.TrimSpaces(str.Split(os.Getenv("SMTP_TO"), ";")))
+	if len(sts) < 1 {
 		skipTest(t, "SMTP_TO not set")
 		return
 	}
@@ -81,9 +86,10 @@ func testSendEmail(t *testing.T, m *Email) {
 		t.Error(sf, err)
 		return
 	}
-	err = m.AddTo(st)
+
+	err = m.AddTo(sts...)
 	if err != nil {
-		t.Error(st, err)
+		t.Error(sts, err)
 		return
 	}
 
@@ -96,18 +102,34 @@ func testSendEmail(t *testing.T, m *Email) {
 	}
 }
 
-func TestSendTextEmailOnly(t *testing.T) {
+func TestSendTextEmailEmpty(t *testing.T) {
 	email := &Email{}
-	email.Subject = "TestSendTextEmailOnly " + time.Now().String()
-	email.Message = "this is a test email " + time.Now().String()
+	email.Subject = "TestSendTextEmailEmpty " + testSendMailTime()
+	testSendEmail(t, email)
+}
+
+func TestSendTextEmailAscii(t *testing.T) {
+	email := &Email{}
+	email.Subject = "TestSendTextEmailAscii " + testSendMailTime()
+	email.Message = strings.Repeat("this is a test email "+testSendMailTime()+".\n", 10)
+	testSendEmail(t, email)
+}
+
+func TestSendTextEmailAsciiLong(t *testing.T) {
+	email := &Email{}
+	email.Subject = "TestSendTextEmailAsciiLong " + testSendMailTime()
+	email.Message = strings.Repeat("this is a test email "+testSendMailTime()+".\n", 2)
+	email.Message += "\r\n+++++++++\r\n"
+	email.Message += strings.Repeat("this is a test email "+testSendMailTime()+".  ", 20) // 50 * 20
+	email.Message += "\n----------"
 	testSendEmail(t, email)
 }
 
 func TestSendTextEmailAttach(t *testing.T) {
 	email := &Email{}
 
-	email.Subject = "TestSendTextEmailAttach " + time.Now().String() + strings.Repeat(" 一二三四五", 10)
-	email.Message = ".\nthis is a test email " + time.Now().String() + " from example.com. 一二三四五"
+	email.Subject = "TestSendTextEmailAttach " + testSendMailTime() + strings.Repeat(" 一二三四五", 10)
+	email.Message = ".\nthis is a test email " + testSendMailTime() + " from example.com. 一二三四五"
 	email.AttachString("string.txt", strings.Repeat("abcdefg一二三四五\r\n", 10))
 	err := email.EmbedFile("panda.png", "testdata/panda.png")
 	if err != nil {
@@ -121,8 +143,8 @@ func TestSendTextEmailAttach(t *testing.T) {
 func TestSendHtmlEmailOnly(t *testing.T) {
 	email := &Email{}
 
-	email.Subject = "TestSendHtmlEmailOnly " + time.Now().String() + strings.Repeat(" 一二三四五", 10)
-	email.SetHTMLMsg("<pre><font color=red>.\nthis is a test email " + time.Now().String() + " from example.com. 一二三四五</font></pre>")
+	email.Subject = "TestSendHtmlEmailOnly " + testSendMailTime() + strings.Repeat(" 一二三四五", 10)
+	email.SetHTMLMsg("<pre><font color=red>.\nthis is a test email " + testSendMailTime() + " from example.com. 一二三四五</font></pre>")
 
 	testSendEmail(t, email)
 }
@@ -130,8 +152,8 @@ func TestSendHtmlEmailOnly(t *testing.T) {
 func TestSendHtmlEmailAttach(t *testing.T) {
 	email := &Email{}
 
-	email.Subject = "TestSendHtmlEmailAttach " + time.Now().String() + strings.Repeat(" 一二三四五", 10)
-	email.SetHTMLMsg("<pre>Image: <img src=\"cid:panda.png\">\r\n<font color=red>This is a test email " + time.Now().String() + " from example.com. 一二三四五</font></pre>")
+	email.Subject = "TestSendHtmlEmailAttach " + testSendMailTime() + strings.Repeat(" 一二三四五", 10)
+	email.SetHTMLMsg("<pre>Image: <img src=\"cid:panda.png\">\r\n<font color=red>This is a test email " + testSendMailTime() + " from example.com. 一二三四五</font></pre>")
 	email.AttachString("string.txt", strings.Repeat("abcdefg一二三四五\r\n", 10))
 
 	err := email.EmbedFile("panda.png", "testdata/panda.png")

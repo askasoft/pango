@@ -10,6 +10,7 @@ import (
 
 	"github.com/pandafw/pango/iox"
 	"github.com/pandafw/pango/net/netutil"
+	"github.com/pandafw/pango/str"
 )
 
 func testDirectSendEmail(t *testing.T, m *Email) {
@@ -41,16 +42,25 @@ func testDirectSendEmail(t *testing.T, m *Email) {
 		return
 	}
 
-	st := os.Getenv("SMTP_TO")
-	if st == "" {
+	sts := str.RemoveEmptys(str.TrimSpaces(str.Split(os.Getenv("SMTP_TO"), ";")))
+	if len(sts) < 1 {
 		skipTest(t, "SMTP_TO not set")
 		return
 	}
 
-	m.SetFrom(sf)
-	m.AddTo(st)
+	err = m.SetFrom(sf)
+	if err != nil {
+		t.Error(sf, err)
+		return
+	}
 
-	m.Subject = "direct send subject " + time.Now().String() + strings.Repeat(" 一二三四五", 10)
+	err = m.AddTo(sts...)
+	if err != nil {
+		t.Error(sts, err)
+		return
+	}
+
+	m.Subject = "direct send subject " + testSendMailTime() + strings.Repeat(" 一二三四五", 10)
 	err = s.DirectSend(m)
 	if err != nil {
 		t.Error(err)
@@ -59,14 +69,14 @@ func testDirectSendEmail(t *testing.T, m *Email) {
 
 func TestDirectSendTextEmailOnly(t *testing.T) {
 	email := &Email{}
-	email.Message = ".\nthis is a test email " + time.Now().String() + " from example.com. 一二三四五"
+	email.Message = ".\nthis is a test email " + testSendMailTime() + " from example.com. 一二三四五"
 	testDirectSendEmail(t, email)
 }
 
 func TestDirectSendTextEmailAttach(t *testing.T) {
 	email := &Email{}
 
-	email.Message = ".\nthis is a test email " + time.Now().String() + " from example.com. 一二三四五"
+	email.Message = ".\nthis is a test email " + testSendMailTime() + " from example.com. 一二三四五"
 	email.AttachString("string.txt", "abcdefg")
 	err := email.EmbedFile("panda.png", "testdata/panda.png")
 	if err != nil {
@@ -79,7 +89,7 @@ func TestDirectSendTextEmailAttach(t *testing.T) {
 
 func TestDirectSendHtmlEmailOnly(t *testing.T) {
 	email := &Email{}
-	email.SetHTMLMsg("<pre><font color=red>.\nthis is a test email " + time.Now().String() + " from example.com. 一二三四五</font></pre>")
+	email.SetHTMLMsg("<pre><font color=red>.\nthis is a test email " + testSendMailTime() + " from example.com. 一二三四五</font></pre>")
 
 	testDirectSendEmail(t, email)
 }
@@ -87,7 +97,7 @@ func TestDirectSendHtmlEmailOnly(t *testing.T) {
 func TestDirectSendHtmlEmailAttach(t *testing.T) {
 	email := &Email{}
 
-	email.SetHTMLMsg("<pre><IMG src=\"cid:panda.png\"> <font color=red>.\nthis is a test email " + time.Now().String() + " from example.com. 一二三四五</font></pre>")
+	email.SetHTMLMsg("<pre><IMG src=\"cid:panda.png\"> <font color=red>.\nthis is a test email " + testSendMailTime() + " from example.com. 一二三四五</font></pre>")
 	email.AttachString("test.txt", "abcdefg")
 	err := email.EmbedFile("panda.png", "testdata/panda.png")
 	if err != nil {

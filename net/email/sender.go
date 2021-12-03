@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 	"unsafe"
 
 	"github.com/pandafw/pango/iox"
@@ -168,40 +169,94 @@ func (s *Sender) send(mail *Email) error {
 	return nil
 }
 
-// header SMTP message header
-type header map[string]string
-
 func formatDate(t time.Time) string {
 	return t.Format(time.RFC1123Z)
 }
 
 // Encode a RFC 822 "word" token into mail-safe form as per RFC 2047.
 func encodeWord(s string) string {
-	return mime.QEncoding.Encode("UTF-8", s)
+	return mime.QEncoding.Encode("utf-8", s)
 }
 
-func encodeBody(s string) string {
-	sb := strings.Builder{}
-	b := base64.NewEncoder(base64.StdEncoding, iox.NewMimeChunkWriter(&sb))
-	b.Write(str.UnsafeBytes(s))
-	b.Close()
-	return sb.String()
-}
-
-func encodeAddress(as ...*mail.Address) string {
-	sb := strings.Builder{}
-	for i, a := range as {
-		sb.WriteString(a.String())
-		if i < len(as)-1 {
-			sb.WriteString(", ")
-		}
+// http://www.faqs.org/rfcs/rfc2822.html
+// if string's length > 75, it will be splitted with ' ' by mime encoding
+func encodeString(s string) string {
+	// Text in an encoded-word in a display-name must not contain certain
+	// characters like quotes or parentheses (see RFC 2047 section 5.3).
+	// When this is the case encode the name using base64 encoding.
+	if strings.ContainsAny(s, "\"#$%&'(),.:;<>@[]^`{|}~") {
+		return mime.BEncoding.Encode("UTF-8", s)
 	}
-	return sb.String()
+	return mime.QEncoding.Encode("UTF-8", s)
 }
 
 func writeBoundary(w io.Writer, b string) (err error) {
 	_, err = w.Write([]byte{'-', '-'})
 	err = writeString(w, b)
+	err = writeEOL(w)
+	return
+}
+
+func writeFolding(w io.Writer, h string, v string) (err error) {
+	// http://www.faqs.org/rfcs/rfc2822.html
+	if len(h)+len(v) < 75 {
+		err = writeString(w, v)
+		return
+	}
+
+	ll := len(h) + 2 // line length
+
+	// folding header
+	for v != "" {
+		i := strings.IndexByte(v, ' ')
+
+		// skip empty
+		if i == 0 {
+			v = v[1:]
+			continue
+		}
+
+		s := v
+		if i > 0 {
+			s = v[0:i]
+			v = v[i:]
+		} else {
+			v = ""
+		}
+
+		if ll+len(s) > 74 {
+			_, err = w.Write([]byte{'\r', '\n', ' '})
+			ll = 1
+		}
+		err = writeString(w, s)
+		ll += len(s)
+	}
+	return
+}
+
+func writeHeader(w io.Writer, h string, v string) (err error) {
+	err = writeString(w, h)
+	_, err = w.Write([]byte{':', ' '})
+	err = writeFolding(w, h, v)
+	err = writeEOL(w)
+	return
+}
+
+func writeAddress(w io.Writer, h string, as ...*mail.Address) (err error) {
+	if len(as) < 1 {
+		return
+	}
+
+	err = writeString(w, h)
+	_, err = w.Write([]byte{':', ' '})
+
+	for i, a := range as {
+		if i > 0 {
+			_, err = w.Write([]byte{'\r', '\n', ' ', ',', ' '})
+		}
+		err = writeFolding(w, h, a.String())
+	}
+
 	err = writeEOL(w)
 	return
 }
@@ -216,71 +271,69 @@ func writeString(w io.Writer, s string) (err error) {
 	return
 }
 
-func (s *Sender) writeMail(w io.Writer, m *Email) error {
-	header := header{}
-
-	header["MIME-Version"] = "1.0"
-	if m.MsgID != "" {
-		header["Message-ID"] = m.MsgID
-	}
-	header["Date"] = formatDate(m.GetDate())
-	header["From"] = m.GetFrom().String()
-	header["To"] = encodeAddress(m.GetTos()...)
-	if len(m.GetCcs()) > 0 {
-		header["Cc"] = encodeAddress(m.GetCcs()...)
-	}
-	if len(m.GetBccs()) > 0 {
-		header["Bcc"] = encodeAddress(m.GetBccs()...)
-	}
-	if len(m.GetReplys()) > 0 {
-		header["Reply-To"] = encodeAddress(m.GetReplys()...)
-	}
-	header["Subject"] = encodeWord(m.Subject)
-
-	var boundary string
-	if m.HTML || len(m.Attachments) > 0 {
-		boundary = str.RandLetterNumbers(28)
-		header["Content-Type"] = "multipart/mixed; boundary=" + boundary
-	} else {
-		header["Content-Type"] = "text/plain; charset=UTF-8"
+func needEncoding(s string) bool {
+	// http://www.faqs.org/rfcs/rfc2822.html
+	// 2.1.1. Line Length Limits
+	if s == "" {
+		return false
 	}
 
-	enc := "7bit"
-	if !str.IsASCII(m.Message) {
-		enc = "Base64"
-	}
-	header["Content-Transfer-Encoding"] = enc
+	ll := 0 // line length
+	sl := len(s)
+	for i := 0; i < sl; i++ {
+		ll++
 
+		ch := s[i]
+		if ch > unicode.MaxASCII {
+			return true
+		}
+		if ll > 1000 {
+			return true
+		}
+		if ch == '\n' {
+			ll = 0
+		}
+	}
+	return false
+}
+
+func (s *Sender) writeMail(w io.Writer, m *Email) (err error) {
 	if s.DataDebug != nil {
 		w = s.DataDebug(w)
 	}
 
-	err := writeHeader(w, header)
-	if err != nil {
-		return err
+	err = writeHeader(w, "MIME-Version", "1.0")
+	if m.MsgID != "" {
+		err = writeHeader(w, "Message-ID", m.MsgID)
 	}
+	err = writeHeader(w, "Date", formatDate(m.GetDate()))
+	err = writeAddress(w, "From", m.GetFrom())
+	err = writeAddress(w, "To", m.GetTos()...)
+	err = writeAddress(w, "Cc", m.GetCcs()...)
+	err = writeAddress(w, "Bcc", m.GetBccs()...)
+	err = writeAddress(w, "Reply-To", m.GetReplys()...)
+	err = writeHeader(w, "Subject", encodeString(m.Subject))
+
+	var boundary string
+	if m.HTML || len(m.Attachments) > 0 {
+		boundary = str.RandLetterNumbers(28)
+		err = writeHeader(w, "Content-Type", "multipart/mixed; boundary="+boundary)
+	} else {
+		err = writeHeader(w, "Content-Type", "text/plain; charset=UTF-8")
+	}
+
+	enc := "7bit"
+	if needEncoding(m.Message) {
+		enc = "Base64"
+	}
+	err = writeHeader(w, "Content-Transfer-Encoding", enc)
 
 	err = writeEOL(w)
 	if err != nil {
-		return err
+		return
 	}
 
 	return writeBody(w, enc, m, boundary)
-}
-
-// http://www.faqs.org/rfcs/rfc2822.html
-func writeHeader(w io.Writer, h header) (err error) {
-	for k, v := range h {
-		err = writeString(w, k)
-		_, err = w.Write([]byte{':', ' '})
-		if len(k)+len(v) > 74 {
-			// folding header
-			v = strings.ReplaceAll(v, " ", "\r\n ")
-		}
-		err = writeString(w, v)
-		err = writeEOL(w)
-	}
-	return
 }
 
 func closeAttach(r io.Reader) {
@@ -318,18 +371,15 @@ func writeBody(w io.Writer, enc string, m *Email, boundary string) (err error) {
 		return writeMsg(w, enc, m.Message)
 	}
 
-	header := header{}
-	if m.HTML {
-		header["Content-Type"] = "text/html; charset=UTF-8"
-	} else {
-		header["Content-Type"] = "text/plain; charset=UTF-8"
-	}
-	header["Content-Disposition"] = "inline"
-	header["Content-Transfer-Encoding"] = enc
-
 	// Write the message part
 	err = writeBoundary(w, boundary)
-	err = writeHeader(w, header)
+	if m.HTML {
+		err = writeHeader(w, "Content-Type", "text/html; charset=UTF-8")
+	} else {
+		err = writeHeader(w, "Content-Type", "text/plain; charset=UTF-8")
+	}
+	err = writeHeader(w, "Content-Disposition", "inline")
+	err = writeHeader(w, "Content-Transfer-Encoding", enc)
 	err = writeEOL(w)
 	if err != nil {
 		return
@@ -360,27 +410,23 @@ func writeAttachments(w io.Writer, as []*Attachment, boundary string) error {
 			mt = "application/octet-stream"
 		}
 
-		header := header{}
-		header["Content-Type"] = mt + "; name=\"" + encodeWord(a.Name) + "\""
-		if a.Cid != "" {
-			header["Content-Disposition"] = "inline; filename=\"" + encodeWord(a.Name) + "\""
-		} else {
-			header["Content-Disposition"] = "attachment; filename=\"" + encodeWord(a.Name) + "\""
-		}
-		if a.Cid != "" {
-			header["Content-ID"] = a.Cid
-		}
-		header["Content-Transfer-Encoding"] = "Base64"
-
 		err = writeBoundary(w, boundary)
-		err = writeHeader(w, header)
+		err = writeHeader(w, "Content-Type", mt+"; name=\""+encodeWord(a.Name)+"\"")
+		if a.Cid != "" {
+			err = writeHeader(w, "Content-Disposition", "inline; filename=\""+encodeWord(a.Name)+"\"")
+		} else {
+			err = writeHeader(w, "Content-Disposition", "attachment; filename=\""+encodeWord(a.Name)+"\"")
+		}
+		if a.Cid != "" {
+			err = writeHeader(w, "Content-ID", a.Cid)
+		}
+		err = writeHeader(w, "Content-Transfer-Encoding", "Base64")
 		err = writeEOL(w)
-
-		err = copyAttach(w, a.Data)
 		if err != nil {
 			return err
 		}
 
+		err = copyAttach(w, a.Data)
 		err = writeEOL(w)
 		if err != nil {
 			return err

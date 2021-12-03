@@ -89,12 +89,15 @@ func (m *Email) GetTos() []*mail.Address {
 }
 
 // AddTo add to address
-func (m *Email) AddTo(s string) error {
-	a, err := ParseAddress(s)
-	if err == nil {
+func (m *Email) AddTo(tos ...string) error {
+	for _, s := range tos {
+		a, err := ParseAddress(s)
+		if err != nil {
+			return err
+		}
 		m.tos = append(m.tos, a)
 	}
-	return err
+	return nil
 }
 
 // GetCcs get cc address array
@@ -103,12 +106,15 @@ func (m *Email) GetCcs() []*mail.Address {
 }
 
 // AddCc add cc address
-func (m *Email) AddCc(s string) error {
-	a, err := ParseAddress(s)
-	if err == nil {
+func (m *Email) AddCc(ccs ...string) error {
+	for _, s := range ccs {
+		a, err := ParseAddress(s)
+		if err != nil {
+			return err
+		}
 		m.ccs = append(m.ccs, a)
 	}
-	return err
+	return nil
 }
 
 // GetBccs get bcc address array
@@ -117,12 +123,15 @@ func (m *Email) GetBccs() []*mail.Address {
 }
 
 // AddBcc add bcc address
-func (m *Email) AddBcc(s string) error {
-	a, err := ParseAddress(s)
-	if err == nil {
+func (m *Email) AddBcc(bccs ...string) error {
+	for _, s := range bccs {
+		a, err := ParseAddress(s)
+		if err != nil {
+			return err
+		}
 		m.bccs = append(m.bccs, a)
 	}
-	return err
+	return nil
 }
 
 // GetReplys get reply address array
@@ -131,25 +140,30 @@ func (m *Email) GetReplys() []*mail.Address {
 }
 
 // AddReply add reply address
-func (m *Email) AddReply(s string) error {
-	a, err := ParseAddress(s)
-	if err == nil {
+func (m *Email) AddReply(rs ...string) error {
+	for _, s := range rs {
+		a, err := ParseAddress(s)
+		if err != nil {
+			return err
+		}
 		m.replys = append(m.replys, a)
 	}
-	return err
+	return nil
 }
 
 // AddAttachment add a attachment
-func (m *Email) AddAttachment(a *Attachment) {
-	m.Attachments = append(m.Attachments, a)
+func (m *Email) AddAttachment(as ...*Attachment) {
+	m.Attachments = append(m.Attachments, as...)
 }
 
 // AttachFile attach a file
-func (m *Email) AttachFile(path string) error {
-	if err := iox.FileExists(path); err != nil {
-		return err
+func (m *Email) AttachFile(paths ...string) error {
+	for _, path := range paths {
+		if err := iox.FileExists(path); err != nil {
+			return err
+		}
+		m.AddAttachment(&Attachment{Name: filepath.Base(path), Data: &iox.FileReader{Path: path}})
 	}
-	m.AddAttachment(&Attachment{Name: filepath.Base(path), Data: &iox.FileReader{Path: path}})
 	return nil
 }
 

@@ -3,12 +3,42 @@ package str
 import (
 	"bytes"
 	"strings"
+	"unicode"
 	"unicode/utf8"
 )
 
 // RuneCount returns the number of runes in s.
 func RuneCount(s string) int {
 	return utf8.RuneCountInString(s)
+}
+
+// RuneEqualFold reports whether sr and tr,
+// are equal under Unicode case-folding, which is a more general
+// form of case-insensitivity.
+func RuneEqualFold(sr, tr rune) bool {
+	// Easy case.
+	if tr == sr {
+		return true
+	}
+
+	// Make sr < tr to simplify what follows.
+	if tr < sr {
+		tr, sr = sr, tr
+	}
+
+	// Fast check for ASCII.
+	if tr < utf8.RuneSelf {
+		// ASCII only, sr/tr must be upper/lower case
+		return 'A' <= sr && sr <= 'Z' && tr == sr+'a'-'A'
+	}
+
+	// General case. SimpleFold(x) returns the next equivalent rune > x
+	// or wraps around to smaller values.
+	r := unicode.SimpleFold(sr)
+	for r != sr && r < tr {
+		r = unicode.SimpleFold(r)
+	}
+	return r == tr
 }
 
 // RemoveByte Removes all occurrences of the byte b from the source string str.

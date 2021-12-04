@@ -13,17 +13,12 @@ Pango is a GO development utility library.
 | [col](#col-collectioncontainer)  | a Collection/Container package          |
 | [ini](#int)                      | a INI file read/write package           |
 | iox                              | a IO utility package                    |
-| [iox/fswatch](#ioxfswatch)       | recursive directory notifications built as a wrapper around fsnotify (golang) |
 | [log](#log)                      | a Log like Log4j                        |
 | [net/email](#netemail)           | a email sender package                  |
 | [net/httpx](#nethttpx)           | a package for http                      |
 | [net/slack](#netslack)           | a slack webhook sender package          |
 | [str](#str)                      | a strings package wrapper and provides some useful utility functions      |
 | [tpl](#tpl)                      | a text/template, html/template wrapper for recursively load template file |
-| [x/ginx/gindump](#xginxgindump)  | a http request/response dumper middleware for gin                         |
-| [x/ginx/ginfile](#xginxginfile)  | a static file handler with Cache-Control header support for gin           |
-| [x/ginx/gingzip](#xginxginzip)   | a gzip encoding support middleware for gin                                |
-| [x/ginx/ginlog](#xginxginlog)    | a access logger middleware for gin                                        |
 
 
 ### How to install?
@@ -668,29 +663,6 @@ func LessFloat64(a, b interface{}) bool
 ```
 
 
- iox/fswatch
------------------------------------------------------------------------
-recursive directory notifications built as a wrapper around fsnotify (golang)
-
-This is a wrapper around https://github.com/fsnotify/fsnotify instead of only monitoring a top level folder,
-it allows you to monitor all folders underneath the folder you specify.
-
-### Example:
-
-(error handling omitted to improve readability)
-
-```golang
-	import "github.com/panafw/pango/iox/fswatch"
-
-	// works exactly like fsnotify and implements the same API.
-	watcher, err := fswatch.NewFileWatcher()
-
-	// watch recursive and recieve events with callback function
-	watcher.AddRecursive("watchdir", fswatch.OpALL, "", func(path string, op fswatch.Op) {
-		fmt.Printf("%s %s\n", path, op)
-	})
-
-```
 
  log
 -----------------------------------------------------------------------

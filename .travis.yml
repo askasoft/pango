@@ -12,7 +12,7 @@ branches:
 install: true
 
 script: 
-  - env GO111MODULE=on go test -covermode=atomic -coverprofile=coverage.out $(go list ./... | grep -v watch)
+  - env GO111MODULE=on go test -covermode=atomic -coverprofile=coverage.out $(go list ./...)
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)

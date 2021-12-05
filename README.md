@@ -53,7 +53,6 @@ Containers are either ordered or unordered. All ordered containers provide [stat
 | :------------------------------ | :---------: | :----------: | :----------: |
 | [ArrayList](#arraylist)         |      Y      |      Y       |      Y       |
 | [LinkedList](#linkedlist)       |             |      Y       |      Y       |
-| [SortedList](#sortedlist)       |      Y      |      Y       |              |
 | [HashSet](#hashset)             |             |              |              |
 | [LinkedHashSet](#linkedhashset) |      Y      |      Y       |      Y       |
 | [TreeSet](#treeset)             |      Y      |      Y       |              |
@@ -217,38 +216,6 @@ func main() {
 	list.Clear()                          // []
 	list.Insert(0, "b")                   // ["b"]
 	list.Insert(0, "a")                   // ["a","b"]
-}
-```
-
-#### SortedList
-
-A [list](#list) where each element points to the next and previous elements in the list and automatically keep the elements ordered with respect to the comparator.
-
-Implements [List](#list), [Iterator](#iterator) interfaces.
-
-```go
-package main
-
-import (
-	"github.com/pandafw/pango/col"
-	"github.com/pandafw/pango/cmp"
-)
-
-func main() {
-	list := NewSortedList(cmp.LessInt) // empty (keys are of type int)
-	list.Add(1)                        // 1
-	list.Add(2, 2, 3, 4, 5)            // 1, 2, 2, 3, 4, 5 (in order)
-	_ = list.Get(0)                    // 1
-	_ = list.Get(100)                  // panic
-	list.Delete(4)                     // 1, 2, 2, 3, 5 (in order)
-	list.Delete(2, 3)                  // 1, 5 (in order)
-	list.Contains(1)                   // true
-	list.Contains(1, 5)                // true
-	list.Contains(1, 6)                // false
-	_ = list.Values()                  // []int{1,5} (in order)
-	list.Clear()                       // empty
-	list.IsEmpty()                     // true
-	list.Len()                         // 0
 }
 ```
 
@@ -624,8 +591,6 @@ func main() {
 
 ### Less
 
-Some data structures (e.g. SortedList) require a Less compare function to automatically keep their elements sorted upon insertion. 
-This comparator is necessary during the initalization. 
 Some data structures require a less compare function to sort it's elements (e.g. ArrayList.Sort()).
 
 Less comparator is defined as:

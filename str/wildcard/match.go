@@ -1,50 +1,142 @@
 package wildcard
 
+import (
+	"unicode/utf8"
+
+	"github.com/pandafw/pango/str"
+)
+
 // MatchSimple - finds whether the text matches/satisfies the pattern string.
 // supports only '*' wildcard in the pattern.
 // considers a file system path as a flat name space.
-func MatchSimple(pattern, name string) bool {
+func MatchSimple(pattern, s string) bool {
 	if pattern == "" {
-		return name == pattern
+		return s == pattern
 	}
 	if pattern == "*" {
 		return true
 	}
+
 	// Does only wildcard '*' match.
-	return deepMatchRune([]rune(name), []rune(pattern), true)
+	return deepMatchSimple(pattern, s, false)
+}
+
+// MatchSimpleFold - finds whether the text matches/satisfies the pattern string.
+// supports only '*' wildcard in the pattern.
+// case insensitive.
+// considers a file system path as a flat name space.
+func MatchSimpleFold(pattern, s string) bool {
+	if pattern == "" {
+		return s == pattern
+	}
+	if pattern == "*" {
+		return true
+	}
+
+	// Does only wildcard '*' match.
+	return deepMatchSimple(pattern, s, true)
+}
+
+func deepMatchSimple(pattern, s string, fold bool) bool {
+	for len(pattern) > 0 {
+		pc, pz := utf8.DecodeRuneInString(pattern)
+		switch pc {
+		case '*':
+			if deepMatchSimple(pattern[pz:], s, fold) {
+				return true
+			}
+			if len(s) > 0 {
+				_, sz := utf8.DecodeRuneInString(s)
+				return deepMatchSimple(pattern, s[sz:], fold)
+			}
+			return false
+		default:
+			if len(s) == 0 {
+				return false
+			}
+			sc, sz := utf8.DecodeRuneInString(s)
+			if fold {
+				if !str.RuneEqualFold(sc, pc) {
+					return false
+				}
+			} else if sc != pc {
+				return false
+			}
+			s = s[sz:]
+			pattern = pattern[pz:]
+		}
+	}
+	return len(s) == 0 && len(pattern) == 0
 }
 
 // Match -  finds whether the text matches/satisfies the pattern string.
 // supports  '*' and '?' wildcards in the pattern string.
+// case insensitive.
 // unlike path.Match(), considers a path as a flat name space while matching the pattern.
-func Match(pattern, name string) (matched bool) {
+func Match(pattern, s string) (matched bool) {
 	if pattern == "" {
-		return name == pattern
+		return s == pattern
 	}
+
 	if pattern == "*" {
 		return true
 	}
+
 	// Does extended wildcard '*' and '?' match.
-	return deepMatchRune([]rune(name), []rune(pattern), false)
+	return deepMatchWild(pattern, s, false)
 }
 
-func deepMatchRune(str, pattern []rune, simple bool) bool {
-	for len(pattern) > 0 {
-		switch pattern[0] {
-		default:
-			if len(str) == 0 || str[0] != pattern[0] {
-				return false
-			}
-		case '?':
-			if len(str) == 0 && !simple {
-				return false
-			}
-		case '*':
-			return deepMatchRune(str, pattern[1:], simple) ||
-				(len(str) > 0 && deepMatchRune(str[1:], pattern, simple))
-		}
-		str = str[1:]
-		pattern = pattern[1:]
+// MatchFold -  finds whether the text matches/satisfies the pattern string.
+// supports  '*' and '?' wildcards in the pattern string.
+// unlike path.Match(), considers a path as a flat name space while matching the pattern.
+func MatchFold(pattern, s string) (matched bool) {
+	if pattern == "" {
+		return s == pattern
 	}
-	return len(str) == 0 && len(pattern) == 0
+
+	if pattern == "*" {
+		return true
+	}
+
+	// Does extended wildcard '*' and '?' match.
+	return deepMatchWild(pattern, s, true)
+}
+
+func deepMatchWild(pattern, s string, fold bool) bool {
+	for len(pattern) > 0 {
+		pc, pz := utf8.DecodeRuneInString(pattern)
+		switch pc {
+		case '*':
+			if deepMatchWild(pattern[pz:], s, fold) {
+				return true
+			}
+			if len(s) > 0 {
+				_, sz := utf8.DecodeRuneInString(s)
+				return deepMatchWild(pattern, s[sz:], fold)
+			}
+			return false
+		case '?':
+			if len(s) == 0 {
+				return false
+			}
+			_, sz := utf8.DecodeRuneInString(s)
+			s = s[sz:]
+			pattern = pattern[pz:]
+		default:
+			if len(s) == 0 {
+				return false
+			}
+			sc, sz := utf8.DecodeRuneInString(s)
+			if fold {
+				if !str.RuneEqualFold(sc, pc) {
+					return false
+				}
+			} else if sc != pc {
+				return false
+			}
+			s = s[sz:]
+			pattern = pattern[pz:]
+		}
+	}
+	return len(s) == 0 && len(pattern) == 0
 }

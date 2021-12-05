@@ -1,6 +1,7 @@
 package wildcard
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -355,7 +356,19 @@ func TestMatch(t *testing.T) {
 	for i, testCase := range testCases {
 		actualResult := Match(testCase.pattern, testCase.text)
 		if testCase.matched != actualResult {
-			t.Errorf("Test %d: Expected the result to be `%v`, but instead found it to be `%v`", i+1, testCase.matched, actualResult)
+			t.Errorf("%d: Match(%q, %q) = %v, want: %v", i+1, testCase.pattern, testCase.text, actualResult, testCase.matched)
+		}
+
+		if testCase.matched {
+			// fold match
+			foldText := strings.ToUpper(testCase.text)
+			if foldText == testCase.text {
+				foldText = strings.ToLower(testCase.text)
+			}
+			actualResult = MatchFold(testCase.pattern, foldText)
+			if testCase.matched != actualResult {
+				t.Errorf("%d: MatchFold(%q, %q) = %v, want: %v", i+1, testCase.pattern, foldText, actualResult, testCase.matched)
+			}
 		}
 	}
 }
@@ -518,7 +531,19 @@ func TestMatchSimple(t *testing.T) {
 	for i, testCase := range testCases {
 		actualResult := MatchSimple(testCase.pattern, testCase.text)
 		if testCase.matched != actualResult {
-			t.Errorf("Test %d: Expected the result to be `%v`, but instead found it to be `%v`", i+1, testCase.matched, actualResult)
+			t.Errorf("%d: MatchSimple(%q, %q) = %v, want: %v", i+1, testCase.pattern, testCase.text, actualResult, testCase.matched)
+		}
+
+		if testCase.matched {
+			// fold match
+			foldText := strings.ToUpper(testCase.text)
+			if foldText == testCase.text {
+				foldText = strings.ToLower(testCase.text)
+			}
+			actualResult = MatchSimpleFold(testCase.pattern, foldText)
+			if testCase.matched != actualResult {
+				t.Errorf("%d: MatchSimpleFold(%q, %q) = %v, want: %v", i+1, testCase.pattern, foldText, actualResult, testCase.matched)
+			}
 		}
 	}
 }

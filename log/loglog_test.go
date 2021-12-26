@@ -18,6 +18,7 @@ type testConcurrentDetectWriter struct {
 	count2 uint64
 	count3 uint64
 
+	starts [testRoutines]int64
 	counts [testRoutines]int64
 	closed bool
 	last   time.Time
@@ -49,6 +50,10 @@ func (tw *testConcurrentDetectWriter) Write(le *Event) {
 	c0 := tw.counts[k]
 	if c0 != 0 && c0+1 != c {
 		tw.error = fmt.Sprintf("[%d] %d <- %d", k, c0, c)
+		fmt.Println(tw.error)
+	}
+	if c0 == 0 {
+		tw.starts[k] = c
 	}
 	tw.counts[k] = c
 
@@ -82,7 +87,11 @@ func testLogRoutine(log *Log, wg *sync.WaitGroup, n int, p *int64) {
 
 func testCheckConcurrentDetectWriter(t *testing.T, c string, tw1 *testConcurrentDetectWriter, tw2 *testConcurrentDetectWriter, cs []int64) {
 	fmt.Println("tw1: ", tw1.closed, tw1.count1, tw1.count2, tw1.count3, tw1.error)
+	fmt.Println("tw1: ", tw1.starts)
+	fmt.Println("tw1: ", tw1.counts)
 	fmt.Println("tw2: ", tw2.closed, tw2.count1, tw2.count2, tw2.count3, tw2.error)
+	fmt.Println("tw2: ", tw2.starts)
+	fmt.Println("tw2: ", tw2.counts)
 
 	if tw1.error != "" {
 		t.Errorf("%s(%s) error: %s", c, "tw1.error", tw1.error)
@@ -145,6 +154,7 @@ func TestAsyncToAsync(t *testing.T) {
 	log.Close()
 
 	fmt.Println(time.Now(), "END")
+	time.Sleep(time.Second * 2)
 
 	testCheckConcurrentDetectWriter(t, "TestAsyncToAsync", tw1, tw2, counts)
 }

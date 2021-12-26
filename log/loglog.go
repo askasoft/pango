@@ -2,6 +2,8 @@ package log
 
 import (
 	"io"
+	"sync"
+	"time"
 )
 
 // Log is default logger in application.
@@ -14,6 +16,8 @@ type Log struct {
 	writer Writer
 	levels map[string]Level
 	logfmt Formatter
+
+	mutex sync.Mutex
 }
 
 // NewLog returns a new Log.
@@ -70,6 +74,9 @@ func (log *Log) SetWriter(lw Writer) {
 
 // SwitchWriter use lw to replace the log writer
 func (log *Log) SwitchWriter(lw Writer) {
+	log.mutex.Lock()
+	defer log.mutex.Unlock()
+
 	ow := log.writer
 
 	if osw, ok := ow.(*SyncWriter); ok {
@@ -79,8 +86,8 @@ func (log *Log) SwitchWriter(lw Writer) {
 	}
 
 	if oaw, ok := ow.(*AsyncWriter); ok {
-		oaw.Close()
-		oaw.SyncWriter(lw)
+		oaw.SetWriter(lw)
+		oaw.StopAfter(time.Second)
 		log.writer = lw
 		return
 	}

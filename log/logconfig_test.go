@@ -9,7 +9,7 @@ import (
 )
 
 func TestLogConfigJSON(t *testing.T) {
-	log := Default()
+	log := NewLog()
 	if err := log.Config("testdata/log.json"); err != nil {
 		t.Fatalf(`log.Config("testdata/log.json") = %v`, err)
 	}
@@ -17,7 +17,7 @@ func TestLogConfigJSON(t *testing.T) {
 }
 
 func TestLogConfigINI(t *testing.T) {
-	log := Default()
+	log := NewLog()
 	if err := log.Config("testdata/log.ini"); err != nil {
 		t.Fatalf(`log.Config("testdata/log.ini") = %v`, err)
 	}
@@ -219,7 +219,7 @@ func TestLogConfigFile1(t *testing.T) {
 	os.RemoveAll("conftest")
 	defer os.RemoveAll("conftest")
 
-	log := Default()
+	log := NewLog()
 	if err := log.Config("testdata/log-file1.json"); err != nil {
 		t.Fatalf(`log.Config("testdata/log-file1.json") = %v`, err)
 	}
@@ -240,7 +240,7 @@ func TestLogConfigFile2(t *testing.T) {
 	os.RemoveAll("conftest")
 	defer os.RemoveAll("conftest")
 
-	log := Default()
+	log := NewLog()
 	if err := log.Config("testdata/log-file2.json"); err != nil {
 		t.Fatalf(`log.Config("testdata/log-file2.json") = %v`, err)
 	}

@@ -2,6 +2,7 @@ package log
 
 import (
 	"sync"
+	"time"
 )
 
 // NewAsyncWriter create a async writer and start go routine
@@ -11,73 +12,66 @@ func NewAsyncWriter(w Writer, size int) *AsyncWriter {
 	return aw
 }
 
+type signal struct {
+	signal string
+	option interface{}
+}
+
 // AsyncWriter write log to multiple writers.
 type AsyncWriter struct {
 	writer  Writer
 	evtChan chan *Event
-	sigChan chan string
+	sigChan chan signal
 	waitg   sync.WaitGroup
-	mutex   *sync.Mutex
 }
 
 // Write async write the log event
 func (aw *AsyncWriter) Write(le *Event) {
-	if aw.mutex != nil {
-		aw.mutex.Lock()
-		defer aw.mutex.Unlock()
-		aw.writer.Write(le)
-		return
-	}
-
 	aw.evtChan <- le
 }
 
 // Flush async flush the underlying writer
 func (aw *AsyncWriter) Flush() {
-	if aw.mutex != nil {
-		aw.mutex.Lock()
-		defer aw.mutex.Unlock()
-		aw.writer.Flush()
-		return
-	}
-
-	aw.sigChan <- "flush"
+	aw.sigChan <- signal{"flush", nil}
 }
 
 // Close Close the underlying writer and wait it for done
 func (aw *AsyncWriter) Close() {
-	if aw.mutex != nil {
-		aw.mutex.Lock()
-		defer aw.mutex.Unlock()
-		aw.writer.Close()
-		return
-	}
-
-	aw.sigChan <- "close"
+	aw.sigChan <- signal{"close", nil}
 	aw.waitg.Wait()
+}
+
+// SetWriter close the old writer and set the new writer
+func (aw *AsyncWriter) SetWriter(w Writer) {
+	aw.sigChan <- signal{"switch", w}
 }
 
 // Start start the goroutine
 func (aw *AsyncWriter) Start(size int) {
 	aw.evtChan = make(chan *Event, size)
-	aw.sigChan = make(chan string, 1)
+	aw.sigChan = make(chan signal, 1)
 	aw.waitg.Add(1)
 	go aw.run()
 }
 
-// SetWriter set the log writer
-func (aw *AsyncWriter) SetWriter(w Writer) {
-	aw.writer = w
+// Stop stop the run() go-routine
+func (aw *AsyncWriter) Stop() {
+	aw.sigChan <- signal{"stop", nil}
+	aw.waitg.Wait()
 }
 
-// SyncWriter switch to synchronized mode and replace the writer
-func (aw *AsyncWriter) SyncWriter(w Writer) {
-	mutex := &sync.Mutex{}
-	mutex.Lock()
-	defer mutex.Unlock()
+// drainOnce drain the event chan once (ignore after-coming event to prevent dead loop)
+func (aw *AsyncWriter) drainOnce() {
+	ec := aw.evtChan
+	for n := len(ec); n > 0; n-- {
+		le := <-ec
+		aw.writer.Write(le)
+	}
+}
 
-	aw.mutex = mutex
-	aw.writer = w
+// drainFull complete drain the event chan
+func (aw *AsyncWriter) drainFull() {
+	w := aw.writer
 
 	// complete drain the event chan
 	ec := aw.evtChan
@@ -89,16 +83,7 @@ func (aw *AsyncWriter) SyncWriter(w Writer) {
 	// complete drain the signal chan
 	sc := aw.sigChan
 	for len(sc) > 0 {
-		_ = <-sc
-	}
-}
-
-// drain drain the event chan once (ignore after-coming event to prevent dead loop)
-func (aw *AsyncWriter) drain() {
-	ec := aw.evtChan
-	for n := len(ec); n > 0; n-- {
-		le := <-ec
-		aw.writer.Write(le)
+		<-sc
 	}
 }
 
@@ -108,12 +93,21 @@ func (aw *AsyncWriter) run() {
 	for {
 		select {
 		case sg := <-aw.sigChan:
-			aw.drain()
-			switch sg {
+			switch sg.signal {
+			case "switch":
+				aw.drainFull()
+				ow := aw.writer
+				aw.writer = sg.option.(Writer)
+				ow.Close()
 			case "flush":
+				aw.drainOnce()
 				aw.writer.Flush()
 			case "close":
+				aw.drainFull()
 				aw.writer.Close()
+				done = true
+			case "stop":
+				aw.drainFull()
 				done = true
 			}
 		case le := <-aw.evtChan:
@@ -124,5 +118,23 @@ func (aw *AsyncWriter) run() {
 		}
 	}
 
+	close(aw.evtChan)
+	close(aw.sigChan)
 	aw.waitg.Done()
+}
+
+// StopAfter auto stop the run() go-routine when the evtChan is empty and after duration d.
+func (aw *AsyncWriter) StopAfter(d time.Duration) {
+	timer := time.NewTimer(d)
+	go func() {
+		for {
+			<-timer.C
+			if len(aw.evtChan) == 0 && len(aw.sigChan) == 0 {
+				aw.Stop()
+				return
+			}
+
+			timer.Reset(d)
+		}
+	}()
 }

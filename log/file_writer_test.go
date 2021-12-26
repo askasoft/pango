@@ -36,6 +36,76 @@ func TestFileTextFormatSimple(t *testing.T) {
 	}
 }
 
+func TestFilePropGlobal(t *testing.T) {
+	path := "TestFilePropGlobal/filetest"
+	dir := filepath.Dir(path)
+	os.RemoveAll(dir)
+	defer os.RemoveAll(dir)
+
+	SetFormatter(NewTextFormatter("%l - %x{key} - %m%n%T"))
+	SetWriter(&FileWriter{Path: path})
+	SetProp("key", "val")
+	Info("hello")
+	Close()
+
+	// check lastest file
+	bs, _ := ioutil.ReadFile(path + ".log")
+	e := fmt.Sprintf("INFO - %s - %s%s", "val", "hello", EOL)
+	a := string(bs)
+	if a != e {
+		t.Errorf("TestFilePropGlobal\nexpect: %q, actual: %q", e, a)
+	}
+}
+
+func TestFilePropDefault(t *testing.T) {
+	path := "TestFilePropDefault/filetest"
+	dir := filepath.Dir(path)
+	os.RemoveAll(dir)
+	defer os.RemoveAll(dir)
+
+	log1 := Default()
+	log1.SetFormatter(NewTextFormatter("%l - %x{key} - %m%n%T"))
+	log1.SetWriter(&FileWriter{Path: path})
+	log1.SetProp("key", "val")
+	log1.Info("hello")
+	log1.Close()
+
+	// check lastest file
+	bs, _ := ioutil.ReadFile(path + ".log")
+	e := fmt.Sprintf("INFO - %s - %s%s", "val", "hello", EOL)
+	a := string(bs)
+	if a != e {
+		t.Errorf("TestFilePropDefault\nexpect: %q, actual: %q", e, a)
+	}
+}
+
+func TestFilePropNewLog(t *testing.T) {
+	path := "TestFilePropNewLog/filetest"
+	dir := filepath.Dir(path)
+	os.RemoveAll(dir)
+	defer os.RemoveAll(dir)
+
+	log1 := NewLog()
+	log1.SetFormatter(NewTextFormatter("%l - %X - %m%n%T"))
+	log1.SetWriter(&FileWriter{Path: path})
+	log1.SetProp("key1", "val1")
+	log1.Info("hello")
+
+	log2 := log1.GetLogger("")
+	log2.SetProp("key2", "val2")
+	log2.Info("hello")
+	log1.Close()
+
+	// check lastest file
+	bs, _ := ioutil.ReadFile(path + ".log")
+	e := fmt.Sprintf("INFO - %s=%s - %s%s", "key1", "val1", "hello", EOL) +
+		fmt.Sprintf("INFO - %s=%s %s=%s - %s%s", "key1", "val1", "key2", "val2", "hello", EOL)
+	a := string(bs)
+	if a != e {
+		t.Errorf("TestFilePropNewLog\nexpect: %q\nactual: %q", e, a)
+	}
+}
+
 func TestFileCallerGlobal(t *testing.T) {
 	path := "TestFileCallerGlobal/filetest"
 	dir := filepath.Dir(path)

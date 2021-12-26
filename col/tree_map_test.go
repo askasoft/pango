@@ -350,7 +350,7 @@ func TestTreeMapIteratorPrevOnEmpty(t *testing.T) {
 	}
 }
 
-func testTreeMapIterNextKey(t *testing.T, cmp cmp.Compare, kvs []interface{}, vcnt bool) {
+func testTreeMapIterNextKey(t *testing.T, cmp cmp.Compare, kvs []P, vcnt bool) {
 	tree := NewTreeMap(cmp, kvs...)
 
 	count := 0
@@ -376,7 +376,7 @@ func testTreeMapIterNextKey(t *testing.T, cmp cmp.Compare, kvs []interface{}, vc
 	}
 }
 
-func testTreeMapIterPrevKey(t *testing.T, cmp cmp.Compare, kvs []interface{}, vcnt bool) {
+func testTreeMapIterPrevKey(t *testing.T, cmp cmp.Compare, kvs []P, vcnt bool) {
 	tree := NewTreeMap(cmp, kvs...)
 
 	countDown := tree.Len()
@@ -402,7 +402,7 @@ func testTreeMapIterPrevKey(t *testing.T, cmp cmp.Compare, kvs []interface{}, vc
 	}
 }
 
-func testTreeMapIterRemoveFront2Back(t *testing.T, cmp cmp.Compare, kvs []interface{}, vcnt bool) {
+func testTreeMapIterRemoveFront2Back(t *testing.T, cmp cmp.Compare, kvs []P, vcnt bool) {
 	tree := NewTreeMap(cmp, kvs...)
 
 	// remove from front to back
@@ -574,7 +574,7 @@ func TestTreeMapIteratorSetValue(t *testing.T) {
 	}
 }
 
-func testTreeMapIterRemoveBack2Front(t *testing.T, cmp cmp.Compare, kvs []interface{}, vcnt bool) {
+func testTreeMapIterRemoveBack2Front(t *testing.T, cmp cmp.Compare, kvs []P, vcnt bool) {
 	tree := NewTreeMap(cmp, kvs...)
 
 	// remove from back to front
@@ -603,7 +603,7 @@ func testTreeMapIterRemoveBack2Front(t *testing.T, cmp cmp.Compare, kvs []interf
 	}
 }
 
-func testTreeMapIterRemoveMiddle(t *testing.T, cmp cmp.Compare, kvs []interface{}) {
+func testTreeMapIterRemoveMiddle(t *testing.T, cmp cmp.Compare, kvs []P) {
 	tree := NewTreeMap(cmp, kvs...)
 
 	// remove from middle
@@ -641,7 +641,7 @@ func testTreeMapIterRemoveMiddle(t *testing.T, cmp cmp.Compare, kvs []interface{
 	}
 }
 
-func testTreeMapIterate(t *testing.T, cmp cmp.Compare, kvs []interface{}, vcnt bool) {
+func testTreeMapIterate(t *testing.T, cmp cmp.Compare, kvs []P, vcnt bool) {
 	testTreeMapIterNextKey(t, cmp, kvs, vcnt)
 
 	testTreeMapIterPrevKey(t, cmp, kvs, vcnt)
@@ -654,7 +654,7 @@ func testTreeMapIterate(t *testing.T, cmp cmp.Compare, kvs []interface{}, vcnt b
 }
 
 func TestTreeMapIterator1(t *testing.T) {
-	kvs := []interface{}{5, "e", 6, "f", 7, "g", 3, "c", 4, "d", 1, "x", 2, "b", 1, "a"} //overwrite
+	kvs := []P{{5, "e"}, {6, "f"}, {7, "g"}, {3, "c"}, {4, "d"}, {1, "x"}, {2, "b"}, {1, "a"}} //overwrite
 	// │   ┌── 7
 	// └── 6
 	//     │   ┌── 5
@@ -667,19 +667,19 @@ func TestTreeMapIterator1(t *testing.T) {
 }
 
 func TestTreeMapIterator2(t *testing.T) {
-	kvs := []interface{}{3, "c", 1, "a", 2, "b"}
+	kvs := []P{{3, "c"}, {1, "a"}, {2, "b"}}
 
 	testTreeMapIterate(t, cmp.CompareInt, kvs, false)
 }
 
 func TestTreeMapIterator3(t *testing.T) {
-	kvs := []interface{}{1, "a"}
+	kvs := []P{{1, "a"}}
 
 	testTreeMapIterate(t, cmp.CompareInt, kvs, false)
 }
 
 func TestTreeMapIterator4(t *testing.T) {
-	kvs := []interface{}{13, 5, 8, 3, 17, 7, 1, 1, 11, 4, 15, 6, 25, 9, 6, 2, 22, 8, 27, 10}
+	kvs := []P{{13, 5}, {8, 3}, {17, 7}, {1, 1}, {11, 4}, {15, 6}, {25, 9}, {6, 2}, {22, 8}, {27, 10}}
 	// │           ┌── 27
 	// │       ┌── 25
 	// │       │   └── 22

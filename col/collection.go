@@ -2,6 +2,9 @@ package col
 
 import "github.com/pandafw/pango/cmp"
 
+// T element type
+type T = interface{}
+
 // Sortable a value each interface for collection
 type Sortable interface {
 	// Sorts this container according to the order induced by the specified Comparator.
@@ -25,31 +28,31 @@ type Collection interface {
 	Container
 
 	// Add adds items of vs
-	Add(vs ...interface{})
+	Add(vs ...T)
 
 	// AddAll adds all items of another collection
 	AddAll(ac Collection)
 
 	// Delete delete all items of vs
-	Delete(vs ...interface{})
+	Delete(vs ...T)
 
 	// DeleteAll delete all of this collection's elements that are also contained in the specified collection
 	DeleteAll(ac Collection)
 
 	// Contains Test to see if the collection contains all items of vs
-	Contains(vs ...interface{}) bool
+	Contains(vs ...T) bool
 
 	// ContainsAll Test to see if the collection contains all items of another collection
 	ContainsAll(ac Collection) bool
 
 	// Retain Retains only the elements in this collection that are contained in the argument array vs.
-	Retain(vs ...interface{})
+	Retain(vs ...T)
 
 	// RetainAll Retains only the elements in this collection that are contained in the specified collection.
 	RetainAll(ac Collection)
 
 	// Values returns a slice contains all the items of the collection
-	Values() []interface{}
+	Values() []T
 
 	Eachable
 }
@@ -66,15 +69,15 @@ type List interface {
 	Iterable
 
 	// Get returns the value at the specified index in this list
-	Get(index int) interface{}
+	Get(index int) T
 
 	// Set set the v at the specified index in this list and returns the old value.
-	Set(index int, v interface{}) interface{}
+	Set(index int, v T) T
 
 	// Insert inserts values at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
 	// Does not do anything if position is bigger than list's size
 	// Note: position equal to list's size is valid, i.e. append.
-	Insert(index int, vs ...interface{})
+	Insert(index int, vs ...T)
 
 	// InsertAll inserts values of another collection ac at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
 	// Does not do anything if position is bigger than list's size
@@ -82,7 +85,7 @@ type List interface {
 	InsertAll(index int, ac Collection)
 
 	// Index returns the index of the first occurrence of the specified v in this list, or -1 if this list does not contain v.
-	Index(v interface{}) int
+	Index(v T) int
 
 	// Remove delete the item at the specified position in this list
 	Remove(index int)
@@ -91,18 +94,33 @@ type List interface {
 	Swap(i, j int)
 }
 
+// K KEY type
+type K = interface{}
+
+// V VALUE type
+type V = interface{}
+
+// P key/value pair
+type P struct {
+	Key   K
+	Value V
+}
+
 // Map map interface
 type Map interface {
 	Container
 
 	// Get looks for the given key, and returns the value associated with it,
 	// or nil if not found. The boolean it returns says whether the key is ok in the map.
-	Get(key interface{}) (interface{}, bool)
+	Get(key K) (K, bool)
 
 	// Set sets the paired key-value items, and returns what `Get` would have returned
 	// on that key prior to the call to `Set`.
 	// Example: lm.Set("k1", "v1", "k2", "v2")
-	Set(kvs ...interface{}) (ov interface{}, ok bool)
+	Set(key K, value V) (ov V, ok bool)
+
+	// SetPairs set items from key-value items array, override the existing items
+	SetPairs(pairs ...P)
 
 	// SetAll set items from another map am, override the existing items
 	SetAll(am Map)
@@ -110,22 +128,21 @@ type Map interface {
 	// SetIfAbsent sets the key-value item if the key does not exists in the map,
 	// and returns what `Get` would have returned
 	// on that key prior to the call to `Set`.
-	// Example: lm.SetIfAbsent("k1", "v1", "k2", "v2")
-	SetIfAbsent(kvs ...interface{}) (ov interface{}, ok bool)
+	SetIfAbsent(key K, value V) (ov K, ok bool)
 
 	// Delete delete all items with key of ks,
 	// and returns what `Get` would have returned
 	// on that key prior to the call to `Set`.
-	Delete(ks ...interface{}) (ov interface{}, ok bool)
+	Delete(ks ...K) (ov V, ok bool)
 
 	// Contains looks for the given key, and returns true if the key exists in the map.
-	Contains(ks ...interface{}) bool
+	Contains(ks ...K) bool
 
 	// Keys returns the key slice
-	Keys() []interface{}
+	Keys() []K
 
 	// Values returns a slice contains all the items of the collection
-	Values() []interface{}
+	Values() []V
 
 	Eachable2
 }

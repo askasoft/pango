@@ -20,7 +20,7 @@ func TestLinkedHashMapInterface(t *testing.T) {
 	}
 }
 
-func TestLinkedMapBasicFeatures(t *testing.T) {
+func TestLinkedHashMapBasicFeatures(t *testing.T) {
 	lm := NewLinkedHashMap()
 
 	n := 100
@@ -28,31 +28,31 @@ func TestLinkedMapBasicFeatures(t *testing.T) {
 	for i := 0; i < n; i++ {
 		ov, ok := interface{}(nil), false
 
-		assertLenEqual("TestLinkedMapBasicFeatures", t, lm, i)
+		assertLenEqual("TestLinkedHashMapBasicFeatures", t, lm, i)
 		if i%2 == 0 {
 			ov, ok = lm.Set(i, 2*i)
 		} else {
 			ov, ok = lm.SetIfAbsent(i, 2*i)
 		}
-		assertLenEqual("TestLinkedMapBasicFeatures", t, lm, i+1)
+		assertLenEqual("TestLinkedHashMapBasicFeatures", t, lm, i+1)
 
 		var w interface{}
 		if ov != w {
-			t.Errorf("[%d] set val = %v, want %v", i, ov, w)
+			t.Errorf("[%d] Set() val = %v, want %v", i, ov, w)
 		}
 		w = false
 		if ok != w {
-			t.Errorf("[%d] set ok = %v, want %v", i, ok, w)
+			t.Errorf("[%d] Set() ok = %v, want %v", i, ok, w)
 		}
 
 		ov, ok = lm.SetIfAbsent(i, 3*i)
 		w = 2 * i
 		if ov != w {
-			t.Errorf("[%d] set val = %v, want %v", i, ov, w)
+			t.Errorf("[%d] SetIfAbsent() val = %v, want %v", i, ov, w)
 		}
 		w = true
 		if ok != w {
-			t.Errorf("[%d] set ok = %v, want %v", i, ok, w)
+			t.Errorf("[%d] SetIfAbsent() ok = %v, want %v", i, ok, w)
 		}
 	}
 
@@ -166,13 +166,13 @@ func TestLinkedMapBasicFeatures(t *testing.T) {
 	// and delete itmes with odd keys
 	for j := 0; j < n/2; j++ {
 		i = 2*j + 1
-		assertLenEqual("TestLinkedMapBasicFeatures", t, lm, n-j)
+		assertLenEqual("TestLinkedHashMapBasicFeatures", t, lm, n-j)
 		lm.Delete(i)
-		assertLenEqual("TestLinkedMapBasicFeatures", t, lm, n-j-1)
+		assertLenEqual("TestLinkedHashMapBasicFeatures", t, lm, n-j-1)
 
 		// deleting again shouldn't change anything
 		lm.Delete(i)
-		assertLenEqual("TestLinkedMapBasicFeatures", t, lm, n-j-1)
+		assertLenEqual("TestLinkedHashMapBasicFeatures", t, lm, n-j-1)
 	}
 
 	// get the whole range
@@ -219,8 +219,8 @@ func TestLinkedMapBasicFeatures(t *testing.T) {
 	}
 }
 
-func TestLinkedMapUpdatingDoesntChangePairsOrder(t *testing.T) {
-	lm := NewLinkedHashMap("foo", "bar", 12, 28, 78, 100, "bar", "baz")
+func TestLinkedHashMapUpdatingDoesntChangePairsOrder(t *testing.T) {
+	lm := NewLinkedHashMap([]P{{"foo", "bar"}, {12, 28}, {78, 100}, {"bar", "baz"}}...)
 
 	ov, ok := lm.Set(78, 102)
 	if ov != 100 {
@@ -235,7 +235,7 @@ func TestLinkedMapUpdatingDoesntChangePairsOrder(t *testing.T) {
 		[]interface{}{"bar", 28, 102, "baz"})
 }
 
-func TestLinkedMapDeletingAndReinsertingChangesPairsOrder(t *testing.T) {
+func TestLinkedHashMapDeletingAndReinsertingChangesPairsOrder(t *testing.T) {
 	lm := NewLinkedHashMap()
 	lm.Set("foo", "bar")
 	lm.Set(12, 28)
@@ -253,7 +253,7 @@ func TestLinkedMapDeletingAndReinsertingChangesPairsOrder(t *testing.T) {
 		[]interface{}{"bar", 28, "baz", 100})
 }
 
-func TestLinkedMapEmptyMapOperations(t *testing.T) {
+func TestLinkedHashMapEmptyMapOperations(t *testing.T) {
 	lm := NewLinkedHashMap()
 
 	var ov interface{}
@@ -268,7 +268,7 @@ func TestLinkedMapEmptyMapOperations(t *testing.T) {
 	}
 
 	lm.Delete("bar")
-	assertLenEqual("TestLinkedMapEmptyMapOperations", t, lm, 0)
+	assertLenEqual("TestLinkedHashMapEmptyMapOperations", t, lm, 0)
 
 	fn := lm.Front()
 	if fn != nil {
@@ -285,7 +285,7 @@ type dummyTestStruct struct {
 	value string
 }
 
-func TestLinkedMapPackUnpackStructs(t *testing.T) {
+func TestLinkedHashMapPackUnpackStructs(t *testing.T) {
 	lm := NewLinkedHashMap()
 	lm.Set("foo", dummyTestStruct{"foo!"})
 	lm.Set("bar", dummyTestStruct{"bar!"})
@@ -315,7 +315,7 @@ func TestLinkedMapPackUnpackStructs(t *testing.T) {
 	}
 }
 
-func TestLinkedMapShuffle(t *testing.T) {
+func TestLinkedHashMapShuffle(t *testing.T) {
 	ranLen := 100
 
 	for _, n := range []int{0, 10, 20, 100, 1000, 10000} {
@@ -344,8 +344,8 @@ func TestLinkedMapShuffle(t *testing.T) {
 	}
 }
 
-func TestLinkedMapTemplateRange(t *testing.T) {
-	lm := NewLinkedHashMap("z", "Z", "a", "A")
+func TestLinkedHashMapTemplateRange(t *testing.T) {
+	lm := NewLinkedHashMap([]P{{"z", "Z"}, {"a", "A"}}...)
 	tmpl, err := template.New("test").Parse("{{range $e := .lm.Items}}[ {{$e.Key}} = {{$e.Value}} ]{{end}}")
 	if err != nil {
 		t.Fatal(err.Error())
@@ -441,11 +441,11 @@ func randomHexString(t *testing.T, length int) string {
 	return hex.EncodeToString(randBytes)
 }
 
-func TestLinkedMapString(t *testing.T) {
+func TestLinkedHashMapString(t *testing.T) {
 	w := `{"1":1,"3":3,"2":2}`
-	a := fmt.Sprintf("%s", NewLinkedHashMap("1", 1, "3", 3, "2", 2))
+	a := fmt.Sprintf("%s", NewLinkedHashMap([]P{{"1", 1}, {"3", 3}, {"2", 2}}...))
 	if w != a {
-		t.Errorf("TestLinkedMapString = %v, want %v", a, w)
+		t.Errorf("TestLinkedHashMapString = %v, want %v", a, w)
 	}
 }
 
@@ -840,7 +840,7 @@ func TestLinkedHashMapIteratorSetValue(t *testing.T) {
 }
 
 /*----------- JOSN Test -----------------*/
-func TestLinkedMapMarshal(t *testing.T) {
+func TestLinkedHashMapMarshal(t *testing.T) {
 	lm := NewLinkedHashMap()
 	lm.Set("a", 34)
 	lm.Set("b", []int{3, 4, 5})
@@ -855,7 +855,7 @@ func TestLinkedMapMarshal(t *testing.T) {
 	}
 }
 
-func TestLinkedMapUnmarshalFromInvalid(t *testing.T) {
+func TestLinkedHashMapUnmarshalFromInvalid(t *testing.T) {
 	lm := NewLinkedHashMap()
 
 	lm.Set("m", math.NaN())
@@ -908,24 +908,24 @@ func TestLinkedMapUnmarshalFromInvalid(t *testing.T) {
 	// fmt.Println("error:", lm, err)
 }
 
-func TestLinkedMapUnmarshal(t *testing.T) {
+func TestLinkedHashMapUnmarshal(t *testing.T) {
 	var (
 		data  = []byte(`{"as":"AS15169 Google Inc.","city":"Mountain View","country":"United States","countryCode":"US","isp":"Google Cloud","lat":37.4192,"lon":-122.0574,"org":"Google Cloud","query":"35.192.25.53","region":"CA","regionName":"California","status":"success","timezone":"America/Los_Angeles","zip":"94043"}`)
-		pairs = []interface{}{
-			"as", "AS15169 Google Inc.",
-			"city", "Mountain View",
-			"country", "United States",
-			"countryCode", "US",
-			"isp", "Google Cloud",
-			"lat", 37.4192,
-			"lon", -122.0574,
-			"org", "Google Cloud",
-			"query", "35.192.25.53",
-			"region", "CA",
-			"regionName", "California",
-			"status", "success",
-			"timezone", "America/Los_Angeles",
-			"zip", "94043",
+		pairs = []P{
+			{"as", "AS15169 Google Inc."},
+			{"city", "Mountain View"},
+			{"country", "United States"},
+			{"countryCode", "US"},
+			{"isp", "Google Cloud"},
+			{"lat", 37.4192},
+			{"lon", -122.0574},
+			{"org", "Google Cloud"},
+			{"query", "35.192.25.53"},
+			{"region", "CA"},
+			{"regionName", "California"},
+			{"status", "success"},
+			{"timezone", "America/Los_Angeles"},
+			{"zip", "94043"},
 		}
 		obj = NewLinkedHashMap(pairs...)
 	)
@@ -937,9 +937,9 @@ func TestLinkedMapUnmarshal(t *testing.T) {
 	}
 
 	// check by Has and GetValue
-	for i := 0; i+1 < len(pairs); i += 2 {
-		k := pairs[i]
-		v := pairs[i+1]
+	for _, p := range pairs {
+		k := p.Key
+		v := p.Value
 
 		if !lm.Contains(k) {
 			t.Fatalf("expect key %q exists in Unmarshaled LinkedHashMap", k)
@@ -1011,12 +1011,12 @@ func TestLinkedMapUnmarshal(t *testing.T) {
 	}
 }
 
-func TestLinkedMapUnmarshalNested(t *testing.T) {
+func TestLinkedHashMapUnmarshalNested(t *testing.T) {
 	var (
 		data = []byte(`{"a": true, "b": [3, 4, { "b": "3", "d": [] }]}`)
 		obj  = NewLinkedHashMap(
-			"a", true,
-			"b", JSONArray{float64(3), float64(4), NewLinkedHashMap("b", "3", "d", JSONArray{})},
+			P{"a", true},
+			P{"b", JSONArray{float64(3), float64(4), NewLinkedHashMap(P{"b", "3"}, P{"d", JSONArray{}})}},
 		)
 	)
 
@@ -1031,25 +1031,25 @@ func TestLinkedMapUnmarshalNested(t *testing.T) {
 	}
 }
 
-func TestLinkedMapUnmarshals(t *testing.T) {
+func TestLinkedHashMapUnmarshals(t *testing.T) {
 	var unmarshalTests = []struct {
 		in  string
 		out interface{}
 		err interface{}
 	}{
 		{in: "{}", out: NewLinkedHashMap()},
-		{in: `{"a": 3}`, out: NewLinkedHashMap("a", float64(3))},
-		{in: `{"a": 3, "b": true}`, out: NewLinkedHashMap("a", float64(3), "b", true)},
-		{in: `{"a": 3, "b": true, "c": null}`, out: NewLinkedHashMap("a", float64(3), "b", true, "c", nil)},
-		{in: `{"a": 3, "c": null, "d": []}`, out: NewLinkedHashMap("a", float64(3), "c", nil, "d", JSONArray{})},
-		{in: `{"a": 3, "c": null, "d": [3,4,true]}`, out: NewLinkedHashMap(
-			"a", float64(3), "c", nil, "d", JSONArray{
+		{in: `{"a": 3}`, out: NewLinkedHashMap(P{"a", float64(3)})},
+		{in: `{"a": 3, "b": true}`, out: NewLinkedHashMap([]P{{"a", float64(3)}, {"b", true}}...)},
+		{in: `{"a": 3, "b": true, "c": null}`, out: NewLinkedHashMap([]P{{"a", float64(3)}, {"b", true}, {"c", nil}}...)},
+		{in: `{"a": 3, "c": null, "d": []}`, out: NewLinkedHashMap([]P{{"a", float64(3)}, {"c", nil}, {"d", JSONArray{}}}...)},
+		{in: `{"a": 3, "c": null, "d": [3,4,true]}`, out: NewLinkedHashMap([]P{
+			{"a", float64(3)}, {"c", nil}, {"d", JSONArray{
 				float64(3), float64(4), true,
-			})},
-		{in: `{"a": 3, "c": null, "d": [3,4,true, { "inner": "abc" }]}`, out: NewLinkedHashMap(
-			"a", float64(3), "c", nil, "d", JSONArray([]interface{}{
-				float64(3), float64(4), true, NewLinkedHashMap("inner", "abc"),
-			}))},
+			}}}...)},
+		{in: `{"a": 3, "c": null, "d": [3,4,true, { "inner": "abc" }]}`, out: NewLinkedHashMap([]P{
+			{"a", float64(3)}, {"c", nil}, {"d", JSONArray([]interface{}{
+				float64(3), float64(4), true, NewLinkedHashMap(P{"inner", "abc"}),
+			})}}...)},
 	}
 
 	for i, tt := range unmarshalTests {

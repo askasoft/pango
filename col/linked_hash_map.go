@@ -6,10 +6,9 @@ import (
 )
 
 // NewLinkedHashMap creates a new LinkedHashMap.
-// Example: NewLinkedMap("k1", "v1", "k2", "v2")
-func NewLinkedHashMap(kvs ...interface{}) *LinkedHashMap {
+func NewLinkedHashMap(kvs ...P) *LinkedHashMap {
 	lm := &LinkedHashMap{}
-	lm.Set(kvs...)
+	lm.SetPairs(kvs...)
 	return lm
 }
 
@@ -24,7 +23,7 @@ func NewLinkedHashMap(kvs ...interface{}) *LinkedHashMap {
 //
 type LinkedHashMap struct {
 	front, back *LinkedMapNode
-	hash        map[interface{}]*LinkedMapNode
+	hash        map[K]*LinkedMapNode
 }
 
 //-----------------------------------------------------------
@@ -52,7 +51,7 @@ func (lm *LinkedHashMap) Clear() {
 
 // Get looks for the given key, and returns the value associated with it,
 // or nil if not found. The boolean it returns says whether the key is ok in the map.
-func (lm *LinkedHashMap) Get(key interface{}) (interface{}, bool) {
+func (lm *LinkedHashMap) Get(key K) (V, bool) {
 	if lm.hash != nil {
 		if ln, ok := lm.hash[key]; ok {
 			return ln.value, ok
@@ -63,30 +62,20 @@ func (lm *LinkedHashMap) Get(key interface{}) (interface{}, bool) {
 
 // Set sets the paired key-value items, and returns what `Get` would have returned
 // on that key prior to the call to `Set`.
-// Example: lm.Set("k1", "v1", "k2", "v2")
-func (lm *LinkedHashMap) Set(kvs ...interface{}) (ov interface{}, ok bool) {
-	if (len(kvs) % 2) != 0 {
-		panic("LinkedHashMap.Set(kvs...) unpaired key-value items")
-	}
-
-	if len(kvs) < 2 {
-		return
-	}
-
+func (lm *LinkedHashMap) Set(key K, value V) (ov V, ok bool) {
 	var ln *LinkedMapNode
-	for i := 0; i+1 < len(kvs); i += 2 {
-		k := kvs[i]
-		v := kvs[i+1]
-
-		ov = nil
-		if ln, ok = lm.hash[k]; ok {
-			ov = ln.value
-			ln.value = v
-		} else {
-			lm.add(k, v)
-		}
+	if ln, ok = lm.hash[key]; ok {
+		ov = ln.value
+		ln.value = value
+	} else {
+		lm.add(key, value)
 	}
 	return
+}
+
+// SetPairs set items from key-value items array, override the existing items
+func (lm *LinkedHashMap) SetPairs(pairs ...P) {
+	setMapPairs(lm, pairs...)
 }
 
 // SetAll set items from another map am, override the existing items
@@ -98,34 +87,22 @@ func (lm *LinkedHashMap) SetAll(am Map) {
 // and returns what `Get` would have returned
 // on that key prior to the call to `Set`.
 // Example: lm.SetIfAbsent("k1", "v1", "k2", "v2")
-func (lm *LinkedHashMap) SetIfAbsent(kvs ...interface{}) (ov interface{}, ok bool) {
-	if (len(kvs) % 2) != 0 {
-		panic("LinkedHashMap.SetIfAbsent(kvs...) unpaired key-value items")
-	}
-
-	if len(kvs) < 2 {
-		return
-	}
-
+func (lm *LinkedHashMap) SetIfAbsent(key K, value V) (ov V, ok bool) {
 	var ln *LinkedMapNode
-	for i := 0; i+1 < len(kvs); i += 2 {
-		k := kvs[i]
-		v := kvs[i+1]
 
-		ov = nil
-		if ln, ok = lm.hash[k]; ok {
-			ov = ln.value
-		} else {
-			lm.add(k, v)
-		}
+	if ln, ok = lm.hash[key]; ok {
+		ov = ln.value
+	} else {
+		lm.add(key, value)
 	}
+
 	return
 }
 
 // Delete delete all items with key of ks,
 // and returns what `Get` would have returned
 // on that key prior to the call to `Set`.
-func (lm *LinkedHashMap) Delete(ks ...interface{}) (ov interface{}, ok bool) {
+func (lm *LinkedHashMap) Delete(ks ...K) (ov V, ok bool) {
 	if lm.IsEmpty() {
 		return
 	}
@@ -142,7 +119,7 @@ func (lm *LinkedHashMap) Delete(ks ...interface{}) (ov interface{}, ok bool) {
 }
 
 // Contains looks for the given key, and returns true if the key exists in the map.
-func (lm *LinkedHashMap) Contains(ks ...interface{}) bool {
+func (lm *LinkedHashMap) Contains(ks ...K) bool {
 	if len(ks) == 0 {
 		return true
 	}
@@ -160,8 +137,8 @@ func (lm *LinkedHashMap) Contains(ks ...interface{}) bool {
 }
 
 // Keys returns the key slice
-func (lm *LinkedHashMap) Keys() []interface{} {
-	ks := make([]interface{}, lm.Len())
+func (lm *LinkedHashMap) Keys() []K {
+	ks := make([]K, lm.Len())
 	for i, ln := 0, lm.front; ln != nil; i, ln = i+1, ln.next {
 		ks[i] = ln.key
 	}
@@ -169,8 +146,8 @@ func (lm *LinkedHashMap) Keys() []interface{} {
 }
 
 // Values returns the value slice
-func (lm *LinkedHashMap) Values() []interface{} {
-	vs := make([]interface{}, lm.Len())
+func (lm *LinkedHashMap) Values() []V {
+	vs := make([]V, lm.Len())
 	for i, ln := 0, lm.front; ln != nil; i, ln = i+1, ln.next {
 		vs[i] = ln.value
 	}
@@ -178,14 +155,14 @@ func (lm *LinkedHashMap) Values() []interface{} {
 }
 
 // Each call f for each item in the map
-func (lm *LinkedHashMap) Each(f func(k interface{}, v interface{})) {
+func (lm *LinkedHashMap) Each(f func(k K, v V)) {
 	for ln := lm.front; ln != nil; ln = ln.next {
 		f(ln.key, ln.value)
 	}
 }
 
 // ReverseEach call f for each item in the map with reverse order
-func (lm *LinkedHashMap) ReverseEach(f func(k interface{}, v interface{})) {
+func (lm *LinkedHashMap) ReverseEach(f func(k K, v V)) {
 	for ln := lm.back; ln != nil; ln = ln.prev {
 		f(ln.key, ln.value)
 	}
@@ -198,7 +175,7 @@ func (lm *LinkedHashMap) Iterator() Iterator2 {
 
 // IteratorOf returns a iterator at the specified key
 // Returns nil if the map does not contains the key
-func (lm *LinkedHashMap) IteratorOf(k interface{}) Iterator2 {
+func (lm *LinkedHashMap) IteratorOf(k K) Iterator2 {
 	if lm.IsEmpty() {
 		return nil
 	}
@@ -255,7 +232,7 @@ func (lm *LinkedHashMap) String() string {
 
 //-----------------------------------------------------
 
-func (lm *LinkedHashMap) add(k interface{}, v interface{}) {
+func (lm *LinkedHashMap) add(k K, v V) {
 	ln := &LinkedMapNode{prev: lm.back, key: k, value: v}
 	if ln.prev == nil {
 		lm.front = ln
@@ -265,7 +242,7 @@ func (lm *LinkedHashMap) add(k interface{}, v interface{}) {
 	lm.back = ln
 
 	if lm.hash == nil {
-		lm.hash = make(map[interface{}]*LinkedMapNode)
+		lm.hash = make(map[K]*LinkedMapNode)
 	}
 	lm.hash[k] = ln
 }
@@ -292,22 +269,22 @@ func (lm *LinkedHashMap) deleteNode(ln *LinkedMapNode) {
 type LinkedMapNode struct {
 	prev  *LinkedMapNode
 	next  *LinkedMapNode
-	key   interface{}
-	value interface{}
+	key   K
+	value V
 }
 
 // Key returns the key
-func (ln *LinkedMapNode) Key() interface{} {
+func (ln *LinkedMapNode) Key() K {
 	return ln.key
 }
 
 // Value returns the key
-func (ln *LinkedMapNode) Value() interface{} {
+func (ln *LinkedMapNode) Value() V {
 	return ln.value
 }
 
 // SetValue sets the value
-func (ln *LinkedMapNode) SetValue(v interface{}) {
+func (ln *LinkedMapNode) SetValue(v V) {
 	ln.value = v
 }
 
@@ -369,7 +346,7 @@ func (it *linkedHashMapIterator) Next() bool {
 }
 
 // Key returns the current element's key.
-func (it *linkedHashMapIterator) Key() interface{} {
+func (it *linkedHashMapIterator) Key() K {
 	if it.node == nil {
 		return nil
 	}
@@ -377,7 +354,7 @@ func (it *linkedHashMapIterator) Key() interface{} {
 }
 
 // Value returns the current element's value.
-func (it *linkedHashMapIterator) Value() interface{} {
+func (it *linkedHashMapIterator) Value() V {
 	if it.node == nil {
 		return nil
 	}
@@ -385,7 +362,7 @@ func (it *linkedHashMapIterator) Value() interface{} {
 }
 
 // SetValue set the value to the item
-func (it *linkedHashMapIterator) SetValue(v interface{}) {
+func (it *linkedHashMapIterator) SetValue(v V) {
 	if it.node != nil {
 		it.node.value = v
 	}
@@ -419,7 +396,7 @@ func newJSONObjectAsLinkedMap() jsonObject {
 	return NewLinkedHashMap()
 }
 
-func (lm *LinkedHashMap) addJSONObjectItem(k string, v interface{}) jsonObject {
+func (lm *LinkedHashMap) addJSONObjectItem(k string, v V) jsonObject {
 	lm.Set(k, v)
 	return lm
 }

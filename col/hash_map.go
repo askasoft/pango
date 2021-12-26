@@ -5,29 +5,28 @@ import (
 )
 
 // NewHashMap creates a new HashMap.
-// Example: NewHashMap("k1", "v1", "k2", "v2")
-func NewHashMap(kvs ...interface{}) *HashMap {
+func NewHashMap(kvs ...P) *HashMap {
 	hm := &HashMap{}
-	hm.Set(kvs...)
+	hm.SetPairs(kvs...)
 	return hm
 }
 
 // AsHashMap creates a new HashMap from a map.
-// Example: ToHashMap(map[interface{}]interface{}{"k1": "v1", "k2": "v2"})
-func AsHashMap(m map[interface{}]interface{}) *HashMap {
+// Example: AsHashMap(map[K]V{"k1": "v1", "k2": "v2"})
+func AsHashMap(m map[K]V) *HashMap {
 	hm := &HashMap{m}
 	return hm
 }
 
 // HashMap hash map type
 type HashMap struct {
-	hash map[interface{}]interface{}
+	hash map[K]V
 }
 
 // lazyInit lazily initializes a zero HashMap value.
 func (hm *HashMap) lazyInit() {
 	if hm.hash == nil {
-		hm.hash = make(map[interface{}]interface{})
+		hm.hash = make(map[K]V)
 	}
 }
 
@@ -57,7 +56,7 @@ func (hm *HashMap) Clear() {
 
 // Get looks for the given key, and returns the value associated with it,
 // or nil if not found. The boolean it returns says whether the key is ok in the map.
-func (hm *HashMap) Get(key interface{}) (v interface{}, ok bool) {
+func (hm *HashMap) Get(key K) (v V, ok bool) {
 	if hm.hash == nil {
 		return
 	}
@@ -68,25 +67,17 @@ func (hm *HashMap) Get(key interface{}) (v interface{}, ok bool) {
 
 // Set sets the paired key-value items, and returns what `Get` would have returned
 // on that key prior to the call to `Set`.
-// Example: lm.Set("k1", "v1", "k2", "v2")
-func (hm *HashMap) Set(kvs ...interface{}) (ov interface{}, ok bool) {
-	if (len(kvs) % 2) != 0 {
-		panic("HashMap.Set(kvs...) unpaired key-value items")
-	}
-
-	if len(kvs) < 2 {
-		return
-	}
-
+func (hm *HashMap) Set(key K, value V) (ov V, ok bool) {
 	hm.lazyInit()
 
-	for i := 0; i+1 < len(kvs); i += 2 {
-		k := kvs[i]
-		v := kvs[i+1]
-		ov, ok = hm.hash[k]
-		hm.hash[k] = v
-	}
+	ov, ok = hm.hash[key]
+	hm.hash[key] = value
 	return
+}
+
+// SetPairs set items from key-value items array, override the existing items
+func (hm *HashMap) SetPairs(pairs ...P) {
+	setMapPairs(hm, pairs...)
 }
 
 // SetAll set items from another map am, override the existing items
@@ -97,24 +88,11 @@ func (hm *HashMap) SetAll(am Map) {
 // SetIfAbsent sets the key-value item if the key does not exists in the map,
 // and returns what `Get` would have returned
 // on that key prior to the call to `Set`.
-// Example: lm.SetIfAbsent("k1", "v1", "k2", "v2")
-func (hm *HashMap) SetIfAbsent(kvs ...interface{}) (ov interface{}, ok bool) {
-	if (len(kvs) % 2) != 0 {
-		panic("HashMap.SetIfAbsent(kvs...) unpaired key-value items")
-	}
-
-	if len(kvs) < 2 {
-		return
-	}
-
+func (hm *HashMap) SetIfAbsent(key K, value V) (ov V, ok bool) {
 	hm.lazyInit()
 
-	for i := 0; i+1 < len(kvs); i += 2 {
-		k := kvs[i]
-		v := kvs[i+1]
-		if ov, ok = hm.hash[k]; !ok {
-			hm.hash[k] = v
-		}
+	if ov, ok = hm.hash[key]; !ok {
+		hm.hash[key] = value
 	}
 	return
 }
@@ -122,7 +100,7 @@ func (hm *HashMap) SetIfAbsent(kvs ...interface{}) (ov interface{}, ok bool) {
 // Delete delete all items with key of ks,
 // and returns what `Get` would have returned
 // on that key prior to the call to `Set`.
-func (hm *HashMap) Delete(ks ...interface{}) (ov interface{}, ok bool) {
+func (hm *HashMap) Delete(ks ...K) (ov V, ok bool) {
 	if hm.IsEmpty() {
 		return
 	}
@@ -135,7 +113,7 @@ func (hm *HashMap) Delete(ks ...interface{}) (ov interface{}, ok bool) {
 }
 
 // Contains looks for the given key, and returns true if the key exists in the map.
-func (hm *HashMap) Contains(ks ...interface{}) bool {
+func (hm *HashMap) Contains(ks ...K) bool {
 	if len(ks) == 0 {
 		return true
 	}
@@ -153,8 +131,8 @@ func (hm *HashMap) Contains(ks ...interface{}) bool {
 }
 
 // Keys returns the key slice
-func (hm *HashMap) Keys() []interface{} {
-	ks := make([]interface{}, hm.Len())
+func (hm *HashMap) Keys() []K {
+	ks := make([]K, hm.Len())
 	i := 0
 	for k := range hm.hash {
 		ks[i] = k
@@ -164,8 +142,8 @@ func (hm *HashMap) Keys() []interface{} {
 }
 
 // Values returns the value slice
-func (hm *HashMap) Values() []interface{} {
-	vs := make([]interface{}, hm.Len())
+func (hm *HashMap) Values() []V {
+	vs := make([]V, hm.Len())
 	i := 0
 	for _, v := range hm.hash {
 		vs[i] = v
@@ -175,14 +153,14 @@ func (hm *HashMap) Values() []interface{} {
 }
 
 // Each call f for each item(k,v) in the map
-func (hm *HashMap) Each(f func(k interface{}, v interface{})) {
+func (hm *HashMap) Each(f func(k K, v V)) {
 	for k, v := range hm.hash {
 		f(k, v)
 	}
 }
 
 // HashMap returns underlying hash map
-func (hm *HashMap) HashMap() map[interface{}]interface{} {
+func (hm *HashMap) HashMap() map[K]V {
 	return hm.hash
 }
 
@@ -199,7 +177,7 @@ func newJSONObjectAsHashMap() jsonObject {
 	return NewHashMap()
 }
 
-func (hm *HashMap) addJSONObjectItem(k string, v interface{}) jsonObject {
+func (hm *HashMap) addJSONObjectItem(k string, v V) jsonObject {
 	hm.Set(k, v)
 	return hm
 }

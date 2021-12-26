@@ -148,7 +148,7 @@ func TestHashMapJSON(t *testing.T) {
 		w *HashMap
 	}{
 		{`{}`, NewHashMap()},
-		{`{"a":1,"b":2,"c":3}`, NewHashMap("a", 1.0, "b", 2.0, "c", 3.0)},
+		{`{"a":1,"b":2,"c":3}`, NewHashMap([]P{{"a", 1.0}, {"b", 2.0}, {"c", 3.0}}...)},
 	}
 
 	for i, c := range cs {

@@ -3,13 +3,13 @@ package col
 // Eachable a value each interface for collection
 type Eachable interface {
 	// Each call f for each item in the collection
-	Each(f func(value interface{}))
+	Each(f func(value T))
 }
 
 // ReverseEachable a value each interface for collection
 type ReverseEachable interface {
 	// ReverseEach call f for each item in the collection with reverse order
-	ReverseEach(f func(value interface{}))
+	ReverseEach(f func(value T))
 }
 
 // Iterable a value iterable interface for collection
@@ -32,10 +32,10 @@ type Iterator interface {
 	Next() bool
 
 	// Value returns the current item's value.
-	Value() interface{}
+	Value() T
 
 	// SetValue set the current item's value.
-	SetValue(v interface{})
+	SetValue(v T)
 
 	// Remove remove the current item
 	Remove()
@@ -48,13 +48,13 @@ type Iterator interface {
 // Eachable2 a key/value each interface for collection
 type Eachable2 interface {
 	// Each call f for each key/value in the collection
-	Each(f func(key interface{}, value interface{}))
+	Each(f func(key K, value V))
 }
 
 // ReverseEachable2 a key/value reverse each interface for collection
 type ReverseEachable2 interface {
 	// ReverseEach call f for each key/value in the collection with reverse order
-	ReverseEach(f func(key interface{}, value interface{}))
+	ReverseEach(f func(key K, value V))
 }
 
 // Iterable2 a key/value iterable interface for collection
@@ -68,5 +68,5 @@ type Iterator2 interface {
 	Iterator
 
 	// Key returns the current item's key.
-	Key() interface{}
+	Key() K
 }

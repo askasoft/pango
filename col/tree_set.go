@@ -11,7 +11,7 @@ import (
 
 // NewTreeSet creates a new TreeSet.
 // Example: NewTreeSet(cmp.CompareString, "v1", "v2")
-func NewTreeSet(compare cmp.Compare, vs ...interface{}) *TreeSet {
+func NewTreeSet(compare cmp.Compare, vs ...T) *TreeSet {
 	ts := &TreeSet{compare: compare}
 	ts.Add(vs...)
 	return ts
@@ -53,7 +53,7 @@ func (ts *TreeSet) Clear() {
 }
 
 // Add adds all items of vs and returns the last added item.
-func (ts *TreeSet) Add(vs ...interface{}) {
+func (ts *TreeSet) Add(vs ...T) {
 	for _, v := range vs {
 		ts.add(v)
 	}
@@ -78,7 +78,7 @@ func (ts *TreeSet) AddAll(ac Collection) {
 }
 
 // Delete delete all items with associated value v of vs
-func (ts *TreeSet) Delete(vs ...interface{}) {
+func (ts *TreeSet) Delete(vs ...T) {
 	if ts.IsEmpty() {
 		return
 	}
@@ -115,7 +115,7 @@ func (ts *TreeSet) DeleteAll(ac Collection) {
 }
 
 // Contains Test to see if the collection contains all items of vs
-func (ts *TreeSet) Contains(vs ...interface{}) bool {
+func (ts *TreeSet) Contains(vs ...T) bool {
 	if len(vs) == 0 {
 		return true
 	}
@@ -156,7 +156,7 @@ func (ts *TreeSet) ContainsAll(ac Collection) bool {
 }
 
 // Retain Retains only the elements in this collection that are contained in the argument array vs.
-func (ts *TreeSet) Retain(vs ...interface{}) {
+func (ts *TreeSet) Retain(vs ...T) {
 	if ts.IsEmpty() || len(vs) == 0 {
 		return
 	}
@@ -178,8 +178,8 @@ func (ts *TreeSet) RetainAll(ac Collection) {
 }
 
 // Values returns the value slice
-func (ts *TreeSet) Values() []interface{} {
-	vs := make([]interface{}, ts.len)
+func (ts *TreeSet) Values() []T {
+	vs := make([]T, ts.len)
 	for i, n := 0, ts.front(); n != nil; i, n = i+1, n.next() {
 		vs[i] = n.value
 	}
@@ -187,14 +187,14 @@ func (ts *TreeSet) Values() []interface{} {
 }
 
 // Each call f for each item in the set
-func (ts *TreeSet) Each(f func(v interface{})) {
+func (ts *TreeSet) Each(f func(v T)) {
 	for tn := ts.front(); tn != nil; tn = tn.next() {
 		f(tn.value)
 	}
 }
 
 // ReverseEach call f for each item in the set with reverse order
-func (ts *TreeSet) ReverseEach(f func(v interface{})) {
+func (ts *TreeSet) ReverseEach(f func(v T)) {
 	for tn := ts.back(); tn != nil; tn = tn.prev() {
 		f(tn.value)
 	}
@@ -208,7 +208,7 @@ func (ts *TreeSet) Iterator() Iterator {
 //----------------------------------------------------------------
 
 // Front returns the first item of set ts or nil if the set is empty.
-func (ts *TreeSet) Front() (v interface{}) {
+func (ts *TreeSet) Front() (v T) {
 	tn := ts.front()
 	if tn != nil {
 		v = tn.value
@@ -217,7 +217,7 @@ func (ts *TreeSet) Front() (v interface{}) {
 }
 
 // Back returns the last item of set ts or nil if the set is empty.
-func (ts *TreeSet) Back() (v interface{}) {
+func (ts *TreeSet) Back() (v T) {
 	tn := ts.back()
 	if tn != nil {
 		v = tn.value
@@ -226,7 +226,7 @@ func (ts *TreeSet) Back() (v interface{}) {
 }
 
 // PopFront remove the first item of set.
-func (ts *TreeSet) PopFront() (v interface{}) {
+func (ts *TreeSet) PopFront() (v T) {
 	tn := ts.front()
 	if tn != nil {
 		v = tn.value
@@ -236,7 +236,7 @@ func (ts *TreeSet) PopFront() (v interface{}) {
 }
 
 // PopBack remove the last item of set.
-func (ts *TreeSet) PopBack() (v interface{}) {
+func (ts *TreeSet) PopBack() (v T) {
 	tn := ts.back()
 	if tn != nil {
 		v = tn.value
@@ -252,7 +252,7 @@ func (ts *TreeSet) PopBack() (v interface{}) {
 // all nodes in the tree are larger than the given node.
 //
 // key should adhere to the comparator's type assertion, otherwise method panics.
-func (ts *TreeSet) Floor(v interface{}) interface{} {
+func (ts *TreeSet) Floor(v T) T {
 	tn := ts.floor(v)
 	if tn != nil {
 		return tn.value
@@ -267,7 +267,7 @@ func (ts *TreeSet) Floor(v interface{}) interface{} {
 // all nodes in the tree are smaller than the given node.
 //
 // key should adhere to the comparator's type assertion, otherwise method panics.
-func (ts *TreeSet) Ceiling(v interface{}) interface{} {
+func (ts *TreeSet) Ceiling(v T) T {
 	tn := ts.floor(v)
 	if tn != nil {
 		return tn.value
@@ -311,7 +311,7 @@ func (ts *TreeSet) checkSizeIndex(index int) int {
 	return index
 }
 
-func (ts *TreeSet) setValue(tn *treeSetNode, v interface{}) *treeSetNode {
+func (ts *TreeSet) setValue(tn *treeSetNode, v T) *treeSetNode {
 	if tn.value == v {
 		return tn
 	}
@@ -350,7 +350,7 @@ func (ts *TreeSet) back() *treeSetNode {
 }
 
 // floor Finds floor node of the input key, return the floor node or nil if no floor is found.
-func (ts *TreeSet) floor(key interface{}) (floor *treeSetNode) {
+func (ts *TreeSet) floor(key T) (floor *treeSetNode) {
 	node := ts.root
 	for node != nil {
 		compare := ts.compare(key, node.value)
@@ -368,7 +368,7 @@ func (ts *TreeSet) floor(key interface{}) (floor *treeSetNode) {
 }
 
 // ceiling finds ceiling node of the input key, return the ceiling node or nil if no ceiling is found.
-func (ts *TreeSet) ceiling(key interface{}) (ceiling *treeSetNode) {
+func (ts *TreeSet) ceiling(key T) (ceiling *treeSetNode) {
 	node := ts.root
 	for node != nil {
 		compare := ts.compare(key, node.value)
@@ -388,7 +388,7 @@ func (ts *TreeSet) ceiling(key interface{}) (ceiling *treeSetNode) {
 // lookup looks for the given key, and returns the item associated with it,
 // or nil if not found. The Node struct can then be used to iterate over the tree set
 // from that point, either forward or backward.
-func (ts *TreeSet) lookup(key interface{}) *treeSetNode {
+func (ts *TreeSet) lookup(key T) *treeSetNode {
 	node := ts.root
 	for node != nil {
 		compare := ts.compare(key, node.value)
@@ -406,7 +406,7 @@ func (ts *TreeSet) lookup(key interface{}) *treeSetNode {
 
 // add adds the item, returns the item's node
 // item should adhere to the comparator's type assertion, otherwise method panics.
-func (ts *TreeSet) add(v interface{}) *treeSetNode {
+func (ts *TreeSet) add(v T) *treeSetNode {
 	tn := ts.root
 	if tn == nil {
 		// Assert key is of comparator's type for initial tree
@@ -449,7 +449,7 @@ func (ts *TreeSet) add(v interface{}) *treeSetNode {
 // and returns what `Get` would have returned
 // on that key prior to the call to `Delete`.
 // key should adhere to the comparator's type assertion, otherwise method panics.
-func (ts *TreeSet) delete(key interface{}) (ov interface{}, ok bool) {
+func (ts *TreeSet) delete(key T) (ov T, ok bool) {
 	tn := ts.lookup(key)
 	if tn == nil {
 		return
@@ -671,7 +671,7 @@ type treeSetNode struct {
 	left   *treeSetNode
 	right  *treeSetNode
 	parent *treeSetNode
-	value  interface{}
+	value  T
 }
 
 func (tn *treeSetNode) getLeft() *treeSetNode {
@@ -892,7 +892,7 @@ func (it *treeSetIterator) Next() bool {
 }
 
 // Value returns the current element's value.
-func (it *treeSetIterator) Value() interface{} {
+func (it *treeSetIterator) Value() T {
 	if it.node == nil {
 		return nil
 	}
@@ -900,7 +900,7 @@ func (it *treeSetIterator) Value() interface{} {
 }
 
 // SetValue set the value to the item
-func (it *treeSetIterator) SetValue(v interface{}) {
+func (it *treeSetIterator) SetValue(v T) {
 	if it.node == nil {
 		return
 	}
@@ -945,7 +945,7 @@ func (it *treeSetIterator) Reset() {
 //-----------------------------------------------------------
 // implements JSON Marshaller/Unmarshaller interface
 
-func (ts *TreeSet) addJSONArrayItem(v interface{}) jsonArray {
+func (ts *TreeSet) addJSONArrayItem(v T) jsonArray {
 	ts.Add(v)
 	return ts
 }

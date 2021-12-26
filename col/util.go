@@ -1,5 +1,11 @@
 package col
 
+func setMapPairs(m Map, ps ...P) {
+	for _, p := range ps {
+		m.Set(p.Key, p.Value)
+	}
+}
+
 func setMapAll(dst, src Map) {
 	if dst == src {
 		return

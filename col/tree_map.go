@@ -11,10 +11,10 @@ import (
 )
 
 // NewTreeMap creates a new TreeMap.
-// Example: NewTreeMap(cmp.CompareString, "k1", "v1", "k2", "v2")
-func NewTreeMap(compare cmp.Compare, kvs ...interface{}) *TreeMap {
+// Example: NewTreeMap(cmp.CompareString, []P{{"k1", "v1"}, {"k2", "v2"}}...)
+func NewTreeMap(compare cmp.Compare, kvs ...P) *TreeMap {
 	tm := &TreeMap{compare: compare}
-	tm.Set(kvs...)
+	tm.SetPairs(kvs...)
 	return tm
 }
 
@@ -57,8 +57,8 @@ func (tm *TreeMap) Clear() {
 // implements Map interface
 
 // Keys returns the key slice
-func (tm *TreeMap) Keys() []interface{} {
-	ks := make([]interface{}, tm.len)
+func (tm *TreeMap) Keys() []K {
+	ks := make([]K, tm.len)
 	for i, n := 0, tm.front(); n != nil; i, n = i+1, n.next() {
 		ks[i] = n.key
 	}
@@ -66,8 +66,8 @@ func (tm *TreeMap) Keys() []interface{} {
 }
 
 // Values returns the value slice
-func (tm *TreeMap) Values() []interface{} {
-	vs := make([]interface{}, tm.len)
+func (tm *TreeMap) Values() []V {
+	vs := make([]V, tm.len)
 	for i, n := 0, tm.front(); n != nil; i, n = i+1, n.next() {
 		vs[i] = n.value
 	}
@@ -75,7 +75,7 @@ func (tm *TreeMap) Values() []interface{} {
 }
 
 // Contains looks for the given key, and returns true if the key exists in the map.
-func (tm *TreeMap) Contains(ks ...interface{}) bool {
+func (tm *TreeMap) Contains(ks ...K) bool {
 	if len(ks) == 0 {
 		return true
 	}
@@ -90,7 +90,7 @@ func (tm *TreeMap) Contains(ks ...interface{}) bool {
 
 // Get looks for the given key, and returns the value associated with it,
 // or nil if not found. The boolean it returns says whether the key is ok in the map.
-func (tm *TreeMap) Get(key interface{}) (interface{}, bool) {
+func (tm *TreeMap) Get(key K) (V, bool) {
 	node := tm.lookup(key)
 	if node != nil {
 		return node.value, true
@@ -98,24 +98,53 @@ func (tm *TreeMap) Get(key interface{}) (interface{}, bool) {
 	return nil, false
 }
 
-// Set sets the paired key-value items, and returns what `Get` would have returned
+// Set sets the paired key-value item, and returns what `Get` would have returned
 // on that key prior to the call to `Set`.
-// Example: tm.Set("k1", "v1", "k2", "v2")
-func (tm *TreeMap) Set(kvs ...interface{}) (ov interface{}, ok bool) {
-	if (len(kvs) % 2) != 0 {
-		panic("TreeMap.Set(kvs...) unpaired key-value items")
-	}
+// key should adhere to the comparator's type assertion, otherwise method panics.
+func (tm *TreeMap) Set(key K, value V) (ov V, ok bool) {
+	tn := tm.root
+	if tn == nil {
+		// Assert key is of comparator's type for initial tree
+		tm.compare(key, key)
 
-	if len(kvs) < 2 {
+		tm.root = &TreeMapNode{key: key, value: value, color: black}
+		tm.len = 1
 		return
 	}
 
-	for i := 0; i+1 < len(kvs); i += 2 {
-		k := kvs[i]
-		v := kvs[i+1]
-		ov, ok = tm.set(k, v)
+	cmp := 0
+	parent := tn
+	for tn != nil {
+		parent = tn
+		cmp = tm.compare(key, tn.key)
+		switch {
+		case cmp < 0:
+			tn = tn.left
+		case cmp > 0:
+			tn = tn.right
+		default:
+			ov, ok = tn.value, true
+			tn.value = value
+			return
+		}
 	}
+
+	tn = &TreeMapNode{key: key, value: value, parent: parent}
+	if cmp < 0 {
+		parent.left = tn
+	} else {
+		parent.right = tn
+	}
+
+	tm.fixAfterInsertion(tn)
+
+	tm.len++
 	return
+}
+
+// SetPairs set items from key-value items array, override the existing items
+func (tm *TreeMap) SetPairs(pairs ...P) {
+	setMapPairs(tm, pairs...)
 }
 
 // SetAll add items from another map am, override the existing items
@@ -124,30 +153,19 @@ func (tm *TreeMap) SetAll(am Map) {
 }
 
 // SetIfAbsent sets the key-value item if the key does not exists in the map,
-// and returns what `Get` would have returned
-// on that key prior to the call to `Set`.
-// Example: tm.SetIfAbsent("k1", "v1", "k2", "v2")
-func (tm *TreeMap) SetIfAbsent(kvs ...interface{}) (ov interface{}, ok bool) {
-	if (len(kvs) % 2) != 0 {
-		panic("TreeMap.SetIfAbsent(kvs...) unpaired key-value items")
+// and returns true if the tree is changed.
+func (tm *TreeMap) SetIfAbsent(key K, value V) (ov V, ok bool) {
+	if node := tm.lookup(key); node != nil {
+		return node.value, true
 	}
 
-	if len(kvs) < 2 {
-		return
-	}
-
-	for i := 0; i+1 < len(kvs); i += 2 {
-		k := kvs[i]
-		v := kvs[i+1]
-		ov, ok = tm.setIfAbsent(k, v)
-	}
-	return
+	return tm.Set(key, value)
 }
 
 // Delete delete all items with key of ks,
 // and returns what `Get` would have returned
 // on that key prior to the call to `Delete`.
-func (tm *TreeMap) Delete(ks ...interface{}) (ov interface{}, ok bool) {
+func (tm *TreeMap) Delete(ks ...K) (ov V, ok bool) {
 	if tm.IsEmpty() {
 		return
 	}
@@ -159,14 +177,14 @@ func (tm *TreeMap) Delete(ks ...interface{}) (ov interface{}, ok bool) {
 }
 
 // Each call f for each item in the map
-func (tm *TreeMap) Each(f func(k interface{}, v interface{})) {
+func (tm *TreeMap) Each(f func(k K, v V)) {
 	for tn := tm.front(); tn != nil; tn = tn.next() {
 		f(tn.key, tn.value)
 	}
 }
 
 // ReverseEach call f for each item in the map with reverse order
-func (tm *TreeMap) ReverseEach(f func(k interface{}, v interface{})) {
+func (tm *TreeMap) ReverseEach(f func(k K, v V)) {
 	for tn := tm.back(); tn != nil; tn = tn.prev() {
 		f(tn.key, tn.value)
 	}
@@ -212,7 +230,7 @@ func (tm *TreeMap) PopBack() *TreeMapNode {
 // all nodes in the tree are larger than the given node.
 //
 // key should adhere to the comparator's type assertion, otherwise method panics.
-func (tm *TreeMap) Floor(key interface{}) *TreeMapNode {
+func (tm *TreeMap) Floor(key K) *TreeMapNode {
 	return tm.floor(key)
 }
 
@@ -223,7 +241,7 @@ func (tm *TreeMap) Floor(key interface{}) *TreeMapNode {
 // all nodes in the tree are smaller than the given node.
 //
 // key should adhere to the comparator's type assertion, otherwise method panics.
-func (tm *TreeMap) Ceiling(key interface{}) *TreeMapNode {
+func (tm *TreeMap) Ceiling(key K) *TreeMapNode {
 	return tm.ceiling(key)
 }
 
@@ -276,7 +294,7 @@ func (tm *TreeMap) back() *TreeMapNode {
 }
 
 // floor Finds floor node of the input key, return the floor node or nil if no floor is found.
-func (tm *TreeMap) floor(key interface{}) (floor *TreeMapNode) {
+func (tm *TreeMap) floor(key K) (floor *TreeMapNode) {
 	node := tm.root
 	for node != nil {
 		compare := tm.compare(key, node.key)
@@ -294,7 +312,7 @@ func (tm *TreeMap) floor(key interface{}) (floor *TreeMapNode) {
 }
 
 // Ceiling finds ceiling node of the input key, return the ceiling node or nil if no ceiling is found.
-func (tm *TreeMap) ceiling(key interface{}) (ceiling *TreeMapNode) {
+func (tm *TreeMap) ceiling(key K) (ceiling *TreeMapNode) {
 	node := tm.root
 	for node != nil {
 		compare := tm.compare(key, node.key)
@@ -314,7 +332,7 @@ func (tm *TreeMap) ceiling(key interface{}) (ceiling *TreeMapNode) {
 // lookup looks for the given key, and returns the item associated with it,
 // or nil if not found. The Node struct can then be used to iterate over the tree map
 // from that point, either forward or backward.
-func (tm *TreeMap) lookup(key interface{}) *TreeMapNode {
+func (tm *TreeMap) lookup(key K) *TreeMapNode {
 	node := tm.root
 	for node != nil {
 		compare := tm.compare(key, node.key)
@@ -330,65 +348,11 @@ func (tm *TreeMap) lookup(key interface{}) *TreeMapNode {
 	return nil
 }
 
-// setIfAbsent sets the key-value item if the key does not exists in the map,
-// and returns true if the tree is changed.
-func (tm *TreeMap) setIfAbsent(key interface{}, value interface{}) (ov interface{}, ok bool) {
-	if node := tm.lookup(key); node != nil {
-		return node.value, true
-	}
-
-	return tm.set(key, value)
-}
-
-// set sets the paired key-value item, and returns what `Get` would have returned
-// on that key prior to the call to `Set`.
-// key should adhere to the comparator's type assertion, otherwise method panics.
-func (tm *TreeMap) set(key interface{}, value interface{}) (ov interface{}, ok bool) {
-	tn := tm.root
-	if tn == nil {
-		// Assert key is of comparator's type for initial tree
-		tm.compare(key, key)
-
-		tm.root = &TreeMapNode{key: key, value: value, color: black}
-		tm.len = 1
-		return
-	}
-
-	cmp := 0
-	parent := tn
-	for tn != nil {
-		parent = tn
-		cmp = tm.compare(key, tn.key)
-		switch {
-		case cmp < 0:
-			tn = tn.left
-		case cmp > 0:
-			tn = tn.right
-		default:
-			ov, ok = tn.value, true
-			tn.value = value
-			return
-		}
-	}
-
-	tn = &TreeMapNode{key: key, value: value, parent: parent}
-	if cmp < 0 {
-		parent.left = tn
-	} else {
-		parent.right = tn
-	}
-
-	tm.fixAfterInsertion(tn)
-
-	tm.len++
-	return
-}
-
 // delete delete the node from the tree by key,
 // and returns what `Get` would have returned
 // on that key prior to the call to `Delete`.
 // key should adhere to the comparator's type assertion, otherwise method panics.
-func (tm *TreeMap) delete(key interface{}) (ov interface{}, ok bool) {
+func (tm *TreeMap) delete(key K) (ov V, ok bool) {
 	tn := tm.lookup(key)
 	if tn == nil {
 		return
@@ -624,22 +588,22 @@ type TreeMapNode struct {
 	left   *TreeMapNode
 	right  *TreeMapNode
 	parent *TreeMapNode
-	key    interface{}
-	value  interface{}
+	key    K
+	value  V
 }
 
 // Key returns the key
-func (tn *TreeMapNode) Key() interface{} {
+func (tn *TreeMapNode) Key() K {
 	return tn.key
 }
 
 // Value returns the key
-func (tn *TreeMapNode) Value() interface{} {
+func (tn *TreeMapNode) Value() V {
 	return tn.value
 }
 
 // SetValue sets the value
-func (tn *TreeMapNode) SetValue(v interface{}) {
+func (tn *TreeMapNode) SetValue(v V) {
 	tn.value = v
 }
 
@@ -867,7 +831,7 @@ func (it *treeMapIterator) Next() bool {
 }
 
 // Key returns the current element's key.
-func (it *treeMapIterator) Key() interface{} {
+func (it *treeMapIterator) Key() K {
 	if it.node == nil {
 		return nil
 	}
@@ -875,7 +839,7 @@ func (it *treeMapIterator) Key() interface{} {
 }
 
 // Value returns the current element's value.
-func (it *treeMapIterator) Value() interface{} {
+func (it *treeMapIterator) Value() V {
 	if it.node == nil {
 		return nil
 	}
@@ -883,7 +847,7 @@ func (it *treeMapIterator) Value() interface{} {
 }
 
 // SetValue set the value to the item
-func (it *treeMapIterator) SetValue(v interface{}) {
+func (it *treeMapIterator) SetValue(v V) {
 	if it.node != nil {
 		it.node.value = v
 	}
@@ -920,7 +884,7 @@ func (it *treeMapIterator) Reset() {
 //-----------------------------------------------------------
 // implements JSON Marshaller/Unmarshaller interface
 
-func (tm *TreeMap) addJSONObjectItem(k string, v interface{}) jsonObject {
+func (tm *TreeMap) addJSONObjectItem(k string, v V) jsonObject {
 	tm.Set(k, v)
 	return tm
 }

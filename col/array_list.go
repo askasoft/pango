@@ -11,7 +11,7 @@ import (
 
 // NewArrayList returns an initialized list.
 // Example: NewArrayList(1, 2, 3)
-func NewArrayList(vs ...interface{}) *ArrayList {
+func NewArrayList(vs ...T) *ArrayList {
 	al := &ArrayList{data: vs}
 	return al
 }
@@ -25,7 +25,7 @@ func NewArrayList(vs ...interface{}) *ArrayList {
 //	}
 //
 type ArrayList struct {
-	data []interface{}
+	data []T
 }
 
 //-----------------------------------------------------------
@@ -49,7 +49,7 @@ func (al *ArrayList) Clear() {
 }
 
 // Add adds all items of vs and returns the last added item.
-func (al *ArrayList) Add(vs ...interface{}) {
+func (al *ArrayList) Add(vs ...T) {
 	n := len(vs)
 	if n == 0 {
 		return
@@ -65,7 +65,7 @@ func (al *ArrayList) AddAll(ac Collection) {
 }
 
 // Delete delete all items with associated value v of vs
-func (al *ArrayList) Delete(vs ...interface{}) {
+func (al *ArrayList) Delete(vs ...T) {
 	if len(vs) == 0 {
 		return
 	}
@@ -93,7 +93,7 @@ func (al *ArrayList) DeleteAll(ac Collection) {
 }
 
 // Contains Test to see if the list contains the value v
-func (al *ArrayList) Contains(vs ...interface{}) bool {
+func (al *ArrayList) Contains(vs ...T) bool {
 	if len(vs) == 0 {
 		return true
 	}
@@ -124,7 +124,7 @@ func (al *ArrayList) ContainsAll(ac Collection) bool {
 }
 
 // Retain Retains only the elements in this collection that are contained in the argument array vs.
-func (al *ArrayList) Retain(vs ...interface{}) {
+func (al *ArrayList) Retain(vs ...T) {
 	if al.IsEmpty() || len(vs) == 0 {
 		return
 	}
@@ -146,19 +146,19 @@ func (al *ArrayList) RetainAll(ac Collection) {
 }
 
 // Values returns a slice contains all the items of the list al
-func (al *ArrayList) Values() []interface{} {
+func (al *ArrayList) Values() []T {
 	return al.data
 }
 
 // Each call f for each item in the list
-func (al *ArrayList) Each(f func(interface{})) {
+func (al *ArrayList) Each(f func(T)) {
 	for _, v := range al.data {
 		f(v)
 	}
 }
 
 // ReverseEach call f for each item in the list with reverse order
-func (al *ArrayList) ReverseEach(f func(interface{})) {
+func (al *ArrayList) ReverseEach(f func(T)) {
 	for i := al.Len() - 1; i >= 0; i-- {
 		f(al.data[i])
 	}
@@ -175,14 +175,14 @@ func (al *ArrayList) Iterator() Iterator {
 // Get returns the item at the specified position in this list
 // if i < -al.Len() or i >= al.Len(), panic
 // if i < 0, returns al.Get(al.Len() + i)
-func (al *ArrayList) Get(index int) interface{} {
+func (al *ArrayList) Get(index int) T {
 	index = al.checkItemIndex(index)
 
 	return al.data[index]
 }
 
 // Set set the v at the specified index in this list and returns the old value.
-func (al *ArrayList) Set(index int, v interface{}) (ov interface{}) {
+func (al *ArrayList) Set(index int, v T) (ov T) {
 	index = al.checkItemIndex(index)
 
 	ov = al.data[index]
@@ -193,7 +193,7 @@ func (al *ArrayList) Set(index int, v interface{}) (ov interface{}) {
 // Insert inserts values at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
 // Panic if position is bigger than list's size
 // Note: position equal to list's size is valid, i.e. append.
-func (al *ArrayList) Insert(index int, vs ...interface{}) {
+func (al *ArrayList) Insert(index int, vs ...T) {
 	index = al.checkSizeIndex(index)
 
 	n := len(vs)
@@ -221,7 +221,7 @@ func (al *ArrayList) InsertAll(index int, ac Collection) {
 }
 
 // Index returns the index of the first occurrence of the specified v in this list, or -1 if this list does not contain v.
-func (al *ArrayList) Index(v interface{}) int {
+func (al *ArrayList) Index(v T) int {
 	for i, d := range al.data {
 		if d == v {
 			return i
@@ -260,7 +260,7 @@ func (al *ArrayList) Sort(less cmp.Less) {
 //--------------------------------------------------------------------
 
 // Front returns the first item of list al or nil if the list is empty.
-func (al *ArrayList) Front() interface{} {
+func (al *ArrayList) Front() T {
 	if al.IsEmpty() {
 		return nil
 	}
@@ -269,7 +269,7 @@ func (al *ArrayList) Front() interface{} {
 }
 
 // Back returns the last item of list al or nil if the list is empty.
-func (al *ArrayList) Back() interface{} {
+func (al *ArrayList) Back() T {
 	if al.IsEmpty() {
 		return nil
 	}
@@ -278,7 +278,7 @@ func (al *ArrayList) Back() interface{} {
 }
 
 // PopFront remove the first item of list.
-func (al *ArrayList) PopFront() (v interface{}) {
+func (al *ArrayList) PopFront() (v T) {
 	if al.IsEmpty() {
 		return
 	}
@@ -289,7 +289,7 @@ func (al *ArrayList) PopFront() (v interface{}) {
 }
 
 // PopBack remove the last item of list.
-func (al *ArrayList) PopBack() (v interface{}) {
+func (al *ArrayList) PopBack() (v T) {
 	if al.IsEmpty() {
 		return
 	}
@@ -300,7 +300,7 @@ func (al *ArrayList) PopBack() (v interface{}) {
 }
 
 // PushFront inserts all items of vs at the front of list al.
-func (al *ArrayList) PushFront(vs ...interface{}) {
+func (al *ArrayList) PushFront(vs ...T) {
 	if len(vs) == 0 {
 		return
 	}
@@ -319,7 +319,7 @@ func (al *ArrayList) PushFrontAll(ac Collection) {
 }
 
 // PushBack inserts all items of vs at the back of list al.
-func (al *ArrayList) PushBack(vs ...interface{}) {
+func (al *ArrayList) PushBack(vs ...T) {
 	if len(vs) == 0 {
 		return
 	}
@@ -371,7 +371,7 @@ func (al *ArrayList) roundup(n int) int {
 func (al *ArrayList) grow(n int) {
 	if al.data == nil {
 		c := al.roundup(n)
-		al.data = make([]interface{}, n, c)
+		al.data = make([]T, n, c)
 		return
 	}
 
@@ -382,7 +382,7 @@ func (al *ArrayList) grow(n int) {
 	}
 
 	c := al.roundup(l + n)
-	data := make([]interface{}, l+n, c)
+	data := make([]T, l+n, c)
 	copy(data, al.data)
 	al.data = data
 }
@@ -467,7 +467,7 @@ func (it *arrayListIterator) Next() bool {
 }
 
 // Value returns the current item's value.
-func (it *arrayListIterator) Value() interface{} {
+func (it *arrayListIterator) Value() T {
 	if it.index >= 0 && it.index < it.list.Len() {
 		return it.list.data[it.index]
 	}
@@ -475,7 +475,7 @@ func (it *arrayListIterator) Value() interface{} {
 }
 
 // SetValue set the value to the item
-func (it *arrayListIterator) SetValue(v interface{}) {
+func (it *arrayListIterator) SetValue(v T) {
 	if it.index >= 0 && it.index < it.list.Len() {
 		it.list.data[it.index] = v
 	}
@@ -506,7 +506,7 @@ func newJSONArrayArrayList() jsonArray {
 	return NewArrayList()
 }
 
-func (al *ArrayList) addJSONArrayItem(v interface{}) jsonArray {
+func (al *ArrayList) addJSONArrayItem(v T) jsonArray {
 	al.Add(v)
 	return al
 }

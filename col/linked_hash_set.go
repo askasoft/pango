@@ -10,7 +10,7 @@ import (
 
 // NewLinkedHashSet returns an initialized set.
 // Example: NewLinkedHashSet(1, 2, 3)
-func NewLinkedHashSet(vs ...interface{}) *LinkedHashSet {
+func NewLinkedHashSet(vs ...T) *LinkedHashSet {
 	ls := &LinkedHashSet{}
 	ls.Add(vs...)
 	return ls
@@ -29,7 +29,7 @@ func NewLinkedHashSet(vs ...interface{}) *LinkedHashSet {
 //
 type LinkedHashSet struct {
 	front, back *linkedSetNode
-	hash        map[interface{}]*linkedSetNode
+	hash        map[T]*linkedSetNode
 }
 
 //-----------------------------------------------------------
@@ -54,7 +54,7 @@ func (ls *LinkedHashSet) Clear() {
 
 // Add adds all items of vs and returns the last added item.
 // Note: existing item's order will not change.
-func (ls *LinkedHashSet) Add(vs ...interface{}) {
+func (ls *LinkedHashSet) Add(vs ...T) {
 	ls.Insert(ls.Len(), vs...)
 }
 
@@ -65,7 +65,7 @@ func (ls *LinkedHashSet) AddAll(ac Collection) {
 }
 
 // Delete delete all items with associated value v of vs
-func (ls *LinkedHashSet) Delete(vs ...interface{}) {
+func (ls *LinkedHashSet) Delete(vs ...T) {
 	if ls.IsEmpty() {
 		return
 	}
@@ -102,7 +102,7 @@ func (ls *LinkedHashSet) DeleteAll(ac Collection) {
 }
 
 // Contains Test to see if the collection contains all items of vs
-func (ls *LinkedHashSet) Contains(vs ...interface{}) bool {
+func (ls *LinkedHashSet) Contains(vs ...T) bool {
 	if len(vs) == 0 {
 		return true
 	}
@@ -143,7 +143,7 @@ func (ls *LinkedHashSet) ContainsAll(ac Collection) bool {
 }
 
 // Retain Retains only the elements in this collection that are contained in the argument array vs.
-func (ls *LinkedHashSet) Retain(vs ...interface{}) {
+func (ls *LinkedHashSet) Retain(vs ...T) {
 	if ls.IsEmpty() || len(vs) == 0 {
 		return
 	}
@@ -165,8 +165,8 @@ func (ls *LinkedHashSet) RetainAll(ac Collection) {
 }
 
 // Values returns a slice contains all the items of the set ls
-func (ls *LinkedHashSet) Values() []interface{} {
-	vs := make([]interface{}, ls.Len())
+func (ls *LinkedHashSet) Values() []T {
+	vs := make([]T, ls.Len())
 	for i, ln := 0, ls.front; ln != nil; i, ln = i+1, ln.next {
 		vs[i] = ln.value
 	}
@@ -174,14 +174,14 @@ func (ls *LinkedHashSet) Values() []interface{} {
 }
 
 // Each call f for each item in the set
-func (ls *LinkedHashSet) Each(f func(interface{})) {
+func (ls *LinkedHashSet) Each(f func(T)) {
 	for ln := ls.front; ln != nil; ln = ln.next {
 		f(ln.value)
 	}
 }
 
 // ReverseEach call f for each item in the set with reverse order
-func (ls *LinkedHashSet) ReverseEach(f func(interface{})) {
+func (ls *LinkedHashSet) ReverseEach(f func(T)) {
 	for ln := ls.back; ln != nil; ln = ln.prev {
 		f(ln.value)
 	}
@@ -198,7 +198,7 @@ func (ls *LinkedHashSet) Iterator() Iterator {
 // Get returns the element at the specified position in this set
 // if i < -ls.Len() or i >= ls.Len(), panic
 // if i < 0, returns ls.Get(ls.Len() + i)
-func (ls *LinkedHashSet) Get(index int) interface{} {
+func (ls *LinkedHashSet) Get(index int) T {
 	index = ls.checkItemIndex(index)
 
 	return ls.node(index).value
@@ -206,7 +206,7 @@ func (ls *LinkedHashSet) Get(index int) interface{} {
 
 // Set set the v at the specified index in this set and returns the old value.
 // Old item at index will be removed.
-func (ls *LinkedHashSet) Set(index int, v interface{}) (ov interface{}) {
+func (ls *LinkedHashSet) Set(index int, v T) (ov T) {
 	index = ls.checkItemIndex(index)
 
 	ln := ls.node(index)
@@ -216,7 +216,7 @@ func (ls *LinkedHashSet) Set(index int, v interface{}) (ov interface{}) {
 }
 
 // SetValue set the value to the node
-func (ls *LinkedHashSet) setValue(ln *linkedSetNode, v interface{}) {
+func (ls *LinkedHashSet) setValue(ln *linkedSetNode, v T) {
 	if ln.value == v {
 		return
 	}
@@ -238,7 +238,7 @@ func (ls *LinkedHashSet) setValue(ln *linkedSetNode, v interface{}) {
 // Panic if position is bigger than set's size
 // Note: position equal to set's size is valid, i.e. append.
 // Note: existing item's order will not change.
-func (ls *LinkedHashSet) Insert(index int, vs ...interface{}) {
+func (ls *LinkedHashSet) Insert(index int, vs ...T) {
 	index = ls.checkSizeIndex(index)
 
 	n := len(vs)
@@ -247,7 +247,7 @@ func (ls *LinkedHashSet) Insert(index int, vs ...interface{}) {
 	}
 
 	if ls.hash == nil {
-		ls.hash = make(map[interface{}]*linkedSetNode)
+		ls.hash = make(map[T]*linkedSetNode)
 	}
 
 	var prev, next *linkedSetNode
@@ -294,7 +294,7 @@ func (ls *LinkedHashSet) InsertAll(index int, ac Collection) {
 	}
 
 	if ls.hash == nil {
-		ls.hash = make(map[interface{}]*linkedSetNode)
+		ls.hash = make(map[T]*linkedSetNode)
 	}
 
 	if ic, ok := ac.(Iterable); ok {
@@ -337,7 +337,7 @@ func (ls *LinkedHashSet) InsertAll(index int, ac Collection) {
 }
 
 // Index returns the index of the specified v in this set, or -1 if this set does not contain v.
-func (ls *LinkedHashSet) Index(v interface{}) int {
+func (ls *LinkedHashSet) Index(v T) int {
 	for i, ln := 0, ls.front; ln != nil; ln = ln.next {
 		if ln.value == v {
 			return i
@@ -377,7 +377,7 @@ func (ls *LinkedHashSet) Sort(less cmp.Less) {
 //--------------------------------------------------------------------
 
 // Front returns the first item of list ls or nil if the list is empty.
-func (ls *LinkedHashSet) Front() interface{} {
+func (ls *LinkedHashSet) Front() T {
 	if ls.front == nil {
 		return nil
 	}
@@ -385,7 +385,7 @@ func (ls *LinkedHashSet) Front() interface{} {
 }
 
 // Back returns the last item of list ls or nil if the list is empty.
-func (ls *LinkedHashSet) Back() interface{} {
+func (ls *LinkedHashSet) Back() T {
 	if ls.back == nil {
 		return nil
 	}
@@ -393,7 +393,7 @@ func (ls *LinkedHashSet) Back() interface{} {
 }
 
 // PopFront remove the first item of list.
-func (ls *LinkedHashSet) PopFront() (v interface{}) {
+func (ls *LinkedHashSet) PopFront() (v T) {
 	if ls.front != nil {
 		v = ls.front.value
 		ls.deleteNode(ls.front)
@@ -402,7 +402,7 @@ func (ls *LinkedHashSet) PopFront() (v interface{}) {
 }
 
 // PopBack remove the last item of list.
-func (ls *LinkedHashSet) PopBack() (v interface{}) {
+func (ls *LinkedHashSet) PopBack() (v T) {
 	if ls.back != nil {
 		v = ls.back.value
 		ls.deleteNode(ls.back)
@@ -411,7 +411,7 @@ func (ls *LinkedHashSet) PopBack() (v interface{}) {
 }
 
 // PushFront inserts all items of vs at the front of list ls.
-func (ls *LinkedHashSet) PushFront(vs ...interface{}) {
+func (ls *LinkedHashSet) PushFront(vs ...T) {
 	if len(vs) == 0 {
 		return
 	}
@@ -430,7 +430,7 @@ func (ls *LinkedHashSet) PushFrontAll(ac Collection) {
 }
 
 // PushBack inserts all items of vs at the back of list ls.
-func (ls *LinkedHashSet) PushBack(vs ...interface{}) {
+func (ls *LinkedHashSet) PushBack(vs ...T) {
 	if len(vs) == 0 {
 		return
 	}
@@ -517,7 +517,7 @@ func (ls *LinkedHashSet) checkSizeIndex(index int) int {
 type linkedSetNode struct {
 	prev  *linkedSetNode
 	next  *linkedSetNode
-	value interface{}
+	value T
 }
 
 // String print the list item to string
@@ -578,7 +578,7 @@ func (it *linkedHashSetIterator) Next() bool {
 }
 
 // Value returns the current element's value.
-func (it *linkedHashSetIterator) Value() interface{} {
+func (it *linkedHashSetIterator) Value() T {
 	if it.node == nil {
 		return nil
 	}
@@ -586,7 +586,7 @@ func (it *linkedHashSetIterator) Value() interface{} {
 }
 
 // SetValue set the value to the item
-func (it *linkedHashSetIterator) SetValue(v interface{}) {
+func (it *linkedHashSetIterator) SetValue(v T) {
 	if it.node == nil {
 		return
 	}
@@ -624,7 +624,7 @@ func (it *linkedHashSetIterator) Reset() {
 //-----------------------------------------------------------
 // implements JSON Marshaller/Unmarshaller interface
 
-func (ls *LinkedHashSet) addJSONArrayItem(v interface{}) jsonArray {
+func (ls *LinkedHashSet) addJSONArrayItem(v T) jsonArray {
 	ls.Add(v)
 	return ls
 }

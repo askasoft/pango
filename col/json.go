@@ -8,34 +8,34 @@ import (
 )
 
 type jsonArray interface {
-	addJSONArrayItem(v interface{}) jsonArray
+	addJSONArrayItem(v T) jsonArray
 }
 
 type jsonObject interface {
-	addJSONObjectItem(k string, v interface{}) jsonObject
+	addJSONObjectItem(k string, v T) jsonObject
 }
 
 // JSONArray json array type
-type JSONArray []interface{}
+type JSONArray []T
 
-func (ja JSONArray) addJSONArrayItem(v interface{}) jsonArray {
+func (ja JSONArray) addJSONArrayItem(v T) jsonArray {
 	return append(ja, v)
 }
 
 func newJSONArray() jsonArray {
-	return JSONArray([]interface{}{})
+	return JSONArray([]T{})
 }
 
 // JSONObject json object type
-type JSONObject map[string]interface{}
+type JSONObject map[string]T
 
-func (jo JSONObject) addJSONObjectItem(k string, v interface{}) jsonObject {
+func (jo JSONObject) addJSONObjectItem(k string, v T) jsonObject {
 	jo[k] = v
 	return jo
 }
 
 func newJSONObject() jsonObject {
-	return JSONObject(make(map[string]interface{}))
+	return JSONObject(make(map[string]T))
 }
 
 type jsonUnmarshaler struct {
@@ -114,7 +114,7 @@ func (jd *jsonUnmarshaler) parseJSONObject(dec *json.Decoder, jo jsonObject) (js
 			return nil, err
 		}
 
-		var v interface{}
+		var v T
 		v, err = jd.handleDelim(dec, t)
 		if err != nil {
 			return nil, err
@@ -160,7 +160,7 @@ func (jd *jsonUnmarshaler) parseJSONArray(dec *json.Decoder, ja jsonArray) (json
 	return ja, nil
 }
 
-func (jd *jsonUnmarshaler) handleDelim(dec *json.Decoder, t json.Token) (interface{}, error) {
+func (jd *jsonUnmarshaler) handleDelim(dec *json.Decoder, t json.Token) (T, error) {
 	if delim, ok := t.(json.Delim); ok {
 		switch delim {
 		case '{':
@@ -209,7 +209,7 @@ func jsonMarshalSet(set Set) (res []byte, err error) {
 
 	var bs []byte
 	res = append(res, '[')
-	set.Each(func(v interface{}) {
+	set.Each(func(v T) {
 		bs, err = json.Marshal(v)
 		if err != nil {
 			return
@@ -229,7 +229,7 @@ func jsonMarshalList(list List) (res []byte, err error) {
 	return jsonMarshalIter(list.Iterator())
 }
 
-func jsonMarshalHashMap(hmap map[interface{}]interface{}) (res []byte, err error) {
+func jsonMarshalHashMap(hmap map[K]V) (res []byte, err error) {
 	if len(hmap) == 0 {
 		return []byte("{}"), nil
 	}

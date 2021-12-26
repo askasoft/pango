@@ -10,7 +10,7 @@ import (
 
 // NewLinkedList returns an initialized list.
 // Example: NewLinkedList(1, 2, 3)
-func NewLinkedList(vs ...interface{}) *LinkedList {
+func NewLinkedList(vs ...T) *LinkedList {
 	ll := &LinkedList{}
 	ll.Add(vs...)
 	return ll
@@ -51,7 +51,7 @@ func (ll *LinkedList) Clear() {
 }
 
 // Add adds all items of vs and returns the last added item.
-func (ll *LinkedList) Add(vs ...interface{}) {
+func (ll *LinkedList) Add(vs ...T) {
 	ll.Insert(ll.len, vs...)
 }
 
@@ -61,7 +61,7 @@ func (ll *LinkedList) AddAll(ac Collection) {
 }
 
 // Delete delete all items with associated value v of vs
-func (ll *LinkedList) Delete(vs ...interface{}) {
+func (ll *LinkedList) Delete(vs ...T) {
 	for _, v := range vs {
 		ll.deleteAll(v)
 	}
@@ -90,7 +90,7 @@ func (ll *LinkedList) DeleteAll(ac Collection) {
 }
 
 // Contains Test to see if the collection contains all items of vs
-func (ll *LinkedList) Contains(vs ...interface{}) bool {
+func (ll *LinkedList) Contains(vs ...T) bool {
 	if len(vs) == 0 {
 		return true
 	}
@@ -131,7 +131,7 @@ func (ll *LinkedList) ContainsAll(ac Collection) bool {
 }
 
 // Retain Retains only the elements in this collection that are contained in the argument array vs.
-func (ll *LinkedList) Retain(vs ...interface{}) {
+func (ll *LinkedList) Retain(vs ...T) {
 	if ll.IsEmpty() || len(vs) == 0 {
 		return
 	}
@@ -153,8 +153,8 @@ func (ll *LinkedList) RetainAll(ac Collection) {
 }
 
 // Values returns a slice contains all the items of the list ll
-func (ll *LinkedList) Values() []interface{} {
-	vs := make([]interface{}, ll.Len())
+func (ll *LinkedList) Values() []T {
+	vs := make([]T, ll.Len())
 	for i, ln := 0, ll.front; ln != nil; i, ln = i+1, ln.next {
 		vs[i] = ln.value
 	}
@@ -162,14 +162,14 @@ func (ll *LinkedList) Values() []interface{} {
 }
 
 // Each call f for each item in the list
-func (ll *LinkedList) Each(f func(interface{})) {
+func (ll *LinkedList) Each(f func(T)) {
 	for ln := ll.front; ln != nil; ln = ln.next {
 		f(ln.value)
 	}
 }
 
 // ReverseEach call f for each item in the list with reverse order
-func (ll *LinkedList) ReverseEach(f func(interface{})) {
+func (ll *LinkedList) ReverseEach(f func(T)) {
 	for ln := ll.back; ln != nil; ln = ln.prev {
 		f(ln.value)
 	}
@@ -186,14 +186,14 @@ func (ll *LinkedList) Iterator() Iterator {
 // Get returns the element at the specified position in this list
 // if i < -ll.Len() or i >= ll.Len(), panic
 // if i < 0, returns ll.Get(ll.Len() + i)
-func (ll *LinkedList) Get(index int) interface{} {
+func (ll *LinkedList) Get(index int) T {
 	index = ll.checkItemIndex(index)
 
 	return ll.node(index).value
 }
 
 // Set set the v at the specified index in this list and returns the old value.
-func (ll *LinkedList) Set(index int, v interface{}) (ov interface{}) {
+func (ll *LinkedList) Set(index int, v T) (ov T) {
 	index = ll.checkItemIndex(index)
 
 	ln := ll.node(index)
@@ -204,7 +204,7 @@ func (ll *LinkedList) Set(index int, v interface{}) (ov interface{}) {
 // Insert inserts values at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
 // Panic if position is bigger than list's size
 // Note: position equal to list's size is valid, i.e. append.
-func (ll *LinkedList) Insert(index int, vs ...interface{}) {
+func (ll *LinkedList) Insert(index int, vs ...T) {
 	index = ll.checkSizeIndex(index)
 
 	if len(vs) == 0 {
@@ -254,7 +254,7 @@ func (ll *LinkedList) InsertAll(index int, ac Collection) {
 }
 
 // Index returns the index of the first occurrence of the specified v in this list, or -1 if this list does not contain v.
-func (ll *LinkedList) Index(v interface{}) int {
+func (ll *LinkedList) Index(v T) int {
 	for i, ln := 0, ll.front; ln != nil; ln = ln.next {
 		if ln.value == v {
 			return i
@@ -265,7 +265,7 @@ func (ll *LinkedList) Index(v interface{}) int {
 }
 
 // LastIndex returns the index of the last occurrence of the specified v in this list, or -1 if this list does not contain v.
-func (ll *LinkedList) LastIndex(v interface{}) int {
+func (ll *LinkedList) LastIndex(v T) int {
 	for i, ln := 0, ll.back; ln != nil; ln = ln.prev {
 		if ln.value == v {
 			return i
@@ -305,7 +305,7 @@ func (ll *LinkedList) Sort(less cmp.Less) {
 //--------------------------------------------------------------------
 
 // Front returns the first item of list ll or nil if the list is empty.
-func (ll *LinkedList) Front() interface{} {
+func (ll *LinkedList) Front() T {
 	if ll.front == nil {
 		return nil
 	}
@@ -313,7 +313,7 @@ func (ll *LinkedList) Front() interface{} {
 }
 
 // Back returns the last item of list ll or nil if the list is empty.
-func (ll *LinkedList) Back() interface{} {
+func (ll *LinkedList) Back() T {
 	if ll.back == nil {
 		return nil
 	}
@@ -321,7 +321,7 @@ func (ll *LinkedList) Back() interface{} {
 }
 
 // PopFront remove the first item of list.
-func (ll *LinkedList) PopFront() (v interface{}) {
+func (ll *LinkedList) PopFront() (v T) {
 	if ll.front != nil {
 		v = ll.front.value
 		ll.deleteNode(ll.front)
@@ -330,7 +330,7 @@ func (ll *LinkedList) PopFront() (v interface{}) {
 }
 
 // PopBack remove the last item of list.
-func (ll *LinkedList) PopBack() (v interface{}) {
+func (ll *LinkedList) PopBack() (v T) {
 	if ll.back != nil {
 		v = ll.back.value
 		ll.deleteNode(ll.back)
@@ -339,7 +339,7 @@ func (ll *LinkedList) PopBack() (v interface{}) {
 }
 
 // PushFront inserts all items of vs at the front of list ll.
-func (ll *LinkedList) PushFront(vs ...interface{}) {
+func (ll *LinkedList) PushFront(vs ...T) {
 	if len(vs) == 0 {
 		return
 	}
@@ -358,7 +358,7 @@ func (ll *LinkedList) PushFrontAll(ac Collection) {
 }
 
 // PushBack inserts all items of vs at the back of list ll.
-func (ll *LinkedList) PushBack(vs ...interface{}) {
+func (ll *LinkedList) PushBack(vs ...T) {
 	if len(vs) == 0 {
 		return
 	}
@@ -383,7 +383,7 @@ func (ll *LinkedList) String() string {
 }
 
 //-----------------------------------------------------------
-func (ll *LinkedList) deleteAll(v interface{}) {
+func (ll *LinkedList) deleteAll(v T) {
 	for ln := ll.front; ln != nil; ln = ln.next {
 		if ln.value == v {
 			ll.deleteNode(ln)
@@ -451,7 +451,7 @@ func (ll *LinkedList) checkSizeIndex(index int) int {
 type linkedListNode struct {
 	prev  *linkedListNode
 	next  *linkedListNode
-	value interface{}
+	value T
 }
 
 // String print the list item to string
@@ -512,7 +512,7 @@ func (it *linkedListIterator) Next() bool {
 }
 
 // Value returns the current element's value.
-func (it *linkedListIterator) Value() interface{} {
+func (it *linkedListIterator) Value() T {
 	if it.node == nil {
 		return nil
 	}
@@ -520,7 +520,7 @@ func (it *linkedListIterator) Value() interface{} {
 }
 
 // SetValue set the value to the item
-func (it *linkedListIterator) SetValue(v interface{}) {
+func (it *linkedListIterator) SetValue(v T) {
 	if it.node != nil {
 		it.node.value = v
 	}
@@ -554,7 +554,7 @@ func newJSONArrayLinkedList() jsonArray {
 	return NewLinkedList()
 }
 
-func (ll *LinkedList) addJSONArrayItem(v interface{}) jsonArray {
+func (ll *LinkedList) addJSONArrayItem(v T) jsonArray {
 	ll.Add(v)
 	return ll
 }

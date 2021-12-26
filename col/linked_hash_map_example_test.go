@@ -22,23 +22,23 @@ func ExampleLinkedHashMap() {
 
 func ExampleNewLinkedHashMap() {
 	// initialize from a list of key-value pairs
-	lm := NewLinkedHashMap(
-		"country", "United States",
-		"countryCode", "US",
-		"region", "CA",
-		"regionName", "California",
-		"city", "Mountain View",
-		"zip", "94043",
-		"lat", 37.4192,
-		"lon", -122.0574,
-		"timezone", "America/Los_Angeles",
-		"isp", "Google Cloud",
-		"org", "Google Cloud",
-		"as", "AS15169 Google Inc.",
-		"mobile", true,
-		"proxy", false,
-		"query", "35.192.xx.xxx",
-	)
+	lm := NewLinkedHashMap([]P{
+		{"country", "United States"},
+		{"countryCode", "US"},
+		{"region", "CA"},
+		{"regionName", "California"},
+		{"city", "Mountain View"},
+		{"zip", "94043"},
+		{"lat", 37.4192},
+		{"lon", -122.0574},
+		{"timezone", "America/Los_Angeles"},
+		{"isp", "Google Cloud"},
+		{"org", "Google Cloud"},
+		{"as", "AS15169 Google Inc."},
+		{"mobile", true},
+		{"proxy", false},
+		{"query", "35.192.xx.xxx"},
+	}...)
 
 	for it := lm.Iterator(); it.Next(); {
 		fmt.Printf("%-12s: %v\n", it.Key(), it.Value())

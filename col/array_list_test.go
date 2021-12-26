@@ -24,28 +24,6 @@ func TestArrayListInterface(t *testing.T) {
 	}
 }
 
-func TestArrayListRoundup(t *testing.T) {
-	cs := []struct {
-		s int
-		w int
-	}{
-		{0, 0},
-		{10, 32},
-		{20, 32},
-		{31, 32},
-		{32, 32},
-		{33, 64},
-	}
-
-	al := &ArrayList{}
-	for i, c := range cs {
-		a := al.roundup(c.s)
-		if a != c.w {
-			t.Errorf("[%d] roundup(%d) = %d, want %d", i, c.s, a, c.w)
-		}
-	}
-}
-
 func TestArrayListNew(t *testing.T) {
 	list1 := NewArrayList()
 

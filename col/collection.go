@@ -27,7 +27,7 @@ type Container interface {
 type Collection interface {
 	Container
 
-	// Add adds items of vs
+	// Add adds items of vs to the collection
 	Add(vs ...T)
 
 	// AddAll adds all items of another collection
@@ -68,7 +68,10 @@ type List interface {
 
 	Iterable
 
-	// Get returns the value at the specified index in this list
+	// Get returns the value at the specified index in this list. If the index is
+	// invalid, the call will panic. This method accepts both positive and
+	// negative index values. Index 0 refers to the first element, and
+	// index -1 refers to the last.
 	Get(index int) T
 
 	// Set set the v at the specified index in this list and returns the old value.
@@ -154,4 +157,18 @@ type IterableMap interface {
 	ReverseEachable2
 
 	Iterable2
+}
+
+// Queue queue interface
+type Queue interface {
+	Container
+
+	// Push adds items of vs to the tail of queue
+	Push(vs ...T)
+
+	// Peek Retrieves, but does not remove, the head of this queue, or returns (nil, false) if this queue is empty.
+	Peek() (T, bool)
+
+	// Poll Retrieves and removes the head of this queue, or returns (nil, false) if this queue is empty.
+	Poll() (T, bool)
 }

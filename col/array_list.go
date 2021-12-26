@@ -9,10 +9,13 @@ import (
 	"github.com/pandafw/pango/cmp"
 )
 
+// minArrayCap is smallest capacity that array may have.
+const minArrayCap = 32
+
 // NewArrayList returns an initialized list.
 // Example: NewArrayList(1, 2, 3)
 func NewArrayList(vs ...T) *ArrayList {
-	al := &ArrayList{data: vs}
+	al := &ArrayList{data: vs, grow: minArrayCap}
 	return al
 }
 
@@ -26,6 +29,7 @@ func NewArrayList(vs ...T) *ArrayList {
 //
 type ArrayList struct {
 	data []T
+	grow int
 }
 
 //-----------------------------------------------------------
@@ -48,6 +52,16 @@ func (al *ArrayList) Clear() {
 	}
 }
 
+// GetGrowSize returns the grow size of queue buffer
+func (al *ArrayList) GetGrowSize() int {
+	return al.grow
+}
+
+// SetGrowSize sets the buffer's grow size
+func (al *ArrayList) SetGrowSize(n int) {
+	al.grow = roundup(n, minArrayCap)
+}
+
 // Add adds all items of vs and returns the last added item.
 func (al *ArrayList) Add(vs ...T) {
 	n := len(vs)
@@ -55,7 +69,7 @@ func (al *ArrayList) Add(vs ...T) {
 		return
 	}
 
-	al.grow(n)
+	al.resize(n)
 	copy(al.data[al.Len()-n:], vs)
 }
 
@@ -207,7 +221,7 @@ func (al *ArrayList) Insert(index int, vs ...T) {
 		return
 	}
 
-	al.grow(n)
+	al.resize(n)
 	copy(al.data[index+n:], al.data[index:len-index])
 	copy(al.data[index:], vs)
 }
@@ -344,7 +358,7 @@ func (al *ArrayList) Reserve(n int) {
 	l := al.Len()
 	n -= l
 	if n > 0 {
-		al.grow(n)
+		al.resize(n)
 		al.data = al.data[:l]
 	}
 }
@@ -356,19 +370,13 @@ func (al *ArrayList) String() string {
 }
 
 //-----------------------------------------------------------
-const nblock = 0x1F
-
 // roundup round up size
 func (al *ArrayList) roundup(n int) int {
-	if (n & nblock) == 0 {
-		return n
-	}
-
-	return (n + nblock) & (^nblock)
+	return roundup(n, al.grow)
 }
 
-// grow grows the buffer to guarantee space for n more elements.
-func (al *ArrayList) grow(n int) {
+// resize resize the buffer to guarantee space for n more elements.
+func (al *ArrayList) resize(n int) {
 	if al.data == nil {
 		c := al.roundup(n)
 		al.data = make([]T, n, c)

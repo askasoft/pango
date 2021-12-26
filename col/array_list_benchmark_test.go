@@ -18,10 +18,10 @@ func benchmarkArrayListAdd(b *testing.B, list *ArrayList, size int) {
 	}
 }
 
-func benchmarkArrayListRemove(b *testing.B, list *ArrayList, size int) {
+func benchmarkArrayListDelete(b *testing.B, list *ArrayList, size int) {
 	for i := 0; i < b.N; i++ {
 		for n := 0; n < size; n++ {
-			list.Remove(n)
+			list.Delete(n)
 		}
 	}
 }
@@ -111,7 +111,7 @@ func BenchmarkArrayListAdd100000(b *testing.B) {
 	benchmarkArrayListAdd(b, list, size)
 }
 
-func BenchmarkArrayListRemove100(b *testing.B) {
+func BenchmarkArrayListDelete100(b *testing.B) {
 	b.StopTimer()
 	size := 100
 	list := NewArrayList()
@@ -119,10 +119,10 @@ func BenchmarkArrayListRemove100(b *testing.B) {
 		list.Add(n)
 	}
 	b.StartTimer()
-	benchmarkArrayListRemove(b, list, size)
+	benchmarkArrayListDelete(b, list, size)
 }
 
-func BenchmarkArrayListRemove1000(b *testing.B) {
+func BenchmarkArrayListDelete1000(b *testing.B) {
 	b.StopTimer()
 	size := 1000
 	list := NewArrayList()
@@ -130,10 +130,10 @@ func BenchmarkArrayListRemove1000(b *testing.B) {
 		list.Add(n)
 	}
 	b.StartTimer()
-	benchmarkArrayListRemove(b, list, size)
+	benchmarkArrayListDelete(b, list, size)
 }
 
-func BenchmarkArrayListRemove10000(b *testing.B) {
+func BenchmarkArrayListDelete10000(b *testing.B) {
 	b.StopTimer()
 	size := 10000
 	list := NewArrayList()
@@ -141,10 +141,10 @@ func BenchmarkArrayListRemove10000(b *testing.B) {
 		list.Add(n)
 	}
 	b.StartTimer()
-	benchmarkArrayListRemove(b, list, size)
+	benchmarkArrayListDelete(b, list, size)
 }
 
-func BenchmarkArrayListRemove100000(b *testing.B) {
+func BenchmarkArrayListDelete100000(b *testing.B) {
 	b.StopTimer()
 	size := 100000
 	list := NewArrayList()
@@ -152,5 +152,5 @@ func BenchmarkArrayListRemove100000(b *testing.B) {
 		list.Add(n)
 	}
 	b.StartTimer()
-	benchmarkArrayListRemove(b, list, size)
+	benchmarkArrayListDelete(b, list, size)
 }

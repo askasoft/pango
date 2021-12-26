@@ -57,6 +57,10 @@ func (ew *WebhookWriter) Write(le *Event) {
 		}
 	}
 
+	if ew.Timeout.Milliseconds() == 0 {
+		ew.Timeout = time.Second * 2
+	}
+
 	if ew.hc == nil {
 		ew.hc = &http.Client{Timeout: ew.Timeout}
 	}

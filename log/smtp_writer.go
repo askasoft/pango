@@ -95,6 +95,10 @@ func (sw *SMTPWriter) Format(le *Event) (sb, mb string) {
 }
 
 func (sw *SMTPWriter) initSender() {
+	if sw.Timeout.Milliseconds() == 0 {
+		sw.Timeout = time.Second * 2
+	}
+
 	sw.sender = &email.SMTPSender{
 		Host:     sw.Host,
 		Port:     sw.Port,

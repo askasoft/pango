@@ -92,6 +92,10 @@ func (sw *SlackWriter) Write(le *Event) {
 	sa := &slack.Attachment{Text: mb}
 	sm.AddAttachment(sa)
 
+	if sw.Timeout.Milliseconds() == 0 {
+		sw.Timeout = time.Second * 2
+	}
+
 	err := slack.Post(sw.Webhook, sw.Timeout, sm)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "SlackWriter(%q) - Post(): %v\n", sw.Webhook, err)

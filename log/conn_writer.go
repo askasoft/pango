@@ -106,6 +106,10 @@ func (cw *ConnWriter) dial() {
 		cw.Net = "tcp"
 	}
 
+	if cw.Timeout.Milliseconds() == 0 {
+		cw.Timeout = time.Second * 2
+	}
+
 	conn, err := net.DialTimeout(cw.Net, cw.Addr, cw.Timeout)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "ConnWriter(%q) - Dial(%q): %v\n", cw.Addr, cw.Net, err)

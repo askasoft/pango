@@ -3,13 +3,12 @@ package log
 import (
 	"os"
 	"testing"
+	"time"
 )
 
 // Test elasticsearch log
 // create index: curl -X PUT "http://localhost:9200/pango?pretty"
 func TestWebhook_ESLog(t *testing.T) {
-	//os.Setenv("ES_WEBHOOK", "http://localhost:9200/pango/logs")
-
 	url := os.Getenv("ES_WEBHOOK")
 	if len(url) < 1 {
 		t.Skip("ES_WEBHOOK not set")
@@ -25,6 +24,7 @@ func TestWebhook_ESLog(t *testing.T) {
 			Webhook:     url,
 			ContentType: "application/json",
 			Logfil:      NewLevelFilter(LevelDebug),
+			Timeout:     time.Millisecond * 300,
 		},
 		&StreamWriter{Color: true},
 	))

@@ -161,14 +161,15 @@ type IterableMap interface {
 
 // Queue queue interface
 type Queue interface {
-	Container
-
 	// Push adds items of vs to the tail of queue
 	Push(vs ...T)
 
-	// Peek Retrieves, but does not remove, the head of this queue, or returns (nil, false) if this queue is empty.
-	Peek() (T, bool)
-
 	// Poll Retrieves and removes the head of this queue, or returns (nil, false) if this queue is empty.
 	Poll() (T, bool)
+}
+
+// Peekable peekable collection interface
+type Peekable interface {
+	// Peek Retrieves, but does not remove, the head of this collection, or returns (nil, false) if this collection is empty.
+	Peek() (T, bool)
 }

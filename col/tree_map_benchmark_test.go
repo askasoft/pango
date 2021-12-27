@@ -63,17 +63,6 @@ func BenchmarkTreeMapGet10000(b *testing.B) {
 	benchmarkTreeMapGet(b, tree, size)
 }
 
-func BenchmarkTreeMapGet100000(b *testing.B) {
-	b.StopTimer()
-	size := 100000
-	tree := NewTreeMap(cmp.CompareInt)
-	for n := 0; n < size; n++ {
-		tree.Set(n, struct{}{})
-	}
-	b.StartTimer()
-	benchmarkTreeMapGet(b, tree, size)
-}
-
 func BenchmarkTreeMapPut100(b *testing.B) {
 	b.StopTimer()
 	size := 100
@@ -96,17 +85,6 @@ func BenchmarkTreeMapPut1000(b *testing.B) {
 func BenchmarkTreeMapPut10000(b *testing.B) {
 	b.StopTimer()
 	size := 10000
-	tree := NewTreeMap(cmp.CompareInt)
-	for n := 0; n < size; n++ {
-		tree.Set(n, struct{}{})
-	}
-	b.StartTimer()
-	benchmarkTreeMapSet(b, tree, size)
-}
-
-func BenchmarkTreeMapPut100000(b *testing.B) {
-	b.StopTimer()
-	size := 100000
 	tree := NewTreeMap(cmp.CompareInt)
 	for n := 0; n < size; n++ {
 		tree.Set(n, struct{}{})
@@ -140,17 +118,6 @@ func BenchmarkTreeMapDelete1000(b *testing.B) {
 func BenchmarkTreeMapDelete10000(b *testing.B) {
 	b.StopTimer()
 	size := 10000
-	tree := NewTreeMap(cmp.CompareInt)
-	for n := 0; n < size; n++ {
-		tree.Set(n, struct{}{})
-	}
-	b.StartTimer()
-	benchmarkTreeMapDel(b, tree, size)
-}
-
-func BenchmarkTreeMapDelete100000(b *testing.B) {
-	b.StopTimer()
-	size := 100000
 	tree := NewTreeMap(cmp.CompareInt)
 	for n := 0; n < size; n++ {
 		tree.Set(n, struct{}{})

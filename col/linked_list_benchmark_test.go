@@ -59,17 +59,6 @@ func BenchmarkLinkedListGet10000(b *testing.B) {
 	benchmarkLinkedListGet(b, list, size)
 }
 
-func BenchmarkLinkedListGet100000(b *testing.B) {
-	b.StopTimer()
-	size := 100000
-	list := NewLinkedList()
-	for n := 0; n < size; n++ {
-		list.Add(n)
-	}
-	b.StartTimer()
-	benchmarkLinkedListGet(b, list, size)
-}
-
 func BenchmarkLinkedListAdd100(b *testing.B) {
 	b.StopTimer()
 	size := 100
@@ -92,17 +81,6 @@ func BenchmarkLinkedListAdd1000(b *testing.B) {
 func BenchmarkLinkedListAdd10000(b *testing.B) {
 	b.StopTimer()
 	size := 10000
-	list := NewLinkedList()
-	for n := 0; n < size; n++ {
-		list.Add(n)
-	}
-	b.StartTimer()
-	benchmarkLinkedListAdd(b, list, size)
-}
-
-func BenchmarkLinkedListAdd100000(b *testing.B) {
-	b.StopTimer()
-	size := 100000
 	list := NewLinkedList()
 	for n := 0; n < size; n++ {
 		list.Add(n)
@@ -136,17 +114,6 @@ func BenchmarkLinkedListDelete1000(b *testing.B) {
 func BenchmarkLinkedListDelete10000(b *testing.B) {
 	b.StopTimer()
 	size := 10000
-	list := NewLinkedList()
-	for n := 0; n < size; n++ {
-		list.Add(n)
-	}
-	b.StartTimer()
-	benchmarkLinkedListDelete(b, list, size)
-}
-
-func BenchmarkLinkedListDelete100000(b *testing.B) {
-	b.StopTimer()
-	size := 100000
 	list := NewLinkedList()
 	for n := 0; n < size; n++ {
 		list.Add(n)

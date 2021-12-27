@@ -59,17 +59,6 @@ func BenchmarkLinkedHashSetGet10000(b *testing.B) {
 	benchmarkLinkedHashSetGet(b, lset, size)
 }
 
-func BenchmarkLinkedHashSetGet100000(b *testing.B) {
-	b.StopTimer()
-	size := 100000
-	lset := NewLinkedHashSet()
-	for n := 0; n < size; n++ {
-		lset.Add(n)
-	}
-	b.StartTimer()
-	benchmarkLinkedHashSetGet(b, lset, size)
-}
-
 func BenchmarkLinkedHashSetAdd100(b *testing.B) {
 	b.StopTimer()
 	size := 100
@@ -92,17 +81,6 @@ func BenchmarkLinkedHashSetAdd1000(b *testing.B) {
 func BenchmarkLinkedHashSetAdd10000(b *testing.B) {
 	b.StopTimer()
 	size := 10000
-	lset := NewLinkedHashSet()
-	for n := 0; n < size; n++ {
-		lset.Add(n)
-	}
-	b.StartTimer()
-	benchmarkLinkedHashSetAdd(b, lset, size)
-}
-
-func BenchmarkLinkedHashSetAdd100000(b *testing.B) {
-	b.StopTimer()
-	size := 100000
 	lset := NewLinkedHashSet()
 	for n := 0; n < size; n++ {
 		lset.Add(n)
@@ -136,17 +114,6 @@ func BenchmarkLinkedHashSetRemove1000(b *testing.B) {
 func BenchmarkLinkedHashSetRemove10000(b *testing.B) {
 	b.StopTimer()
 	size := 10000
-	lset := NewLinkedHashSet()
-	for n := 0; n < size; n++ {
-		lset.Add(n)
-	}
-	b.StartTimer()
-	benchmarkLinkedHashSetDel(b, lset, size)
-}
-
-func BenchmarkLinkedHashSetRemove100000(b *testing.B) {
-	b.StopTimer()
-	size := 100000
 	lset := NewLinkedHashSet()
 	for n := 0; n < size; n++ {
 		lset.Add(n)

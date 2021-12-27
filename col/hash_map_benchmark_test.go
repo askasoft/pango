@@ -59,17 +59,6 @@ func BenchmarkHashMapGet10000(b *testing.B) {
 	benchmarkHashMapGet(b, m, size)
 }
 
-func BenchmarkHashMapGet100000(b *testing.B) {
-	b.StopTimer()
-	size := 100000
-	m := NewHashMap()
-	for n := 0; n < size; n++ {
-		m.Set(n, struct{}{})
-	}
-	b.StartTimer()
-	benchmarkHashMapGet(b, m, size)
-}
-
 func BenchmarkHashMapSet100(b *testing.B) {
 	b.StopTimer()
 	size := 100
@@ -92,17 +81,6 @@ func BenchmarkHashMapSet1000(b *testing.B) {
 func BenchmarkHashMapSet10000(b *testing.B) {
 	b.StopTimer()
 	size := 10000
-	m := NewHashMap()
-	for n := 0; n < size; n++ {
-		m.Set(n, struct{}{})
-	}
-	b.StartTimer()
-	benchmarkHashMapSet(b, m, size)
-}
-
-func BenchmarkHashMapSet100000(b *testing.B) {
-	b.StopTimer()
-	size := 100000
 	m := NewHashMap()
 	for n := 0; n < size; n++ {
 		m.Set(n, struct{}{})
@@ -136,17 +114,6 @@ func BenchmarkHashMapRemove1000(b *testing.B) {
 func BenchmarkHashMapRemove10000(b *testing.B) {
 	b.StopTimer()
 	size := 10000
-	m := NewHashMap()
-	for n := 0; n < size; n++ {
-		m.Set(n, struct{}{})
-	}
-	b.StartTimer()
-	benchmarkHashMapRemove(b, m, size)
-}
-
-func BenchmarkHashMapRemove100000(b *testing.B) {
-	b.StopTimer()
-	size := 100000
 	m := NewHashMap()
 	for n := 0; n < size; n++ {
 		m.Set(n, struct{}{})

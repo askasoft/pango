@@ -63,17 +63,6 @@ func BenchmarkTreeSetContains10000(b *testing.B) {
 	benchmarkTreeSetContains(b, set, size)
 }
 
-func BenchmarkTreeSetContains100000(b *testing.B) {
-	b.StopTimer()
-	size := 100000
-	set := NewTreeSet(cmp.CompareInt)
-	for n := 0; n < size; n++ {
-		set.Add(n)
-	}
-	b.StartTimer()
-	benchmarkTreeSetContains(b, set, size)
-}
-
 func BenchmarkTreeSetAdd100(b *testing.B) {
 	b.StopTimer()
 	size := 100
@@ -96,17 +85,6 @@ func BenchmarkTreeSetAdd1000(b *testing.B) {
 func BenchmarkTreeSetAdd10000(b *testing.B) {
 	b.StopTimer()
 	size := 10000
-	set := NewTreeSet(cmp.CompareInt)
-	for n := 0; n < size; n++ {
-		set.Add(n)
-	}
-	b.StartTimer()
-	benchmarkTreeSetAdd(b, set, size)
-}
-
-func BenchmarkTreeSetAdd100000(b *testing.B) {
-	b.StopTimer()
-	size := 100000
 	set := NewTreeSet(cmp.CompareInt)
 	for n := 0; n < size; n++ {
 		set.Add(n)
@@ -140,17 +118,6 @@ func BenchmarkTreeSetDelete1000(b *testing.B) {
 func BenchmarkTreeSetDelete10000(b *testing.B) {
 	b.StopTimer()
 	size := 10000
-	set := NewTreeSet(cmp.CompareInt)
-	for n := 0; n < size; n++ {
-		set.Add(n)
-	}
-	b.StartTimer()
-	benchmarkTreeSetDelete(b, set, size)
-}
-
-func BenchmarkTreeSetDelete100000(b *testing.B) {
-	b.StopTimer()
-	size := 100000
 	set := NewTreeSet(cmp.CompareInt)
 	for n := 0; n < size; n++ {
 		set.Add(n)

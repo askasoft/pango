@@ -59,17 +59,6 @@ func BenchmarkLinkedHashMapGet10000(b *testing.B) {
 	benchmarkLinkedHashMapGet(b, m, size)
 }
 
-func BenchmarkLinkedHashMapGet100000(b *testing.B) {
-	b.StopTimer()
-	size := 100000
-	m := NewLinkedHashMap()
-	for n := 0; n < size; n++ {
-		m.Set(n, struct{}{})
-	}
-	b.StartTimer()
-	benchmarkLinkedHashMapGet(b, m, size)
-}
-
 func BenchmarkLinkedHashMapPut100(b *testing.B) {
 	b.StopTimer()
 	size := 100
@@ -92,17 +81,6 @@ func BenchmarkLinkedHashMapPut1000(b *testing.B) {
 func BenchmarkLinkedHashMapPut10000(b *testing.B) {
 	b.StopTimer()
 	size := 10000
-	m := NewLinkedHashMap()
-	for n := 0; n < size; n++ {
-		m.Set(n, struct{}{})
-	}
-	b.StartTimer()
-	benchmarkLinkedHashMapSet(b, m, size)
-}
-
-func BenchmarkLinkedHashMapPut100000(b *testing.B) {
-	b.StopTimer()
-	size := 100000
 	m := NewLinkedHashMap()
 	for n := 0; n < size; n++ {
 		m.Set(n, struct{}{})
@@ -136,17 +114,6 @@ func BenchmarkLinkedHashMapRemove1000(b *testing.B) {
 func BenchmarkLinkedHashMapRemove10000(b *testing.B) {
 	b.StopTimer()
 	size := 10000
-	m := NewLinkedHashMap()
-	for n := 0; n < size; n++ {
-		m.Set(n, struct{}{})
-	}
-	b.StartTimer()
-	benchmarkLinkedHashMapDel(b, m, size)
-}
-
-func BenchmarkLinkedHashMapRemove100000(b *testing.B) {
-	b.StopTimer()
-	size := 100000
 	m := NewLinkedHashMap()
 	for n := 0; n < size; n++ {
 		m.Set(n, struct{}{})

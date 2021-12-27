@@ -59,17 +59,6 @@ func BenchmarkRingBufferGet10000(b *testing.B) {
 	benchmarkRingBufferGet(b, rb, size)
 }
 
-func BenchmarkRingBufferGet100000(b *testing.B) {
-	b.StopTimer()
-	size := 100000
-	rb := NewRingBuffer()
-	for n := 0; n < size; n++ {
-		rb.Push(n)
-	}
-	b.StartTimer()
-	benchmarkRingBufferGet(b, rb, size)
-}
-
 func BenchmarkRingBufferPush100(b *testing.B) {
 	b.StopTimer()
 	size := 100
@@ -92,17 +81,6 @@ func BenchmarkRingBufferPush1000(b *testing.B) {
 func BenchmarkRingBufferPush10000(b *testing.B) {
 	b.StopTimer()
 	size := 10000
-	rb := NewRingBuffer()
-	for n := 0; n < size; n++ {
-		rb.Push(n)
-	}
-	b.StartTimer()
-	benchmarkRingBufferPush(b, rb, size)
-}
-
-func BenchmarkRingBufferPush100000(b *testing.B) {
-	b.StopTimer()
-	size := 100000
 	rb := NewRingBuffer()
 	for n := 0; n < size; n++ {
 		rb.Push(n)
@@ -136,17 +114,6 @@ func BenchmarkRingBufferPoll1000(b *testing.B) {
 func BenchmarkRingBufferPoll10000(b *testing.B) {
 	b.StopTimer()
 	size := 10000
-	rb := NewRingBuffer()
-	for n := 0; n < size; n++ {
-		rb.Push(n)
-	}
-	b.StartTimer()
-	benchmarkRingBufferPoll(b, rb, size)
-}
-
-func BenchmarkRingBufferPoll100000(b *testing.B) {
-	b.StopTimer()
-	size := 100000
 	rb := NewRingBuffer()
 	for n := 0; n < size; n++ {
 		rb.Push(n)

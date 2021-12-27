@@ -61,6 +61,14 @@ func TestArrayListAdd(t *testing.T) {
 	}
 }
 
+func calcArrayCap(n int) int {
+	c := minArrayCap
+	for c < n {
+		c <<= 1
+	}
+	return c
+}
+
 func TestArrayListGrow(t *testing.T) {
 	list := NewArrayList()
 
@@ -70,8 +78,8 @@ func TestArrayListGrow(t *testing.T) {
 			t.Errorf("list.Len() = %v, want %v", l, i+1)
 		}
 
-		wc := list.roundup(i + 1)
-		ac := cap(list.data)
+		wc := calcArrayCap(list.Len())
+		ac := list.Cap()
 		if wc != ac {
 			t.Errorf("list.Cap(%d) = %v, want %v", i+1, ac, wc)
 		}

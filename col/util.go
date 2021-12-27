@@ -1,5 +1,19 @@
 package col
 
+// minArrayCap is smallest capacity that array may have.
+const minArrayCap = 16
+
+// growup grow up capcity by c *= 2 until c >= n
+func growup(c, n int) int {
+	if c < minArrayCap {
+		c = minArrayCap
+	}
+	for c < n {
+		c <<= 1
+	}
+	return c
+}
+
 // roundup round up size by the block size r
 func roundup(n, r int) int {
 	r--

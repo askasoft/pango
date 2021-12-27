@@ -9,30 +9,21 @@ const minQueueCap = 32
 // Using this instead of other, simpler, queue implementations (slice+append or linked list) provides substantial memory and time benefits, and fewer GC pauses.
 // The queue implemented here is as fast as it is in part because it is not thread-safe.
 type RingBuffer struct {
-	data                  []T
-	head, tail, len, grow int
+	data            []T
+	head, tail, len int
 }
 
 // NewRingBuffer constructs and returns a new RingBuffer.
-// Example: NewRingBuffer(initialSize, growSize)
-func NewRingBuffer(ns ...int) *RingBuffer {
-	initSize := minQueueCap
-	growSize := minQueueCap
-
-	if len(ns) > 0 {
-		if ns[0] > initSize {
-			initSize = roundup(ns[0], minQueueCap)
-		}
-	}
-	if len(ns) > 1 {
-		if ns[1] > growSize {
-			growSize = roundup(ns[1], minQueueCap)
+func NewRingBuffer(initSize ...int) *RingBuffer {
+	size := minQueueCap
+	if len(initSize) > 0 {
+		if initSize[0] > size {
+			size = growup(size, initSize[0])
 		}
 	}
 
 	return &RingBuffer{
-		data: make([]T, initSize),
-		grow: growSize,
+		data: make([]T, size),
 	}
 }
 
@@ -46,23 +37,13 @@ func (rb *RingBuffer) IsEmpty() bool {
 	return rb.len == 0
 }
 
-// GetGrowSize returns the grow size of queue buffer
-func (rb *RingBuffer) GetGrowSize() int {
-	return rb.grow
-}
-
-// SetGrowSize sets the buffer's grow size
-func (rb *RingBuffer) SetGrowSize(n int) {
-	rb.grow = roundup(n, minQueueCap)
-}
-
 // Push adds items of vs to the tail of queue
 func (rb *RingBuffer) Push(vs ...T) {
-	if rb.len+len(vs) > len(rb.data) {
-		rb.resize(rb.len + len(vs))
-	}
-
 	for _, v := range vs {
+		if rb.len == len(rb.data) {
+			rb.resize()
+		}
+
 		rb.data[rb.tail] = v
 		rb.len++
 
@@ -121,8 +102,8 @@ func (rb *RingBuffer) Poll() (T, bool) {
 	rb.len--
 
 	// Resize down if data is less than 1/4 full.
-	if len(rb.data) > minQueueCap && (rb.len<<2) <= len(rb.data) {
-		rb.resize(len(rb.data))
+	if len(rb.data) > minQueueCap && (rb.len<<2) == len(rb.data) {
+		rb.resize()
 	}
 	return v, true
 }
@@ -139,8 +120,8 @@ func (rb *RingBuffer) MustPoll() T {
 //-----------------------------------------------------------
 // resizes the queue to fit exactly twice its current contents
 // this can result in shrinking if the queue is less than 1/4 full
-func (rb *RingBuffer) resize(n int) {
-	data := make([]T, roundup(n, rb.grow))
+func (rb *RingBuffer) resize() {
+	data := make([]T, rb.len<<1)
 
 	if rb.tail > rb.head {
 		copy(data, rb.data[rb.head:rb.tail])

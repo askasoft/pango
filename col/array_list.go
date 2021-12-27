@@ -9,13 +9,10 @@ import (
 	"github.com/pandafw/pango/cmp"
 )
 
-// minArrayCap is smallest capacity that array may have.
-const minArrayCap = 32
-
 // NewArrayList returns an initialized list.
 // Example: NewArrayList(1, 2, 3)
 func NewArrayList(vs ...T) *ArrayList {
-	al := &ArrayList{data: vs, grow: minArrayCap}
+	al := &ArrayList{data: vs}
 	return al
 }
 
@@ -29,11 +26,15 @@ func NewArrayList(vs ...T) *ArrayList {
 //
 type ArrayList struct {
 	data []T
-	grow int
 }
 
 //-----------------------------------------------------------
 // implements Collection interface
+
+// Cap returns the capcity of the list.
+func (al *ArrayList) Cap() int {
+	return cap(al.data)
+}
 
 // Len returns the length of the list.
 func (al *ArrayList) Len() int {
@@ -50,16 +51,6 @@ func (al *ArrayList) Clear() {
 	if al.data != nil {
 		al.data = al.data[:0]
 	}
-}
-
-// GetGrowSize returns the grow size of queue buffer
-func (al *ArrayList) GetGrowSize() int {
-	return al.grow
-}
-
-// SetGrowSize sets the buffer's grow size
-func (al *ArrayList) SetGrowSize(n int) {
-	al.grow = roundup(n, minArrayCap)
 }
 
 // Add adds all items of vs and returns the last added item.
@@ -370,26 +361,17 @@ func (al *ArrayList) String() string {
 }
 
 //-----------------------------------------------------------
-// roundup round up size
-func (al *ArrayList) roundup(n int) int {
-	return roundup(n, al.grow)
-}
 
 // resize resize the buffer to guarantee space for n more elements.
 func (al *ArrayList) resize(n int) {
-	if al.data == nil {
-		c := al.roundup(n)
-		al.data = make([]T, n, c)
-		return
-	}
-
 	l := len(al.data)
-	if n <= cap(al.data)-l {
+	c := cap(al.data)
+	if l+n <= c {
 		al.data = al.data[:l+n]
 		return
 	}
 
-	c := al.roundup(l + n)
+	c = growup(c, c+n)
 	data := make([]T, l+n, c)
 	copy(data, al.data)
 	al.data = data

@@ -7,28 +7,36 @@ import (
 	"os"
 	"path/filepath"
 	"text/template"
+
+	"github.com/pandafw/pango/ars"
 )
 
 // TextTemplate text template engine
 type TextTemplate struct {
-	Extension string  // template extension
-	Funcs     FuncMap // template functions
-	Delims    Delims  // delimeters
+	Extensions []string // template extensions
+	Funcs      FuncMap  // template functions
+	Delims     Delims   // delimeters
 
 	template *template.Template
 }
 
 // NewTextTemplate new template engine
-func NewTextTemplate() *TextTemplate {
+func NewTextTemplate(extensions ...string) *TextTemplate {
+	if len(extensions) == 0 {
+		extensions = []string{".txt", ".gotxt"}
+	}
+
 	return &TextTemplate{
-		Extension: ".txt",
-		Delims:    Delims{Left: "{{", Right: "}}"},
+		Extensions: extensions,
+		Delims:     Delims{Left: "{{", Right: "}}"},
 	}
 }
 
 // Load glob and parse template files under the root path
 func (tt *TextTemplate) Load(root string) error {
 	tpl := template.New("")
+
+	tpl.Delims(tt.Delims.Left, tt.Delims.Right)
 	tpl.Funcs(template.FuncMap(tt.Funcs))
 
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
@@ -49,6 +57,8 @@ func (tt *TextTemplate) Load(root string) error {
 // LoadFS glob and parse template files from FS
 func (tt *TextTemplate) LoadFS(fsys fs.FS, root string) error {
 	tpl := template.New("")
+
+	tpl.Delims(tt.Delims.Left, tt.Delims.Right)
 	tpl.Funcs(template.FuncMap(tt.Funcs))
 
 	err := fs.WalkDir(fsys, root, func(path string, d fs.DirEntry, err error) error {
@@ -68,7 +78,8 @@ func (tt *TextTemplate) LoadFS(fsys fs.FS, root string) error {
 
 // loadFile load template file
 func (tt *TextTemplate) loadFile(tpl *template.Template, fsys fs.FS, root, path string) error {
-	if filepath.Ext(path) != tt.Extension {
+	ext := filepath.Ext(path)
+	if !ars.ContainsString(tt.Extensions, ext) {
 		return nil
 	}
 
@@ -77,7 +88,7 @@ func (tt *TextTemplate) loadFile(tpl *template.Template, fsys fs.FS, root, path 
 		return fmt.Errorf("TextTemplate load template %q error: %v", path, err)
 	}
 
-	path = toTemplateName(root, path, tt.Extension)
+	path = toTemplateName(root, path, ext)
 
 	tpl = tpl.New(path)
 	_, err = tpl.Parse(text)

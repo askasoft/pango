@@ -64,11 +64,6 @@ func ContainsUint64(a []uint64, c uint64) bool {
 	return IndexUint64(a, c) >= 0
 }
 
-// ContainsRune reports whether the c is contained in the slice b.
-func ContainsRune(a []rune, c rune) bool {
-	return IndexRune(a, c) >= 0
-}
-
 // ContainsFloat32 reports whether the c is contained in the slice b.
 func ContainsFloat32(a []float32, c float32) bool {
 	return IndexFloat32(a, c) >= 0
@@ -77,6 +72,16 @@ func ContainsFloat32(a []float32, c float32) bool {
 // ContainsFloat64 reports whether the c is contained in the slice b.
 func ContainsFloat64(a []float64, c float64) bool {
 	return IndexFloat64(a, c) >= 0
+}
+
+// ContainsRune reports whether the c is contained in the slice b.
+func ContainsRune(a []rune, c rune) bool {
+	return IndexRune(a, c) >= 0
+}
+
+// ContainsString reports whether the c is contained in the slice b.
+func ContainsString(a []string, c string) bool {
+	return IndexString(a, c) >= 0
 }
 
 // Index returns the index of the first instance of c in a, or -1 if c is not present in a.
@@ -194,16 +199,6 @@ func IndexUint64(a []uint64, c uint64) int {
 	return -1
 }
 
-// IndexRune returns the index of the first instance of c in a, or -1 if c is not present in a.
-func IndexRune(a []rune, c rune) int {
-	for i, e := range a {
-		if e == c {
-			return i
-		}
-	}
-	return -1
-}
-
 // IndexFloat32 returns the index of the first instance of c in a, or -1 if c is not present in a.
 func IndexFloat32(a []float32, c float32) int {
 	for i, e := range a {
@@ -216,6 +211,26 @@ func IndexFloat32(a []float32, c float32) int {
 
 // IndexFloat64 returns the index of the first instance of c in a, or -1 if c is not present in a.
 func IndexFloat64(a []float64, c float64) int {
+	for i, e := range a {
+		if e == c {
+			return i
+		}
+	}
+	return -1
+}
+
+// IndexRune returns the index of the first instance of c in a, or -1 if c is not present in a.
+func IndexRune(a []rune, c rune) int {
+	for i, e := range a {
+		if e == c {
+			return i
+		}
+	}
+	return -1
+}
+
+// IndexString returns the index of the first instance of c in a, or -1 if c is not present in a.
+func IndexString(a []string, c string) int {
 	for i, e := range a {
 		if e == c {
 			return i

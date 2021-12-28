@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"strconv"
 	"strings"
@@ -60,15 +61,32 @@ func (ini *Ini) IsEmpty() bool {
 	return true
 }
 
-// MAP ini key/section map
-type MAP map[string]map[string]interface{}
-
-// Map convert ini to map
-func (ini *Ini) Map() MAP {
-	m := make(MAP, ini.sections.Len())
+// Map convert ini to map[string]map[string]interface{}
+func (ini *Ini) Map() map[string]map[string]interface{} {
+	m := make(map[string]map[string]interface{}, ini.sections.Len())
 	for it := ini.sections.Iterator(); it.Next(); {
 		sec := it.Value().(*Section)
 		m[sec.name] = sec.Map()
+	}
+	return m
+}
+
+// StringsMap convert ini to map[string]map[string][]string
+func (ini *Ini) StringsMap() map[string]map[string][]string {
+	m := make(map[string]map[string][]string, ini.sections.Len())
+	for it := ini.sections.Iterator(); it.Next(); {
+		sec := it.Value().(*Section)
+		m[sec.name] = sec.StringsMap()
+	}
+	return m
+}
+
+// StringMap convert ini to map[string]map[string]string
+func (ini *Ini) StringMap() map[string]map[string]string {
+	m := make(map[string]map[string]string, ini.sections.Len())
+	for it := ini.sections.Iterator(); it.Next(); {
+		sec := it.Value().(*Section)
+		m[sec.name] = sec.StringMap()
 	}
 	return m
 }
@@ -129,8 +147,19 @@ func (ini *Ini) RemoveSection(name string) *Section {
 }
 
 // LoadFile load INI from file
-func (ini *Ini) LoadFile(filename string) error {
-	f, err := os.Open(filename)
+func (ini *Ini) LoadFile(path string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	return ini.LoadData(f)
+}
+
+// LoadFileFS load INI from file
+func (ini *Ini) LoadFileFS(fsys fs.FS, path string) error {
+	f, err := fsys.Open(path)
 	if err != nil {
 		return err
 	}
@@ -266,8 +295,8 @@ func (ini *Ini) LoadData(r io.Reader) error {
 }
 
 // WriteFile write INI to the file
-func (ini *Ini) WriteFile(filename string) error {
-	f, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(0660))
+func (ini *Ini) WriteFile(path string) error {
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(0660))
 	if err != nil {
 		return err
 	}

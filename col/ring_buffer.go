@@ -18,7 +18,7 @@ func NewRingBuffer(initSize ...int) *RingBuffer {
 	size := minQueueCap
 	if len(initSize) > 0 {
 		if initSize[0] > size {
-			size = growup(size, initSize[0])
+			size = doubleup(size, initSize[0])
 		}
 	}
 

@@ -136,7 +136,7 @@ func (ll *LinkedList) Retain(vs ...T) {
 		return
 	}
 
-	ll.RetainAll(NewArrayList(vs...))
+	ll.RetainAll(AsArrayList(vs))
 }
 
 // RetainAll Retains only the elements in this collection that are contained in the specified collection.

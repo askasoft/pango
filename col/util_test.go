@@ -12,7 +12,7 @@ func assertPanics(t *testing.T, name string, f func()) {
 	f()
 }
 
-func TestGrowup(t *testing.T) {
+func TestDoubleup(t *testing.T) {
 	cs := []struct {
 		s int
 		n int
@@ -24,7 +24,7 @@ func TestGrowup(t *testing.T) {
 	}
 
 	for i, c := range cs {
-		a := growup(c.s, c.s+c.n)
+		a := doubleup(c.s, c.s+c.n)
 		if a != c.w {
 			t.Errorf("[%d] growup(%d) = %d, want %d", i, c.s, a, c.w)
 		}

@@ -161,7 +161,7 @@ func (hs *HashSet) Retain(vs ...T) {
 		return
 	}
 
-	hs.RetainAll(NewArrayList(vs...))
+	hs.RetainAll(AsArrayList(vs))
 }
 
 // RetainAll Retains only the elements in this collection that are contained in the specified collection.

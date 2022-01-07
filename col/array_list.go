@@ -16,6 +16,13 @@ func NewArrayList(vs ...T) *ArrayList {
 	return al
 }
 
+// AsArrayList returns an initialized list.
+// Example: AsArrayList([]T{1, 2, 3})
+func AsArrayList(vs []T) *ArrayList {
+	al := &ArrayList{data: vs}
+	return al
+}
+
 // ArrayList implements a list holdes the item in a array.
 // The zero value for ArrayList is an empty list ready to use.
 //
@@ -60,7 +67,7 @@ func (al *ArrayList) Add(vs ...T) {
 		return
 	}
 
-	al.resize(n)
+	al.expand(n)
 	copy(al.data[al.Len()-n:], vs)
 }
 
@@ -134,7 +141,7 @@ func (al *ArrayList) Retain(vs ...T) {
 		return
 	}
 
-	al.RetainAll(NewArrayList(vs...))
+	al.RetainAll(AsArrayList(vs))
 }
 
 // RetainAll Retains only the elements in this collection that are contained in the specified collection.
@@ -212,7 +219,7 @@ func (al *ArrayList) Insert(index int, vs ...T) {
 		return
 	}
 
-	al.resize(n)
+	al.expand(n)
 	copy(al.data[index+n:], al.data[index:len-index])
 	copy(al.data[index:], vs)
 }
@@ -349,7 +356,7 @@ func (al *ArrayList) Reserve(n int) {
 	l := al.Len()
 	n -= l
 	if n > 0 {
-		al.resize(n)
+		al.expand(n)
 		al.data = al.data[:l]
 	}
 }
@@ -362,8 +369,8 @@ func (al *ArrayList) String() string {
 
 //-----------------------------------------------------------
 
-// resize resize the buffer to guarantee space for n more elements.
-func (al *ArrayList) resize(n int) {
+// expand expand the buffer to guarantee space for n more elements.
+func (al *ArrayList) expand(n int) {
 	l := len(al.data)
 	c := cap(al.data)
 	if l+n <= c {
@@ -371,7 +378,7 @@ func (al *ArrayList) resize(n int) {
 		return
 	}
 
-	c = growup(c, c+n)
+	c = doubleup(c, c+n)
 	data := make([]T, l+n, c)
 	copy(data, al.data)
 	al.data = data

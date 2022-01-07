@@ -161,7 +161,7 @@ func (ts *TreeSet) Retain(vs ...T) {
 		return
 	}
 
-	ts.RetainAll(NewArrayList(vs...))
+	ts.RetainAll(AsArrayList(vs))
 }
 
 // RetainAll Retains only the elements in this collection that are contained in the specified collection.

@@ -6,7 +6,16 @@ import (
 	"testing"
 )
 
-func benchmarkQueue(b *testing.B, name string, q Queue) {
+// queue queue interface
+type queue interface {
+	// Push adds items of vs to the tail of queue
+	Push(vs ...T)
+
+	// Poll Retrieves and removes the head of this queue, or returns (nil, false) if this queue is empty.
+	Poll() (T, bool)
+}
+
+func benchmarkQueue(b *testing.B, name string, q queue) {
 	for _, cpus := range []int{4, 8, 32, 1024} {
 		runtime.GOMAXPROCS(cpus)
 		b.Run(name+"#"+strconv.Itoa(cpus), func(b *testing.B) {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/pandafw/pango/bye"
@@ -22,6 +23,7 @@ type SlackWriter struct {
 
 	sb bytes.Buffer // subject buffer
 	mb bytes.Buffer // message buffer
+	eb *EventBuffer // error event buffer
 }
 
 // SetSubject set the subject formatter
@@ -49,8 +51,48 @@ func (sw *SlackWriter) SetTimeout(timeout string) error {
 	return nil
 }
 
-// Format format log event to (subject, message)
-func (sw *SlackWriter) Format(le *Event) (sb, mb string) {
+// SetErrBuffer set the error buffer size
+func (sw *SlackWriter) SetErrBuffer(buffer string) error {
+	bsz, err := strconv.Atoi(buffer)
+	if err != nil {
+		return fmt.Errorf("SlackWriter - Invalid error buffer: %v", err)
+	}
+	if bsz > 0 {
+		sw.eb = &EventBuffer{BufSize: bsz}
+	}
+	return nil
+}
+
+// Write send log message to slack
+func (sw *SlackWriter) Write(le *Event) {
+	if sw.Logfil != nil && sw.Logfil.Reject(le) {
+		return
+	}
+
+	if sw.eb == nil {
+		sw.write(le)
+		return
+	}
+
+	var err error
+	for le1 := sw.eb.Peek(); le1 != nil; sw.eb.Poll() {
+		if err = sw.write(le1); err != nil {
+			break
+		}
+	}
+
+	if err == nil {
+		err = sw.write(le)
+	}
+
+	if err != nil {
+		sw.eb.Push(le)
+		fmt.Fprintln(os.Stderr, err)
+	}
+}
+
+// format format log event to (subject, message)
+func (sw *SlackWriter) format(le *Event) (sb, mb string) {
 	sf := sw.Subfmt
 	if sf == nil {
 		sf = TextFmtSubject
@@ -75,13 +117,8 @@ func (sw *SlackWriter) Format(le *Event) (sb, mb string) {
 	return
 }
 
-// Write send log message to slack
-func (sw *SlackWriter) Write(le *Event) {
-	if sw.Logfil != nil && sw.Logfil.Reject(le) {
-		return
-	}
-
-	sb, mb := sw.Format(le)
+func (sw *SlackWriter) write(le *Event) (err error) {
+	sb, mb := sw.format(le)
 
 	sm := &slack.Message{}
 	sm.IconEmoji = getIconEmoji(le.Level())
@@ -96,10 +133,10 @@ func (sw *SlackWriter) Write(le *Event) {
 		sw.Timeout = time.Second * 2
 	}
 
-	err := slack.Post(sw.Webhook, sw.Timeout, sm)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "SlackWriter(%q) - Post(): %v\n", sw.Webhook, err)
+	if err = slack.Post(sw.Webhook, sw.Timeout, sm); err != nil {
+		err = fmt.Errorf("SlackWriter(%q) - Post(): %v", sw.Webhook, err)
 	}
+	return
 }
 
 // Flush implementing method. empty.

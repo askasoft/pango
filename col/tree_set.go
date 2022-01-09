@@ -170,7 +170,7 @@ func (ts *TreeSet) RetainAll(ac Collection) {
 		return
 	}
 
-	for tn := ts.front(); tn != nil; tn = tn.next() {
+	for tn := ts.head(); tn != nil; tn = tn.next() {
 		if !ac.Contains(tn.value) {
 			ts.deleteNode(tn)
 		}
@@ -180,7 +180,7 @@ func (ts *TreeSet) RetainAll(ac Collection) {
 // Values returns the value slice
 func (ts *TreeSet) Values() []T {
 	vs := make([]T, ts.len)
-	for i, n := 0, ts.front(); n != nil; i, n = i+1, n.next() {
+	for i, n := 0, ts.head(); n != nil; i, n = i+1, n.next() {
 		vs[i] = n.value
 	}
 	return vs
@@ -188,14 +188,14 @@ func (ts *TreeSet) Values() []T {
 
 // Each call f for each item in the set
 func (ts *TreeSet) Each(f func(v T)) {
-	for tn := ts.front(); tn != nil; tn = tn.next() {
+	for tn := ts.head(); tn != nil; tn = tn.next() {
 		f(tn.value)
 	}
 }
 
 // ReverseEach call f for each item in the set with reverse order
 func (ts *TreeSet) ReverseEach(f func(v T)) {
-	for tn := ts.back(); tn != nil; tn = tn.prev() {
+	for tn := ts.tail(); tn != nil; tn = tn.prev() {
 		f(tn.value)
 	}
 }
@@ -207,41 +207,55 @@ func (ts *TreeSet) Iterator() Iterator {
 
 //----------------------------------------------------------------
 
-// Front returns the first item of set ts or nil if the set is empty.
-func (ts *TreeSet) Front() (v T) {
-	tn := ts.front()
+// PeekHead get the first item of set.
+func (ts *TreeSet) PeekHead() (v T, ok bool) {
+	tn := ts.head()
 	if tn != nil {
-		v = tn.value
+		v, ok = tn.value, true
 	}
 	return
 }
 
-// Back returns the last item of set ts or nil if the set is empty.
-func (ts *TreeSet) Back() (v T) {
-	tn := ts.back()
+// PeekTail get the last item of set.
+func (ts *TreeSet) PeekTail() (v T, ok bool) {
+	tn := ts.tail()
 	if tn != nil {
-		v = tn.value
+		v, ok = tn.value, true
 	}
 	return
 }
 
-// PopFront remove the first item of set.
-func (ts *TreeSet) PopFront() (v T) {
-	tn := ts.front()
+// PollHead remove the first item of set.
+func (ts *TreeSet) PollHead() (v T, ok bool) {
+	tn := ts.head()
 	if tn != nil {
-		v = tn.value
+		v, ok = tn.value, true
 		ts.deleteNode(tn)
 	}
 	return
 }
 
-// PopBack remove the last item of set.
-func (ts *TreeSet) PopBack() (v T) {
-	tn := ts.back()
+// PollTail remove the last item of set.
+func (ts *TreeSet) PollTail() (v T, ok bool) {
+	tn := ts.tail()
 	if tn != nil {
-		v = tn.value
+		v, ok = tn.value, true
 		ts.deleteNode(tn)
 	}
+	return
+}
+
+//----------------------------------------------------------------
+
+// Head returns the first item of set ts or nil if the set is empty.
+func (ts *TreeSet) Head() (v T) {
+	v, _ = ts.PeekHead()
+	return
+}
+
+// Tail returns the last item of set ts or nil if the set is empty.
+func (ts *TreeSet) Tail() (v T) {
+	v, _ = ts.PeekTail()
 	return
 }
 
@@ -327,8 +341,8 @@ func (ts *TreeSet) setValue(tn *treeSetNode, v T) *treeSetNode {
 	return ts.add(v)
 }
 
-// front returns a pointer to the minimum node.
-func (ts *TreeSet) front() *treeSetNode {
+// head returns a pointer to the minimum node.
+func (ts *TreeSet) head() *treeSetNode {
 	tn := ts.root
 	if tn != nil {
 		for tn.left != nil {
@@ -338,8 +352,8 @@ func (ts *TreeSet) front() *treeSetNode {
 	return tn
 }
 
-// back returns a pointer to the maximum node.
-func (ts *TreeSet) back() *treeSetNode {
+// tail returns a pointer to the maximum node.
+func (ts *TreeSet) tail() *treeSetNode {
 	tn := ts.root
 	if tn != nil {
 		for tn.right != nil {
@@ -837,7 +851,7 @@ func (it *treeSetIterator) Prev() bool {
 	}
 
 	if it.node == nil {
-		it.node = it.tree.back()
+		it.node = it.tree.tail()
 		it.removed = false
 		return true
 	}
@@ -869,7 +883,7 @@ func (it *treeSetIterator) Next() bool {
 	}
 
 	if it.node == nil {
-		it.node = it.tree.front()
+		it.node = it.tree.head()
 		it.removed = false
 		return true
 	}

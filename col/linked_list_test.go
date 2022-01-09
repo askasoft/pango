@@ -18,6 +18,16 @@ func TestLinkedListInterface(t *testing.T) {
 		t.Error("LinkedList is not a List")
 	}
 
+	var q Queue = NewLinkedList()
+	if q == nil {
+		t.Error("LinkedList is not a Queue")
+	}
+
+	var dq Queue = NewLinkedList()
+	if dq == nil {
+		t.Error("LinkedList is not a Deque")
+	}
+
 	var st Sortable = NewLinkedList()
 	if st == nil {
 		t.Error("LinkedList is not a Sortable")
@@ -92,7 +102,7 @@ func TestLinkedListDelete(t *testing.T) {
 	l := NewLinkedList()
 
 	for i := 1; i <= 100; i++ {
-		l.PushBack(i)
+		l.Add(i)
 	}
 
 	l.Delete(101)
@@ -117,7 +127,7 @@ func TestLinkedListDeleteAll(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		z := i % 10
 		for j := 0; j < z; j++ {
-			l.PushBack(i)
+			l.Add(i)
 		}
 	}
 
@@ -636,55 +646,137 @@ func checkLinkedList(t *testing.T, l *LinkedList, evs []interface{}) {
 func TestLinkedListExtending(t *testing.T) {
 	l1 := NewLinkedList(1, 2, 3)
 	l2 := NewLinkedList()
-	l2.PushBack(4)
-	l2.PushBack(5)
+	l2.PushTail(4)
+	l2.PushTail(5)
 
 	l3 := NewLinkedList()
-	l3.PushBackAll(l1)
+	l3.PushTailAll(l1)
 	checkLinkedList(t, l3, []interface{}{1, 2, 3})
-	l3.PushBackAll(l2)
+	l3.PushTailAll(l2)
 	checkLinkedList(t, l3, []interface{}{1, 2, 3, 4, 5})
 
 	l3 = NewLinkedList()
-	l3.PushFrontAll(l2)
+	l3.PushHeadAll(l2)
 	checkLinkedList(t, l3, []interface{}{4, 5})
-	l3.PushFrontAll(l1)
+	l3.PushHeadAll(l1)
 	checkLinkedList(t, l3, []interface{}{1, 2, 3, 4, 5})
 
 	checkLinkedList(t, l1, []interface{}{1, 2, 3})
 	checkLinkedList(t, l2, []interface{}{4, 5})
 
 	l3 = NewLinkedList()
-	l3.PushBackAll(l1)
+	l3.PushTailAll(l1)
 	checkLinkedList(t, l3, []interface{}{1, 2, 3})
-	l3.PushBackAll(l3)
+	l3.PushTailAll(l3)
 	checkLinkedList(t, l3, []interface{}{1, 2, 3, 1, 2, 3})
 
 	l3 = NewLinkedList()
-	l3.PushFrontAll(l1)
+	l3.PushHeadAll(l1)
 	checkLinkedList(t, l3, []interface{}{1, 2, 3})
-	l3.PushFrontAll(l3)
+	l3.PushHeadAll(l3)
 	checkLinkedList(t, l3, []interface{}{1, 2, 3, 1, 2, 3})
 
 	l3 = NewLinkedList()
-	l1.PushBackAll(l3)
+	l1.PushTailAll(l3)
 	checkLinkedList(t, l1, []interface{}{1, 2, 3})
-	l1.PushFrontAll(l3)
+	l1.PushHeadAll(l3)
 	checkLinkedList(t, l1, []interface{}{1, 2, 3})
 
 	l1.Clear()
 	l2.Clear()
 	l3.Clear()
-	l1.PushBack(1, 2, 3)
+	l1.PushTail(1, 2, 3)
 	checkLinkedList(t, l1, []interface{}{1, 2, 3})
-	l2.PushBack(4, 5)
+	l2.PushTail(4, 5)
 	checkLinkedList(t, l2, []interface{}{4, 5})
-	l3.PushBackAll(l1)
+	l3.PushTailAll(l1)
 	checkLinkedList(t, l3, []interface{}{1, 2, 3})
-	l3.PushBack(4, 5)
+	l3.PushTail(4, 5)
 	checkLinkedList(t, l3, []interface{}{1, 2, 3, 4, 5})
-	l3.PushFront(4, 5)
+	l3.PushHead(4, 5)
 	checkLinkedList(t, l3, []interface{}{4, 5, 1, 2, 3, 4, 5})
+}
+
+func TestLinkedListQueue(t *testing.T) {
+	q := NewLinkedList()
+
+	if _, ok := q.Peek(); ok {
+		t.Error("should return false when peeking empty queue")
+	}
+
+	for i := 0; i < 100; i++ {
+		q.Push(i)
+	}
+
+	for i := 0; i < 100; i++ {
+		v, _ := q.Peek()
+		if v.(int) != i {
+			t.Errorf("Peek(%d) = %v, want %v", i, v, i)
+		}
+
+		x, _ := q.Poll()
+		if x != i {
+			t.Errorf("Poll(%d) = %v, want %v", i, x, i)
+		}
+	}
+
+	if _, ok := q.Poll(); ok {
+		t.Error("should return false when removing empty queue")
+	}
+}
+
+func TestLinkedListDeque(t *testing.T) {
+	q := NewLinkedList()
+
+	if _, ok := q.PeekHead(); ok {
+		t.Error("should return false when peeking empty queue")
+	}
+
+	if _, ok := q.PeekTail(); ok {
+		t.Error("should return false when peeking empty queue")
+	}
+
+	for i := 0; i < 100; i++ {
+		if i&1 == 0 {
+			q.PushHead(i)
+		} else {
+			q.PushTail(i)
+		}
+	}
+
+	for i := 0; i < 100; i++ {
+		if i&1 == 0 {
+			w := 100 - i - 2
+			v, _ := q.PeekHead()
+			if v != w {
+				t.Errorf("PeekHead(%d) = %v, want %v", i, v, w)
+			}
+
+			x, _ := q.PollHead()
+			if x != w {
+				t.Errorf("PeekHead(%d) = %v, want %v", i, x, w)
+			}
+		} else {
+			w := 100 - i
+			v, _ := q.PeekTail()
+			if v != w {
+				t.Errorf("PeekTail(%d) = %v, want %v", i, v, w)
+			}
+
+			x, _ := q.PollTail()
+			if x != w {
+				t.Errorf("PoolTail(%d) = %v, want %v", i, x, w)
+			}
+		}
+	}
+
+	if _, ok := q.PollHead(); ok {
+		t.Error("should return false when removing empty queue")
+	}
+
+	if _, ok := q.PollTail(); ok {
+		t.Error("should return false when removing empty queue")
+	}
 }
 
 func TestLinkedListString(t *testing.T) {

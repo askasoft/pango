@@ -17,6 +17,6 @@ func ExampleTreeMap() {
 	m.Len()                         // 0
 
 	// Other:
-	m.Front() // Returns the minimum key and its value from map.
-	m.Back()  // Returns the maximum key and its value from map.
+	m.Head() // Returns the minimum key and its value from map.
+	m.Tail() // Returns the maximum key and its value from map.
 }

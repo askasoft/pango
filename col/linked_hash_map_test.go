@@ -270,14 +270,14 @@ func TestLinkedHashMapEmptyMapOperations(t *testing.T) {
 	lm.Delete("bar")
 	assertLenEqual("TestLinkedHashMapEmptyMapOperations", t, lm, 0)
 
-	fn := lm.Front()
+	fn := lm.Head()
 	if fn != nil {
-		t.Errorf("lm.Front() = %v, want %v", fn, nil)
+		t.Errorf("lm.Head() = %v, want %v", fn, nil)
 	}
 
-	bn := lm.Back()
+	bn := lm.Tail()
 	if bn != nil {
-		t.Errorf("lm.Back() = %v, want %v", bn, nil)
+		t.Errorf("lm.Tail() = %v, want %v", bn, nil)
 	}
 }
 

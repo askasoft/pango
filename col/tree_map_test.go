@@ -267,13 +267,13 @@ func TestTreeMapEach(t *testing.T) {
 	})
 }
 
-func TestTreeMapFrontAndBack(t *testing.T) {
+func TestTreeMapHeadAndTail(t *testing.T) {
 	tree := NewTreeMap(cmp.CompareInt)
 
-	if av := tree.Front(); av != nil {
+	if av := tree.Head(); av != nil {
 		t.Errorf("Got %v expected %v", av, nil)
 	}
-	if av := tree.Back(); av != nil {
+	if av := tree.Tail(); av != nil {
 		t.Errorf("Got %v expected %v", av, nil)
 	}
 
@@ -286,17 +286,17 @@ func TestTreeMapFrontAndBack(t *testing.T) {
 	tree.Set(1, "x") // overwrite
 	tree.Set(2, "b")
 
-	if av, ev := fmt.Sprintf("%d", tree.Front().key), "1"; av != ev {
+	if av, ev := fmt.Sprintf("%d", tree.Head().key), "1"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
-	if av, ev := fmt.Sprintf("%s", tree.Front().value), "x"; av != ev {
+	if av, ev := fmt.Sprintf("%s", tree.Head().value), "x"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
 
-	if av, ev := fmt.Sprintf("%d", tree.Back().key), "7"; av != ev {
+	if av, ev := fmt.Sprintf("%d", tree.Tail().key), "7"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
-	if av, ev := fmt.Sprintf("%s", tree.Back().value), "g"; av != ev {
+	if av, ev := fmt.Sprintf("%s", tree.Tail().value), "g"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
 }
@@ -402,10 +402,9 @@ func testTreeMapIterPrevKey(t *testing.T, cmp cmp.Compare, kvs []P, vcnt bool) {
 	}
 }
 
-func testTreeMapIterRemoveFront2Back(t *testing.T, cmp cmp.Compare, kvs []P, vcnt bool) {
+func testTreeMapIterRemoveHead2Tail(t *testing.T, cmp cmp.Compare, kvs []P, vcnt bool) {
 	tree := NewTreeMap(cmp, kvs...)
 
-	// remove from front to back
 	len := tree.Len()
 	count := 0
 	for it := tree.Iterator(); it.Next(); {
@@ -574,10 +573,9 @@ func TestTreeMapIteratorSetValue(t *testing.T) {
 	}
 }
 
-func testTreeMapIterRemoveBack2Front(t *testing.T, cmp cmp.Compare, kvs []P, vcnt bool) {
+func testTreeMapIterRemoveTail2Head(t *testing.T, cmp cmp.Compare, kvs []P, vcnt bool) {
 	tree := NewTreeMap(cmp, kvs...)
 
-	// remove from back to front
 	countDown := tree.Len()
 	for it := tree.Iterator(); it.Prev(); {
 		it.Remove()
@@ -646,9 +644,9 @@ func testTreeMapIterate(t *testing.T, cmp cmp.Compare, kvs []P, vcnt bool) {
 
 	testTreeMapIterPrevKey(t, cmp, kvs, vcnt)
 
-	testTreeMapIterRemoveFront2Back(t, cmp, kvs, vcnt)
+	testTreeMapIterRemoveHead2Tail(t, cmp, kvs, vcnt)
 
-	testTreeMapIterRemoveBack2Front(t, cmp, kvs, vcnt)
+	testTreeMapIterRemoveTail2Head(t, cmp, kvs, vcnt)
 
 	testTreeMapIterRemoveMiddle(t, cmp, kvs)
 }

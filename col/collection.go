@@ -159,17 +159,35 @@ type IterableMap interface {
 	Iterable2
 }
 
-// Queue queue interface
+// Queue A queue interface
 type Queue interface {
-	// Push adds items of vs to the tail of queue
-	Push(vs ...T)
+	// Peek Retrieves, but does not remove, the head of this queue, or returns (nil, false) if this queue is empty.
+	Peek() (T, bool)
 
 	// Poll Retrieves and removes the head of this queue, or returns (nil, false) if this queue is empty.
 	Poll() (T, bool)
+
+	// Push adds items of vs to the tail of queue
+	Push(vs ...T)
 }
 
-// Peekable peekable collection interface
-type Peekable interface {
-	// Peek Retrieves, but does not remove, the head of this collection, or returns (nil, false) if this collection is empty.
-	Peek() (T, bool)
+// Deque A linear collection that supports element insertion and removal at both ends.
+type Deque interface {
+	// PeekHead Retrieves, but does not remove, the head of this queue, or returns (nil, false) if this queue is empty.
+	PeekHead() (T, bool)
+
+	// PollHead Retrieves and removes the head of this queue, or returns (nil, false) if this queue is empty.
+	PollHead() (T, bool)
+
+	// PushHead adds items of vs to the head of queue
+	PushHead(vs ...T)
+
+	// PeekTail Retrieves, but does not remove, the tail of this queue, or returns (nil, false) if this queue is empty.
+	PeekTail() (T, bool)
+
+	// PollTail Retrieves and removes the tail of this queue, or returns (nil, false) if this queue is empty.
+	PollTail() (T, bool)
+
+	// PushTail adds items of vs to the tail of queue
+	PushTail(vs ...T)
 }

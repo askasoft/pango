@@ -58,7 +58,7 @@ func (sec *Section) StringMap() map[string]string {
 		var v string
 		switch se := it.Value().(type) {
 		case *col.LinkedList:
-			v = se.Front().(string)
+			v = se.Head().(string)
 		case *Entry:
 			v = se.Value
 		}
@@ -110,12 +110,12 @@ func (sec *Section) Add(key string, value string, comments ...string) *Entry {
 func (sec *Section) add(key string, e *Entry) {
 	if v, ok := sec.entries.Get(key); ok {
 		if l, ok := v.(*col.LinkedList); ok {
-			l.PushBack(e)
+			l.Add(e)
 			return
 		}
 		l := col.NewLinkedList()
-		l.PushBack(v)
-		l.PushBack(e)
+		l.Add(v)
+		l.Add(e)
 		sec.entries.Set(key, l)
 		return
 	}
@@ -223,7 +223,7 @@ func (sec *Section) GetEntry(key string) *Entry {
 	if v, ok := sec.entries.Get(key); ok {
 		switch se := v.(type) {
 		case *col.LinkedList:
-			return se.Front().(*Entry)
+			return se.Head().(*Entry)
 		case *Entry:
 			return se
 		}

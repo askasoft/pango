@@ -29,10 +29,10 @@ func TestTreeSetNew(t *testing.T) {
 	if av := tset.Len(); av != 2 {
 		t.Errorf("Got %v expected %v", av, 2)
 	}
-	if av := tset.Front(); av != "1" {
+	if av := tset.Head(); av != "1" {
 		t.Errorf("Got %v expected %v", av, 1)
 	}
-	if av := tset.Back(); av != "b" {
+	if av := tset.Tail(); av != "b" {
 		t.Errorf("Got %v expected %v", av, "b")
 	}
 }
@@ -47,7 +47,7 @@ func TestTreeSetAdd(t *testing.T) {
 	if av := tset.Len(); av != 3 {
 		t.Errorf("Got %v expected %v", av, 3)
 	}
-	if av := tset.Back(); av != "c" {
+	if av := tset.Tail(); av != "c" {
 		t.Errorf("Got %v expected %v", av, "c")
 	}
 }

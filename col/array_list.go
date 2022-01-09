@@ -27,21 +27,22 @@ func AsArrayList(vs []T) *ArrayList {
 // The zero value for ArrayList is an empty list ready to use.
 //
 // To iterate over a list (where al is a *ArrayList):
-//	for li := al.Front(); li != nil; li = li.Next() {
-//		// do something with li.Value()
+//	it := al.Iterator()
+//	for it.Next() {
+//		// do something with it.Value()
 //	}
 //
 type ArrayList struct {
 	data []T
 }
 
-//-----------------------------------------------------------
-// implements Collection interface
-
 // Cap returns the capcity of the list.
 func (al *ArrayList) Cap() int {
 	return cap(al.data)
 }
+
+//-----------------------------------------------------------
+// implements Collection interface
 
 // Len returns the length of the list.
 func (al *ArrayList) Len() int {
@@ -62,18 +63,12 @@ func (al *ArrayList) Clear() {
 
 // Add adds all items of vs and returns the last added item.
 func (al *ArrayList) Add(vs ...T) {
-	n := len(vs)
-	if n == 0 {
-		return
-	}
-
-	al.expand(n)
-	copy(al.data[al.Len()-n:], vs)
+	al.PushTail(vs...)
 }
 
 // AddAll adds all items of another collection
 func (al *ArrayList) AddAll(ac Collection) {
-	al.Add(ac.Values()...)
+	al.PushTailAll(ac)
 }
 
 // Delete delete all items with associated value v of vs
@@ -214,13 +209,11 @@ func (al *ArrayList) Insert(index int, vs ...T) {
 	}
 
 	len := al.Len()
-	if index == len {
-		al.Add(vs...)
-		return
-	}
 
 	al.expand(n)
-	copy(al.data[index+n:], al.data[index:len-index])
+	if index < len {
+		copy(al.data[index+n:], al.data[index:len-index])
+	}
 	copy(al.data[index:], vs)
 }
 
@@ -228,7 +221,6 @@ func (al *ArrayList) Insert(index int, vs ...T) {
 // Panic if position is bigger than list's size
 // Note: position equal to list's size is valid, i.e. append.
 func (al *ArrayList) InsertAll(index int, ac Collection) {
-	index = al.checkSizeIndex(index)
 	al.Insert(index, ac.Values()...)
 }
 
@@ -269,83 +261,96 @@ func (al *ArrayList) Sort(less cmp.Less) {
 	sort.Sort(&sorter{al, less})
 }
 
+// Head get the first item of list.
+func (al *ArrayList) Head() (v T) {
+	v, _ = al.PeekHead()
+	return
+}
+
+// Tail get the last item of list.
+func (al *ArrayList) Tail() (v T) {
+	v, _ = al.PeekTail()
+	return
+}
+
 //--------------------------------------------------------------------
+// implements Queue interface
 
-// Front returns the first item of list al or nil if the list is empty.
-func (al *ArrayList) Front() T {
-	if al.IsEmpty() {
-		return nil
-	}
-
-	return al.data[0]
+// Peek get the first item of list.
+func (al *ArrayList) Peek() (v T, ok bool) {
+	return al.PeekHead()
 }
 
-// Back returns the last item of list al or nil if the list is empty.
-func (al *ArrayList) Back() T {
-	if al.IsEmpty() {
-		return nil
-	}
-
-	return al.data[al.Len()-1]
+// Poll get and remove the first item of list.
+func (al *ArrayList) Poll() (T, bool) {
+	return al.PollHead()
 }
 
-// PopFront remove the first item of list.
-func (al *ArrayList) PopFront() (v T) {
-	if al.IsEmpty() {
-		return
-	}
-
-	v = al.data[0]
-	al.Remove(0)
-	return
-}
-
-// PopBack remove the last item of list.
-func (al *ArrayList) PopBack() (v T) {
-	if al.IsEmpty() {
-		return
-	}
-
-	v = al.data[al.Len()-1]
-	al.data = al.data[:al.Len()-1]
-	return
-}
-
-// PushFront inserts all items of vs at the front of list al.
-func (al *ArrayList) PushFront(vs ...T) {
-	if len(vs) == 0 {
-		return
-	}
-
-	al.Insert(0, vs...)
-}
-
-// PushFrontAll inserts a copy of another collection at the front of list al.
-// The al and ac may be the same. They must not be nil.
-func (al *ArrayList) PushFrontAll(ac Collection) {
-	if ac.IsEmpty() {
-		return
-	}
-
-	al.InsertAll(0, ac)
-}
-
-// PushBack inserts all items of vs at the back of list al.
-func (al *ArrayList) PushBack(vs ...T) {
-	if len(vs) == 0 {
-		return
-	}
-
+// Push inserts all items of vs at the tail of list al.
+func (al *ArrayList) Push(vs ...T) {
 	al.Insert(al.Len(), vs...)
 }
 
-// PushBackAll inserts a copy of another collection at the back of list al.
-// The al and ac may be the same. They must not be nil.
-func (al *ArrayList) PushBackAll(ac Collection) {
-	if ac.IsEmpty() {
+//--------------------------------------------------------------------
+// implements Deque interface
+
+// PeekHead get the first item of list.
+func (al *ArrayList) PeekHead() (v T, ok bool) {
+	if al.IsEmpty() {
 		return
 	}
 
+	v, ok = al.data[0], true
+	return
+}
+
+// PeekTail get the last item of list.
+func (al *ArrayList) PeekTail() (v T, ok bool) {
+	if al.IsEmpty() {
+		return
+	}
+
+	v, ok = al.data[al.Len()-1], true
+	return
+}
+
+// PollHead get and remove the first item of list.
+func (al *ArrayList) PollHead() (v T, ok bool) {
+	v, ok = al.PeekHead()
+	if ok {
+		al.Remove(0)
+	}
+	return
+}
+
+// PollTail get and remove the last item of list.
+func (al *ArrayList) PollTail() (v T, ok bool) {
+	v, ok = al.PeekTail()
+	if ok {
+		al.data = al.data[:al.Len()-1]
+	}
+	return
+}
+
+// PushHead inserts all items of vs at the head of list al.
+func (al *ArrayList) PushHead(vs ...T) {
+	al.Insert(0, vs...)
+}
+
+// PushHeadAll inserts a copy of another collection at the head of list al.
+// The al and ac may be the same. They must not be nil.
+func (al *ArrayList) PushHeadAll(ac Collection) {
+	al.InsertAll(0, ac)
+}
+
+// PushTail inserts all items of vs at the tail of list al.
+func (al *ArrayList) PushTail(vs ...T) {
+	al.Insert(al.Len(), vs...)
+}
+
+// PushTailAll inserts a copy of another collection at the tail of list al.
+// The al and ac may be the same. They must not be nil.
+func (al *ArrayList) PushTailAll(ac Collection) {
 	al.InsertAll(al.Len(), ac)
 }
 
@@ -370,16 +375,16 @@ func (al *ArrayList) String() string {
 //-----------------------------------------------------------
 
 // expand expand the buffer to guarantee space for n more elements.
-func (al *ArrayList) expand(n int) {
+func (al *ArrayList) expand(x int) {
 	l := len(al.data)
 	c := cap(al.data)
-	if l+n <= c {
-		al.data = al.data[:l+n]
+	if l+x <= c {
+		al.data = al.data[:l+x]
 		return
 	}
 
-	c = doubleup(c, c+n)
-	data := make([]T, l+n, c)
+	c = doubleup(c, c+x)
+	data := make([]T, l+x, c)
 	copy(data, al.data)
 	al.data = data
 }

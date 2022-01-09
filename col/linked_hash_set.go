@@ -28,8 +28,8 @@ func NewLinkedHashSet(vs ...T) *LinkedHashSet {
 //	}
 //
 type LinkedHashSet struct {
-	front, back *linkedSetNode
-	hash        map[T]*linkedSetNode
+	head, tail *linkedSetNode
+	hash       map[T]*linkedSetNode
 }
 
 //-----------------------------------------------------------
@@ -48,8 +48,8 @@ func (ls *LinkedHashSet) IsEmpty() bool {
 // Clear clears set ls.
 func (ls *LinkedHashSet) Clear() {
 	ls.hash = nil
-	ls.front = nil
-	ls.back = nil
+	ls.head = nil
+	ls.tail = nil
 }
 
 // Add adds all items of vs and returns the last added item.
@@ -157,7 +157,7 @@ func (ls *LinkedHashSet) RetainAll(ac Collection) {
 		return
 	}
 
-	for ln := ls.front; ln != nil; ln = ln.next {
+	for ln := ls.head; ln != nil; ln = ln.next {
 		if !ac.Contains(ln.value) {
 			ls.deleteNode(ln)
 		}
@@ -167,7 +167,7 @@ func (ls *LinkedHashSet) RetainAll(ac Collection) {
 // Values returns a slice contains all the items of the set ls
 func (ls *LinkedHashSet) Values() []T {
 	vs := make([]T, ls.Len())
-	for i, ln := 0, ls.front; ln != nil; i, ln = i+1, ln.next {
+	for i, ln := 0, ls.head; ln != nil; i, ln = i+1, ln.next {
 		vs[i] = ln.value
 	}
 	return vs
@@ -175,14 +175,14 @@ func (ls *LinkedHashSet) Values() []T {
 
 // Each call f for each item in the set
 func (ls *LinkedHashSet) Each(f func(T)) {
-	for ln := ls.front; ln != nil; ln = ln.next {
+	for ln := ls.head; ln != nil; ln = ln.next {
 		f(ln.value)
 	}
 }
 
 // ReverseEach call f for each item in the set with reverse order
 func (ls *LinkedHashSet) ReverseEach(f func(T)) {
-	for ln := ls.back; ln != nil; ln = ln.prev {
+	for ln := ls.tail; ln != nil; ln = ln.prev {
 		f(ln.value)
 	}
 }
@@ -253,7 +253,7 @@ func (ls *LinkedHashSet) Insert(index int, vs ...T) {
 	var prev, next *linkedSetNode
 	if index == ls.Len() {
 		next = nil
-		prev = ls.back
+		prev = ls.tail
 	} else {
 		next = ls.node(index)
 		prev = next.prev
@@ -266,7 +266,7 @@ func (ls *LinkedHashSet) Insert(index int, vs ...T) {
 
 		nn := &linkedSetNode{prev: prev, value: v, next: nil}
 		if prev == nil {
-			ls.front = nn
+			ls.head = nn
 		} else {
 			prev.next = nn
 		}
@@ -275,7 +275,7 @@ func (ls *LinkedHashSet) Insert(index int, vs ...T) {
 	}
 
 	if next == nil {
-		ls.back = prev
+		ls.tail = prev
 	} else if prev != nil {
 		prev.next = next
 		next.prev = prev
@@ -301,7 +301,7 @@ func (ls *LinkedHashSet) InsertAll(index int, ac Collection) {
 		var prev, next *linkedSetNode
 		if index == ls.Len() {
 			next = nil
-			prev = ls.back
+			prev = ls.tail
 		} else {
 			next = ls.node(index)
 			prev = next.prev
@@ -316,7 +316,7 @@ func (ls *LinkedHashSet) InsertAll(index int, ac Collection) {
 
 			nn := &linkedSetNode{prev: prev, value: v, next: nil}
 			if prev == nil {
-				ls.front = nn
+				ls.head = nn
 			} else {
 				prev.next = nn
 			}
@@ -325,7 +325,7 @@ func (ls *LinkedHashSet) InsertAll(index int, ac Collection) {
 		}
 
 		if next == nil {
-			ls.back = prev
+			ls.tail = prev
 		} else if prev != nil {
 			prev.next = next
 			next.prev = prev
@@ -338,7 +338,7 @@ func (ls *LinkedHashSet) InsertAll(index int, ac Collection) {
 
 // Index returns the index of the specified v in this set, or -1 if this set does not contain v.
 func (ls *LinkedHashSet) Index(v T) int {
-	for i, ln := 0, ls.front; ln != nil; ln = ln.next {
+	for i, ln := 0, ls.head; ln != nil; ln = ln.next {
 		if ln.value == v {
 			return i
 		}
@@ -374,77 +374,92 @@ func (ls *LinkedHashSet) Sort(less cmp.Less) {
 	sort.Sort(&sorter{ls, less})
 }
 
+// Head get the first item of set.
+func (ls *LinkedHashSet) Head() (v T) {
+	v, _ = ls.PeekHead()
+	return
+}
+
+// Tail get the last item of set.
+func (ls *LinkedHashSet) Tail() (v T) {
+	v, _ = ls.PeekTail()
+	return
+}
+
 //--------------------------------------------------------------------
+// implements Queue interface
 
-// Front returns the first item of list ls or nil if the list is empty.
-func (ls *LinkedHashSet) Front() T {
-	if ls.front == nil {
-		return nil
-	}
-	return ls.front.value
+// Peek get the first item of set.
+func (ls *LinkedHashSet) Peek() (v T, ok bool) {
+	return ls.PeekHead()
 }
 
-// Back returns the last item of list ls or nil if the list is empty.
-func (ls *LinkedHashSet) Back() T {
-	if ls.back == nil {
-		return nil
-	}
-	return ls.back.value
+// Poll get and remove the first item of set.
+func (ls *LinkedHashSet) Poll() (T, bool) {
+	return ls.PollHead()
 }
 
-// PopFront remove the first item of list.
-func (ls *LinkedHashSet) PopFront() (v T) {
-	if ls.front != nil {
-		v = ls.front.value
-		ls.deleteNode(ls.front)
-	}
-	return
-}
-
-// PopBack remove the last item of list.
-func (ls *LinkedHashSet) PopBack() (v T) {
-	if ls.back != nil {
-		v = ls.back.value
-		ls.deleteNode(ls.back)
-	}
-	return
-}
-
-// PushFront inserts all items of vs at the front of list ls.
-func (ls *LinkedHashSet) PushFront(vs ...T) {
-	if len(vs) == 0 {
-		return
-	}
-
-	ls.Insert(0, vs...)
-}
-
-// PushFrontAll inserts a copy of another collection at the front of list ls.
-// The ls and ac may be the same. They must not be nil.
-func (ls *LinkedHashSet) PushFrontAll(ac Collection) {
-	if ac.IsEmpty() || ls == ac {
-		return
-	}
-
-	ls.InsertAll(0, ac)
-}
-
-// PushBack inserts all items of vs at the back of list ls.
-func (ls *LinkedHashSet) PushBack(vs ...T) {
-	if len(vs) == 0 {
-		return
-	}
-
+// Push inserts all items of vs at the tail of set al.
+func (ls *LinkedHashSet) Push(vs ...T) {
 	ls.Insert(ls.Len(), vs...)
 }
 
-// PushBackAll inserts a copy of another collection at the back of list ls.
-// The ls and ac may be the same. They must not be nil.
-func (ls *LinkedHashSet) PushBackAll(ac Collection) {
-	if ac.IsEmpty() || ls == ac {
-		return
-	}
+//--------------------------------------------------------------------
+// implements Deque interface
 
+// PeekHead get the first item of set.
+func (ls *LinkedHashSet) PeekHead() (v T, ok bool) {
+	if ls.head != nil {
+		v, ok = ls.head.value, true
+	}
+	return
+}
+
+// PeekTail get the last item of set.
+func (ls *LinkedHashSet) PeekTail() (v T, ok bool) {
+	if ls.tail != nil {
+		v, ok = ls.tail.value, true
+	}
+	return
+}
+
+// PollHead remove the first item of set.
+func (ls *LinkedHashSet) PollHead() (v T, ok bool) {
+	v, ok = ls.PeekHead()
+	if ok {
+		ls.deleteNode(ls.head)
+	}
+	return
+}
+
+// PollTail remove the last item of set.
+func (ls *LinkedHashSet) PollTail() (v T, ok bool) {
+	v, ok = ls.PeekTail()
+	if ok {
+		ls.deleteNode(ls.tail)
+	}
+	return
+}
+
+// PushHead inserts all items of vs at the head of set ls.
+func (ls *LinkedHashSet) PushHead(vs ...T) {
+	ls.Insert(0, vs...)
+}
+
+// PushHeadAll inserts a copy of another collection at the head of set ls.
+// The ls and ac may be the same. They must not be nil.
+func (ls *LinkedHashSet) PushHeadAll(ac Collection) {
+	ls.InsertAll(0, ac)
+}
+
+// PushTail inserts all items of vs at the tail of set ls.
+func (ls *LinkedHashSet) PushTail(vs ...T) {
+	ls.Insert(ls.Len(), vs...)
+}
+
+// PushTailAll inserts a copy of another collection at the tail of set ls.
+// The ls and ac may be the same. They must not be nil.
+func (ls *LinkedHashSet) PushTailAll(ac Collection) {
 	ls.InsertAll(ls.Len(), ac)
 }
 
@@ -457,13 +472,13 @@ func (ls *LinkedHashSet) String() string {
 //-----------------------------------------------------------
 func (ls *LinkedHashSet) deleteNode(ln *linkedSetNode) {
 	if ln.prev == nil {
-		ls.front = ln.next
+		ls.head = ln.next
 	} else {
 		ln.prev.next = ln.next
 	}
 
 	if ln.next == nil {
-		ls.back = ln.prev
+		ls.tail = ln.prev
 	} else {
 		ln.next.prev = ln.prev
 	}
@@ -474,14 +489,14 @@ func (ls *LinkedHashSet) deleteNode(ln *linkedSetNode) {
 // node returns the node at the specified index i.
 func (ls *LinkedHashSet) node(i int) *linkedSetNode {
 	if i < (ls.Len() >> 1) {
-		ln := ls.front
+		ln := ls.head
 		for ; i > 0; i-- {
 			ln = ln.next
 		}
 		return ln
 	}
 
-	ln := ls.back
+	ln := ls.tail
 	for i = ls.Len() - i - 1; i > 0; i-- {
 		ln = ln.prev
 	}
@@ -541,7 +556,7 @@ func (it *linkedHashSetIterator) Prev() bool {
 	}
 
 	if it.node == nil {
-		it.node = it.lset.back
+		it.node = it.lset.tail
 		it.removed = false
 		return true
 	}
@@ -564,7 +579,7 @@ func (it *linkedHashSetIterator) Next() bool {
 	}
 
 	if it.node == nil {
-		it.node = it.lset.front
+		it.node = it.lset.head
 		it.removed = false
 		return true
 	}

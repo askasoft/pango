@@ -532,54 +532,54 @@ func checkLinkedHashSet(t *testing.T, lset *LinkedHashSet, evs []interface{}) {
 func TestLinkedHashSetExtending(t *testing.T) {
 	l1 := NewLinkedHashSet(1, 2, 3)
 	l2 := NewLinkedHashSet()
-	l2.PushBack(4)
-	l2.PushBack(5)
+	l2.PushTail(4)
+	l2.PushTail(5)
 
 	l3 := NewLinkedHashSet()
-	l3.PushBackAll(l1)
+	l3.PushTailAll(l1)
 	checkLinkedHashSet(t, l3, []interface{}{1, 2, 3})
-	l3.PushBackAll(l2)
+	l3.PushTailAll(l2)
 	checkLinkedHashSet(t, l3, []interface{}{1, 2, 3, 4, 5})
 
 	l3 = NewLinkedHashSet()
-	l3.PushFrontAll(l2)
+	l3.PushHeadAll(l2)
 	checkLinkedHashSet(t, l3, []interface{}{4, 5})
-	l3.PushFrontAll(l1)
+	l3.PushHeadAll(l1)
 	checkLinkedHashSet(t, l3, []interface{}{1, 2, 3, 4, 5})
 
 	checkLinkedHashSet(t, l1, []interface{}{1, 2, 3})
 	checkLinkedHashSet(t, l2, []interface{}{4, 5})
 
 	l3 = NewLinkedHashSet()
-	l3.PushBackAll(l1)
+	l3.PushTailAll(l1)
 	checkLinkedHashSet(t, l3, []interface{}{1, 2, 3})
-	l3.PushBackAll(l3)
-	checkLinkedHashSet(t, l3, []interface{}{1, 2, 3})
-
-	l3 = NewLinkedHashSet()
-	l3.PushFrontAll(l1)
-	checkLinkedHashSet(t, l3, []interface{}{1, 2, 3})
-	l3.PushFrontAll(l3)
+	l3.PushTailAll(l3)
 	checkLinkedHashSet(t, l3, []interface{}{1, 2, 3})
 
 	l3 = NewLinkedHashSet()
-	l1.PushBackAll(l3)
+	l3.PushHeadAll(l1)
+	checkLinkedHashSet(t, l3, []interface{}{1, 2, 3})
+	l3.PushHeadAll(l3)
+	checkLinkedHashSet(t, l3, []interface{}{1, 2, 3})
+
+	l3 = NewLinkedHashSet()
+	l1.PushTailAll(l3)
 	checkLinkedHashSet(t, l1, []interface{}{1, 2, 3})
-	l1.PushFrontAll(l3)
+	l1.PushHeadAll(l3)
 	checkLinkedHashSet(t, l1, []interface{}{1, 2, 3})
 
 	l1.Clear()
 	l2.Clear()
 	l3.Clear()
-	l1.PushBack(1, 2, 3)
+	l1.PushTail(1, 2, 3)
 	checkLinkedHashSet(t, l1, []interface{}{1, 2, 3})
-	l2.PushBack(4, 5)
+	l2.PushTail(4, 5)
 	checkLinkedHashSet(t, l2, []interface{}{4, 5})
-	l3.PushBackAll(l1)
+	l3.PushTailAll(l1)
 	checkLinkedHashSet(t, l3, []interface{}{1, 2, 3})
-	l3.PushBack(4, 5)
+	l3.PushTail(4, 5)
 	checkLinkedHashSet(t, l3, []interface{}{1, 2, 3, 4, 5})
-	l3.PushFront(4, 5)
+	l3.PushHead(4, 5)
 	checkLinkedHashSet(t, l3, []interface{}{1, 2, 3, 4, 5})
 }
 
@@ -613,7 +613,7 @@ func TestLinkedHashSetDelete(t *testing.T) {
 	lset := NewLinkedHashSet()
 
 	for i := 1; i <= 100; i++ {
-		lset.PushBack(i)
+		lset.PushTail(i)
 	}
 
 	lset.Delete(101)
@@ -638,7 +638,7 @@ func TestLinkedHashSetDeleteAll(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		z := i % 10
 		for j := 0; j < z; j++ {
-			lset.PushBack(i)
+			lset.PushTail(i)
 		}
 	}
 
@@ -663,6 +663,88 @@ func TestLinkedHashSetDeleteAll(t *testing.T) {
 
 	if !lset.IsEmpty() {
 		t.Error("LinkedHashSet.IsEmpty() should return true")
+	}
+}
+
+func TestLinkedHashSetQueue(t *testing.T) {
+	q := NewLinkedHashSet()
+
+	if _, ok := q.Peek(); ok {
+		t.Error("should return false when peeking empty queue")
+	}
+
+	for i := 0; i < 100; i++ {
+		q.Push(i)
+	}
+
+	for i := 0; i < 100; i++ {
+		v, _ := q.Peek()
+		if v.(int) != i {
+			t.Errorf("Peek(%d) = %v, want %v", i, v, i)
+		}
+
+		x, _ := q.Poll()
+		if x != i {
+			t.Errorf("Poll(%d) = %v, want %v", i, x, i)
+		}
+	}
+
+	if _, ok := q.Poll(); ok {
+		t.Error("should return false when removing empty queue")
+	}
+}
+
+func TestLinkedHashSetDeque(t *testing.T) {
+	q := NewLinkedHashSet()
+
+	if _, ok := q.PeekHead(); ok {
+		t.Error("should return false when peeking empty queue")
+	}
+
+	if _, ok := q.PeekTail(); ok {
+		t.Error("should return false when peeking empty queue")
+	}
+
+	for i := 0; i < 100; i++ {
+		if i&1 == 0 {
+			q.PushHead(i)
+		} else {
+			q.PushTail(i)
+		}
+	}
+
+	for i := 0; i < 100; i++ {
+		if i&1 == 0 {
+			w := 100 - i - 2
+			v, _ := q.PeekHead()
+			if v != w {
+				t.Errorf("PeekHead(%d) = %v, want %v", i, v, w)
+			}
+
+			x, _ := q.PollHead()
+			if x != w {
+				t.Errorf("PeekHead(%d) = %v, want %v", i, x, w)
+			}
+		} else {
+			w := 100 - i
+			v, _ := q.PeekTail()
+			if v != w {
+				t.Errorf("PeekTail(%d) = %v, want %v", i, v, w)
+			}
+
+			x, _ := q.PollTail()
+			if x != w {
+				t.Errorf("PoolTail(%d) = %v, want %v", i, x, w)
+			}
+		}
+	}
+
+	if _, ok := q.PollHead(); ok {
+		t.Error("should return false when removing empty queue")
+	}
+
+	if _, ok := q.PollTail(); ok {
+		t.Error("should return false when removing empty queue")
 	}
 }
 

@@ -22,8 +22,8 @@ func NewLinkedHashMap(kvs ...P) *LinkedHashMap {
 //	}
 //
 type LinkedHashMap struct {
-	front, back *LinkedMapNode
-	hash        map[K]*LinkedMapNode
+	head, tail *LinkedMapNode
+	hash       map[K]*LinkedMapNode
 }
 
 //-----------------------------------------------------------
@@ -42,8 +42,8 @@ func (lm *LinkedHashMap) IsEmpty() bool {
 // Clear clears the map
 func (lm *LinkedHashMap) Clear() {
 	lm.hash = nil
-	lm.front = nil
-	lm.back = nil
+	lm.head = nil
+	lm.tail = nil
 }
 
 //-----------------------------------------------------------
@@ -139,7 +139,7 @@ func (lm *LinkedHashMap) Contains(ks ...K) bool {
 // Keys returns the key slice
 func (lm *LinkedHashMap) Keys() []K {
 	ks := make([]K, lm.Len())
-	for i, ln := 0, lm.front; ln != nil; i, ln = i+1, ln.next {
+	for i, ln := 0, lm.head; ln != nil; i, ln = i+1, ln.next {
 		ks[i] = ln.key
 	}
 	return ks
@@ -148,7 +148,7 @@ func (lm *LinkedHashMap) Keys() []K {
 // Values returns the value slice
 func (lm *LinkedHashMap) Values() []V {
 	vs := make([]V, lm.Len())
-	for i, ln := 0, lm.front; ln != nil; i, ln = i+1, ln.next {
+	for i, ln := 0, lm.head; ln != nil; i, ln = i+1, ln.next {
 		vs[i] = ln.value
 	}
 	return vs
@@ -156,14 +156,14 @@ func (lm *LinkedHashMap) Values() []V {
 
 // Each call f for each item in the map
 func (lm *LinkedHashMap) Each(f func(k K, v V)) {
-	for ln := lm.front; ln != nil; ln = ln.next {
+	for ln := lm.head; ln != nil; ln = ln.next {
 		f(ln.key, ln.value)
 	}
 }
 
 // ReverseEach call f for each item in the map with reverse order
 func (lm *LinkedHashMap) ReverseEach(f func(k K, v V)) {
-	for ln := lm.back; ln != nil; ln = ln.prev {
+	for ln := lm.tail; ln != nil; ln = ln.prev {
 		f(ln.key, ln.value)
 	}
 }
@@ -187,28 +187,28 @@ func (lm *LinkedHashMap) IteratorOf(k K) Iterator2 {
 
 //-----------------------------------------------------------
 
-// Front returns the oldest key/value item.
-func (lm *LinkedHashMap) Front() *LinkedMapNode {
-	return lm.front
+// Head returns the oldest key/value item.
+func (lm *LinkedHashMap) Head() *LinkedMapNode {
+	return lm.head
 }
 
-// Back returns the newest key/value item.
-func (lm *LinkedHashMap) Back() *LinkedMapNode {
-	return lm.back
+// Tail returns the newest key/value item.
+func (lm *LinkedHashMap) Tail() *LinkedMapNode {
+	return lm.tail
 }
 
-// PopFront remove the first item of map.
-func (lm *LinkedHashMap) PopFront() *LinkedMapNode {
-	ln := lm.front
+// PollHead remove the first item of map.
+func (lm *LinkedHashMap) PollHead() *LinkedMapNode {
+	ln := lm.head
 	if ln != nil {
 		lm.deleteNode(ln)
 	}
 	return ln
 }
 
-// PopBack remove the last item of map.
-func (lm *LinkedHashMap) PopBack() *LinkedMapNode {
-	ln := lm.back
+// PollTail remove the last item of map.
+func (lm *LinkedHashMap) PollTail() *LinkedMapNode {
+	ln := lm.tail
 	if ln != nil {
 		lm.deleteNode(ln)
 	}
@@ -218,7 +218,7 @@ func (lm *LinkedHashMap) PopBack() *LinkedMapNode {
 // Items returns the map item slice
 func (lm *LinkedHashMap) Items() []*LinkedMapNode {
 	mis := make([]*LinkedMapNode, lm.Len(), lm.Len())
-	for i, ln := 0, lm.front; ln != nil; i, ln = i+1, ln.next {
+	for i, ln := 0, lm.head; ln != nil; i, ln = i+1, ln.next {
 		mis[i] = ln
 	}
 	return mis
@@ -233,13 +233,13 @@ func (lm *LinkedHashMap) String() string {
 //-----------------------------------------------------
 
 func (lm *LinkedHashMap) add(k K, v V) {
-	ln := &LinkedMapNode{prev: lm.back, key: k, value: v}
+	ln := &LinkedMapNode{prev: lm.tail, key: k, value: v}
 	if ln.prev == nil {
-		lm.front = ln
+		lm.head = ln
 	} else {
 		ln.prev.next = ln
 	}
-	lm.back = ln
+	lm.tail = ln
 
 	if lm.hash == nil {
 		lm.hash = make(map[K]*LinkedMapNode)
@@ -249,13 +249,13 @@ func (lm *LinkedHashMap) add(k K, v V) {
 
 func (lm *LinkedHashMap) deleteNode(ln *LinkedMapNode) {
 	if ln.prev == nil {
-		lm.front = ln.next
+		lm.head = ln.next
 	} else {
 		ln.prev.next = ln.next
 	}
 
 	if ln.next == nil {
-		lm.back = ln.prev
+		lm.tail = ln.prev
 	} else {
 		ln.next.prev = ln.prev
 	}
@@ -309,7 +309,7 @@ func (it *linkedHashMapIterator) Prev() bool {
 	}
 
 	if it.node == nil {
-		it.node = it.lmap.back
+		it.node = it.lmap.tail
 		it.removed = false
 		return true
 	}
@@ -332,7 +332,7 @@ func (it *linkedHashMapIterator) Next() bool {
 	}
 
 	if it.node == nil {
-		it.node = it.lmap.front
+		it.node = it.lmap.head
 		it.removed = false
 		return true
 	}

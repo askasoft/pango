@@ -59,7 +59,7 @@ func (tm *TreeMap) Clear() {
 // Keys returns the key slice
 func (tm *TreeMap) Keys() []K {
 	ks := make([]K, tm.len)
-	for i, n := 0, tm.front(); n != nil; i, n = i+1, n.next() {
+	for i, n := 0, tm.head(); n != nil; i, n = i+1, n.next() {
 		ks[i] = n.key
 	}
 	return ks
@@ -68,7 +68,7 @@ func (tm *TreeMap) Keys() []K {
 // Values returns the value slice
 func (tm *TreeMap) Values() []V {
 	vs := make([]V, tm.len)
-	for i, n := 0, tm.front(); n != nil; i, n = i+1, n.next() {
+	for i, n := 0, tm.head(); n != nil; i, n = i+1, n.next() {
 		vs[i] = n.value
 	}
 	return vs
@@ -178,14 +178,14 @@ func (tm *TreeMap) Delete(ks ...K) (ov V, ok bool) {
 
 // Each call f for each item in the map
 func (tm *TreeMap) Each(f func(k K, v V)) {
-	for tn := tm.front(); tn != nil; tn = tn.next() {
+	for tn := tm.head(); tn != nil; tn = tn.next() {
 		f(tn.key, tn.value)
 	}
 }
 
 // ReverseEach call f for each item in the map with reverse order
 func (tm *TreeMap) ReverseEach(f func(k K, v V)) {
-	for tn := tm.back(); tn != nil; tn = tn.prev() {
+	for tn := tm.tail(); tn != nil; tn = tn.prev() {
 		f(tn.key, tn.value)
 	}
 }
@@ -195,28 +195,28 @@ func (tm *TreeMap) Iterator() Iterator2 {
 	return &treeMapIterator{tree: tm}
 }
 
-// Front returns a pointer to the minimum item.
-func (tm *TreeMap) Front() *TreeMapNode {
-	return tm.front()
+// Head returns a pointer to the minimum item.
+func (tm *TreeMap) Head() *TreeMapNode {
+	return tm.head()
 }
 
-// Back returns a pointer to the maximum item.
-func (tm *TreeMap) Back() *TreeMapNode {
-	return tm.back()
+// Tail returns a pointer to the maximum item.
+func (tm *TreeMap) Tail() *TreeMapNode {
+	return tm.tail()
 }
 
-// PopFront remove the first item of map.
-func (tm *TreeMap) PopFront() *TreeMapNode {
-	tn := tm.front()
+// PollHead remove the first item of map.
+func (tm *TreeMap) PollHead() *TreeMapNode {
+	tn := tm.head()
 	if tn != nil {
 		tn = tm.deleteNode(tn)
 	}
 	return tn
 }
 
-// PopBack remove the last item of map.
-func (tm *TreeMap) PopBack() *TreeMapNode {
-	tn := tm.back()
+// PollTail remove the last item of map.
+func (tm *TreeMap) PollTail() *TreeMapNode {
+	tn := tm.tail()
 	if tn != nil {
 		tn = tm.deleteNode(tn)
 	}
@@ -248,7 +248,7 @@ func (tm *TreeMap) Ceiling(key K) *TreeMapNode {
 // Items returns the map item slice
 func (tm *TreeMap) Items() []*TreeMapNode {
 	ns := make([]*TreeMapNode, tm.Len())
-	for i, n := 0, tm.Front(); n != nil; i, n = i+1, n.next() {
+	for i, n := 0, tm.Head(); n != nil; i, n = i+1, n.next() {
 		ns[i] = n
 	}
 	return ns
@@ -271,8 +271,8 @@ func (tm *TreeMap) Graph(value bool) string {
 
 //-----------------------------------------------------------
 
-// front returns a pointer to the minimum item.
-func (tm *TreeMap) front() *TreeMapNode {
+// head returns a pointer to the minimum item.
+func (tm *TreeMap) head() *TreeMapNode {
 	tn := tm.root
 	if tn != nil {
 		for tn.left != nil {
@@ -282,8 +282,8 @@ func (tm *TreeMap) front() *TreeMapNode {
 	return tn
 }
 
-// back returns a pointer to the maximum item.
-func (tm *TreeMap) back() *TreeMapNode {
+// tail returns a pointer to the maximum item.
+func (tm *TreeMap) tail() *TreeMapNode {
 	tn := tm.root
 	if tn != nil {
 		for tn.right != nil {
@@ -776,7 +776,7 @@ func (it *treeMapIterator) Prev() bool {
 	}
 
 	if it.node == nil {
-		it.node = it.tree.back()
+		it.node = it.tree.tail()
 		it.removed = false
 		return true
 	}
@@ -808,7 +808,7 @@ func (it *treeMapIterator) Next() bool {
 	}
 
 	if it.node == nil {
-		it.node = it.tree.front()
+		it.node = it.tree.head()
 		it.removed = false
 		return true
 	}

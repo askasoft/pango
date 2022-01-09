@@ -26,8 +26,8 @@ func NewLinkedList(vs ...T) *LinkedList {
 //	}
 //
 type LinkedList struct {
-	front, back *linkedListNode
-	len         int
+	head, tail *linkedListNode
+	len        int
 }
 
 //-----------------------------------------------------------
@@ -45,8 +45,8 @@ func (ll *LinkedList) IsEmpty() bool {
 
 // Clear clears list ll.
 func (ll *LinkedList) Clear() {
-	ll.front = nil
-	ll.back = nil
+	ll.head = nil
+	ll.tail = nil
 	ll.len = 0
 }
 
@@ -145,7 +145,7 @@ func (ll *LinkedList) RetainAll(ac Collection) {
 		return
 	}
 
-	for ln := ll.front; ln != nil; ln = ln.next {
+	for ln := ll.head; ln != nil; ln = ln.next {
 		if !ac.Contains(ln.value) {
 			ll.deleteNode(ln)
 		}
@@ -155,7 +155,7 @@ func (ll *LinkedList) RetainAll(ac Collection) {
 // Values returns a slice contains all the items of the list ll
 func (ll *LinkedList) Values() []T {
 	vs := make([]T, ll.Len())
-	for i, ln := 0, ll.front; ln != nil; i, ln = i+1, ln.next {
+	for i, ln := 0, ll.head; ln != nil; i, ln = i+1, ln.next {
 		vs[i] = ln.value
 	}
 	return vs
@@ -163,14 +163,14 @@ func (ll *LinkedList) Values() []T {
 
 // Each call f for each item in the list
 func (ll *LinkedList) Each(f func(T)) {
-	for ln := ll.front; ln != nil; ln = ln.next {
+	for ln := ll.head; ln != nil; ln = ln.next {
 		f(ln.value)
 	}
 }
 
 // ReverseEach call f for each item in the list with reverse order
 func (ll *LinkedList) ReverseEach(f func(T)) {
-	for ln := ll.back; ln != nil; ln = ln.prev {
+	for ln := ll.tail; ln != nil; ln = ln.prev {
 		f(ln.value)
 	}
 }
@@ -214,7 +214,7 @@ func (ll *LinkedList) Insert(index int, vs ...T) {
 	var prev, next *linkedListNode
 	if index == ll.len {
 		next = nil
-		prev = ll.back
+		prev = ll.tail
 	} else {
 		next = ll.node(index)
 		prev = next.prev
@@ -223,7 +223,7 @@ func (ll *LinkedList) Insert(index int, vs ...T) {
 	for _, v := range vs {
 		nn := &linkedListNode{prev: prev, value: v, next: nil}
 		if prev == nil {
-			ll.front = nn
+			ll.head = nn
 		} else {
 			prev.next = nn
 		}
@@ -231,7 +231,7 @@ func (ll *LinkedList) Insert(index int, vs ...T) {
 	}
 
 	if next == nil {
-		ll.back = prev
+		ll.tail = prev
 	} else {
 		prev.next = next
 		next.prev = prev
@@ -255,7 +255,7 @@ func (ll *LinkedList) InsertAll(index int, ac Collection) {
 
 // Index returns the index of the first occurrence of the specified v in this list, or -1 if this list does not contain v.
 func (ll *LinkedList) Index(v T) int {
-	for i, ln := 0, ll.front; ln != nil; ln = ln.next {
+	for i, ln := 0, ll.head; ln != nil; ln = ln.next {
 		if ln.value == v {
 			return i
 		}
@@ -266,7 +266,7 @@ func (ll *LinkedList) Index(v T) int {
 
 // LastIndex returns the index of the last occurrence of the specified v in this list, or -1 if this list does not contain v.
 func (ll *LinkedList) LastIndex(v T) int {
-	for i, ln := 0, ll.back; ln != nil; ln = ln.prev {
+	for i, ln := 0, ll.tail; ln != nil; ln = ln.prev {
 		if ln.value == v {
 			return i
 		}
@@ -302,77 +302,92 @@ func (ll *LinkedList) Sort(less cmp.Less) {
 	sort.Sort(&sorter{ll, less})
 }
 
+// Head get the first item of list.
+func (ll *LinkedList) Head() (v T) {
+	v, _ = ll.PeekHead()
+	return
+}
+
+// Tail get the last item of list.
+func (ll *LinkedList) Tail() (v T) {
+	v, _ = ll.PeekTail()
+	return
+}
+
 //--------------------------------------------------------------------
+// implements Queue interface
 
-// Front returns the first item of list ll or nil if the list is empty.
-func (ll *LinkedList) Front() T {
-	if ll.front == nil {
-		return nil
-	}
-	return ll.front.value
+// Peek get the first item of list.
+func (ll *LinkedList) Peek() (v T, ok bool) {
+	return ll.PeekHead()
 }
 
-// Back returns the last item of list ll or nil if the list is empty.
-func (ll *LinkedList) Back() T {
-	if ll.back == nil {
-		return nil
-	}
-	return ll.back.value
+// Poll get and remove the first item of list.
+func (ll *LinkedList) Poll() (T, bool) {
+	return ll.PollHead()
 }
 
-// PopFront remove the first item of list.
-func (ll *LinkedList) PopFront() (v T) {
-	if ll.front != nil {
-		v = ll.front.value
-		ll.deleteNode(ll.front)
+// Push inserts all items of vs at the tail of list al.
+func (ll *LinkedList) Push(vs ...T) {
+	ll.Insert(ll.Len(), vs...)
+}
+
+//--------------------------------------------------------------------
+// implements Deque interface
+
+// PeekHead get the first item of list.
+func (ll *LinkedList) PeekHead() (v T, ok bool) {
+	if ll.head != nil {
+		v, ok = ll.head.value, true
 	}
 	return
 }
 
-// PopBack remove the last item of list.
-func (ll *LinkedList) PopBack() (v T) {
-	if ll.back != nil {
-		v = ll.back.value
-		ll.deleteNode(ll.back)
+// PeekTail get the last item of list.
+func (ll *LinkedList) PeekTail() (v T, ok bool) {
+	if ll.tail != nil {
+		v, ok = ll.tail.value, true
 	}
 	return
 }
 
-// PushFront inserts all items of vs at the front of list ll.
-func (ll *LinkedList) PushFront(vs ...T) {
-	if len(vs) == 0 {
-		return
+// PollHead remove the first item of list.
+func (ll *LinkedList) PollHead() (v T, ok bool) {
+	v, ok = ll.PeekHead()
+	if ok {
+		ll.deleteNode(ll.head)
 	}
+	return
+}
 
+// PollTail remove the last item of list.
+func (ll *LinkedList) PollTail() (v T, ok bool) {
+	v, ok = ll.PeekTail()
+	if ok {
+		ll.deleteNode(ll.tail)
+	}
+	return
+}
+
+// PushHead inserts all items of vs at the head of list ll.
+func (ll *LinkedList) PushHead(vs ...T) {
 	ll.Insert(0, vs...)
 }
 
-// PushFrontAll inserts a copy of another collection at the front of list ll.
+// PushHeadAll inserts a copy of another collection at the head of list ll.
 // The ll and ac may be the same. They must not be nil.
-func (ll *LinkedList) PushFrontAll(ac Collection) {
-	if ac.IsEmpty() {
-		return
-	}
-
+func (ll *LinkedList) PushHeadAll(ac Collection) {
 	ll.InsertAll(0, ac)
 }
 
-// PushBack inserts all items of vs at the back of list ll.
-func (ll *LinkedList) PushBack(vs ...T) {
-	if len(vs) == 0 {
-		return
-	}
-
+// PushTail inserts all items of vs at the tail of list ll.
+func (ll *LinkedList) PushTail(vs ...T) {
 	ll.Insert(ll.len, vs...)
 }
 
-// PushBackAll inserts a copy of another collection at the back of list ll.
+// PushTailAll inserts a copy of another collection at the tail of list ll.
 // The ll and ac may be the same. They must not be nil.
-func (ll *LinkedList) PushBackAll(ac Collection) {
-	if ac.IsEmpty() {
-		return
-	}
-
+func (ll *LinkedList) PushTailAll(ac Collection) {
 	ll.InsertAll(ll.len, ac)
 }
 
@@ -384,7 +399,7 @@ func (ll *LinkedList) String() string {
 
 //-----------------------------------------------------------
 func (ll *LinkedList) deleteAll(v T) {
-	for ln := ll.front; ln != nil; ln = ln.next {
+	for ln := ll.head; ln != nil; ln = ln.next {
 		if ln.value == v {
 			ll.deleteNode(ln)
 		}
@@ -393,13 +408,13 @@ func (ll *LinkedList) deleteAll(v T) {
 
 func (ll *LinkedList) deleteNode(ln *linkedListNode) {
 	if ln.prev == nil {
-		ll.front = ln.next
+		ll.head = ln.next
 	} else {
 		ln.prev.next = ln.next
 	}
 
 	if ln.next == nil {
-		ll.back = ln.prev
+		ll.tail = ln.prev
 	} else {
 		ln.next.prev = ln.prev
 	}
@@ -410,14 +425,14 @@ func (ll *LinkedList) deleteNode(ln *linkedListNode) {
 // node returns the node at the specified index i.
 func (ll *LinkedList) node(i int) *linkedListNode {
 	if i < (ll.len >> 1) {
-		ln := ll.front
+		ln := ll.head
 		for ; i > 0; i-- {
 			ln = ln.next
 		}
 		return ln
 	}
 
-	ln := ll.back
+	ln := ll.tail
 	for i = ll.len - i - 1; i > 0; i-- {
 		ln = ln.prev
 	}
@@ -475,7 +490,7 @@ func (it *linkedListIterator) Prev() bool {
 	}
 
 	if it.node == nil {
-		it.node = it.list.back
+		it.node = it.list.tail
 		it.removed = false
 		return true
 	}
@@ -498,7 +513,7 @@ func (it *linkedListIterator) Next() bool {
 	}
 
 	if it.node == nil {
-		it.node = it.list.front
+		it.node = it.list.head
 		it.removed = false
 		return true
 	}

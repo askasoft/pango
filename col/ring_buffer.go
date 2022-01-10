@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/pandafw/pango/ars"
 	"github.com/pandafw/pango/cmp"
 )
 
@@ -65,14 +66,35 @@ func (rb *RingBuffer) AddAll(ac Collection) {
 // Delete delete all items with associated value v of vs
 func (rb *RingBuffer) Delete(vs ...T) {
 	for _, v := range vs {
-		for i := rb.Index(v); i >= 0; i = rb.Index(v) {
-			rb.Remove(i)
-		}
+		rb.deleteAll(v)
+	}
+}
+
+func (rb *RingBuffer) deleteAll(v T) {
+	for i := rb.Index(v); i >= 0; i = rb.Index(v) {
+		rb.Remove(i)
 	}
 }
 
 // DeleteAll delete all of this collection's elements that are also contained in the specified collection
 func (rb *RingBuffer) DeleteAll(ac Collection) {
+	if rb.IsEmpty() || ac.IsEmpty() {
+		return
+	}
+
+	if rb == ac {
+		rb.Clear()
+		return
+	}
+
+	if ic, ok := ac.(Iterable); ok {
+		it := ic.Iterator()
+		for it.Next() {
+			rb.deleteAll(it.Value())
+		}
+		return
+	}
+
 	rb.Delete(ac.Values()...)
 }
 
@@ -109,22 +131,38 @@ func (rb *RingBuffer) ContainsAll(ac Collection) bool {
 
 // Retain Retains only the elements in this collection that are contained in the argument array vs.
 func (rb *RingBuffer) Retain(vs ...T) {
-	if rb.IsEmpty() || len(vs) == 0 {
+	if rb.IsEmpty() {
 		return
 	}
 
-	rb.RetainAll(AsArrayList(vs))
+	if len(vs) == 0 {
+		rb.Clear()
+		return
+	}
+
+	it := rb.Iterator()
+	for it.Next() {
+		if !ars.Contains(vs, it.Value()) {
+			it.Remove()
+		}
+	}
 }
 
 // RetainAll Retains only the elements in this collection that are contained in the specified collection.
 func (rb *RingBuffer) RetainAll(ac Collection) {
-	if rb.IsEmpty() || ac.IsEmpty() || rb == ac {
+	if rb.IsEmpty() || rb == ac {
 		return
 	}
 
-	for i := rb.Len() - 1; i >= 0; i-- {
-		if !ac.Contains(rb.data[i]) {
-			rb.Remove(i)
+	if ac.IsEmpty() {
+		rb.Clear()
+		return
+	}
+
+	it := rb.Iterator()
+	for it.Next() {
+		if !ac.Contains(it.Value()) {
+			it.Remove()
 		}
 	}
 }
@@ -311,7 +349,11 @@ func (rb *RingBuffer) Index(v T) int {
 // Remove removes the item at the specified position in this RingBuffer.
 func (rb *RingBuffer) Remove(index int) {
 	index = rb.checkItemIndex(index)
+	rb.remove(index)
+	rb.shrink()
+}
 
+func (rb *RingBuffer) remove(index int) {
 	rb.data[index] = nil
 	rb.len--
 
@@ -350,8 +392,6 @@ func (rb *RingBuffer) Remove(index int) {
 		rb.data[rb.tail] = nil
 		rb.tail--
 	}
-
-	rb.shrink()
 }
 
 // Swap swaps values of two items at the given index.
@@ -447,7 +487,8 @@ func (rb *RingBuffer) PeekTail() (v T, ok bool) {
 func (rb *RingBuffer) PollHead() (v T, ok bool) {
 	v, ok = rb.PeekHead()
 	if ok {
-		rb.Remove(0)
+		rb.remove(rb.head)
+		rb.shrink()
 	}
 
 	return
@@ -457,7 +498,8 @@ func (rb *RingBuffer) PollHead() (v T, ok bool) {
 func (rb *RingBuffer) PollTail() (v T, ok bool) {
 	v, ok = rb.PeekTail()
 	if ok {
-		rb.Remove(rb.len - 1)
+		rb.remove(rb.tail)
+		rb.shrink()
 	}
 	return
 }

@@ -141,9 +141,39 @@ func TestArrayListDelete(t *testing.T) {
 		t.Error("ArrayList.Delete(101) should do nothing")
 	}
 	for i := 1; i <= 100; i++ {
-		l.Delete(i)
+		l.Delete(i, i)
 		if l.Len() != 100-i {
 			t.Errorf("ArrayList.Delete(%v) failed, l.Len() = %v, want %v", i, l.Len(), 100-i)
+		}
+	}
+
+	if !l.IsEmpty() {
+		t.Error("ArrayList.IsEmpty() should return true")
+	}
+}
+
+func TestArrayListDelete2(t *testing.T) {
+	l := NewArrayList()
+
+	for i := 0; i < 100; i++ {
+		z := i % 10
+		for j := 0; j < z; j++ {
+			l.Add(i)
+		}
+	}
+
+	n := l.Len()
+	l.Delete(100)
+	if l.Len() != n {
+		t.Errorf("ArrayList.Delete(100).Len() = %v, want %v", l.Len(), n)
+	}
+	for i := 0; i < 100; i++ {
+		n = l.Len()
+		z := i % 10
+		l.Delete(i)
+		a := n - l.Len()
+		if a != z {
+			t.Errorf("ArrayList.Delete(%v) = %v, want %v", i, a, z)
 		}
 	}
 
@@ -170,7 +200,7 @@ func TestArrayListDeleteAll(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		n = l.Len()
 		z := i % 10
-		l.Delete(i)
+		l.DeleteAll(NewArrayList(i, i))
 		a := n - l.Len()
 		if a != z {
 			t.Errorf("ArrayList.Delete(%v) = %v, want %v", i, a, z)
@@ -262,23 +292,90 @@ func TestArrayListClear(t *testing.T) {
 
 func TestArrayListContains(t *testing.T) {
 	list := NewArrayList()
-	list.Add("a")
-	list.Add("b", "c")
-	if av := list.Contains("a"); av != true {
-		t.Errorf("Got %v expected %v", av, true)
+
+	a := []T{}
+	for i := 0; i < 100; i++ {
+		a = append(a, i)
+		list.Add(i)
 	}
-	if av := list.Contains("a", "b", "c"); av != true {
-		t.Errorf("Got %v expected %v", av, true)
+	a = append(a, 1000)
+
+	for i := 0; i < 100; i++ {
+		if !list.Contains(i) {
+			t.Errorf("%d Contains() should return true", i)
+		}
+		if !list.Contains(a[0 : i+1]...) {
+			t.Errorf("%d Contains(...) should return true", i)
+		}
+		if list.Contains(a...) {
+			t.Errorf("%d Contains(...) should return false", i)
+		}
+		if !list.ContainsAll(AsArrayList(a[0 : i+1])) {
+			t.Errorf("%d ContainsAll(...) should return true", i)
+		}
+		if list.ContainsAll(AsArrayList(a)) {
+			t.Errorf("%d ContainsAll(...) should return false", i)
+		}
 	}
-	if av := list.Contains("a", "b", "c", "d"); av != false {
-		t.Errorf("Got %v expected %v", av, false)
-	}
+
 	list.Clear()
 	if av := list.Contains("a"); av != false {
 		t.Errorf("Got %v expected %v", av, false)
 	}
 	if av := list.Contains("a", "b", "c"); av != false {
 		t.Errorf("Got %v expected %v", av, false)
+	}
+}
+
+func TestArrayListRetain(t *testing.T) {
+	for n := 0; n < 100; n++ {
+		a := []T{}
+		list := NewArrayList()
+		for i := 0; i < n; i++ {
+			if i&1 == 0 {
+				a = append(a, i)
+			}
+			list.Add(i)
+
+			list.Retain(a...)
+			vs := list.Values()
+			if !reflect.DeepEqual(vs, a) {
+				t.Fatalf("%d Retain() = %v, want %v", i, vs, a)
+			}
+		}
+
+		{
+			a = []T{}
+			list.Retain()
+			vs := list.Values()
+			if len(vs) > 0 {
+				t.Fatalf("%d Retain() = %v, want %v", n, vs, a)
+			}
+		}
+
+		a = []T{}
+		list.Clear()
+		for i := 0; i < n; i++ {
+			if i&1 == 0 {
+				a = append(a, i)
+			}
+			list.Add(i)
+
+			list.RetainAll(AsArrayList(a))
+			vs := list.Values()
+			if !reflect.DeepEqual(vs, a) {
+				t.Fatalf("%d RetainAll() = %v, want %v", i, vs, a)
+			}
+		}
+
+		{
+			a = []T{}
+			list.RetainAll(AsArrayList(a))
+			vs := list.Values()
+			if len(vs) > 0 {
+				t.Fatalf("%d Retain() = %v, want %v", n, vs, a)
+			}
+		}
 	}
 }
 

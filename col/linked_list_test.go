@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/pandafw/pango/cmp"
-	"github.com/pandafw/pango/str"
 )
 
 func TestLinkedListInterface(t *testing.T) {
@@ -110,9 +109,39 @@ func TestLinkedListDelete(t *testing.T) {
 		t.Error("LinkedList.Delete(101) should do nothing")
 	}
 	for i := 1; i <= 100; i++ {
-		l.Delete(i)
+		l.Delete(i, i)
 		if l.Len() != 100-i {
 			t.Errorf("LinkedList.Delete(%v) failed, l.Len() = %v, want %v", i, l.Len(), 100-i)
+		}
+	}
+
+	if !l.IsEmpty() {
+		t.Error("LinkedList.IsEmpty() should return true")
+	}
+}
+
+func TestLinkedListDelete2(t *testing.T) {
+	l := NewLinkedList()
+
+	for i := 0; i < 100; i++ {
+		z := i % 10
+		for j := 0; j < z; j++ {
+			l.Add(i)
+		}
+	}
+
+	n := l.Len()
+	l.Delete(100)
+	if l.Len() != n {
+		t.Errorf("LinkedList.Delete(100).Len() = %v, want %v", l.Len(), n)
+	}
+	for i := 0; i < 100; i++ {
+		n = l.Len()
+		z := i % 10
+		l.Delete(i)
+		a := n - l.Len()
+		if a != z {
+			t.Errorf("LinkedList.Delete(%v) = %v, want %v", i, a, z)
 		}
 	}
 
@@ -139,7 +168,7 @@ func TestLinkedListDeleteAll(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		n = l.Len()
 		z := i % 10
-		l.Delete(i)
+		l.DeleteAll(NewArrayList(i, i))
 		a := n - l.Len()
 		if a != z {
 			t.Errorf("LinkedList.Delete(%v) = %v, want %v", i, a, z)
@@ -231,17 +260,32 @@ func TestLinkedListClear(t *testing.T) {
 
 func TestLinkedListContains(t *testing.T) {
 	list := NewLinkedList()
-	list.Add("a")
-	list.Add("b", "c")
-	if av := list.Contains("a"); av != true {
-		t.Errorf("Got %v expected %v", av, true)
+
+	a := []T{}
+	for i := 0; i < 100; i++ {
+		a = append(a, i)
+		list.Add(i)
 	}
-	if av := list.Contains("a", "b", "c"); av != true {
-		t.Errorf("Got %v expected %v", av, true)
+	a = append(a, 1000)
+
+	for i := 0; i < 100; i++ {
+		if !list.Contains(i) {
+			t.Errorf("%d Contains() should return true", i)
+		}
+		if !list.Contains(a[0 : i+1]...) {
+			t.Errorf("%d Contains(...) should return true", i)
+		}
+		if list.Contains(a...) {
+			t.Errorf("%d Contains(...) should return false", i)
+		}
+		if !list.ContainsAll(AsArrayList(a[0 : i+1])) {
+			t.Errorf("%d ContainsAll(...) should return true", i)
+		}
+		if list.ContainsAll(AsArrayList(a)) {
+			t.Errorf("%d ContainsAll(...) should return false", i)
+		}
 	}
-	if av := list.Contains("a", "b", "c", "d"); av != false {
-		t.Errorf("Got %v expected %v", av, false)
-	}
+
 	list.Clear()
 	if av := list.Contains("a"); av != false {
 		t.Errorf("Got %v expected %v", av, false)
@@ -251,29 +295,55 @@ func TestLinkedListContains(t *testing.T) {
 	}
 }
 
-func TestLinkedListContains2(t *testing.T) {
-	l := NewLinkedList(1, 11, 111, "1", "11", "111")
+func TestLinkedListRetain(t *testing.T) {
+	for n := 0; n < 100; n++ {
+		a := []T{}
+		list := NewLinkedList()
+		for i := 0; i < n; i++ {
+			if i&1 == 0 {
+				a = append(a, i)
+			}
+			list.Add(i)
 
-	n := (100+1)/101 + 110
+			list.Retain(a...)
+			vs := list.Values()
+			if !reflect.DeepEqual(vs, a) {
+				t.Fatalf("%d Retain() = %v, want %v", i, vs, a)
+			}
+		}
 
-	if !l.Contains(n) {
-		t.Errorf("LinkedList [%v] should contains %v", l, n)
-	}
+		{
+			a = []T{}
+			list.Retain()
+			vs := list.Values()
+			if len(vs) > 0 {
+				t.Fatalf("%d Retain() = %v, want %v", n, vs, a)
+			}
+		}
 
-	n++
-	if l.Contains(n) {
-		t.Errorf("LinkedList [%v] should not contains %v", l, n)
-	}
+		a = []T{}
+		list.Clear()
+		for i := 0; i < n; i++ {
+			if i&1 == 0 {
+				a = append(a, i)
+			}
+			list.Add(i)
 
-	s := str.Repeat("1", 3)
+			list.RetainAll(AsArrayList(a))
+			vs := list.Values()
+			if !reflect.DeepEqual(vs, a) {
+				t.Fatalf("%d RetainAll() = %v, want %v", i, vs, a)
+			}
+		}
 
-	if !l.Contains(s) {
-		t.Errorf("LinkedList [%v] should contains %v", l, s)
-	}
-
-	s += "0"
-	if l.Contains(s) {
-		t.Errorf("LinkedList [%v] should not contains %v", l, s)
+		{
+			a = []T{}
+			list.RetainAll(AsArrayList(a))
+			vs := list.Values()
+			if len(vs) > 0 {
+				t.Fatalf("%d Retain() = %v, want %v", n, vs, a)
+			}
+		}
 	}
 }
 

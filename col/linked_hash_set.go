@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/pandafw/pango/ars"
 	"github.com/pandafw/pango/cmp"
 )
 
@@ -144,16 +145,30 @@ func (ls *LinkedHashSet) ContainsAll(ac Collection) bool {
 
 // Retain Retains only the elements in this collection that are contained in the argument array vs.
 func (ls *LinkedHashSet) Retain(vs ...T) {
-	if ls.IsEmpty() || len(vs) == 0 {
+	if ls.IsEmpty() {
 		return
 	}
 
-	ls.RetainAll(NewArrayList(vs...))
+	if len(vs) == 0 {
+		ls.Clear()
+		return
+	}
+
+	for ln := ls.head; ln != nil; ln = ln.next {
+		if !ars.Contains(vs, ln.value) {
+			ls.deleteNode(ln)
+		}
+	}
 }
 
 // RetainAll Retains only the elements in this collection that are contained in the specified collection.
 func (ls *LinkedHashSet) RetainAll(ac Collection) {
-	if ls.IsEmpty() || ac.IsEmpty() || ls == ac {
+	if ls.IsEmpty() || ls == ac {
+		return
+	}
+
+	if ac.IsEmpty() {
+		ls.Clear()
 		return
 	}
 

@@ -142,21 +142,93 @@ func TestHashSetAdd(t *testing.T) {
 }
 
 func TestHashSetContains(t *testing.T) {
-	set := NewHashSet()
-	set.Add(3, 1, 2)
-	set.Add(2, 3)
-	set.Add()
-	if av := set.Contains(); av != true {
-		t.Errorf("Got %v expected %v", av, true)
+	list := NewHashSet()
+
+	a := []T{}
+	for i := 0; i < 100; i++ {
+		a = append(a, i)
+		list.Add(i)
 	}
-	if av := set.Contains(1); av != true {
-		t.Errorf("Got %v expected %v", av, true)
+	a = append(a, 1000)
+
+	for i := 0; i < 100; i++ {
+		if !list.Contains(i) {
+			t.Errorf("%d Contains() should return true", i)
+		}
+		if !list.Contains(a[0 : i+1]...) {
+			t.Errorf("%d Contains(...) should return true", i)
+		}
+		if list.Contains(a...) {
+			t.Errorf("%d Contains(...) should return false", i)
+		}
+		if !list.ContainsAll(AsArrayList(a[0 : i+1])) {
+			t.Errorf("%d ContainsAll(...) should return true", i)
+		}
+		if list.ContainsAll(AsArrayList(a)) {
+			t.Errorf("%d ContainsAll(...) should return false", i)
+		}
 	}
-	if av := set.Contains(1, 2, 3); av != true {
-		t.Errorf("Got %v expected %v", av, true)
-	}
-	if av := set.Contains(1, 2, 3, 4); av != false {
+
+	list.Clear()
+	if av := list.Contains("a"); av != false {
 		t.Errorf("Got %v expected %v", av, false)
+	}
+	if av := list.Contains("a", "b", "c"); av != false {
+		t.Errorf("Got %v expected %v", av, false)
+	}
+}
+
+func TestHashSetRetain(t *testing.T) {
+	for n := 0; n < 100; n++ {
+		a := []T{}
+		list := NewHashSet()
+		for i := 0; i < n; i++ {
+			if i&1 == 0 {
+				a = append(a, i)
+			}
+			list.Add(i)
+
+			list.Retain(a...)
+			vs := list.Values()
+			sort.Sort(inta(vs))
+			if !reflect.DeepEqual(vs, a) {
+				t.Fatalf("%d Retain() = %v, want %v", i, vs, a)
+			}
+		}
+
+		{
+			a = []T{}
+			list.Retain()
+			vs := list.Values()
+			if len(vs) > 0 {
+				t.Fatalf("%d Retain() = %v, want %v", n, vs, a)
+			}
+		}
+
+		a = []T{}
+		list.Clear()
+		for i := 0; i < n; i++ {
+			if i&1 == 0 {
+				a = append(a, i)
+			}
+			list.Add(i)
+
+			list.RetainAll(AsArrayList(a))
+			vs := list.Values()
+			sort.Sort(inta(vs))
+			if !reflect.DeepEqual(vs, a) {
+				t.Fatalf("%d RetainAll() = %v, want %v", i, vs, a)
+			}
+		}
+
+		{
+			a = []T{}
+			list.RetainAll(AsArrayList(a))
+			vs := list.Values()
+			if len(vs) > 0 {
+				t.Fatalf("%d Retain() = %v, want %v", n, vs, a)
+			}
+		}
 	}
 }
 
@@ -171,10 +243,9 @@ func TestHashSetDelete(t *testing.T) {
 	if av := set.Len(); av != 2 {
 		t.Errorf("Got %v expected %v", av, 2)
 	}
-	set.Delete(3)
-	set.Delete(3)
+	set.Delete(3, 3)
 	set.Delete()
-	set.Delete(2)
+	set.DeleteAll(NewArrayList(2, 2))
 	if av := set.Len(); av != 0 {
 		t.Errorf("Got %v expected %v", av, 0)
 	}

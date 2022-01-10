@@ -2,6 +2,8 @@ package col
 
 import (
 	"fmt"
+
+	"github.com/pandafw/pango/ars"
 )
 
 // NewHashSet Create a new hash set
@@ -157,16 +159,30 @@ func (hs *HashSet) ContainsAll(ac Collection) bool {
 
 // Retain Retains only the elements in this collection that are contained in the argument array vs.
 func (hs *HashSet) Retain(vs ...T) {
-	if hs.IsEmpty() || len(vs) == 0 {
+	if hs.IsEmpty() {
 		return
 	}
 
-	hs.RetainAll(AsArrayList(vs))
+	if len(vs) == 0 {
+		hs.Clear()
+		return
+	}
+
+	for k := range hs.hash {
+		if !ars.Contains(vs, k) {
+			delete(hs.hash, k)
+		}
+	}
 }
 
 // RetainAll Retains only the elements in this collection that are contained in the specified collection.
 func (hs *HashSet) RetainAll(ac Collection) {
-	if hs.IsEmpty() || ac.IsEmpty() || hs == ac {
+	if hs.IsEmpty() || hs == ac {
+		return
+	}
+
+	if ac.IsEmpty() {
+		hs.Clear()
 		return
 	}
 

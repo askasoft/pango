@@ -96,7 +96,20 @@ func (al *ArrayList) Delete(vs ...T) {
 
 // DeleteAll delete all of this collection's elements that are also contained in the specified collection
 func (al *ArrayList) DeleteAll(ac Collection) {
-	al.Delete(ac.Values()...)
+	if ac.IsEmpty() {
+		return
+	}
+
+	if al == ac {
+		al.Clear()
+		return
+	}
+
+	for i := al.Len() - 1; i >= 0; i-- {
+		if ac.Contains(al.data[i]) {
+			al.Remove(i)
+		}
+	}
 }
 
 // Contains Test to see if the list contains the value v
@@ -132,16 +145,30 @@ func (al *ArrayList) ContainsAll(ac Collection) bool {
 
 // Retain Retains only the elements in this collection that are contained in the argument array vs.
 func (al *ArrayList) Retain(vs ...T) {
-	if al.IsEmpty() || len(vs) == 0 {
+	if al.IsEmpty() {
 		return
 	}
 
-	al.RetainAll(AsArrayList(vs))
+	if len(vs) == 0 {
+		al.Clear()
+		return
+	}
+
+	for i := al.Len() - 1; i >= 0; i-- {
+		if !ars.Contains(vs, al.data[i]) {
+			al.Remove(i)
+		}
+	}
 }
 
 // RetainAll Retains only the elements in this collection that are contained in the specified collection.
 func (al *ArrayList) RetainAll(ac Collection) {
-	if al.IsEmpty() || ac.IsEmpty() || al == ac {
+	if al.IsEmpty() || al == ac {
+		return
+	}
+
+	if ac.IsEmpty() {
+		al.Clear()
 		return
 	}
 

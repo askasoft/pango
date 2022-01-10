@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pandafw/pango/ars"
 	"github.com/pandafw/pango/cmp"
 	"github.com/pandafw/pango/iox"
 )
@@ -157,16 +158,30 @@ func (ts *TreeSet) ContainsAll(ac Collection) bool {
 
 // Retain Retains only the elements in this collection that are contained in the argument array vs.
 func (ts *TreeSet) Retain(vs ...T) {
-	if ts.IsEmpty() || len(vs) == 0 {
+	if ts.IsEmpty() {
 		return
 	}
 
-	ts.RetainAll(AsArrayList(vs))
+	if len(vs) == 0 {
+		ts.Clear()
+		return
+	}
+
+	for tn := ts.head(); tn != nil; tn = tn.next() {
+		if !ars.Contains(vs, tn.value) {
+			ts.deleteNode(tn)
+		}
+	}
 }
 
 // RetainAll Retains only the elements in this collection that are contained in the specified collection.
 func (ts *TreeSet) RetainAll(ac Collection) {
-	if ts.IsEmpty() || ac.IsEmpty() || ts == ac {
+	if ts.IsEmpty() || ts == ac {
+		return
+	}
+
+	if ac.IsEmpty() {
+		ts.Clear()
 		return
 	}
 

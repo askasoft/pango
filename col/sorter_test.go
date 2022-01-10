@@ -1,6 +1,6 @@
 package col
 
-type inta []interface{}
+type inta []T
 
 // Len is the number of elements in the collection.
 func (a inta) Len() int {

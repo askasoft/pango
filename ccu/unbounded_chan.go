@@ -1,6 +1,8 @@
 package ccu
 
-import "github.com/pandafw/pango/col"
+import (
+	"github.com/pandafw/pango/col"
+)
 
 // UnboundedChan unbounded channel
 type UnboundedChan struct {
@@ -13,7 +15,7 @@ type UnboundedChan struct {
 func NewUnboundedChan(initCapacity int) UnboundedChan {
 	in := make(chan T, initCapacity)
 	out := make(chan T, initCapacity)
-	rb := col.NewRingBuffer(initCapacity)
+	rb := col.NewRingBuffer()
 
 	ubc := UnboundedChan{
 		In:  in,

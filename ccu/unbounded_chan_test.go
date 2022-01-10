@@ -34,7 +34,7 @@ func TestUnboundedChanSerial(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		v, ok := <-ubc.Out
 		if !ok || v.(int) != i {
-			t.Errorf("%d = %v, want %v", i, i, v)
+			t.Errorf("%d = %v, want %v", i, v, i)
 		}
 	}
 
@@ -44,7 +44,7 @@ func TestUnboundedChanSerial(t *testing.T) {
 func TestUnboundedChanParallel(t *testing.T) {
 	ubc := NewUnboundedChan(5)
 
-	cnt := 1_000_000
+	cnt := 10_000
 
 	wg := sync.WaitGroup{}
 
@@ -61,7 +61,7 @@ func TestUnboundedChanParallel(t *testing.T) {
 		for i := 0; i < cnt; i++ {
 			v, ok := <-ubc.Out
 			if !ok || v.(int) != i {
-				t.Errorf("%d = %v, want %v", i, i, v)
+				t.Errorf("%d = %v, want %v", i, v, i)
 			}
 		}
 		wg.Done()

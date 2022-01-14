@@ -13,32 +13,47 @@ import (
 
 // HTMLTemplate html template engine
 type HTMLTemplate struct {
-	Extensions []string // template extensions
-	Funcs      FuncMap  // template functions
-	Delims     Delims   // delimeters
+	extensions []string // template extensions
+	funcs      FuncMap  // template functions
+	delims     Delims   // delimeters
 
 	template *template.Template
 }
 
 // NewHTMLTemplate new template engine
 func NewHTMLTemplate(extensions ...string) *HTMLTemplate {
+	ht := &HTMLTemplate{
+		delims: Delims{Left: "{{", Right: "}}"},
+	}
+
+	ht.Extensions(extensions...)
+	return ht
+}
+
+// Extensions sets template entensions.
+func (ht *HTMLTemplate) Extensions(extensions ...string) {
 	if len(extensions) == 0 {
 		extensions = []string{".html", ".gohtml"}
 	}
+	ht.extensions = extensions
+}
 
-	return &HTMLTemplate{
-		Extensions: extensions,
-		Delims:     Delims{Left: "{{", Right: "}}"},
-		template:   template.New(""),
-	}
+// Delims sets template left and right delims and returns a Engine instance.
+func (ht *HTMLTemplate) Delims(left, right string) {
+	ht.delims = Delims{Left: left, Right: right}
+}
+
+// Funcs sets the FuncMap used for template.FuncMap.
+func (ht *HTMLTemplate) Funcs(funcMap FuncMap) {
+	ht.funcs = funcMap
 }
 
 // Load glob and parse template files under root path
 func (ht *HTMLTemplate) Load(root string) error {
 	tpl := template.New("")
 
-	tpl.Delims(ht.Delims.Left, ht.Delims.Right)
-	tpl.Funcs(template.FuncMap(ht.Funcs))
+	tpl.Delims(ht.delims.Left, ht.delims.Right)
+	tpl.Funcs(template.FuncMap(ht.funcs))
 
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
@@ -60,8 +75,8 @@ func (ht *HTMLTemplate) Load(root string) error {
 func (ht *HTMLTemplate) LoadFS(fsys fs.FS, root string) error {
 	tpl := template.New("")
 
-	tpl.Delims(ht.Delims.Left, ht.Delims.Right)
-	tpl.Funcs(template.FuncMap(ht.Funcs))
+	tpl.Delims(ht.delims.Left, ht.delims.Right)
+	tpl.Funcs(template.FuncMap(ht.funcs))
 
 	err := fs.WalkDir(fsys, root, func(path string, d fs.DirEntry, err error) error {
 		if d.IsDir() {
@@ -82,7 +97,7 @@ func (ht *HTMLTemplate) LoadFS(fsys fs.FS, root string) error {
 // loadFile load template file
 func (ht *HTMLTemplate) loadFile(tpl *template.Template, fsys fs.FS, root, path string) error {
 	ext := filepath.Ext(path)
-	if !ars.ContainsString(ht.Extensions, ext) {
+	if !ars.ContainsString(ht.extensions, ext) {
 		return nil
 	}
 

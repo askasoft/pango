@@ -11,33 +11,48 @@ import (
 	"github.com/pandafw/pango/ars"
 )
 
-// TextTemplate text template engine
+// TextTemplate html template engine
 type TextTemplate struct {
-	Extensions []string // template extensions
-	Funcs      FuncMap  // template functions
-	Delims     Delims   // delimeters
+	extensions []string // template extensions
+	funcs      FuncMap  // template functions
+	delims     Delims   // delimeters
 
 	template *template.Template
 }
 
 // NewTextTemplate new template engine
 func NewTextTemplate(extensions ...string) *TextTemplate {
+	tt := &TextTemplate{
+		delims: Delims{Left: "{{", Right: "}}"},
+	}
+	tt.Extensions(extensions...)
+	return tt
+}
+
+// Extensions sets template entensions.
+func (tt *TextTemplate) Extensions(extensions ...string) {
 	if len(extensions) == 0 {
 		extensions = []string{".txt", ".gotxt"}
 	}
+	tt.extensions = extensions
+}
 
-	return &TextTemplate{
-		Extensions: extensions,
-		Delims:     Delims{Left: "{{", Right: "}}"},
-	}
+// Delims sets template left and right delims and returns a Engine instance.
+func (tt *TextTemplate) Delims(left, right string) {
+	tt.delims = Delims{Left: left, Right: right}
+}
+
+// Funcs sets the FuncMap used for template.FuncMap.
+func (tt *TextTemplate) Funcs(funcMap FuncMap) {
+	tt.funcs = funcMap
 }
 
 // Load glob and parse template files under the root path
 func (tt *TextTemplate) Load(root string) error {
 	tpl := template.New("")
 
-	tpl.Delims(tt.Delims.Left, tt.Delims.Right)
-	tpl.Funcs(template.FuncMap(tt.Funcs))
+	tpl.Delims(tt.delims.Left, tt.delims.Right)
+	tpl.Funcs(template.FuncMap(tt.funcs))
 
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
@@ -58,8 +73,8 @@ func (tt *TextTemplate) Load(root string) error {
 func (tt *TextTemplate) LoadFS(fsys fs.FS, root string) error {
 	tpl := template.New("")
 
-	tpl.Delims(tt.Delims.Left, tt.Delims.Right)
-	tpl.Funcs(template.FuncMap(tt.Funcs))
+	tpl.Delims(tt.delims.Left, tt.delims.Right)
+	tpl.Funcs(template.FuncMap(tt.funcs))
 
 	err := fs.WalkDir(fsys, root, func(path string, d fs.DirEntry, err error) error {
 		if d.IsDir() {
@@ -79,7 +94,7 @@ func (tt *TextTemplate) LoadFS(fsys fs.FS, root string) error {
 // loadFile load template file
 func (tt *TextTemplate) loadFile(tpl *template.Template, fsys fs.FS, root, path string) error {
 	ext := filepath.Ext(path)
-	if !ars.ContainsString(tt.Extensions, ext) {
+	if !ars.ContainsString(tt.extensions, ext) {
 		return nil
 	}
 

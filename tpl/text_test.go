@@ -9,7 +9,7 @@ import (
 	"github.com/pandafw/pango/str"
 )
 
-func textTestLoad(t *testing.T, tt *TextTemplate) {
+func textTestLoad(t *testing.T, tt *TextTemplates) {
 	sb := &strings.Builder{}
 
 	ctx := map[string]interface{}{
@@ -58,7 +58,7 @@ func textTestLoad(t *testing.T, tt *TextTemplate) {
 }
 
 func TestLoadText(t *testing.T) {
-	tt := NewTextTemplate()
+	tt := NewTextTemplates()
 	root := "testdata"
 
 	err := tt.Load(root)
@@ -71,7 +71,7 @@ func TestLoadText(t *testing.T) {
 }
 
 func TestFSLoadText(t *testing.T) {
-	tt := NewTextTemplate()
+	tt := NewTextTemplates()
 	root := "testdata"
 
 	err := tt.LoadFS(testdata, root)

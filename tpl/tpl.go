@@ -2,6 +2,7 @@ package tpl
 
 import (
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -21,6 +22,27 @@ type FuncMap map[string]interface{}
 type Delims struct {
 	Left  string
 	Right string
+}
+
+// Templates templates interface
+type Templates interface {
+	// Extensions sets template entensions.
+	Extensions(extensions ...string)
+
+	// Delims sets template left and right delims and returns a Engine instance.
+	Delims(left, right string)
+
+	// Funcs sets the FuncMap used for template.FuncMap.
+	Funcs(funcMap FuncMap)
+
+	// Load glob and parse template files under the root path
+	Load(root string) error
+
+	// LoadFS glob and parse template files from FS
+	LoadFS(fsys fs.FS, root string) error
+
+	// Render render template with io.Writer
+	Render(w io.Writer, name string, data interface{}) error
 }
 
 // readFile read file content to string

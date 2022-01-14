@@ -10,7 +10,7 @@ import (
 	"github.com/pandafw/pango/str"
 )
 
-func htmlTestLoad(t *testing.T, ht *HTMLTemplate) {
+func htmlTestLoad(t *testing.T, ht *HTMLTemplates) {
 	sb := &strings.Builder{}
 
 	ctx := map[string]interface{}{
@@ -60,7 +60,7 @@ func htmlTestLoad(t *testing.T, ht *HTMLTemplate) {
 }
 
 func TestLoadHTML(t *testing.T) {
-	ht := NewHTMLTemplate()
+	ht := NewHTMLTemplates()
 	root := "testdata"
 
 	err := ht.Load(root)
@@ -76,7 +76,7 @@ func TestLoadHTML(t *testing.T) {
 var testdata embed.FS
 
 func TestFSLoadHTML(t *testing.T) {
-	ht := NewHTMLTemplate()
+	ht := NewHTMLTemplates()
 	root := "testdata"
 
 	err := ht.LoadFS(testdata, root)

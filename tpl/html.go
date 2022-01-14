@@ -11,8 +11,8 @@ import (
 	"github.com/pandafw/pango/ars"
 )
 
-// HTMLTemplate html template engine
-type HTMLTemplate struct {
+// HTMLTemplates html template engine
+type HTMLTemplates struct {
 	extensions []string // template extensions
 	funcs      FuncMap  // template functions
 	delims     Delims   // delimeters
@@ -20,9 +20,9 @@ type HTMLTemplate struct {
 	template *template.Template
 }
 
-// NewHTMLTemplate new template engine
-func NewHTMLTemplate(extensions ...string) *HTMLTemplate {
-	ht := &HTMLTemplate{
+// NewHTMLTemplates new template engine
+func NewHTMLTemplates(extensions ...string) *HTMLTemplates {
+	ht := &HTMLTemplates{
 		delims: Delims{Left: "{{", Right: "}}"},
 	}
 
@@ -31,7 +31,7 @@ func NewHTMLTemplate(extensions ...string) *HTMLTemplate {
 }
 
 // Extensions sets template entensions.
-func (ht *HTMLTemplate) Extensions(extensions ...string) {
+func (ht *HTMLTemplates) Extensions(extensions ...string) {
 	if len(extensions) == 0 {
 		extensions = []string{".html", ".gohtml"}
 	}
@@ -39,17 +39,17 @@ func (ht *HTMLTemplate) Extensions(extensions ...string) {
 }
 
 // Delims sets template left and right delims and returns a Engine instance.
-func (ht *HTMLTemplate) Delims(left, right string) {
+func (ht *HTMLTemplates) Delims(left, right string) {
 	ht.delims = Delims{Left: left, Right: right}
 }
 
 // Funcs sets the FuncMap used for template.FuncMap.
-func (ht *HTMLTemplate) Funcs(funcMap FuncMap) {
+func (ht *HTMLTemplates) Funcs(funcMap FuncMap) {
 	ht.funcs = funcMap
 }
 
 // Load glob and parse template files under root path
-func (ht *HTMLTemplate) Load(root string) error {
+func (ht *HTMLTemplates) Load(root string) error {
 	tpl := template.New("")
 
 	tpl.Delims(ht.delims.Left, ht.delims.Right)
@@ -72,7 +72,7 @@ func (ht *HTMLTemplate) Load(root string) error {
 }
 
 // LoadFS glob and parse template files from FS
-func (ht *HTMLTemplate) LoadFS(fsys fs.FS, root string) error {
+func (ht *HTMLTemplates) LoadFS(fsys fs.FS, root string) error {
 	tpl := template.New("")
 
 	tpl.Delims(ht.delims.Left, ht.delims.Right)
@@ -95,7 +95,7 @@ func (ht *HTMLTemplate) LoadFS(fsys fs.FS, root string) error {
 }
 
 // loadFile load template file
-func (ht *HTMLTemplate) loadFile(tpl *template.Template, fsys fs.FS, root, path string) error {
+func (ht *HTMLTemplates) loadFile(tpl *template.Template, fsys fs.FS, root, path string) error {
 	ext := filepath.Ext(path)
 	if !ars.ContainsString(ht.extensions, ext) {
 		return nil
@@ -103,7 +103,7 @@ func (ht *HTMLTemplate) loadFile(tpl *template.Template, fsys fs.FS, root, path 
 
 	text, err := readFile(fsys, path)
 	if err != nil {
-		return fmt.Errorf("HTMLTemplate load template %q error: %v", path, err)
+		return fmt.Errorf("HTMLTemplates load template %q error: %v", path, err)
 	}
 
 	path = toTemplateName(root, path, ext)
@@ -111,16 +111,16 @@ func (ht *HTMLTemplate) loadFile(tpl *template.Template, fsys fs.FS, root, path 
 	tpl = tpl.New(path)
 	_, err = tpl.Parse(text)
 	if err != nil {
-		return fmt.Errorf("HTMLTemplate parse template %q error: %v", path, err)
+		return fmt.Errorf("HTMLTemplates parse template %q error: %v", path, err)
 	}
 	return nil
 }
 
 // Render render template with io.Writer
-func (ht *HTMLTemplate) Render(w io.Writer, name string, data interface{}) error {
+func (ht *HTMLTemplates) Render(w io.Writer, name string, data interface{}) error {
 	err := ht.template.ExecuteTemplate(w, name, data)
 	if err != nil {
-		return fmt.Errorf("HTMLTemplate execute template %q error: %v", name, err)
+		return fmt.Errorf("HTMLTemplates execute template %q error: %v", name, err)
 	}
 
 	return nil

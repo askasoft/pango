@@ -12,18 +12,25 @@ type HTMLRender interface {
 	Instance(string, interface{}) Render
 }
 
-// HTMLTemplate html engine for gin
-type HTMLTemplate struct {
-	*tpl.HTMLTemplate
+// HTMLTemplates html templates interface for gin
+type HTMLTemplates interface {
+	tpl.Templates
+
+	Instance(name string, data interface{}) Render
 }
 
-// NewHTMLTemplate create a html engine for gin
-func NewHTMLTemplate() *HTMLTemplate {
-	return &HTMLTemplate{tpl.NewHTMLTemplate()}
+// htmlTemplates html engine for gin
+type htmlTemplates struct {
+	*tpl.HTMLTemplates
+}
+
+// NewHTMLTemplates create a html templates instance for gin
+func NewHTMLTemplates() HTMLTemplates {
+	return &htmlTemplates{tpl.NewHTMLTemplates()}
 }
 
 // Instance implement gin interface
-func (html *HTMLTemplate) Instance(name string, data interface{}) Render {
+func (html *htmlTemplates) Instance(name string, data interface{}) Render {
 	return htmlRender{
 		html: html,
 		name: name,
@@ -33,7 +40,7 @@ func (html *HTMLTemplate) Instance(name string, data interface{}) Render {
 
 // HTMLRender view render implement gin interface
 type htmlRender struct {
-	html *HTMLTemplate
+	html *htmlTemplates
 	name string
 	data interface{}
 }

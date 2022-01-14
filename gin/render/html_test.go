@@ -10,7 +10,7 @@ import (
 func TestRenderHTMLTemplate(t *testing.T) {
 	w := httptest.NewRecorder()
 
-	ht := NewHTMLTemplate()
+	ht := NewHTMLTemplates()
 	ht.Load("testdata")
 	instance := ht.Instance("hello", map[string]interface{}{
 		"name": "alexandernyquist",

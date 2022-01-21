@@ -1,8 +1,4 @@
-// Copyright 2014 Manu Martinez-Almeida.  All rights reserved.
-// Use of this source code is governed by a MIT style
-// license that can be found in the LICENSE file.
-
-package binding
+package validate
 
 import (
 	"bytes"
@@ -109,14 +105,15 @@ func createNoValidationValues() structNoValidationValues {
 }
 
 func TestValidateNoValidationValues(t *testing.T) {
+	v := NewStructValidator()
 	origin := createNoValidationValues()
 	test := createNoValidationValues()
 	empty := structNoValidationValues{}
 
-	assert.Nil(t, validate(test))
-	assert.Nil(t, validate(&test))
-	assert.Nil(t, validate(empty))
-	assert.Nil(t, validate(&empty))
+	assert.Nil(t, v.ValidateStruct(test))
+	assert.Nil(t, v.ValidateStruct(&test))
+	assert.Nil(t, v.ValidateStruct(empty))
+	assert.Nil(t, v.ValidateStruct(&empty))
 
 	assert.Equal(t, origin, test)
 }
@@ -157,14 +154,16 @@ type structNoValidationPointer struct {
 }
 
 func TestValidateNoValidationPointers(t *testing.T) {
+	v := NewStructValidator()
+
 	//origin := createNoValidation_values()
 	//test := createNoValidation_values()
 	empty := structNoValidationPointer{}
 
-	//assert.Nil(t, validate(test))
-	//assert.Nil(t, validate(&test))
-	assert.Nil(t, validate(empty))
-	assert.Nil(t, validate(&empty))
+	//assert.Nil(t, v.ValidateStruct(test))
+	//assert.Nil(t, v.ValidateStruct(&test))
+	assert.Nil(t, v.ValidateStruct(empty))
+	assert.Nil(t, v.ValidateStruct(&empty))
 
 	//assert.Equal(t, origin, test)
 }
@@ -172,23 +171,25 @@ func TestValidateNoValidationPointers(t *testing.T) {
 type Object map[string]interface{}
 
 func TestValidatePrimitives(t *testing.T) {
+	v := NewStructValidator()
+
 	obj := Object{"foo": "bar", "bar": 1}
-	assert.NoError(t, validate(obj))
-	assert.NoError(t, validate(&obj))
+	assert.NoError(t, v.ValidateStruct(obj))
+	assert.NoError(t, v.ValidateStruct(&obj))
 	assert.Equal(t, Object{"foo": "bar", "bar": 1}, obj)
 
 	obj2 := []Object{{"foo": "bar", "bar": 1}, {"foo": "bar", "bar": 1}}
-	assert.NoError(t, validate(obj2))
-	assert.NoError(t, validate(&obj2))
+	assert.NoError(t, v.ValidateStruct(obj2))
+	assert.NoError(t, v.ValidateStruct(&obj2))
 
 	nu := 10
-	assert.NoError(t, validate(nu))
-	assert.NoError(t, validate(&nu))
+	assert.NoError(t, v.ValidateStruct(nu))
+	assert.NoError(t, v.ValidateStruct(&nu))
 	assert.Equal(t, 10, nu)
 
 	str := "value"
-	assert.NoError(t, validate(str))
-	assert.NoError(t, validate(&str))
+	assert.NoError(t, v.ValidateStruct(str))
+	assert.NoError(t, v.ValidateStruct(&str))
 	assert.Equal(t, "value", str)
 }
 
@@ -207,10 +208,12 @@ func notOne(f1 validator.FieldLevel) bool {
 }
 
 func TestValidatorEngine(t *testing.T) {
+	v := NewStructValidator()
+
 	// This validates that the function `notOne` matches
 	// the expected function signature by `defaultValidator`
 	// and by extension the validator library.
-	engine, ok := Validator.Engine().(*validator.Validate)
+	engine, ok := v.Engine().(*validator.Validate)
 	assert.True(t, ok)
 
 	err := engine.RegisterValidation("notone", notOne)
@@ -219,7 +222,7 @@ func TestValidatorEngine(t *testing.T) {
 
 	// Create an instance which will fail validation
 	withOne := structCustomValidation{Integer: 1}
-	errs := validate(withOne)
+	errs := v.ValidateStruct(withOne)
 
 	// Check that we got back non-nil errs
 	assert.NotNil(t, errs)

@@ -1,4 +1,4 @@
-package binding
+package validate
 
 import (
 	"errors"

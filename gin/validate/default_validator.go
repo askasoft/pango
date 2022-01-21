@@ -1,23 +1,18 @@
-// Copyright 2017 Manu Martinez-Almeida.  All rights reserved.
-// Use of this source code is governed by a MIT style
-// license that can be found in the LICENSE file.
-
-package binding
+package validate
 
 import (
 	"fmt"
 	"reflect"
 	"strings"
-	"sync"
 
 	"github.com/go-playground/validator/v10"
 )
 
 type defaultValidator struct {
-	once     sync.Once
-	validate *validator.Validate
+	engine *validator.Validate
 }
 
+// SliceValidationError error array for slice/array
 type SliceValidationError []error
 
 // Error concatenates all error elements in SliceValidationError into a single string separated by \n.
@@ -42,8 +37,6 @@ func (err SliceValidationError) Error() string {
 		return b.String()
 	}
 }
-
-var _ StructValidator = &defaultValidator{}
 
 // ValidateStruct receives any kind of type, but only performed struct or pointer to struct type.
 func (v *defaultValidator) ValidateStruct(obj interface{}) error {
@@ -76,8 +69,12 @@ func (v *defaultValidator) ValidateStruct(obj interface{}) error {
 
 // validateStruct receives struct type
 func (v *defaultValidator) validateStruct(obj interface{}) error {
-	v.lazyinit()
-	return v.validate.Struct(obj)
+	return v.engine.Struct(obj)
+}
+
+// SetTagName allows for changing of the default tag name of 'validate'
+func (v *defaultValidator) SetTagName(name string) {
+	v.engine.SetTagName(name)
 }
 
 // Engine returns the underlying validator engine which powers the default
@@ -85,13 +82,5 @@ func (v *defaultValidator) validateStruct(obj interface{}) error {
 // or struct level validations. See validator GoDoc for more info -
 // https://pkg.go.dev/github.com/go-playground/validator/v10
 func (v *defaultValidator) Engine() interface{} {
-	v.lazyinit()
-	return v.validate
-}
-
-func (v *defaultValidator) lazyinit() {
-	v.once.Do(func() {
-		v.validate = validator.New()
-		v.validate.SetTagName("binding")
-	})
+	return v.engine
 }

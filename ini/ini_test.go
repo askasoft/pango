@@ -10,10 +10,20 @@ import (
 )
 
 func TestLoadFile(t *testing.T) {
-	fin := "testdata/input.ini"
-	fexp := "testdata/except.ini"
+	fsrc := "testdata/source.ini"
+	fexp := "testdata/expect.ini"
 	fout := "testdata/output.ini"
+	testLoadFile(t, fsrc, fexp, fout)
+}
 
+func TestLoadFileBom(t *testing.T) {
+	fsrc := "testdata/source-bom.ini"
+	fexp := "testdata/expect.ini"
+	fout := "testdata/output-bom.ini"
+	testLoadFile(t, fsrc, fexp, fout)
+}
+
+func testLoadFile(t *testing.T, fsrc, fexp, fout string) {
 	defer os.Remove(fout)
 
 	ini := NewIni()
@@ -21,8 +31,8 @@ func TestLoadFile(t *testing.T) {
 	ini.Multiple = true
 
 	// load
-	if ini.LoadFile(fin) != nil {
-		t.Errorf("ini.LoadFile(%q) != nil", fin)
+	if ini.LoadFile(fsrc) != nil {
+		t.Errorf("ini.LoadFile(%q) != nil", fsrc)
 	}
 
 	// value

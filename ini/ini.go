@@ -169,12 +169,16 @@ func (ini *Ini) LoadFileFS(fsys fs.FS, path string) error {
 }
 
 // LoadData load INI from io.Reader
-func (ini *Ini) LoadData(r io.Reader) error {
+func (ini *Ini) LoadData(r io.Reader) (err error) {
 	lineContinue := false      // line continue flag
 	section := ini.Section("") // last section
 	var comments []string      // last comments
 	var key string             // last key
 	var val bytes.Buffer       // last value
+
+	if r, err = iox.SkipBOM(r); err != nil {
+		return err
+	}
 
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {

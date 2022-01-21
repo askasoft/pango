@@ -1,6 +1,7 @@
 package iox
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
@@ -59,4 +60,17 @@ func CopyFile(src string, dst string) error {
 
 	_, err = io.Copy(df, sf)
 	return err
+}
+
+// SkipBOM skip bom and return a reader
+func SkipBOM(r io.Reader) (io.Reader, error) {
+	br := bufio.NewReader(r)
+	c, _, err := br.ReadRune()
+	if err != nil {
+		return br, err
+	}
+	if c != '\uFEFF' {
+		br.UnreadRune() // Not a BOM -- put the rune back
+	}
+	return br, nil
 }

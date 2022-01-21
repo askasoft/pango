@@ -2,11 +2,15 @@ package log
 
 import (
 	"fmt"
+	"io"
 )
 
 // Logger logger interface
 type Logger interface {
+	GetLogger(name string) Logger
+	Outputer(name string, lvl Level, callerDepth ...int) io.Writer
 	GetName() string
+	SetName(name string)
 	GetLevel() Level
 	GetTraceLevel() Level
 	GetFormatter() Formatter
@@ -47,9 +51,33 @@ type logger struct {
 	props map[string]interface{}
 }
 
+// GetLogger create a new logger with name
+func (l *logger) GetLogger(name string) Logger {
+	return l.log.GetLogger(name)
+}
+
+// Outputer return a io.Writer for go log.SetOutput
+// callerDepth: default is 1 (means +1)
+// if the outputer is used by go std log, set callerDepth to 2
+// example:
+//   import (
+//     golog "log"
+//     "github.com/pandafw/pango/log"
+//   )
+//   golog.SetOutput(log.Outputer("GO", log.LevelInfo, 3))
+//
+func (l *logger) Outputer(name string, lvl Level, callerDepth ...int) io.Writer {
+	return l.log.Outputer(name, lvl, callerDepth...)
+}
+
 // GetName return the logger's name
 func (l *logger) GetName() string {
 	return l.name
+}
+
+// SetName set the logger's name
+func (l *logger) SetName(name string) {
+	l.name = name
 }
 
 // GetCallerDepth return the logger's depth

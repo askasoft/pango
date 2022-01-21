@@ -140,6 +140,11 @@ func (log *Log) GetName() string {
 	return log.logger.name
 }
 
+// SetName set the logger's name
+func (log *Log) SetName(name string) {
+	log.logger.name = name
+}
+
 // GetCallerDepth return the logger's depth
 func (log *Log) GetCallerDepth() int {
 	return log.logger.depth

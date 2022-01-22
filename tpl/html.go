@@ -48,50 +48,62 @@ func (ht *HTMLTemplates) Funcs(funcMap FuncMap) {
 	ht.funcs = funcMap
 }
 
-// Load glob and parse template files under root path
-func (ht *HTMLTemplates) Load(root string) error {
+// Load glob and parse template files under the root path
+func (ht *HTMLTemplates) Load(root string) (err error) {
 	tpl := template.New("")
 
 	tpl.Delims(ht.delims.Left, ht.delims.Right)
 	tpl.Funcs(template.FuncMap(ht.funcs))
 
-	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+	root, err = filepath.Abs(root)
+	if err != nil {
+		return
+	}
+
+	root = filepath.ToSlash(root)
+	err = filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
 		if info.IsDir() {
 			return nil
 		}
 
 		return ht.loadFile(tpl, nil, root, path)
 	})
-
 	if err != nil {
-		return err
+		return
 	}
 
 	ht.template = tpl
-	return nil
+	return
 }
 
 // LoadFS glob and parse template files from FS
-func (ht *HTMLTemplates) LoadFS(fsys fs.FS, root string) error {
+func (ht *HTMLTemplates) LoadFS(fsys fs.FS, root string) (err error) {
 	tpl := template.New("")
 
 	tpl.Delims(ht.delims.Left, ht.delims.Right)
 	tpl.Funcs(template.FuncMap(ht.funcs))
 
-	err := fs.WalkDir(fsys, root, func(path string, d fs.DirEntry, err error) error {
+	err = fs.WalkDir(fsys, root, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
 		if d.IsDir() {
 			return nil
 		}
 
 		return ht.loadFile(tpl, fsys, root, path)
 	})
-
 	if err != nil {
-		return err
+		return
 	}
 
 	ht.template = tpl
-	return nil
+	return
 }
 
 // loadFile load template file

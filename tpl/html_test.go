@@ -72,6 +72,19 @@ func TestLoadHTML(t *testing.T) {
 	htmlTestLoad(t, ht)
 }
 
+func TestLoadHTML2(t *testing.T) {
+	ht := NewHTMLTemplates()
+	root := "./testdata"
+
+	err := ht.Load(root)
+	if err != nil {
+		t.Errorf(`ht.Load(%q) = %v`, root, err)
+		return
+	}
+
+	htmlTestLoad(t, ht)
+}
+
 //go:embed testdata
 var testdata embed.FS
 

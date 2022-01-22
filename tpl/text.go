@@ -48,47 +48,61 @@ func (tt *TextTemplates) Funcs(funcMap FuncMap) {
 }
 
 // Load glob and parse template files under the root path
-func (tt *TextTemplates) Load(root string) error {
+func (tt *TextTemplates) Load(root string) (err error) {
 	tpl := template.New("")
 
 	tpl.Delims(tt.delims.Left, tt.delims.Right)
 	tpl.Funcs(template.FuncMap(tt.funcs))
 
-	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+	root, err = filepath.Abs(root)
+	if err != nil {
+		return
+	}
+
+	root = filepath.ToSlash(root)
+	err = filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
 		if info.IsDir() {
 			return nil
 		}
+
 		return tt.loadFile(tpl, nil, root, path)
 	})
-
 	if err != nil {
-		return err
+		return
 	}
 
 	tt.template = tpl
-	return nil
+	return
 }
 
 // LoadFS glob and parse template files from FS
-func (tt *TextTemplates) LoadFS(fsys fs.FS, root string) error {
+func (tt *TextTemplates) LoadFS(fsys fs.FS, root string) (err error) {
 	tpl := template.New("")
 
 	tpl.Delims(tt.delims.Left, tt.delims.Right)
 	tpl.Funcs(template.FuncMap(tt.funcs))
 
-	err := fs.WalkDir(fsys, root, func(path string, d fs.DirEntry, err error) error {
+	err = fs.WalkDir(fsys, root, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
 		if d.IsDir() {
 			return nil
 		}
+
 		return tt.loadFile(tpl, fsys, root, path)
 	})
-
 	if err != nil {
-		return err
+		return
 	}
 
 	tt.template = tpl
-	return nil
+	return
 }
 
 // loadFile load template file

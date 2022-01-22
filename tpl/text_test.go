@@ -70,6 +70,19 @@ func TestLoadText(t *testing.T) {
 	textTestLoad(t, tt)
 }
 
+func TestLoadText2(t *testing.T) {
+	tt := NewTextTemplates()
+	root := "./testdata"
+
+	err := tt.Load(root)
+	if err != nil {
+		t.Errorf(`ht.Load(%q) = %v`, root, err)
+		return
+	}
+
+	textTestLoad(t, tt)
+}
+
 func TestFSLoadText(t *testing.T) {
 	tt := NewTextTemplates()
 	root := "testdata"

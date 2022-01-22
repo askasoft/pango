@@ -1,11 +1,12 @@
 package validate
 
-import "github.com/go-playground/validator/v10"
+import (
+	"github.com/pandafw/pango/vad"
+)
 
 // StructValidator is the minimal interface which needs to be implemented in
 // order for it to be used as the validator engine for ensuring the correctness
-// of the request. Gin provides a default implementation for this using
-// https://github.com/go-playground/validator/tree/v10.6.1.
+// of the request.
 type StructValidator interface {
 	// ValidateStruct can receive any kind of type and it should never panic, even if the configuration is not right.
 	// If the received type is a slice|array, the validation should be performed travel on every element.
@@ -23,12 +24,10 @@ type StructValidator interface {
 	Engine() interface{}
 }
 
-// NewStructValidator is the default validator which implements the StructValidator
-// interface. It uses https://github.com/go-playground/validator/tree/v10.6.1
-// under the hood.
+// NewStructValidator is the default validator which implements the StructValidator interface.
 func NewStructValidator() StructValidator {
 	v := &defaultValidator{}
-	v.engine = validator.New()
+	v.engine = vad.New()
 	v.engine.SetTagName("binding")
 	return v
 }

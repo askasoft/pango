@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-playground/validator/v10"
+	"github.com/pandafw/pango/vad"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -200,7 +200,7 @@ type structCustomValidation struct {
 	Integer int `binding:"notone"`
 }
 
-func notOne(f1 validator.FieldLevel) bool {
+func notOne(f1 vad.FieldLevel) bool {
 	if val, ok := f1.Field().Interface().(int); ok {
 		return val != 1
 	}
@@ -213,7 +213,7 @@ func TestValidatorEngine(t *testing.T) {
 	// This validates that the function `notOne` matches
 	// the expected function signature by `defaultValidator`
 	// and by extension the validator library.
-	engine, ok := v.Engine().(*validator.Validate)
+	engine, ok := v.Engine().(*vad.Validate)
 	assert.True(t, ok)
 
 	err := engine.RegisterValidation("notone", notOne)

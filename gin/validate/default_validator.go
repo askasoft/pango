@@ -5,11 +5,11 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/go-playground/validator/v10"
+	"github.com/pandafw/pango/vad"
 )
 
 type defaultValidator struct {
-	engine *validator.Validate
+	engine *vad.Validate
 }
 
 // SliceValidationError error array for slice/array

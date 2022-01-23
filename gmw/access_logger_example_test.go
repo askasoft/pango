@@ -1,17 +1,19 @@
-package gin
+package gmw
 
 import (
 	"context"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/pandafw/pango/gin"
 )
 
 func Example() {
-	router := New()
+	router := gin.New()
 	router.Use(NewAccessLogger(os.Stdout, DefaultTextLogFormat).Handler())
 
-	router.Any("/example", func(c *Context) {
+	router.Any("/example", func(c *gin.Context) {
 		c.String(http.StatusOK, c.Request.URL.String())
 	})
 

@@ -1,4 +1,4 @@
-package gin
+package gmw
 
 import (
 	"bytes"
@@ -9,6 +9,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/pandafw/pango/gin"
 	"github.com/pandafw/pango/str"
 )
 
@@ -28,13 +29,13 @@ func assertContains(t *testing.T, msg string, body string, ss ...string) {
 }
 
 func TestTextLog(t *testing.T) {
-	router := New()
+	router := gin.New()
 
 	buffer := new(bytes.Buffer)
 	writer := io.MultiWriter(buffer, os.Stdout)
 	router.Use(NewAccessLogger(writer, DefaultTextLogFormat).Handler())
 
-	router.Any("/example", func(c *Context) {})
+	router.Any("/example", func(c *gin.Context) {})
 
 	buffer.Reset()
 	performRequest(router, "GET", "/example?a=100")
@@ -84,12 +85,12 @@ func assertJSONResult(t *testing.T, result map[string]interface{}, sc int, metho
 func TestJSONLog(t *testing.T) {
 	result := make(map[string]interface{})
 	buffer := new(bytes.Buffer)
-	router := New()
+	router := gin.New()
 
 	writer := io.MultiWriter(buffer, os.Stdout)
 	router.Use(NewAccessLogger(writer, DefaultJSONLogFormat).Handler())
 
-	router.Any("/example", func(c *Context) {})
+	router.Any("/example", func(c *gin.Context) {})
 
 	buffer.Reset()
 	performRequest(router, "GET", "/example?a=100")

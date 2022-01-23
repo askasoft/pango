@@ -1,4 +1,4 @@
-package gin
+package gmw
 
 import (
 	"bytes"
@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pandafw/pango/gin"
 	"github.com/pandafw/pango/iox"
 	"github.com/pandafw/pango/net/httpx"
 )
@@ -34,7 +35,7 @@ type AccessLogger struct {
 type logevt struct {
 	Start time.Time
 	End   time.Time
-	Ctx   *Context
+	Ctx   *gin.Context
 }
 
 type fmtfunc func(p *logevt) string
@@ -67,14 +68,14 @@ func (al *AccessLogger) Disable(disabled bool) {
 }
 
 // Handler returns the HandlerFunc
-func (al *AccessLogger) Handler() HandlerFunc {
-	return func(c *Context) {
+func (al *AccessLogger) Handler() gin.HandlerFunc {
+	return func(c *gin.Context) {
 		al.handle(c)
 	}
 }
 
 // handle process gin request
-func (al *AccessLogger) handle(c *Context) {
+func (al *AccessLogger) handle(c *gin.Context) {
 	w := al.outputer
 	if w == nil || al.disabled {
 		c.Next()

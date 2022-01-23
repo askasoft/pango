@@ -195,12 +195,11 @@ func New() *Engine {
 	return engine
 }
 
-// Default returns an Engine instance with the Logger and Recovery middleware already attached.
+// Default returns an Engine instance with the Recovery middleware already attached.
 func Default() *Engine {
 	engine := New()
-	al := NewAccessLogger(engine.Logger.Outputer("GINA", log.LevelTrace), DefaultTextLogFormat)
-	engine.Use(al.Handler(), Recovery())
-	engine.Logger.Warn("Creating an Engine instance with the Logger and Recovery middleware already attached.")
+	engine.Use(Recovery())
+	engine.Logger.Info("Creating an Engine instance with the Recovery middleware already attached.")
 	return engine
 }
 

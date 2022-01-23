@@ -33,7 +33,7 @@ const (
 )
 
 // BodyBytesKey indicates a default body bytes key.
-const BodyBytesKey = "_gin-gonic/gin/bodybyteskey"
+const BodyBytesKey = "GIN_BODY_BYYTES"
 
 // abortIndex represents a typical value used in abort functions.
 const abortIndex int8 = math.MaxInt8 >> 1
@@ -56,6 +56,9 @@ type Context struct {
 
 	// This mutex protects Keys map.
 	mu sync.RWMutex
+
+	// locale string for the context of each request.
+	Locale string
 
 	// Keys is a key/value pair exclusively for the context of each request.
 	Keys map[string]interface{}
@@ -92,6 +95,7 @@ func (c *Context) reset() {
 	c.index = -1
 
 	c.fullPath = ""
+	c.Locale = ""
 	c.Keys = nil
 	c.Errors = c.Errors[:0]
 	c.Accepted = nil
@@ -114,6 +118,7 @@ func (c *Context) Copy() *Context {
 		Params:    c.Params,
 		engine:    c.engine,
 		logger:    c.logger,
+		Locale:    c.Locale,
 	}
 	cp.writermem.ResponseWriter = nil
 	cp.Writer = &cp.writermem

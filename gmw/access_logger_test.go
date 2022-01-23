@@ -13,14 +13,14 @@ import (
 	"github.com/pandafw/pango/str"
 )
 
-func performRequest(r http.Handler, method, path string) *httptest.ResponseRecorder {
+func logPerformRequest(r http.Handler, method, path string) *httptest.ResponseRecorder {
 	req := httptest.NewRequest(method, path, nil)
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	return w
 }
 
-func assertContains(t *testing.T, msg string, body string, ss ...string) {
+func logAssertContains(t *testing.T, msg string, body string, ss ...string) {
 	for _, s := range ss {
 		if !str.Contains(body, s) {
 			t.Errorf(`%s access log does not contains %q`, msg, s)
@@ -38,36 +38,36 @@ func TestTextLog(t *testing.T) {
 	router.Any("/example", func(c *gin.Context) {})
 
 	buffer.Reset()
-	performRequest(router, "GET", "/example?a=100")
-	assertContains(t, "GET /example?a=100", buffer.String(), "200", "GET", "/example", "a=100")
+	logPerformRequest(router, "GET", "/example?a=100")
+	logAssertContains(t, "GET /example?a=100", buffer.String(), "200", "GET", "/example", "a=100")
 
 	buffer.Reset()
-	performRequest(router, "POST", "/example")
-	assertContains(t, "POST /example", buffer.String(), "200", "POST", "/example")
+	logPerformRequest(router, "POST", "/example")
+	logAssertContains(t, "POST /example", buffer.String(), "200", "POST", "/example")
 
 	buffer.Reset()
-	performRequest(router, "PUT", "/example")
-	assertContains(t, "PUT /example", buffer.String(), "200", "PUT", "/example")
+	logPerformRequest(router, "PUT", "/example")
+	logAssertContains(t, "PUT /example", buffer.String(), "200", "PUT", "/example")
 
 	buffer.Reset()
-	performRequest(router, "DELETE", "/example")
-	assertContains(t, "DELETE /example", buffer.String(), "200", "DELETE", "/example")
+	logPerformRequest(router, "DELETE", "/example")
+	logAssertContains(t, "DELETE /example", buffer.String(), "200", "DELETE", "/example")
 
 	buffer.Reset()
-	performRequest(router, "PATCH", "/example")
-	assertContains(t, "PATCH /example", buffer.String(), "200", "PATCH", "/example")
+	logPerformRequest(router, "PATCH", "/example")
+	logAssertContains(t, "PATCH /example", buffer.String(), "200", "PATCH", "/example")
 
 	buffer.Reset()
-	performRequest(router, "HEAD", "/example")
-	assertContains(t, "HEAD /example", buffer.String(), "200", "HEAD", "/example")
+	logPerformRequest(router, "HEAD", "/example")
+	logAssertContains(t, "HEAD /example", buffer.String(), "200", "HEAD", "/example")
 
 	buffer.Reset()
-	performRequest(router, "OPTIONS", "/example")
-	assertContains(t, "OPTIONS /example", buffer.String(), "200", "OPTIONS", "/example")
+	logPerformRequest(router, "OPTIONS", "/example")
+	logAssertContains(t, "OPTIONS /example", buffer.String(), "200", "OPTIONS", "/example")
 
 	buffer.Reset()
-	performRequest(router, "GET", "/notfound")
-	assertContains(t, "GET /notfound", buffer.String(), "404", "GET", "/notfound")
+	logPerformRequest(router, "GET", "/notfound")
+	logAssertContains(t, "GET /notfound", buffer.String(), "404", "GET", "/notfound")
 }
 
 func assertJSONResult(t *testing.T, result map[string]interface{}, sc int, method string, url string) {
@@ -93,42 +93,42 @@ func TestJSONLog(t *testing.T) {
 	router.Any("/example", func(c *gin.Context) {})
 
 	buffer.Reset()
-	performRequest(router, "GET", "/example?a=100")
+	logPerformRequest(router, "GET", "/example?a=100")
 	json.Unmarshal(buffer.Bytes(), &result)
 	assertJSONResult(t, result, 200, "GET", "/example?a=100")
 
 	buffer.Reset()
-	performRequest(router, "POST", "/example")
+	logPerformRequest(router, "POST", "/example")
 	json.Unmarshal(buffer.Bytes(), &result)
 	assertJSONResult(t, result, 200, "POST", "/example")
 
 	buffer.Reset()
-	performRequest(router, "PUT", "/example")
+	logPerformRequest(router, "PUT", "/example")
 	json.Unmarshal(buffer.Bytes(), &result)
 	assertJSONResult(t, result, 200, "PUT", "/example")
 
 	buffer.Reset()
-	performRequest(router, "DELETE", "/example")
+	logPerformRequest(router, "DELETE", "/example")
 	json.Unmarshal(buffer.Bytes(), &result)
 	assertJSONResult(t, result, 200, "DELETE", "/example")
 
 	buffer.Reset()
-	performRequest(router, "PATCH", "/example")
+	logPerformRequest(router, "PATCH", "/example")
 	json.Unmarshal(buffer.Bytes(), &result)
 	assertJSONResult(t, result, 200, "PATCH", "/example")
 
 	buffer.Reset()
-	performRequest(router, "HEAD", "/example")
+	logPerformRequest(router, "HEAD", "/example")
 	json.Unmarshal(buffer.Bytes(), &result)
 	assertJSONResult(t, result, 200, "HEAD", "/example")
 
 	buffer.Reset()
-	performRequest(router, "OPTIONS", "/example")
+	logPerformRequest(router, "OPTIONS", "/example")
 	json.Unmarshal(buffer.Bytes(), &result)
 	assertJSONResult(t, result, 200, "OPTIONS", "/example")
 
 	buffer.Reset()
-	performRequest(router, "GET", "/notfound")
+	logPerformRequest(router, "GET", "/notfound")
 	json.Unmarshal(buffer.Bytes(), &result)
 	assertJSONResult(t, result, 404, "GET", "/notfound")
 }

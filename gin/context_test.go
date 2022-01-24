@@ -977,7 +977,7 @@ func TestContextRenderFileFromFS(t *testing.T) {
 	c, _ := CreateTestContext(w)
 
 	c.Request, _ = http.NewRequest("GET", "/some/path", nil)
-	c.FileFromFS("./gin.go", Dir(".", false))
+	c.FileFromFS("./gin.go", http.Dir("."))
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Contains(t, w.Body.String(), "func New() *Engine {")

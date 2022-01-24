@@ -1,11 +1,19 @@
 package gin
 
 import (
+	"bytes"
 	"net/http"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
+
+	"github.com/pandafw/pango/net/httpx"
 )
+
+// Public1Year Cache-Control: public, max-age=31536000
+const Public1Year = "public, max-age=31536000"
 
 var (
 	// reg match english letters for http method name
@@ -39,9 +47,11 @@ type IRoutes interface {
 	OPTIONS(string, ...HandlerFunc) IRoutes
 	HEAD(string, ...HandlerFunc) IRoutes
 
-	StaticFile(string, string) IRoutes
-	Static(string, string) IRoutes
-	StaticFS(string, http.FileSystem) IRoutes
+	StaticFile(string, string, ...string) IRoutes
+	Static(string, string, ...string) IRoutes
+	StaticFS(string, string, http.FileSystem, ...string) IRoutes
+	StaticFSFile(relativePath, filePath string, hfs http.FileSystem, cacheControls ...string) IRoutes
+	StaticContent(relativePath string, data []byte, modtime time.Time, cacheControls ...string) IRoutes
 }
 
 // RouterGroup is used internally to configure router, a RouterGroup is associated with
@@ -52,8 +62,6 @@ type RouterGroup struct {
 	engine   *Engine
 	root     bool
 }
-
-var _ IRouter = &RouterGroup{}
 
 // Use adds middleware to the group, see example code in GitHub.
 func (group *RouterGroup) Use(middleware ...HandlerFunc) IRoutes {
@@ -146,14 +154,33 @@ func (group *RouterGroup) Any(relativePath string, handlers ...HandlerFunc) IRou
 	return group.returnObj()
 }
 
+func getCacheControlWriter(c *Context, cacheControl string) http.ResponseWriter {
+	if cacheControl == "" {
+		return c.Writer
+	}
+	h := map[string]string{"Cache-Control": cacheControl}
+	return httpx.NewHeaderAppender(c.Writer, h)
+}
+
 // StaticFile registers a single route in order to serve a single file of the local filesystem.
-// router.StaticFile("favicon.ico", "./resources/favicon.ico")
-func (group *RouterGroup) StaticFile(relativePath, filepath string) IRoutes {
+// router.StaticFile("favicon.ico", "./resources/favicon.ico", "public, max-age=31536000")
+func (group *RouterGroup) StaticFile(relativePath, localPath string, cacheControls ...string) IRoutes {
 	if strings.Contains(relativePath, ":") || strings.Contains(relativePath, "*") {
 		panic("URL parameters can not be used when serving a static file")
 	}
-	handler := func(c *Context) {
-		c.File(filepath)
+
+	var handler func(c *Context)
+
+	cacheControl := strings.Join(cacheControls, ", ")
+	if cacheControl == "" {
+		handler = func(c *Context) {
+			c.File(localPath)
+		}
+	} else {
+		handler = func(c *Context) {
+			ccw := getCacheControlWriter(c, cacheControl)
+			http.ServeFile(ccw, c.Request, localPath)
+		}
 	}
 	group.GET(relativePath, handler)
 	group.HEAD(relativePath, handler)
@@ -166,18 +193,41 @@ func (group *RouterGroup) StaticFile(relativePath, filepath string) IRoutes {
 // To use the operating system's file system implementation,
 // use :
 //     router.Static("/static", "/var/www")
-func (group *RouterGroup) Static(relativePath, root string) IRoutes {
-	return group.StaticFS(relativePath, Dir(root, false))
+func (group *RouterGroup) Static(relativePath, root string, cacheControls ...string) IRoutes {
+	return group.StaticFS(relativePath, "", http.Dir(root), cacheControls...)
 }
 
 // StaticFS works just like `Static()` but a custom `http.FileSystem` can be used instead.
-// Gin by default user: gin.Dir()
-func (group *RouterGroup) StaticFS(relativePath string, fs http.FileSystem) IRoutes {
+func (group *RouterGroup) StaticFS(relativePath string, localPath string, hfs http.FileSystem, cacheControls ...string) IRoutes {
 	if strings.Contains(relativePath, ":") || strings.Contains(relativePath, "*") {
 		panic("URL parameters can not be used when serving a static folder")
 	}
-	handler := group.createStaticHandler(relativePath, fs)
-	urlPattern := path.Join(relativePath, "/*filepath")
+
+	prefix := path.Join(group.BasePath(), relativePath)
+	fileServer := http.FileServer(hfs)
+	if prefix == "" || prefix == "/" {
+		fileServer = httpx.AppendPrefix(localPath, fileServer)
+	} else if localPath == "" || localPath == "." {
+		fileServer = http.StripPrefix(prefix, fileServer)
+	} else {
+		fileServer = httpx.URLReplace(prefix, localPath, fileServer)
+	}
+
+	var handler func(c *Context)
+
+	cacheControl := strings.Join(cacheControls, ", ")
+	if cacheControl == "" {
+		handler = func(c *Context) {
+			fileServer.ServeHTTP(c.Writer, c.Request)
+		}
+	} else {
+		handler = func(c *Context) {
+			ccw := getCacheControlWriter(c, cacheControl)
+			fileServer.ServeHTTP(ccw, c.Request)
+		}
+	}
+
+	urlPattern := path.Join(relativePath, "/*path")
 
 	// Register GET and HEAD handlers
 	group.GET(urlPattern, handler)
@@ -185,29 +235,60 @@ func (group *RouterGroup) StaticFS(relativePath string, fs http.FileSystem) IRou
 	return group.returnObj()
 }
 
-func (group *RouterGroup) createStaticHandler(relativePath string, fs http.FileSystem) HandlerFunc {
-	absolutePath := group.calculateAbsolutePath(relativePath)
-	fileServer := http.StripPrefix(absolutePath, http.FileServer(fs))
-
-	return func(c *Context) {
-		if _, noListing := fs.(*onlyFilesFS); noListing {
-			c.Writer.WriteHeader(http.StatusNotFound)
-		}
-
-		file := c.Param("filepath")
-		// Check if file exists and/or if we have permission to access it
-		f, err := fs.Open(file)
-		if err != nil {
-			c.Writer.WriteHeader(http.StatusNotFound)
-			c.handlers = group.engine.noRoute
-			// Reset index
-			c.index = -1
-			return
-		}
-		f.Close()
-
-		fileServer.ServeHTTP(c.Writer, c.Request)
+// StaticFSFile registers a single route in order to serve a single file of the filesystem.
+// ginfile.StaticFSFile(gin, "favicon.ico", "./resources/favicon.ico", hfs, gin.Public1Year)
+func (group *RouterGroup) StaticFSFile(relativePath, filePath string, hfs http.FileSystem, cacheControls ...string) IRoutes {
+	if strings.Contains(relativePath, ":") || strings.Contains(relativePath, "*") {
+		panic("URL parameters can not be used when serving a static file")
 	}
+
+	cacheControl := strings.Join(cacheControls, ", ")
+	handler := func(c *Context) {
+		defer func(old string) {
+			c.Request.URL.Path = old
+		}(c.Request.URL.Path)
+
+		c.Request.URL.Path = filePath
+
+		var hrw http.ResponseWriter
+		if cacheControl == "" {
+			hrw = c.Writer
+		} else {
+			hrw = getCacheControlWriter(c, cacheControl)
+		}
+
+		http.FileServer(hfs).ServeHTTP(hrw, c.Request)
+	}
+
+	group.GET(relativePath, handler)
+	group.HEAD(relativePath, handler)
+	return group.returnObj()
+}
+
+// StaticContent registers a single route in order to serve a single file of the data.
+// //go:embed favicon.ico
+// var favicon []byte
+// group.StaticContent("favicon.ico", favicon, time.Now(), "public")
+func (group *RouterGroup) StaticContent(relativePath string, data []byte, modtime time.Time, cacheControls ...string) IRoutes {
+	if strings.Contains(relativePath, ":") || strings.Contains(relativePath, "*") {
+		panic("URL parameters can not be used when serving a static file")
+	}
+
+	if modtime.IsZero() {
+		modtime = time.Now()
+	}
+
+	cacheControl := strings.Join(cacheControls, ", ")
+	handler := func(c *Context) {
+		if cacheControl != "" {
+			c.Header("Cache-Control", cacheControl)
+		}
+		name := filepath.Base(c.Request.URL.Path)
+		http.ServeContent(c.Writer, c.Request, name, modtime, bytes.NewReader(data))
+	}
+	group.GET(relativePath, handler)
+	group.HEAD(relativePath, handler)
+	return group.returnObj()
 }
 
 func (group *RouterGroup) combineHandlers(handlers HandlersChain) HandlersChain {

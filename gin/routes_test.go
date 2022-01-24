@@ -2,11 +2,8 @@ package gin
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -286,85 +283,6 @@ func TestRouteParamsByNameWithExtraSlash(t *testing.T) {
 	assert.Equal(t, "/is/super/great", wild)
 }
 
-// TestHandleStaticFile - ensure the static file handles properly
-func TestRouteStaticFile(t *testing.T) {
-	// SETUP file
-	testRoot, _ := os.Getwd()
-	f, err := ioutil.TempFile(testRoot, "")
-	if err != nil {
-		t.Error(err)
-	}
-	defer os.Remove(f.Name())
-	_, err = f.WriteString("Gin Web Framework")
-	assert.NoError(t, err)
-	f.Close()
-
-	dir, filename := filepath.Split(f.Name())
-
-	// SETUP gin
-	router := New()
-	router.Static("/using_static", dir)
-	router.StaticFile("/result", f.Name())
-
-	w := PerformRequest(router, http.MethodGet, "/using_static/"+filename)
-	w2 := PerformRequest(router, http.MethodGet, "/result")
-
-	assert.Equal(t, w, w2)
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Equal(t, "Gin Web Framework", w.Body.String())
-	assert.Equal(t, "text/plain; charset=utf-8", w.Header().Get("Content-Type"))
-
-	w3 := PerformRequest(router, http.MethodHead, "/using_static/"+filename)
-	w4 := PerformRequest(router, http.MethodHead, "/result")
-
-	assert.Equal(t, w3, w4)
-	assert.Equal(t, http.StatusOK, w3.Code)
-}
-
-// TestHandleStaticDir - ensure the root/sub dir handles properly
-func TestRouteStaticListingDir(t *testing.T) {
-	router := New()
-	router.StaticFS("/", Dir("./", true))
-
-	w := PerformRequest(router, http.MethodGet, "/")
-
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Contains(t, w.Body.String(), "gin.go")
-	assert.Equal(t, "text/html; charset=utf-8", w.Header().Get("Content-Type"))
-}
-
-// TestHandleHeadToDir - ensure the root/sub dir handles properly
-func TestRouteStaticNoListing(t *testing.T) {
-	router := New()
-	router.Static("/", "./")
-
-	w := PerformRequest(router, http.MethodGet, "/")
-
-	assert.Equal(t, http.StatusNotFound, w.Code)
-	assert.NotContains(t, w.Body.String(), "gin.go")
-}
-
-func TestRouterMiddlewareAndStatic(t *testing.T) {
-	router := New()
-	static := router.Group("/", func(c *Context) {
-		c.Writer.Header().Add("Last-Modified", "Mon, 02 Jan 2006 15:04:05 MST")
-		c.Writer.Header().Add("Expires", "Mon, 02 Jan 2006 15:04:05 MST")
-		c.Writer.Header().Add("X-GIN", "Gin Framework")
-	})
-	static.Static("/", "./")
-
-	w := PerformRequest(router, http.MethodGet, "/gin.go")
-
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Contains(t, w.Body.String(), "package gin")
-	// Content-Type='text/plain; charset=utf-8' when go version <= 1.16,
-	// else, Content-Type='text/x-go; charset=utf-8'
-	assert.NotEqual(t, "", w.Header().Get("Content-Type"))
-	assert.NotEqual(t, w.Header().Get("Last-Modified"), "Mon, 02 Jan 2006 15:04:05 MST")
-	assert.Equal(t, "Mon, 02 Jan 2006 15:04:05 MST", w.Header().Get("Expires"))
-	assert.Equal(t, "Gin Framework", w.Header().Get("x-GIN"))
-}
-
 func TestRouteNotAllowedEnabled(t *testing.T) {
 	router := New()
 	router.HandleMethodNotAllowed = true
@@ -493,51 +411,6 @@ func TestRouterNotFound(t *testing.T) {
 	assert.Equal(t, "login", w.Body.String())
 	w = PerformRequest(router, http.MethodGet, "/logout")
 	assert.Equal(t, "logout", w.Body.String())
-}
-
-func TestRouterStaticFSNotFound(t *testing.T) {
-	router := New()
-	router.StaticFS("/", http.FileSystem(http.Dir("/thisreallydoesntexist/")))
-	router.NoRoute(func(c *Context) {
-		c.String(404, "non existent")
-	})
-
-	w := PerformRequest(router, http.MethodGet, "/nonexistent")
-	assert.Equal(t, "non existent", w.Body.String())
-
-	w = PerformRequest(router, http.MethodHead, "/nonexistent")
-	assert.Equal(t, "non existent", w.Body.String())
-}
-
-func TestRouterStaticFSFileNotFound(t *testing.T) {
-	router := New()
-
-	router.StaticFS("/", http.FileSystem(http.Dir(".")))
-
-	assert.NotPanics(t, func() {
-		PerformRequest(router, http.MethodGet, "/nonexistent")
-	})
-}
-
-// Reproduction test for the bug of issue #1805
-func TestMiddlewareCalledOnceByRouterStaticFSNotFound(t *testing.T) {
-	router := New()
-
-	// Middleware must be called just only once by per request.
-	middlewareCalledNum := 0
-	router.Use(func(c *Context) {
-		middlewareCalledNum++
-	})
-
-	router.StaticFS("/", http.FileSystem(http.Dir("/thisreallydoesntexist/")))
-
-	// First access
-	PerformRequest(router, http.MethodGet, "/nonexistent")
-	assert.Equal(t, 1, middlewareCalledNum)
-
-	// Second access
-	PerformRequest(router, http.MethodHead, "/nonexistent")
-	assert.Equal(t, 2, middlewareCalledNum)
 }
 
 func TestRouteRawPath(t *testing.T) {

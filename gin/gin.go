@@ -390,11 +390,12 @@ func (engine *Engine) isTrustedProxy(ip net.IP) bool {
 	return false
 }
 
-// validateHeader will parse X-Forwarded-For header and return the trusted client IP address
-func (engine *Engine) validateHeader(header string) (clientIP string, valid bool) {
+// validateClientIP will parse X-Forwarded-For header and return the trusted client IP address
+func (engine *Engine) validateClientIP(header string) (clientIP string, valid bool) {
 	if header == "" {
 		return "", false
 	}
+
 	items := strings.Split(header, ",")
 	for i := len(items) - 1; i >= 0; i-- {
 		ipStr := strings.TrimSpace(items[i])

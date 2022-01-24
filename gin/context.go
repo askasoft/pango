@@ -782,11 +782,11 @@ func (c *Context) ClientIP() string {
 	if remoteIP == nil {
 		return ""
 	}
-	trusted := c.engine.isTrustedProxy(remoteIP)
 
+	trusted := c.engine.isTrustedProxy(remoteIP)
 	if trusted && c.engine.ForwardedByClientIP && c.engine.RemoteIPHeaders != nil {
 		for _, headerName := range c.engine.RemoteIPHeaders {
-			ip, valid := c.engine.validateHeader(c.requestHeader(headerName))
+			ip, valid := c.engine.validateClientIP(c.requestHeader(headerName))
 			if valid {
 				return ip
 			}

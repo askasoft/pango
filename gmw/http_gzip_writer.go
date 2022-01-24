@@ -20,10 +20,10 @@ const (
 type gzipWriter struct {
 	gin.ResponseWriter
 
-	zipper *Zipper
-	ctx    *gin.Context
-	gzw    *gzip.Writer
-	buf    bytes.Buffer
+	hgz *HTTPGziper
+	ctx *gin.Context
+	gzw *gzip.Writer
+	buf bytes.Buffer
 
 	state int
 }
@@ -44,7 +44,7 @@ func (g *gzipWriter) Close() {
 }
 
 func (g *gzipWriter) reset() {
-	g.zipper = nil
+	g.hgz = nil
 	g.ResponseWriter = nil
 	g.ctx = nil
 	g.gzw.Reset(io.Discard)
@@ -63,46 +63,46 @@ func (g *gzipWriter) checkHeader() {
 		return
 	}
 
-	if g.zipper.mimeTypes != nil {
+	if g.hgz.mimeTypes != nil {
 		ct := str.SubstrBeforeByte(h.Get("Content-Type"), ';')
-		if !g.zipper.mimeTypes.Contains(ct) {
+		if !g.hgz.mimeTypes.Contains(ct) {
 			g.state = gzwStateSkip
 			return
 		}
 	}
 
 	if g.ctx.Request.Header.Get("Via") != "" {
-		if g.zipper.proxied&ProxiedExpired == ProxiedExpired {
+		if g.hgz.proxied&ProxiedExpired == ProxiedExpired {
 			if h.Get("Expires") == "" {
 				g.state = gzwStateSkip
 				return
 			}
 		}
-		if g.zipper.proxied&ProxiedNoCache == ProxiedNoCache {
+		if g.hgz.proxied&ProxiedNoCache == ProxiedNoCache {
 			if !str.ContainsFold(h.Get("Cache-Control"), "no-cache") {
 				g.state = gzwStateSkip
 				return
 			}
 		}
-		if g.zipper.proxied&ProxiedNoStore == ProxiedNoStore {
+		if g.hgz.proxied&ProxiedNoStore == ProxiedNoStore {
 			if !str.ContainsFold(h.Get("Cache-Control"), "no-store") {
 				g.state = gzwStateSkip
 				return
 			}
 		}
-		if g.zipper.proxied&ProxiedPrivate == ProxiedPrivate {
+		if g.hgz.proxied&ProxiedPrivate == ProxiedPrivate {
 			if !str.ContainsFold(h.Get("Cache-Control"), "private") {
 				g.state = gzwStateSkip
 				return
 			}
 		}
-		if g.zipper.proxied&ProxiedNoLastModified == ProxiedNoLastModified {
+		if g.hgz.proxied&ProxiedNoLastModified == ProxiedNoLastModified {
 			if h.Get("Last-Modified") != "" {
 				g.state = gzwStateSkip
 				return
 			}
 		}
-		if g.zipper.proxied&ProxiedNoETag == ProxiedNoETag {
+		if g.hgz.proxied&ProxiedNoETag == ProxiedNoETag {
 			if h.Get("ETag") != "" {
 				g.state = gzwStateSkip
 				return
@@ -118,7 +118,7 @@ func (g *gzipWriter) checkBuffer(data []byte) {
 		return
 	}
 
-	if g.buf.Len()+len(data) < g.zipper.minLength {
+	if g.buf.Len()+len(data) < g.hgz.minLength {
 		return
 	}
 
@@ -136,7 +136,7 @@ func (g *gzipWriter) modifyHeader() {
 
 	h.Del("Content-Length")
 	h.Set("Content-Encoding", "gzip")
-	if g.zipper.vary {
+	if g.hgz.vary {
 		h.Set("Vary", "Accept-Encoding")
 	}
 }
@@ -160,7 +160,7 @@ func (g *gzipWriter) Write(data []byte) (int, error) {
 		return g.ResponseWriter.Write(data)
 	}
 
-	panic("zipper: invalid state")
+	panic("hgz: invalid state")
 }
 
 // Flush implements the http.Flush interface.

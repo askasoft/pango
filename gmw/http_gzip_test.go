@@ -62,7 +62,7 @@ func TestGzip(t *testing.T) {
 	w := httptest.NewRecorder()
 	body := strings.Repeat("This is a Test!\n", 1000)
 	router := gin.New()
-	router.Use(DefaultZipper().Handler())
+	router.Use(DefaultHTTPGziper().Handler())
 	router.GET("/", func(c *gin.Context) {
 		c.String(200, body)
 	})
@@ -79,7 +79,7 @@ func TestGzipIgnore_HTTP_1_0(t *testing.T) {
 	req.Header.Add("Accept-Encoding", "gzip")
 
 	router := gin.New()
-	zp := DefaultZipper()
+	zp := DefaultHTTPGziper()
 	router.Use(zp.Handler())
 
 	body := strings.Repeat("This is http 1.0!\n", 1000)
@@ -97,7 +97,7 @@ func TestGzipIgnoreSmallSize(t *testing.T) {
 	req.Header.Add("Accept-Encoding", "gzip")
 
 	router := gin.New()
-	zp := DefaultZipper()
+	zp := DefaultHTTPGziper()
 	router.Use(zp.Handler())
 
 	body := "this is a TEXT!"
@@ -116,7 +116,7 @@ func TestGzipIngoreContentType(t *testing.T) {
 
 	body := strings.Repeat("This is a PNG!\n", 1000)
 	router := gin.New()
-	router.Use(DefaultZipper().Handler())
+	router.Use(DefaultHTTPGziper().Handler())
 	router.GET("/image.png", func(c *gin.Context) {
 		c.Header("Content-Type", "image/png")
 		c.String(200, body)
@@ -132,7 +132,7 @@ func TestGzipIgnorePathPrefix(t *testing.T) {
 	req.Header.Add("Accept-Encoding", "gzip")
 
 	router := gin.New()
-	zp := DefaultZipper()
+	zp := DefaultHTTPGziper()
 	zp.IgnorePathPrefix("/api/")
 	router.Use(zp.Handler())
 
@@ -151,7 +151,7 @@ func TestGzipIgnorePathRegexp(t *testing.T) {
 	req.Header.Add("Accept-Encoding", "gzip")
 
 	router := gin.New()
-	zp := DefaultZipper()
+	zp := DefaultHTTPGziper()
 	zp.IgnorePathRegexp("/.*/books")
 	router.Use(zp.Handler())
 
@@ -171,7 +171,7 @@ func testGzipIgnoreProxied(t *testing.T, proxied string, hand gin.HandlerFunc) {
 	req.Header.Add("Via", "test")
 
 	router := gin.New()
-	zp := DefaultZipper()
+	zp := DefaultHTTPGziper()
 	zp.SetProxied(proxied)
 	router.Use(zp.Handler())
 
@@ -226,7 +226,7 @@ func testGzipEnableProxied(t *testing.T, proxied string, hand gin.HandlerFunc) {
 	req.Header.Add("Via", "test")
 
 	router := gin.New()
-	zp := DefaultZipper()
+	zp := DefaultHTTPGziper()
 	zp.SetProxied(proxied)
 	router.Use(zp.Handler())
 

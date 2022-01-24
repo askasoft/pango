@@ -9,10 +9,10 @@ import (
 	"github.com/pandafw/pango/gin"
 )
 
-func ExampleZipper() {
+func ExampleHTTPGziper() {
 	router := gin.Default()
 
-	router.Use(DefaultZipper().Handler())
+	router.Use(DefaultHTTPGziper().Handler())
 	router.GET("/", func(c *gin.Context) {
 		c.String(200, strings.Repeat("This is a Test!\n", 1000))
 	})

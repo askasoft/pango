@@ -22,8 +22,8 @@ const (
 	NoCompression      = gzip.NoCompression
 )
 
-// Zipper Compresses responses using the “gzip” method
-type Zipper struct {
+// HTTPGziper Compresses responses using the “gzip” method
+type HTTPGziper struct {
 	// protoMajor Sets the minimum HTTP Major version of a request required to compress a response.
 	// Default: 1
 	protoMajor int
@@ -66,18 +66,18 @@ type Zipper struct {
 	pool *sync.Pool
 }
 
-// DefaultZipper create a default zipper
-// = NewZipper(DefaultCompression, 1024)
-func DefaultZipper() *Zipper {
-	return NewZipper(DefaultCompression, 1024)
+// DefaultHTTPGziper create a default zipper
+// = NewHTTPGziper(DefaultCompression, 1024)
+func DefaultHTTPGziper() *HTTPGziper {
+	return NewHTTPGziper(DefaultCompression, 1024)
 }
 
-// NewZipper create a zipper
+// NewHTTPGziper create a zipper
 // proxied: ProxiedAny
 // vary: true
 // minLength: 1024
-func NewZipper(compressLevel, minLength int) *Zipper {
-	z := &Zipper{
+func NewHTTPGziper(compressLevel, minLength int) *HTTPGziper {
+	z := &HTTPGziper{
 		protoMajor:    1,
 		protoMinor:    1,
 		proxied:       ProxiedAny,
@@ -118,7 +118,7 @@ func NewZipper(compressLevel, minLength int) *Zipper {
 }
 
 // SetHTTPVersion Sets the minimum HTTP Proto version of a request required to compress a response.
-func (z *Zipper) SetHTTPVersion(major, minor int) {
+func (z *HTTPGziper) SetHTTPVersion(major, minor int) {
 	z.protoMajor = major
 	z.protoMinor = minor
 }
@@ -144,13 +144,13 @@ func (z *Zipper) SetHTTPVersion(major, minor int) {
 //     enables compression if a response header does not include the “Last-Modified” field;
 // no_etag
 //     enables compression if a response header does not include the “ETag” field;
-func (z *Zipper) SetProxied(ps ...string) {
+func (z *HTTPGziper) SetProxied(ps ...string) {
 	z.proxied = toProxiedFlag(ps...)
 }
 
 // Vary Enables or disables inserting the “Vary: Accept-Encoding” response header field.
 // Default: true
-func (z *Zipper) Vary(vary bool) {
+func (z *HTTPGziper) Vary(vary bool) {
 	z.vary = vary
 }
 
@@ -172,7 +172,7 @@ func (z *Zipper) Vary(vary bool) {
 //   application/json
 //   application/javascript
 //   application/x-javascript
-func (z *Zipper) SetMimeTypes(mts ...string) {
+func (z *HTTPGziper) SetMimeTypes(mts ...string) {
 	if len(mts) == 0 {
 		z.mimeTypes = nil
 		return
@@ -186,12 +186,12 @@ func (z *Zipper) SetMimeTypes(mts ...string) {
 }
 
 // IgnorePathPrefix ignore URL path prefix
-func (z *Zipper) IgnorePathPrefix(ps ...string) {
+func (z *HTTPGziper) IgnorePathPrefix(ps ...string) {
 	z.ignorePathPrefixs = ps
 }
 
 // IgnorePathRegexp ignore URL path regexp
-func (z *Zipper) IgnorePathRegexp(ps ...string) {
+func (z *HTTPGziper) IgnorePathRegexp(ps ...string) {
 	rs := make([]*regexp.Regexp, len(ps), len(ps))
 	for i, p := range ps {
 		rs[i] = regexp.MustCompile(p)
@@ -200,26 +200,26 @@ func (z *Zipper) IgnorePathRegexp(ps ...string) {
 }
 
 // Disable disable the gzip compress or not
-func (z *Zipper) Disable(disabled bool) {
+func (z *HTTPGziper) Disable(disabled bool) {
 	z.disabled = disabled
 }
 
 // Handler returns the gin.HandlerFunc
-func (z *Zipper) Handler() gin.HandlerFunc {
+func (z *HTTPGziper) Handler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		z.handle(c)
 	}
 }
 
 // handle process gin request
-func (z *Zipper) handle(c *gin.Context) {
+func (z *HTTPGziper) handle(c *gin.Context) {
 	if !z.shouldCompress(c.Request) {
 		c.Next()
 		return
 	}
 
 	gw := z.pool.Get().(*gzipWriter)
-	gw.zipper = z
+	gw.hgz = z
 	gw.ctx = c
 	gw.ResponseWriter = c.Writer
 
@@ -231,7 +231,7 @@ func (z *Zipper) handle(c *gin.Context) {
 	c.Next()
 }
 
-func (z *Zipper) shouldCompress(req *http.Request) bool {
+func (z *HTTPGziper) shouldCompress(req *http.Request) bool {
 	if z.disabled ||
 		!req.ProtoAtLeast(z.protoMajor, z.protoMinor) ||
 		!str.ContainsFold(req.Header.Get("Accept-Encoding"), "gzip") ||

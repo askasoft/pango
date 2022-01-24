@@ -35,7 +35,7 @@ func TestHttpDump(t *testing.T) {
 
 	buffer := new(bytes.Buffer)
 	writer := io.MultiWriter(buffer, os.Stdout)
-	router.Use(NewDumper(writer).Handler())
+	router.Use(NewHTTPDumper(writer).Handler())
 
 	router.Any("/example", func(c *gin.Context) {
 		c.String(http.StatusOK, c.Request.URL.String())

@@ -9,9 +9,9 @@ import (
 	"github.com/pandafw/pango/gin"
 )
 
-func ExampleDumper() {
+func ExampleHTTPDumper() {
 	router := gin.New()
-	router.Use(NewDumper(os.Stdout).Handler())
+	router.Use(NewHTTPDumper(os.Stdout).Handler())
 
 	router.Any("/example", func(c *gin.Context) {
 		c.String(http.StatusOK, c.Request.URL.String())

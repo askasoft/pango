@@ -11,37 +11,44 @@ import (
 	"time"
 
 	"github.com/pandafw/pango/gin"
+	"github.com/pandafw/pango/log"
 )
 
 const dumperDefaultTimeFormat = "2006-01-02T15:04:05.000"
 
-// Dumper dump http request and response
-type Dumper struct {
+// HTTPDumper dump http request and response
+type HTTPDumper struct {
 	outputer io.Writer
 	disabled bool
 }
 
-// NewDumper create a middleware for gin http dumper
-func NewDumper(outputer io.Writer) *Dumper {
-	return &Dumper{outputer: outputer}
+// DefaultHTTPDumper create a middleware for gin http dumper
+// Equals: NewHTTPDumper(gin.Logger.Outputer("GIND", log.LevelTrace))
+func DefaultHTTPDumper(gin *gin.Engine) *HTTPDumper {
+	return NewHTTPDumper(gin.Logger.Outputer("GIND", log.LevelTrace))
+}
+
+// NewHTTPDumper create a middleware for gin http dumper
+func NewHTTPDumper(outputer io.Writer) *HTTPDumper {
+	return &HTTPDumper{outputer: outputer}
 }
 
 // Disable disable the dumper or not
-func (d *Dumper) Disable(disabled bool) {
-	d.disabled = disabled
+func (hd *HTTPDumper) Disable(disabled bool) {
+	hd.disabled = disabled
 }
 
 // Handler returns the gin.HandlerFunc
-func (d *Dumper) Handler() gin.HandlerFunc {
+func (hd *HTTPDumper) Handler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		d.handle(c)
+		hd.handle(c)
 	}
 }
 
 // handle process gin request
-func (d *Dumper) handle(c *gin.Context) {
-	w := d.outputer
-	if w == nil || d.disabled {
+func (hd *HTTPDumper) handle(c *gin.Context) {
+	w := hd.outputer
+	if w == nil || hd.disabled {
 		c.Next()
 		return
 	}
@@ -64,8 +71,8 @@ func (d *Dumper) handle(c *gin.Context) {
 }
 
 // SetOutput set the access log output writer
-func (d *Dumper) SetOutput(w io.Writer) {
-	d.outputer = w
+func (hd *HTTPDumper) SetOutput(w io.Writer) {
+	hd.outputer = w
 }
 
 const eol = "\r\n"

@@ -48,12 +48,18 @@ func (ht *HTMLTemplates) Funcs(funcMap FuncMap) {
 	ht.funcs = funcMap
 }
 
+func (ht *HTMLTemplates) init() {
+	if ht.template == nil {
+		tpl := template.New("")
+		tpl.Delims(ht.delims.Left, ht.delims.Right)
+		tpl.Funcs(template.FuncMap(ht.funcs))
+		ht.template = tpl
+	}
+}
+
 // Load glob and parse template files under the root path
 func (ht *HTMLTemplates) Load(root string) (err error) {
-	tpl := template.New("")
-
-	tpl.Delims(ht.delims.Left, ht.delims.Right)
-	tpl.Funcs(template.FuncMap(ht.funcs))
+	ht.init()
 
 	root, err = filepath.Abs(root)
 	if err != nil {
@@ -70,22 +76,18 @@ func (ht *HTMLTemplates) Load(root string) (err error) {
 			return nil
 		}
 
-		return ht.loadFile(tpl, nil, root, path)
+		return ht.loadFile(nil, root, path)
 	})
 	if err != nil {
 		return
 	}
 
-	ht.template = tpl
 	return
 }
 
 // LoadFS glob and parse template files from FS
 func (ht *HTMLTemplates) LoadFS(fsys fs.FS, root string) (err error) {
-	tpl := template.New("")
-
-	tpl.Delims(ht.delims.Left, ht.delims.Right)
-	tpl.Funcs(template.FuncMap(ht.funcs))
+	ht.init()
 
 	err = fs.WalkDir(fsys, root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -96,18 +98,17 @@ func (ht *HTMLTemplates) LoadFS(fsys fs.FS, root string) (err error) {
 			return nil
 		}
 
-		return ht.loadFile(tpl, fsys, root, path)
+		return ht.loadFile(fsys, root, path)
 	})
 	if err != nil {
 		return
 	}
 
-	ht.template = tpl
 	return
 }
 
 // loadFile load template file
-func (ht *HTMLTemplates) loadFile(tpl *template.Template, fsys fs.FS, root, path string) error {
+func (ht *HTMLTemplates) loadFile(fsys fs.FS, root, path string) error {
 	ext := filepath.Ext(path)
 	if !ars.ContainsString(ht.extensions, ext) {
 		return nil
@@ -120,7 +121,7 @@ func (ht *HTMLTemplates) loadFile(tpl *template.Template, fsys fs.FS, root, path
 
 	path = toTemplateName(root, path, ext)
 
-	tpl = tpl.New(path)
+	tpl := ht.template.New(path)
 	_, err = tpl.Parse(text)
 	if err != nil {
 		return fmt.Errorf("HTMLTemplates parse template %q error: %v", path, err)

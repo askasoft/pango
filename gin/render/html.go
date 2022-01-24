@@ -16,7 +16,7 @@ type HTMLRender interface {
 type HTMLTemplates interface {
 	tpl.Templates
 
-	Instance(name string, data interface{}) Render
+	HTMLRender
 }
 
 // htmlTemplates html engine for gin

@@ -79,7 +79,7 @@ func (ll *Localizer) handle(c *gin.Context) {
 
 func (ll *Localizer) getLocaleFromHeader(c *gin.Context, k string) string {
 	loc := c.GetHeader(k)
-	qls := str.SplitAny(loc, ",; ")
+	qls := str.FieldsAny(loc, ",; ")
 	for _, ql := range qls {
 		if ll.acceptable(ql) {
 			return ql

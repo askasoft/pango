@@ -13,7 +13,6 @@ import (
 	"github.com/pandafw/pango/gin"
 	"github.com/pandafw/pango/iox"
 	"github.com/pandafw/pango/log"
-	"github.com/pandafw/pango/net/httpx"
 )
 
 // DefaultLogTimeFormat default log time format
@@ -326,7 +325,7 @@ func latency(p *logevt) string {
 }
 
 func clientIP(p *logevt) string {
-	return httpx.GetClientIP(p.Ctx.Request)
+	return p.Ctx.ClientIP()
 }
 
 func remoteAddr(p *logevt) string {

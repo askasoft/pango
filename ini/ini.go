@@ -295,7 +295,7 @@ func (ini *Ini) LoadData(r io.Reader) (err error) {
 		comments = nil
 	}
 
-	return nil
+	return scanner.Err()
 }
 
 // WriteFile write INI to the file

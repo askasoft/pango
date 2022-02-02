@@ -37,6 +37,11 @@ func TestTreeSetNew(t *testing.T) {
 	}
 }
 
+func TestTreeSetDebug(t *testing.T) {
+	tset := NewTreeSet(cmp.CompareString)
+	tset.debug()
+}
+
 func TestTreeSetAdd(t *testing.T) {
 	tset := NewTreeSet(cmp.CompareString)
 	tset.Add("a")
@@ -432,34 +437,6 @@ func TestTreeSetSort(t *testing.T) {
 	}
 }
 
-func checkTreeSetLen(t *testing.T, tset *TreeSet, len int) bool {
-	if n := tset.Len(); n != len {
-		t.Errorf("tset.Len() = %d, want %d", n, len)
-		return false
-	}
-	return true
-}
-
-func checkTreeSet(t *testing.T, tset *TreeSet, evs []interface{}) {
-	if !checkTreeSetLen(t, tset, len(evs)) {
-		return
-	}
-
-	for i, it := 0, tset.Iterator(); it.Next(); i++ {
-		v := it.Value().(int)
-		if v != evs[i] {
-			t.Errorf("elt[%d].Value = %v, want %v", i, v, evs[i])
-		}
-	}
-
-	avs := tset.Values()
-	for i, v := range avs {
-		if v != evs[i] {
-			t.Errorf("elt[%d].Value = %v, want %v", i, v, evs[i])
-		}
-	}
-}
-
 func TestTreeSetDelete(t *testing.T) {
 	tset := NewTreeSet(cmp.CompareInt)
 
@@ -553,7 +530,7 @@ func TestTreeSetDeleteAll(t *testing.T) {
 
 func TestTreeSetString(t *testing.T) {
 	e := "[1,2,3]"
-	a := fmt.Sprintf("%s", NewTreeSet(cmp.CompareInt, 1, 3, 2))
+	a := NewTreeSet(cmp.CompareInt, 1, 3, 2).String()
 	if a != e {
 		t.Errorf(`fmt.Sprintf("%%s", NewTreeSet(1, 3, 2)) = %v, want %v`, a, e)
 	}

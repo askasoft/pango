@@ -256,10 +256,7 @@ func TestLinkedHashMapDeletingAndReinsertingChangesPairsOrder(t *testing.T) {
 func TestLinkedHashMapEmptyMapOperations(t *testing.T) {
 	lm := NewLinkedHashMap()
 
-	var ov interface{}
-	var ok bool
-
-	ov, ok = lm.Get("foo")
+	ov, ok := lm.Get("foo")
 	if ov != nil {
 		t.Errorf("lm.Get(foo) = %v, want %v", ov, nil)
 	}
@@ -443,7 +440,7 @@ func randomHexString(t *testing.T, length int) string {
 
 func TestLinkedHashMapString(t *testing.T) {
 	w := `{"1":1,"3":3,"2":2}`
-	a := fmt.Sprintf("%s", NewLinkedHashMap([]P{{"1", 1}, {"3", 3}, {"2", 2}}...))
+	a := NewLinkedHashMap([]P{{"1", 1}, {"3", 3}, {"2", 2}}...).String()
 	if w != a {
 		t.Errorf("TestLinkedHashMapString = %v, want %v", a, w)
 	}
@@ -612,7 +609,6 @@ func TestLinkedHashMapEach(t *testing.T) {
 func TestLinkedHashMapIteratorNextOnEmpty(t *testing.T) {
 	m := NewLinkedHashMap()
 	it := m.Iterator()
-	it = m.Iterator()
 	for it.Next() {
 		t.Errorf("Shouldn't iterate on empty map")
 	}
@@ -621,7 +617,6 @@ func TestLinkedHashMapIteratorNextOnEmpty(t *testing.T) {
 func TestLinkedHashMapIteratorPrevOnEmpty(t *testing.T) {
 	m := NewLinkedHashMap()
 	it := m.Iterator()
-	it = m.Iterator()
 	for it.Prev() {
 		t.Errorf("Shouldn't iterate on empty map")
 	}

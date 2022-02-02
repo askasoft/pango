@@ -1,5 +1,7 @@
 run:
   timeout: 5m
+  skip-dirs: z
+
 linters:
   enable:
     - asciicheck
@@ -17,6 +19,7 @@ linters:
     - nolintlint
     - revive
     - wastedassign
+
 issues:
   exclude-rules:
     - linters:

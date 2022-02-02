@@ -851,7 +851,7 @@ func TestLinkedListDeque(t *testing.T) {
 
 func TestLinkedListString(t *testing.T) {
 	e := "[1,3,2]"
-	a := fmt.Sprintf("%s", NewLinkedList(1, 3, 2))
+	a := NewLinkedList(1, 3, 2).String()
 	if a != e {
 		t.Errorf(`fmt.Sprintf("%%s", NewLinkedList(1, 3, 2)) = %v, want %v`, a, e)
 	}

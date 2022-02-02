@@ -58,7 +58,6 @@ func (ts *TreeSet) Add(vs ...T) {
 	for _, v := range vs {
 		ts.add(v)
 	}
-	return
 }
 
 // AddAll adds all items of another collection
@@ -297,7 +296,7 @@ func (ts *TreeSet) Floor(v T) T {
 //
 // key should adhere to the comparator's type assertion, otherwise method panics.
 func (ts *TreeSet) Ceiling(v T) T {
-	tn := ts.floor(v)
+	tn := ts.ceiling(v)
 	if tn != nil {
 		return tn.value
 	}
@@ -316,30 +315,6 @@ func (ts *TreeSet) Graph() string {
 }
 
 //-----------------------------------------------------
-func (ts *TreeSet) checkItemIndex(index int) int {
-	len := ts.len
-	if index >= len || index < -len {
-		panic(fmt.Sprintf("TreeSet out of bounds: index=%d, len=%d", index, len))
-	}
-
-	if index < 0 {
-		index += len
-	}
-	return index
-}
-
-func (ts *TreeSet) checkSizeIndex(index int) int {
-	len := ts.len
-	if index > len || index < -len {
-		panic(fmt.Sprintf("TreeSet out of bounds: index=%d, len=%d", index, len))
-	}
-
-	if index < 0 {
-		index += len
-	}
-	return index
-}
-
 func (ts *TreeSet) setValue(tn *treeSetNode, v T) *treeSetNode {
 	if tn.value == v {
 		return tn
@@ -472,21 +447,6 @@ func (ts *TreeSet) add(v T) *treeSetNode {
 
 	ts.len++
 	return tn
-}
-
-// delete delete the node from the tree by key,
-// and returns what `Get` would have returned
-// on that key prior to the call to `Delete`.
-// key should adhere to the comparator's type assertion, otherwise method panics.
-func (ts *TreeSet) delete(key T) (ov T, ok bool) {
-	tn := ts.lookup(key)
-	if tn == nil {
-		return
-	}
-
-	ov, ok = tn.value, true
-	ts.deleteNode(tn)
-	return
 }
 
 // deleteNode delete the node p, returns the deleted node

@@ -45,13 +45,18 @@ func (ld *ListenerDumper) Accept() (net.Conn, error) {
 	}
 
 	ld.sequence++
-	os.MkdirAll(ld.Path, os.FileMode(0770))
+
+	err = os.MkdirAll(ld.Path, os.FileMode(0770))
+	if err != nil {
+		// ignore the dump error
+		return conn, nil // nolint: nilerr
+	}
 
 	fn := filepath.Join(ld.Path, fmt.Sprintf("%08d.log", ld.sequence))
 	file, err := os.OpenFile(fn, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(0660))
 	if err != nil {
 		// ignore the dump error
-		return conn, nil
+		return conn, nil // nolint: nilerr
 	}
 
 	dcon := &connDumper1{

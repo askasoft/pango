@@ -50,6 +50,11 @@ func TestTreeMapSet(t *testing.T) {
 	}
 }
 
+func TestTreeMapDebug(t *testing.T) {
+	tree := NewTreeMap(cmp.CompareInt)
+	tree.debug()
+}
+
 func TestTreeMapDelete(t *testing.T) {
 	tree := NewTreeMap(cmp.CompareInt)
 	tree.Set(5, "e")

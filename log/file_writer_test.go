@@ -32,7 +32,7 @@ func TestFileTextFormatSimple(t *testing.T) {
 	e := `[I] hello` + EOL
 	a := string(bs)
 	if a != e {
-		t.Errorf("TestFileTextFormatSimple\nexpect: %q, actual: %q", e, a)
+		t.Errorf("TestFileTextFormatSimple\n expect: %q, actual: %q", e, a)
 	}
 }
 
@@ -53,7 +53,7 @@ func TestFilePropGlobal(t *testing.T) {
 	e := fmt.Sprintf("INFO - %s - %s%s", "val", "hello", EOL)
 	a := string(bs)
 	if a != e {
-		t.Errorf("TestFilePropGlobal\nexpect: %q, actual: %q", e, a)
+		t.Errorf("TestFilePropGlobal\n expect: %q, actual: %q", e, a)
 	}
 }
 
@@ -75,7 +75,7 @@ func TestFilePropDefault(t *testing.T) {
 	e := fmt.Sprintf("INFO - %s - %s%s", "val", "hello", EOL)
 	a := string(bs)
 	if a != e {
-		t.Errorf("TestFilePropDefault\nexpect: %q, actual: %q", e, a)
+		t.Errorf("TestFilePropDefault\n expect: %q, actual: %q", e, a)
 	}
 }
 
@@ -98,11 +98,13 @@ func TestFilePropNewLog(t *testing.T) {
 
 	// check lastest file
 	bs, _ := ioutil.ReadFile(path + ".log")
-	e := fmt.Sprintf("INFO - %s=%s - %s%s", "key1", "val1", "hello", EOL) +
+	e1 := fmt.Sprintf("INFO - %s=%s - %s%s", "key1", "val1", "hello", EOL) +
 		fmt.Sprintf("INFO - %s=%s %s=%s - %s%s", "key1", "val1", "key2", "val2", "hello", EOL)
+	e2 := fmt.Sprintf("INFO - %s=%s - %s%s", "key1", "val1", "hello", EOL) +
+		fmt.Sprintf("INFO - %s=%s %s=%s - %s%s", "key2", "val2", "key1", "val1", "hello", EOL)
 	a := string(bs)
-	if a != e {
-		t.Errorf("TestFilePropNewLog\nexpect: %q\nactual: %q", e, a)
+	if a != e1 && a != e2 {
+		t.Errorf("TestFilePropNewLog\n expect: %q\n actual: %q", e1, a)
 	}
 }
 
@@ -123,7 +125,7 @@ func TestFileCallerGlobal(t *testing.T) {
 	e := fmt.Sprintf("INFO %s:%d %s() - hello%s", file, line, ffun, EOL)
 	a := string(bs)
 	if a != e {
-		t.Errorf("TestFileCallerGlobal\nexpect: %q, actual: %q", e, a)
+		t.Errorf("TestFileCallerGlobal\n expect: %q, actual: %q", e, a)
 	}
 }
 
@@ -145,7 +147,7 @@ func TestFileCallerNewLog(t *testing.T) {
 	e := fmt.Sprintf("INFO %s:%d %s() - hello%s", file, line, ffun, EOL)
 	a := string(bs)
 	if a != e {
-		t.Errorf("TestFileCallerNewLog\nexpect: %q, actual: %q", e, a)
+		t.Errorf("TestFileCallerNewLog\n expect: %q, actual: %q", e, a)
 	}
 }
 
@@ -167,7 +169,7 @@ func TestFileCallerNewLog2(t *testing.T) {
 	e := fmt.Sprintf("INFO %s:%d %s() - hello%s", file, line, ffun, EOL)
 	a := string(bs)
 	if a != e {
-		t.Errorf("TestFileCallerNewLog2\nexpect: %q, actual: %q", e, a)
+		t.Errorf("TestFileCallerNewLog2\n expect: %q, actual: %q", e, a)
 	}
 }
 
@@ -192,7 +194,7 @@ func TestFileRotateMaxSize(t *testing.T) {
 		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
 		if a != e {
-			t.Errorf("TestFileRotateMaxSize\nexpect: %q, actual: %q", e, a)
+			t.Errorf("TestFileRotateMaxSize\n expect: %q, actual: %q", e, a)
 		}
 	}
 
@@ -201,7 +203,7 @@ func TestFileRotateMaxSize(t *testing.T) {
 	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
 	if a != e {
-		t.Errorf("TestFileRotateMaxSize\nexpect: %q, actual: %q", e, a)
+		t.Errorf("TestFileRotateMaxSize\n expect: %q, actual: %q", e, a)
 	}
 }
 
@@ -230,7 +232,7 @@ func TestFileRotateMaxSizeGzip(t *testing.T) {
 		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
 		if a != e {
-			t.Errorf("TestFileRotateMaxSizeGzip\nexpect: %q, actual: %q", e, a)
+			t.Errorf("TestFileRotateMaxSizeGzip\n expect: %q, actual: %q", e, a)
 		}
 	}
 
@@ -240,7 +242,7 @@ func TestFileRotateMaxSizeGzip(t *testing.T) {
 	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
 	if a != e {
-		t.Errorf("TestFileRotateMaxSizeGzip\nexpect: %q, actual: %q", e, a)
+		t.Errorf("TestFileRotateMaxSizeGzip\n expect: %q, actual: %q", e, a)
 	}
 }
 
@@ -268,7 +270,7 @@ func TestFileRotateMaxSizeDaily(t *testing.T) {
 		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
 		if a != e {
-			t.Errorf("TestFileRotateMaxSizeDaily\nexpect: %q, actual: %q", e, a)
+			t.Errorf("TestFileRotateMaxSizeDaily\n expect: %q, actual: %q", e, a)
 		}
 	}
 
@@ -278,7 +280,7 @@ func TestFileRotateMaxSizeDaily(t *testing.T) {
 	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
 	if a != e {
-		t.Errorf("TestFileRotateMaxSizeDaily\nexpect: %q, actual: %q", e, a)
+		t.Errorf("TestFileRotateMaxSizeDaily\n expect: %q, actual: %q", e, a)
 	}
 }
 
@@ -314,7 +316,7 @@ func TestFileRotateMaxSplit(t *testing.T) {
 		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
 		if a != e {
-			t.Errorf("TestFileRotateMaxSplit\nexpect: %q, actual: %q", e, a)
+			t.Errorf("TestFileRotateMaxSplit\n expect: %q, actual: %q", e, a)
 		}
 	}
 
@@ -324,7 +326,7 @@ func TestFileRotateMaxSplit(t *testing.T) {
 	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
 	if a != e {
-		t.Errorf("TestFileRotateMaxSplit\nexpect: %q, actual: %q", e, a)
+		t.Errorf("TestFileRotateMaxSplit\n expect: %q, actual: %q", e, a)
 	}
 }
 
@@ -361,7 +363,7 @@ func TestFileRotateMaxFilesHourly(t *testing.T) {
 		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
 		if a != e {
-			t.Errorf("TestFileRotateMaxFilesHourly\nexpect: %q, actual: %q", e, a)
+			t.Errorf("TestFileRotateMaxFilesHourly\n expect: %q, actual: %q", e, a)
 		}
 	}
 
@@ -371,7 +373,7 @@ func TestFileRotateMaxFilesHourly(t *testing.T) {
 	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
 	if a != e {
-		t.Errorf("TestFileRotateMaxFilesHourly\nexpect: %q, actual: %q", e, a)
+		t.Errorf("TestFileRotateMaxFilesHourly\n expect: %q, actual: %q", e, a)
 	}
 }
 
@@ -408,7 +410,7 @@ func TestFileRotateDaily(t *testing.T) {
 		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
 		if a != e {
-			t.Errorf("TestFileRotateDaily\nexpect: %q, actual: %q", e, a)
+			t.Errorf("TestFileRotateDaily\n expect: %q, actual: %q", e, a)
 		}
 
 		tm = tm.Add(time.Hour * 24)
@@ -420,7 +422,7 @@ func TestFileRotateDaily(t *testing.T) {
 	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
 	if a != e {
-		t.Errorf("TestFileRotateDaily\nexpect: %q, actual: %q", e, a)
+		t.Errorf("TestFileRotateDaily\n expect: %q, actual: %q", e, a)
 	}
 }
 
@@ -476,7 +478,7 @@ func TestFileRotateDailyOutdated(t *testing.T) {
 		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
 		if a != e {
-			t.Errorf("TestFileRotateDailyOutdated\nexpect: %q, actual: %q", e, a)
+			t.Errorf("TestFileRotateDailyOutdated\n expect: %q, actual: %q", e, a)
 		}
 
 		tm = tm.Add(time.Hour * 24)
@@ -487,7 +489,7 @@ func TestFileRotateDailyOutdated(t *testing.T) {
 	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
 	if a != e {
-		t.Errorf("TestFileRotateDailyOutdated\nexpect: %q, actual: %q", e, a)
+		t.Errorf("TestFileRotateDailyOutdated\n expect: %q, actual: %q", e, a)
 	}
 }
 
@@ -524,7 +526,7 @@ func TestFileRotateHourly(t *testing.T) {
 		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
 		if a != e {
-			t.Errorf("TestFileRotateHourly\nexpect: %q, actual: %q", e, a)
+			t.Errorf("TestFileRotateHourly\n expect: %q, actual: %q", e, a)
 		}
 
 		tm = tm.Add(time.Hour)
@@ -536,7 +538,7 @@ func TestFileRotateHourly(t *testing.T) {
 	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
 	if a != e {
-		t.Errorf("TestFileRotateHourly\nexpect: %q, actual: %q", e, a)
+		t.Errorf("TestFileRotateHourly\n expect: %q, actual: %q", e, a)
 	}
 }
 
@@ -592,7 +594,7 @@ func TestFileRotateHourlyOutdated(t *testing.T) {
 		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
 		if a != e {
-			t.Errorf("TestFileRotateHourlyOutdated\nexpect: %q, actual: %q", e, a)
+			t.Errorf("TestFileRotateHourlyOutdated\n expect: %q, actual: %q", e, a)
 		}
 
 		tm = tm.Add(time.Hour)
@@ -603,6 +605,6 @@ func TestFileRotateHourlyOutdated(t *testing.T) {
 	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
 	if a != e {
-		t.Errorf("TestFileRotateHourlyOutdated\nexpect: %q, actual: %q", e, a)
+		t.Errorf("TestFileRotateHourlyOutdated\n expect: %q, actual: %q", e, a)
 	}
 }

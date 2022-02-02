@@ -14,7 +14,7 @@ type DirectSender struct {
 func (ds *DirectSender) DirectSend(ms ...*Email) error {
 	for i, m := range ms {
 		if err := ds.directSend(m); err != nil {
-			return fmt.Errorf("Failed to direct send email %d: %v", i+1, err)
+			return fmt.Errorf("Failed to direct send email %d: %w", i+1, err)
 		}
 	}
 

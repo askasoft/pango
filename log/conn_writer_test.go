@@ -57,7 +57,9 @@ func testConnEcho(conn net.Conn, wg *sync.WaitGroup, revChan chan string) {
 		os.Stdout.Write([]byte("\r\n"))
 		if strings.Contains(s, "Close!") {
 			fmt.Println("Server Close Connection!")
-			conn.Close()
+			if err := conn.Close(); err != nil {
+				fmt.Println(err)
+			}
 			wg.Done()
 			return
 		}
@@ -92,14 +94,19 @@ func TestConnWriter(t *testing.T) {
 	log.Debug(ss[i])
 	i++
 	log.Info(ss[i])
-	i++
 	time.Sleep(time.Millisecond * 500)
-	log.Info(strings.Repeat("!missing! ", 100))
+
+	// https://gosamples.dev/broken-pipe/
+	log.Info(strings.Repeat("!missing! ", 1000))
+	time.Sleep(time.Millisecond * 500)
+
+	i++
 	log.Warn(ss[i])
 	i++
 	log.Error(ss[i])
 	i++
 	log.Fatal(ss[i])
+	time.Sleep(time.Millisecond * 500)
 
 	sigChan <- "done"
 	<-finChan
@@ -115,6 +122,6 @@ func TestConnWriter(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(ss, rs) {
-		t.Errorf("TestConnWriter() failure\nexcept: %q\nactual: %q", ss, rs)
+		t.Errorf("TestConnWriter() failure\n expect: %v\n actual: %v", ss, rs)
 	}
 }

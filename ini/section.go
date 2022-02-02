@@ -17,7 +17,7 @@ type Entry struct {
 
 // Section ini section
 type Section struct {
-	name     string             // Name for tihs section.
+	name     string             // Name for this section.
 	comments []string           // Comment for this section.
 	entries  *col.LinkedHashMap // Entries for this section.
 }
@@ -172,7 +172,7 @@ func (sec *Section) GetInt(key string, defs ...int) int {
 func (sec *Section) GetFloat(key string, defs ...float64) float64 {
 	e := sec.GetEntry(key)
 	if e != nil {
-		if f, err := strconv.ParseFloat(e.Value, 0); err == nil {
+		if f, err := strconv.ParseFloat(e.Value, 64); err == nil {
 			return f
 		}
 	}
@@ -257,7 +257,7 @@ func (sec *Section) Merge(src *Section) {
 func (sec *Section) String() string {
 	sb := &strings.Builder{}
 	bw := bufio.NewWriter(sb)
-	sec.Write(bw, iox.EOL)
+	sec.Write(bw, iox.EOL) //nolint: errcheck
 	bw.Flush()
 	return sb.String()
 }
@@ -289,20 +289,30 @@ func (sec *Section) Write(bw *bufio.Writer, eol string) error {
 
 func (sec *Section) writeComments(bw *bufio.Writer, comments []string, eol string) (err error) {
 	for _, s := range comments {
-		_, err = bw.WriteString(s)
-		_, err = bw.WriteString(eol)
+		if _, err = bw.WriteString(s); err != nil {
+			return
+		}
+		if _, err = bw.WriteString(eol); err != nil {
+			return
+		}
 	}
-	return err
+	return
 }
 
 func (sec *Section) writeSectionName(bw *bufio.Writer, eol string) (err error) {
 	if sec.name != "" {
-		err = bw.WriteByte('[')
-		_, err = bw.WriteString(sec.name)
-		err = bw.WriteByte(']')
+		if err = bw.WriteByte('['); err != nil {
+			return
+		}
+		if _, err = bw.WriteString(sec.name); err != nil {
+			return
+		}
+		if err = bw.WriteByte(']'); err != nil {
+			return
+		}
 	}
 	_, err = bw.WriteString(eol)
-	return err
+	return
 }
 
 func (sec *Section) writeSectionEntries(bw *bufio.Writer, eol string) (err error) {
@@ -325,25 +335,23 @@ func (sec *Section) writeSectionEntries(bw *bufio.Writer, eol string) (err error
 
 func (sec *Section) writeSectionEntry(bw *bufio.Writer, key string, ve *Entry, eol string) (err error) {
 	if len(ve.Comments) > 0 {
-		_, err = bw.WriteString(eol)
-		err = sec.writeComments(bw, ve.Comments, eol)
+		if _, err = bw.WriteString(eol); err != nil {
+			return
+		}
+		if err = sec.writeComments(bw, ve.Comments, eol); err != nil {
+			return
+		}
 	}
 
-	_, err = bw.WriteString(key)
-	err = bw.WriteByte(' ')
-	err = bw.WriteByte('=')
-	err = bw.WriteByte(' ')
-	_, err = bw.WriteString(quote(ve.Value))
+	if _, err = bw.WriteString(key); err != nil {
+		return
+	}
+	if _, err = bw.WriteString(" = "); err != nil {
+		return
+	}
+	if _, err = bw.WriteString(quote(ve.Value)); err != nil {
+		return
+	}
 	_, err = bw.WriteString(eol)
-	return err
-}
-
-func (sec *Section) writeKeyValue(bw *bufio.Writer, key string, val string, eol string) (err error) {
-	_, err = bw.WriteString(key)
-	err = bw.WriteByte(' ')
-	err = bw.WriteByte('=')
-	err = bw.WriteByte(' ')
-	_, err = bw.WriteString(quote(val))
-	_, err = bw.WriteString(eol)
-	return err
+	return
 }

@@ -64,7 +64,7 @@ func (sw *SMTPWriter) SetCc(s string) {
 func (sw *SMTPWriter) SetTimeout(timeout string) error {
 	tmo, err := time.ParseDuration(timeout)
 	if err != nil {
-		return fmt.Errorf("SMTPWriter - Invalid timeout: %v", err)
+		return fmt.Errorf("SMTPWriter - Invalid timeout: %w", err)
 	}
 	sw.Timeout = tmo
 	return nil
@@ -74,7 +74,7 @@ func (sw *SMTPWriter) SetTimeout(timeout string) error {
 func (sw *SMTPWriter) SetErrBuffer(buffer string) error {
 	bsz, err := strconv.Atoi(buffer)
 	if err != nil {
-		return fmt.Errorf("SlackWriter - Invalid error buffer: %v", err)
+		return fmt.Errorf("SlackWriter - Invalid error buffer: %w", err)
 	}
 	if bsz > 0 {
 		sw.eb = &EventBuffer{BufSize: bsz}
@@ -99,7 +99,7 @@ func (sw *SMTPWriter) Write(le *Event) {
 	}
 
 	if sw.eb == nil {
-		sw.write(le)
+		sw.write(le) //nolint: errcheck
 		return
 	}
 
@@ -159,27 +159,27 @@ func (sw *SMTPWriter) initSender() {
 	}
 	sw.sender.Helo = "localhost"
 	sw.sender.Timeout = sw.Timeout
-	sw.sender.TLSConfig = &tls.Config{ServerName: sw.Host, InsecureSkipVerify: true}
+	sw.sender.TLSConfig = &tls.Config{ServerName: sw.Host, InsecureSkipVerify: true} //nolint: gosec
 }
 
 func (sw *SMTPWriter) initEmail() (err error) {
 	m := &email.Email{}
 
 	if err = m.SetFrom(sw.From); err != nil {
-		err = fmt.Errorf("SMTPWriter(%s:%d) - SetFrom(): %v", sw.Host, sw.Port, err)
+		err = fmt.Errorf("SMTPWriter(%s:%d) - SetFrom(): %w", sw.Host, sw.Port, err)
 		return
 	}
 
 	for _, a := range sw.Tos {
 		if err = m.AddTo(a); err != nil {
-			err = fmt.Errorf("SMTPWriter(%s:%d) - AddTo(): %v", sw.Host, sw.Port, err)
+			err = fmt.Errorf("SMTPWriter(%s:%d) - AddTo(): %w", sw.Host, sw.Port, err)
 			return
 		}
 	}
 
 	for _, a := range sw.Ccs {
 		if err = m.AddCc(a); err != nil {
-			err = fmt.Errorf("SMTPWriter(%s:%d) - AddCc(): %v", sw.Host, sw.Port, err)
+			err = fmt.Errorf("SMTPWriter(%s:%d) - AddCc(): %w", sw.Host, sw.Port, err)
 			return
 		}
 	}
@@ -192,12 +192,12 @@ func (sw *SMTPWriter) initEmail() (err error) {
 func (sw *SMTPWriter) write(le *Event) (err error) {
 	if !sw.sender.IsDialed() {
 		if err = sw.sender.Dial(); err != nil {
-			err = fmt.Errorf("SMTPWriter(%s:%d) - Dial(): %v", sw.Host, sw.Port, err)
+			err = fmt.Errorf("SMTPWriter(%s:%d) - Dial(): %w", sw.Host, sw.Port, err)
 			return
 		}
 
 		if err = sw.sender.Login(); err != nil {
-			err = fmt.Errorf("SMTPWriter(%s:%d) - Login(%s, %s): %v", sw.Host, sw.Port, sw.Username, sw.Password, err)
+			err = fmt.Errorf("SMTPWriter(%s:%d) - Login(%s, %s): %w", sw.Host, sw.Port, sw.Username, sw.Password, err)
 			sw.sender.Close()
 			return
 		}
@@ -207,8 +207,8 @@ func (sw *SMTPWriter) write(le *Event) (err error) {
 	sw.email.Subject = sb
 	sw.email.Message = mb
 
-	if err := sw.sender.Send(sw.email); err != nil {
-		err = fmt.Errorf("SMTPWriter(%s:%d) - Send(): %v", sw.Host, sw.Port, err)
+	if err = sw.sender.Send(sw.email); err != nil {
+		err = fmt.Errorf("SMTPWriter(%s:%d) - Send(): %w", sw.Host, sw.Port, err)
 	}
 	return
 }

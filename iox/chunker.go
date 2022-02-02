@@ -31,8 +31,12 @@ func NewPemChunkWriter(w io.Writer) *ChunkLineWriter {
 func (cw *ChunkLineWriter) Write(p []byte) (n int, err error) {
 	n = 0
 	for len(p)+cw.written > cw.LineSize {
-		_, err = cw.Writer.Write(p[:cw.LineSize-cw.written])
-		_, err = cw.Writer.Write([]byte(cw.EOL))
+		if _, err = cw.Writer.Write(p[:cw.LineSize-cw.written]); err != nil {
+			return
+		}
+		if _, err = cw.Writer.Write([]byte(cw.EOL)); err != nil {
+			return
+		}
 		p = p[cw.LineSize-cw.written:]
 		n += cw.LineSize - cw.written
 		cw.written = 0

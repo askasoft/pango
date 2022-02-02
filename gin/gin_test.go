@@ -33,9 +33,7 @@ func testLoadHTML(t *testing.T, router *Engine) {
 }
 
 func setupHTMLFiles(t *testing.T, tls bool, loadMethod func(*Engine)) *httptest.Server {
-	var router *Engine
-
-	router = New()
+	router := New()
 	testLoadHTML(t, router)
 	loadMethod(router)
 	router.GET("/test", func(c *Context) {

@@ -3,7 +3,6 @@ package binding
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -1188,12 +1187,6 @@ func testBodyBindingFail(t *testing.T, b Binding, name, path, badPath, body, bad
 	req = requestWithBody("POST", badPath, badBody)
 	err = JSON.Bind(req, &obj)
 	assert.Error(t, err)
-}
-
-type hook struct{}
-
-func (h hook) Read([]byte) (int, error) {
-	return 0, errors.New("error")
 }
 
 func requestWithBody(method, path, body string) (req *http.Request) {

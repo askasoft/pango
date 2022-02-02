@@ -851,7 +851,7 @@ func TestLinkedHashSetDeque(t *testing.T) {
 
 func TestLinkedHashSetString(t *testing.T) {
 	e := "[1,3,2]"
-	a := fmt.Sprintf("%s", NewLinkedHashSet(1, 3, 2))
+	a := NewLinkedHashSet(1, 3, 2).String()
 	if a != e {
 		t.Errorf(`fmt.Sprintf("%%s", NewLinkedHashSet(1, 3, 2)) = %v, want %v`, a, e)
 	}

@@ -327,7 +327,7 @@ func (ini *Ini) WriteData(w io.Writer) (err error) {
 // String write INI to the string
 func (ini *Ini) String() string {
 	sb := &strings.Builder{}
-	ini.WriteData(sb)
+	ini.WriteData(sb) //nolint: errcheck
 	return sb.String()
 }
 

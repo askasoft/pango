@@ -45,7 +45,7 @@ func (sw *SlackWriter) SetFilter(filter string) {
 func (sw *SlackWriter) SetTimeout(timeout string) error {
 	tmo, err := time.ParseDuration(timeout)
 	if err != nil {
-		return fmt.Errorf("SlackWriter - Invalid timeout: %v", err)
+		return fmt.Errorf("SlackWriter - Invalid timeout: %w", err)
 	}
 	sw.Timeout = tmo
 	return nil
@@ -55,7 +55,7 @@ func (sw *SlackWriter) SetTimeout(timeout string) error {
 func (sw *SlackWriter) SetErrBuffer(buffer string) error {
 	bsz, err := strconv.Atoi(buffer)
 	if err != nil {
-		return fmt.Errorf("SlackWriter - Invalid error buffer: %v", err)
+		return fmt.Errorf("SlackWriter - Invalid error buffer: %w", err)
 	}
 	if bsz > 0 {
 		sw.eb = &EventBuffer{BufSize: bsz}
@@ -70,7 +70,7 @@ func (sw *SlackWriter) Write(le *Event) {
 	}
 
 	if sw.eb == nil {
-		sw.write(le)
+		sw.write(le) //nolint: errcheck
 		return
 	}
 
@@ -134,7 +134,7 @@ func (sw *SlackWriter) write(le *Event) (err error) {
 	}
 
 	if err = slack.Post(sw.Webhook, sw.Timeout, sm); err != nil {
-		err = fmt.Errorf("SlackWriter(%q) - Post(): %v", sw.Webhook, err)
+		err = fmt.Errorf("SlackWriter(%q) - Post(): %w", sw.Webhook, err)
 	}
 	return
 }

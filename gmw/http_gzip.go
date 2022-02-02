@@ -192,7 +192,7 @@ func (z *HTTPGziper) IgnorePathPrefix(ps ...string) {
 
 // IgnorePathRegexp ignore URL path regexp
 func (z *HTTPGziper) IgnorePathRegexp(ps ...string) {
-	rs := make([]*regexp.Regexp, len(ps), len(ps))
+	rs := make([]*regexp.Regexp, len(ps))
 	for i, p := range ps {
 		rs[i] = regexp.MustCompile(p)
 	}

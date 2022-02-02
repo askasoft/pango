@@ -84,7 +84,7 @@ func (s *Sender) getConn(i interface{}) net.Conn {
 
 func (s *Sender) tlsConfig(host string) *tls.Config {
 	if s.TLSConfig == nil {
-		s.TLSConfig = &tls.Config{ServerName: host}
+		s.TLSConfig = &tls.Config{ServerName: host} //nolint: gosec
 	}
 	return s.TLSConfig
 }
@@ -93,7 +93,7 @@ func (s *Sender) dial(host string, port int) error {
 	addr := host + ":" + strconv.Itoa(port)
 	conn, err := net.DialTimeout("tcp", addr, s.Timeout)
 	if err != nil {
-		return fmt.Errorf("Failed to dial %s - %v", addr, err)
+		return fmt.Errorf("Failed to dial %s - %w", addr, err)
 	}
 
 	if s.SSL {
@@ -191,9 +191,15 @@ func encodeString(s string) string {
 }
 
 func writeBoundary(w io.Writer, b string) (err error) {
-	_, err = w.Write([]byte{'-', '-'})
-	err = writeString(w, b)
-	err = writeEOL(w)
+	if _, err = w.Write([]byte{'-', '-'}); err != nil {
+		return
+	}
+	if err = writeString(w, b); err != nil {
+		return
+	}
+	if err = writeEOL(w); err != nil {
+		return
+	}
 	return
 }
 
@@ -225,20 +231,32 @@ func writeFolding(w io.Writer, h string, v string) (err error) {
 		}
 
 		if ll+len(s) > 74 {
-			_, err = w.Write([]byte{'\r', '\n', ' '})
+			if _, err = w.Write([]byte{'\r', '\n', ' '}); err != nil {
+				return
+			}
 			ll = 1
 		}
-		err = writeString(w, s)
+		if err = writeString(w, s); err != nil {
+			return
+		}
 		ll += len(s)
 	}
 	return
 }
 
 func writeHeader(w io.Writer, h string, v string) (err error) {
-	err = writeString(w, h)
-	_, err = w.Write([]byte{':', ' '})
-	err = writeFolding(w, h, v)
-	err = writeEOL(w)
+	if err = writeString(w, h); err != nil {
+		return
+	}
+	if _, err = w.Write([]byte{':', ' '}); err != nil {
+		return
+	}
+	if err = writeFolding(w, h, v); err != nil {
+		return
+	}
+	if err = writeEOL(w); err != nil {
+		return
+	}
 	return
 }
 
@@ -247,14 +265,22 @@ func writeAddress(w io.Writer, h string, as ...*mail.Address) (err error) {
 		return
 	}
 
-	err = writeString(w, h)
-	_, err = w.Write([]byte{':', ' '})
+	if err = writeString(w, h); err != nil {
+		return
+	}
+	if _, err = w.Write([]byte{':', ' '}); err != nil {
+		return
+	}
 
 	for i, a := range as {
 		if i > 0 {
-			_, err = w.Write([]byte{'\r', '\n', ' ', ',', ' '})
+			if _, err = w.Write([]byte{'\r', '\n', ' ', ',', ' '}); err != nil {
+				return
+			}
 		}
-		err = writeFolding(w, h, a.String())
+		if err = writeFolding(w, h, a.String()); err != nil {
+			return
+		}
 	}
 
 	err = writeEOL(w)
@@ -302,34 +328,57 @@ func (s *Sender) writeMail(w io.Writer, m *Email) (err error) {
 		w = s.DataDebug(w)
 	}
 
-	err = writeHeader(w, "MIME-Version", "1.0")
-	if m.MsgID != "" {
-		err = writeHeader(w, "Message-ID", m.MsgID)
+	if err = writeHeader(w, "MIME-Version", "1.0"); err != nil {
+		return
 	}
-	err = writeHeader(w, "Date", formatDate(m.GetDate()))
-	err = writeAddress(w, "From", m.GetFrom())
-	err = writeAddress(w, "To", m.GetTos()...)
-	err = writeAddress(w, "Cc", m.GetCcs()...)
-	err = writeAddress(w, "Bcc", m.GetBccs()...)
-	err = writeAddress(w, "Reply-To", m.GetReplys()...)
-	err = writeHeader(w, "Subject", encodeString(m.Subject))
+	if m.MsgID != "" {
+		if err = writeHeader(w, "Message-ID", m.MsgID); err != nil {
+			return
+		}
+	}
+	if err = writeHeader(w, "Date", formatDate(m.GetDate())); err != nil {
+		return
+	}
+	if err = writeAddress(w, "From", m.GetFrom()); err != nil {
+		return
+	}
+	if err = writeAddress(w, "To", m.GetTos()...); err != nil {
+		return
+	}
+	if err = writeAddress(w, "Cc", m.GetCcs()...); err != nil {
+		return
+	}
+	if err = writeAddress(w, "Bcc", m.GetBccs()...); err != nil {
+		return
+	}
+	if err = writeAddress(w, "Reply-To", m.GetReplys()...); err != nil {
+		return
+	}
+	if err = writeHeader(w, "Subject", encodeString(m.Subject)); err != nil {
+		return
+	}
 
 	var boundary string
 	if m.HTML || len(m.Attachments) > 0 {
 		boundary = str.RandLetterNumbers(28)
-		err = writeHeader(w, "Content-Type", "multipart/mixed; boundary="+boundary)
+		if err = writeHeader(w, "Content-Type", "multipart/mixed; boundary="+boundary); err != nil {
+			return
+		}
 	} else {
-		err = writeHeader(w, "Content-Type", "text/plain; charset=UTF-8")
+		if err = writeHeader(w, "Content-Type", "text/plain; charset=UTF-8"); err != nil {
+			return
+		}
 	}
 
 	enc := "7bit"
 	if needEncoding(m.Message) {
 		enc = "Base64"
 	}
-	err = writeHeader(w, "Content-Transfer-Encoding", enc)
+	if err = writeHeader(w, "Content-Transfer-Encoding", enc); err != nil {
+		return
+	}
 
-	err = writeEOL(w)
-	if err != nil {
+	if err = writeEOL(w); err != nil {
 		return
 	}
 
@@ -372,65 +421,88 @@ func writeBody(w io.Writer, enc string, m *Email, boundary string) (err error) {
 	}
 
 	// Write the message part
-	err = writeBoundary(w, boundary)
-	if m.HTML {
-		err = writeHeader(w, "Content-Type", "text/html; charset=UTF-8")
-	} else {
-		err = writeHeader(w, "Content-Type", "text/plain; charset=UTF-8")
+	if err = writeBoundary(w, boundary); err != nil {
+		return
 	}
-	err = writeHeader(w, "Content-Disposition", "inline")
-	err = writeHeader(w, "Content-Transfer-Encoding", enc)
-	err = writeEOL(w)
-	if err != nil {
+	if m.HTML {
+		if err = writeHeader(w, "Content-Type", "text/html; charset=UTF-8"); err != nil {
+			return
+		}
+	} else {
+		if err = writeHeader(w, "Content-Type", "text/plain; charset=UTF-8"); err != nil {
+			return
+		}
+	}
+
+	if err = writeHeader(w, "Content-Disposition", "inline"); err != nil {
+		return
+	}
+	if err = writeHeader(w, "Content-Transfer-Encoding", enc); err != nil {
+		return
+	}
+	if err = writeEOL(w); err != nil {
 		return
 	}
 
-	err = writeMsg(w, enc, m.Message)
-	err = writeEOL(w)
-	if err != nil {
+	if err = writeMsg(w, enc, m.Message); err != nil {
+		return
+	}
+	if err = writeEOL(w); err != nil {
 		return
 	}
 
 	// Append attachments
-	err = writeAttachments(w, m.Attachments, boundary)
-	if err != nil {
+	if err = writeAttachments(w, m.Attachments, boundary); err != nil {
 		return
 	}
 
-	err = writeBoundary(w, boundary)
+	if err = writeBoundary(w, boundary); err != nil {
+		return
+	}
 	err = writeEOL(w)
 	return
 }
 
-func writeAttachments(w io.Writer, as []*Attachment, boundary string) error {
-	var err error
+func writeAttachments(w io.Writer, as []*Attachment, boundary string) (err error) {
 	for _, a := range as {
 		mt := mime.TypeByExtension(filepath.Ext(a.Name))
 		if mt == "" {
 			mt = "application/octet-stream"
 		}
 
-		err = writeBoundary(w, boundary)
-		err = writeHeader(w, "Content-Type", mt+"; name=\""+encodeWord(a.Name)+"\"")
+		if err = writeBoundary(w, boundary); err != nil {
+			return
+		}
+		if err = writeHeader(w, "Content-Type", mt+"; name=\""+encodeWord(a.Name)+"\""); err != nil {
+			return
+		}
 		if a.Cid != "" {
-			err = writeHeader(w, "Content-Disposition", "inline; filename=\""+encodeWord(a.Name)+"\"")
+			if err = writeHeader(w, "Content-Disposition", "inline; filename=\""+encodeWord(a.Name)+"\""); err != nil {
+				return
+			}
 		} else {
-			err = writeHeader(w, "Content-Disposition", "attachment; filename=\""+encodeWord(a.Name)+"\"")
+			if err = writeHeader(w, "Content-Disposition", "attachment; filename=\""+encodeWord(a.Name)+"\""); err != nil {
+				return
+			}
 		}
 		if a.Cid != "" {
-			err = writeHeader(w, "Content-ID", a.Cid)
+			if err = writeHeader(w, "Content-ID", a.Cid); err != nil {
+				return
+			}
 		}
-		err = writeHeader(w, "Content-Transfer-Encoding", "Base64")
-		err = writeEOL(w)
-		if err != nil {
-			return err
+		if err = writeHeader(w, "Content-Transfer-Encoding", "Base64"); err != nil {
+			return
+		}
+		if err = writeEOL(w); err != nil {
+			return
 		}
 
-		err = copyAttach(w, a.Data)
-		err = writeEOL(w)
-		if err != nil {
-			return err
+		if err = copyAttach(w, a.Data); err != nil {
+			return
+		}
+		if err = writeEOL(w); err != nil {
+			return
 		}
 	}
-	return nil
+	return
 }

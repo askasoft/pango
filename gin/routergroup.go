@@ -236,7 +236,7 @@ func (group *RouterGroup) StaticFS(relativePath string, localPath string, hfs ht
 }
 
 // StaticFSFile registers a single route in order to serve a single file of the filesystem.
-// ginfile.StaticFSFile(gin, "favicon.ico", "./resources/favicon.ico", hfs, gin.Public1Year)
+// router.StaticFSFile("favicon.ico", "./resources/favicon.ico", hfs, gin.Public1Year)
 func (group *RouterGroup) StaticFSFile(relativePath, filePath string, hfs http.FileSystem, cacheControls ...string) IRoutes {
 	if strings.Contains(relativePath, ":") || strings.Contains(relativePath, "*") {
 		panic("URL parameters can not be used when serving a static file")
@@ -268,10 +268,10 @@ func (group *RouterGroup) StaticFSFile(relativePath, filePath string, hfs http.F
 // StaticContent registers a single route in order to serve a single file of the data.
 // //go:embed favicon.ico
 // var favicon []byte
-// group.StaticContent("favicon.ico", favicon, time.Now(), "public")
+// router.StaticContent("favicon.ico", favicon, time.Now(), "public")
 func (group *RouterGroup) StaticContent(relativePath string, data []byte, modtime time.Time, cacheControls ...string) IRoutes {
 	if strings.Contains(relativePath, ":") || strings.Contains(relativePath, "*") {
-		panic("URL parameters can not be used when serving a static file")
+		panic("URL parameters can not be used when serving a static content")
 	}
 
 	if modtime.IsZero() {

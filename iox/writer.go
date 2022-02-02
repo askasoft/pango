@@ -18,11 +18,17 @@ func WrapWriter(writer io.Writer, prefix, suffix string) io.Writer {
 }
 
 // Write io.Writer implement
-func (ww *wrapWriter) Write(p []byte) (int, error) {
-	ww.writer.Write([]byte(ww.prefix))
-	n, err := ww.writer.Write(p)
-	ww.writer.Write([]byte(ww.suffix))
-	return n, err
+func (ww *wrapWriter) Write(p []byte) (n int, err error) {
+	if _, err = ww.writer.Write([]byte(ww.prefix)); err != nil {
+		return
+	}
+
+	if n, err = ww.writer.Write(p); err != nil {
+		return
+	}
+
+	_, err = ww.writer.Write([]byte(ww.suffix))
+	return
 }
 
 // syncWriter synchronize writer

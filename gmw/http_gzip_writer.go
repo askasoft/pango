@@ -31,7 +31,7 @@ type gzipWriter struct {
 func (g *gzipWriter) Close() {
 	g.WriteHeaderNow()
 	if g.buf.Len() > 0 {
-		g.ResponseWriter.Write(g.buf.Bytes())
+		g.ResponseWriter.Write(g.buf.Bytes()) //nolint: errcheck
 		g.buf.Reset()
 	} else {
 		g.gzw.Flush()
@@ -113,7 +113,7 @@ func (g *gzipWriter) checkHeader() {
 	g.state = gzwStateBuff
 }
 
-func (g *gzipWriter) checkBuffer(data []byte) {
+func (g *gzipWriter) checkBuffer(data []byte) (err error) {
 	if g.state != gzwStateBuff {
 		return
 	}
@@ -125,10 +125,11 @@ func (g *gzipWriter) checkBuffer(data []byte) {
 	g.modifyHeader()
 	g.gzw.Reset(g.ResponseWriter)
 	if g.buf.Len() > 0 {
-		g.gzw.Write(g.buf.Bytes())
+		_, err = g.gzw.Write(g.buf.Bytes())
 		g.buf.Reset()
 	}
 	g.state = gzwStateGzip
+	return
 }
 
 func (g *gzipWriter) modifyHeader() {
@@ -149,7 +150,10 @@ func (g *gzipWriter) WriteString(s string) (int, error) {
 // implements http.ResponseWriter
 func (g *gzipWriter) Write(data []byte) (int, error) {
 	g.checkHeader()
-	g.checkBuffer(data)
+
+	if err := g.checkBuffer(data); err != nil {
+		return 0, err
+	}
 
 	switch g.state {
 	case gzwStateBuff:

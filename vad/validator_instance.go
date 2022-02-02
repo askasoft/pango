@@ -53,7 +53,7 @@ var (
 
 // FilterFunc is the type used to filter fields using
 // StructFiltered(...) function.
-// returning true results in the field being filtered/skiped from
+// returning true results in the field being filtered/skipped from
 // validation
 type FilterFunc func(ns []byte) bool
 

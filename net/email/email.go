@@ -36,7 +36,7 @@ type Email struct {
 func ParseAddress(s string) (*mail.Address, error) {
 	a, err := mail.ParseAddress(s)
 	if err != nil {
-		return nil, fmt.Errorf("Invalid address %s - %v", s, err)
+		return nil, fmt.Errorf("Invalid address %s - %w", s, err)
 	}
 	return a, nil
 }

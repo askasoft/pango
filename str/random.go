@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-var seed *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
+var seed = rand.New(rand.NewSource(time.Now().UnixNano())) //nolint: gosec
 
 // RandNumbers create a random number string
 func RandNumbers(size int) string {
@@ -29,7 +29,7 @@ func RandString(size int, chars string) string {
 	}
 
 	n := len(chars)
-	buf := make([]byte, size, size)
+	buf := make([]byte, size)
 	for i := 0; i < size; i++ {
 		buf[i] = chars[seed.Intn(n)]
 	}

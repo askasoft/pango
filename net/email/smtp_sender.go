@@ -58,7 +58,7 @@ func (ss *SMTPSender) Dial() error {
 func (ss *SMTPSender) Send(ms ...*Email) error {
 	for i, m := range ms {
 		if err := ss.send(m); err != nil {
-			return fmt.Errorf("Failed to send email [%d]: %v", i+1, err)
+			return fmt.Errorf("Failed to send email [%d]: %w", i+1, err)
 		}
 	}
 

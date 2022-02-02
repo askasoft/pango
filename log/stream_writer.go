@@ -48,11 +48,11 @@ func (sw *StreamWriter) Write(le *Event) {
 	sw.bb.Reset()
 	lf.Write(&sw.bb, le)
 	if sw.Color {
-		sw.Output.Write([]byte(colors[le.Level()]))
-		sw.Output.Write(sw.bb.Bytes())
-		sw.Output.Write([]byte(colors[0]))
+		sw.Output.Write([]byte(colors[le.Level()])) //nolint: errcheck
+		sw.Output.Write(sw.bb.Bytes())              //nolint: errcheck
+		sw.Output.Write([]byte(colors[0]))          //nolint: errcheck
 	} else {
-		sw.Output.Write(sw.bb.Bytes())
+		sw.Output.Write(sw.bb.Bytes()) //nolint: errcheck
 	}
 }
 

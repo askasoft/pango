@@ -104,7 +104,7 @@ func (al *AccessLogger) handle(c *gin.Context) {
 		s := f(p)
 		bb.WriteString(s)
 	}
-	w.Write(bb.Bytes())
+	w.Write(bb.Bytes()) //nolint: errcheck
 }
 
 // SetOutput set the access al output writer
@@ -167,8 +167,9 @@ func parseTextFormat(format string) []fmtfunc {
 			p := getFormatOption(format, &i)
 			if p != "" {
 				fmt = requestHeader(p)
+			} else {
+				fmt = requestHost
 			}
-			fmt = requestHost
 		case 't':
 			p := getFormatOption(format, &i)
 			if p == "" {
@@ -359,10 +360,6 @@ func requestMethod(p *logevt) string {
 
 func requestQuery(p *logevt) string {
 	return p.Ctx.Request.URL.RawQuery
-}
-
-func requestPath(p *logevt) string {
-	return p.Ctx.Request.URL.Path
 }
 
 func requestHeader(name string) fmtfunc {

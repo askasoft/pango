@@ -28,7 +28,7 @@ func Post(url string, timeout time.Duration, sm *Message) error {
 	if err != nil {
 		return err
 	}
-	io.Copy(ioutil.Discard, res.Body)
+	io.Copy(ioutil.Discard, res.Body) //nolint: errcheck
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {

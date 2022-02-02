@@ -57,7 +57,7 @@ func Convert(v interface{}, t reflect.Type) (ti interface{}, err error) {
 	}
 
 	if err != nil {
-		err = fmt.Errorf("cannot convert value %v to type %s:%s", v, t.String(), err.Error())
+		err = fmt.Errorf("cannot convert value %v to type %s: %w", v, t.String(), err)
 	}
 	return
 }

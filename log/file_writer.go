@@ -145,7 +145,11 @@ func (fw *FileWriter) init() {
 	}
 
 	// create dirs
-	os.MkdirAll(fw.dir, os.FileMode(fw.DirPerm))
+	err := os.MkdirAll(fw.dir, os.FileMode(fw.DirPerm))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "FileWriter(%q) - MkdirAll(): %v\n", fw.Path, err)
+		return
+	}
 
 	// Open the log file
 	file, err := os.OpenFile(fw.Path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, os.FileMode(fw.FilePerm))
@@ -155,7 +159,11 @@ func (fw *FileWriter) init() {
 	}
 
 	// Make sure file perm is user set perm cause of `os.OpenFile` will obey umask
-	os.Chmod(fw.Path, os.FileMode(fw.FilePerm))
+	err = os.Chmod(fw.Path, os.FileMode(fw.FilePerm))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "FileWriter(%q) - Chmod(): %v\n", fw.Path, err)
+		return
+	}
 
 	fi, err := file.Stat()
 	if err != nil {
@@ -181,7 +189,7 @@ func (fw *FileWriter) needRotate(le *Event) bool {
 // DoRotate means it need to write file in new file.
 // new file name like xx-20130101.log (daily) or xx-001.log (by line or size)
 func (fw *FileWriter) rotate(tm time.Time) {
-	path := "" // rotate file name
+	var path string // rotate file name
 
 	date := ""
 	if fw.MaxHours > 0 {

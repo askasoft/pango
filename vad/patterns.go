@@ -5,7 +5,7 @@ import "regexp"
 // Basic regular expressions for validating strings
 const (
 	Email        = "^([\\w\\.\\+\\-]+)@([\\w\\-]+\\.)+([a-zA-Z]{2,})$"
-	CreditCard   = "^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|(222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}|6(?:011|5[0-9][0-9])[0-9]{12}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|(?:2131|1800|35\\d{3})\\d{11}|6[27][0-9]{14})$"
+	CreditCard   = "^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|(222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}|6(?:011|5[0-9][0-9])[0-9]{12}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|(?:2131|1800|35\\d{3})\\d{11}|6[27][0-9]{14})$" //nolint: gosec
 	ISBN10       = "^(?:[0-9]{9}X|[0-9]{10})$"
 	ISBN13       = "^(?:[0-9]{13})$"
 	UUID3        = "^[0-9a-f]{8}-[0-9a-f]{4}-3[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$"
@@ -36,7 +36,7 @@ const (
 
 var (
 	userRegexp    = regexp.MustCompile("^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~.-]+$")
-	hostRegexp    = regexp.MustCompile("^[^\\s]+\\.[^\\s]+$")
+	hostRegexp    = regexp.MustCompile(`^[^\s]+\.[^\s]+$`)
 	userDotRegexp = regexp.MustCompile("(^[.]{1})|([.]{1}$)|([.]{2,})")
 	rxEmail       = regexp.MustCompile(Email)
 	rxCreditCard  = regexp.MustCompile(CreditCard)
@@ -56,7 +56,6 @@ var (
 	rxLongitude   = regexp.MustCompile(Longitude)
 	rxDNSName     = regexp.MustCompile(DNSName)
 	rxURL         = regexp.MustCompile(URL)
-	rxSSN         = regexp.MustCompile(SSN)
 	rxIMEI        = regexp.MustCompile(IMEI)
 	rxIMSI        = regexp.MustCompile(IMSI)
 )

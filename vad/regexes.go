@@ -43,9 +43,6 @@ const (
 	btcAddressRegexString            = `^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$`                                                                                // bitcoin address
 	btcAddressUpperRegexStringBech32 = `^BC1[02-9AC-HJ-NP-Z]{7,76}$`                                                                                      // bitcoin bech32 address https://en.bitcoin.it/wiki/Bech32
 	btcAddressLowerRegexStringBech32 = `^bc1[02-9ac-hj-np-z]{7,76}$`                                                                                      // bitcoin bech32 address https://en.bitcoin.it/wiki/Bech32
-	ethAddressRegexString            = `^0x[0-9a-fA-F]{40}$`
-	ethAddressUpperRegexString       = `^0x[0-9A-F]{40}$`
-	ethAddressLowerRegexString       = `^0x[0-9a-f]{40}$`
 	uRLEncodedRegexString            = `^(?:[^%]|%[0-9A-Fa-f]{2})*$`
 	hTMLEncodedRegexString           = `&#[x]?([0-9a-fA-F]{2})|(&gt)|(&lt)|(&quot)|(&amp)+[;]?`
 	hTMLRegexString                  = `<[/]?([a-zA-Z]+).*?>`
@@ -97,9 +94,6 @@ var (
 	btcAddressRegex            = regexp.MustCompile(btcAddressRegexString)
 	btcUpperAddressRegexBech32 = regexp.MustCompile(btcAddressUpperRegexStringBech32)
 	btcLowerAddressRegexBech32 = regexp.MustCompile(btcAddressLowerRegexStringBech32)
-	ethAddressRegex            = regexp.MustCompile(ethAddressRegexString)
-	ethAddressRegexUpper       = regexp.MustCompile(ethAddressUpperRegexString)
-	ethAddressRegexLower       = regexp.MustCompile(ethAddressLowerRegexString)
 	uRLEncodedRegex            = regexp.MustCompile(uRLEncodedRegexString)
 	hTMLEncodedRegex           = regexp.MustCompile(hTMLEncodedRegexString)
 	hTMLRegex                  = regexp.MustCompile(hTMLRegexString)

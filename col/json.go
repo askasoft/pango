@@ -3,6 +3,7 @@ package col
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 )
@@ -55,14 +56,14 @@ func (jd *jsonUnmarshaler) unmarshalJSONArray(data []byte, ja jsonArray) error {
 		return fmt.Errorf("expect JSON array open with '['")
 	}
 
-	ja, err = jd.parseJSONArray(dec, ja)
+	_, err = jd.parseJSONArray(dec, ja)
 	if err != nil {
 		return err
 	}
 
 	t, err = dec.Token()
-	if err != io.EOF {
-		return fmt.Errorf("expect end of JSON array but got more token: %T: %v or err: %v", t, t, err)
+	if !errors.Is(err, io.EOF) {
+		return fmt.Errorf("expect end of JSON array but got more token: %T: %v or err: %w", t, t, err)
 	}
 
 	return nil
@@ -80,14 +81,14 @@ func (jd *jsonUnmarshaler) unmarshalJSONObject(data []byte, jo jsonObject) error
 		return fmt.Errorf("expect JSON object open with '{'")
 	}
 
-	jo, err = jd.parseJSONObject(dec, jo)
+	_, err = jd.parseJSONObject(dec, jo)
 	if err != nil {
 		return err
 	}
 
 	t, err = dec.Token()
-	if err != io.EOF {
-		return fmt.Errorf("expect end of JSON object but got more token: %T: %v or err: %v", t, t, err)
+	if !errors.Is(err, io.EOF) {
+		return fmt.Errorf("expect end of JSON object but got more token: %T: %v or err: %w", t, t, err)
 	}
 
 	return nil
@@ -106,7 +107,7 @@ func (jd *jsonUnmarshaler) parseJSONObject(dec *json.Decoder, jo jsonObject) (js
 		}
 
 		t, err = dec.Token()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 

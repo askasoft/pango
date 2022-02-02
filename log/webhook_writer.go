@@ -39,7 +39,7 @@ func (ww *WebhookWriter) SetFilter(filter string) {
 func (ww *WebhookWriter) SetTimeout(timeout string) error {
 	tmo, err := time.ParseDuration(timeout)
 	if err != nil {
-		return fmt.Errorf("WebhookWriter - Invalid timeout: %v", err)
+		return fmt.Errorf("WebhookWriter - Invalid timeout: %w", err)
 	}
 	ww.Timeout = tmo
 	return nil
@@ -49,7 +49,7 @@ func (ww *WebhookWriter) SetTimeout(timeout string) error {
 func (ww *WebhookWriter) SetErrBuffer(buffer string) error {
 	bsz, err := strconv.Atoi(buffer)
 	if err != nil {
-		return fmt.Errorf("SlackWriter - Invalid error buffer: %v", err)
+		return fmt.Errorf("SlackWriter - Invalid error buffer: %w", err)
 	}
 	if bsz > 0 {
 		ww.eb = &EventBuffer{BufSize: bsz}
@@ -64,7 +64,7 @@ func (ww *WebhookWriter) Write(le *Event) {
 	}
 
 	if ww.eb == nil {
-		ww.write(le)
+		ww.write(le) //nolint: errcheck
 		return
 	}
 
@@ -121,7 +121,7 @@ func (ww *WebhookWriter) write(le *Event) error {
 
 	req, err := http.NewRequest(ww.Method, ww.Webhook, &ww.bb)
 	if err != nil {
-		err = fmt.Errorf("WebhookWriter(%q) - NewRequest(%v): %v", ww.Webhook, ww.Method, err)
+		err = fmt.Errorf("WebhookWriter(%q) - NewRequest(%v): %w", ww.Webhook, ww.Method, err)
 		return err
 	}
 	if ww.ContentType != "" {
@@ -130,10 +130,10 @@ func (ww *WebhookWriter) write(le *Event) error {
 
 	res, err := ww.hc.Do(req)
 	if err != nil {
-		err = fmt.Errorf("WebhookWriter(%q) - Send(): %v", ww.Webhook, err)
+		err = fmt.Errorf("WebhookWriter(%q) - Send(): %w", ww.Webhook, err)
 		return err
 	}
-	io.Copy(ioutil.Discard, res.Body)
+	io.Copy(ioutil.Discard, res.Body) //nolint: errcheck
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusCreated {

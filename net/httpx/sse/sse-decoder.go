@@ -40,7 +40,8 @@ func (d *decoder) decode(r io.Reader) ([]Event, error) {
 	}
 
 	var currentEvent Event
-	var dataBuffer *bytes.Buffer = new(bytes.Buffer)
+
+	dataBuffer := new(bytes.Buffer)
 	// TODO (and unit tests)
 	// Lines must be separated by either a U+000D CARRIAGE RETURN U+000A LINE FEED (CRLF) character pair,
 	// a single U+000A LINE FEED (LF) character,

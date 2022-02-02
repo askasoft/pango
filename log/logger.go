@@ -119,14 +119,13 @@ func (l *logger) GetProp(k string) interface{} {
 func (l *logger) SetProp(k string, v interface{}) {
 	// copy on write for async
 	om := l.props
-	nm := make(map[string]interface{})
 
-	if om != nil {
-		for k, v := range om {
-			nm[k] = v
-		}
+	nm := make(map[string]interface{})
+	for k, v := range om {
+		nm[k] = v
 	}
 	nm[k] = v
+
 	l.props = nm
 }
 
@@ -145,10 +144,8 @@ func (l *logger) GetProps() map[string]interface{} {
 	if pm != nil {
 		// new return props
 		nm = make(map[string]interface{}, len(tm)+len(pm))
-		if pm != nil {
-			for k, v := range pm {
-				nm[k] = v
-			}
+		for k, v := range pm {
+			nm[k] = v
 		}
 	}
 

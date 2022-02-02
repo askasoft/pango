@@ -232,7 +232,7 @@ func TestLogConfigFile1(t *testing.T) {
 	a := string(bs)
 	w := "ERROR - This is error." + EOL
 	if a != w {
-		t.Errorf("\nactual = %v\nexpect = %v", a, w)
+		t.Errorf("\n actual = %v\n expect = %v", a, w)
 	}
 }
 
@@ -257,13 +257,13 @@ func TestLogConfigFile2(t *testing.T) {
 	a := string(bs)
 	w := "ERROR - This is error." + EOL + "ERROR - This is ERROR." + EOL
 	if a != w {
-		t.Errorf("\nactual = %v\nexpect = %v", a, w)
+		t.Errorf("\n actual = %v\n expect = %v", a, w)
 	}
 
 	bs, _ = ioutil.ReadFile("conftest/logs/file2.log")
 	a = string(bs)
 	w = "WARN - This is WARN." + EOL + "ERROR - This is ERROR." + EOL
 	if a != w {
-		t.Errorf("\nactual = %v\nexpect = %v", a, w)
+		t.Errorf("\n actual = %v\n expect = %v", a, w)
 	}
 }

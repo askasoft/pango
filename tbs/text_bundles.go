@@ -65,11 +65,11 @@ func (ts *TS) loadFile(fsys fs.FS, path string) error {
 
 	if fsys != nil {
 		if err := bundle.LoadFileFS(fsys, path); err != nil {
-			return fmt.Errorf("TS load ini %q error: %v", path, err)
+			return fmt.Errorf("TS load ini %q error: %w", path, err)
 		}
 	} else {
 		if err := bundle.LoadFile(path); err != nil {
-			return fmt.Errorf("TS load ini %q error: %v", path, err)
+			return fmt.Errorf("TS load ini %q error: %w", path, err)
 		}
 	}
 
@@ -138,7 +138,7 @@ func (ts *TS) Format(locale, format string, args ...interface{}) string {
 	}
 
 	if len(args) == 0 {
-		return fmt.Sprintf(format)
+		return format
 	}
 
 	params := make([]interface{}, 0, len(args))

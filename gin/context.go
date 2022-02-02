@@ -654,7 +654,7 @@ func (c *Context) BindHeader(obj interface{}) error {
 // It will abort the request with HTTP 400 if any error occurs.
 func (c *Context) BindURI(obj interface{}) error {
 	if err := c.ShouldBindURI(obj); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err).SetType(ErrorTypeBind) // nolint: errcheck
+		c.AbortWithError(http.StatusBadRequest, err).SetType(ErrorTypeBind) //nolint: errcheck
 		return err
 	}
 	return nil
@@ -665,7 +665,7 @@ func (c *Context) BindURI(obj interface{}) error {
 // See the binding package.
 func (c *Context) MustBindWith(obj interface{}, b binding.Binding) error {
 	if err := c.ShouldBindWith(obj, b); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err).SetType(ErrorTypeBind) // nolint: errcheck
+		c.AbortWithError(http.StatusBadRequest, err).SetType(ErrorTypeBind) //nolint: errcheck
 		return err
 	}
 	return nil
@@ -1089,7 +1089,7 @@ func (c *Context) Negotiate(code int, config Negotiate) {
 		c.XML(code, data)
 
 	default:
-		c.AbortWithError(http.StatusNotAcceptable, errors.New("the accepted formats are not offered by the server")) // nolint: errcheck
+		c.AbortWithError(http.StatusNotAcceptable, errors.New("the accepted formats are not offered by the server")) //nolint: errcheck
 	}
 }
 

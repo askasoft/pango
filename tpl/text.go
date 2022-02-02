@@ -115,7 +115,7 @@ func (tt *TextTemplates) loadFile(fsys fs.FS, root, path string) error {
 
 	text, err := readFile(fsys, path)
 	if err != nil {
-		return fmt.Errorf("TextTemplates load template %q error: %v", path, err)
+		return fmt.Errorf("TextTemplates load template %q error: %w", path, err)
 	}
 
 	path = toTemplateName(root, path, ext)
@@ -123,7 +123,7 @@ func (tt *TextTemplates) loadFile(fsys fs.FS, root, path string) error {
 	tpl := tt.template.New(path)
 	_, err = tpl.Parse(text)
 	if err != nil {
-		return fmt.Errorf("TextTemplates parse template %q error: %v", path, err)
+		return fmt.Errorf("TextTemplates parse template %q error: %w", path, err)
 	}
 	return nil
 }
@@ -132,7 +132,7 @@ func (tt *TextTemplates) loadFile(fsys fs.FS, root, path string) error {
 func (tt *TextTemplates) Render(w io.Writer, name string, data interface{}) error {
 	err := tt.template.ExecuteTemplate(w, name, data)
 	if err != nil {
-		return fmt.Errorf("TextTemplates execute template %q error: %v", name, err)
+		return fmt.Errorf("TextTemplates execute template %q error: %w", name, err)
 	}
 
 	return nil

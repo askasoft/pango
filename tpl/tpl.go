@@ -55,7 +55,7 @@ func readFile(fsys fs.FS, path string) (text string, err error) {
 	}
 
 	if err != nil {
-		return "", fmt.Errorf("Failed to read template %v, error: %v", path, err)
+		return "", fmt.Errorf("Failed to read template %v, error: %w", path, err)
 	}
 	return string(data), nil
 }

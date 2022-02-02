@@ -91,7 +91,6 @@ func (al *ArrayList) Delete(vs ...T) {
 			al.Remove(i)
 		}
 	}
-	return
 }
 
 // DeleteAll delete all of this collection's elements that are also contained in the specified collection

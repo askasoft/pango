@@ -47,40 +47,40 @@ func Encode(writer io.Writer, event Event) error {
 
 func writeID(w stringWriter, id string) {
 	if len(id) > 0 {
-		w.WriteString("id:")
-		fieldReplacer.WriteString(w, id)
-		w.WriteString("\n")
+		w.WriteString("id:")             //nolint: errcheck
+		fieldReplacer.WriteString(w, id) //nolint: errcheck
+		w.WriteString("\n")              //nolint: errcheck
 	}
 }
 
 func writeEvent(w stringWriter, event string) {
 	if len(event) > 0 {
-		w.WriteString("event:")
-		fieldReplacer.WriteString(w, event)
-		w.WriteString("\n")
+		w.WriteString("event:")             //nolint: errcheck
+		fieldReplacer.WriteString(w, event) //nolint: errcheck
+		w.WriteString("\n")                 //nolint: errcheck
 	}
 }
 
 func writeRetry(w stringWriter, retry uint) {
 	if retry > 0 {
-		w.WriteString("retry:")
-		w.WriteString(strconv.FormatUint(uint64(retry), 10))
-		w.WriteString("\n")
+		w.WriteString("retry:")                              //nolint: errcheck
+		w.WriteString(strconv.FormatUint(uint64(retry), 10)) //nolint: errcheck
+		w.WriteString("\n")                                  //nolint: errcheck
 	}
 }
 
 func writeData(w stringWriter, data interface{}) error {
-	w.WriteString("data:")
+	w.WriteString("data:") //nolint: errcheck
 	switch kindOfData(data) {
 	case reflect.Struct, reflect.Slice, reflect.Map:
 		err := json.NewEncoder(w).Encode(data)
 		if err != nil {
 			return err
 		}
-		w.WriteString("\n")
+		w.WriteString("\n") //nolint: errcheck
 	default:
-		dataReplacer.WriteString(w, fmt.Sprint(data))
-		w.WriteString("\n\n")
+		dataReplacer.WriteString(w, fmt.Sprint(data)) //nolint: errcheck
+		w.WriteString("\n\n")                         //nolint: errcheck
 	}
 	return nil
 }

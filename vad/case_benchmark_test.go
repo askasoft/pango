@@ -9,8 +9,8 @@ import (
 var (
 	testReHasLowerCase = ".*[[:lower:]]"
 	testReHasUpperCase = ".*[[:upper:]]"
-	testRxHasLowerCase = regexp.MustCompile(testReHasLowerCase)
-	testRxHasUpperCase = regexp.MustCompile(testReHasUpperCase)
+	testRxHasLowerCase = regexp.MustCompile(testReHasLowerCase) //nolint: unused
+	testRxHasUpperCase = regexp.MustCompile(testReHasUpperCase) //nolint: unused
 )
 
 func testLower() string {
@@ -84,6 +84,7 @@ func BenchmarkIsUpperCase1(b *testing.B) {
 }
 
 // HasLowerCase checks if the string contains at least 1 lowercase. Empty string is valid.
+//nolint: unused, deadcode
 func testHasLowerCase(str string) bool {
 	return testRxHasLowerCase.MatchString(str)
 }
@@ -111,6 +112,7 @@ func BenchmarkHasLowerCase1(b *testing.B) {
 }
 
 // HasUpperCase checks if the string contains as least 1 uppercase. Empty string is valid.
+//nolint: unused, deadcode
 func hasUpperCase(str string) bool {
 	return testRxHasUpperCase.MatchString(str)
 }

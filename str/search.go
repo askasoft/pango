@@ -143,7 +143,7 @@ func LastIndexFold(s, substr string) int {
 
 // HasPrefixFold Tests if the string s starts with the specified prefix (case insensitive).
 func HasPrefixFold(s, prefix string) bool {
-	return len(s) >= len(prefix) && EqualFold(s[len(s)-len(prefix):], prefix)
+	return len(s) >= len(prefix) && EqualFold(s[:len(prefix)], prefix)
 }
 
 // HasSuffixFold Tests if the string s ends with the specified suffix (case insensitive).
@@ -163,12 +163,12 @@ func EndsWith(s, suffix string) bool {
 
 // StartsWithFold Tests if the string s starts with the specified prefix (case insensitive).
 func StartsWithFold(s, prefix string) bool {
-	return StartsWithFold(s, prefix)
+	return HasPrefixFold(s, prefix)
 }
 
 // EndsWithFold Tests if the string s ends with the specified suffix (case insensitive).
 func EndsWithFold(s, suffix string) bool {
-	return EndsWithFold(s, suffix)
+	return HasSuffixFold(s, suffix)
 }
 
 // StartsWithByte Tests if the byte slice s starts with the specified prefix b.

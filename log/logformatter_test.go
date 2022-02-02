@@ -18,7 +18,7 @@ func assertFormatEvent(t *testing.T, lf Formatter, le *Event, want string) {
 	a := testFormatEvent(lf, le)
 
 	if a != want {
-		t.Errorf("\nactual: %v\nexcept: %v", a, want)
+		t.Errorf("\n actual: %v\n expect: %v", a, want)
 	}
 }
 
@@ -74,7 +74,7 @@ func TestTextFormatProps1(t *testing.T) {
 	sort.Strings(as)
 	a := strings.Join(as, " ")
 	if w != a {
-		t.Errorf("\nactual: %v\nexcept: %v", a, w)
+		t.Errorf("\n actual: %v\n expect: %v", a, w)
 	}
 }
 
@@ -94,7 +94,7 @@ func TestTextFormatProps2(t *testing.T) {
 	sort.Strings(as)
 	a := strings.Join(as, ",")
 	if w != a {
-		t.Errorf("\nactual: %v\nexcept: %v", a, w)
+		t.Errorf("\n actual: %v\n expect: %v", a, w)
 	}
 }
 

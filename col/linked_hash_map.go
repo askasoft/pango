@@ -217,7 +217,7 @@ func (lm *LinkedHashMap) PollTail() *LinkedMapNode {
 
 // Items returns the map item slice
 func (lm *LinkedHashMap) Items() []*LinkedMapNode {
-	mis := make([]*LinkedMapNode, lm.Len(), lm.Len())
+	mis := make([]*LinkedMapNode, lm.Len())
 	for i, ln := 0, lm.head; ln != nil; i, ln = i+1, ln.next {
 		mis[i] = ln
 	}

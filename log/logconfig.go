@@ -37,7 +37,7 @@ func (log *Log) configJSON(filename string) error {
 		return err
 	}
 
-	async := 0
+	var async int
 	if async, err = log.configGetIntValue(c, "async"); err != nil {
 		return err
 	}
@@ -78,7 +78,7 @@ func (log *Log) configINI(filename string) (err error) {
 
 	c := ini.Section("").Map()
 
-	async := 0
+	var async int
 	if async, err = log.configGetIntValue(c, "async"); err != nil {
 		return err
 	}
@@ -130,7 +130,7 @@ func (log *Log) configGetIntValue(m map[string]interface{}, k string) (int, erro
 		if v != nil {
 			n, err := ref.Convert(v, reflect.TypeOf(int(0)))
 			if err != nil {
-				return 0, fmt.Errorf("Invalid %s value %v: %s", k, v, err.Error())
+				return 0, fmt.Errorf("Invalid %s value %v: %w", k, v, err)
 			}
 			return n.(int), nil
 		}
@@ -184,7 +184,7 @@ func (log *Log) configLogWriter(a []interface{}, async int) (err error) {
 					return err
 				}
 
-				a := 0
+				var a int
 				if a, err = log.configGetIntValue(c, "_async"); err != nil {
 					return err
 				}
@@ -201,7 +201,7 @@ func (log *Log) configLogWriter(a []interface{}, async int) (err error) {
 			return fmt.Errorf("Invalid writer item: %v", i)
 		}
 	}
-	if len(ws) < 0 {
+	if len(ws) == 0 {
 		return fmt.Errorf("Empty writer configuration: %v", a)
 	}
 

@@ -324,7 +324,7 @@ type fmtfunc func(le *Event) string
 func write(w io.Writer, le *Event, fmts []fmtfunc) {
 	for _, f := range fmts {
 		s := f(le)
-		io.WriteString(w, s)
+		io.WriteString(w, s) //nolint: errcheck
 	}
 }
 

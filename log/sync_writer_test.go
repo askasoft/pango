@@ -66,6 +66,6 @@ func TestSyncWriteFile(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(as, es) {
-		t.Errorf("TestSyncWriteFile\nexpect: %q, actual %q", es, as)
+		t.Errorf("TestSyncWriteFile\n expect: %q, actual %q", es, as)
 	}
 }

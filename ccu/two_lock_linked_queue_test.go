@@ -2,8 +2,8 @@ package ccu
 
 import "testing"
 
-func TestCQueueSimple(t *testing.T) {
-	rb := NewCQueue()
+func TestLQueueSimple(t *testing.T) {
+	rb := NewLQueue()
 
 	for i := 0; i < 100; i++ {
 		rb.Push(i)
@@ -22,8 +22,8 @@ func TestCQueueSimple(t *testing.T) {
 	}
 }
 
-func TestCQueuePeekEmpty(t *testing.T) {
-	rb := NewCQueue()
+func TestLQueuePeekEmpty(t *testing.T) {
+	rb := NewLQueue()
 
 	if _, ok := rb.Peek(); ok {
 		t.Error("should return false when peeking empty queue")
@@ -37,8 +37,8 @@ func TestCQueuePeekEmpty(t *testing.T) {
 	}
 }
 
-func TestCQueuePollEmpty(t *testing.T) {
-	rb := NewCQueue()
+func TestLQueuePollEmpty(t *testing.T) {
+	rb := NewLQueue()
 
 	if _, ok := rb.Poll(); ok {
 		t.Error("should return false when removing empty queue")

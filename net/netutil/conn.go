@@ -23,10 +23,10 @@ func DumpConn(conn net.Conn, recv io.Writer, send io.Writer) net.Conn {
 func (cd *connDumper) Read(b []byte) (int, error) {
 	n, err := cd.Conn.Read(b)
 	if n > 0 {
-		cd.Recv.Write(b[:n])
+		cd.Recv.Write(b[:n]) //nolint: errcheck
 	}
 	if err != nil {
-		cd.Recv.Write(([]byte)(err.Error()))
+		io.WriteString(cd.Recv, err.Error()) //nolint: errcheck
 	}
 	return n, err
 }
@@ -37,10 +37,10 @@ func (cd *connDumper) Read(b []byte) (int, error) {
 func (cd *connDumper) Write(b []byte) (int, error) {
 	n, err := cd.Conn.Write(b)
 	if n > 0 {
-		cd.Send.Write(b[:n])
+		cd.Send.Write(b[:n]) //nolint: errcheck
 	}
 	if err != nil {
-		cd.Send.Write(([]byte)(err.Error()))
+		io.WriteString(cd.Send, err.Error()) //nolint: errcheck
 	}
 	return n, err
 }
@@ -81,19 +81,19 @@ func (cd *connDumper1) Read(b []byte) (int, error) {
 	n, err := cd.Conn.Read(b)
 
 	if cd.state == stateSend {
-		cd.Writer.Write(([]byte)(cd.SendSuffix))
+		io.WriteString(cd.Writer, cd.SendSuffix) //nolint: errcheck
 	}
 	if cd.state != stateRecv {
-		cd.Writer.Write(([]byte)(cd.RecvPrefix))
+		io.WriteString(cd.Writer, cd.RecvPrefix) //nolint: errcheck
 	}
 
 	cd.state = stateRecv
 	if n > 0 {
-		cd.Writer.Write(b[:n])
+		cd.Writer.Write(b[:n]) //nolint: errcheck
 	}
 	if err != nil {
-		cd.Writer.Write(([]byte)(err.Error()))
-		cd.Writer.Write(([]byte)("\r\n"))
+		io.WriteString(cd.Writer, err.Error()) //nolint: errcheck
+		cd.Writer.Write([]byte{'\r', '\n'})    //nolint: errcheck
 	}
 	return n, err
 }
@@ -105,19 +105,19 @@ func (cd *connDumper1) Write(b []byte) (int, error) {
 	n, err := cd.Conn.Write(b)
 
 	if cd.state == stateRecv {
-		cd.Writer.Write(([]byte)(cd.RecvSuffix))
+		io.WriteString(cd.Writer, cd.RecvSuffix) //nolint: errcheck
 	}
 	if cd.state != stateSend {
-		cd.Writer.Write(([]byte)(cd.SendPrefix))
+		io.WriteString(cd.Writer, cd.SendPrefix) //nolint: errcheck
 	}
 
 	cd.state = stateSend
 	if n > 0 {
-		cd.Writer.Write(b[:n])
+		cd.Writer.Write(b[:n]) //nolint: errcheck
 	}
 	if err != nil {
-		cd.Writer.Write(([]byte)(err.Error()))
-		cd.Writer.Write(([]byte)("\r\n"))
+		io.WriteString(cd.Writer, err.Error()) //nolint: errcheck
+		cd.Writer.Write([]byte{'\r', '\n'})    //nolint: errcheck
 	}
 
 	return n, err
@@ -128,9 +128,9 @@ func (cd *connDumper1) Write(b []byte) (int, error) {
 func (cd *connDumper1) Close() error {
 	switch cd.state {
 	case stateRecv:
-		cd.Writer.Write(([]byte)(cd.RecvSuffix))
+		io.WriteString(cd.Writer, cd.RecvSuffix) //nolint: errcheck
 	case stateSend:
-		cd.Writer.Write(([]byte)(cd.SendSuffix))
+		io.WriteString(cd.Writer, cd.SendSuffix) //nolint: errcheck
 	}
 
 	if c, ok := cd.Writer.(io.Closer); ok {

@@ -36,7 +36,7 @@ func (cw *ConnWriter) SetFilter(filter string) {
 func (cw *ConnWriter) SetTimeout(timeout string) error {
 	tmo, err := time.ParseDuration(timeout)
 	if err != nil {
-		return fmt.Errorf("ConnkWriter - Invalid timeout: %v", err)
+		return fmt.Errorf("ConnkWriter - Invalid timeout: %w", err)
 	}
 	cw.Timeout = tmo
 	return nil
@@ -117,7 +117,11 @@ func (cw *ConnWriter) dial() {
 	}
 
 	if tcpConn, ok := conn.(*net.TCPConn); ok {
-		tcpConn.SetKeepAlive(true)
+		err = tcpConn.SetKeepAlive(true)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "ConnWriter(%q) - SetKeepAlive(%q): %v\n", cw.Addr, cw.Net, err)
+			return
+		}
 	}
 
 	cw.conn = conn

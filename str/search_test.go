@@ -69,6 +69,7 @@ func TestIndexFold(t *testing.T) {
 		{0, "", ""},
 		{-1, "", "a"},
 		{0, "ABCDEF", ""},
+		{0, "ABC", "abc"},
 		{0, "ABCDEF", "abc"},
 		{1, "ABCDEF", "bc"},
 		{4, "ABCDEF", "ef"},
@@ -138,6 +139,104 @@ func TestEndsWith(t *testing.T) {
 	}
 }
 
+func TestStartsWithFold(t *testing.T) {
+	cs := []struct {
+		w bool
+		s string
+		b string
+	}{
+		{true, "", ""},
+		{true, "foobar", ""},
+		{false, "", "f"},
+
+		{true, "foobar", "Foo"},
+		{true, "一二三四五", "一"},
+
+		{false, "f", "oo"},
+		{false, "一", "一二三四五"},
+		{false, "foobar", "oo"},
+		{false, "一二三四五", "二"},
+	}
+
+	for i, c := range cs {
+		a := StartsWithFold(c.s, c.b)
+		if a != c.w {
+			t.Errorf("[%d] StartsWithFold(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+		}
+	}
+}
+
+func TestEndsWithFold(t *testing.T) {
+	cs := []struct {
+		w bool
+		s string
+		b string
+	}{
+		{true, "", ""},
+		{true, "foobar", ""},
+		{false, "", "f"},
+
+		{true, "foobar", "Bar"},
+		{true, "一二三四五", "四五"},
+
+		{false, "f", "oo"},
+		{false, "一", "一二三四五"},
+		{false, "foobar", "oo"},
+		{false, "一二三四五", "二"},
+	}
+
+	for i, c := range cs {
+		a := EndsWithFold(c.s, c.b)
+		if a != c.w {
+			t.Errorf("[%d] EndsWithFold(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+		}
+	}
+}
+
+func TestStartsWithByte(t *testing.T) {
+	cs := []struct {
+		w bool
+		s string
+		b byte
+	}{
+		{false, "", 'f'},
+
+		{true, "foobar", 'f'},
+
+		{false, "f", 'o'},
+		{false, "foobar", 'o'},
+	}
+
+	for i, c := range cs {
+		a := StartsWithByte(c.s, c.b)
+		if a != c.w {
+			t.Errorf("[%d] StartsWithByte(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+		}
+	}
+}
+
+func TestEndsWithByte(t *testing.T) {
+	cs := []struct {
+		w bool
+		s string
+		b byte
+	}{
+		{false, "", 'f'},
+
+		{true, "foobar", 'r'},
+
+		{false, "f", 'o'},
+		{false, "foobar", 'o'},
+	}
+
+	for i, c := range cs {
+		a := EndsWithByte(c.s, c.b)
+		if a != c.w {
+			t.Errorf("[%d] EndsWithByte(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+		}
+	}
+}
+
 func TestLastIndexRune(t *testing.T) {
 	cs := []struct {
 		w int
@@ -175,6 +274,7 @@ func TestLastIndexFold(t *testing.T) {
 		{2, "foo", "o"},
 		{6, "abcABCabc", "A"},
 		{6, "abcABCabc", "a"},
+		{6, "-bcABC-bc", "-"},
 	}
 
 	for i, c := range cs {

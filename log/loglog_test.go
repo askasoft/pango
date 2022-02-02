@@ -135,7 +135,7 @@ func TestAsyncToAsync(t *testing.T) {
 
 	fmt.Println(time.Now(), "START")
 	wg := &sync.WaitGroup{}
-	counts := make([]int64, testRoutines, testRoutines)
+	counts := make([]int64, testRoutines)
 	for i := 0; i < len(counts); i++ {
 		wg.Add(1)
 		go testLogRoutine(log, wg, i, &counts[i])
@@ -168,7 +168,7 @@ func TestAsyncToSync(t *testing.T) {
 
 	fmt.Println(time.Now(), "START")
 	wg := &sync.WaitGroup{}
-	counts := make([]int64, testRoutines, testRoutines)
+	counts := make([]int64, testRoutines)
 	for i := 0; i < len(counts); i++ {
 		wg.Add(1)
 		go testLogRoutine(log, wg, i, &counts[i])
@@ -200,7 +200,7 @@ func TestSyncToSync(t *testing.T) {
 
 	fmt.Println(time.Now(), "START")
 	wg := &sync.WaitGroup{}
-	counts := make([]int64, testRoutines, testRoutines)
+	counts := make([]int64, testRoutines)
 	for i := 0; i < len(counts); i++ {
 		wg.Add(1)
 		go testLogRoutine(log, wg, i, &counts[i])
@@ -232,7 +232,7 @@ func TestSyncToAsync(t *testing.T) {
 
 	fmt.Println(time.Now(), "START")
 	wg := &sync.WaitGroup{}
-	counts := make([]int64, testRoutines, testRoutines)
+	counts := make([]int64, testRoutines)
 	for i := 0; i < len(counts); i++ {
 		wg.Add(1)
 		go testLogRoutine(log, wg, i, &counts[i])

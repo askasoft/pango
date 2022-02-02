@@ -44,7 +44,10 @@ func CopyFile(src string, dst string) error {
 	}
 
 	dd := filepath.Dir(dst)
-	os.MkdirAll(dd, ss.Mode().Perm())
+	err = os.MkdirAll(dd, ss.Mode().Perm())
+	if err != nil {
+		return err
+	}
 
 	sf, err := os.Open(src)
 	if err != nil {
@@ -70,7 +73,8 @@ func SkipBOM(r io.Reader) (io.Reader, error) {
 		return br, err
 	}
 	if c != '\uFEFF' {
-		br.UnreadRune() // Not a BOM -- put the rune back
+		// Not a BOM -- put the rune back
+		err = br.UnreadRune()
 	}
-	return br, nil
+	return br, err
 }

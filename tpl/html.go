@@ -116,7 +116,7 @@ func (ht *HTMLTemplates) loadFile(fsys fs.FS, root, path string) error {
 
 	text, err := readFile(fsys, path)
 	if err != nil {
-		return fmt.Errorf("HTMLTemplates load template %q error: %v", path, err)
+		return fmt.Errorf("HTMLTemplates load template %q error: %w", path, err)
 	}
 
 	path = toTemplateName(root, path, ext)
@@ -124,7 +124,7 @@ func (ht *HTMLTemplates) loadFile(fsys fs.FS, root, path string) error {
 	tpl := ht.template.New(path)
 	_, err = tpl.Parse(text)
 	if err != nil {
-		return fmt.Errorf("HTMLTemplates parse template %q error: %v", path, err)
+		return fmt.Errorf("HTMLTemplates parse template %q error: %w", path, err)
 	}
 	return nil
 }
@@ -133,7 +133,7 @@ func (ht *HTMLTemplates) loadFile(fsys fs.FS, root, path string) error {
 func (ht *HTMLTemplates) Render(w io.Writer, name string, data interface{}) error {
 	err := ht.template.ExecuteTemplate(w, name, data)
 	if err != nil {
-		return fmt.Errorf("HTMLTemplates execute template %q error: %v", name, err)
+		return fmt.Errorf("HTMLTemplates execute template %q error: %w", name, err)
 	}
 
 	return nil

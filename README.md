@@ -1,7 +1,7 @@
  Pango
 =====================================================================
 
-![](https://github.com/pandafw/pango/raw/master/logo.png) [![Build Status](https://travis-ci.com/pandafw/pango.svg?branch=master)](https://travis-ci.com/pandafw/pango) [![codecov](https://codecov.io/gh/pandafw/pango/branch/master/graph/badge.svg)](https://codecov.io/gh/pandafw/pango) [![Apache 2](https://img.shields.io/badge/license-Apache%202-green)](https://www.apache.org/licenses/LICENSE-2.0.html) ![](https://github.com/pandafw/pango/raw/master/logo.png)
+![](https://github.com/pandafw/pango/raw/master/logo.png) [![Build Status](https://github.com/pandafw/pango/actions/workflows/ci.yml/badge.svg)](https://github.com/pandafw/pango/actions?query=branch%3Amaster) [![codecov](https://codecov.io/gh/pandafw/pango/branch/master/graph/badge.svg)](https://codecov.io/gh/pandafw/pango) [![MIT](https://img.shields.io/badge/license-MIT-green)](https://opensource.org/licenses/MIT) ![](https://github.com/pandafw/pango/raw/master/logo.png)
 
 
 

@@ -5,8 +5,8 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
@@ -16,10 +16,11 @@ import (
 )
 
 func TestFileTextFormatSimple(t *testing.T) {
-	path := "TestFileTextFormatSimple/filetest"
-	dir := filepath.Dir(path)
-	os.RemoveAll(dir)
-	defer os.RemoveAll(dir)
+	testdir := "TestFileTextFormatSimple-" + strconv.Itoa(rand.Int())
+	path := testdir + "/filetest"
+
+	os.RemoveAll(testdir)
+	defer os.RemoveAll(testdir)
 
 	log := NewLog()
 	log.SetFormatter(TextFmtSimple)
@@ -37,10 +38,11 @@ func TestFileTextFormatSimple(t *testing.T) {
 }
 
 func TestFilePropGlobal(t *testing.T) {
-	path := "TestFilePropGlobal/filetest"
-	dir := filepath.Dir(path)
-	os.RemoveAll(dir)
-	defer os.RemoveAll(dir)
+	testdir := "TestFilePropGlobal-" + strconv.Itoa(rand.Int())
+	path := testdir + "/filetest"
+
+	os.RemoveAll(testdir)
+	defer os.RemoveAll(testdir)
 
 	SetFormatter(NewTextFormatter("%l - %x{key} - %m%n%T"))
 	SetWriter(&FileWriter{Path: path})
@@ -58,10 +60,11 @@ func TestFilePropGlobal(t *testing.T) {
 }
 
 func TestFilePropDefault(t *testing.T) {
-	path := "TestFilePropDefault/filetest"
-	dir := filepath.Dir(path)
-	os.RemoveAll(dir)
-	defer os.RemoveAll(dir)
+	testdir := "TestFilePropDefault-" + strconv.Itoa(rand.Int())
+	path := testdir + "/filetest"
+
+	os.RemoveAll(testdir)
+	defer os.RemoveAll(testdir)
 
 	log1 := Default()
 	log1.SetFormatter(NewTextFormatter("%l - %x{key} - %m%n%T"))
@@ -80,10 +83,11 @@ func TestFilePropDefault(t *testing.T) {
 }
 
 func TestFilePropNewLog(t *testing.T) {
-	path := "TestFilePropNewLog/filetest"
-	dir := filepath.Dir(path)
-	os.RemoveAll(dir)
-	defer os.RemoveAll(dir)
+	testdir := "TestFilePropNewLog-" + strconv.Itoa(rand.Int())
+	path := testdir + "/filetest"
+
+	os.RemoveAll(testdir)
+	defer os.RemoveAll(testdir)
 
 	log1 := NewLog()
 	log1.SetFormatter(NewTextFormatter("%l - %X - %m%n%T"))
@@ -109,10 +113,11 @@ func TestFilePropNewLog(t *testing.T) {
 }
 
 func TestFileCallerGlobal(t *testing.T) {
-	path := "TestFileCallerGlobal/filetest"
-	dir := filepath.Dir(path)
-	os.RemoveAll(dir)
-	defer os.RemoveAll(dir)
+	testdir := "TestFileCallerGlobal-" + strconv.Itoa(rand.Int())
+	path := testdir + "/filetest"
+
+	os.RemoveAll(testdir)
+	defer os.RemoveAll(testdir)
 
 	SetFormatter(NewTextFormatter("%l %S:%L %F() - %m%n%T"))
 	SetWriter(&FileWriter{Path: path})
@@ -130,10 +135,11 @@ func TestFileCallerGlobal(t *testing.T) {
 }
 
 func TestFileCallerNewLog(t *testing.T) {
-	path := "TestFileCallerNewLog/filetest"
-	dir := filepath.Dir(path)
-	os.RemoveAll(dir)
-	defer os.RemoveAll(dir)
+	testdir := "TestFileCallerNewLog-" + strconv.Itoa(rand.Int())
+	path := testdir + "/filetest"
+
+	os.RemoveAll(testdir)
+	defer os.RemoveAll(testdir)
 
 	log := NewLog()
 	log.SetFormatter(NewTextFormatter("%l %S:%L %F() - %m%n%T"))
@@ -152,10 +158,11 @@ func TestFileCallerNewLog(t *testing.T) {
 }
 
 func TestFileCallerNewLog2(t *testing.T) {
-	path := "TestFileCallerNewLog2/filetest"
-	dir := filepath.Dir(path)
-	os.RemoveAll(dir)
-	defer os.RemoveAll(dir)
+	testdir := "TestFileCallerNewLog2-" + strconv.Itoa(rand.Int())
+	path := testdir + "/filetest"
+
+	os.RemoveAll(testdir)
+	defer os.RemoveAll(testdir)
 
 	log := NewLog()
 	log.SetFormatter(NewTextFormatter("%l %S:%L %F() - %m%n%T"))
@@ -174,10 +181,11 @@ func TestFileCallerNewLog2(t *testing.T) {
 }
 
 func TestFileRotateMaxSize(t *testing.T) {
-	path := "TestFileRotateMaxSize/filetest.log"
-	dir := filepath.Dir(path)
-	os.RemoveAll(dir)
-	defer os.RemoveAll(dir)
+	testdir := "TestFileRotateMaxSize-" + strconv.Itoa(rand.Int())
+	path := testdir + "/filetest.log"
+
+	os.RemoveAll(testdir)
+	defer os.RemoveAll(testdir)
 
 	log := NewLog()
 	log.SetFormatter(TextFmtSimple)
@@ -208,10 +216,11 @@ func TestFileRotateMaxSize(t *testing.T) {
 }
 
 func TestFileRotateMaxSizeGzip(t *testing.T) {
-	path := "TestFileRotateMaxSizeGzip/filetest.log"
-	dir := filepath.Dir(path)
-	os.RemoveAll(dir)
-	defer os.RemoveAll(dir)
+	testdir := "TestFileRotateMaxSizeGzip-" + strconv.Itoa(rand.Int())
+	path := testdir + "/filetest.log"
+
+	os.RemoveAll(testdir)
+	defer os.RemoveAll(testdir)
 
 	log := NewLog()
 	log.SetFormatter(TextFmtSimple)
@@ -247,10 +256,11 @@ func TestFileRotateMaxSizeGzip(t *testing.T) {
 }
 
 func TestFileRotateMaxSizeDaily(t *testing.T) {
-	path := "TestFileRotateMaxSizeDaily/filetest.log"
-	dir := filepath.Dir(path)
-	os.RemoveAll(dir)
-	defer os.RemoveAll(dir)
+	testdir := "TestFileRotateMaxSizeDaily-" + strconv.Itoa(rand.Int())
+	path := testdir + "/filetest.log"
+
+	os.RemoveAll(testdir)
+	defer os.RemoveAll(testdir)
 
 	log := NewLog()
 	log.SetFormatter(TextFmtSimple)
@@ -285,10 +295,11 @@ func TestFileRotateMaxSizeDaily(t *testing.T) {
 }
 
 func TestFileRotateMaxSplit(t *testing.T) {
-	path := "TestFileRotateMaxSplit/filetest.log"
-	dir := filepath.Dir(path)
-	os.RemoveAll(dir)
-	defer os.RemoveAll(dir)
+	testdir := "TestFileRotateMaxSplit-" + strconv.Itoa(rand.Int())
+	path := testdir + "/filetest.log"
+
+	os.RemoveAll(testdir)
+	defer os.RemoveAll(testdir)
 
 	log := NewLog()
 	log.SetFormatter(TextFmtSimple)
@@ -331,10 +342,11 @@ func TestFileRotateMaxSplit(t *testing.T) {
 }
 
 func TestFileRotateMaxFilesHourly(t *testing.T) {
-	path := "TestFileRotateMaxFilesHourly/filetest.log"
-	dir := filepath.Dir(path)
-	os.RemoveAll(dir)
-	defer os.RemoveAll(dir)
+	testdir := "TestFileRotateMaxFilesHourly-" + strconv.Itoa(rand.Int())
+	path := testdir + "/filetest.log"
+
+	os.RemoveAll(testdir)
+	defer os.RemoveAll(testdir)
 
 	log := NewLog()
 	log.SetFormatter(TextFmtSimple)
@@ -378,10 +390,11 @@ func TestFileRotateMaxFilesHourly(t *testing.T) {
 }
 
 func TestFileRotateDaily(t *testing.T) {
-	path := "TestFileRotateDaily/filetest.log"
-	dir := filepath.Dir(path)
-	os.RemoveAll(dir)
-	defer os.RemoveAll(dir)
+	testdir := "TestFileRotateDaily-" + strconv.Itoa(rand.Int())
+	path := testdir + "/filetest.log"
+
+	os.RemoveAll(testdir)
+	defer os.RemoveAll(testdir)
 
 	fw := &FileWriter{Path: path, MaxDays: 100}
 	lg := NewLog()
@@ -427,10 +440,11 @@ func TestFileRotateDaily(t *testing.T) {
 }
 
 func TestFileRotateDailyOutdated(t *testing.T) {
-	path := "TestFileRotateDailyOutdated/filetest.log"
-	dir := filepath.Dir(path)
-	os.RemoveAll(dir)
-	defer os.RemoveAll(dir)
+	testdir := "TestFileRotateDailyOutdated-" + strconv.Itoa(rand.Int())
+	path := testdir + "/filetest.log"
+
+	os.RemoveAll(testdir)
+	defer os.RemoveAll(testdir)
 
 	fw := &FileWriter{Path: path, MaxDays: 3}
 	lg := NewLog()
@@ -494,10 +508,11 @@ func TestFileRotateDailyOutdated(t *testing.T) {
 }
 
 func TestFileRotateHourly(t *testing.T) {
-	path := "TestFileRotateHourly/filetest.log"
-	dir := filepath.Dir(path)
-	os.RemoveAll(dir)
-	defer os.RemoveAll(dir)
+	testdir := "TestFileRotateHourly-" + strconv.Itoa(rand.Int())
+	path := testdir + "/filetest.log"
+
+	os.RemoveAll(testdir)
+	defer os.RemoveAll(testdir)
 
 	fw := &FileWriter{Path: path, MaxHours: 100}
 	lg := NewLog()
@@ -543,10 +558,11 @@ func TestFileRotateHourly(t *testing.T) {
 }
 
 func TestFileRotateHourlyOutdated(t *testing.T) {
-	path := "TestFileRotateHourlyOutdated/filetest.log"
-	dir := filepath.Dir(path)
-	os.RemoveAll(dir)
-	defer os.RemoveAll(dir)
+	testdir := "TestFileRotateHourlyOutdated-" + strconv.Itoa(rand.Int())
+	path := testdir + "/filetest.log"
+
+	os.RemoveAll(testdir)
+	defer os.RemoveAll(testdir)
 
 	fw := &FileWriter{Path: path, MaxHours: 3}
 	lg := NewLog()

@@ -12,7 +12,6 @@ import (
 	"net/url"
 	"os"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/pandafw/pango/gin/binding"
@@ -54,14 +53,11 @@ type Context struct {
 	params       *Params
 	skippedNodes *[]skippedNode
 
-	// This mutex protects Keys map.
-	mu sync.RWMutex
-
 	// locale string for the context of each request.
 	Locale string
 
-	// Keys is a key/value pair exclusively for the context of each request.
-	Keys map[string]interface{}
+	// dict is a key/value pair exclusively for the context of each request.
+	dict map[string]interface{}
 
 	// Errors is a list of errors attached to all the handlers/middlewares who used this context.
 	Errors errorMsgs
@@ -96,7 +92,7 @@ func (c *Context) reset() {
 
 	c.fullPath = ""
 	c.Locale = ""
-	c.Keys = nil
+	c.dict = nil
 	c.Errors = c.Errors[:0]
 	c.Accepted = nil
 	c.queryCache = nil
@@ -124,9 +120,9 @@ func (c *Context) Copy() *Context {
 	cp.Writer = &cp.writermem
 	cp.index = abortIndex
 	cp.handlers = nil
-	cp.Keys = map[string]interface{}{}
-	for k, v := range c.Keys {
-		cp.Keys[k] = v
+	cp.dict = map[string]interface{}{}
+	for k, v := range c.dict {
+		cp.dict[k] = v
 	}
 	paramCopy := make([]Param, len(cp.Params))
 	copy(paramCopy, cp.Params)
@@ -255,24 +251,28 @@ func (c *Context) Error(err error) *Error {
 /******** METADATA MANAGEMENT********/
 /************************************/
 
+// Dict get key/value map exclusively for this context.
+func (c *Context) Dict() map[string]interface{} {
+	if c.dict == nil {
+		c.dict = make(map[string]interface{})
+	}
+	return c.dict
+}
+
 // Set is used to store a new key/value pair exclusively for this context.
-// It also lazy initializes  c.Keys if it was not used previously.
+// It also lazy initializes  c.dict if it was not used previously.
 func (c *Context) Set(key string, value interface{}) {
-	c.mu.Lock()
-	if c.Keys == nil {
-		c.Keys = make(map[string]interface{})
+	if c.dict == nil {
+		c.dict = make(map[string]interface{})
 	}
 
-	c.Keys[key] = value
-	c.mu.Unlock()
+	c.dict[key] = value
 }
 
 // Get returns the value for the given key, ie: (value, true).
 // If the value does not exist it returns (nil, false)
 func (c *Context) Get(key string) (value interface{}, exists bool) {
-	c.mu.RLock()
-	value, exists = c.Keys[key]
-	c.mu.RUnlock()
+	value, exists = c.dict[key]
 	return
 }
 

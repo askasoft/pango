@@ -350,7 +350,7 @@ func (n *node) insertChild(path string, fullPath string, handlers HandlersChain)
 			panic("catch-all wildcard '" + path +
 				"' in new path '" + fullPath +
 				"' conflicts with existing path segment '" + pathSeg +
-				"' in existing prefix '" + n.path + pathSeg +
+				"' in existing prefix '" + n.indices + n.path + pathSeg +
 				"'")
 		}
 

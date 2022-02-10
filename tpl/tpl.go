@@ -7,6 +7,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/pandafw/pango/num"
+	"github.com/pandafw/pango/tpl/funcs"
 )
 
 // FuncMap is the type of the map defining the mapping from names to
@@ -17,6 +20,15 @@ import (
 // as FuncMap in "text/template", copied here so clients need not import
 // "text/template".
 type FuncMap map[string]interface{}
+
+// Copy copy functions from other function maps `fms`
+func (fm FuncMap) Copy(fms ...FuncMap) {
+	for _, afm := range fms {
+		for k, v := range afm {
+			fm[k] = v
+		}
+	}
+}
 
 // Delims delims for template
 type Delims struct {
@@ -66,4 +78,19 @@ func toTemplateName(root, path, ext string) string {
 	path = strings.TrimPrefix(path, "/")
 	path = strings.TrimSuffix(path, ext)
 	return path
+}
+
+// Functions default utility functions for template
+func Functions() FuncMap {
+	return FuncMap{
+		"Add":      funcs.Add,
+		"Subtract": funcs.Subtract,
+		"Multiply": funcs.Multiply,
+		"Divide":   funcs.Divide,
+		"Comma":    num.Comma,
+		"Array":    funcs.Array,
+		"Map":      funcs.Map,
+		"MapGet":   funcs.MapGet,
+		"MapSet":   funcs.MapSet,
+	}
 }

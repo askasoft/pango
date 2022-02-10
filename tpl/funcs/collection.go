@@ -1,0 +1,111 @@
+package funcs
+
+import (
+	"errors"
+	"fmt"
+	"reflect"
+
+	"github.com/pandafw/pango/ref"
+)
+
+func Array(args ...interface{}) []interface{} {
+	return args
+}
+
+func Map(kvs ...interface{}) (map[string]interface{}, error) {
+	if len(kvs)&1 != 0 {
+		return nil, errors.New("Map(): invalid arguments")
+	}
+
+	dict := make(map[string]interface{}, len(kvs)/2)
+	for i := 0; i < len(kvs); i += 2 {
+		key, ok := kvs[i].(string)
+		if !ok {
+			return nil, errors.New("Map(): keys must be strings")
+		}
+		dict[key] = kvs[i+1]
+	}
+	return dict, nil
+}
+
+// MapGet getting value from map by keys
+// usage:
+// Data["m"] = map[string]interface{}{
+//     "a": 1,
+//     "1": map[string]float64{
+//         "c": 4,
+//     },
+// }
+//
+// {{ map_get m "a" }} // return 1
+// {{ map_get m 1 "c" }} // return 4
+func MapGet(dict interface{}, keys ...interface{}) (interface{}, error) {
+	if dict == nil || len(keys) == 0 {
+		return nil, nil
+	}
+
+	mt := reflect.TypeOf(dict)
+	if mt.Kind() != reflect.Map {
+		return nil, fmt.Errorf("MapGet(): invalid map")
+	}
+
+	// check whether keys[0] type equals to dict key type
+	// if they are different, make conversion
+	kv := reflect.ValueOf(keys[0])
+	kt := reflect.TypeOf(keys[0])
+	if kt.Kind() != mt.Key().Kind() {
+		cv, err := ref.Convert(keys[0], mt.Key())
+		if err != nil {
+			return nil, fmt.Errorf("MapGet(): invalid key type - %w", err)
+		}
+
+		kv = reflect.ValueOf(cv)
+	}
+
+	mv := reflect.ValueOf(dict)
+	vv := mv.MapIndex(kv)
+	if !vv.IsValid() {
+		return nil, nil
+	}
+
+	val := vv.Interface()
+
+	// if there is more keys, handle this recursively
+	if len(keys) > 1 {
+		return MapGet(val, keys[1:]...)
+	}
+	return val, nil
+}
+
+func MapSet(dict interface{}, key, val interface{}) (interface{}, error) {
+	mt := reflect.TypeOf(dict)
+	if mt.Kind() != reflect.Map {
+		return nil, fmt.Errorf("MapGet(): invalid map")
+	}
+
+	kv := reflect.ValueOf(key)
+	kt := reflect.TypeOf(key)
+	if kt.Kind() != mt.Key().Kind() {
+		cv, err := ref.Convert(key, mt.Key())
+		if err != nil {
+			return nil, fmt.Errorf("MapGet(): invalid key type - %w", err)
+		}
+
+		kv = reflect.ValueOf(cv)
+	}
+
+	vv := reflect.ValueOf(val)
+	vt := reflect.TypeOf(val)
+	if vt.Kind() != mt.Elem().Kind() {
+		cv, err := ref.Convert(val, mt.Elem())
+		if err != nil {
+			return nil, fmt.Errorf("MapGet(): invalid value type - %w", err)
+		}
+
+		vv = reflect.ValueOf(cv)
+	}
+
+	mv := reflect.ValueOf(dict)
+	mv.SetMapIndex(kv, vv)
+	return nil, nil
+}

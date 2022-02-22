@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/pandafw/pango/col"
 	"github.com/pandafw/pango/iox"
@@ -183,7 +184,7 @@ func (sec *Section) GetFloat(key string, defs ...float64) float64 {
 }
 
 // GetBool get a bool value of the key from the section
-// if not found, returns the default defs[0] int value
+// if not found or convert error, returns the default defs[0] bool value
 func (sec *Section) GetBool(key string, defs ...bool) bool {
 	e := sec.GetEntry(key)
 	if e != nil {
@@ -195,6 +196,21 @@ func (sec *Section) GetBool(key string, defs ...bool) bool {
 		return defs[0]
 	}
 	return false
+}
+
+// GetDuration get a time.Duration value of the key from the section
+// if not found or convert error, returns the default defs[0] Duration value
+func (sec *Section) GetDuration(key string, defs ...time.Duration) time.Duration {
+	e := sec.GetEntry(key)
+	if e != nil {
+		if d, err := time.ParseDuration(e.Value); err == nil {
+			return d
+		}
+	}
+	if len(defs) > 0 {
+		return defs[0]
+	}
+	return 0
 }
 
 func (sec *Section) toStrings(l *col.LinkedList) []string {

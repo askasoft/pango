@@ -127,10 +127,10 @@ func (ts *TS) Get(locale, section, name string) (string, bool) {
 func (ts *TS) Format(locale, format string, args ...interface{}) string {
 	section := ""
 
-	parts := str.SplitN(format, ".", 2)
-	if len(parts) == 2 {
-		section = parts[0]
-		format = parts[1]
+	dot := str.LastIndexByte(format, '.')
+	if dot >= 0 {
+		section = format[:dot]
+		format = format[dot+1:]
 	}
 
 	if value, ok := ts.Get(locale, section, format); ok {

@@ -43,8 +43,10 @@ func testLoad(t *testing.T, ts *TS) {
 	}{
 		{"en", "title", nil, "hello world"},
 		{"en", "label.welcome", []interface{}{"home"}, "welcome home"},
+		{"en", "label.new.hello", []interface{}{"home"}, "hello home"},
 		{"ja-JP", "title", nil, "こんにちは世界"},
 		{"ja-JP", "label.welcome", []interface{}{"ダーリン"}, "ようこそ ダーリン"},
+		{"ja-JP", "label.new.hello", []interface{}{"ダーリン"}, "ハロー ダーリン"},
 	}
 
 	for i, c := range cs {

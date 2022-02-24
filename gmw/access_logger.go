@@ -43,7 +43,7 @@ type fmtfunc func(p *logevt) string
 // DefaultAccessLogger create a log middleware for gin access logger
 // Equals: NewAccessLogger(gin.Logger.Outputer("GINA", log.LevelTrace), gmw.DefaultTextLogFormat)
 func DefaultAccessLogger(gin *gin.Engine) *AccessLogger {
-	return NewAccessLogger(gin.Logger.Outputer("GINA", log.LevelTrace), DefaultTextLogFormat)
+	return NewAccessLogger(gin.Logger.GetOutputer("GINA", log.LevelTrace), DefaultTextLogFormat)
 }
 
 // NewAccessLogger create a log middleware for gin access logger

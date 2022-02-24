@@ -1,7 +1,6 @@
 package log
 
 import (
-	"io"
 	"sync"
 	"time"
 )
@@ -121,7 +120,7 @@ func (log *Log) write(le *Event) {
 //   )
 //   golog.SetOutput(log.Outputer("GO", log.LevelInfo, 3))
 //
-func (log *Log) Outputer(name string, lvl Level, callerDepth ...int) io.Writer {
+func (log *Log) GetOutputer(name string, lvl Level, callerDepth ...int) Outputer {
 	lg := log.GetLogger(name)
 	cd := 1
 	if len(callerDepth) > 0 {

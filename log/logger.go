@@ -2,13 +2,12 @@ package log
 
 import (
 	"fmt"
-	"io"
 )
 
 // Logger logger interface
 type Logger interface {
 	GetLogger(name string) Logger
-	Outputer(name string, lvl Level, callerDepth ...int) io.Writer
+	GetOutputer(name string, lvl Level, callerDepth ...int) Outputer
 	GetName() string
 	SetName(name string)
 	GetLevel() Level
@@ -66,8 +65,8 @@ func (l *logger) GetLogger(name string) Logger {
 //   )
 //   golog.SetOutput(log.Outputer("GO", log.LevelInfo, 3))
 //
-func (l *logger) Outputer(name string, lvl Level, callerDepth ...int) io.Writer {
-	return l.log.Outputer(name, lvl, callerDepth...)
+func (l *logger) GetOutputer(name string, lvl Level, callerDepth ...int) Outputer {
+	return l.log.GetOutputer(name, lvl, callerDepth...)
 }
 
 // GetName return the logger's name

@@ -20,10 +20,6 @@
 //
 package log
 
-import (
-	"io"
-)
-
 //--------------------------------------------------------------------
 // package functions
 //
@@ -46,7 +42,7 @@ func GetLogger(name string) Logger {
 	return _log.GetLogger(name)
 }
 
-// Outputer return a io.Writer for go log.SetOutput
+// GetOutputer return a io.Writer for go log.SetOutput
 // callerDepth: default is 1 (means +1)
 // if the outputer is used by go std log, set callerDepth to 2
 // example:
@@ -56,8 +52,8 @@ func GetLogger(name string) Logger {
 //   )
 //   golog.SetOutput(log.Outputer("GO", log.LevelInfo, 2))
 //
-func Outputer(name string, lvl Level, callerDepth ...int) io.Writer {
-	return _log.Outputer(name, lvl, callerDepth...)
+func GetOutputer(name string, lvl Level, callerDepth ...int) Outputer {
+	return _log.GetOutputer(name, lvl, callerDepth...)
 }
 
 // GetFormatter get the formatter

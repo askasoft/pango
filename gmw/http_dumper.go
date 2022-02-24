@@ -26,7 +26,7 @@ type HTTPDumper struct {
 // DefaultHTTPDumper create a middleware for gin http dumper
 // Equals: NewHTTPDumper(gin.Logger.Outputer("GIND", log.LevelTrace))
 func DefaultHTTPDumper(gin *gin.Engine) *HTTPDumper {
-	return NewHTTPDumper(gin.Logger.Outputer("GIND", log.LevelTrace))
+	return NewHTTPDumper(gin.Logger.GetOutputer("GIND", log.LevelTrace))
 }
 
 // NewHTTPDumper create a middleware for gin http dumper

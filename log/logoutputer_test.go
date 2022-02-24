@@ -13,7 +13,7 @@ import (
 func TestGoLogOutputGlobal(t *testing.T) {
 	fmt.Println("\n\n--------------- TestGoLogOutputGlobal ---------------------")
 	SetWriter(NewConsoleWriter())
-	golog.SetOutput(Outputer("golog", LevelInfo))
+	golog.SetOutput(GetOutputer("golog", LevelInfo))
 	golog.Print("hello", "golog")
 }
 
@@ -21,7 +21,7 @@ func TestGoLogOutputNewLog(t *testing.T) {
 	fmt.Println("\n\n--------------- TestGoLogOutputNewLog ---------------------")
 	log := NewLog()
 	log.SetWriter(NewConsoleWriter())
-	golog.SetOutput(log.Outputer("std", LevelInfo))
+	golog.SetOutput(log.GetOutputer("std", LevelInfo))
 	golog.Print("hello", "golog")
 }
 
@@ -34,7 +34,7 @@ func TestGoLogFileCallerGlobal(t *testing.T) {
 	SetFormatter(NewTextFormatter("%l %S:%L %F() - %m"))
 	SetWriter(&FileWriter{Path: path})
 	golog.SetFlags(0)
-	golog.SetOutput(Outputer("golog", LevelInfo, 3))
+	golog.SetOutput(GetOutputer("golog", LevelInfo, 3))
 	file, line, ffun := testGetCaller(1)
 	golog.Print("hello", "golog")
 	Close()
@@ -57,7 +57,7 @@ func TestGoLogFileCallerNewLog(t *testing.T) {
 	log.SetFormatter(NewTextFormatter("%l %S:%L %F() - %m"))
 	log.SetWriter(&FileWriter{Path: path})
 	golog.SetFlags(0)
-	golog.SetOutput(log.Outputer("std", LevelInfo, 3))
+	golog.SetOutput(log.GetOutputer("std", LevelInfo, 3))
 	file, line, ffun := testGetCaller(1)
 	golog.Print("hello", "golog")
 	log.Close()
@@ -79,7 +79,7 @@ func TestIoWriterFileCallerGlobal(t *testing.T) {
 	SetFormatter(NewTextFormatter("%l %S:%L %F() - %m%n"))
 	SetWriter(&FileWriter{Path: path})
 
-	iow := Outputer("iow", LevelInfo)
+	iow := GetOutputer("iow", LevelInfo)
 	file, line, ffun := testGetCaller(1)
 	iow.Write(([]byte)("hello writer"))
 	Close()
@@ -102,7 +102,7 @@ func TestIoWriterFileCallerNewLog(t *testing.T) {
 	log.SetFormatter(NewTextFormatter("%l %S:%L %F() - %m%n"))
 	log.SetWriter(&FileWriter{Path: path})
 
-	iow := log.Outputer("iow", LevelInfo)
+	iow := log.GetOutputer("iow", LevelInfo)
 	file, line, ffun := testGetCaller(1)
 	iow.Write(([]byte)("hello writer"))
 	log.Close()

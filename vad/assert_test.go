@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"path"
 	"reflect"
-	"regexp"
 	"runtime"
 	"testing"
 )
@@ -69,71 +68,66 @@ CASE4:
 
 // NotMatchRegex validates that value matches the regex, either string or *regex
 // and throws an error with line number
-//nolint: unused,deadcode
-func assertNotMatchRegex(t *testing.T, value string, regex interface{}) {
-	assertNotMatchRegexSkip(t, 2, value, regex)
-}
+// func assertNotMatchRegex(t *testing.T, value string, regex interface{}) {
+// 	assertNotMatchRegexSkip(t, 2, value, regex)
+// }
 
 // NotMatchRegexSkip validates that value matches the regex, either string or *regex
 // and throws an error with line number
 // but the skip variable tells NotMatchRegexSkip how far back on the stack to report the error.
 // This is a building block to creating your own more complex validation functions.
-//nolint: unused
-func assertNotMatchRegexSkip(t *testing.T, skip int, value string, regex interface{}) {
-	if r, ok, err := assertRegexMatches(regex, value); ok || err != nil {
-		_, file, line, _ := runtime.Caller(skip)
+// func assertNotMatchRegexSkip(t *testing.T, skip int, value string, regex interface{}) {
+// 	if r, ok, err := assertRegexMatches(regex, value); ok || err != nil {
+// 		_, file, line, _ := runtime.Caller(skip)
 
-		if err != nil {
-			fmt.Printf("%s:%d %v error compiling regex %v\n", path.Base(file), line, value, r.String())
-		} else {
-			fmt.Printf("%s:%d %v matches regex %v\n", path.Base(file), line, value, r.String())
-		}
+// 		if err != nil {
+// 			fmt.Printf("%s:%d %v error compiling regex %v\n", path.Base(file), line, value, r.String())
+// 		} else {
+// 			fmt.Printf("%s:%d %v matches regex %v\n", path.Base(file), line, value, r.String())
+// 		}
 
-		t.FailNow()
-	}
-}
+// 		t.FailNow()
+// 	}
+// }
 
 // MatchRegex validates that value matches the regex, either string or *regex
 // and throws an error with line number
-//nolint: unused,deadcode
-func assertMatchRegex(t *testing.T, value string, regex interface{}) {
-	assertMatchRegexSkip(t, 2, value, regex)
-}
+// func assertMatchRegex(t *testing.T, value string, regex interface{}) {
+// 	assertMatchRegexSkip(t, 2, value, regex)
+// }
 
 // MatchRegexSkip validates that value matches the regex, either string or *regex
 // and throws an error with line number
 // but the skip variable tells MatchRegexSkip how far back on the stack to report the error.
 // This is a building block to creating your own more complex validation functions.
-//nolint: unused
-func assertMatchRegexSkip(t *testing.T, skip int, value string, regex interface{}) {
-	if r, ok, err := assertRegexMatches(regex, value); !ok {
-		_, file, line, _ := runtime.Caller(skip)
+// func assertMatchRegexSkip(t *testing.T, skip int, value string, regex interface{}) {
+// 	if r, ok, err := assertRegexMatches(regex, value); !ok {
+// 		_, file, line, _ := runtime.Caller(skip)
 
-		if err != nil {
-			fmt.Printf("%s:%d %v error compiling regex %v\n", path.Base(file), line, value, r.String())
-		} else {
-			fmt.Printf("%s:%d %v does not match regex %v\n", path.Base(file), line, value, r.String())
-		}
+// 		if err != nil {
+// 			fmt.Printf("%s:%d %v error compiling regex %v\n", path.Base(file), line, value, r.String())
+// 		} else {
+// 			fmt.Printf("%s:%d %v does not match regex %v\n", path.Base(file), line, value, r.String())
+// 		}
 
-		t.FailNow()
-	}
-}
+// 		t.FailNow()
+// 	}
+// }
 
-//nolint: unused
-func assertRegexMatches(regex interface{}, value string) (*regexp.Regexp, bool, error) {
-	var err error
+// func assertRegexMatches(regex interface{}, value string) (*regexp.Regexp, bool, error) {
+// 	var err error
 
-	r, ok := regex.(*regexp.Regexp)
+// 	r, ok := regex.(*regexp.Regexp)
 
-	// must be a string
-	if !ok {
-		if r, err = regexp.Compile(regex.(string)); err != nil {
-			return r, false, err
-		}
-	}
+// 	// must be a string
+// 	if !ok {
+// 		if r, err = regexp.Compile(regex.(string)); err != nil {
+// 			return r, false, err
+// 		}
+// 	}
 
-	return r, r.MatchString(value), err
-}
+// 	return r, r.MatchString(value), err
+// }
 
 // Equal validates that val1 is equal to val2 and throws an error with line number
 func assertEqual(t *testing.T, val1, val2 interface{}) {
@@ -176,7 +170,6 @@ func assertPanicMatches(t *testing.T, fn func(), matches string) {
 // but the skip variable tells PanicMatchesSkip how far back on the stack to report the error.
 // This is a building block to creating your own more complex validation functions.
 func assertPanicMatchesSkip(t *testing.T, skip int, fn func(), matches string) {
-
 	_, file, line, _ := runtime.Caller(skip)
 
 	defer func() {

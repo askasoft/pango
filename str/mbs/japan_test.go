@@ -61,16 +61,14 @@ var (
 	hankakuDakuRunes = []rune(hankakuDaku)
 
 	// zenkakuDaku 全角　濁文字: ガギグゲゴザジズゼゾダヂヅデドバビブベボヴヷヺヸヹ
-	zenkakuDaku      = zenkakuGazadaba + zenkakuVavo + zenkakuVive
-	zenkakuDakuRunes = []rune(zenkakuDaku) //nolint: unused, varcheck, deadcode
+	zenkakuDaku = zenkakuGazadaba + zenkakuVavo + zenkakuVive
 
 	// hankakuHandaku 半角　半濁文字: ﾊﾋﾌﾍﾎ
 	hankakuHandaku      = ("ﾊﾋﾌﾍﾎ")
 	hankakuHandakuRunes = []rune(hankakuHandaku)
 
 	// zenkakuHandaku 全角　半濁文字: パピプペポ
-	zenkakuHandaku     = ("パピプペポ")
-	zenkakuHadakuRunes = []rune(zenkakuHandaku) //nolint: unused, varcheck, deadcode
+	zenkakuHandaku = ("パピプペポ")
 
 	// hankaku 半角
 	hankaku      = hankakuMark + hankakuAyatu + hankakuAnamayara + hankakuKasataha + hankakuWaou

@@ -9,8 +9,8 @@ import (
 var (
 	testReHasLowerCase = ".*[[:lower:]]"
 	testReHasUpperCase = ".*[[:upper:]]"
-	testRxHasLowerCase = regexp.MustCompile(testReHasLowerCase) //nolint: unused
-	testRxHasUpperCase = regexp.MustCompile(testReHasUpperCase) //nolint: unused
+	testRxHasLowerCase = regexp.MustCompile(testReHasLowerCase)
+	testRxHasUpperCase = regexp.MustCompile(testReHasUpperCase)
 )
 
 func testLower() string {
@@ -84,7 +84,6 @@ func BenchmarkIsUpperCase1(b *testing.B) {
 }
 
 // HasLowerCase checks if the string contains at least 1 lowercase. Empty string is valid.
-//nolint: unused, deadcode
 func testHasLowerCase(str string) bool {
 	return testRxHasLowerCase.MatchString(str)
 }
@@ -93,7 +92,7 @@ func BenchmarkHasLowerCase0(b *testing.B) {
 	str := testUpper()
 	b.ResetTimer()
 	for N := 0; N < b.N; N++ {
-		is := testIsLowerCase(str)
+		is := testHasLowerCase(str)
 		if is {
 			b.Fatal("hasLower")
 		}
@@ -104,7 +103,7 @@ func BenchmarkHasLowerCase1(b *testing.B) {
 	str := testUpper()
 	b.ResetTimer()
 	for N := 0; N < b.N; N++ {
-		is := IsLowerCase(str)
+		is := HasLowerCase(str)
 		if is {
 			b.Fatal("hasLower")
 		}
@@ -112,8 +111,7 @@ func BenchmarkHasLowerCase1(b *testing.B) {
 }
 
 // HasUpperCase checks if the string contains as least 1 uppercase. Empty string is valid.
-//nolint: unused, deadcode
-func hasUpperCase(str string) bool {
+func testHasUpperCase(str string) bool {
 	return testRxHasUpperCase.MatchString(str)
 }
 
@@ -121,7 +119,7 @@ func BenchmarkHasUpperCase0(b *testing.B) {
 	str := testLower()
 	b.ResetTimer()
 	for N := 0; N < b.N; N++ {
-		is := testIsUpperCase(str)
+		is := testHasUpperCase(str)
 		if is {
 			b.Fatal("hasUpper")
 		}
@@ -132,7 +130,7 @@ func BenchmarkHasUpperCase1(b *testing.B) {
 	str := testLower()
 	b.ResetTimer()
 	for N := 0; N < b.N; N++ {
-		is := IsUpperCase(str)
+		is := HasUpperCase(str)
 		if is {
 			b.Fatal("hasUpper")
 		}

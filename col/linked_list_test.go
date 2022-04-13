@@ -7,8 +7,6 @@ import (
 	"reflect"
 	"sort"
 	"testing"
-
-	"github.com/pandafw/pango/cmp"
 )
 
 func TestLinkedListInterface(t *testing.T) {
@@ -424,7 +422,7 @@ func TestLinkedListEach(t *testing.T) {
 	list := NewLinkedList()
 	list.Add("a", "b", "c")
 	index := 0
-	list.Each(func(value interface{}) {
+	list.Each(func(value T) {
 		switch index {
 		case 0:
 			if av, ev := value, "a"; av != ev {
@@ -667,7 +665,7 @@ func TestLinkedListSort(t *testing.T) {
 	for i := 1; i < 100; i++ {
 		l := NewLinkedList()
 
-		a := make([]interface{}, 0, 100)
+		a := make([]T, 0, 100)
 		for n := i; n < 100; n++ {
 			a = append(a, rand.Intn(20))
 		}
@@ -676,7 +674,7 @@ func TestLinkedListSort(t *testing.T) {
 			l.Add(a[j])
 		}
 
-		l.Sort(cmp.LessInt)
+		l.Sort(LessInt)
 		sort.Sort(inta(a))
 
 		if !reflect.DeepEqual(a, l.Values()) {
@@ -693,7 +691,7 @@ func checkLinkedListLen(t *testing.T, l *LinkedList, len int) bool {
 	return true
 }
 
-func checkLinkedList(t *testing.T, l *LinkedList, evs []interface{}) {
+func checkLinkedList(t *testing.T, l *LinkedList, evs []T) {
 	if !checkLinkedListLen(t, l, len(evs)) {
 		return
 	}
@@ -721,50 +719,50 @@ func TestLinkedListExtending(t *testing.T) {
 
 	l3 := NewLinkedList()
 	l3.PushTailAll(l1)
-	checkLinkedList(t, l3, []interface{}{1, 2, 3})
+	checkLinkedList(t, l3, []T{1, 2, 3})
 	l3.PushTailAll(l2)
-	checkLinkedList(t, l3, []interface{}{1, 2, 3, 4, 5})
+	checkLinkedList(t, l3, []T{1, 2, 3, 4, 5})
 
 	l3 = NewLinkedList()
 	l3.PushHeadAll(l2)
-	checkLinkedList(t, l3, []interface{}{4, 5})
+	checkLinkedList(t, l3, []T{4, 5})
 	l3.PushHeadAll(l1)
-	checkLinkedList(t, l3, []interface{}{1, 2, 3, 4, 5})
+	checkLinkedList(t, l3, []T{1, 2, 3, 4, 5})
 
-	checkLinkedList(t, l1, []interface{}{1, 2, 3})
-	checkLinkedList(t, l2, []interface{}{4, 5})
+	checkLinkedList(t, l1, []T{1, 2, 3})
+	checkLinkedList(t, l2, []T{4, 5})
 
 	l3 = NewLinkedList()
 	l3.PushTailAll(l1)
-	checkLinkedList(t, l3, []interface{}{1, 2, 3})
+	checkLinkedList(t, l3, []T{1, 2, 3})
 	l3.PushTailAll(l3)
-	checkLinkedList(t, l3, []interface{}{1, 2, 3, 1, 2, 3})
+	checkLinkedList(t, l3, []T{1, 2, 3, 1, 2, 3})
 
 	l3 = NewLinkedList()
 	l3.PushHeadAll(l1)
-	checkLinkedList(t, l3, []interface{}{1, 2, 3})
+	checkLinkedList(t, l3, []T{1, 2, 3})
 	l3.PushHeadAll(l3)
-	checkLinkedList(t, l3, []interface{}{1, 2, 3, 1, 2, 3})
+	checkLinkedList(t, l3, []T{1, 2, 3, 1, 2, 3})
 
 	l3 = NewLinkedList()
 	l1.PushTailAll(l3)
-	checkLinkedList(t, l1, []interface{}{1, 2, 3})
+	checkLinkedList(t, l1, []T{1, 2, 3})
 	l1.PushHeadAll(l3)
-	checkLinkedList(t, l1, []interface{}{1, 2, 3})
+	checkLinkedList(t, l1, []T{1, 2, 3})
 
 	l1.Clear()
 	l2.Clear()
 	l3.Clear()
 	l1.PushTail(1, 2, 3)
-	checkLinkedList(t, l1, []interface{}{1, 2, 3})
+	checkLinkedList(t, l1, []T{1, 2, 3})
 	l2.PushTail(4, 5)
-	checkLinkedList(t, l2, []interface{}{4, 5})
+	checkLinkedList(t, l2, []T{4, 5})
 	l3.PushTailAll(l1)
-	checkLinkedList(t, l3, []interface{}{1, 2, 3})
+	checkLinkedList(t, l3, []T{1, 2, 3})
 	l3.PushTail(4, 5)
-	checkLinkedList(t, l3, []interface{}{1, 2, 3, 4, 5})
+	checkLinkedList(t, l3, []T{1, 2, 3, 4, 5})
 	l3.PushHead(4, 5)
-	checkLinkedList(t, l3, []interface{}{4, 5, 1, 2, 3, 4, 5})
+	checkLinkedList(t, l3, []T{4, 5, 1, 2, 3, 4, 5})
 }
 
 func TestLinkedListQueue(t *testing.T) {

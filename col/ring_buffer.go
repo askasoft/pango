@@ -6,7 +6,6 @@ import (
 	"sort"
 
 	"github.com/pandafw/pango/ars"
-	"github.com/pandafw/pango/cmp"
 )
 
 // RingBuffer A fast Golang queue using a ring-buffer, based on the version suggested by Dariusz Górecki.
@@ -405,7 +404,7 @@ func (rb *RingBuffer) Swap(i, j int) {
 }
 
 // Sort Sorts this RingBuffer according to the order induced by the specified Comparator.
-func (rb *RingBuffer) Sort(less cmp.Less) {
+func (rb *RingBuffer) Sort(less Less) {
 	if rb.len < 2 {
 		return
 	}

@@ -8,7 +8,6 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/pandafw/pango/cmp"
 	"github.com/pandafw/pango/str"
 )
 
@@ -451,7 +450,7 @@ func TestArrayListEach(t *testing.T) {
 	list := NewArrayList()
 	list.Add("a", "b", "c")
 	index := 0
-	list.Each(func(value interface{}) {
+	list.Each(func(value T) {
 		switch index {
 		case 0:
 			if av, ev := value, "a"; av != ev {
@@ -693,7 +692,7 @@ func TestArrayListSort(t *testing.T) {
 	for i := 1; i < 100; i++ {
 		l := NewArrayList()
 
-		a := make([]interface{}, 0, 100)
+		a := make([]T, 0, 100)
 		for n := i; n < 100; n++ {
 			a = append(a, rand.Intn(20))
 		}
@@ -702,7 +701,7 @@ func TestArrayListSort(t *testing.T) {
 			l.Add(a[j])
 		}
 
-		l.Sort(cmp.LessInt)
+		l.Sort(LessInt)
 		sort.Sort(inta(a))
 
 		if !reflect.DeepEqual(a, l.Values()) {
@@ -719,7 +718,7 @@ func checkArrayListLen(t *testing.T, l *ArrayList, len int) bool {
 	return true
 }
 
-func checkArrayList(t *testing.T, l *ArrayList, evs []interface{}) {
+func checkArrayList(t *testing.T, l *ArrayList, evs []T) {
 	if !checkArrayListLen(t, l, len(evs)) {
 		return
 	}
@@ -747,50 +746,50 @@ func TestArrayListExtending(t *testing.T) {
 
 	l3 := NewArrayList()
 	l3.AddAll(l1)
-	checkArrayList(t, l3, []interface{}{1, 2, 3})
+	checkArrayList(t, l3, []T{1, 2, 3})
 	l3.AddAll(l2)
-	checkArrayList(t, l3, []interface{}{1, 2, 3, 4, 5})
+	checkArrayList(t, l3, []T{1, 2, 3, 4, 5})
 
 	l3 = NewArrayList()
 	l3.PushHeadAll(l2)
-	checkArrayList(t, l3, []interface{}{4, 5})
+	checkArrayList(t, l3, []T{4, 5})
 	l3.PushHeadAll(l1)
-	checkArrayList(t, l3, []interface{}{1, 2, 3, 4, 5})
+	checkArrayList(t, l3, []T{1, 2, 3, 4, 5})
 
-	checkArrayList(t, l1, []interface{}{1, 2, 3})
-	checkArrayList(t, l2, []interface{}{4, 5})
+	checkArrayList(t, l1, []T{1, 2, 3})
+	checkArrayList(t, l2, []T{4, 5})
 
 	l3 = NewArrayList()
 	l3.PushTailAll(l1)
-	checkArrayList(t, l3, []interface{}{1, 2, 3})
+	checkArrayList(t, l3, []T{1, 2, 3})
 	l3.PushTailAll(l3)
-	checkArrayList(t, l3, []interface{}{1, 2, 3, 1, 2, 3})
+	checkArrayList(t, l3, []T{1, 2, 3, 1, 2, 3})
 
 	l3 = NewArrayList()
 	l3.PushHeadAll(l1)
-	checkArrayList(t, l3, []interface{}{1, 2, 3})
+	checkArrayList(t, l3, []T{1, 2, 3})
 	l3.PushHeadAll(l3)
-	checkArrayList(t, l3, []interface{}{1, 2, 3, 1, 2, 3})
+	checkArrayList(t, l3, []T{1, 2, 3, 1, 2, 3})
 
 	l3 = NewArrayList()
 	l1.PushTailAll(l3)
-	checkArrayList(t, l1, []interface{}{1, 2, 3})
+	checkArrayList(t, l1, []T{1, 2, 3})
 	l1.PushHeadAll(l3)
-	checkArrayList(t, l1, []interface{}{1, 2, 3})
+	checkArrayList(t, l1, []T{1, 2, 3})
 
 	l1.Clear()
 	l2.Clear()
 	l3.Clear()
 	l1.PushTail(1, 2, 3)
-	checkArrayList(t, l1, []interface{}{1, 2, 3})
+	checkArrayList(t, l1, []T{1, 2, 3})
 	l2.PushTail(4, 5)
-	checkArrayList(t, l2, []interface{}{4, 5})
+	checkArrayList(t, l2, []T{4, 5})
 	l3.PushTailAll(l1)
-	checkArrayList(t, l3, []interface{}{1, 2, 3})
+	checkArrayList(t, l3, []T{1, 2, 3})
 	l3.PushTail(4, 5)
-	checkArrayList(t, l3, []interface{}{1, 2, 3, 4, 5})
+	checkArrayList(t, l3, []T{1, 2, 3, 4, 5})
 	l3.PushHead(4, 5)
-	checkArrayList(t, l3, []interface{}{4, 5, 1, 2, 3, 4, 5})
+	checkArrayList(t, l3, []T{4, 5, 1, 2, 3, 4, 5})
 }
 
 func TestArrayListContains2(t *testing.T) {

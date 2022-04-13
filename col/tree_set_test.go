@@ -9,23 +9,22 @@ import (
 	"testing"
 
 	"github.com/pandafw/pango/ars"
-	"github.com/pandafw/pango/cmp"
 )
 
 func TestTreeSetInterface(t *testing.T) {
-	var s Set = NewTreeSet(cmp.CompareInt)
+	var s Set = NewTreeSet(CompareInt)
 	if s == nil {
 		t.Error("TreeSet is not a Set")
 	}
 }
 
 func TestTreeSetNew(t *testing.T) {
-	tset := NewTreeSet(cmp.CompareString)
+	tset := NewTreeSet(CompareString)
 	if av := tset.IsEmpty(); av != true {
 		t.Errorf("Got %v expected %v", av, true)
 	}
 
-	tset = NewTreeSet(cmp.CompareString, "1", "b")
+	tset = NewTreeSet(CompareString, "1", "b")
 	if av := tset.Len(); av != 2 {
 		t.Errorf("Got %v expected %v", av, 2)
 	}
@@ -38,12 +37,12 @@ func TestTreeSetNew(t *testing.T) {
 }
 
 func TestTreeSetDebug(t *testing.T) {
-	tset := NewTreeSet(cmp.CompareString)
+	tset := NewTreeSet(CompareString)
 	tset.debug()
 }
 
 func TestTreeSetAdd(t *testing.T) {
-	tset := NewTreeSet(cmp.CompareString)
+	tset := NewTreeSet(CompareString)
 	tset.Add("a")
 	tset.Add("b", "c")
 	if av := tset.IsEmpty(); av != false {
@@ -58,7 +57,7 @@ func TestTreeSetAdd(t *testing.T) {
 }
 
 func TestTreeSetClear(t *testing.T) {
-	tset := NewTreeSet(cmp.CompareString)
+	tset := NewTreeSet(CompareString)
 	tset.Add("e", "f", "g", "a", "b", "c", "d")
 	tset.Add("e", "f", "g", "a", "b", "c", "d")
 	tset.Clear()
@@ -71,7 +70,7 @@ func TestTreeSetClear(t *testing.T) {
 }
 
 func TestTreeSetContains(t *testing.T) {
-	list := NewTreeSet(cmp.CompareInt)
+	list := NewTreeSet(CompareInt)
 
 	a := []T{}
 	for i := 0; i < 100; i++ {
@@ -110,7 +109,7 @@ func TestTreeSetContains(t *testing.T) {
 func TestTreeSetRetain(t *testing.T) {
 	for n := 0; n < 100; n++ {
 		a := []T{}
-		list := NewTreeSet(cmp.CompareInt)
+		list := NewTreeSet(CompareInt)
 		for i := 0; i < n; i++ {
 			if i&1 == 0 {
 				a = append(a, i)
@@ -160,7 +159,7 @@ func TestTreeSetRetain(t *testing.T) {
 }
 
 func TestTreeSetValues(t *testing.T) {
-	tset := NewTreeSet(cmp.CompareString)
+	tset := NewTreeSet(CompareString)
 	tset.Add("a", "a")
 	tset.Add("b", "c", "b", "c")
 	if av, ev := fmt.Sprintf("%s%s%s", tset.Values()...), "abc"; av != ev {
@@ -169,7 +168,7 @@ func TestTreeSetValues(t *testing.T) {
 }
 
 func TestTreeSetEach(t *testing.T) {
-	tset := NewTreeSet(cmp.CompareString)
+	tset := NewTreeSet(CompareString)
 	tset.Add("a", "b", "c")
 	tset.Add("a", "b", "c")
 	index := 0
@@ -195,7 +194,7 @@ func TestTreeSetEach(t *testing.T) {
 }
 
 func TestTreeSetIteratorNextOnEmpty(t *testing.T) {
-	tset := NewTreeSet(cmp.CompareString)
+	tset := NewTreeSet(CompareString)
 	it := tset.Iterator()
 	for it.Next() {
 		t.Errorf("Shouldn't iterate on empty tset")
@@ -203,7 +202,7 @@ func TestTreeSetIteratorNextOnEmpty(t *testing.T) {
 }
 
 func TestTreeSetIteratorNext(t *testing.T) {
-	tset := NewTreeSet(cmp.CompareString)
+	tset := NewTreeSet(CompareString)
 	tset.Add("a", "b", "c")
 	tset.Add("a", "b", "c")
 	it := tset.Iterator()
@@ -236,7 +235,7 @@ func TestTreeSetIteratorNext(t *testing.T) {
 }
 
 func TestTreeSetIteratorPrevOnEmpty(t *testing.T) {
-	tset := NewTreeSet(cmp.CompareString)
+	tset := NewTreeSet(CompareString)
 	it := tset.Iterator()
 	for it.Prev() {
 		t.Errorf("Shouldn't iterate on empty tset")
@@ -244,7 +243,7 @@ func TestTreeSetIteratorPrevOnEmpty(t *testing.T) {
 }
 
 func TestTreeSetIteratorPrev(t *testing.T) {
-	tset := NewTreeSet(cmp.CompareString)
+	tset := NewTreeSet(CompareString)
 	tset.Add("a", "b", "c")
 	tset.Add("a", "b", "c")
 	it := tset.Iterator()
@@ -277,7 +276,7 @@ func TestTreeSetIteratorPrev(t *testing.T) {
 }
 
 func TestTreeSetIteratorReset(t *testing.T) {
-	tset := NewTreeSet(cmp.CompareString)
+	tset := NewTreeSet(CompareString)
 	it := tset.Iterator()
 	tset.Add("a", "b", "c")
 	tset.Add("a", "b", "c")
@@ -318,8 +317,8 @@ func assertTreeSetIteratorRemove(t *testing.T, i int, it Iterator, w *TreeSet) i
 
 func TestTreeSetIteratorRemove(t *testing.T) {
 	for i := 20; i < 50; i++ {
-		tset := NewTreeSet(cmp.CompareInt)
-		wset := NewTreeSet(cmp.CompareInt)
+		tset := NewTreeSet(CompareInt)
+		wset := NewTreeSet(CompareInt)
 
 		for n := 0; n < i; n++ {
 			tset.Add(n)
@@ -380,7 +379,7 @@ func TestTreeSetIteratorRemove(t *testing.T) {
 }
 
 func TestTreeSetIteratorSetValue(t *testing.T) {
-	tset := NewTreeSet(cmp.CompareInt)
+	tset := NewTreeSet(CompareInt)
 	for i := 1; i <= 100; i++ {
 		tset.Add(i)
 	}
@@ -415,7 +414,7 @@ func TestTreeSetIteratorSetValue(t *testing.T) {
 
 func TestTreeSetSort(t *testing.T) {
 	for i := 1; i < 20; i++ {
-		tset := NewTreeSet(cmp.CompareInt)
+		tset := NewTreeSet(CompareInt)
 
 		a := make([]interface{}, 0, 20)
 		for n := i; n < 20; n++ {
@@ -438,7 +437,7 @@ func TestTreeSetSort(t *testing.T) {
 }
 
 func TestTreeSetDelete(t *testing.T) {
-	tset := NewTreeSet(cmp.CompareInt)
+	tset := NewTreeSet(CompareInt)
 
 	for i := 1; i <= 100; i++ {
 		tset.Add(i)
@@ -461,7 +460,7 @@ func TestTreeSetDelete(t *testing.T) {
 }
 
 func TestTreeSetDelete2(t *testing.T) {
-	tset := NewTreeSet(cmp.CompareInt)
+	tset := NewTreeSet(CompareInt)
 
 	for i := 0; i < 100; i++ {
 		z := i % 10
@@ -495,7 +494,7 @@ func TestTreeSetDelete2(t *testing.T) {
 }
 
 func TestTreeSetDeleteAll(t *testing.T) {
-	tset := NewTreeSet(cmp.CompareInt)
+	tset := NewTreeSet(CompareInt)
 
 	for i := 0; i < 100; i++ {
 		z := i % 10
@@ -530,7 +529,7 @@ func TestTreeSetDeleteAll(t *testing.T) {
 
 func TestTreeSetString(t *testing.T) {
 	e := "[1,2,3]"
-	a := NewTreeSet(cmp.CompareInt, 1, 3, 2).String()
+	a := NewTreeSet(CompareInt, 1, 3, 2).String()
 	if a != e {
 		t.Errorf(`fmt.Sprintf("%%s", NewTreeSet(1, 3, 2)) = %v, want %v`, a, e)
 	}
@@ -541,7 +540,7 @@ func TestTreeSetMarshalJSON(t *testing.T) {
 		tset *TreeSet
 		json string
 	}{
-		{NewTreeSet(cmp.CompareString, "0", "1"), `["0","1"]`},
+		{NewTreeSet(CompareString, "0", "1"), `["0","1"]`},
 	}
 
 	for i, c := range cs {
@@ -564,11 +563,11 @@ func TestTreeSetUnmarshalJSON(t *testing.T) {
 	}
 
 	cs := []Case{
-		{`["1","0"]`, NewTreeSet(cmp.CompareString, "0", "1")},
+		{`["1","0"]`, NewTreeSet(CompareString, "0", "1")},
 	}
 
 	for i, c := range cs {
-		a := NewTreeSet(cmp.CompareString)
+		a := NewTreeSet(CompareString)
 		err := json.Unmarshal([]byte(c.json), a)
 
 		if err != nil {

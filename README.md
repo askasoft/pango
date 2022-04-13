@@ -9,7 +9,6 @@ Pango is a GO development utility library.
 
 | **Package**                     | **Description**                         |
 | :------------------------------- | :-------------------------------------- |
-| [cmp](#compare)                  | a Compare/Less helper functions package |
 | [col](#col-collectioncontainer)  | a Collection/Container package          |
 | [ini](#int)                      | a INI file read/write package           |
 | iox                              | a IO utility package                    |
@@ -156,14 +155,13 @@ package main
 
 import (
 	"github.com/pandafw/pango/col"
-	"github.com/pandafw/pango/cmp"
 )
 
 func main() {
 	list := col.NewArrayList()
 	list.Add("a")                         // ["a"]
 	list.Add("c", "b")                    // ["a","c","b"]
-	list.Sort(cmp.LessString)             // ["a","b","c"]
+	list.Sort(col.LessString)             // ["a","b","c"]
 	_ = list.Get(0)                       // "a"
 	_ = list.Get(100)                     // panic
 	_ = list.Contains("a", "b", "c")      // true
@@ -193,14 +191,13 @@ package main
 
 import (
 	"github.com/pandafw/pango/col"
-	"github.com/pandafw/pango/cmp"
 )
 
 func main() {
 	list := col.NewLinkedList()
 	list.Add("a")                         // ["a"]
 	list.Add("c", "b")                    // ["a","c","b"]
-	list.Sort(cmp.LessString)             // ["a","b","c"]
+	list.Sort(col.LessString)             // ["a","b","c"]
 	_ = list.Get(0)                       // "a"
 	_ = list.Get(100)                     // panic
 	_ = list.Contains("a", "b", "c")      // true
@@ -300,11 +297,10 @@ package main
 
 import (
 	"github.com/pandafw/pango/col"
-	"github.com/pandafw/pango/cmp"
 )
 
 func main() {
-	set := col.NewTreeSet(cmp.CompareInt) // empty (keys are of type int)
+	set := col.NewTreeSet(col.CompareInt) // empty (keys are of type int)
 	set.Add(1)                            // 1
 	set.Add(2, 2, 3, 4, 5)                // 1, 2, 3, 4, 5 (in order, duplicates ignored)
 	set.Delete(4)                         // 1, 2, 3, 5 (in order)
@@ -435,11 +431,10 @@ package main
 
 import (
 	"github.com/pandafw/pango/col"
-	"github.com/pandafw/pango/cmp"
 )
 
 func main() {
-	m := col.NewTreeMap(cmp.CompareInt) // empty (keys are of type int)
+	m := col.NewTreeMap(col.CompareInt) // empty (keys are of type int)
 	m.Set(1, "x")                   // 1->x
 	m.Set(2, "b")                   // 1->x, 2->b (in order)
 	m.Set(1, "a")                   // 1->a, 2->b (in order)

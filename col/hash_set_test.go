@@ -68,7 +68,7 @@ func TestHashSetLazyInit(t *testing.T) {
 	}
 	{
 		hs := &HashSet{}
-		hs.Each(func(v interface{}) {})
+		hs.Each(func(v T) {})
 	}
 	{
 		hs := &HashSet{}

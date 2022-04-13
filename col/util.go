@@ -43,7 +43,7 @@ func setMapAll(dst, src Map) {
 		return
 	}
 
-	src.Each(func(k interface{}, v interface{}) {
+	src.Each(func(k K, v V) {
 		dst.Set(k, v)
 	})
 }

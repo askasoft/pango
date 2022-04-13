@@ -6,7 +6,6 @@ import (
 	"sort"
 
 	"github.com/pandafw/pango/ars"
-	"github.com/pandafw/pango/cmp"
 )
 
 // NewArrayList returns an initialized list.
@@ -280,7 +279,7 @@ func (al *ArrayList) Swap(i, j int) {
 }
 
 // Sort Sorts this list according to the order induced by the specified Comparator.
-func (al *ArrayList) Sort(less cmp.Less) {
+func (al *ArrayList) Sort(less Less) {
 	if al.Len() < 2 {
 		return
 	}

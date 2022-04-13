@@ -1,4 +1,4 @@
-package cmp
+package col
 
 import (
 	"github.com/pandafw/pango/str"
@@ -11,17 +11,17 @@ import (
 //    negative , if a < b
 //    zero     , if a == b
 //    positive , if a > b
-type Compare func(a, b interface{}) int
+type Compare func(a, b T) int
 
 // CompareString provides a fast comparison on strings
-func CompareString(a, b interface{}) int {
+func CompareString(a, b T) int {
 	sa := a.(string)
 	sb := b.(string)
 	return str.Compare(sa, sb)
 }
 
 // CompareInt provides a basic comparison on int
-func CompareInt(a, b interface{}) int {
+func CompareInt(a, b T) int {
 	ia := a.(int)
 	ib := b.(int)
 	switch {
@@ -35,7 +35,7 @@ func CompareInt(a, b interface{}) int {
 }
 
 // CompareInt8 provides a basic comparison on int8
-func CompareInt8(a, b interface{}) int {
+func CompareInt8(a, b T) int {
 	ia := a.(int8)
 	ib := b.(int8)
 	switch {
@@ -49,7 +49,7 @@ func CompareInt8(a, b interface{}) int {
 }
 
 // CompareInt16 provides a basic comparison on int16
-func CompareInt16(a, b interface{}) int {
+func CompareInt16(a, b T) int {
 	ia := a.(int16)
 	ib := b.(int16)
 	switch {
@@ -63,7 +63,7 @@ func CompareInt16(a, b interface{}) int {
 }
 
 // CompareInt32 provides a basic comparison on int32
-func CompareInt32(a, b interface{}) int {
+func CompareInt32(a, b T) int {
 	ia := a.(int32)
 	ib := b.(int32)
 	switch {
@@ -77,7 +77,7 @@ func CompareInt32(a, b interface{}) int {
 }
 
 // CompareInt64 provides a basic comparison on int64
-func CompareInt64(a, b interface{}) int {
+func CompareInt64(a, b T) int {
 	ia := a.(int64)
 	ib := b.(int64)
 	switch {
@@ -91,7 +91,7 @@ func CompareInt64(a, b interface{}) int {
 }
 
 // CompareUInt provides a basic comparison on uint
-func CompareUInt(a, b interface{}) int {
+func CompareUInt(a, b T) int {
 	ia := a.(uint)
 	ib := b.(uint)
 	switch {
@@ -105,7 +105,7 @@ func CompareUInt(a, b interface{}) int {
 }
 
 // CompareUInt8 provides a basic comparison on uint8
-func CompareUInt8(a, b interface{}) int {
+func CompareUInt8(a, b T) int {
 	ia := a.(uint8)
 	ib := b.(uint8)
 	switch {
@@ -119,7 +119,7 @@ func CompareUInt8(a, b interface{}) int {
 }
 
 // CompareUInt16 provides a basic comparison on uint16
-func CompareUInt16(a, b interface{}) int {
+func CompareUInt16(a, b T) int {
 	ia := a.(uint16)
 	ib := b.(uint16)
 	switch {
@@ -133,7 +133,7 @@ func CompareUInt16(a, b interface{}) int {
 }
 
 // CompareUInt32 provides a basic comparison on uint32
-func CompareUInt32(a, b interface{}) int {
+func CompareUInt32(a, b T) int {
 	ia := a.(uint32)
 	ib := b.(uint32)
 	switch {
@@ -147,7 +147,7 @@ func CompareUInt32(a, b interface{}) int {
 }
 
 // CompareUInt64 provides a basic comparison on uint64
-func CompareUInt64(a, b interface{}) int {
+func CompareUInt64(a, b T) int {
 	ia := a.(uint64)
 	ib := b.(uint64)
 	switch {
@@ -161,7 +161,7 @@ func CompareUInt64(a, b interface{}) int {
 }
 
 // CompareFloat32 provides a basic comparison on float32
-func CompareFloat32(a, b interface{}) int {
+func CompareFloat32(a, b T) int {
 	ia := a.(float32)
 	ib := b.(float32)
 	switch {
@@ -175,7 +175,7 @@ func CompareFloat32(a, b interface{}) int {
 }
 
 // CompareFloat64 provides a basic comparison on float64
-func CompareFloat64(a, b interface{}) int {
+func CompareFloat64(a, b T) int {
 	ia := a.(float64)
 	ib := b.(float64)
 	switch {
@@ -189,7 +189,7 @@ func CompareFloat64(a, b interface{}) int {
 }
 
 // CompareByte provides a basic comparison on byte
-func CompareByte(a, b interface{}) int {
+func CompareByte(a, b T) int {
 	ia := a.(byte)
 	ib := b.(byte)
 	switch {
@@ -203,7 +203,7 @@ func CompareByte(a, b interface{}) int {
 }
 
 // CompareRune provides a basic comparison on rune
-func CompareRune(a, b interface{}) int {
+func CompareRune(a, b T) int {
 	ia := a.(rune)
 	ib := b.(rune)
 	switch {

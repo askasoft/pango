@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pandafw/pango/cmp"
 	"github.com/pandafw/pango/iox"
 	"github.com/pandafw/pango/str"
 )
 
 // NewTreeMap creates a new TreeMap.
-// Example: NewTreeMap(cmp.CompareString, []P{{"k1", "v1"}, {"k2", "v2"}}...)
-func NewTreeMap(compare cmp.Compare, kvs ...P) *TreeMap {
+// Example: NewTreeMap(CompareString, []P{{"k1", "v1"}, {"k2", "v2"}}...)
+func NewTreeMap(compare Compare, kvs ...P) *TreeMap {
 	tm := &TreeMap{compare: compare}
 	tm.SetPairs(kvs...)
 	return tm
@@ -31,7 +30,7 @@ func NewTreeMap(compare cmp.Compare, kvs ...P) *TreeMap {
 type TreeMap struct {
 	len     int
 	root    *TreeMapNode
-	compare cmp.Compare
+	compare Compare
 }
 
 //-----------------------------------------------------------

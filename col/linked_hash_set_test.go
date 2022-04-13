@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/pandafw/pango/ars"
-	"github.com/pandafw/pango/cmp"
 	"github.com/pandafw/pango/str"
 )
 
@@ -304,7 +303,7 @@ func TestLinkedHashSetEach(t *testing.T) {
 	lset.Add("a", "b", "c")
 	lset.Add("a", "b", "c")
 	index := 0
-	lset.Each(func(value interface{}) {
+	lset.Each(func(value T) {
 		switch index {
 		case 0:
 			if av, ev := value, "a"; av != ev {
@@ -547,7 +546,7 @@ func TestLinkedHashSetSort(t *testing.T) {
 	for i := 1; i < 20; i++ {
 		lset := NewLinkedHashSet()
 
-		a := make([]interface{}, 0, 20)
+		a := make([]T, 0, 20)
 		for n := i; n < 20; n++ {
 			v := rand.Intn(1000)
 			if !ars.Contains(a, v) {
@@ -559,7 +558,7 @@ func TestLinkedHashSetSort(t *testing.T) {
 			lset.Add(a[j])
 		}
 
-		lset.Sort(cmp.LessInt)
+		lset.Sort(LessInt)
 		sort.Sort(inta(a))
 
 		if !reflect.DeepEqual(a, lset.Values()) {
@@ -576,7 +575,7 @@ func checkLinkedHashSetLen(t *testing.T, lset *LinkedHashSet, len int) bool {
 	return true
 }
 
-func checkLinkedHashSet(t *testing.T, lset *LinkedHashSet, evs []interface{}) {
+func checkLinkedHashSet(t *testing.T, lset *LinkedHashSet, evs []T) {
 	if !checkLinkedHashSetLen(t, lset, len(evs)) {
 		return
 	}
@@ -604,50 +603,50 @@ func TestLinkedHashSetExtending(t *testing.T) {
 
 	l3 := NewLinkedHashSet()
 	l3.PushTailAll(l1)
-	checkLinkedHashSet(t, l3, []interface{}{1, 2, 3})
+	checkLinkedHashSet(t, l3, []T{1, 2, 3})
 	l3.PushTailAll(l2)
-	checkLinkedHashSet(t, l3, []interface{}{1, 2, 3, 4, 5})
+	checkLinkedHashSet(t, l3, []T{1, 2, 3, 4, 5})
 
 	l3 = NewLinkedHashSet()
 	l3.PushHeadAll(l2)
-	checkLinkedHashSet(t, l3, []interface{}{4, 5})
+	checkLinkedHashSet(t, l3, []T{4, 5})
 	l3.PushHeadAll(l1)
-	checkLinkedHashSet(t, l3, []interface{}{1, 2, 3, 4, 5})
+	checkLinkedHashSet(t, l3, []T{1, 2, 3, 4, 5})
 
-	checkLinkedHashSet(t, l1, []interface{}{1, 2, 3})
-	checkLinkedHashSet(t, l2, []interface{}{4, 5})
+	checkLinkedHashSet(t, l1, []T{1, 2, 3})
+	checkLinkedHashSet(t, l2, []T{4, 5})
 
 	l3 = NewLinkedHashSet()
 	l3.PushTailAll(l1)
-	checkLinkedHashSet(t, l3, []interface{}{1, 2, 3})
+	checkLinkedHashSet(t, l3, []T{1, 2, 3})
 	l3.PushTailAll(l3)
-	checkLinkedHashSet(t, l3, []interface{}{1, 2, 3})
+	checkLinkedHashSet(t, l3, []T{1, 2, 3})
 
 	l3 = NewLinkedHashSet()
 	l3.PushHeadAll(l1)
-	checkLinkedHashSet(t, l3, []interface{}{1, 2, 3})
+	checkLinkedHashSet(t, l3, []T{1, 2, 3})
 	l3.PushHeadAll(l3)
-	checkLinkedHashSet(t, l3, []interface{}{1, 2, 3})
+	checkLinkedHashSet(t, l3, []T{1, 2, 3})
 
 	l3 = NewLinkedHashSet()
 	l1.PushTailAll(l3)
-	checkLinkedHashSet(t, l1, []interface{}{1, 2, 3})
+	checkLinkedHashSet(t, l1, []T{1, 2, 3})
 	l1.PushHeadAll(l3)
-	checkLinkedHashSet(t, l1, []interface{}{1, 2, 3})
+	checkLinkedHashSet(t, l1, []T{1, 2, 3})
 
 	l1.Clear()
 	l2.Clear()
 	l3.Clear()
 	l1.PushTail(1, 2, 3)
-	checkLinkedHashSet(t, l1, []interface{}{1, 2, 3})
+	checkLinkedHashSet(t, l1, []T{1, 2, 3})
 	l2.PushTail(4, 5)
-	checkLinkedHashSet(t, l2, []interface{}{4, 5})
+	checkLinkedHashSet(t, l2, []T{4, 5})
 	l3.PushTailAll(l1)
-	checkLinkedHashSet(t, l3, []interface{}{1, 2, 3})
+	checkLinkedHashSet(t, l3, []T{1, 2, 3})
 	l3.PushTail(4, 5)
-	checkLinkedHashSet(t, l3, []interface{}{1, 2, 3, 4, 5})
+	checkLinkedHashSet(t, l3, []T{1, 2, 3, 4, 5})
 	l3.PushHead(4, 5)
-	checkLinkedHashSet(t, l3, []interface{}{1, 2, 3, 4, 5})
+	checkLinkedHashSet(t, l3, []T{1, 2, 3, 4, 5})
 }
 
 func TestLinkedHashSetContains2(t *testing.T) {

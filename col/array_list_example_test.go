@@ -1,12 +1,10 @@
 package col
 
-import "github.com/pandafw/pango/cmp"
-
 func ExampleArrayList() {
 	list := NewArrayList()
 	list.Add("a")                         // ["a"]
 	list.Add("c", "b")                    // ["a","c","b"]
-	list.Sort(cmp.LessString)             // ["a","b","c"]
+	list.Sort(LessString)                 // ["a","b","c"]
 	_ = list.Get(0)                       // "a"  //_ = list.Get(100)  --> panic
 	_ = list.Contains("a", "b", "c")      // true
 	_ = list.Contains("a", "b", "c", "d") // false

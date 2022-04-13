@@ -6,13 +6,12 @@ import (
 	"strings"
 
 	"github.com/pandafw/pango/ars"
-	"github.com/pandafw/pango/cmp"
 	"github.com/pandafw/pango/iox"
 )
 
 // NewTreeSet creates a new TreeSet.
-// Example: NewTreeSet(cmp.CompareString, "v1", "v2")
-func NewTreeSet(compare cmp.Compare, vs ...T) *TreeSet {
+// Example: NewTreeSet(CompareString, "v1", "v2")
+func NewTreeSet(compare Compare, vs ...T) *TreeSet {
 	ts := &TreeSet{compare: compare}
 	ts.Add(vs...)
 	return ts
@@ -31,7 +30,7 @@ func NewTreeSet(compare cmp.Compare, vs ...T) *TreeSet {
 type TreeSet struct {
 	len     int
 	root    *treeSetNode
-	compare cmp.Compare
+	compare Compare
 }
 
 //-----------------------------------------------------------

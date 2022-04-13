@@ -1,14 +1,12 @@
 package col
 
-import "github.com/pandafw/pango/cmp"
-
 // T element type
 type T = interface{}
 
 // Sortable a value each interface for collection
 type Sortable interface {
 	// Sorts this container according to the order induced by the specified Comparator.
-	Sort(less cmp.Less)
+	Sort(less Less)
 }
 
 // Container the base container interface

@@ -6,7 +6,6 @@ import (
 	"sort"
 
 	"github.com/pandafw/pango/ars"
-	"github.com/pandafw/pango/cmp"
 )
 
 // NewLinkedHashSet returns an initialized set.
@@ -382,7 +381,7 @@ func (ls *LinkedHashSet) Swap(i, j int) {
 }
 
 // Sort Sorts this set according to the order induced by the specified Comparator.
-func (ls *LinkedHashSet) Sort(less cmp.Less) {
+func (ls *LinkedHashSet) Sort(less Less) {
 	if ls.Len() < 2 {
 		return
 	}

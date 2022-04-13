@@ -6,7 +6,6 @@ import (
 	"sort"
 
 	"github.com/pandafw/pango/ars"
-	"github.com/pandafw/pango/cmp"
 )
 
 // NewLinkedList returns an initialized list.
@@ -310,7 +309,7 @@ func (ll *LinkedList) Swap(i, j int) {
 }
 
 // Sort Sorts this list according to the order induced by the specified Comparator.
-func (ll *LinkedList) Sort(less cmp.Less) {
+func (ll *LinkedList) Sort(less Less) {
 	if ll.Len() < 2 {
 		return
 	}

@@ -4,7 +4,7 @@ import (
 	"github.com/pandafw/pango/bye"
 )
 
-// Contains reports whether the c is contained in the slice b.
+// Contains reports whether the c is contained in the slice a.
 func Contains(a []interface{}, c interface{}) bool {
 	return Index(a, c) >= 0
 }
@@ -14,72 +14,72 @@ func ContainsByte(a []byte, c byte) bool {
 	return bye.ContainsByte(a, c)
 }
 
-// ContainsInt reports whether the c is contained in the slice b.
+// ContainsInt reports whether the c is contained in the slice a.
 func ContainsInt(a []int, c int) bool {
 	return IndexInt(a, c) >= 0
 }
 
-// ContainsInt8 reports whether the c is contained in the slice b.
+// ContainsInt8 reports whether the c is contained in the slice a.
 func ContainsInt8(a []int8, c int8) bool {
 	return IndexInt8(a, c) >= 0
 }
 
-// ContainsInt16 reports whether the c is contained in the slice b.
+// ContainsInt16 reports whether the c is contained in the slice a.
 func ContainsInt16(a []int16, c int16) bool {
 	return IndexInt16(a, c) >= 0
 }
 
-// ContainsInt32 reports whether the c is contained in the slice b.
+// ContainsInt32 reports whether the c is contained in the slice a.
 func ContainsInt32(a []int32, c int32) bool {
 	return IndexInt32(a, c) >= 0
 }
 
-// ContainsInt64 reports whether the c is contained in the slice b.
+// ContainsInt64 reports whether the c is contained in the slice a.
 func ContainsInt64(a []int64, c int64) bool {
 	return IndexInt64(a, c) >= 0
 }
 
-// ContainsUint reports whether the c is contained in the slice b.
+// ContainsUint reports whether the c is contained in the slice a.
 func ContainsUint(a []uint, c uint) bool {
 	return IndexUint(a, c) >= 0
 }
 
-// ContainsUint8 reports whether the c is contained in the slice b.
+// ContainsUint8 reports whether the c is contained in the slice a.
 func ContainsUint8(a []uint8, c uint8) bool {
 	return IndexUint8(a, c) >= 0
 }
 
-// ContainsUint16 reports whether the c is contained in the slice b.
+// ContainsUint16 reports whether the c is contained in the slice a.
 func ContainsUint16(a []uint16, c uint16) bool {
 	return IndexUint16(a, c) >= 0
 }
 
-// ContainsUint32 reports whether the c is contained in the slice b.
+// ContainsUint32 reports whether the c is contained in the slice a.
 func ContainsUint32(a []uint32, c uint32) bool {
 	return IndexUint32(a, c) >= 0
 }
 
-// ContainsUint64 reports whether the c is contained in the slice b.
+// ContainsUint64 reports whether the c is contained in the slice a.
 func ContainsUint64(a []uint64, c uint64) bool {
 	return IndexUint64(a, c) >= 0
 }
 
-// ContainsFloat32 reports whether the c is contained in the slice b.
+// ContainsFloat32 reports whether the c is contained in the slice a.
 func ContainsFloat32(a []float32, c float32) bool {
 	return IndexFloat32(a, c) >= 0
 }
 
-// ContainsFloat64 reports whether the c is contained in the slice b.
+// ContainsFloat64 reports whether the c is contained in the slice a.
 func ContainsFloat64(a []float64, c float64) bool {
 	return IndexFloat64(a, c) >= 0
 }
 
-// ContainsRune reports whether the c is contained in the slice b.
+// ContainsRune reports whether the c is contained in the slice a.
 func ContainsRune(a []rune, c rune) bool {
 	return IndexRune(a, c) >= 0
 }
 
-// ContainsString reports whether the c is contained in the slice b.
+// ContainsString reports whether the c is contained in the slice a.
 func ContainsString(a []string, c string) bool {
 	return IndexString(a, c) >= 0
 }

@@ -70,6 +70,7 @@ func TestIndexFold(t *testing.T) {
 		{-1, "", "a"},
 		{0, "ABCDEF", ""},
 		{0, "ABC", "abc"},
+		{-1, "ABC", "abd"},
 		{0, "ABCDEF", "abc"},
 		{1, "ABCDEF", "bc"},
 		{4, "ABCDEF", "ef"},
@@ -245,6 +246,8 @@ func TestLastIndexRune(t *testing.T) {
 	}{
 		{3, "aabbcc", 'b'},
 		{9, "一一二二うう", '二'},
+		{1, "a\uFFFDc", '\uFFFD'},
+		{-1, "ac", 0xDEEE},
 	}
 
 	for i, c := range cs {
@@ -265,7 +268,10 @@ func TestLastIndexFold(t *testing.T) {
 		{-1, "", "a"},
 		{-1, "", "foo"},
 		{-1, "fo", "foo"},
-		{0, "foo", "foo"},
+		{-1, "fo", "x"},
+		{-1, "foo", "xx"},
+		{0, "foo", "Foo"},
+		{-1, "foo", "xoo"},
 		{0, "foo", "f"},
 		{7, "oofofoofooo", "f"},
 		{7, "oofofoofooo", "foo"},

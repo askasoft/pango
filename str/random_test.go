@@ -22,6 +22,12 @@ func TestRandLetters(t *testing.T) {
 	}
 }
 
+func TestRandString(t *testing.T) {
+	for i := 10; i < 100; i++ {
+		testRandString(t, "RandString", func(z int) string { return RandString(z, "") }, i, LetterNumberSymbols)
+	}
+}
+
 func testRandString(t *testing.T, fn string, f func(int) string, n int, cs string) bool {
 	s := f(n)
 	if len(s) != n {
@@ -30,7 +36,7 @@ func testRandString(t *testing.T, fn string, f func(int) string, n int, cs strin
 
 	for _, c := range s {
 		if !ContainsRune(cs, c) {
-			t.Errorf("RandNumbers(%d) = %s", n, s)
+			t.Errorf("%s(%d) = %s", fn, n, s)
 			return false
 		}
 	}

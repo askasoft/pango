@@ -111,7 +111,7 @@ func LastIndexFold(s, substr string) int {
 		}
 		return LastIndexAny(s, lc+uc)
 	case n == len(s):
-		if substr == s {
+		if EqualFold(s, substr) {
 			return 0
 		}
 		return -1

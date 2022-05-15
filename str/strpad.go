@@ -34,12 +34,12 @@ func RepeatRune(r rune, count int) string {
 }
 
 // PadCenterRune Center pad a string with the rune r to a new string with len(s) = size.
-// str.CenterRune("", 4, ' ')     = "    "
-// str.CenterRune("ab", -1, ' ')  = "ab"
-// str.CenterRune("ab", 4, ' ')   = " ab "
-// str.CenterRune("abcd", 2, ' ') = "abcd"
-// str.CenterRune("a", 4, ' ')    = " a  "
-// str.CenterRune("a", 4, 'y')    = "yayy"
+// str.PadCenterRune("", 4, ' ')     = "    "
+// str.PadCenterRune("ab", -1, ' ')  = "ab"
+// str.PadCenterRune("ab", 4, ' ')   = " ab "
+// str.PadCenterRune("abcd", 2, ' ') = "abcd"
+// str.PadCenterRune("a", 4, ' ')    = " a  "
+// str.PadCenterRune("a", 4, 'y')    = "yayy"
 func PadCenterRune(str string, size int, c rune) string {
 	if size <= 0 {
 		return str

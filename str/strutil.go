@@ -7,6 +7,144 @@ import (
 	"unicode/utf8"
 )
 
+// Compare returns an integer comparing two strings lexicographically.
+// The result will be 0 if a==b, -1 if a < b, and +1 if a > b.
+func Compare(a, b string) int {
+	return bytes.Compare(UnsafeBytes(a), UnsafeBytes(b))
+}
+
+// Capitalize returns a copy of the string s that the start letter
+// mapped to their Unicode upper case.
+func Capitalize(s string) string {
+	if s == "" {
+		return s
+	}
+
+	if s[0] < utf8.RuneSelf {
+		return ToUpper(s[:1]) + s[1:]
+	}
+
+	r, size := utf8.DecodeRuneInString(s)
+	return string(unicode.ToUpper(r)) + s[size:]
+}
+
+// CamelCase returns a copy of the string s with camel case.
+func CamelCase(s string) string {
+	var sb strings.Builder
+	var uc bool
+	for _, r := range s {
+		if r == '_' || r == '-' {
+			uc = true
+			continue
+		}
+
+		if uc {
+			sb.WriteRune(unicode.ToUpper(r))
+			uc = false
+		} else {
+			sb.WriteRune(unicode.ToLower(r))
+		}
+	}
+	return sb.String()
+}
+
+// PascalCase returns a copy of the string s with pascal case.
+func PascalCase(s string) string {
+	var sb strings.Builder
+	var uc bool
+	for _, r := range s {
+		if r == '_' || r == '-' {
+			uc = true
+			continue
+		}
+
+		if uc {
+			sb.WriteRune(unicode.ToUpper(r))
+			uc = false
+		} else {
+			if sb.Len() == 0 {
+				sb.WriteRune(unicode.ToUpper(r))
+			} else {
+				sb.WriteRune(unicode.ToLower(r))
+			}
+		}
+	}
+	return sb.String()
+}
+
+// SnakeCase returns a copy of the string s with snake case c (default _).
+func SnakeCase(s string, c ...rune) string {
+	d := '_'
+	if len(c) > 0 {
+		d = c[0]
+	}
+
+	var sb strings.Builder
+	for i, r := range s {
+		if unicode.IsUpper(r) {
+			if i > 0 {
+				sb.WriteRune(d)
+			}
+			sb.WriteRune(unicode.ToLower(r))
+		} else {
+			sb.WriteRune(r)
+		}
+	}
+	return sb.String()
+}
+
+// Strip returns a slice of the string s, with all leading
+// and trailing white space removed, as defined by Unicode.
+func Strip(s string) string {
+	return strings.TrimSpace(s)
+}
+
+var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
+
+// StripLeft returns a slice of the string s, with all leading
+// white space removed, as defined by Unicode.
+func StripLeft(s string) string {
+	// Fast path for ASCII: look for the first ASCII non-space byte
+	start := 0
+	for ; start < len(s); start++ {
+		c := s[start]
+		if c >= utf8.RuneSelf {
+			// If we run into a non-ASCII byte, fall back to the
+			// slower unicode-aware method on the remaining bytes
+			return TrimLeftFunc(s[start:], unicode.IsSpace)
+		}
+		if asciiSpace[c] == 0 {
+			break
+		}
+	}
+
+	// At this point s[start:] starts with an ASCII
+	// non-space bytes, so we're done. Non-ASCII cases have already
+	// been handled above.
+	return s[start:]
+}
+
+// StripRight returns a slice of the string s, with all
+// trailing white space removed, as defined by Unicode.
+func StripRight(s string) string {
+	// Now look for the first ASCII non-space byte from the end
+	stop := len(s)
+	for ; stop > 0; stop-- {
+		c := s[stop-1]
+		if c >= utf8.RuneSelf {
+			return TrimRightFunc(s[:stop], unicode.IsSpace)
+		}
+		if asciiSpace[c] == 0 {
+			break
+		}
+	}
+
+	// At this point s[:stop] ends with an ASCII
+	// non-space bytes, so we're done. Non-ASCII cases have already
+	// been handled above.
+	return s[:stop]
+}
+
 // RuneCount returns the number of runes in s.
 func RuneCount(s string) int {
 	return utf8.RuneCountInString(s)
@@ -112,10 +250,4 @@ func RemoveEmptys(ss []string) []string {
 		}
 	}
 	return ds
-}
-
-// Compare returns an integer comparing two strings lexicographically.
-// The result will be 0 if a==b, -1 if a < b, and +1 if a > b.
-func Compare(a, b string) int {
-	return bytes.Compare(UnsafeBytes(a), UnsafeBytes(b))
 }

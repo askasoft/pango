@@ -26,7 +26,7 @@ func TestLinkedHashMapBasicFeatures(t *testing.T) {
 	n := 100
 	// set(i, 2 * i)
 	for i := 0; i < n; i++ {
-		ov, ok := interface{}(nil), false
+		ov, ok := any(nil), false
 
 		assertLenEqual("TestLinkedHashMapBasicFeatures", t, lm, i)
 		if i%2 == 0 {
@@ -36,7 +36,7 @@ func TestLinkedHashMapBasicFeatures(t *testing.T) {
 		}
 		assertLenEqual("TestLinkedHashMapBasicFeatures", t, lm, i+1)
 
-		var w interface{}
+		var w any
 		if ov != w {
 			t.Errorf("[%d] Set() val = %v, want %v", i, ov, w)
 		}
@@ -60,7 +60,7 @@ func TestLinkedHashMapBasicFeatures(t *testing.T) {
 	for i := 0; i < n; i++ {
 		ov, ok := lm.Get(i)
 
-		var w interface{}
+		var w any
 		w = 2 * i
 		if ov != w {
 			t.Errorf("[%d] get val = %v, want %v", i, ov, w)
@@ -83,7 +83,7 @@ func TestLinkedHashMapBasicFeatures(t *testing.T) {
 	}
 
 	// keys
-	ks := make([]interface{}, n)
+	ks := make([]any, n)
 	for i := 0; i < n; i++ {
 		ks[i] = i
 	}
@@ -106,7 +106,7 @@ func TestLinkedHashMapBasicFeatures(t *testing.T) {
 	}
 
 	// values
-	vs := make([]interface{}, n)
+	vs := make([]any, n)
 	for i := 0; i < n; i++ {
 		vs[i] = i * 2
 	}
@@ -231,8 +231,8 @@ func TestLinkedHashMapUpdatingDoesntChangePairsOrder(t *testing.T) {
 	}
 
 	assertOrderedPairsEqual(t, lm,
-		[]interface{}{"foo", 12, 78, "bar"},
-		[]interface{}{"bar", 28, 102, "baz"})
+		[]any{"foo", 12, 78, "bar"},
+		[]any{"bar", 28, 102, "baz"})
 }
 
 func TestLinkedHashMapDeletingAndReinsertingChangesPairsOrder(t *testing.T) {
@@ -249,8 +249,8 @@ func TestLinkedHashMapDeletingAndReinsertingChangesPairsOrder(t *testing.T) {
 	lm.Set(78, 100)
 
 	assertOrderedPairsEqual(t, lm,
-		[]interface{}{"foo", 12, "bar", 78},
-		[]interface{}{"bar", 28, "baz", 100})
+		[]any{"foo", 12, "bar", 78},
+		[]any{"bar", 28, "baz", 100})
 }
 
 func TestLinkedHashMapEmptyMapOperations(t *testing.T) {
@@ -319,8 +319,8 @@ func TestLinkedHashMapShuffle(t *testing.T) {
 		t.Run(fmt.Sprintf("shuffle test with %d items", n), func(t *testing.T) {
 			lm := NewLinkedHashMap()
 
-			keys := make([]interface{}, n)
-			values := make([]interface{}, n)
+			keys := make([]any, n)
+			values := make([]any, n)
 
 			for i := 0; i < n; i++ {
 				// we prefix with the number to ensure that we don't get any duplicates
@@ -348,7 +348,7 @@ func TestLinkedHashMapTemplateRange(t *testing.T) {
 		t.Fatal(err.Error())
 	}
 
-	cm := map[string]interface{}{
+	cm := map[string]any{
 		"lm": lm,
 	}
 	sb := &strings.Builder{}
@@ -365,12 +365,12 @@ func TestLinkedHashMapTemplateRange(t *testing.T) {
 }
 
 /* Test helpers */
-func assertOrderedPairsEqual(t *testing.T, lm *LinkedHashMap, eks, evs []interface{}) {
+func assertOrderedPairsEqual(t *testing.T, lm *LinkedHashMap, eks, evs []any) {
 	assertOrderedPairsEqualFromNewest(t, lm, eks, evs)
 	assertOrderedPairsEqualFromOldest(t, lm, eks, evs)
 }
 
-func assertOrderedPairsEqualFromNewest(t *testing.T, lm *LinkedHashMap, eks, evs []interface{}) {
+func assertOrderedPairsEqualFromNewest(t *testing.T, lm *LinkedHashMap, eks, evs []any) {
 	if len(eks) != len(evs) {
 		t.Errorf("len(keys) %v != len(vals) %v", len(eks), len(evs))
 		return
@@ -394,7 +394,7 @@ func assertOrderedPairsEqualFromNewest(t *testing.T, lm *LinkedHashMap, eks, evs
 	}
 }
 
-func assertOrderedPairsEqualFromOldest(t *testing.T, lm *LinkedHashMap, eks, evs []interface{}) {
+func assertOrderedPairsEqualFromOldest(t *testing.T, lm *LinkedHashMap, eks, evs []any) {
 	if len(eks) != len(evs) {
 		t.Errorf("len(keys) %v != len(vals) %v", len(eks), len(evs))
 		return
@@ -462,15 +462,15 @@ func TestLinkedHashMapPut(t *testing.T) {
 	if av := m.Len(); av != 7 {
 		t.Errorf("Got %v expected %v", av, 7)
 	}
-	if av, ev := m.Keys(), []interface{}{5, 6, 7, 3, 4, 1, 2}; !testLinkedHashMapSame(av, ev) {
+	if av, ev := m.Keys(), []any{5, 6, 7, 3, 4, 1, 2}; !testLinkedHashMapSame(av, ev) {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
-	if av, ev := m.Values(), []interface{}{"e", "f", "g", "c", "d", "a", "b"}; !testLinkedHashMapSame(av, ev) {
+	if av, ev := m.Values(), []any{"e", "f", "g", "c", "d", "a", "b"}; !testLinkedHashMapSame(av, ev) {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
 
 	// key,ev,expectedFound
-	tests1 := [][]interface{}{
+	tests1 := [][]any{
 		{1, "a", true},
 		{2, "b", true},
 		{3, "c", true},
@@ -507,18 +507,18 @@ func TestLinkedHashMapRemove(t *testing.T) {
 	m.Delete(8)
 	m.Delete(5)
 
-	if av, ev := m.Keys(), []interface{}{3, 4, 1, 2}; !testLinkedHashMapSame(av, ev) {
+	if av, ev := m.Keys(), []any{3, 4, 1, 2}; !testLinkedHashMapSame(av, ev) {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
 
-	if av, ev := m.Values(), []interface{}{"c", "d", "a", "b"}; !testLinkedHashMapSame(av, ev) {
+	if av, ev := m.Values(), []any{"c", "d", "a", "b"}; !testLinkedHashMapSame(av, ev) {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
 	if av := m.Len(); av != 4 {
 		t.Errorf("Got %v expected %v", av, 4)
 	}
 
-	tests2 := [][]interface{}{
+	tests2 := [][]any{
 		{1, "a", true},
 		{2, "b", true},
 		{3, "c", true},
@@ -557,7 +557,7 @@ func TestLinkedHashMapRemove(t *testing.T) {
 	}
 }
 
-func testLinkedHashMapSame(a []interface{}, b []interface{}) bool {
+func testLinkedHashMapSame(a []any, b []any) bool {
 	// If one is nil, the other must also be nil.
 	if (a == nil) != (b == nil) {
 		return false
@@ -582,7 +582,7 @@ func TestLinkedHashMapEach(t *testing.T) {
 	m.Set("a", 2)
 	m.Set("b", 3)
 	count := 0
-	m.Each(func(key interface{}, value interface{}) {
+	m.Each(func(key any, value any) {
 		count++
 		if av, ev := count, value; av != ev {
 			t.Errorf("Got %v expected %v", av, ev)
@@ -1011,7 +1011,7 @@ func TestLinkedHashMapUnmarshalNested(t *testing.T) {
 		data = []byte(`{"a": true, "b": [3, 4, { "b": "3", "d": [] }]}`)
 		obj  = NewLinkedHashMap(
 			P{"a", true},
-			P{"b", JSONArray{float64(3), float64(4), NewLinkedHashMap(P{"b", "3"}, P{"d", JSONArray{}})}},
+			P{"b", JSONArray{float64(3), float64(4), JSONObject{"b": "3", "d": JSONArray{}}}},
 		)
 	)
 
@@ -1029,8 +1029,8 @@ func TestLinkedHashMapUnmarshalNested(t *testing.T) {
 func TestLinkedHashMapUnmarshals(t *testing.T) {
 	var unmarshalTests = []struct {
 		in  string
-		out interface{}
-		err interface{}
+		out any
+		err any
 	}{
 		{in: "{}", out: NewLinkedHashMap()},
 		{in: `{"a": 3}`, out: NewLinkedHashMap(P{"a", float64(3)})},
@@ -1042,8 +1042,8 @@ func TestLinkedHashMapUnmarshals(t *testing.T) {
 				float64(3), float64(4), true,
 			}}}...)},
 		{in: `{"a": 3, "c": null, "d": [3,4,true, { "inner": "abc" }]}`, out: NewLinkedHashMap([]P{
-			{"a", float64(3)}, {"c", nil}, {"d", JSONArray([]interface{}{
-				float64(3), float64(4), true, NewLinkedHashMap(P{"inner", "abc"}),
+			{"a", float64(3)}, {"c", nil}, {"d", JSONArray([]any{
+				float64(3), float64(4), true, JSONObject{"inner": "abc"},
 			})}}...)},
 	}
 

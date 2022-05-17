@@ -13,7 +13,7 @@ type jsonArray interface {
 }
 
 type jsonObject interface {
-	addJSONObjectItem(k string, v T) jsonObject
+	addJSONObjectItem(k string, v T)
 }
 
 // JSONArray json array type
@@ -30,24 +30,18 @@ func newJSONArray() jsonArray {
 // JSONObject json object type
 type JSONObject map[string]T
 
-func (jo JSONObject) addJSONObjectItem(k string, v T) jsonObject {
+func (jo JSONObject) addJSONObjectItem(k string, v T) {
 	jo[k] = v
-	return jo
 }
 
 func newJSONObject() jsonObject {
 	return JSONObject(make(map[string]T))
 }
 
-type jsonUnmarshaler struct {
-	newArray  func() jsonArray
-	newObject func() jsonObject
-}
-
-func (jd *jsonUnmarshaler) unmarshalJSONArray(data []byte, ja jsonArray) error {
+func jsonUnmarshalArray(data []byte, ja jsonArray) error {
 	dec := json.NewDecoder(bytes.NewReader(data))
 
-	// must open with a delim token '{'
+	// must open with a delim token '['
 	t, err := dec.Token()
 	if err != nil {
 		return err
@@ -56,7 +50,7 @@ func (jd *jsonUnmarshaler) unmarshalJSONArray(data []byte, ja jsonArray) error {
 		return fmt.Errorf("expect JSON array open with '['")
 	}
 
-	_, err = jd.parseJSONArray(dec, ja)
+	_, err = jsonParseArray(dec, ja)
 	if err != nil {
 		return err
 	}
@@ -69,7 +63,7 @@ func (jd *jsonUnmarshaler) unmarshalJSONArray(data []byte, ja jsonArray) error {
 	return nil
 }
 
-func (jd *jsonUnmarshaler) unmarshalJSONObject(data []byte, jo jsonObject) error {
+func jsonUnmarshalObject(data []byte, jo jsonObject) error {
 	dec := json.NewDecoder(bytes.NewReader(data))
 
 	// must open with a delim token '{'
@@ -81,7 +75,7 @@ func (jd *jsonUnmarshaler) unmarshalJSONObject(data []byte, jo jsonObject) error
 		return fmt.Errorf("expect JSON object open with '{'")
 	}
 
-	_, err = jd.parseJSONObject(dec, jo)
+	_, err = jsonParseObject(dec, jo)
 	if err != nil {
 		return err
 	}
@@ -94,7 +88,7 @@ func (jd *jsonUnmarshaler) unmarshalJSONObject(data []byte, jo jsonObject) error
 	return nil
 }
 
-func (jd *jsonUnmarshaler) parseJSONObject(dec *json.Decoder, jo jsonObject) (jsonObject, error) {
+func jsonParseObject(dec *json.Decoder, jo jsonObject) (jsonObject, error) {
 	for dec.More() {
 		t, err := dec.Token()
 		if err != nil {
@@ -116,12 +110,12 @@ func (jd *jsonUnmarshaler) parseJSONObject(dec *json.Decoder, jo jsonObject) (js
 		}
 
 		var v T
-		v, err = jd.handleDelim(dec, t)
+		v, err = jsonHandleDelim(dec, t)
 		if err != nil {
 			return nil, err
 		}
 
-		jo = jo.addJSONObjectItem(k, v)
+		jo.addJSONObjectItem(k, v)
 	}
 
 	t, err := dec.Token()
@@ -135,14 +129,14 @@ func (jd *jsonUnmarshaler) parseJSONObject(dec *json.Decoder, jo jsonObject) (js
 	return jo, nil
 }
 
-func (jd *jsonUnmarshaler) parseJSONArray(dec *json.Decoder, ja jsonArray) (jsonArray, error) {
+func jsonParseArray(dec *json.Decoder, ja jsonArray) (jsonArray, error) {
 	for dec.More() {
 		t, err := dec.Token()
 		if err != nil {
 			return nil, err
 		}
 
-		v, err := jd.handleDelim(dec, t)
+		v, err := jsonHandleDelim(dec, t)
 		if err != nil {
 			return nil, err
 		}
@@ -161,17 +155,17 @@ func (jd *jsonUnmarshaler) parseJSONArray(dec *json.Decoder, ja jsonArray) (json
 	return ja, nil
 }
 
-func (jd *jsonUnmarshaler) handleDelim(dec *json.Decoder, t json.Token) (T, error) {
+func jsonHandleDelim(dec *json.Decoder, t json.Token) (T, error) {
 	if delim, ok := t.(json.Delim); ok {
 		switch delim {
 		case '{':
-			jo, err := jd.parseJSONObject(dec, jd.newObject())
+			jo, err := jsonParseObject(dec, newJSONObject())
 			if err != nil {
 				return nil, err
 			}
 			return jo, nil
 		case '[':
-			ja, err := jd.parseJSONArray(dec, jd.newArray())
+			ja, err := jsonParseArray(dec, newJSONArray())
 			if err != nil {
 				return nil, err
 			}
@@ -230,22 +224,19 @@ func jsonMarshalList(list List) (res []byte, err error) {
 	return jsonMarshalIter(list.Iterator())
 }
 
-func jsonMarshalHashMap(hmap map[K]V) (res []byte, err error) {
-	if len(hmap) == 0 {
+func jsonMarshalIterMap(im IterableMap) (res []byte, err error) {
+	if im.IsEmpty() {
 		return []byte("{}"), nil
 	}
 
 	var bs []byte
-	res = append(res, '{')
-	for k, v := range hmap {
-		_, ok := k.(string)
-		if !ok {
-			err = fmt.Errorf("expecting JSON key should be always a string: %T: %v", k, k)
-			return
-		}
 
+	res = append(res, '{')
+	it := im.Iterator()
+	for it.Next() {
+		k := fmt.Sprintf("%v", it.Key())
 		res = append(res, fmt.Sprintf("%q:", k)...)
-		bs, err = json.Marshal(v)
+		bs, err = json.Marshal(it.Value())
 		if err != nil {
 			return
 		}
@@ -256,24 +247,17 @@ func jsonMarshalHashMap(hmap map[K]V) (res []byte, err error) {
 	return
 }
 
-func jsonMarshalMap(im IterableMap) (res []byte, err error) {
-	if im.IsEmpty() {
+func jsonMarshalHashMap(hmap map[K]V) (res []byte, err error) {
+	if len(hmap) == 0 {
 		return []byte("{}"), nil
 	}
 
 	var bs []byte
-
 	res = append(res, '{')
-	it := im.Iterator()
-	for it.Next() {
-		k, ok := it.Key().(string)
-		if !ok {
-			err = fmt.Errorf("expecting JSON key should be always a string: %T: %v", it.Key(), it.Key())
-			return
-		}
-
+	for k, v := range hmap {
+		k := fmt.Sprintf("%v", k)
 		res = append(res, fmt.Sprintf("%q:", k)...)
-		bs, err = json.Marshal(it.Value())
+		bs, err = json.Marshal(v)
 		if err != nil {
 			return
 		}

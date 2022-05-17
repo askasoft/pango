@@ -259,9 +259,6 @@ func (hs *HashSet) MarshalJSON() (res []byte, err error) {
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, hs)
 func (hs *HashSet) UnmarshalJSON(data []byte) error {
-	ju := &jsonUnmarshaler{
-		newArray:  newJSONArray,
-		newObject: newJSONObject,
-	}
-	return ju.unmarshalJSONArray(data, hs)
+	hs.Clear()
+	return jsonUnmarshalArray(data, hs)
 }

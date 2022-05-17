@@ -173,13 +173,8 @@ func (hm *HashMap) String() string {
 //-----------------------------------------------------------
 // implements JSON Marshaller/Unmarshaller interface
 
-func newJSONObjectAsHashMap() jsonObject {
-	return NewHashMap()
-}
-
-func (hm *HashMap) addJSONObjectItem(k string, v V) jsonObject {
+func (hm *HashMap) addJSONObjectItem(k string, v V) {
 	hm.Set(k, v)
-	return hm
 }
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(lm)
@@ -190,9 +185,5 @@ func (hm *HashMap) MarshalJSON() (res []byte, err error) {
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, lm)
 func (hm *HashMap) UnmarshalJSON(data []byte) error {
 	hm.Clear()
-	ju := &jsonUnmarshaler{
-		newArray:  newJSONArray,
-		newObject: newJSONObjectAsHashMap,
-	}
-	return ju.unmarshalJSONObject(data, hm)
+	return jsonUnmarshalObject(data, hm)
 }

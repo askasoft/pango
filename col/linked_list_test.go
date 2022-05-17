@@ -885,7 +885,7 @@ func TestLinkedListUnmarshalJSON(t *testing.T) {
 
 	cs := []Case{
 		{`["0","1",0,1,true,false]`, NewLinkedList("0", "1", 0.0, 1.0, true, false)},
-		{`["1",2,[1,2],{"1":10,"2":20}]`, NewLinkedList("1", 2.0, NewLinkedList(1.0, 2.0), JSONObject{"1": 10.0, "2": 20.0})},
+		{`["1",2,[1,2],{"1":10,"2":20}]`, NewLinkedList("1", 2.0, JSONArray{1.0, 2.0}, JSONObject{"1": 10.0, "2": 20.0})},
 	}
 
 	for i, c := range cs {

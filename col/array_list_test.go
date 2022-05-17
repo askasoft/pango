@@ -906,12 +906,16 @@ func TestArrayListJSON(t *testing.T) {
 		a *ArrayList
 	}{
 		{`[]`, NewArrayList()},
-		{`["a","b","c"]`, NewArrayList("a", "b", "c")},
+		{`["a","b","c",[1,2,3]]`, NewArrayList("a", "b", "c", JSONArray{float64(1), float64(2), float64(3)})},
 	}
 
 	for i, c := range cs {
 		a := NewArrayList()
-		json.Unmarshal(([]byte)(c.s), &a)
+		err := json.Unmarshal(([]byte)(c.s), &a)
+		if err != nil {
+			t.Errorf("[%d] json.Unmarshal(%q) = %v", i, c.s, err)
+			continue
+		}
 		if !reflect.DeepEqual(a.Values(), c.a.Values()) {
 			t.Errorf("[%d] json.Unmarshal(%q) = %v, want %v", i, c.s, a.Values(), c.a.Values())
 		}

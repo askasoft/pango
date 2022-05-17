@@ -172,7 +172,7 @@ func TestTreeSetEach(t *testing.T) {
 	tset.Add("a", "b", "c")
 	tset.Add("a", "b", "c")
 	index := 0
-	tset.Each(func(value interface{}) {
+	tset.Each(func(value any) {
 		switch index {
 		case 0:
 			if av, ev := value, "a"; av != ev {
@@ -416,7 +416,7 @@ func TestTreeSetSort(t *testing.T) {
 	for i := 1; i < 20; i++ {
 		tset := NewTreeSet(CompareInt)
 
-		a := make([]interface{}, 0, 20)
+		a := make([]any, 0, 20)
 		for n := i; n < 20; n++ {
 			v := rand.Intn(1000)
 			if !ars.Contains(a, v) {

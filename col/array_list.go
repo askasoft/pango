@@ -529,10 +529,6 @@ func (it *arrayListIterator) Reset() {
 //-----------------------------------------------------------
 // implements JSON Marshaller/Unmarshaller interface
 
-func newJSONArrayArrayList() jsonArray {
-	return NewArrayList()
-}
-
 func (al *ArrayList) addJSONArrayItem(v T) jsonArray {
 	al.Add(v)
 	return al
@@ -546,9 +542,5 @@ func (al *ArrayList) MarshalJSON() (res []byte, err error) {
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, al)
 func (al *ArrayList) UnmarshalJSON(data []byte) error {
 	al.Clear()
-	ju := &jsonUnmarshaler{
-		newArray:  newJSONArrayArrayList,
-		newObject: newJSONObject,
-	}
-	return ju.unmarshalJSONArray(data, al)
+	return jsonUnmarshalArray(data, al)
 }

@@ -698,10 +698,6 @@ func (it *ringBufferIterator) Reset() {
 //-----------------------------------------------------------
 // implements JSON Marshaller/Unmarshaller interface
 
-func newJSONArrayRingBuffer() jsonArray {
-	return NewRingBuffer()
-}
-
 func (rb *RingBuffer) addJSONArrayItem(v T) jsonArray {
 	rb.Add(v)
 	return rb
@@ -715,9 +711,5 @@ func (rb *RingBuffer) MarshalJSON() (res []byte, err error) {
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, rb)
 func (rb *RingBuffer) UnmarshalJSON(data []byte) error {
 	rb.Clear()
-	ju := &jsonUnmarshaler{
-		newArray:  newJSONArrayRingBuffer,
-		newObject: newJSONObject,
-	}
-	return ju.unmarshalJSONArray(data, rb)
+	return jsonUnmarshalArray(data, rb)
 }

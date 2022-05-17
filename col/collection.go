@@ -1,7 +1,7 @@
 package col
 
 // T element type
-type T = interface{}
+type T = any
 
 // Sortable a value each interface for collection
 type Sortable interface {
@@ -96,10 +96,10 @@ type List interface {
 }
 
 // K KEY type
-type K = interface{}
+type K = any
 
 // V VALUE type
-type V = interface{}
+type V = any
 
 // P key/value pair
 type P struct {

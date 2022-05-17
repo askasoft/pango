@@ -946,9 +946,5 @@ func (ts *TreeSet) MarshalJSON() (res []byte, err error) {
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, ts)
 func (ts *TreeSet) UnmarshalJSON(data []byte) error {
 	ts.Clear()
-	ju := &jsonUnmarshaler{
-		newArray:  newJSONArray,
-		newObject: newJSONObject,
-	}
-	return ju.unmarshalJSONArray(data, ts)
+	return jsonUnmarshalArray(data, ts)
 }

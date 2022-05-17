@@ -579,10 +579,6 @@ func (it *linkedListIterator) Reset() {
 //-----------------------------------------------------------
 // implements JSON Marshaller/Unmarshaller interface
 
-func newJSONArrayLinkedList() jsonArray {
-	return NewLinkedList()
-}
-
 func (ll *LinkedList) addJSONArrayItem(v T) jsonArray {
 	ll.Add(v)
 	return ll
@@ -596,9 +592,5 @@ func (ll *LinkedList) MarshalJSON() (res []byte, err error) {
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, ll)
 func (ll *LinkedList) UnmarshalJSON(data []byte) error {
 	ll.Clear()
-	ju := &jsonUnmarshaler{
-		newArray:  newJSONArrayLinkedList,
-		newObject: newJSONObject,
-	}
-	return ju.unmarshalJSONArray(data, ll)
+	return jsonUnmarshalArray(data, ll)
 }

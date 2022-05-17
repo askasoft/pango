@@ -83,7 +83,7 @@ func ExampleLinkedHashMap_UnmarshalJSON() {
 
 	// compare with if using a regular generic map, the unmarshalled result
 	//  is a map with unpredictable order of keys
-	var m map[string]interface{}
+	var m map[string]any
 	err := json.Unmarshal([]byte(jsonStream), &m)
 	if err != nil {
 		fmt.Println("error:", err)

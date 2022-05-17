@@ -666,9 +666,5 @@ func (ls *LinkedHashSet) MarshalJSON() (res []byte, err error) {
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, ls)
 func (ls *LinkedHashSet) UnmarshalJSON(data []byte) error {
 	ls.Clear()
-	ju := &jsonUnmarshaler{
-		newArray:  newJSONArray,
-		newObject: newJSONObject,
-	}
-	return ju.unmarshalJSONArray(data, ls)
+	return jsonUnmarshalArray(data, ls)
 }

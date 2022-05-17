@@ -392,26 +392,17 @@ func (it *linkedHashMapIterator) Reset() {
 //-----------------------------------------------------------
 // implements JSON Marshaller/Unmarshaller interface
 
-func newJSONObjectAsLinkedMap() jsonObject {
-	return NewLinkedHashMap()
-}
-
-func (lm *LinkedHashMap) addJSONObjectItem(k string, v V) jsonObject {
+func (lm *LinkedHashMap) addJSONObjectItem(k string, v V) {
 	lm.Set(k, v)
-	return lm
 }
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(lm)
 func (lm *LinkedHashMap) MarshalJSON() (res []byte, err error) {
-	return jsonMarshalMap(lm)
+	return jsonMarshalIterMap(lm)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, lm)
 func (lm *LinkedHashMap) UnmarshalJSON(data []byte) error {
 	lm.Clear()
-	ju := &jsonUnmarshaler{
-		newArray:  newJSONArray,
-		newObject: newJSONObjectAsLinkedMap,
-	}
-	return ju.unmarshalJSONObject(data, lm)
+	return jsonUnmarshalObject(data, lm)
 }

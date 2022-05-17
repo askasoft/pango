@@ -21,14 +21,14 @@ func TestTreeMapSet(t *testing.T) {
 	if av := tree.Len(); av != 7 {
 		t.Errorf("Got %v expected %v", av, 7)
 	}
-	if av, ev := fmt.Sprintf("%d%d%d%d%d%d%d", tree.Keys()...), "1234567"; av != ev {
+	if av, ev := fmt.Sprintf("%v", tree.Keys()), "[1 2 3 4 5 6 7]"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
-	if av, ev := fmt.Sprintf("%s%s%s%s%s%s%s", tree.Values()...), "abcdefg"; av != ev {
+	if av, ev := fmt.Sprintf("%v", tree.Values()), "[a b c d e f g]"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
 
-	tests1 := [][]interface{}{
+	tests1 := [][]any{
 		{1, "a", true},
 		{2, "b", true},
 		{3, "c", true},
@@ -70,20 +70,20 @@ func TestTreeMapDelete(t *testing.T) {
 	tree.Delete(8)
 	tree.Delete(5)
 
-	if av, ev := fmt.Sprintf("%d%d%d%d", tree.Keys()...), "1234"; av != ev {
+	if av, ev := fmt.Sprintf("%v", tree.Keys()), "[1 2 3 4]"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
-	if av, ev := fmt.Sprintf("%s%s%s%s", tree.Values()...), "abcd"; av != ev {
+	if av, ev := fmt.Sprintf("%v", tree.Values()), "[a b c d]"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
-	if av, ev := fmt.Sprintf("%s%s%s%s", tree.Values()...), "abcd"; av != ev {
+	if av, ev := fmt.Sprintf("%v", tree.Values()), "[a b c d]"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
 	if av := tree.Len(); av != 4 {
 		t.Errorf("Got %v expected %v", av, 7)
 	}
 
-	tests2 := [][]interface{}{
+	tests2 := [][]any{
 		{1, "a", true},
 		{2, "b", true},
 		{3, "c", true},
@@ -108,10 +108,10 @@ func TestTreeMapDelete(t *testing.T) {
 	tree.Delete(2)
 	tree.Delete(2)
 
-	if av, ev := fmt.Sprintf("%s", tree.Keys()), "[]"; av != ev {
+	if av, ev := fmt.Sprintf("%v", tree.Keys()), "[]"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
-	if av, ev := fmt.Sprintf("%s", tree.Values()), "[]"; av != ev {
+	if av, ev := fmt.Sprintf("%v", tree.Values()), "[]"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
 	if empty, size := tree.IsEmpty(), tree.Len(); empty != true || size != -0 {
@@ -175,7 +175,7 @@ func TestTreeMapFloor(t *testing.T) {
 	m.Set(1, "a")
 
 	// key,expectedKey,expectedValue,expectedFound
-	tests1 := [][]interface{}{
+	tests1 := [][]any{
 		{-1, nil, nil, false},
 		{0, nil, nil, false},
 		{1, 1, "a", true},
@@ -211,7 +211,7 @@ func TestTreeMapCeiling(t *testing.T) {
 	m.Set(1, "a")
 
 	// key,expectedKey,expectedValue,expectedFound
-	tests1 := [][]interface{}{
+	tests1 := [][]any{
 		{-1, 1, "a", true},
 		{0, 1, "a", true},
 		{1, 1, "a", true},

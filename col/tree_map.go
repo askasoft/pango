@@ -883,22 +883,17 @@ func (it *treeMapIterator) Reset() {
 //-----------------------------------------------------------
 // implements JSON Marshaller/Unmarshaller interface
 
-func (tm *TreeMap) addJSONObjectItem(k string, v V) jsonObject {
+func (tm *TreeMap) addJSONObjectItem(k string, v V) {
 	tm.Set(k, v)
-	return tm
 }
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(tm)
 func (tm *TreeMap) MarshalJSON() (res []byte, err error) {
-	return jsonMarshalMap(tm)
+	return jsonMarshalIterMap(tm)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, tm)
 func (tm *TreeMap) UnmarshalJSON(data []byte) error {
 	tm.Clear()
-	ju := &jsonUnmarshaler{
-		newArray:  newJSONArray,
-		newObject: newJSONObject,
-	}
-	return ju.unmarshalJSONObject(data, tm)
+	return jsonUnmarshalObject(data, tm)
 }

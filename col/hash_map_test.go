@@ -14,7 +14,7 @@ func TestHashMapInterface(t *testing.T) {
 }
 
 func TestHashMapAsHashMap(t *testing.T) {
-	m := map[interface{}]interface{}{
+	m := map[any]any{
 		"a": 1,
 		"b": 2,
 	}
@@ -47,15 +47,15 @@ func TestHashMapSet(t *testing.T) {
 	if av := m.Len(); av != 7 {
 		t.Errorf("Got %v expected %v", av, 7)
 	}
-	if av, ev := m.Keys(), []interface{}{1, 2, 3, 4, 5, 6, 7}; !testHashMapSame(av, ev) {
+	if av, ev := m.Keys(), []any{1, 2, 3, 4, 5, 6, 7}; !testHashMapSame(av, ev) {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
-	if av, ev := m.Values(), []interface{}{"a", "b", "c", "d", "e", "f", "g"}; !testHashMapSame(av, ev) {
+	if av, ev := m.Values(), []any{"a", "b", "c", "d", "e", "f", "g"}; !testHashMapSame(av, ev) {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
 
 	// key,ev,expectedFound
-	tests1 := [][]interface{}{
+	tests1 := [][]any{
 		{1, "a", true},
 		{2, "b", true},
 		{3, "c", true},
@@ -92,18 +92,18 @@ func TestHashMapRemove(t *testing.T) {
 	m.Delete(8)
 	m.Delete(5)
 
-	if av, ev := m.Keys(), []interface{}{1, 2, 3, 4}; !testHashMapSame(av, ev) {
+	if av, ev := m.Keys(), []any{1, 2, 3, 4}; !testHashMapSame(av, ev) {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
 
-	if av, ev := m.Values(), []interface{}{"a", "b", "c", "d"}; !testHashMapSame(av, ev) {
+	if av, ev := m.Values(), []any{"a", "b", "c", "d"}; !testHashMapSame(av, ev) {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
 	if av := m.Len(); av != 4 {
 		t.Errorf("Got %v expected %v", av, 4)
 	}
 
-	tests2 := [][]interface{}{
+	tests2 := [][]any{
 		{1, "a", true},
 		{2, "b", true},
 		{3, "c", true},
@@ -153,7 +153,10 @@ func TestHashMapJSON(t *testing.T) {
 
 	for i, c := range cs {
 		a := NewHashMap()
-		json.Unmarshal(([]byte)(c.s), &a)
+		err := json.Unmarshal(([]byte)(c.s), &a)
+		if err != nil {
+			t.Errorf("[%d] json.Unmarshal(%q) = %v", i, c.s, err)
+		}
 		if !testHashMapSame(a.Values(), c.w.Values()) {
 			t.Errorf("[%d] json.Unmarshal(%q) = %v, want %v", i, c.s, a.Values(), c.w.Values())
 		}
@@ -161,12 +164,19 @@ func TestHashMapJSON(t *testing.T) {
 			t.Errorf("[%d] json.Unmarshal(%q) = %v, want %v", i, c.s, a.Keys(), c.w.Keys())
 		}
 
-		bs, _ := json.Marshal(a)
+		bs, err := json.Marshal(a)
+		if err != nil {
+			t.Errorf("[%d] json.Marshal(%v) = %v", i, a, err)
+		}
 
-		m := make(map[string]interface{})
-		json.Unmarshal(bs, &m)
-		ks := make([]interface{}, 0)
-		vs := make([]interface{}, 0)
+		m := make(map[string]any)
+		err = json.Unmarshal(bs, &m)
+		if err != nil {
+			t.Errorf("[%d] json.Unmarshal(%q) = %v", i, bs, err)
+		}
+
+		ks := make([]any, 0)
+		vs := make([]any, 0)
 		for k, v := range m {
 			ks = append(ks, k)
 			vs = append(vs, v)
@@ -178,7 +188,7 @@ func TestHashMapJSON(t *testing.T) {
 	}
 }
 
-func testHashMapSame(a []interface{}, b []interface{}) bool {
+func testHashMapSame(a []any, b []any) bool {
 	if len(a) != len(b) {
 		return false
 	}

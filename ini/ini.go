@@ -61,9 +61,9 @@ func (ini *Ini) IsEmpty() bool {
 	return true
 }
 
-// Map convert ini to map[string]map[string]interface{}
-func (ini *Ini) Map() map[string]map[string]interface{} {
-	m := make(map[string]map[string]interface{}, ini.sections.Len())
+// Map convert ini to map[string]map[string]any
+func (ini *Ini) Map() map[string]map[string]any {
+	m := make(map[string]map[string]any, ini.sections.Len())
 	for it := ini.sections.Iterator(); it.Next(); {
 		sec := it.Value().(*Section)
 		m[sec.name] = sec.Map()

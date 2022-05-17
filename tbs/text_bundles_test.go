@@ -38,15 +38,15 @@ func testLoad(t *testing.T, ts *TS) {
 	cs := []struct {
 		lang string
 		name string
-		args []interface{}
+		args []any
 		want string
 	}{
 		{"en", "title", nil, "hello world"},
-		{"en", "label.welcome", []interface{}{"home"}, "welcome home"},
-		{"en", "label.new.hello", []interface{}{"home"}, "hello home"},
+		{"en", "label.welcome", []any{"home"}, "welcome home"},
+		{"en", "label.new.hello", []any{"home"}, "hello home"},
 		{"ja-JP", "title", nil, "こんにちは世界"},
-		{"ja-JP", "label.welcome", []interface{}{"ダーリン"}, "ようこそ ダーリン"},
-		{"ja-JP", "label.new.hello", []interface{}{"ダーリン"}, "ハロー ダーリン"},
+		{"ja-JP", "label.welcome", []any{"ダーリン"}, "ようこそ ダーリン"},
+		{"ja-JP", "label.new.hello", []any{"ダーリン"}, "ハロー ダーリン"},
 	}
 
 	for i, c := range cs {

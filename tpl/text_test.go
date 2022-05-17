@@ -12,7 +12,7 @@ import (
 func textTestLoad(t *testing.T, tt *TextTemplates) {
 	sb := &strings.Builder{}
 
-	ctx := map[string]interface{}{
+	ctx := map[string]any{
 		"Title":   "Front Page",
 		"Message": "Hello world!",
 		"Time":    time.Now(),
@@ -35,7 +35,7 @@ func textTestLoad(t *testing.T, tt *TextTemplates) {
 	}
 
 	sb.Reset()
-	ctx = map[string]interface{}{
+	ctx = map[string]any{
 		"Title":   "Admin Page",
 		"Message": "Hello world!",
 		"Time":    time.Now(),

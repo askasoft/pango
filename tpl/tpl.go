@@ -19,7 +19,7 @@ import (
 // terminates and Execute returns that error. FuncMap has the same base type
 // as FuncMap in "text/template", copied here so clients need not import
 // "text/template".
-type FuncMap map[string]interface{}
+type FuncMap map[string]any
 
 // Copy copy functions from other function maps `fms`
 func (fm FuncMap) Copy(fms ...FuncMap) {
@@ -54,7 +54,7 @@ type Templates interface {
 	LoadFS(fsys fs.FS, root string) error
 
 	// Render render template with io.Writer
-	Render(w io.Writer, name string, data interface{}) error
+	Render(w io.Writer, name string, data any) error
 }
 
 // readFile read file content to string

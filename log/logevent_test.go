@@ -26,7 +26,7 @@ func TestEventCaller(t *testing.T) {
 func BenchmarkEventPool(b *testing.B) {
 	// eventPool log event pool
 	var eventPool = &sync.Pool{
-		New: func() interface{} {
+		New: func() any {
 			return &Event{}
 		},
 	}

@@ -33,7 +33,7 @@ type Event struct {
 	Event string
 	ID    string
 	Retry uint
-	Data  interface{}
+	Data  any
 }
 
 // Encode encode text event
@@ -69,7 +69,7 @@ func writeRetry(w stringWriter, retry uint) {
 	}
 }
 
-func writeData(w stringWriter, data interface{}) error {
+func writeData(w stringWriter, data any) error {
 	w.WriteString("data:") //nolint: errcheck
 	switch kindOfData(data) {
 	case reflect.Struct, reflect.Slice, reflect.Map:
@@ -101,7 +101,7 @@ func (r Event) WriteContentType(w http.ResponseWriter) {
 	}
 }
 
-func kindOfData(data interface{}) reflect.Kind {
+func kindOfData(data any) reflect.Kind {
 	value := reflect.ValueOf(data)
 	valueType := value.Kind()
 	if valueType == reflect.Ptr {

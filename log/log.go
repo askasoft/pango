@@ -102,22 +102,22 @@ func SetCallerDepth(d int) {
 }
 
 // GetProp get logger property
-func GetProp(k string) interface{} {
+func GetProp(k string) any {
 	return _log.GetProp(k)
 }
 
 // SetProp set logger property
-func SetProp(k string, v interface{}) {
+func SetProp(k string, v any) {
 	_log.SetProp(k, v)
 }
 
 // GetProps get logger properties
-func GetProps() map[string]interface{} {
+func GetProps() map[string]any {
 	return _log.GetProps()
 }
 
 // SetProps set logger properties
-func SetProps(props map[string]interface{}) {
+func SetProps(props map[string]any) {
 	_log.SetProps(props)
 }
 
@@ -132,12 +132,12 @@ func IsFatalEnabled() bool {
 }
 
 // Fatal log a message at fatal level.
-func Fatal(v ...interface{}) {
+func Fatal(v ...any) {
 	_log.logger._log(LevelFatal, v...)
 }
 
 // Fatalf format and log a message at fatal level.
-func Fatalf(f string, v ...interface{}) {
+func Fatalf(f string, v ...any) {
 	_log.logger._logf(LevelFatal, f, v...)
 }
 
@@ -147,12 +147,12 @@ func IsErrorEnabled() bool {
 }
 
 // Error log a message at error level.
-func Error(v ...interface{}) {
+func Error(v ...any) {
 	_log.logger._log(LevelError, v...)
 }
 
 // Errorf format and log a message at error level.
-func Errorf(f string, v ...interface{}) {
+func Errorf(f string, v ...any) {
 	_log.logger._logf(LevelError, f, v...)
 }
 
@@ -162,12 +162,12 @@ func IsWarnEnabled() bool {
 }
 
 // Warn log a message at warning level.
-func Warn(v ...interface{}) {
+func Warn(v ...any) {
 	_log.logger._log(LevelWarn, v...)
 }
 
 // Warnf format and log a message at warning level.
-func Warnf(f string, v ...interface{}) {
+func Warnf(f string, v ...any) {
 	_log.logger._logf(LevelWarn, f, v...)
 }
 
@@ -177,12 +177,12 @@ func IsInfoEnabled() bool {
 }
 
 // Info log a message at info level.
-func Info(v ...interface{}) {
+func Info(v ...any) {
 	_log.logger._log(LevelInfo, v...)
 }
 
 // Infof format and log a message at info level.
-func Infof(f string, v ...interface{}) {
+func Infof(f string, v ...any) {
 	_log.logger._logf(LevelInfo, f, v...)
 }
 
@@ -192,12 +192,12 @@ func IsDebugEnabled() bool {
 }
 
 // Debug log a message at debug level.
-func Debug(v ...interface{}) {
+func Debug(v ...any) {
 	_log.logger._log(LevelDebug, v...)
 }
 
 // Debugf format log a message at debug level.
-func Debugf(f string, v ...interface{}) {
+func Debugf(f string, v ...any) {
 	_log.logger._logf(LevelDebug, f, v...)
 }
 
@@ -207,11 +207,11 @@ func IsTraceEnabled() bool {
 }
 
 // Trace log a message at trace level.
-func Trace(v ...interface{}) {
+func Trace(v ...any) {
 	_log.logger._log(LevelTrace, v...)
 }
 
 // Tracef format and log a message at trace level.
-func Tracef(f string, v ...interface{}) {
+func Tracef(f string, v ...any) {
 	_log.logger._logf(LevelTrace, f, v...)
 }

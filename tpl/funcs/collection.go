@@ -8,16 +8,16 @@ import (
 	"github.com/pandafw/pango/ref"
 )
 
-func Array(args ...interface{}) []interface{} {
+func Array(args ...any) []any {
 	return args
 }
 
-func Map(kvs ...interface{}) (map[string]interface{}, error) {
+func Map(kvs ...any) (map[string]any, error) {
 	if len(kvs)&1 != 0 {
 		return nil, errors.New("Map(): invalid arguments")
 	}
 
-	dict := make(map[string]interface{}, len(kvs)/2)
+	dict := make(map[string]any, len(kvs)/2)
 	for i := 0; i < len(kvs); i += 2 {
 		key, ok := kvs[i].(string)
 		if !ok {
@@ -30,7 +30,7 @@ func Map(kvs ...interface{}) (map[string]interface{}, error) {
 
 // MapGet getting value from map by keys
 // usage:
-// Data["m"] = map[string]interface{}{
+// Data["m"] = map[string]any{
 //     "a": 1,
 //     "1": map[string]float64{
 //         "c": 4,
@@ -39,7 +39,7 @@ func Map(kvs ...interface{}) (map[string]interface{}, error) {
 //
 // {{ map_get m "a" }} // return 1
 // {{ map_get m 1 "c" }} // return 4
-func MapGet(dict interface{}, keys ...interface{}) (interface{}, error) {
+func MapGet(dict any, keys ...any) (any, error) {
 	if dict == nil || len(keys) == 0 {
 		return nil, nil
 	}
@@ -77,7 +77,7 @@ func MapGet(dict interface{}, keys ...interface{}) (interface{}, error) {
 	return val, nil
 }
 
-func MapSet(dict interface{}, key, val interface{}) (interface{}, error) {
+func MapSet(dict any, key, val any) (any, error) {
 	mt := reflect.TypeOf(dict)
 	if mt.Kind() != reflect.Map {
 		return nil, fmt.Errorf("MapGet(): invalid map")

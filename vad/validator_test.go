@@ -180,7 +180,7 @@ type MadeUpCustomType struct {
 	LastName  string
 }
 
-func ValidateCustomType(field reflect.Value) interface{} {
+func ValidateCustomType(field reflect.Value) any {
 	if cust, ok := field.Interface().(MadeUpCustomType); ok {
 
 		if len(cust.FirstName) == 0 || len(cust.LastName) == 0 {
@@ -193,7 +193,7 @@ func ValidateCustomType(field reflect.Value) interface{} {
 	return ""
 }
 
-func OverrideIntTypeForSomeReason(field reflect.Value) interface{} {
+func OverrideIntTypeForSomeReason(field reflect.Value) any {
 	if i, ok := field.Interface().(int); ok {
 		if i == 1 {
 			return "1"
@@ -212,7 +212,7 @@ type CustomMadeUpStruct struct {
 	OverriddenInt int              `validate:"gt=1"`
 }
 
-func ValidateValuerType(field reflect.Value) interface{} {
+func ValidateValuerType(field reflect.Value) any {
 	if valuer, ok := field.Interface().(driver.Valuer); ok {
 
 		val, err := valuer.Value()
@@ -491,7 +491,7 @@ func TestAnonymousSameStructDifferentTags(t *testing.T) {
 	})
 
 	type Test struct {
-		A interface{}
+		A any
 	}
 
 	tst := &Test{
@@ -2986,7 +2986,7 @@ func TestSliceMapArrayChanFuncPtrInterfaceRequiredValidation(t *testing.T) {
 	errs = validate.Var(tst, "required")
 	assertEqual(t, errs, nil)
 
-	var iface interface{}
+	var iface any
 
 	errs = validate.Var(iface, "required")
 	assertNotEqual(t, errs, nil)
@@ -3065,8 +3065,8 @@ func TestBadKeyValidation(t *testing.T) {
 }
 
 func TestInterfaceErrValidation(t *testing.T) {
-	var v2 interface{} = 1
-	var v1 interface{} = v2
+	var v2 any = 1
+	var v1 = v2
 
 	validate := New()
 	errs := validate.Var(v1, "len=1")
@@ -3076,9 +3076,9 @@ func TestInterfaceErrValidation(t *testing.T) {
 	assertEqual(t, errs, nil)
 
 	type ExternalCMD struct {
-		Userid string      `json:"userid"`
-		Action uint32      `json:"action"`
-		Data   interface{} `json:"data,omitempty" validate:"required"`
+		Userid string `json:"userid"`
+		Action uint32 `json:"action"`
+		Data   any    `json:"data,omitempty" validate:"required"`
 	}
 
 	s := &ExternalCMD{
@@ -3093,9 +3093,9 @@ func TestInterfaceErrValidation(t *testing.T) {
 	AssertError(t, errs, "ExternalCMD.Data", "ExternalCMD.Data", "Data", "Data", "required")
 
 	type ExternalCMD2 struct {
-		Userid string      `json:"userid"`
-		Action uint32      `json:"action"`
-		Data   interface{} `json:"data,omitempty" validate:"len=1"`
+		Userid string `json:"userid"`
+		Action uint32 `json:"action"`
+		Data   any    `json:"data,omitempty" validate:"len=1"`
 	}
 
 	s2 := &ExternalCMD2{
@@ -3140,10 +3140,10 @@ func TestInterfaceErrValidation(t *testing.T) {
 	AssertError(t, errs, "ExternalCMD.Data.Name", "ExternalCMD.Data.Name", "Name", "Name", "required")
 
 	type TestMapStructPtr struct {
-		Errs map[int]interface{} `validate:"gt=0,dive,len=2"`
+		Errs map[int]any `validate:"gt=0,dive,len=2"`
 	}
 
-	mip := map[int]interface{}{0: &Inner{"ok"}, 3: nil, 4: &Inner{"ok"}}
+	mip := map[int]any{0: &Inner{"ok"}, 3: nil, 4: &Inner{"ok"}}
 
 	msp := &TestMapStructPtr{
 		Errs: mip,
@@ -3155,13 +3155,13 @@ func TestInterfaceErrValidation(t *testing.T) {
 	AssertError(t, errs, "TestMapStructPtr.Errs[3]", "TestMapStructPtr.Errs[3]", "Errs[3]", "Errs[3]", "len")
 
 	type TestMultiDimensionalStructs struct {
-		Errs [][]interface{} `validate:"gt=0,dive,dive"`
+		Errs [][]any `validate:"gt=0,dive,dive"`
 	}
 
-	var errStructArray [][]interface{}
+	var errStructArray [][]any
 
-	errStructArray = append(errStructArray, []interface{}{&Inner{"ok"}, &Inner{""}, &Inner{""}})
-	errStructArray = append(errStructArray, []interface{}{&Inner{"ok"}, &Inner{""}, &Inner{""}})
+	errStructArray = append(errStructArray, []any{&Inner{"ok"}, &Inner{""}, &Inner{""}})
+	errStructArray = append(errStructArray, []any{&Inner{"ok"}, &Inner{""}, &Inner{""}})
 
 	tms := &TestMultiDimensionalStructs{
 		Errs: errStructArray,
@@ -3199,7 +3199,7 @@ func TestInterfaceErrValidation(t *testing.T) {
 	AssertError(t, errs, "TestMultiDimensionalStructsPtr2.Errs[2][1].Name", "TestMultiDimensionalStructsPtr2.Errs[2][1].Name", "Name", "Name", "required")
 	AssertError(t, errs, "TestMultiDimensionalStructsPtr2.Errs[2][2]", "TestMultiDimensionalStructsPtr2.Errs[2][2]", "Errs[2][2]", "Errs[2][2]", "required")
 
-	m := map[int]interface{}{0: "ok", 3: "", 4: "ok"}
+	m := map[int]any{0: "ok", 3: "", 4: "ok"}
 
 	errs = validate.Var(m, "len=3,dive,len=2")
 	assertNotEqual(t, errs, nil)
@@ -3211,7 +3211,7 @@ func TestInterfaceErrValidation(t *testing.T) {
 	assertEqual(t, len(errs.(ValidationErrors)), 1)
 	AssertError(t, errs, "", "", "", "", "len")
 
-	arr := []interface{}{"ok", "", "ok"}
+	arr := []any{"ok", "", "ok"}
 
 	errs = validate.Var(arr, "len=3,dive,len=2")
 	assertNotEqual(t, errs, nil)
@@ -3225,7 +3225,7 @@ func TestInterfaceErrValidation(t *testing.T) {
 
 	type MyStruct struct {
 		A, B string
-		C    interface{}
+		C    any
 	}
 
 	var a MyStruct
@@ -3240,7 +3240,7 @@ func TestInterfaceErrValidation(t *testing.T) {
 func TestMapDiveValidation(t *testing.T) {
 	validate := New()
 
-	n := map[int]interface{}{0: nil}
+	n := map[int]any{0: nil}
 	errs := validate.Var(n, "omitempty,required")
 	assertEqual(t, errs, nil)
 
@@ -3280,10 +3280,10 @@ func TestMapDiveValidation(t *testing.T) {
 	assertNotEqual(t, s, "")
 
 	type TestMapInterface struct {
-		Errs map[int]interface{} `validate:"dive"`
+		Errs map[int]any `validate:"dive"`
 	}
 
-	mit := map[int]interface{}{0: Inner{"ok"}, 1: Inner{""}, 3: nil, 5: "string", 6: 33}
+	mit := map[int]any{0: Inner{"ok"}, 1: Inner{""}, 3: nil, 5: "string", 6: 33}
 
 	msi := &TestMapInterface{
 		Errs: mit,
@@ -3723,7 +3723,7 @@ func TestSSNValidation(t *testing.T) {
 
 func TestLongitudeValidation(t *testing.T) {
 	tests := []struct {
-		param    interface{}
+		param    any
 		expected bool
 	}{
 		{"", false},
@@ -3765,7 +3765,7 @@ func TestLongitudeValidation(t *testing.T) {
 
 func TestLatitudeValidation(t *testing.T) {
 	tests := []struct {
-		param    interface{}
+		param    any
 		expected bool
 	}{
 		{"", false},
@@ -5101,7 +5101,7 @@ func TestOneOfValidation(t *testing.T) {
 	validate := New()
 
 	passSpecs := []struct {
-		f interface{}
+		f any
 		t string
 	}{
 		{f: "red", t: "oneof=red green"},
@@ -5128,7 +5128,7 @@ func TestOneOfValidation(t *testing.T) {
 	}
 
 	failSpecs := []struct {
-		f interface{}
+		f any
 		t string
 	}{
 		{f: "", t: "oneof=red green"},
@@ -8244,7 +8244,7 @@ func TestPointerAndOmitEmpty(t *testing.T) {
 	assertEqual(t, errs, nil)
 
 	type TestIface struct {
-		MyInt interface{} `validate:"omitempty,gte=2,lte=255"`
+		MyInt any `validate:"omitempty,gte=2,lte=255"`
 	}
 
 	ti1 := TestIface{MyInt: &val1} // This should fail validation on gte because value is 0
@@ -8276,7 +8276,7 @@ func TestRequired(t *testing.T) {
 	})
 
 	type Test struct {
-		Value interface{} `validate:"required"`
+		Value any `validate:"required"`
 	}
 
 	var test Test
@@ -9069,20 +9069,20 @@ func TestIsDefault(t *testing.T) {
 
 func TestUniqueValidation(t *testing.T) {
 	tests := []struct {
-		param    interface{}
+		param    any
 		expected bool
 	}{
 		// Arrays
 		{[2]string{"a", "b"}, true},
 		{[2]int{1, 2}, true},
 		{[2]float64{1, 2}, true},
-		{[2]interface{}{"a", "b"}, true},
-		{[2]interface{}{"a", 1}, true},
+		{[2]any{"a", "b"}, true},
+		{[2]any{"a", 1}, true},
 		{[2]float64{1, 1}, false},
 		{[2]int{1, 1}, false},
 		{[2]string{"a", "a"}, false},
-		{[2]interface{}{"a", "a"}, false},
-		{[4]interface{}{"a", 1, "b", 1}, false},
+		{[2]any{"a", "a"}, false},
+		{[4]any{"a", 1, "b", 1}, false},
 		{[2]*string{stringPtr("a"), stringPtr("b")}, true},
 		{[2]*int{intPtr(1), intPtr(2)}, true},
 		{[2]*float64{float64Ptr(1), float64Ptr(2)}, true},
@@ -9093,13 +9093,13 @@ func TestUniqueValidation(t *testing.T) {
 		{[]string{"a", "b"}, true},
 		{[]int{1, 2}, true},
 		{[]float64{1, 2}, true},
-		{[]interface{}{"a", "b"}, true},
-		{[]interface{}{"a", 1}, true},
+		{[]any{"a", "b"}, true},
+		{[]any{"a", 1}, true},
 		{[]float64{1, 1}, false},
 		{[]int{1, 1}, false},
 		{[]string{"a", "a"}, false},
-		{[]interface{}{"a", "a"}, false},
-		{[]interface{}{"a", 1, "b", 1}, false},
+		{[]any{"a", "a"}, false},
+		{[]any{"a", 1, "b", 1}, false},
 		{[]*string{stringPtr("a"), stringPtr("b")}, true},
 		{[]*int{intPtr(1), intPtr(2)}, true},
 		{[]*float64{float64Ptr(1), float64Ptr(2)}, true},
@@ -9110,13 +9110,13 @@ func TestUniqueValidation(t *testing.T) {
 		{map[string]string{"one": "a", "two": "b"}, true},
 		{map[string]int{"one": 1, "two": 2}, true},
 		{map[string]float64{"one": 1, "two": 2}, true},
-		{map[string]interface{}{"one": "a", "two": "b"}, true},
-		{map[string]interface{}{"one": "a", "two": 1}, true},
+		{map[string]any{"one": "a", "two": "b"}, true},
+		{map[string]any{"one": "a", "two": 1}, true},
 		{map[string]float64{"one": 1, "two": 1}, false},
 		{map[string]int{"one": 1, "two": 1}, false},
 		{map[string]string{"one": "a", "two": "a"}, false},
-		{map[string]interface{}{"one": "a", "two": "a"}, false},
-		{map[string]interface{}{"one": "a", "two": 1, "three": "b", "four": 1}, false},
+		{map[string]any{"one": "a", "two": "a"}, false},
+		{map[string]any{"one": "a", "two": 1, "three": "b", "four": 1}, false},
 	}
 
 	validate := New()
@@ -9153,7 +9153,7 @@ func TestUniqueValidationStructSlice(t *testing.T) {
 	}
 
 	tests := []struct {
-		target   interface{}
+		target   any
 		param    string
 		expected bool
 	}{
@@ -9196,7 +9196,7 @@ func TestUniqueValidationStructPtrSlice(t *testing.T) {
 	}
 
 	tests := []struct {
-		target   interface{}
+		target   any
 		param    string
 		expected bool
 	}{
@@ -9703,7 +9703,7 @@ func TestRequiredIf(t *testing.T) {
 		Field1  string            `validate:"omitempty" json:"field_1"`
 		Field2  *string           `validate:"required_if=Field1 test" json:"field_2"`
 		Field3  map[string]string `validate:"required_if=Field2 test" json:"field_3"`
-		Field4  interface{}       `validate:"required_if=Field3 1" json:"field_4"`
+		Field4  any               `validate:"required_if=Field3 1" json:"field_4"`
 		Field5  int               `validate:"required_if=Inner.Field test" json:"field_5"`
 		Field6  uint              `validate:"required_if=Field5 1" json:"field_6"`
 		Field7  float32           `validate:"required_if=Field6 1" json:"field_7"`
@@ -9729,7 +9729,7 @@ func TestRequiredIf(t *testing.T) {
 		Field1  string            `validate:"omitempty" json:"field_1"`
 		Field2  *string           `validate:"required_if=Field1 test" json:"field_2"`
 		Field3  map[string]string `validate:"required_if=Field2 test" json:"field_3"`
-		Field4  interface{}       `validate:"required_if=Field2 test" json:"field_4"`
+		Field4  any               `validate:"required_if=Field2 test" json:"field_4"`
 		Field5  string            `validate:"required_if=Field3 1" json:"field_5"`
 		Field6  string            `validate:"required_if=Inner.Field test" json:"field_6"`
 		Field7  string            `validate:"required_if=Inner2.Field test" json:"field_7"`
@@ -9775,7 +9775,7 @@ func TestRequiredUnless(t *testing.T) {
 		Field1  string            `validate:"omitempty" json:"field_1"`
 		Field2  *string           `validate:"required_unless=Field1 test" json:"field_2"`
 		Field3  map[string]string `validate:"required_unless=Field2 test" json:"field_3"`
-		Field4  interface{}       `validate:"required_unless=Field3 1" json:"field_4"`
+		Field4  any               `validate:"required_unless=Field3 1" json:"field_4"`
 		Field5  int               `validate:"required_unless=Inner.Field test" json:"field_5"`
 		Field6  uint              `validate:"required_unless=Field5 2" json:"field_6"`
 		Field7  float32           `validate:"required_unless=Field6 0" json:"field_7"`
@@ -9804,7 +9804,7 @@ func TestRequiredUnless(t *testing.T) {
 		Field1  string            `validate:"omitempty" json:"field_1"`
 		Field2  *string           `validate:"required_unless=Field1 test" json:"field_2"`
 		Field3  map[string]string `validate:"required_unless=Field2 test" json:"field_3"`
-		Field4  interface{}       `validate:"required_unless=Field2 test" json:"field_4"`
+		Field4  any               `validate:"required_unless=Field2 test" json:"field_4"`
 		Field5  string            `validate:"required_unless=Field3 0" json:"field_5"`
 		Field6  string            `validate:"required_unless=Inner.Field test" json:"field_6"`
 		Field7  string            `validate:"required_unless=Inner2.Field test" json:"field_7"`
@@ -9854,7 +9854,7 @@ func TestRequiredWith(t *testing.T) {
 		Field1  string            `validate:"omitempty" json:"field_1"`
 		Field2  *string           `validate:"required_with=Field1" json:"field_2"`
 		Field3  map[string]string `validate:"required_with=Field2" json:"field_3"`
-		Field4  interface{}       `validate:"required_with=Field3" json:"field_4"`
+		Field4  any               `validate:"required_with=Field3" json:"field_4"`
 		Field5  string            `validate:"required_with=Inner.Field" json:"field_5"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
@@ -9877,7 +9877,7 @@ func TestRequiredWith(t *testing.T) {
 		Field1  string            `validate:"omitempty" json:"field_1"`
 		Field2  *string           `validate:"required_with=Field1" json:"field_2"`
 		Field3  map[string]string `validate:"required_with=Field2" json:"field_3"`
-		Field4  interface{}       `validate:"required_with=Field2" json:"field_4"`
+		Field4  any               `validate:"required_with=Field2" json:"field_4"`
 		Field5  string            `validate:"required_with=Field3" json:"field_5"`
 		Field6  string            `validate:"required_with=Inner.Field" json:"field_6"`
 		Field7  string            `validate:"required_with=Inner2.Field" json:"field_7"`
@@ -9911,7 +9911,7 @@ func TestExcludedWith(t *testing.T) {
 		Field1 string            `validate:"excluded_with=FieldE" json:"field_1"`
 		Field2 *string           `validate:"excluded_with=FieldE" json:"field_2"`
 		Field3 map[string]string `validate:"excluded_with=FieldE" json:"field_3"`
-		Field4 interface{}       `validate:"excluded_with=FieldE" json:"field_4"`
+		Field4 any               `validate:"excluded_with=FieldE" json:"field_4"`
 		Field5 string            `validate:"excluded_with=Inner.FieldE" json:"field_5"`
 		Field6 string            `validate:"excluded_with=Inner2.FieldE" json:"field_6"`
 	}{
@@ -9937,7 +9937,7 @@ func TestExcludedWith(t *testing.T) {
 		Field1 string            `validate:"excluded_with=Field" json:"field_1"`
 		Field2 *string           `validate:"excluded_with=Field" json:"field_2"`
 		Field3 map[string]string `validate:"excluded_with=Field" json:"field_3"`
-		Field4 interface{}       `validate:"excluded_with=Field" json:"field_4"`
+		Field4 any               `validate:"excluded_with=Field" json:"field_4"`
 		Field5 string            `validate:"excluded_with=Inner.Field" json:"field_5"`
 		Field6 string            `validate:"excluded_with=Inner2.Field" json:"field_6"`
 	}{
@@ -9969,7 +9969,7 @@ func TestExcludedWith(t *testing.T) {
 		Field1 string            `validate:"excluded_with=FieldE" json:"field_1"`
 		Field2 *string           `validate:"excluded_with=FieldE" json:"field_2"`
 		Field3 map[string]string `validate:"excluded_with=FieldE" json:"field_3"`
-		Field4 interface{}       `validate:"excluded_with=FieldE" json:"field_4"`
+		Field4 any               `validate:"excluded_with=FieldE" json:"field_4"`
 		Field5 string            `validate:"excluded_with=Inner.FieldE" json:"field_5"`
 		Field6 string            `validate:"excluded_with=Inner2.FieldE" json:"field_6"`
 	}{
@@ -9999,7 +9999,7 @@ func TestExcludedWithout(t *testing.T) {
 		Field1 string            `validate:"excluded_without=Field" json:"field_1"`
 		Field2 *string           `validate:"excluded_without=Field" json:"field_2"`
 		Field3 map[string]string `validate:"excluded_without=Field" json:"field_3"`
-		Field4 interface{}       `validate:"excluded_without=Field" json:"field_4"`
+		Field4 any               `validate:"excluded_without=Field" json:"field_4"`
 		Field5 string            `validate:"excluded_without=Inner.Field" json:"field_5"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
@@ -10024,7 +10024,7 @@ func TestExcludedWithout(t *testing.T) {
 		Field1 string            `validate:"excluded_without=FieldE" json:"field_1"`
 		Field2 *string           `validate:"excluded_without=FieldE" json:"field_2"`
 		Field3 map[string]string `validate:"excluded_without=FieldE" json:"field_3"`
-		Field4 interface{}       `validate:"excluded_without=FieldE" json:"field_4"`
+		Field4 any               `validate:"excluded_without=FieldE" json:"field_4"`
 		Field5 string            `validate:"excluded_without=Inner.FieldE" json:"field_5"`
 		Field6 string            `validate:"excluded_without=Inner2.FieldE" json:"field_6"`
 	}{
@@ -10055,7 +10055,7 @@ func TestExcludedWithout(t *testing.T) {
 		Field1 string            `validate:"excluded_without=Field" json:"field_1"`
 		Field2 *string           `validate:"excluded_without=Field" json:"field_2"`
 		Field3 map[string]string `validate:"excluded_without=Field" json:"field_3"`
-		Field4 interface{}       `validate:"excluded_without=Field" json:"field_4"`
+		Field4 any               `validate:"excluded_without=Field" json:"field_4"`
 		Field5 string            `validate:"excluded_without=Inner.Field" json:"field_5"`
 	}{
 		Inner: &Inner{Field: &fieldVal},
@@ -10083,7 +10083,7 @@ func TestExcludedWithAll(t *testing.T) {
 		Field1 string            `validate:"excluded_with_all=FieldE Field" json:"field_1"`
 		Field2 *string           `validate:"excluded_with_all=FieldE Field" json:"field_2"`
 		Field3 map[string]string `validate:"excluded_with_all=FieldE Field" json:"field_3"`
-		Field4 interface{}       `validate:"excluded_with_all=FieldE Field" json:"field_4"`
+		Field4 any               `validate:"excluded_with_all=FieldE Field" json:"field_4"`
 		Field5 string            `validate:"excluded_with_all=Inner.FieldE" json:"field_5"`
 		Field6 string            `validate:"excluded_with_all=Inner2.FieldE" json:"field_6"`
 	}{
@@ -10110,7 +10110,7 @@ func TestExcludedWithAll(t *testing.T) {
 		Field1 string            `validate:"excluded_with_all=Field FieldE" json:"field_1"`
 		Field2 *string           `validate:"excluded_with_all=Field FieldE" json:"field_2"`
 		Field3 map[string]string `validate:"excluded_with_all=Field FieldE" json:"field_3"`
-		Field4 interface{}       `validate:"excluded_with_all=Field FieldE" json:"field_4"`
+		Field4 any               `validate:"excluded_with_all=Field FieldE" json:"field_4"`
 		Field5 string            `validate:"excluded_with_all=Inner.Field" json:"field_5"`
 		Field6 string            `validate:"excluded_with_all=Inner2.Field" json:"field_6"`
 	}{
@@ -10143,7 +10143,7 @@ func TestExcludedWithAll(t *testing.T) {
 		Field1 string            `validate:"excluded_with_all=FieldE Field" json:"field_1"`
 		Field2 *string           `validate:"excluded_with_all=FieldE Field" json:"field_2"`
 		Field3 map[string]string `validate:"excluded_with_all=FieldE Field" json:"field_3"`
-		Field4 interface{}       `validate:"excluded_with_all=FieldE Field" json:"field_4"`
+		Field4 any               `validate:"excluded_with_all=FieldE Field" json:"field_4"`
 		Field5 string            `validate:"excluded_with_all=Inner.FieldE" json:"field_5"`
 		Field6 string            `validate:"excluded_with_all=Inner2.FieldE" json:"field_6"`
 	}{
@@ -10174,7 +10174,7 @@ func TestExcludedWithoutAll(t *testing.T) {
 		Field1 string            `validate:"excluded_without_all=Field FieldE" json:"field_1"`
 		Field2 *string           `validate:"excluded_without_all=Field FieldE" json:"field_2"`
 		Field3 map[string]string `validate:"excluded_without_all=Field FieldE" json:"field_3"`
-		Field4 interface{}       `validate:"excluded_without_all=Field FieldE" json:"field_4"`
+		Field4 any               `validate:"excluded_without_all=Field FieldE" json:"field_4"`
 		Field5 string            `validate:"excluded_without_all=Inner.Field Inner2.Field" json:"field_5"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
@@ -10200,7 +10200,7 @@ func TestExcludedWithoutAll(t *testing.T) {
 		Field1 string            `validate:"excluded_without_all=FieldE Field" json:"field_1"`
 		Field2 *string           `validate:"excluded_without_all=FieldE Field" json:"field_2"`
 		Field3 map[string]string `validate:"excluded_without_all=FieldE Field" json:"field_3"`
-		Field4 interface{}       `validate:"excluded_without_all=FieldE Field" json:"field_4"`
+		Field4 any               `validate:"excluded_without_all=FieldE Field" json:"field_4"`
 		Field5 string            `validate:"excluded_without_all=Inner.FieldE" json:"field_5"`
 		Field6 string            `validate:"excluded_without_all=Inner2.FieldE" json:"field_6"`
 	}{
@@ -10231,7 +10231,7 @@ func TestExcludedWithoutAll(t *testing.T) {
 		Field1 string            `validate:"excluded_without_all=Field FieldE" json:"field_1"`
 		Field2 *string           `validate:"excluded_without_all=Field FieldE" json:"field_2"`
 		Field3 map[string]string `validate:"excluded_without_all=Field FieldE" json:"field_3"`
-		Field4 interface{}       `validate:"excluded_without_all=Field FieldE" json:"field_4"`
+		Field4 any               `validate:"excluded_without_all=Field FieldE" json:"field_4"`
 		Field5 string            `validate:"excluded_without_all=Inner.Field Inner2.Field" json:"field_5"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
@@ -10259,7 +10259,7 @@ func TestRequiredWithAll(t *testing.T) {
 		Field1  string            `validate:"omitempty" json:"field_1"`
 		Field2  *string           `validate:"required_with_all=Field1" json:"field_2"`
 		Field3  map[string]string `validate:"required_with_all=Field2" json:"field_3"`
-		Field4  interface{}       `validate:"required_with_all=Field3" json:"field_4"`
+		Field4  any               `validate:"required_with_all=Field3" json:"field_4"`
 		Field5  string            `validate:"required_with_all=Inner.Field" json:"field_5"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
@@ -10283,7 +10283,7 @@ func TestRequiredWithAll(t *testing.T) {
 		Field1  string            `validate:"omitempty" json:"field_1"`
 		Field2  *string           `validate:"required_with_all=Field1" json:"field_2"`
 		Field3  map[string]string `validate:"required_with_all=Field2" json:"field_3"`
-		Field4  interface{}       `validate:"required_with_all=Field1 FieldE" json:"field_4"`
+		Field4  any               `validate:"required_with_all=Field1 FieldE" json:"field_4"`
 		Field5  string            `validate:"required_with_all=Inner.Field Field2" json:"field_5"`
 		Field6  string            `validate:"required_with_all=Inner2.Field Field2" json:"field_6"`
 	}{
@@ -10311,7 +10311,7 @@ func TestRequiredWithout(t *testing.T) {
 		Field1 string            `validate:"omitempty" json:"field_1"`
 		Field2 *string           `validate:"required_without=Field1" json:"field_2"`
 		Field3 map[string]string `validate:"required_without=Field2" json:"field_3"`
-		Field4 interface{}       `validate:"required_without=Field3" json:"field_4"`
+		Field4 any               `validate:"required_without=Field3" json:"field_4"`
 		Field5 string            `validate:"required_without=Field3" json:"field_5"`
 	}{
 		Inner:  &Inner{Field: &fieldVal},
@@ -10332,7 +10332,7 @@ func TestRequiredWithout(t *testing.T) {
 		Field1 string            `json:"field_1"`
 		Field2 *string           `validate:"required_without=Field1" json:"field_2"`
 		Field3 map[string]string `validate:"required_without=Field2" json:"field_3"`
-		Field4 interface{}       `validate:"required_without=Field3" json:"field_4"`
+		Field4 any               `validate:"required_without=Field3" json:"field_4"`
 		Field5 string            `validate:"required_without=Field3" json:"field_5"`
 		Field6 string            `validate:"required_without=Field1" json:"field_6"`
 		Field7 string            `validate:"required_without=Inner.Field" json:"field_7"`
@@ -10371,7 +10371,7 @@ func TestRequiredWithoutAll(t *testing.T) {
 		Field1 string            `validate:"omitempty" json:"field_1"`
 		Field2 *string           `validate:"required_without_all=Field1" json:"field_2"`
 		Field3 map[string]string `validate:"required_without_all=Field2" json:"field_3"`
-		Field4 interface{}       `validate:"required_without_all=Field3" json:"field_4"`
+		Field4 any               `validate:"required_without_all=Field3" json:"field_4"`
 		Field5 string            `validate:"required_without_all=Field3" json:"field_5"`
 	}{
 		Field1: "",
@@ -10390,7 +10390,7 @@ func TestRequiredWithoutAll(t *testing.T) {
 		Field1 string            `validate:"omitempty" json:"field_1"`
 		Field2 *string           `validate:"required_without_all=Field1" json:"field_2"`
 		Field3 map[string]string `validate:"required_without_all=Field2" json:"field_3"`
-		Field4 interface{}       `validate:"required_without_all=Field3" json:"field_4"`
+		Field4 any               `validate:"required_without_all=Field3" json:"field_4"`
 		Field5 string            `validate:"required_without_all=Field3" json:"field_5"`
 		Field6 string            `validate:"required_without_all=Field1 Field3" json:"field_6"`
 	}{
@@ -10783,7 +10783,7 @@ func TestTimeZoneValidation(t *testing.T) {
 func TestDurationType(t *testing.T) {
 	tests := []struct {
 		name    string
-		s       interface{} // struct
+		s       any // struct
 		success bool
 	}{
 		{
@@ -11029,7 +11029,7 @@ func TestPostCodeByIso3166Alpha2(t *testing.T) {
 func TestPostCodeByIso3166Alpha2Field(t *testing.T) {
 	tests := []struct {
 		Value       string `validate:"postcode_iso3166_alpha2_field=CountryCode"`
-		CountryCode interface{}
+		CountryCode any
 		expected    bool
 	}{
 		{"ABC", "VN", false},
@@ -11062,7 +11062,7 @@ func TestPostCodeByIso3166Alpha2Field(t *testing.T) {
 func TestPostCodeByIso3166Alpha2Field_WrongField(t *testing.T) {
 	type test struct {
 		Value        string `validate:"postcode_iso3166_alpha2_field=CountryCode"`
-		CountryCode1 interface{}
+		CountryCode1 any
 		expected     bool
 	}
 
@@ -11073,7 +11073,7 @@ func TestPostCodeByIso3166Alpha2Field_WrongField(t *testing.T) {
 func TestPostCodeByIso3166Alpha2Field_MissingParam(t *testing.T) {
 	type test struct {
 		Value        string `validate:"postcode_iso3166_alpha2_field="`
-		CountryCode1 interface{}
+		CountryCode1 any
 		expected     bool
 	}
 
@@ -11084,7 +11084,7 @@ func TestPostCodeByIso3166Alpha2Field_MissingParam(t *testing.T) {
 func TestPostCodeByIso3166Alpha2Field_InvalidKind(t *testing.T) {
 	type test struct {
 		Value       string `validate:"postcode_iso3166_alpha2_field=CountryCode"`
-		CountryCode interface{}
+		CountryCode any
 		expected    bool
 	}
 	defer func() { _ = recover() }()

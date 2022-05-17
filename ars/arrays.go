@@ -5,7 +5,7 @@ import (
 )
 
 // Contains reports whether the c is contained in the slice a.
-func Contains(a []interface{}, c interface{}) bool {
+func Contains(a []any, c any) bool {
 	return Index(a, c) >= 0
 }
 
@@ -85,7 +85,7 @@ func ContainsString(a []string, c string) bool {
 }
 
 // Index returns the index of the first instance of c in a, or -1 if c is not present in a.
-func Index(a []interface{}, c interface{}) int {
+func Index(a []any, c any) int {
 	for i, e := range a {
 		if e == c {
 			return i

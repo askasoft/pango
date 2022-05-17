@@ -34,7 +34,7 @@ func CreateWriter(name string) Writer {
 }
 
 // ConfigWriter config the writer by the configuration map 'c'
-func ConfigWriter(w Writer, c map[string]interface{}) error {
+func ConfigWriter(w Writer, c map[string]any) error {
 	for k, v := range c {
 		if k != "" && k[0] != '_' && v != nil {
 			if err := setWriterProp(w, k, v); err != nil {
@@ -45,7 +45,7 @@ func ConfigWriter(w Writer, c map[string]interface{}) error {
 	return nil
 }
 
-func setWriterProp(w Writer, k string, v interface{}) (err error) {
+func setWriterProp(w Writer, k string, v any) (err error) {
 	defer func() {
 		if er := recover(); er != nil {
 			err = fmt.Errorf("Panic for set %v: %v", k, er)

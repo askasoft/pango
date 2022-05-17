@@ -29,7 +29,7 @@ func TestLogConfigINI(t *testing.T) {
 	assertLogConfig(t, log)
 }
 
-func assertLogEqual(t *testing.T, msg string, want interface{}, val interface{}) {
+func assertLogEqual(t *testing.T, msg string, want any, val any) {
 	if want != val {
 		t.Errorf("msg = %v, want %v", val, want)
 	}

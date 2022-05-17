@@ -30,7 +30,7 @@ func (log *Log) configJSON(filename string) error {
 	}
 	defer fp.Close()
 
-	c := make(map[string]interface{})
+	c := make(map[string]any)
 	jd := json.NewDecoder(fp)
 	err = jd.Decode(&c)
 	if err != nil {
@@ -49,7 +49,7 @@ func (log *Log) configJSON(filename string) error {
 		switch lvls := lvl.(type) {
 		case string:
 			log.SetLevel(ParseLevel(lvls))
-		case map[string]interface{}:
+		case map[string]any:
 			if err := log.configLogLevels(lvls); err != nil {
 				return err
 			}
@@ -57,7 +57,7 @@ func (log *Log) configJSON(filename string) error {
 	}
 
 	if v, ok := c["writer"]; ok {
-		if a, ok := v.([]interface{}); ok {
+		if a, ok := v.([]any); ok {
 			if err = log.configLogWriter(a, async); err != nil {
 				return err
 			}
@@ -97,13 +97,13 @@ func (log *Log) configINI(filename string) (err error) {
 	if v, ok := c["writer"]; ok {
 		if s, ok := v.(string); ok {
 			ss := str.FieldsAny(s, " ,")
-			a := make([]interface{}, len(ss))
+			a := make([]any, len(ss))
 			for i, w := range ss {
-				var es map[string]interface{}
+				var es map[string]any
 
 				sec := ini.Section("writer." + w)
 				if sec == nil {
-					es = make(map[string]interface{}, 1)
+					es = make(map[string]any, 1)
 				} else {
 					es = sec.Map()
 				}
@@ -125,7 +125,7 @@ func (log *Log) configINI(filename string) (err error) {
 	return nil
 }
 
-func (log *Log) configGetIntValue(m map[string]interface{}, k string) (int, error) {
+func (log *Log) configGetIntValue(m map[string]any, k string) (int, error) {
 	if v, ok := m[k]; ok {
 		if v != nil {
 			n, err := ref.Convert(v, reflect.TypeOf(int(0)))
@@ -138,7 +138,7 @@ func (log *Log) configGetIntValue(m map[string]interface{}, k string) (int, erro
 	return 0, nil
 }
 
-func (log *Log) configLogFormat(m map[string]interface{}) error {
+func (log *Log) configLogFormat(m map[string]any) error {
 	if v, ok := m["format"]; ok {
 		if s, ok := v.(string); ok {
 			log.SetFormatter(NewLogFormatter(s))
@@ -149,7 +149,7 @@ func (log *Log) configLogFormat(m map[string]interface{}) error {
 	return nil
 }
 
-func (log *Log) configLogLevels(lls map[string]interface{}) error {
+func (log *Log) configLogLevels(lls map[string]any) error {
 	lvls := map[string]Level{}
 
 	for k, v := range lls {
@@ -171,10 +171,10 @@ func (log *Log) configLogLevels(lls map[string]interface{}) error {
 	return nil
 }
 
-func (log *Log) configLogWriter(a []interface{}, async int) (err error) {
+func (log *Log) configLogWriter(a []any, async int) (err error) {
 	var ws []Writer
 	for _, i := range a {
-		if c, ok := i.(map[string]interface{}); ok {
+		if c, ok := i.(map[string]any); ok {
 			if n, ok := c["_"]; ok {
 				w := CreateWriter(n.(string))
 				if w == nil {

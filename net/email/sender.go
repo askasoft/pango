@@ -68,14 +68,14 @@ func (s *Sender) Close() error {
 	return err
 }
 
-func (s *Sender) setConn(i interface{}, c net.Conn) {
+func (s *Sender) setConn(i any, c net.Conn) {
 	v := reflect.ValueOf(i).Elem()
 	f := v.FieldByName("conn")
 	pc := (*net.Conn)(unsafe.Pointer(f.UnsafeAddr()))
 	*pc = c
 }
 
-func (s *Sender) getConn(i interface{}) net.Conn {
+func (s *Sender) getConn(i any) net.Conn {
 	v := reflect.ValueOf(i).Elem()
 	f := v.FieldByName("conn")
 	pc := (*net.Conn)(unsafe.Pointer(f.UnsafeAddr()))

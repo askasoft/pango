@@ -14,7 +14,7 @@ func NewAsyncWriter(w Writer, size int) *AsyncWriter {
 
 type signal struct {
 	signal string
-	option interface{}
+	option any
 }
 
 // AsyncWriter write log to multiple writers.

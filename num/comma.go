@@ -14,7 +14,7 @@ import (
 //
 // e.g. Comma(834142) -> 834,142
 // e.g. Comma(834142, "_") -> 834_142
-func Comma(n interface{}, c ...string) string {
+func Comma(n any, c ...string) string {
 	v := reflect.ValueOf(n)
 
 	switch v.Kind() {

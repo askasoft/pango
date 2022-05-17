@@ -36,7 +36,7 @@ func main() {
 }
 
 // ValidateValuer implements vad.CustomTypeFunc
-func ValidateValuer(field reflect.Value) interface{} {
+func ValidateValuer(field reflect.Value) any {
 
 	if valuer, ok := field.Interface().(driver.Valuer); ok {
 

@@ -84,11 +84,11 @@ func (sec *Section) StringsMap() map[string][]string {
 	return m
 }
 
-// Map return the section's entries key.(string)/value.(interface{}) map
-func (sec *Section) Map() map[string]interface{} {
-	m := make(map[string]interface{}, sec.entries.Len())
+// Map return the section's entries key.(string)/value.(any) map
+func (sec *Section) Map() map[string]any {
+	m := make(map[string]any, sec.entries.Len())
 	for it := sec.entries.Iterator(); it.Next(); {
-		var v interface{}
+		var v any
 		switch se := it.Value().(type) {
 		case *col.LinkedList:
 			v = sec.toStrings(se)

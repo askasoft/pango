@@ -24,8 +24,8 @@ func TestStringCompare(t *testing.T) {
 
 func TestConvert(t *testing.T) {
 	cs := []struct {
-		e interface{}
-		s interface{}
+		e any
+		s any
 		b reflect.Type
 	}{
 		{"1.123", 1.123, reflect.TypeOf("")},

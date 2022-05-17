@@ -124,7 +124,7 @@ func (ts *TS) Get(locale, section, name string) (string, bool) {
 }
 
 // Format translate content to target language.
-func (ts *TS) Format(locale, format string, args ...interface{}) string {
+func (ts *TS) Format(locale, format string, args ...any) string {
 	section := ""
 
 	dot := str.LastIndexByte(format, '.')
@@ -141,7 +141,7 @@ func (ts *TS) Format(locale, format string, args ...interface{}) string {
 		return format
 	}
 
-	params := make([]interface{}, 0, len(args))
+	params := make([]any, 0, len(args))
 	for _, arg := range args {
 		if arg != nil {
 			val := reflect.ValueOf(arg)

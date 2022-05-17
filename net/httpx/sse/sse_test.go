@@ -101,7 +101,7 @@ func TestEncodeMap(t *testing.T) {
 	w := new(bytes.Buffer)
 	err := Encode(w, Event{
 		Event: "a map",
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"foo": "b\n\rar",
 			"bar": "id: 2",
 		},
@@ -114,7 +114,7 @@ func TestEncodeSlice(t *testing.T) {
 	w := new(bytes.Buffer)
 	err := Encode(w, Event{
 		Event: "a slice",
-		Data:  []interface{}{1, "text", map[string]interface{}{"foo": "bar"}},
+		Data:  []any{1, "text", map[string]any{"foo": "bar"}},
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, w.String(), "event:a slice\ndata:[1,\"text\",{\"foo\":\"bar\"}]\n\n")
@@ -173,7 +173,7 @@ func TestEncodeStream(t *testing.T) {
 
 	Encode(w, Event{
 		ID:   "123",
-		Data: map[string]interface{}{"foo": "bar", "bar": "foo"},
+		Data: map[string]any{"foo": "bar", "bar": "foo"},
 	})
 
 	Encode(w, Event{

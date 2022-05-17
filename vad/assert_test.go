@@ -9,7 +9,7 @@ import (
 )
 
 // IsEqual returns whether val1 is equal to val2 taking into account Pointers, Interfaces and their underlying types
-func assertIsEqual(val1, val2 interface{}) bool {
+func assertIsEqual(val1, val2 any) bool {
 	v1 := reflect.ValueOf(val1)
 	v2 := reflect.ValueOf(val2)
 
@@ -68,7 +68,7 @@ CASE4:
 
 // NotMatchRegex validates that value matches the regex, either string or *regex
 // and throws an error with line number
-// func assertNotMatchRegex(t *testing.T, value string, regex interface{}) {
+// func assertNotMatchRegex(t *testing.T, value string, regex any) {
 // 	assertNotMatchRegexSkip(t, 2, value, regex)
 // }
 
@@ -76,7 +76,7 @@ CASE4:
 // and throws an error with line number
 // but the skip variable tells NotMatchRegexSkip how far back on the stack to report the error.
 // This is a building block to creating your own more complex validation functions.
-// func assertNotMatchRegexSkip(t *testing.T, skip int, value string, regex interface{}) {
+// func assertNotMatchRegexSkip(t *testing.T, skip int, value string, regex any) {
 // 	if r, ok, err := assertRegexMatches(regex, value); ok || err != nil {
 // 		_, file, line, _ := runtime.Caller(skip)
 
@@ -92,7 +92,7 @@ CASE4:
 
 // MatchRegex validates that value matches the regex, either string or *regex
 // and throws an error with line number
-// func assertMatchRegex(t *testing.T, value string, regex interface{}) {
+// func assertMatchRegex(t *testing.T, value string, regex any) {
 // 	assertMatchRegexSkip(t, 2, value, regex)
 // }
 
@@ -100,7 +100,7 @@ CASE4:
 // and throws an error with line number
 // but the skip variable tells MatchRegexSkip how far back on the stack to report the error.
 // This is a building block to creating your own more complex validation functions.
-// func assertMatchRegexSkip(t *testing.T, skip int, value string, regex interface{}) {
+// func assertMatchRegexSkip(t *testing.T, skip int, value string, regex any) {
 // 	if r, ok, err := assertRegexMatches(regex, value); !ok {
 // 		_, file, line, _ := runtime.Caller(skip)
 
@@ -114,7 +114,7 @@ CASE4:
 // 	}
 // }
 
-// func assertRegexMatches(regex interface{}, value string) (*regexp.Regexp, bool, error) {
+// func assertRegexMatches(regex any, value string) (*regexp.Regexp, bool, error) {
 // 	var err error
 
 // 	r, ok := regex.(*regexp.Regexp)
@@ -130,14 +130,14 @@ CASE4:
 // }
 
 // Equal validates that val1 is equal to val2 and throws an error with line number
-func assertEqual(t *testing.T, val1, val2 interface{}) {
+func assertEqual(t *testing.T, val1, val2 any) {
 	assertEqualSkip(t, 2, val1, val2)
 }
 
 // EqualSkip validates that val1 is equal to val2 and throws an error with line number
 // but the skip variable tells EqualSkip how far back on the stack to report the error.
 // This is a building block to creating your own more complex validation functions.
-func assertEqualSkip(t *testing.T, skip int, val1, val2 interface{}) {
+func assertEqualSkip(t *testing.T, skip int, val1, val2 any) {
 	if !assertIsEqual(val1, val2) {
 		_, file, line, _ := runtime.Caller(skip)
 		fmt.Printf("%s:%d %v does not equal %v\n", path.Base(file), line, val1, val2)
@@ -146,14 +146,14 @@ func assertEqualSkip(t *testing.T, skip int, val1, val2 interface{}) {
 }
 
 // NotEqual validates that val1 is not equal val2 and throws an error with line number
-func assertNotEqual(t *testing.T, val1, val2 interface{}) {
+func assertNotEqual(t *testing.T, val1, val2 any) {
 	assertNotEqualSkip(t, 2, val1, val2)
 }
 
 // NotEqualSkip validates that val1 is not equal to val2 and throws an error with line number
 // but the skip variable tells NotEqualSkip how far back on the stack to report the error.
 // This is a building block to creating your own more complex validation functions.
-func assertNotEqualSkip(t *testing.T, skip int, val1, val2 interface{}) {
+func assertNotEqualSkip(t *testing.T, skip int, val1, val2 any) {
 	if assertIsEqual(val1, val2) {
 		_, file, line, _ := runtime.Caller(skip)
 		fmt.Printf("%s:%d %v should not be equal %v\n", path.Base(file), line, val1, val2)

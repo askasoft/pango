@@ -13,7 +13,7 @@ import (
 func htmlTestLoad(t *testing.T, ht *HTMLTemplates) {
 	sb := &strings.Builder{}
 
-	ctx := map[string]interface{}{
+	ctx := map[string]any{
 		"Title":   "Front Page",
 		"Message": "Hello world!",
 		"Time":    time.Now(),
@@ -36,7 +36,7 @@ func htmlTestLoad(t *testing.T, ht *HTMLTemplates) {
 	}
 
 	sb.Reset()
-	ctx = map[string]interface{}{
+	ctx = map[string]any{
 		"Title":   "Admin Page",
 		"Message": "Hello world!",
 		"Time":    time.Now(),

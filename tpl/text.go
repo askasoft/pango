@@ -129,7 +129,7 @@ func (tt *TextTemplates) loadFile(fsys fs.FS, root, path string) error {
 }
 
 // Render render template with io.Writer
-func (tt *TextTemplates) Render(w io.Writer, name string, data interface{}) error {
+func (tt *TextTemplates) Render(w io.Writer, name string, data any) error {
 	err := tt.template.ExecuteTemplate(w, name, data)
 	if err != nil {
 		return fmt.Errorf("TextTemplates execute template %q error: %w", name, err)

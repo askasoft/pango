@@ -130,7 +130,7 @@ func (ht *HTMLTemplates) loadFile(fsys fs.FS, root, path string) error {
 }
 
 // Render render template with io.Writer
-func (ht *HTMLTemplates) Render(w io.Writer, name string, data interface{}) error {
+func (ht *HTMLTemplates) Render(w io.Writer, name string, data any) error {
 	err := ht.template.ExecuteTemplate(w, name, data)
 	if err != nil {
 		return fmt.Errorf("HTMLTemplates execute template %q error: %w", name, err)

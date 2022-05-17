@@ -60,7 +60,7 @@ type FilterFunc func(ns []byte) bool
 // CustomTypeFunc allows for overriding or adding custom field type handler functions
 // field = field value of the type to return a value to be validated
 // example Valuer from sql drive see https://golang.org/src/database/sql/driver/types.go?s=1210:1293#L29
-type CustomTypeFunc func(field reflect.Value) interface{}
+type CustomTypeFunc func(field reflect.Value) any
 
 // TagNameFunc allows for adding of a custom tag name parser
 type TagNameFunc func(field reflect.StructField) string
@@ -126,7 +126,7 @@ func New() *Validate {
 	}
 
 	v.pool = &sync.Pool{
-		New: func() interface{} {
+		New: func() any {
 			return &validate{
 				v:        v,
 				ns:       make([]byte, 0, 64),
@@ -146,11 +146,11 @@ func (v *Validate) SetTagName(name string) {
 
 // ValidateMapCtx validates a map using a map of validation rules and allows passing of contextual
 // validation validation information via context.Context.
-func (v Validate) ValidateMapCtx(ctx context.Context, data map[string]interface{}, rules map[string]interface{}) map[string]interface{} {
-	errs := make(map[string]interface{})
+func (v Validate) ValidateMapCtx(ctx context.Context, data map[string]any, rules map[string]any) map[string]any {
+	errs := make(map[string]any)
 	for field, rule := range rules {
 		if reflect.ValueOf(rule).Kind() == reflect.Map && reflect.ValueOf(data[field]).Kind() == reflect.Map {
-			err := v.ValidateMapCtx(ctx, data[field].(map[string]interface{}), rule.(map[string]interface{}))
+			err := v.ValidateMapCtx(ctx, data[field].(map[string]any), rule.(map[string]any))
 			if len(err) > 0 {
 				errs[field] = err
 			}
@@ -167,7 +167,7 @@ func (v Validate) ValidateMapCtx(ctx context.Context, data map[string]interface{
 }
 
 // ValidateMap validates map data form a map of tags
-func (v *Validate) ValidateMap(data map[string]interface{}, rules map[string]interface{}) map[string]interface{} {
+func (v *Validate) ValidateMap(data map[string]any, rules map[string]any) map[string]any {
 	return v.ValidateMapCtx(context.Background(), data, rules)
 }
 
@@ -243,7 +243,7 @@ func (v *Validate) RegisterAlias(alias, tags string) {
 //
 // NOTE:
 // - this method is not thread-safe it is intended that these all be registered prior to any validation
-func (v *Validate) RegisterStructValidation(fn StructLevelFunc, types ...interface{}) {
+func (v *Validate) RegisterStructValidation(fn StructLevelFunc, types ...any) {
 	v.RegisterStructValidationCtx(wrapStructLevelFunc(fn), types...)
 }
 
@@ -252,7 +252,7 @@ func (v *Validate) RegisterStructValidation(fn StructLevelFunc, types ...interfa
 //
 // NOTE:
 // - this method is not thread-safe it is intended that these all be registered prior to any validation
-func (v *Validate) RegisterStructValidationCtx(fn StructLevelFuncCtx, types ...interface{}) {
+func (v *Validate) RegisterStructValidationCtx(fn StructLevelFuncCtx, types ...any) {
 
 	if v.structLevelFuncs == nil {
 		v.structLevelFuncs = make(map[reflect.Type]StructLevelFuncCtx)
@@ -271,7 +271,7 @@ func (v *Validate) RegisterStructValidationCtx(fn StructLevelFuncCtx, types ...i
 // RegisterCustomTypeFunc registers a CustomTypeFunc against a number of types
 //
 // NOTE: this method is not thread-safe it is intended that these all be registered prior to any validation
-func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{}) {
+func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...any) {
 
 	if v.customFuncs == nil {
 		v.customFuncs = make(map[reflect.Type]CustomTypeFunc)
@@ -288,7 +288,7 @@ func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...interface{
 //
 // It returns InvalidValidationError for bad values passed in and nil or ValidationErrors as error otherwise.
 // You will need to assert the error if it's not nil eg. err.(validator.ValidationErrors) to access the array of errors.
-func (v *Validate) Struct(s interface{}) error {
+func (v *Validate) Struct(s any) error {
 	return v.StructCtx(context.Background(), s)
 }
 
@@ -297,7 +297,7 @@ func (v *Validate) Struct(s interface{}) error {
 //
 // It returns InvalidValidationError for bad values passed in and nil or ValidationErrors as error otherwise.
 // You will need to assert the error if it's not nil eg. err.(validator.ValidationErrors) to access the array of errors.
-func (v *Validate) StructCtx(ctx context.Context, s interface{}) (err error) {
+func (v *Validate) StructCtx(ctx context.Context, s any) (err error) {
 
 	val := reflect.ValueOf(s)
 	top := val
@@ -333,7 +333,7 @@ func (v *Validate) StructCtx(ctx context.Context, s interface{}) (err error) {
 //
 // It returns InvalidValidationError for bad values passed in and nil or ValidationErrors as error otherwise.
 // You will need to assert the error if it's not nil eg. err.(validator.ValidationErrors) to access the array of errors.
-func (v *Validate) StructFiltered(s interface{}, fn FilterFunc) error {
+func (v *Validate) StructFiltered(s any, fn FilterFunc) error {
 	return v.StructFilteredCtx(context.Background(), s, fn)
 }
 
@@ -343,7 +343,7 @@ func (v *Validate) StructFiltered(s interface{}, fn FilterFunc) error {
 //
 // It returns InvalidValidationError for bad values passed in and nil or ValidationErrors as error otherwise.
 // You will need to assert the error if it's not nil eg. err.(validator.ValidationErrors) to access the array of errors.
-func (v *Validate) StructFilteredCtx(ctx context.Context, s interface{}, fn FilterFunc) (err error) {
+func (v *Validate) StructFilteredCtx(ctx context.Context, s any, fn FilterFunc) (err error) {
 	val := reflect.ValueOf(s)
 	top := val
 
@@ -380,7 +380,7 @@ func (v *Validate) StructFilteredCtx(ctx context.Context, s interface{}, fn Filt
 //
 // It returns InvalidValidationError for bad values passed in and nil or ValidationErrors as error otherwise.
 // You will need to assert the error if it's not nil eg. err.(validator.ValidationErrors) to access the array of errors.
-func (v *Validate) StructPartial(s interface{}, fields ...string) error {
+func (v *Validate) StructPartial(s any, fields ...string) error {
 	return v.StructPartialCtx(context.Background(), s, fields...)
 }
 
@@ -391,7 +391,7 @@ func (v *Validate) StructPartial(s interface{}, fields ...string) error {
 //
 // It returns InvalidValidationError for bad values passed in and nil or ValidationErrors as error otherwise.
 // You will need to assert the error if it's not nil eg. err.(validator.ValidationErrors) to access the array of errors.
-func (v *Validate) StructPartialCtx(ctx context.Context, s interface{}, fields ...string) (err error) {
+func (v *Validate) StructPartialCtx(ctx context.Context, s any, fields ...string) (err error) {
 	val := reflect.ValueOf(s)
 	top := val
 
@@ -470,7 +470,7 @@ func (v *Validate) StructPartialCtx(ctx context.Context, s interface{}, fields .
 //
 // It returns InvalidValidationError for bad values passed in and nil or ValidationErrors as error otherwise.
 // You will need to assert the error if it's not nil eg. err.(validator.ValidationErrors) to access the array of errors.
-func (v *Validate) StructExcept(s interface{}, fields ...string) error {
+func (v *Validate) StructExcept(s any, fields ...string) error {
 	return v.StructExceptCtx(context.Background(), s, fields...)
 }
 
@@ -481,7 +481,7 @@ func (v *Validate) StructExcept(s interface{}, fields ...string) error {
 //
 // It returns InvalidValidationError for bad values passed in and nil or ValidationErrors as error otherwise.
 // You will need to assert the error if it's not nil eg. err.(validator.ValidationErrors) to access the array of errors.
-func (v *Validate) StructExceptCtx(ctx context.Context, s interface{}, fields ...string) (err error) {
+func (v *Validate) StructExceptCtx(ctx context.Context, s any, fields ...string) (err error) {
 	val := reflect.ValueOf(s)
 	top := val
 
@@ -542,7 +542,7 @@ func (v *Validate) StructExceptCtx(ctx context.Context, s interface{}, fields ..
 // It returns InvalidValidationError for bad values passed in and nil or ValidationErrors as error otherwise.
 // You will need to assert the error if it's not nil eg. err.(validator.ValidationErrors) to access the array of errors.
 // validate Array, Slice and maps fields which may contain more than one error
-func (v *Validate) Var(field interface{}, tag string) error {
+func (v *Validate) Var(field any, tag string) error {
 	return v.VarCtx(context.Background(), field, tag)
 }
 
@@ -560,7 +560,7 @@ func (v *Validate) Var(field interface{}, tag string) error {
 // It returns InvalidValidationError for bad values passed in and nil or ValidationErrors as error otherwise.
 // You will need to assert the error if it's not nil eg. err.(validator.ValidationErrors) to access the array of errors.
 // validate Array, Slice and maps fields which may contain more than one error
-func (v *Validate) VarCtx(ctx context.Context, field interface{}, tag string) (err error) {
+func (v *Validate) VarCtx(ctx context.Context, field any, tag string) (err error) {
 	if len(tag) == 0 || tag == skipValidationTag {
 		return nil
 	}
@@ -594,7 +594,7 @@ func (v *Validate) VarCtx(ctx context.Context, field interface{}, tag string) (e
 // It returns InvalidValidationError for bad values passed in and nil or ValidationErrors as error otherwise.
 // You will need to assert the error if it's not nil eg. err.(validator.ValidationErrors) to access the array of errors.
 // validate Array, Slice and maps fields which may contain more than one error
-func (v *Validate) VarWithValue(field interface{}, other interface{}, tag string) error {
+func (v *Validate) VarWithValue(field any, other any, tag string) error {
 	return v.VarWithValueCtx(context.Background(), field, other, tag)
 }
 
@@ -613,7 +613,7 @@ func (v *Validate) VarWithValue(field interface{}, other interface{}, tag string
 // It returns InvalidValidationError for bad values passed in and nil or ValidationErrors as error otherwise.
 // You will need to assert the error if it's not nil eg. err.(validator.ValidationErrors) to access the array of errors.
 // validate Array, Slice and maps fields which may contain more than one error
-func (v *Validate) VarWithValueCtx(ctx context.Context, field interface{}, other interface{}, tag string) (err error) {
+func (v *Validate) VarWithValueCtx(ctx context.Context, field any, other any, tag string) (err error) {
 	if len(tag) == 0 || tag == skipValidationTag {
 		return nil
 	}

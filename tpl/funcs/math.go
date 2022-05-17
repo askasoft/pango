@@ -6,7 +6,7 @@ import (
 )
 
 // Add returns the sum of a and b.
-func Add(b, a interface{}) (interface{}, error) {
+func Add(b, a any) (any, error) {
 	av := reflect.ValueOf(a)
 	bv := reflect.ValueOf(b)
 
@@ -50,7 +50,7 @@ func Add(b, a interface{}) (interface{}, error) {
 }
 
 // Subtract returns the difference of b from a.
-func Subtract(b, a interface{}) (interface{}, error) {
+func Subtract(b, a any) (any, error) {
 	av := reflect.ValueOf(a)
 	bv := reflect.ValueOf(b)
 
@@ -94,7 +94,7 @@ func Subtract(b, a interface{}) (interface{}, error) {
 }
 
 // Multiply returns the product of a and b.
-func Multiply(b, a interface{}) (interface{}, error) {
+func Multiply(b, a any) (any, error) {
 	av := reflect.ValueOf(a)
 	bv := reflect.ValueOf(b)
 
@@ -138,7 +138,7 @@ func Multiply(b, a interface{}) (interface{}, error) {
 }
 
 // Divide returns the division of b from a.
-func Divide(b, a interface{}) (interface{}, error) {
+func Divide(b, a any) (any, error) {
 	av := reflect.ValueOf(a)
 	bv := reflect.ValueOf(b)
 

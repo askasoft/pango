@@ -10,36 +10,36 @@ import (
 var errNotSupport = errors.New("not support")
 
 // Convert convert the value v to the specified Type t
-func Convert(v interface{}, t reflect.Type) (ti interface{}, err error) {
+func Convert(v interface{}, t reflect.Type) (cv interface{}, err error) {
 	switch t.Kind() {
 	case reflect.Int:
-		ti, err = toInt(v)
+		cv, err = toInt(v)
 	case reflect.Int8:
-		ti, err = toInt8(v)
+		cv, err = toInt8(v)
 	case reflect.Int16:
-		ti, err = toInt16(v)
+		cv, err = toInt16(v)
 	case reflect.Int32:
-		ti, err = toInt32(v)
+		cv, err = toInt32(v)
 	case reflect.Int64:
-		ti, err = toInt64(v)
+		cv, err = toInt64(v)
 	case reflect.Uint:
-		ti, err = toUint(v)
+		cv, err = toUint(v)
 	case reflect.Uint8:
-		ti, err = toUint8(v)
+		cv, err = toUint8(v)
 	case reflect.Uint16:
-		ti, err = toUint16(v)
+		cv, err = toUint16(v)
 	case reflect.Uint32:
-		ti, err = toUint32(v)
+		cv, err = toUint32(v)
 	case reflect.Uint64:
-		ti, err = toUint64(v)
+		cv, err = toUint64(v)
 	case reflect.Float32:
-		ti, err = toFloat32(v)
+		cv, err = toFloat32(v)
 	case reflect.Float64:
-		ti, err = toFloat64(v)
+		cv, err = toFloat64(v)
 	case reflect.Bool:
-		ti, err = toBool(v)
+		cv, err = toBool(v)
 	case reflect.String:
-		ti, err = toString(v)
+		cv, err = toString(v)
 	default:
 		sv := reflect.ValueOf(v)
 		if sv.IsValid() {

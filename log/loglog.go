@@ -175,7 +175,7 @@ func (log *Log) SetTraceLevel(lvl Level) {
 }
 
 // GetProp get logger property
-func (log *Log) GetProp(k string) interface{} {
+func (log *Log) GetProp(k string) any {
 	ps := log.logger.props
 	if ps == nil {
 		return nil
@@ -184,19 +184,19 @@ func (log *Log) GetProp(k string) interface{} {
 }
 
 // SetProp set logger property
-func (log *Log) SetProp(k string, v interface{}) {
+func (log *Log) SetProp(k string, v any) {
 	log.logger.SetProp(k, v)
 }
 
 // GetProps get logger properties
-func (log *Log) GetProps() map[string]interface{} {
+func (log *Log) GetProps() map[string]any {
 	tm := log.logger.props
 	if tm == nil {
 		return nil
 	}
 
 	// new return props
-	nm := make(map[string]interface{}, len(tm))
+	nm := make(map[string]any, len(tm))
 	for k, v := range tm {
 		nm[k] = v
 	}
@@ -204,7 +204,7 @@ func (log *Log) GetProps() map[string]interface{} {
 }
 
 // SetProps set logger properties
-func (log *Log) SetProps(props map[string]interface{}) {
+func (log *Log) SetProps(props map[string]any) {
 	log.logger.SetProps(props)
 }
 
@@ -224,12 +224,12 @@ func (log *Log) IsLevelEnabled(lvl Level) bool {
 }
 
 // Log log a message at specified level.
-func (log *Log) Log(lvl Level, v ...interface{}) {
+func (log *Log) Log(lvl Level, v ...any) {
 	log.logger._log(lvl, v...)
 }
 
 // Logf format and log a message at specified level.
-func (log *Log) Logf(lvl Level, f string, v ...interface{}) {
+func (log *Log) Logf(lvl Level, f string, v ...any) {
 	log.logger._logf(lvl, f, v...)
 }
 
@@ -239,12 +239,12 @@ func (log *Log) IsFatalEnabled() bool {
 }
 
 // Fatal log a message at fatal level.
-func (log *Log) Fatal(v ...interface{}) {
+func (log *Log) Fatal(v ...any) {
 	log.logger._log(LevelFatal, v...)
 }
 
 // Fatalf format and log a message at fatal level.
-func (log *Log) Fatalf(f string, v ...interface{}) {
+func (log *Log) Fatalf(f string, v ...any) {
 	log.logger._logf(LevelFatal, f, v...)
 }
 
@@ -254,12 +254,12 @@ func (log *Log) IsErrorEnabled() bool {
 }
 
 // Error log a message at error level.
-func (log *Log) Error(v ...interface{}) {
+func (log *Log) Error(v ...any) {
 	log.logger._log(LevelError, v...)
 }
 
 // Errorf format and log a message at error level.
-func (log *Log) Errorf(f string, v ...interface{}) {
+func (log *Log) Errorf(f string, v ...any) {
 	log.logger._logf(LevelError, f, v...)
 }
 
@@ -269,12 +269,12 @@ func (log *Log) IsWarnEnabled() bool {
 }
 
 // Warn log a message at warning level.
-func (log *Log) Warn(v ...interface{}) {
+func (log *Log) Warn(v ...any) {
 	log.logger._log(LevelWarn, v...)
 }
 
 // Warnf format and log a message at warning level.
-func (log *Log) Warnf(f string, v ...interface{}) {
+func (log *Log) Warnf(f string, v ...any) {
 	log.logger._logf(LevelWarn, f, v...)
 }
 
@@ -284,12 +284,12 @@ func (log *Log) IsInfoEnabled() bool {
 }
 
 // Info log a message at info level.
-func (log *Log) Info(v ...interface{}) {
+func (log *Log) Info(v ...any) {
 	log.logger._log(LevelInfo, v...)
 }
 
 // Infof format and log a message at info level.
-func (log *Log) Infof(f string, v ...interface{}) {
+func (log *Log) Infof(f string, v ...any) {
 	log.logger._logf(LevelInfo, f, v...)
 }
 
@@ -299,12 +299,12 @@ func (log *Log) IsDebugEnabled() bool {
 }
 
 // Debug log a message at debug level.
-func (log *Log) Debug(v ...interface{}) {
+func (log *Log) Debug(v ...any) {
 	log.logger._log(LevelDebug, v...)
 }
 
 // Debugf format log a message at debug level.
-func (log *Log) Debugf(f string, v ...interface{}) {
+func (log *Log) Debugf(f string, v ...any) {
 	log.logger._logf(LevelDebug, f, v...)
 }
 
@@ -314,11 +314,11 @@ func (log *Log) IsTraceEnabled() bool {
 }
 
 // Trace log a message at trace level.
-func (log *Log) Trace(v ...interface{}) {
+func (log *Log) Trace(v ...any) {
 	log.logger._log(LevelTrace, v...)
 }
 
 // Tracef format and log a message at trace level.
-func (log *Log) Tracef(f string, v ...interface{}) {
+func (log *Log) Tracef(f string, v ...any) {
 	log.logger._logf(LevelTrace, f, v...)
 }

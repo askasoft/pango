@@ -293,14 +293,14 @@ func TestTreeMapHeadAndTail(t *testing.T) {
 	if av, ev := fmt.Sprintf("%d", tree.Head().key), "1"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
-	if av, ev := fmt.Sprintf("%s", tree.Head().value), "x"; av != ev {
+	if av, ev := tree.Head().value, "x"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
 
 	if av, ev := fmt.Sprintf("%d", tree.Tail().key), "7"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
-	if av, ev := fmt.Sprintf("%s", tree.Tail().value), "g"; av != ev {
+	if av, ev := tree.Tail().value, "g"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
 }

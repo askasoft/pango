@@ -398,7 +398,7 @@ func (lm *LinkedHashMap) addJSONObjectItem(k string, v V) {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(lm)
 func (lm *LinkedHashMap) MarshalJSON() (res []byte, err error) {
-	return jsonMarshalIterMap(lm)
+	return jsonMarshalObject(lm)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, lm)

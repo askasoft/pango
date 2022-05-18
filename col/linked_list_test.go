@@ -20,7 +20,7 @@ func TestLinkedListInterface(t *testing.T) {
 		t.Error("LinkedList is not a Queue")
 	}
 
-	var dq Queue = NewLinkedList()
+	var dq Deque = NewLinkedList()
 	if dq == nil {
 		t.Error("LinkedList is not a Deque")
 	}

@@ -254,7 +254,7 @@ func (hs *HashSet) addJSONArrayItem(v T) jsonArray {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(hs)
 func (hs *HashSet) MarshalJSON() (res []byte, err error) {
-	return jsonMarshalSet(hs)
+	return jsonMarshalArray(hs)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, hs)

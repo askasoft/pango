@@ -178,33 +178,14 @@ func jsonHandleDelim(dec *json.Decoder, t json.Token) (T, error) {
 }
 
 //---------------------------------------------------------------------
-func jsonMarshalIter(it Iterator) (res []byte, err error) {
-	res = append(res, '[')
-	for it.Next() {
-		var b []byte
-		b, err = json.Marshal(it.Value())
-		if err != nil {
-			return
-		}
-		res = append(res, b...)
-		res = append(res, ',')
-	}
-	res[len(res)-1] = ']'
-	return
-}
-
-func jsonMarshalSet(set Set) (res []byte, err error) {
-	if set.IsEmpty() {
+func jsonMarshalArray(col Collection) (res []byte, err error) {
+	if col.IsEmpty() {
 		return []byte("[]"), nil
 	}
 
-	if ic, ok := set.(Iterable); ok {
-		return jsonMarshalIter(ic.Iterator())
-	}
-
-	var bs []byte
 	res = append(res, '[')
-	set.Each(func(v T) {
+	col.Each(func(v T) {
+		var bs []byte
 		bs, err = json.Marshal(v)
 		if err != nil {
 			return
@@ -216,46 +197,15 @@ func jsonMarshalSet(set Set) (res []byte, err error) {
 	return
 }
 
-func jsonMarshalList(list List) (res []byte, err error) {
-	if list.IsEmpty() {
-		return []byte("[]"), nil
-	}
-
-	return jsonMarshalIter(list.Iterator())
-}
-
-func jsonMarshalIterMap(im IterableMap) (res []byte, err error) {
-	if im.IsEmpty() {
+func jsonMarshalObject(m Map) (res []byte, err error) {
+	if m.IsEmpty() {
 		return []byte("{}"), nil
 	}
 
-	var bs []byte
-
 	res = append(res, '{')
-	it := im.Iterator()
-	for it.Next() {
-		k := fmt.Sprintf("%v", it.Key())
-		res = append(res, fmt.Sprintf("%q:", k)...)
-		bs, err = json.Marshal(it.Value())
-		if err != nil {
-			return
-		}
-		res = append(res, bs...)
-		res = append(res, ',')
-	}
-	res[len(res)-1] = '}'
-	return
-}
-
-func jsonMarshalHashMap(hmap map[K]V) (res []byte, err error) {
-	if len(hmap) == 0 {
-		return []byte("{}"), nil
-	}
-
-	var bs []byte
-	res = append(res, '{')
-	for k, v := range hmap {
-		k := fmt.Sprintf("%v", k)
+	m.Each(func(k K, v V) {
+		var bs []byte
+		k = fmt.Sprintf("%v", k)
 		res = append(res, fmt.Sprintf("%q:", k)...)
 		bs, err = json.Marshal(v)
 		if err != nil {
@@ -263,7 +213,7 @@ func jsonMarshalHashMap(hmap map[K]V) (res []byte, err error) {
 		}
 		res = append(res, bs...)
 		res = append(res, ',')
-	}
+	})
 	res[len(res)-1] = '}'
 	return
 }

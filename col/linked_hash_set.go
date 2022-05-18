@@ -660,7 +660,7 @@ func (ls *LinkedHashSet) addJSONArrayItem(v T) jsonArray {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(ls)
 func (ls *LinkedHashSet) MarshalJSON() (res []byte, err error) {
-	return jsonMarshalSet(ls)
+	return jsonMarshalArray(ls)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, ls)

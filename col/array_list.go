@@ -536,7 +536,7 @@ func (al *ArrayList) addJSONArrayItem(v T) jsonArray {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(al)
 func (al *ArrayList) MarshalJSON() (res []byte, err error) {
-	return jsonMarshalList(al)
+	return jsonMarshalArray(al)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, al)

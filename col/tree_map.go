@@ -889,7 +889,7 @@ func (tm *TreeMap) addJSONObjectItem(k string, v V) {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(tm)
 func (tm *TreeMap) MarshalJSON() (res []byte, err error) {
-	return jsonMarshalIterMap(tm)
+	return jsonMarshalObject(tm)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, tm)

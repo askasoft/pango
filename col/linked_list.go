@@ -586,7 +586,7 @@ func (ll *LinkedList) addJSONArrayItem(v T) jsonArray {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(ll)
 func (ll *LinkedList) MarshalJSON() (res []byte, err error) {
-	return jsonMarshalList(ll)
+	return jsonMarshalArray(ll)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, ll)

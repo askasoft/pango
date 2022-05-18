@@ -179,7 +179,7 @@ func (hm *HashMap) addJSONObjectItem(k string, v V) {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(lm)
 func (hm *HashMap) MarshalJSON() (res []byte, err error) {
-	return jsonMarshalHashMap(hm.hash)
+	return jsonMarshalObject(hm)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, lm)

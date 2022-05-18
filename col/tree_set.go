@@ -940,7 +940,7 @@ func (ts *TreeSet) addJSONArrayItem(v T) jsonArray {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(ts)
 func (ts *TreeSet) MarshalJSON() (res []byte, err error) {
-	return jsonMarshalSet(ts)
+	return jsonMarshalArray(ts)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, ts)

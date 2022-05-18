@@ -22,7 +22,7 @@ func TestRingBufferInterface(t *testing.T) {
 		t.Error("RingBuffer is not a Queue")
 	}
 
-	var dq Queue = NewRingBuffer()
+	var dq Deque = NewRingBuffer()
 	if dq == nil {
 		t.Error("RingBuffer is not a Deque")
 	}

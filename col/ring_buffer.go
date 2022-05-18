@@ -705,7 +705,7 @@ func (rb *RingBuffer) addJSONArrayItem(v T) jsonArray {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(rb)
 func (rb *RingBuffer) MarshalJSON() (res []byte, err error) {
-	return jsonMarshalList(rb)
+	return jsonMarshalArray(rb)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, rb)

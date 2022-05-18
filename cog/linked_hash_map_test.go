@@ -29,7 +29,7 @@ func TestLinkedHashMapBasicFeatures(t *testing.T) {
 	n := 100
 	// set(i, 2 * i)
 	for i := 0; i < n; i++ {
-		ov, ok := any(nil), false
+		ov, ok := 0, false
 
 		assertLenEqual("TestLinkedHashMapBasicFeatures", t, lm, i)
 		if i%2 == 0 {
@@ -39,23 +39,24 @@ func TestLinkedHashMapBasicFeatures(t *testing.T) {
 		}
 		assertLenEqual("TestLinkedHashMapBasicFeatures", t, lm, i+1)
 
-		var w any
-		if ov != w {
-			t.Errorf("[%d] Set() val = %v, want %v", i, ov, w)
+		wv := 0
+		if ov != wv {
+			t.Errorf("[%d] Set() val = %v, want %v", i, ov, wv)
 		}
-		w = false
-		if ok != w {
-			t.Errorf("[%d] Set() ok = %v, want %v", i, ok, w)
+
+		wf := false
+		if ok != wf {
+			t.Errorf("[%d] Set() ok = %v, want %v", i, ok, wf)
 		}
 
 		ov, ok = lm.SetIfAbsent(i, 3*i)
-		w = 2 * i
-		if ov != w {
-			t.Errorf("[%d] SetIfAbsent() val = %v, want %v", i, ov, w)
+		wv = 2 * i
+		if ov != wv {
+			t.Errorf("[%d] SetIfAbsent() val = %v, want %v", i, ov, wv)
 		}
-		w = true
-		if ok != w {
-			t.Errorf("[%d] SetIfAbsent() ok = %v, want %v", i, ok, w)
+		wf = true
+		if ok != wf {
+			t.Errorf("[%d] SetIfAbsent() ok = %v, want %v", i, ok, wf)
 		}
 	}
 
@@ -63,14 +64,14 @@ func TestLinkedHashMapBasicFeatures(t *testing.T) {
 	for i := 0; i < n; i++ {
 		ov, ok := lm.Get(i)
 
-		var w any
-		w = 2 * i
-		if ov != w {
-			t.Errorf("[%d] get val = %v, want %v", i, ov, w)
+		wv := 2 * i
+		if ov != wv {
+			t.Errorf("[%d] get val = %v, want %v", i, ov, wv)
 		}
-		w = true
-		if ok != w {
-			t.Errorf("[%d] get ok = %v, want %v", i, ok, w)
+
+		wf := true
+		if ok != wf {
+			t.Errorf("[%d] get ok = %v, want %v", i, ok, wf)
 		}
 	}
 
@@ -86,7 +87,7 @@ func TestLinkedHashMapBasicFeatures(t *testing.T) {
 	}
 
 	// keys
-	ks := make([]any, n)
+	ks := make([]int, n)
 	for i := 0; i < n; i++ {
 		ks[i] = i
 	}
@@ -109,7 +110,7 @@ func TestLinkedHashMapBasicFeatures(t *testing.T) {
 	}
 
 	// values
-	vs := make([]any, n)
+	vs := make([]int, n)
 	for i := 0; i < n; i++ {
 		vs[i] = i * 2
 	}
@@ -554,10 +555,10 @@ func TestLinkedHashMapRemove(t *testing.T) {
 	m.Delete(2)
 	m.Delete(2)
 
-	if av, ev := fmt.Sprintf("%s", m.Keys()), "[]"; av != ev {
+	if av, ev := fmt.Sprintf("%v", m.Keys()), "[]"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
-	if av, ev := fmt.Sprintf("%s", m.Values()), "[]"; av != ev {
+	if av, ev := fmt.Sprintf("%v", m.Values()), "[]"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
 	if av := m.Len(); av != 0 {
@@ -753,7 +754,7 @@ func TestLinkedHashMapIteratorRemove(t *testing.T) {
 		m := NewLinkedHashMap[int, int]()
 		w := NewLinkedHashMap[int, int]()
 
-		for n := 0; n < i; n++ {
+		for n := 1; n <= i; n++ {
 			m.Set(n, -n)
 			w.Set(n, -n)
 		}

@@ -1,3 +1,6 @@
+//go:build go1.18
+// +build go1.18
+
 package cog
 
 // Less will make type assertion (see LessString(a,b) for example),

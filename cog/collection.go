@@ -1,3 +1,6 @@
+//go:build go1.18
+// +build go1.18
+
 package cog
 
 // Sortable a value each interface for collection

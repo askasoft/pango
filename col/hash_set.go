@@ -136,7 +136,7 @@ func (hs *HashSet) Contains(vs ...T) bool {
 
 // ContainsAll Test to see if the collection contains all items of another collection
 func (hs *HashSet) ContainsAll(ac Collection) bool {
-	if hs == ac || ac.IsEmpty() {
+	if ac.IsEmpty() || hs == ac {
 		return true
 	}
 

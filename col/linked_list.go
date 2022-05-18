@@ -109,7 +109,7 @@ func (ll *LinkedList) Contains(vs ...T) bool {
 
 // ContainsAll Test to see if the collection contains all items of another collection
 func (ll *LinkedList) ContainsAll(ac Collection) bool {
-	if ll == ac || ac.IsEmpty() {
+	if ac.IsEmpty() || ll == ac {
 		return true
 	}
 

@@ -117,12 +117,22 @@ func (rb *RingBuffer) Contains(vs ...T) bool {
 
 // ContainsAll Test to see if the collection contains all items of another collection
 func (rb *RingBuffer) ContainsAll(ac Collection) bool {
-	if rb == ac || ac.IsEmpty() {
+	if ac.IsEmpty() || rb == ac {
 		return true
 	}
 
 	if rb.IsEmpty() {
 		return false
+	}
+
+	if ic, ok := ac.(Iterable); ok {
+		it := ic.Iterator()
+		for it.Next() {
+			if rb.Index(it.Value()) < 0 {
+				return false
+			}
+		}
+		return true
 	}
 
 	return rb.Contains(ac.Values()...)

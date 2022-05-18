@@ -133,7 +133,7 @@ func (ts *TreeSet) Contains(vs ...T) bool {
 
 // ContainsAll Test to see if the collection contains all items of another collection
 func (ts *TreeSet) ContainsAll(ac Collection) bool {
-	if ts == ac || ac.IsEmpty() {
+	if ac.IsEmpty() || ts == ac {
 		return true
 	}
 

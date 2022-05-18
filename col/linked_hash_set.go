@@ -121,7 +121,7 @@ func (ls *LinkedHashSet) Contains(vs ...T) bool {
 
 // ContainsAll Test to see if the collection contains all items of another collection
 func (ls *LinkedHashSet) ContainsAll(ac Collection) bool {
-	if ls == ac || ac.IsEmpty() {
+	if ac.IsEmpty() || ls == ac {
 		return true
 	}
 

@@ -130,12 +130,22 @@ func (al *ArrayList) Contains(vs ...T) bool {
 
 // ContainsAll Test to see if the collection contains all items of another collection
 func (al *ArrayList) ContainsAll(ac Collection) bool {
-	if al == ac || ac.IsEmpty() {
+	if ac.IsEmpty() || al == ac {
 		return true
 	}
 
 	if al.IsEmpty() {
 		return false
+	}
+
+	if ic, ok := ac.(Iterable); ok {
+		it := ic.Iterator()
+		for it.Next() {
+			if al.Index(it.Value()) < 0 {
+				return false
+			}
+		}
+		return true
 	}
 
 	return al.Contains(ac.Values()...)

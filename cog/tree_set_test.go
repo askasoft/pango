@@ -12,7 +12,7 @@ import (
 )
 
 func TestTreeSetInterface(t *testing.T) {
-	var s Set[int] = NewTreeSet[int](CompareInt)
+	var s Set[int] = NewTreeSet(CompareInt)
 	if s == nil {
 		t.Error("TreeSet is not a Set")
 	}
@@ -70,7 +70,7 @@ func TestTreeSetClear(t *testing.T) {
 }
 
 func TestTreeSetContains(t *testing.T) {
-	list := NewTreeSet[int](CompareInt)
+	list := NewTreeSet(CompareInt)
 
 	a := []int{}
 	for i := 0; i < 100; i++ {
@@ -109,7 +109,7 @@ func TestTreeSetContains(t *testing.T) {
 func TestTreeSetRetain(t *testing.T) {
 	for n := 0; n < 100; n++ {
 		a := []int{}
-		list := NewTreeSet[int](CompareInt)
+		list := NewTreeSet(CompareInt)
 		for i := 0; i < n; i++ {
 			if i&1 == 0 {
 				a = append(a, i)
@@ -168,7 +168,7 @@ func TestTreeSetValues(t *testing.T) {
 }
 
 func TestTreeSetEach(t *testing.T) {
-	tset := NewTreeSet[string](CompareString)
+	tset := NewTreeSet(CompareString)
 	tset.Add("a", "b", "c")
 	tset.Add("a", "b", "c")
 	index := 0
@@ -379,7 +379,7 @@ func TestTreeSetIteratorRemove(t *testing.T) {
 }
 
 func TestTreeSetIteratorSetValue(t *testing.T) {
-	tset := NewTreeSet[int](CompareInt)
+	tset := NewTreeSet(CompareInt)
 	for i := 1; i <= 100; i++ {
 		tset.Add(i)
 	}
@@ -414,7 +414,7 @@ func TestTreeSetIteratorSetValue(t *testing.T) {
 
 func TestTreeSetSort(t *testing.T) {
 	for i := 1; i < 20; i++ {
-		tset := NewTreeSet[int](CompareInt)
+		tset := NewTreeSet(CompareInt)
 
 		a := make([]int, 0, 20)
 		for n := i; n < 20; n++ {

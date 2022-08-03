@@ -9,12 +9,9 @@
 	"writer": [{
 		"_": "stdout",
 		"format": "%l - %m%n%T",
-		"filter": "name:out level:debug"
+		"filter": "name:out level:trace"
 	}, {
-		"_": "stderr",
-		"color": true,
-		"format": "%l - %m%n%T",
-		"filter": "level:error"
+		"_": "stderr"
 	}, {
 		"_": "conn",
 		"_async": 1000,
@@ -22,7 +19,7 @@
 		"addr": "localhost:9999",
 		"timeout": "5s",
 		"format": "%l - %m%n%T",
-		"filter": "level:error"
+		"filter": "level:debug"
 	}, {
 		"_": "file",
 		"_async": 1000,
@@ -31,7 +28,7 @@
 		"maxDays": 7,
 		"syncLevel": "error",
 		"format": "%l %S:%L %F() - %m%n%T",
-		"filter": "level:error"
+		"filter": "level:info"
 	}, {
 		"_": "slack",
 		"_async": 1000,
@@ -41,7 +38,7 @@
 		"webhook": "https://hooks.slack.com/services/...",
 		"timeout": "5s",
 		"format": "%l - %m%n%T",
-		"filter": "level:error"
+		"filter": "level:warn"
 	}, {
 		"_": "smtp",
 		"_async": 1000,
@@ -57,12 +54,19 @@
 		"format": "%l - %m%n%T",
 		"filter": "level:error"
 	}, {
+		"_": "teams",
+		"_async": 1000,
+		"webhook": "https://xxx.webhook.office.com/webhookb2/...",
+		"timeout": "3s",
+		"format": "%l - %m%n%T",
+		"filter": "level:fatal"
+	}, {
 		"_": "webhook",
 		"_async": 1000,
 		"webhook": "http://localhost:9200/pango/logs",
 		"contentType": "application/json",
 		"timeout": "5s",
 		"format": "json:{\"when\":%t{2006-01-02T15:04:05.000Z07:00}, \"level\":%l, \"file\":%S, \"line\":%L, \"func\":%F, \"msg\": %m, \"stack\": %T}%n",
-		"filter": "level:error"
+		"filter": "level:fatal"
 	}]
 }

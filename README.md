@@ -16,6 +16,7 @@ Pango is a GO development utility library.
 | [net/email](#netemail)           | a email sender package                  |
 | [net/httpx](#nethttpx)           | a package for http                      |
 | [net/slack](#netslack)           | a slack webhook sender package          |
+| [net/teams](#netteams)           | a teams webhook sender package          |
 | [str](#str)                      | a strings package wrapper and provides some useful utility functions      |
 | [tpl](#tpl)                      | a text/template, html/template wrapper for recursively load template file |
 
@@ -711,6 +712,18 @@ Configure like this:
 	log.Fatal("oh my god!")
 ```
 
+#### Teams writer
+
+Configure like this:
+
+```golang
+	log := log.NewLog()
+	log.SetWriter(log.NewSyncWriter(&log.TeamsWriter{
+		Webhook: "https://xxx.webhook.office.com/webhookb2/...",
+	}))
+	log.Error("error")
+```
+
 #### Webhook writer
 
 Configure like this:
@@ -834,6 +847,14 @@ to = to1@test.com, to2@test.com
 cc = cc1@test.com, cc2@test.com
 timeout = 5s
 subject = %l - %m 
+format = %l - %m%n%T
+filter = level:error
+
+### teams writer ###
+[writer.teams]
+_async = 1000
+webhook = https://xxx.webhook.office.com/webhookb2/...
+timeout = 5s
 format = %l - %m%n%T
 filter = level:error
 

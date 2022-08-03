@@ -49,7 +49,7 @@ func (ww *WebhookWriter) SetTimeout(timeout string) error {
 func (ww *WebhookWriter) SetErrBuffer(buffer string) error {
 	bsz, err := strconv.Atoi(buffer)
 	if err != nil {
-		return fmt.Errorf("SlackWriter - Invalid error buffer: %w", err)
+		return fmt.Errorf("WebhookWriter - Invalid error buffer: %w", err)
 	}
 	if bsz > 0 {
 		ww.eb = &EventBuffer{BufSize: bsz}

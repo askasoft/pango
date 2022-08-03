@@ -74,7 +74,7 @@ func (sw *SMTPWriter) SetTimeout(timeout string) error {
 func (sw *SMTPWriter) SetErrBuffer(buffer string) error {
 	bsz, err := strconv.Atoi(buffer)
 	if err != nil {
-		return fmt.Errorf("SlackWriter - Invalid error buffer: %w", err)
+		return fmt.Errorf("SMTPWriter - Invalid error buffer: %w", err)
 	}
 	if bsz > 0 {
 		sw.eb = &EventBuffer{BufSize: bsz}

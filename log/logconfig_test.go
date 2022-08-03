@@ -31,7 +31,7 @@ func TestLogConfigINI(t *testing.T) {
 
 func assertLogEqual(t *testing.T, msg string, want any, val any) {
 	if want != val {
-		t.Errorf("msg = %v, want %v", val, want)
+		t.Errorf("%s: actual = %v, want %v", msg, val, want)
 	}
 }
 
@@ -61,7 +61,7 @@ func assertLogConfig(t *testing.T, log *Log) {
 		t.Fatalf("Not MultiWriter")
 	}
 
-	assertLogEqual(t, `len(mw.Writers)`, 7, len(mw.Writers))
+	assertLogEqual(t, `len(mw.Writers)`, 8, len(mw.Writers))
 
 	i := 0
 	{
@@ -87,7 +87,7 @@ func assertLogConfig(t *testing.T, log *Log) {
 		if !ok {
 			t.Fatalf("Not LevelFilter")
 		}
-		assertLogEqual(t, `lf.Level`, LevelDebug, lf.Level)
+		assertLogEqual(t, `lf.Level`, LevelTrace, lf.Level)
 	}
 
 	i++
@@ -117,7 +117,7 @@ func assertLogConfig(t *testing.T, log *Log) {
 		if !ok {
 			t.Fatalf("Not LevelFilter")
 		}
-		assertLogEqual(t, `f.Level`, LevelError, f.Level)
+		assertLogEqual(t, `f.Level`, LevelDebug, f.Level)
 	}
 
 	i++
@@ -139,7 +139,7 @@ func assertLogConfig(t *testing.T, log *Log) {
 		if !ok {
 			t.Fatalf("Not LevelFilter")
 		}
-		assertLogEqual(t, `f.Level`, LevelError, f.Level)
+		assertLogEqual(t, `f.Level`, LevelInfo, f.Level)
 	}
 
 	i++
@@ -162,7 +162,7 @@ func assertLogConfig(t *testing.T, log *Log) {
 		if !ok {
 			t.Fatalf("Not LevelFilter")
 		}
-		assertLogEqual(t, `f.Level`, LevelError, f.Level)
+		assertLogEqual(t, `f.Level`, LevelWarn, f.Level)
 	}
 
 	i++
@@ -199,6 +199,27 @@ func assertLogConfig(t *testing.T, log *Log) {
 			t.Fatalf("Not AsyncWriter")
 		}
 
+		w, ok := aw.writer.(*TeamsWriter)
+		if !ok {
+			t.Fatalf("Not TeamsWriter")
+		}
+		assertLogEqual(t, `w.Webhook`, "https://xxx.webhook.office.com/webhookb2/...", w.Webhook)
+		assertLogEqual(t, `w.Timeout`, time.Second*3, w.Timeout)
+
+		f, ok := w.Logfil.(*LevelFilter)
+		if !ok {
+			t.Fatalf("Not LevelFilter")
+		}
+		assertLogEqual(t, `f.Level`, LevelFatal, f.Level)
+	}
+
+	i++
+	{
+		aw, ok := mw.Writers[i].(*AsyncWriter)
+		if !ok {
+			t.Fatalf("Not AsyncWriter")
+		}
+
 		w, ok := aw.writer.(*WebhookWriter)
 		if !ok {
 			t.Fatalf("Not WebhookWriter")
@@ -216,7 +237,7 @@ func assertLogConfig(t *testing.T, log *Log) {
 		if !ok {
 			t.Fatalf("Not LevelFilter")
 		}
-		assertLogEqual(t, `f.Level`, LevelError, f.Level)
+		assertLogEqual(t, `f.Level`, LevelFatal, f.Level)
 	}
 }
 

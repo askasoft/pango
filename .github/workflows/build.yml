@@ -37,6 +37,7 @@ jobs:
             go-build: ~/Library/Caches/go-build
     name: ${{ matrix.os }} @ Go ${{ matrix.go }}
     runs-on: ${{ matrix.os }}
+    environment: build
     env:
       GO111MODULE: on
       GOPROXY: https://proxy.golang.org

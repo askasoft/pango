@@ -114,12 +114,12 @@ func (log *Log) write(le *Event) {
 // callerDepth: default is 1 (means +1)
 // if the outputer is used by go std log, set callerDepth to 2
 // example:
-//   import (
-//     golog "log"
-//     "github.com/pandafw/pango/log"
-//   )
-//   golog.SetOutput(log.Outputer("GO", log.LevelInfo, 3))
 //
+//	import (
+//	  golog "log"
+//	  "github.com/pandafw/pango/log"
+//	)
+//	golog.SetOutput(log.Outputer("GO", log.LevelInfo, 3))
 func (log *Log) GetOutputer(name string, lvl Level, callerDepth ...int) Outputer {
 	lg := log.GetLogger(name)
 	cd := 1

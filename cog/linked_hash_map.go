@@ -18,11 +18,11 @@ func NewLinkedHashMap[K comparable, V any](kvs ...P[K, V]) *LinkedHashMap[K, V] 
 // The zero value for LinkedHashMap is an empty map ready to use.
 //
 // To iterate over a linked map (where lm is a *LinkedHashMap):
+//
 //	it := lm.Iterator()
 //	for it.Next() {
 //		// do something with it.Key(), it.Value()
 //	}
-//
 type LinkedHashMap[K comparable, V any] struct {
 	head, tail *LinkedMapNode[K, V]
 	hash       map[K]*LinkedMapNode[K, V]

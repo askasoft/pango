@@ -23,11 +23,11 @@ func NewLinkedList[T any](vs ...T) *LinkedList[T] {
 // The zero value for LinkedList is an empty list ready to use.
 //
 // To iterate over a list (where ll is a *LinkedList):
+//
 //	it := ll.Iterator()
 //	for it.Next() {
 //		// do something with it.Value()
 //	}
-//
 type LinkedList[T any] struct {
 	head, tail *linkedListNode[T]
 	len        int
@@ -414,7 +414,7 @@ func (ll *LinkedList[T]) String() string {
 	return string(bs)
 }
 
-//-----------------------------------------------------------
+// -----------------------------------------------------------
 func (ll *LinkedList[T]) deleteAll(v T) {
 	for ln := ll.head; ln != nil; ln = ln.next {
 		if any(ln.value) == any(v) {

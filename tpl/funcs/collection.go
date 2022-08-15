@@ -30,12 +30,13 @@ func Map(kvs ...any) (map[string]any, error) {
 
 // MapGet getting value from map by keys
 // usage:
-// Data["m"] = map[string]any{
-//     "a": 1,
-//     "1": map[string]float64{
-//         "c": 4,
-//     },
-// }
+//
+//	Data["m"] = map[string]any{
+//	    "a": 1,
+//	    "1": map[string]float64{
+//	        "c": 4,
+//	    },
+//	}
 //
 // {{ map_get m "a" }} // return 1
 // {{ map_get m 1 "c" }} // return 4

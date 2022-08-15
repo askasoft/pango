@@ -18,10 +18,10 @@ func NewTreeMap(compare Compare, kvs ...P) *TreeMap {
 // https://en.wikipedia.org/wiki/Red%E2%80%93black_tree
 //
 // To iterate over a tree map (where tm is a *TreeMap):
+//
 //	for it := tm.Iterator(); it.Next(); {
 //		// do something with it.Key(), it.Value()
 //	}
-//
 type TreeMap struct {
 	len     int
 	root    *TreeMapNode

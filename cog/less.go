@@ -7,8 +7,9 @@ package cog
 // which will panic if a or b are not of the asserted type.
 //
 // Should return a bool:
-//    true , if a < b
-//    false, if a >= b
+//
+//	true , if a < b
+//	false, if a >= b
 type Less[T any] func(a, b T) bool
 
 // LessString string less function

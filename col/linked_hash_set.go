@@ -22,11 +22,11 @@ func NewLinkedHashSet(vs ...T) *LinkedHashSet {
 // (An element e is reinserted into a set s if s.Add(e) is invoked when s.Contains(e) would return true immediately prior to the invocation.)
 //
 // To iterate over a set (where ls is a *LinkedHashSet):
+//
 //	it := ls.Iterator()
 //	for it.Next() {
 //		// do something with it.Value()
 //	}
-//
 type LinkedHashSet struct {
 	head, tail *linkedSetNode
 	hash       map[T]*linkedSetNode
@@ -483,7 +483,7 @@ func (ls *LinkedHashSet) String() string {
 	return string(bs)
 }
 
-//-----------------------------------------------------------
+// -----------------------------------------------------------
 func (ls *LinkedHashSet) deleteNode(ln *linkedSetNode) {
 	if ln.prev == nil {
 		ls.head = ln.next

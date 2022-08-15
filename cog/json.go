@@ -145,7 +145,7 @@ func jsonUnmarshalMap[K any, V any](data []byte, am Map[K, V]) error {
 	return nil
 }
 
-//---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 func jsonMarshalCol[T any](c Collection[T]) (res []byte, err error) {
 	if c.IsEmpty() {
 		return []byte("[]"), nil

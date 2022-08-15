@@ -7,6 +7,7 @@
 //	log.SetWriter(log.NewAsyncWriter(log.NewConsoleWriter()))
 //
 // Use it like this:
+//
 //	log.Fatal("fatal")
 //	log.Error("error")
 //	log.Warn("warning")
@@ -15,9 +16,9 @@
 //	log.Trace("trace")
 //
 // A Logger with name:
+//
 //	log := log.GetLogger("foo")
 //	log.Debug("hello")
-//
 package log
 
 //--------------------------------------------------------------------
@@ -46,12 +47,12 @@ func GetLogger(name string) Logger {
 // callerDepth: default is 1 (means +1)
 // if the outputer is used by go std log, set callerDepth to 2
 // example:
-//   import (
-//     golog "log"
-//     "github.com/pandafw/pango/log"
-//   )
-//   golog.SetOutput(log.Outputer("GO", log.LevelInfo, 2))
 //
+//	import (
+//	  golog "log"
+//	  "github.com/pandafw/pango/log"
+//	)
+//	golog.SetOutput(log.Outputer("GO", log.LevelInfo, 2))
 func GetOutputer(name string, lvl Level, callerDepth ...int) Outputer {
 	return _log.GetOutputer(name, lvl, callerDepth...)
 }

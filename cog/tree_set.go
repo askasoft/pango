@@ -23,10 +23,10 @@ func NewTreeSet[T any](compare Compare[T], vs ...T) *TreeSet[T] {
 // https://en.wikipedia.org/wiki/Red%E2%80%93black_tree
 //
 // To iterate over a tree set (where ts is a *TreeSet):
+//
 //	for it := ts.Iterator(); it.Next(); {
 //		// do something with it.Value()
 //	}
-//
 type TreeSet[T any] struct {
 	len     int
 	root    *treeSetNode[T]
@@ -314,7 +314,7 @@ func (ts *TreeSet[T]) Graph() string {
 	return ts.root.graph(0)
 }
 
-//-----------------------------------------------------
+// -----------------------------------------------------
 func (ts *TreeSet[T]) setValue(tn *treeSetNode[T], v T) *treeSetNode[T] {
 	if any(tn.value) == any(v) {
 		return tn

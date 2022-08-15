@@ -127,23 +127,40 @@ func (z *HTTPGziper) SetHTTPVersion(major, minor int) {
 // The fact that the request is proxied is determined by the presence of the “Via” request header field.
 // The directive accepts multiple parameters:
 // off
-//     disables compression for all proxied requests, ignoring other parameters;
+//
+//	disables compression for all proxied requests, ignoring other parameters;
+//
 // any (Default)
-//     enables compression for all proxied requests.
+//
+//	enables compression for all proxied requests.
+//
 // auth
-//     enables compression if a request header includes the “Authorization” field;
+//
+//	enables compression if a request header includes the “Authorization” field;
+//
 // expired
-//     enables compression if a response header includes the “Expires” field with a value that disables caching;
+//
+//	enables compression if a response header includes the “Expires” field with a value that disables caching;
+//
 // no-cache
-//     enables compression if a response header includes the “Cache-Control” field with the “no-cache” parameter;
+//
+//	enables compression if a response header includes the “Cache-Control” field with the “no-cache” parameter;
+//
 // no-store
-//     enables compression if a response header includes the “Cache-Control” field with the “no-store” parameter;
+//
+//	enables compression if a response header includes the “Cache-Control” field with the “no-store” parameter;
+//
 // private
-//     enables compression if a response header includes the “Cache-Control” field with the “private” parameter;
+//
+//	enables compression if a response header includes the “Cache-Control” field with the “private” parameter;
+//
 // no_last_modified
-//     enables compression if a response header does not include the “Last-Modified” field;
+//
+//	enables compression if a response header does not include the “Last-Modified” field;
+//
 // no_etag
-//     enables compression if a response header does not include the “ETag” field;
+//
+//	enables compression if a response header does not include the “ETag” field;
 func (z *HTTPGziper) SetProxied(ps ...string) {
 	z.proxied = toProxiedFlag(ps...)
 }
@@ -157,21 +174,22 @@ func (z *HTTPGziper) Vary(vary bool) {
 // SetMimeTypes Enables gzipping of responses for the specified MIME types.
 // The special value "*" matches any MIME type.
 // Default:
-//   text/html
-//   text/plain
-//   text/xml
-//   text/css
-//   text/javascript
-//   text/json
-//   text/comma-separated-values
-//   text/tab-separated-values
-//   application/xml
-//   application/xhtml+xml
-//   application/rss+xml
-//   application/atom_xml
-//   application/json
-//   application/javascript
-//   application/x-javascript
+//
+//	text/html
+//	text/plain
+//	text/xml
+//	text/css
+//	text/javascript
+//	text/json
+//	text/comma-separated-values
+//	text/tab-separated-values
+//	application/xml
+//	application/xhtml+xml
+//	application/rss+xml
+//	application/atom_xml
+//	application/json
+//	application/javascript
+//	application/x-javascript
 func (z *HTTPGziper) SetMimeTypes(mts ...string) {
 	if len(mts) == 0 {
 		z.mimeTypes = nil

@@ -84,9 +84,10 @@ func LastIndexAny(s []byte, chars string) int {
 // the subslices between those separators.
 // If sep is empty, SplitN splits after each UTF-8 sequence.
 // The count determines the number of subslices to return:
-//   n > 0: at most n subslices; the last subslice will be the unsplit remainder.
-//   n == 0: the result is nil (zero subslices)
-//   n < 0: all subslices
+//
+//	n > 0: at most n subslices; the last subslice will be the unsplit remainder.
+//	n == 0: the result is nil (zero subslices)
+//	n < 0: all subslices
 func SplitN(s, sep []byte, n int) [][]byte {
 	return bytes.SplitN(s, sep, n)
 }
@@ -95,9 +96,10 @@ func SplitN(s, sep []byte, n int) [][]byte {
 // returns a slice of those subslices.
 // If sep is empty, SplitAfterN splits after each UTF-8 sequence.
 // The count determines the number of subslices to return:
-//   n > 0: at most n subslices; the last subslice will be the unsplit remainder.
-//   n == 0: the result is nil (zero subslices)
-//   n < 0: all subslices
+//
+//	n > 0: at most n subslices; the last subslice will be the unsplit remainder.
+//	n == 0: the result is nil (zero subslices)
+//	n < 0: all subslices
 func SplitAfterN(s, sep []byte, n int) [][]byte {
 	return bytes.SplitAfterN(s, sep, n)
 }

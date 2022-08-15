@@ -26,7 +26,7 @@ func EscapeLike(str string) string {
 }
 
 // At present, this method only turns single-quotes into doubled single-quotes (
-// <code>"McHale's Navy"</code> => <code>"McHale''s Navy"</code>). It does not handle the cases
+// <code>"McHale's Navy"</code> => <code>"McHale”s Navy"</code>). It does not handle the cases
 // of percent (%) or underscore (_) for use in LIKE clauses.
 // </p>
 // see http://www.jguru.com/faq/view.jsp?EID=8881

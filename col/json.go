@@ -177,7 +177,7 @@ func jsonHandleDelim(dec *json.Decoder, t json.Token) (T, error) {
 	return t, nil
 }
 
-//---------------------------------------------------------------------
+// ---------------------------------------------------------------------
 func jsonMarshalArray(col Collection) (res []byte, err error) {
 	if col.IsEmpty() {
 		return []byte("[]"), nil

@@ -25,11 +25,11 @@ func NewLinkedHashSet[T comparable](vs ...T) *LinkedHashSet[T] {
 // (An element e is reinserted into a set s if s.Add(e) is invoked when s.Contains(e) would return true immediately prior to the invocation.)
 //
 // To iterate over a set (where ls is a *LinkedHashSet):
+//
 //	it := ls.Iterator()
 //	for it.Next() {
 //		// do something with it.Value()
 //	}
-//
 type LinkedHashSet[T comparable] struct {
 	head, tail *linkedSetNode[T]
 	hash       map[T]*linkedSetNode[T]
@@ -486,7 +486,7 @@ func (ls *LinkedHashSet[T]) String() string {
 	return string(bs)
 }
 
-//-----------------------------------------------------------
+// -----------------------------------------------------------
 func (ls *LinkedHashSet[T]) deleteNode(ln *linkedSetNode[T]) {
 	if ln.prev == nil {
 		ls.head = ln.next

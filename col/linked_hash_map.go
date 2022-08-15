@@ -15,11 +15,11 @@ func NewLinkedHashMap(kvs ...P) *LinkedHashMap {
 // The zero value for LinkedHashMap is an empty map ready to use.
 //
 // To iterate over a linked map (where lm is a *LinkedHashMap):
+//
 //	it := lm.Iterator()
 //	for it.Next() {
 //		// do something with it.Key(), it.Value()
 //	}
-//
 type LinkedHashMap struct {
 	head, tail *LinkedMapNode
 	hash       map[K]*LinkedMapNode

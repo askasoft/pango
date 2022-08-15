@@ -114,8 +114,8 @@ func IsAlpha(s string) bool {
 	return true
 }
 
-//IsUTFLetter checks if the string contains only unicode letter characters.
-//Similar to IsAlpha but for all languages.
+// IsUTFLetter checks if the string contains only unicode letter characters.
+// Similar to IsAlpha but for all languages.
 func IsUTFLetter(s string) bool {
 	if s == "" {
 		return false

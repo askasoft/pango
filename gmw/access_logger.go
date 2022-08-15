@@ -49,21 +49,22 @@ func DefaultAccessLogger(gin *gin.Engine) *AccessLogger {
 // NewAccessLogger create a log middleware for gin access logger
 // Access Log Format:
 // text:...     json:...
-//   %t{format} - Request start time, if {format} is omitted, '2006-01-02T15:04:05.000' is used.
-//   %c - Client IP ([X-Forwarded-For, X-Real-Ip] or RemoteIP())
-//   %r - Remote IP:Port
-//   %u - Request URL
-//   %p - Request protocol
-//   %m - Request method (GET, POST, etc.)
-//   %q - Query string (prepended with a '?' if it exists)
-//   %h - Request host
-//   %h{name} - Request header
-//   %A - Server listen address
-//   %T - Time taken to process the request, in milliseconds
-//   %S - HTTP status code of the response
-//   %L - Response body length
-//   %H{name} - Response header
-//   %n: EOL(Windows: "\r\n", Other: "\n")
+//
+//	%t{format} - Request start time, if {format} is omitted, '2006-01-02T15:04:05.000' is used.
+//	%c - Client IP ([X-Forwarded-For, X-Real-Ip] or RemoteIP())
+//	%r - Remote IP:Port
+//	%u - Request URL
+//	%p - Request protocol
+//	%m - Request method (GET, POST, etc.)
+//	%q - Query string (prepended with a '?' if it exists)
+//	%h - Request host
+//	%h{name} - Request header
+//	%A - Server listen address
+//	%T - Time taken to process the request, in milliseconds
+//	%S - HTTP status code of the response
+//	%L - Response body length
+//	%H{name} - Response header
+//	%n: EOL(Windows: "\r\n", Other: "\n")
 func NewAccessLogger(outputer io.Writer, format string) *AccessLogger {
 	return &AccessLogger{outputer: outputer, formats: parseFormat(format)}
 }
@@ -298,7 +299,7 @@ func getFormatOption(format string, i *int) string {
 	return ""
 }
 
-//-------------------------------------------------
+// -------------------------------------------------
 func quotefmtc(ff fmtfunc) fmtfunc {
 	return func(p *logevt) string {
 		return fmt.Sprintf("%q", ff(p))

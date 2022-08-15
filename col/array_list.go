@@ -26,11 +26,11 @@ func AsArrayList(vs []T) *ArrayList {
 // The zero value for ArrayList is an empty list ready to use.
 //
 // To iterate over a list (where al is a *ArrayList):
+//
 //	it := al.Iterator()
 //	for it.Next() {
 //		// do something with it.Value()
 //	}
-//
 type ArrayList struct {
 	data []T
 }

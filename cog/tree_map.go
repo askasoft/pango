@@ -21,10 +21,10 @@ func NewTreeMap[K any, V any](compare Compare[K], kvs ...P[K, V]) *TreeMap[K, V]
 // https://en.wikipedia.org/wiki/Red%E2%80%93black_tree
 //
 // To iterate over a tree map (where tm is a *TreeMap):
+//
 //	for it := tm.Iterator(); it.Next(); {
 //		// do something with it.Key(), it.Value()
 //	}
-//
 type TreeMap[K any, V any] struct {
 	len     int
 	root    *TreeMapNode[K, V]

@@ -1,10 +1,10 @@
 module github.com/pandafw/pango
 
-go 1.18
+go 1.19
 
 require github.com/stretchr/testify v1.8.0
 
-require golang.org/x/sys v0.0.0-20220412211240-33da011f77ad // indirect
+require golang.org/x/sys v0.0.0-20220412211240-33da011f77ad
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect

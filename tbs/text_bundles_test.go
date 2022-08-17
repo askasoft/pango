@@ -5,36 +5,40 @@ import (
 	"testing"
 )
 
-func TestLoad(t *testing.T) {
-	ts := NewTS()
-	root := "testdata"
-
-	err := ts.Load(root)
-	if err != nil {
-		t.Errorf(`ts.Load(%q) = %v`, root, err)
-		return
-	}
-
-	testLoad(t, ts)
-}
-
 //go:embed testdata
 var testdata embed.FS
 
-func TestLoadFS(t *testing.T) {
-	ts := NewTS()
-	root := "testdata"
+var testroot = "testdata"
 
-	err := ts.LoadFS(testdata, root)
+func TestNewLoad(t *testing.T) {
+	tbs := NewTextBundles()
+
+	err := tbs.Load(testroot)
 	if err != nil {
-		t.Errorf(`ts.LoadFS(%q) = %v`, root, err)
+		t.Errorf(`tbs.Load(%q) = %v`, testroot, err)
 		return
 	}
 
-	testLoad(t, ts)
+	testFormat(t, func(locale, format string, args ...any) string {
+		return tbs.Format(locale, format, args...)
+	})
 }
 
-func testLoad(t *testing.T, ts *TS) {
+func TestNewLoadFS(t *testing.T) {
+	tbs := NewTextBundles()
+
+	err := tbs.LoadFS(testdata, testroot)
+	if err != nil {
+		t.Errorf(`tbs.LoadFS(%q) = %v`, testroot, err)
+		return
+	}
+
+	testFormat(t, func(locale, format string, args ...any) string {
+		return tbs.Format(locale, format, args...)
+	})
+}
+
+func testFormat(t *testing.T, fmt func(locale, format string, args ...any) string) {
 	cs := []struct {
 		lang string
 		name string
@@ -50,7 +54,7 @@ func testLoad(t *testing.T, ts *TS) {
 	}
 
 	for i, c := range cs {
-		a := ts.Format(c.lang, c.name, c.args...)
+		a := fmt(c.lang, c.name, c.args...)
 		if a != c.want {
 			t.Errorf("%d Foramt(%q, %q, %v) = %q, want %q", i, c.lang, c.name, c.args, a, c.want)
 		}

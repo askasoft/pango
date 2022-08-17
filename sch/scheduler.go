@@ -4,14 +4,6 @@ import (
 	"sync"
 )
 
-// default scheduler instance
-var _sch = &Scheduler{}
-
-// Default get default Scheduler
-func Default() *Scheduler {
-	return _sch
-}
-
 // Scheduler task scheduler
 type Scheduler struct {
 	tasks []*Task
@@ -44,17 +36,4 @@ func (s *Scheduler) Shutdown() {
 	for _, t := range s.tasks {
 		t.Stop()
 	}
-}
-
-//----------------------------------------------------
-// package functions
-
-// Schedule schedule a task
-func Schedule(trigger Trigger, callback func()) {
-	_sch.Schedule(trigger, callback)
-}
-
-// Shutdown stop all task
-func Shutdown() {
-	_sch.Shutdown()
 }

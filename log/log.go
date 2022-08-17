@@ -28,7 +28,7 @@ package log
 // default Log instance
 var _log = NewLog()
 
-// Default get default Log
+// Default returns the default Log instance used by the package-level functions.
 func Default() *Log {
 	return _log
 }

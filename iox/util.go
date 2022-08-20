@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -77,4 +78,15 @@ func SkipBOM(r io.Reader) (io.Reader, error) {
 		err = br.UnreadRune()
 	}
 	return br, err
+}
+
+// Drain drain the reader
+func Drain(r io.Reader) {
+	io.Copy(ioutil.Discard, r) //nolint: errcheck
+}
+
+// DrainAndClose drain and close the reader
+func DrainAndClose(r io.ReadCloser) {
+	Drain(r)
+	r.Close()
 }

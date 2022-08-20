@@ -3,12 +3,12 @@ package log
 import (
 	"bytes"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/pandafw/pango/iox"
 )
 
 // WebhookWriter implements log Writer Interface and send log message to webhook.
@@ -133,8 +133,8 @@ func (ww *WebhookWriter) write(le *Event) error {
 		err = fmt.Errorf("WebhookWriter(%q) - Send(): %w", ww.Webhook, err)
 		return err
 	}
-	io.Copy(ioutil.Discard, res.Body) //nolint: errcheck
-	defer res.Body.Close()
+
+	defer iox.DrainAndClose(res.Body)
 
 	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusCreated {
 		err = fmt.Errorf("WebhookWriter(%q) - Status: %s", ww.Webhook, res.Status)

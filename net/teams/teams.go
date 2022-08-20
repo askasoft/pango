@@ -3,11 +3,11 @@ package teams
 import (
 	"bytes"
 	"encoding/json"
-	"io"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/pandafw/pango/iox"
 )
 
 // Post post teams message
@@ -28,8 +28,8 @@ func Post(url string, timeout time.Duration, tm *Message) error {
 	if err != nil {
 		return err
 	}
-	io.Copy(ioutil.Discard, res.Body) //nolint: errcheck
-	defer res.Body.Close()
+
+	defer iox.DrainAndClose(res.Body)
 
 	if res.StatusCode != http.StatusOK {
 		e := &Error{Status: res.Status, StatusCode: res.StatusCode}

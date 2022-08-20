@@ -33,7 +33,7 @@ func NewHTMLTemplates(extensions ...string) *HTMLTemplates {
 // Extensions sets template entensions.
 func (ht *HTMLTemplates) Extensions(extensions ...string) {
 	if len(extensions) == 0 {
-		extensions = []string{".html", ".gohtml"}
+		extensions = []string{".tpl", ".html", ".gohtml"}
 	}
 	ht.extensions = extensions
 }

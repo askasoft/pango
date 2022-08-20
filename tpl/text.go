@@ -32,7 +32,7 @@ func NewTextTemplates(extensions ...string) *TextTemplates {
 // Extensions sets template entensions.
 func (tt *TextTemplates) Extensions(extensions ...string) {
 	if len(extensions) == 0 {
-		extensions = []string{".txt", ".gotxt"}
+		extensions = []string{".tpl", ".txt", ".gotxt"}
 	}
 	tt.extensions = extensions
 }

@@ -190,12 +190,11 @@ func encodeString(s string) string {
 	return mime.QEncoding.Encode("UTF-8", s)
 }
 
-func writeBoundary(w io.Writer, b string) (err error) {
-	if _, err = w.Write([]byte{'-', '-'}); err != nil {
-		return
-	}
-	if err = writeString(w, b); err != nil {
-		return
+func writeStrings(w io.Writer, bs ...string) (err error) {
+	for _, b := range bs {
+		if err = writeString(w, b); err != nil {
+			return
+		}
 	}
 	if err = writeEOL(w); err != nil {
 		return
@@ -421,19 +420,18 @@ func writeBody(w io.Writer, enc string, m *Email, boundary string) (err error) {
 	}
 
 	// Write the message part
-	if err = writeBoundary(w, boundary); err != nil {
+	if err = writeStrings(w, "--", boundary); err != nil {
 		return
 	}
+
+	cot := "plain"
 	if m.HTML {
-		if err = writeHeader(w, "Content-Type", "text/html; charset=UTF-8"); err != nil {
-			return
-		}
-	} else {
-		if err = writeHeader(w, "Content-Type", "text/plain; charset=UTF-8"); err != nil {
-			return
-		}
+		cot = "html"
 	}
 
+	if err = writeHeader(w, "Content-Type", fmt.Sprintf("text/%s; charset=UTF-8", cot)); err != nil {
+		return
+	}
 	if err = writeHeader(w, "Content-Disposition", "inline"); err != nil {
 		return
 	}
@@ -456,10 +454,7 @@ func writeBody(w io.Writer, enc string, m *Email, boundary string) (err error) {
 		return
 	}
 
-	if err = writeBoundary(w, boundary); err != nil {
-		return
-	}
-	err = writeEOL(w)
+	err = writeStrings(w, "--", boundary, "--")
 	return
 }
 
@@ -470,25 +465,21 @@ func writeAttachments(w io.Writer, as []*Attachment, boundary string) (err error
 			mt = "application/octet-stream"
 		}
 
-		if err = writeBoundary(w, boundary); err != nil {
+		if err = writeStrings(w, "--", boundary); err != nil {
 			return
 		}
 		if err = writeHeader(w, "Content-Type", mt+"; name=\""+encodeWord(a.Name)+"\""); err != nil {
 			return
 		}
+		cod := "attachment"
 		if a.Cid != "" {
-			if err = writeHeader(w, "Content-Disposition", "inline; filename=\""+encodeWord(a.Name)+"\""); err != nil {
-				return
-			}
-		} else {
-			if err = writeHeader(w, "Content-Disposition", "attachment; filename=\""+encodeWord(a.Name)+"\""); err != nil {
-				return
-			}
-		}
-		if a.Cid != "" {
+			cod = "inline"
 			if err = writeHeader(w, "Content-ID", a.Cid); err != nil {
 				return
 			}
+		}
+		if err = writeHeader(w, "Content-Disposition", cod+"; filename=\""+encodeWord(a.Name)+"\""); err != nil {
+			return
 		}
 		if err = writeHeader(w, "Content-Transfer-Encoding", "Base64"); err != nil {
 			return

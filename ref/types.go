@@ -1,7 +1,7 @@
 package ref
 
 // IsIntType return true if v is an integer
-func IsIntType(v interface{}) bool {
+func IsIntType(v any) bool {
 	switch v.(type) {
 	case int, int8, int16, int32, int64:
 	case uint, uint8, uint16, uint32, uint64:
@@ -12,7 +12,7 @@ func IsIntType(v interface{}) bool {
 }
 
 // IsFloatType return true if v is a float
-func IsFloatType(v interface{}) bool {
+func IsFloatType(v any) bool {
 	switch v.(type) {
 	case float32, float64:
 		return true
@@ -22,7 +22,7 @@ func IsFloatType(v interface{}) bool {
 }
 
 // IsComplexType return true if v is a complex
-func IsComplexType(v interface{}) bool {
+func IsComplexType(v any) bool {
 	switch v.(type) {
 	case complex64, complex128:
 		return true

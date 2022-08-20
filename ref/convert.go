@@ -10,7 +10,7 @@ import (
 var errNotSupport = errors.New("not support")
 
 // Convert convert the value v to the specified Type t
-func Convert(v interface{}, t reflect.Type) (cv interface{}, err error) {
+func Convert(v any, t reflect.Type) (cv any, err error) {
 	switch t.Kind() {
 	case reflect.Int:
 		cv, err = toInt(v)
@@ -62,18 +62,18 @@ func Convert(v interface{}, t reflect.Type) (cv interface{}, err error) {
 	return
 }
 
-func toInt(si interface{}) (interface{}, error) {
-	if si == nil {
+func toInt(v any) (any, error) {
+	if v == nil {
 		return int(0), nil
 	}
 
-	switch s := si.(type) {
+	switch s := v.(type) {
 	case string:
 		if s == "" {
 			return 0, nil
 		}
-		i, err := strconv.Atoi(s)
-		return i, err
+		i, err := strconv.ParseInt(s, 0, strconv.IntSize)
+		return int(i), err
 	case bool:
 		if s {
 			return int(1), nil
@@ -107,12 +107,12 @@ func toInt(si interface{}) (interface{}, error) {
 	return nil, errNotSupport
 }
 
-func toInt8(si interface{}) (interface{}, error) {
-	if si == nil {
+func toInt8(v any) (any, error) {
+	if v == nil {
 		return int8(0), nil
 	}
 
-	switch s := si.(type) {
+	switch s := v.(type) {
 	case string:
 		if s == "" {
 			return int8(0), nil
@@ -152,12 +152,12 @@ func toInt8(si interface{}) (interface{}, error) {
 	return nil, errNotSupport
 }
 
-func toInt16(si interface{}) (interface{}, error) {
-	if si == nil {
+func toInt16(v any) (any, error) {
+	if v == nil {
 		return int16(0), nil
 	}
 
-	switch s := si.(type) {
+	switch s := v.(type) {
 	case string:
 		if s == "" {
 			return int16(0), nil
@@ -197,12 +197,12 @@ func toInt16(si interface{}) (interface{}, error) {
 	return nil, errNotSupport
 }
 
-func toInt32(si interface{}) (interface{}, error) {
-	if si == nil {
+func toInt32(v any) (any, error) {
+	if v == nil {
 		return int32(0), nil
 	}
 
-	switch s := si.(type) {
+	switch s := v.(type) {
 	case string:
 		if s == "" {
 			return int32(0), nil
@@ -242,12 +242,12 @@ func toInt32(si interface{}) (interface{}, error) {
 	return nil, errNotSupport
 }
 
-func toInt64(si interface{}) (interface{}, error) {
-	if si == nil {
+func toInt64(v any) (any, error) {
+	if v == nil {
 		return int64(0), nil
 	}
 
-	switch s := si.(type) {
+	switch s := v.(type) {
 	case string:
 		if s == "" {
 			return int64(0), nil
@@ -287,12 +287,12 @@ func toInt64(si interface{}) (interface{}, error) {
 	return nil, errNotSupport
 }
 
-func toUint(si interface{}) (interface{}, error) {
-	if si == nil {
+func toUint(v any) (any, error) {
+	if v == nil {
 		return uint(0), nil
 	}
 
-	switch s := si.(type) {
+	switch s := v.(type) {
 	case string:
 		if s == "" {
 			return uint(0), nil
@@ -332,12 +332,12 @@ func toUint(si interface{}) (interface{}, error) {
 	return nil, errNotSupport
 }
 
-func toUint8(si interface{}) (interface{}, error) {
-	if si == nil {
+func toUint8(v any) (any, error) {
+	if v == nil {
 		return uint8(0), nil
 	}
 
-	switch s := si.(type) {
+	switch s := v.(type) {
 	case string:
 		if s == "" {
 			return uint8(0), nil
@@ -377,12 +377,12 @@ func toUint8(si interface{}) (interface{}, error) {
 	return nil, errNotSupport
 }
 
-func toUint16(si interface{}) (interface{}, error) {
-	if si == nil {
+func toUint16(v any) (any, error) {
+	if v == nil {
 		return uint16(0), nil
 	}
 
-	switch s := si.(type) {
+	switch s := v.(type) {
 	case string:
 		if s == "" {
 			return uint16(0), nil
@@ -422,12 +422,12 @@ func toUint16(si interface{}) (interface{}, error) {
 	return nil, errNotSupport
 }
 
-func toUint32(si interface{}) (interface{}, error) {
-	if si == nil {
+func toUint32(v any) (any, error) {
+	if v == nil {
 		return uint32(0), nil
 	}
 
-	switch s := si.(type) {
+	switch s := v.(type) {
 	case string:
 		if s == "" {
 			return uint32(0), nil
@@ -467,12 +467,12 @@ func toUint32(si interface{}) (interface{}, error) {
 	return nil, errNotSupport
 }
 
-func toUint64(si interface{}) (interface{}, error) {
-	if si == nil {
+func toUint64(v any) (any, error) {
+	if v == nil {
 		return uint64(0), nil
 	}
 
-	switch s := si.(type) {
+	switch s := v.(type) {
 	case string:
 		if s == "" {
 			return uint64(0), nil
@@ -512,12 +512,12 @@ func toUint64(si interface{}) (interface{}, error) {
 	return nil, errNotSupport
 }
 
-func toFloat32(si interface{}) (interface{}, error) {
-	if si == nil {
+func toFloat32(v any) (any, error) {
+	if v == nil {
 		return float32(0), nil
 	}
 
-	switch s := si.(type) {
+	switch s := v.(type) {
 	case string:
 		if s == "" {
 			return float32(0), nil
@@ -557,12 +557,12 @@ func toFloat32(si interface{}) (interface{}, error) {
 	return nil, errNotSupport
 }
 
-func toFloat64(si interface{}) (interface{}, error) {
-	if si == nil {
+func toFloat64(v any) (any, error) {
+	if v == nil {
 		return float64(0), nil
 	}
 
-	switch s := si.(type) {
+	switch s := v.(type) {
 	case string:
 		if s == "" {
 			return float64(0), nil
@@ -602,12 +602,12 @@ func toFloat64(si interface{}) (interface{}, error) {
 	return nil, errNotSupport
 }
 
-func toBool(si interface{}) (interface{}, error) {
-	if si == nil {
+func toBool(v any) (any, error) {
+	if v == nil {
 		return false, nil
 	}
 
-	switch s := si.(type) {
+	switch s := v.(type) {
 	case string:
 		if s == "" {
 			return false, nil
@@ -643,12 +643,12 @@ func toBool(si interface{}) (interface{}, error) {
 	return nil, errNotSupport
 }
 
-func toString(si interface{}) (interface{}, error) {
-	if si == nil {
+func toString(v any) (any, error) {
+	if v == nil {
 		return "", nil
 	}
 
-	switch s := si.(type) {
+	switch s := v.(type) {
 	case string:
 		return s, nil
 	case bool:

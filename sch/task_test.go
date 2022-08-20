@@ -4,11 +4,15 @@ import (
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/pandafw/pango/log"
 )
 
 func TestPeriodicTriggerTask(t *testing.T) {
+	log := log.NewLog()
 	cnt := 0
 	task := Task{
+		Logger:  log.GetLogger("TASK"),
 		Trigger: &PeriodicTrigger{Period: time.Second},
 		Callback: func() {
 			cnt++

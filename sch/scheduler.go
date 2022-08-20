@@ -2,12 +2,15 @@ package sch
 
 import (
 	"sync"
+
+	"github.com/pandafw/pango/log"
 )
 
 // Scheduler task scheduler
 type Scheduler struct {
-	tasks []*Task
-	mutex sync.Mutex
+	Logger log.Logger // Error logger
+	tasks  []*Task
+	mutex  sync.Mutex
 }
 
 func (s *Scheduler) addTask(task *Task) {
@@ -19,6 +22,7 @@ func (s *Scheduler) addTask(task *Task) {
 // Schedule schedule a task
 func (s *Scheduler) Schedule(trigger Trigger, callback func()) {
 	task := &Task{
+		Logger:   s.Logger,
 		Trigger:  trigger,
 		Callback: callback,
 	}

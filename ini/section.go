@@ -144,7 +144,7 @@ func (sec *Section) Get(key string) string {
 // if not found, returns the default defs[0] string value
 func (sec *Section) GetString(key string, defs ...string) string {
 	e := sec.GetEntry(key)
-	if e != nil {
+	if e != nil && e.Value != "" {
 		return e.Value
 	}
 	if len(defs) > 0 {
@@ -157,9 +157,24 @@ func (sec *Section) GetString(key string, defs ...string) string {
 // if not found or convert error, returns the default defs[0] int value
 func (sec *Section) GetInt(key string, defs ...int) int {
 	e := sec.GetEntry(key)
-	if e != nil {
+	if e != nil && e.Value != "" {
 		if i, err := strconv.ParseInt(e.Value, 0, strconv.IntSize); err == nil {
 			return int(i)
+		}
+	}
+	if len(defs) > 0 {
+		return defs[0]
+	}
+	return 0
+}
+
+// GetInt64 get a int64 value of the key from the section
+// if not found or convert error, returns the default defs[0] int64 value
+func (sec *Section) GetInt64(key string, defs ...int64) int64 {
+	e := sec.GetEntry(key)
+	if e != nil && e.Value != "" {
+		if i, err := strconv.ParseInt(e.Value, 0, 64); err == nil {
+			return i
 		}
 	}
 	if len(defs) > 0 {
@@ -172,7 +187,7 @@ func (sec *Section) GetInt(key string, defs ...int) int {
 // if not found or convert error, returns the default defs[0] float value
 func (sec *Section) GetFloat(key string, defs ...float64) float64 {
 	e := sec.GetEntry(key)
-	if e != nil {
+	if e != nil && e.Value != "" {
 		if f, err := strconv.ParseFloat(e.Value, 64); err == nil {
 			return f
 		}
@@ -187,7 +202,7 @@ func (sec *Section) GetFloat(key string, defs ...float64) float64 {
 // if not found or convert error, returns the default defs[0] bool value
 func (sec *Section) GetBool(key string, defs ...bool) bool {
 	e := sec.GetEntry(key)
-	if e != nil {
+	if e != nil && e.Value != "" {
 		if b, err := strconv.ParseBool(e.Value); err == nil {
 			return b
 		}
@@ -202,7 +217,7 @@ func (sec *Section) GetBool(key string, defs ...bool) bool {
 // if not found or convert error, returns the default defs[0] Duration value
 func (sec *Section) GetDuration(key string, defs ...time.Duration) time.Duration {
 	e := sec.GetEntry(key)
-	if e != nil {
+	if e != nil && e.Value != "" {
 		if d, err := time.ParseDuration(e.Value); err == nil {
 			return d
 		}

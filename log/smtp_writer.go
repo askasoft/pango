@@ -103,13 +103,7 @@ func (sw *SMTPWriter) Write(le *Event) {
 		return
 	}
 
-	var err error
-	for le1 := sw.eb.Peek(); le1 != nil; sw.eb.Poll() {
-		if err = sw.write(le1); err != nil {
-			break
-		}
-	}
-
+	err := sw.flush()
 	if err == nil {
 		err = sw.write(le)
 	}
@@ -121,7 +115,7 @@ func (sw *SMTPWriter) Write(le *Event) {
 }
 
 // format format log event to (subject, message)
-func (sw *SMTPWriter) format(le *Event) (sb, mb string) {
+func (sw *SMTPWriter) format(le *Event) (sub, msg string) {
 	sf := sw.Subfmt
 	if sf == nil {
 		sf = TextFmtSubject
@@ -137,11 +131,11 @@ func (sw *SMTPWriter) format(le *Event) (sb, mb string) {
 
 	sw.sb.Reset()
 	sf.Write(&sw.sb, le)
-	sb = bye.UnsafeString(sw.sb.Bytes())
+	sub = bye.UnsafeString(sw.sb.Bytes())
 
 	sw.mb.Reset()
 	lf.Write(&sw.mb, le)
-	mb = bye.UnsafeString(sw.mb.Bytes())
+	msg = bye.UnsafeString(sw.mb.Bytes())
 
 	return
 }
@@ -203,9 +197,9 @@ func (sw *SMTPWriter) write(le *Event) (err error) {
 		}
 	}
 
-	sb, mb := sw.format(le)
-	sw.email.Subject = sb
-	sw.email.Message = mb
+	sub, msg := sw.format(le)
+	sw.email.Subject = sub
+	sw.email.Message = msg
 
 	if err = sw.sender.Send(sw.email); err != nil {
 		err = fmt.Errorf("SMTPWriter(%s:%d) - Send(): %w", sw.Host, sw.Port, err)
@@ -213,8 +207,21 @@ func (sw *SMTPWriter) write(le *Event) (err error) {
 	return
 }
 
+// flush flush buffered event
+func (sw *SMTPWriter) flush() error {
+	if sw.eb != nil {
+		for le := sw.eb.Peek(); le != nil; sw.eb.Poll() {
+			if err := sw.write(le); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 // Flush implementing method. empty.
 func (sw *SMTPWriter) Flush() {
+	sw.flush()
 }
 
 // Close close the mail sender

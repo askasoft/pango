@@ -65,13 +65,7 @@ func (tw *TeamsWriter) Write(le *Event) {
 		return
 	}
 
-	var err error
-	for le1 := tw.eb.Peek(); le1 != nil; tw.eb.Poll() {
-		if err = tw.write(le1); err != nil {
-			break
-		}
-	}
-
+	err := tw.flush()
 	if err == nil {
 		err = tw.write(le)
 	}
@@ -83,7 +77,7 @@ func (tw *TeamsWriter) Write(le *Event) {
 }
 
 // format format log event to (message)
-func (tw *TeamsWriter) format(le *Event) (mb string) {
+func (tw *TeamsWriter) format(le *Event) (msg string) {
 	lf := tw.Logfmt
 	if lf == nil {
 		lf = le.Logger().GetFormatter()
@@ -94,16 +88,16 @@ func (tw *TeamsWriter) format(le *Event) (mb string) {
 
 	tw.mb.Reset()
 	lf.Write(&tw.mb, le)
-	mb = bye.UnsafeString(tw.mb.Bytes())
+	msg = bye.UnsafeString(tw.mb.Bytes())
 
 	return
 }
 
 func (tw *TeamsWriter) write(le *Event) (err error) {
-	mb := tw.format(le)
+	msg := tw.format(le)
 
 	tm := &teams.Message{}
-	tm.Text = mb
+	tm.Text = msg
 
 	if tw.Timeout.Milliseconds() == 0 {
 		tw.Timeout = time.Second * 2
@@ -115,8 +109,21 @@ func (tw *TeamsWriter) write(le *Event) (err error) {
 	return
 }
 
+// flush flush buffered event
+func (tw *TeamsWriter) flush() error {
+	if tw.eb != nil {
+		for le := tw.eb.Peek(); le != nil; tw.eb.Poll() {
+			if err := tw.write(le); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 // Flush implementing method. empty.
 func (tw *TeamsWriter) Flush() {
+	tw.flush()
 }
 
 // Close implementing method. empty.

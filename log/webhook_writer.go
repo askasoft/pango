@@ -68,13 +68,7 @@ func (ww *WebhookWriter) Write(le *Event) {
 		return
 	}
 
-	var err error
-	for le1 := ww.eb.Peek(); le1 != nil; ww.eb.Poll() {
-		if err = ww.write(le1); err != nil {
-			break
-		}
-	}
-
+	err := ww.flush()
 	if err == nil {
 		err = ww.write(le)
 	}
@@ -143,8 +137,21 @@ func (ww *WebhookWriter) write(le *Event) error {
 	return err
 }
 
+// flush flush buffered event
+func (ww *WebhookWriter) flush() error {
+	if ww.eb != nil {
+		for le := ww.eb.Peek(); le != nil; ww.eb.Poll() {
+			if err := ww.write(le); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 // Flush implementing method. empty.
 func (ww *WebhookWriter) Flush() {
+	ww.flush()
 }
 
 // Close implementing method. empty.

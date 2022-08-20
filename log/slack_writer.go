@@ -92,7 +92,7 @@ func (sw *SlackWriter) Write(le *Event) {
 }
 
 // format format log event to (subject, message)
-func (sw *SlackWriter) format(le *Event) (sb, mb string) {
+func (sw *SlackWriter) format(le *Event) (sub, msg string) {
 	sf := sw.Subfmt
 	if sf == nil {
 		sf = TextFmtSubject
@@ -108,25 +108,25 @@ func (sw *SlackWriter) format(le *Event) (sb, mb string) {
 
 	sw.sb.Reset()
 	sf.Write(&sw.sb, le)
-	sb = bye.UnsafeString(sw.sb.Bytes())
+	sub = bye.UnsafeString(sw.sb.Bytes())
 
 	sw.mb.Reset()
 	lf.Write(&sw.mb, le)
-	mb = bye.UnsafeString(sw.mb.Bytes())
+	msg = bye.UnsafeString(sw.mb.Bytes())
 
 	return
 }
 
 func (sw *SlackWriter) write(le *Event) (err error) {
-	sb, mb := sw.format(le)
+	sub, msg := sw.format(le)
 
 	sm := &slack.Message{}
 	sm.IconEmoji = getIconEmoji(le.Level())
 	sm.Channel = sw.Channel
 	sm.Username = sw.Username
-	sm.Text = sb
+	sm.Text = sub
 
-	sa := &slack.Attachment{Text: mb}
+	sa := &slack.Attachment{Text: msg}
 	sm.AddAttachment(sa)
 
 	if sw.Timeout.Milliseconds() == 0 {

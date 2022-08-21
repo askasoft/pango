@@ -59,6 +59,7 @@ func (e *Error) Error() string {
 
 // Message teams message
 type Message struct {
-	Type string `json:"type"`
-	Text string `json:"text"`
+	Type  string `json:"type"`
+	Title string `json:"title"`
+	Text  string `json:"text"`
 }

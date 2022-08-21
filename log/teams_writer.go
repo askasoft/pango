@@ -15,11 +15,18 @@ import (
 type TeamsWriter struct {
 	Webhook string
 	Timeout time.Duration
+	Subfmt  Formatter // subject formatter
 	Logfmt  Formatter // log formatter
 	Logfil  Filter    // log filter
 
+	sb bytes.Buffer // subject buffer
 	mb bytes.Buffer // message buffer
 	eb *EventBuffer // event buffer
+}
+
+// SetSubject set the subject formatter
+func (tw *TeamsWriter) SetSubject(format string) {
+	tw.Subfmt = NewLogFormatter(format)
 }
 
 // SetFormat set the log formatter
@@ -77,7 +84,12 @@ func (tw *TeamsWriter) Write(le *Event) {
 }
 
 // format format log event to (message)
-func (tw *TeamsWriter) format(le *Event) (msg string) {
+func (tw *TeamsWriter) format(le *Event) (sub, msg string) {
+	sf := tw.Subfmt
+	if sf == nil {
+		sf = TextFmtSubject
+	}
+
 	lf := tw.Logfmt
 	if lf == nil {
 		lf = le.Logger().GetFormatter()
@@ -85,6 +97,10 @@ func (tw *TeamsWriter) format(le *Event) (msg string) {
 			lf = TextFmtDefault
 		}
 	}
+
+	tw.sb.Reset()
+	sf.Write(&tw.sb, le)
+	sub = bye.UnsafeString(tw.sb.Bytes())
 
 	tw.mb.Reset()
 	lf.Write(&tw.mb, le)
@@ -94,9 +110,10 @@ func (tw *TeamsWriter) format(le *Event) (msg string) {
 }
 
 func (tw *TeamsWriter) write(le *Event) (err error) {
-	msg := tw.format(le)
+	sub, msg := tw.format(le)
 
 	tm := &teams.Message{}
+	tm.Title = sub
 	tm.Text = msg
 
 	if tw.Timeout.Milliseconds() == 0 {

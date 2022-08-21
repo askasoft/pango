@@ -32,11 +32,11 @@
 	}, {
 		"_": "slack",
 		"_async": 1000,
-		"subject": "%l - %m", 
 		"channel": "develop",
 		"username": "gotest",
 		"webhook": "https://hooks.slack.com/services/...",
 		"timeout": "5s",
+		"subject": "%l - %m", 
 		"format": "%l - %m%n%T",
 		"filter": "level:warn"
 	}, {
@@ -58,6 +58,7 @@
 		"_async": 1000,
 		"webhook": "https://xxx.webhook.office.com/webhookb2/...",
 		"timeout": "3s",
+		"subject": "%l - %m", 
 		"format": "%l - %m%n%T",
 		"filter": "level:fatal"
 	}, {

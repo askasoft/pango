@@ -19,7 +19,7 @@ type TeamsWriter struct {
 	Logfil  Filter    // log filter
 
 	mb bytes.Buffer // message buffer
-	eb *EventBuffer // error event buffer
+	eb *EventBuffer // event buffer
 }
 
 // SetFormat set the log formatter
@@ -42,11 +42,11 @@ func (tw *TeamsWriter) SetTimeout(timeout string) error {
 	return nil
 }
 
-// SetErrBuffer set the error buffer size
-func (tw *TeamsWriter) SetErrBuffer(buffer string) error {
+// SetBuffer set the event buffer size
+func (tw *TeamsWriter) SetBuffer(buffer string) error {
 	bsz, err := strconv.Atoi(buffer)
 	if err != nil {
-		return fmt.Errorf("TeamsWriter - Invalid error buffer: %w", err)
+		return fmt.Errorf("TeamsWriter - Invalid buffer: %w", err)
 	}
 	if bsz > 0 {
 		tw.eb = &EventBuffer{BufSize: bsz}
@@ -128,6 +128,7 @@ func (tw *TeamsWriter) Flush() {
 
 // Close implementing method. empty.
 func (tw *TeamsWriter) Close() {
+	tw.flush()
 }
 
 func init() {

@@ -44,8 +44,8 @@ func Post(url string, timeout time.Duration, sm *Message) error {
 
 // Error slack api error
 type Error struct {
-	StatusCode int
 	Status     string
+	StatusCode int
 	RetryAfter int
 }
 

@@ -21,8 +21,8 @@ type WebhookWriter struct {
 	Logfil      Filter    // log filter
 
 	hc *http.Client
-	bb bytes.Buffer
-	eb *EventBuffer // error event buffer
+	bb bytes.Buffer // message buffer
+	eb *EventBuffer // event buffer
 }
 
 // SetFormat set the log formatter
@@ -45,11 +45,11 @@ func (ww *WebhookWriter) SetTimeout(timeout string) error {
 	return nil
 }
 
-// SetErrBuffer set the error buffer size
-func (ww *WebhookWriter) SetErrBuffer(buffer string) error {
+// SetBuffer set the event buffer size
+func (ww *WebhookWriter) SetBuffer(buffer string) error {
 	bsz, err := strconv.Atoi(buffer)
 	if err != nil {
-		return fmt.Errorf("WebhookWriter - Invalid error buffer: %w", err)
+		return fmt.Errorf("WebhookWriter - Invalid buffer: %w", err)
 	}
 	if bsz > 0 {
 		ww.eb = &EventBuffer{BufSize: bsz}
@@ -156,6 +156,7 @@ func (ww *WebhookWriter) Flush() {
 
 // Close implementing method. empty.
 func (ww *WebhookWriter) Close() {
+	ww.flush()
 }
 
 func init() {

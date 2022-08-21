@@ -23,7 +23,7 @@ type SlackWriter struct {
 
 	sb bytes.Buffer // subject buffer
 	mb bytes.Buffer // message buffer
-	eb *EventBuffer // error event buffer
+	eb *EventBuffer // event buffer
 }
 
 // SetSubject set the subject formatter
@@ -51,11 +51,11 @@ func (sw *SlackWriter) SetTimeout(timeout string) error {
 	return nil
 }
 
-// SetErrBuffer set the error buffer size
-func (sw *SlackWriter) SetErrBuffer(buffer string) error {
+// SetBuffer set the event buffer size
+func (sw *SlackWriter) SetBuffer(buffer string) error {
 	bsz, err := strconv.Atoi(buffer)
 	if err != nil {
-		return fmt.Errorf("SlackWriter - Invalid error buffer: %w", err)
+		return fmt.Errorf("SlackWriter - Invalid buffer: %w", err)
 	}
 	if bsz > 0 {
 		sw.eb = &EventBuffer{BufSize: bsz}
@@ -74,13 +74,7 @@ func (sw *SlackWriter) Write(le *Event) {
 		return
 	}
 
-	var err error
-	for le1 := sw.eb.Peek(); le1 != nil; sw.eb.Poll() {
-		if err = sw.write(le1); err != nil {
-			break
-		}
-	}
-
+	err := sw.flush()
 	if err == nil {
 		err = sw.write(le)
 	}
@@ -117,11 +111,30 @@ func (sw *SlackWriter) format(le *Event) (sub, msg string) {
 	return
 }
 
+func (sw *SlackWriter) getIconEmoji(lvl Level) string {
+	switch lvl {
+	case LevelFatal:
+		return ":boom:"
+	case LevelError:
+		return ":fire:"
+	case LevelWarn:
+		return ":warning:"
+	case LevelInfo:
+		return ":droplet:"
+	case LevelDebug:
+		return ":bug:"
+	case LevelTrace:
+		return ":ant:"
+	default:
+		return ":ghost:"
+	}
+}
+
 func (sw *SlackWriter) write(le *Event) (err error) {
 	sub, msg := sw.format(le)
 
 	sm := &slack.Message{}
-	sm.IconEmoji = getIconEmoji(le.Level())
+	sm.IconEmoji = sw.getIconEmoji(le.Level())
 	sm.Channel = sw.Channel
 	sm.Username = sw.Username
 	sm.Text = sub
@@ -139,31 +152,26 @@ func (sw *SlackWriter) write(le *Event) (err error) {
 	return
 }
 
+// flush flush buffered event
+func (sw *SlackWriter) flush() error {
+	if sw.eb != nil {
+		for le := sw.eb.Peek(); le != nil; sw.eb.Poll() {
+			if err := sw.write(le); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 // Flush implementing method. empty.
 func (sw *SlackWriter) Flush() {
+	sw.flush()
 }
 
 // Close implementing method. empty.
 func (sw *SlackWriter) Close() {
-}
-
-func getIconEmoji(lvl Level) string {
-	switch lvl {
-	case LevelFatal:
-		return ":boom:"
-	case LevelError:
-		return ":fire:"
-	case LevelWarn:
-		return ":warning:"
-	case LevelInfo:
-		return ":droplet:"
-	case LevelDebug:
-		return ":bug:"
-	case LevelTrace:
-		return ":ant:"
-	default:
-		return ":ghost:"
-	}
+	sw.flush()
 }
 
 func init() {

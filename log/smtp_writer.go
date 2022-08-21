@@ -32,7 +32,7 @@ type SMTPWriter struct {
 
 	sb bytes.Buffer // subject buffer
 	mb bytes.Buffer // message buffer
-	eb *EventBuffer // error event buffer
+	eb *EventBuffer // event buffer
 }
 
 // SetSubject set the subject formatter
@@ -70,11 +70,11 @@ func (sw *SMTPWriter) SetTimeout(timeout string) error {
 	return nil
 }
 
-// SetErrBuffer set the error buffer size
-func (sw *SMTPWriter) SetErrBuffer(buffer string) error {
+// SetBuffer set the event buffer size
+func (sw *SMTPWriter) SetBuffer(buffer string) error {
 	bsz, err := strconv.Atoi(buffer)
 	if err != nil {
-		return fmt.Errorf("SMTPWriter - Invalid error buffer: %w", err)
+		return fmt.Errorf("SMTPWriter - Invalid buffer: %w", err)
 	}
 	if bsz > 0 {
 		sw.eb = &EventBuffer{BufSize: bsz}
@@ -226,6 +226,7 @@ func (sw *SMTPWriter) Flush() {
 
 // Close close the mail sender
 func (sw *SMTPWriter) Close() {
+	sw.flush()
 	if sw.sender != nil {
 		if err := sw.sender.Close(); err != nil {
 			fmt.Fprintf(os.Stderr, "SMTPWriter(%s:%d) - Close(): %v\n", sw.Host, sw.Port, err)

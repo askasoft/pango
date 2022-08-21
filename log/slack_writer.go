@@ -103,6 +103,7 @@ func (sw *SlackWriter) format(le *Event) (sub, msg string) {
 	sw.sb.Reset()
 	sf.Write(&sw.sb, le)
 	sub = bye.UnsafeString(sw.sb.Bytes())
+	sub = slack.EscapeString(sub)
 
 	sw.mb.Reset()
 	lf.Write(&sw.mb, le)

@@ -5,10 +5,25 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/pandafw/pango/iox"
 )
+
+var slackEscaper = strings.NewReplacer(
+	`&`, "&amp;",
+	`<`, "&lt;",
+	`>`, "&gt;",
+)
+
+// EscapeString escapes special characters.
+// `&` => "&amp;"
+// `<` => "&lt;"
+// `>` => "&gt;"
+func EscapeString(s string) string {
+	return slackEscaper.Replace(s)
+}
 
 // Post post slack message
 func Post(url string, timeout time.Duration, sm *Message) error {

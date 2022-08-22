@@ -33,10 +33,8 @@ func Remove(path string) error {
 }
 
 // AddRecursive add files and all sub-directories under the path to watch
-// op: operation mask
-// fn: file path wildcard mask, "" or "*" means no mask
-func AddRecursive(path string, op Op, fn string, cb func(string, Op)) error {
-	return _fsw.AddRecursive(path, op, fn, cb)
+func AddRecursive(path string, op Op, cb func(string, Op)) error {
+	return _fsw.AddRecursive(path, op, cb)
 }
 
 // RemoveRecursive stops watching the directory and all sub-directories.

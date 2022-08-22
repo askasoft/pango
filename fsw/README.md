@@ -24,8 +24,11 @@ import (
 watcher, err := fsw.NewFileWatcher()
 
 // watch recursive and recieve events with callback function
-watcher.AddRecursive("watchdir", fsw.OpALL, "", func(path string, op fsw.Op) {
+watcher.AddRecursive("watchdir", fsw.OpALL, func(path string, op fsw.Op) {
 	fmt.Printf("%s %s\n", path, op)
 })
+
+// start watch go-routine
+watcher.Start()
 ```
 

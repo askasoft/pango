@@ -14,7 +14,11 @@ import (
 	"github.com/pandafw/pango/log"
 )
 
-func prepareTestDir(testdir string) {
+func testSleep() {
+	time.Sleep(time.Second * 3)
+}
+
+func prepareTestDir(log log.Logger, testdir string) {
 	for i := 1; i <= 3; i++ {
 		for j := 1; j <= 2; j++ {
 			dir := filepath.Join(testdir, strconv.Itoa(i), strconv.Itoa(j))
@@ -26,25 +30,31 @@ func prepareTestDir(testdir string) {
 			}
 		}
 	}
+	testSleep()
 }
 
-func changeTestFiles(testdir string) {
+func changeTestFiles(log log.Logger, testdir string) {
 	for i := 1; i <= 3; i++ {
 		for j := 1; j <= 2; j++ {
 			dir := filepath.Join(testdir, strconv.Itoa(i), strconv.Itoa(j))
 			os.MkdirAll(dir, os.FileMode(0770))
 			for k := 1; k <= 2; k++ {
-				time.Sleep(time.Millisecond * 500)
 				fn, _ := filepath.Abs(filepath.Join(dir, fmt.Sprintf("t%d.txt", k)))
-				log.Info("Change ", fn)
-				ioutil.WriteFile(fn, []byte("test"), os.FileMode(0660))
+
+				time.Sleep(time.Millisecond * 200)
+				log.Info("Change 1 - ", fn)
+				ioutil.WriteFile(fn, []byte("test1"), os.FileMode(0660))
+
+				time.Sleep(time.Millisecond * 200)
+				log.Info("Change 2 - ", fn)
+				ioutil.WriteFile(fn, []byte("test2"), os.FileMode(0660))
 			}
 		}
 	}
-	time.Sleep(time.Second * 3)
+	testSleep()
 }
 
-func assertTestFiles(t *testing.T, testdir string, files map[string]Op) {
+func assertTestFiles(t *testing.T, testdir string, files map[string]int) {
 	if 3*2*2 != len(files) {
 		t.Errorf("len(files) = %v, want %v", len(files), 3*2*2)
 		return
@@ -55,74 +65,28 @@ func assertTestFiles(t *testing.T, testdir string, files map[string]Op) {
 			dir := filepath.Join(testdir, strconv.Itoa(i), strconv.Itoa(j))
 			for k := 1; k <= 2; k++ {
 				fn := filepath.Join(dir, fmt.Sprintf("t%d.txt", k))
-				_, ok := files[fn]
+				c, ok := files[fn]
 				if !ok {
 					t.Errorf("file %q not exists", fn)
+				}
+				if c != 1 {
+					t.Errorf("file %q event count = %d, want 1", fn, c)
 				}
 			}
 		}
 	}
 }
 
-// func TestWatchDirOnly(t *testing.T) {
-// 	//TODO: fix test on go1.17
-// 	fmt.Println(runtime.GOOS, runtime.Version())
-// 	if strings.HasPrefix(runtime.Version(), "go1.17") {
-// 		return
-// 	}
-// 	if runtime.GOOS != "windows" && runtime.GOOS != "linux" {
-// 		return
-// 	}
+func testCreateWatcher() (*FileWatcher, *log.Log) {
+	lg := log.NewLog()
+	sw := &log.StreamWriter{Color: true}
+	aw := log.NewAsyncWriter(sw, 100)
+	log.SetWriter(aw)
 
-// 	testdir := "TestWatchDirOnly-" + strconv.Itoa(rand.Int())
-
-// 	os.RemoveAll(testdir)
-// 	defer os.RemoveAll(testdir)
-
-// 	os.MkdirAll(testdir, os.FileMode(0770))
-
-// 	fw := NewFileWatcher()
-
-// 	log.SetWriter(&log.StreamWriter{Color: true})
-// 	fw.Logger = log.GetLogger("fswatch")
-
-// 	files := make(map[string]Op)
-// 	fw.Add(testdir, OpALL, func(path string, op Op) {
-// 		files[path] = op
-// 		fw.Logger.Infof("%q [%v]", path, op)
-// 	})
-
-// 	fw.Logger.Info("------------ Prepare ----------------")
-// 	prepareTestDir(testdir)
-
-// 	fw.Logger.Info("------------ Start ----------------")
-// 	err := fw.Start()
-// 	if err != nil {
-// 		t.Errorf("fw.Start() = %v", err)
-// 		return
-// 	}
-
-// 	changeTestFiles(testdir)
-
-// 	fw.Logger.Info("------------ Stop ----------------")
-// 	err = fw.Stop()
-// 	if err != nil {
-// 		t.Errorf("fw.Stop() = %v", err)
-// 		return
-// 	}
-
-// 	if 3 != len(files) {
-// 		t.Errorf("len(files) = %v, want %v", len(files), 3)
-// 		return
-// 	}
-// 	for i := 1; i <= 3; i++ {
-// 		dir := filepath.Join(testdir, strconv.Itoa(i))
-// 		_, ok := files[dir]
-// 		if !ok {
-// 			t.Errorf("dir %v not exists", dir)
-// 		}
-// 	}
-// }
+	fw := NewFileWatcher()
+	fw.Logger = lg.GetLogger("FSW")
+	return fw, lg
+}
 
 func TestWatchRecursive(t *testing.T) {
 	testdir := "TestWatchRecursive-" + strconv.Itoa(rand.Int())
@@ -132,21 +96,18 @@ func TestWatchRecursive(t *testing.T) {
 
 	os.MkdirAll(testdir, os.FileMode(0770))
 
-	fw := NewFileWatcher()
+	fw, lg := testCreateWatcher()
 
-	log.SetWriter(&log.StreamWriter{Color: true})
-	fw.Logger = log.GetLogger("fswatch")
-
-	files := make(map[string]Op)
-	fw.AddRecursive(testdir, OpALL, "", func(path string, op Op) {
+	files := make(map[string]int)
+	fw.AddRecursive(testdir, OpModifies, func(path string, op Op) {
 		if err := iox.FileExists(path); err == nil {
-			files[path] = op
+			files[path]++
 		}
 		fw.Logger.Infof("%q [%v]", path, op)
 	})
 
 	fw.Logger.Info("------------ Prepare ----------------")
-	prepareTestDir(testdir)
+	prepareTestDir(fw.Logger, testdir)
 
 	fw.Logger.Info("------------ Start ----------------")
 	err := fw.Start()
@@ -155,7 +116,7 @@ func TestWatchRecursive(t *testing.T) {
 		return
 	}
 
-	changeTestFiles(testdir)
+	changeTestFiles(fw.Logger, testdir)
 
 	fw.Logger.Info("------------ Stop ----------------")
 	err = fw.Stop()
@@ -165,6 +126,8 @@ func TestWatchRecursive(t *testing.T) {
 	}
 
 	assertTestFiles(t, testdir, files)
+
+	lg.Close()
 }
 
 func TestWatchAgain(t *testing.T) {
@@ -175,21 +138,18 @@ func TestWatchAgain(t *testing.T) {
 
 	os.MkdirAll(testdir, os.FileMode(0770))
 
-	fw := NewFileWatcher()
+	fw, lg := testCreateWatcher()
 
-	log.SetWriter(&log.StreamWriter{Color: true})
-	fw.Logger = log.GetLogger("fswatch")
-
-	files := make(map[string]Op)
-	fw.AddRecursive(testdir, OpALL, "", func(path string, op Op) {
+	files := make(map[string]int)
+	fw.AddRecursive(testdir, OpModifies, func(path string, op Op) {
 		if err := iox.FileExists(path); err == nil {
-			files[path] = op
+			files[path]++
 		}
 		fw.Logger.Infof("%q [%v]", path, op)
 	})
 
 	fw.Logger.Info("------------ Prepare ----------------")
-	prepareTestDir(testdir)
+	prepareTestDir(fw.Logger, testdir)
 
 	fw.Logger.Info("------------ Start ----------------")
 	err := fw.Start()
@@ -205,6 +165,9 @@ func TestWatchAgain(t *testing.T) {
 		return
 	}
 
+	// wait for stop()
+	testSleep()
+
 	fw.Logger.Info("------------ Start Again ----------------")
 	err = fw.Start()
 	if err != nil {
@@ -212,7 +175,7 @@ func TestWatchAgain(t *testing.T) {
 		return
 	}
 
-	changeTestFiles(testdir)
+	changeTestFiles(fw.Logger, testdir)
 
 	fw.Logger.Info("------------ Stop Again ----------------")
 	err = fw.Stop()
@@ -222,4 +185,6 @@ func TestWatchAgain(t *testing.T) {
 	}
 
 	assertTestFiles(t, testdir, files)
+
+	lg.Close()
 }

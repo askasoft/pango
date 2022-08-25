@@ -33,6 +33,12 @@ import (
 //
 // go test -memprofile mem.out
 
+// compile time interface checks
+var _ error = new(fieldError)
+var _ FieldError = new(fieldError)
+var _ FieldLevel = new(validate)
+var _ StructLevel = new(validate)
+
 type I interface {
 	Foo() string
 }

@@ -63,8 +63,6 @@ type FieldLevel interface {
 	GetStructFieldOKAdvanced2(val reflect.Value, namespace string) (reflect.Value, reflect.Kind, bool, bool)
 }
 
-var _ FieldLevel = new(validate)
-
 // Field returns current field for validation
 func (v *validate) Field() reflect.Value {
 	return v.flField

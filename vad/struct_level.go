@@ -66,8 +66,6 @@ type StructLevel interface {
 	ReportValidationErrors(relativeNamespace, relativeActualNamespace string, errs ValidationErrors)
 }
 
-var _ StructLevel = new(validate)
-
 // Top returns the top level struct
 //
 // NOTE: this can be the same as the current struct being validated

@@ -128,10 +128,6 @@ type FieldError interface {
 	Error() string
 }
 
-// compile time interface checks
-var _ FieldError = new(fieldError)
-var _ error = new(fieldError)
-
 // fieldError contains a single field's validation error along
 // with other properties that may be needed for error message creation
 // it complies with the FieldError interface

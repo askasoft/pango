@@ -13,14 +13,14 @@ func (xmlBinding) Name() string {
 	return "xml"
 }
 
-func (xmlBinding) Bind(req *http.Request, obj interface{}) error {
+func (xmlBinding) Bind(req *http.Request, obj any) error {
 	return decodeXML(req.Body, obj)
 }
 
-func (xmlBinding) BindBody(body []byte, obj interface{}) error {
+func (xmlBinding) BindBody(body []byte, obj any) error {
 	return decodeXML(bytes.NewReader(body), obj)
 }
 
-func decodeXML(r io.Reader, obj interface{}) error {
+func decodeXML(r io.Reader, obj any) error {
 	return xml.NewDecoder(r).Decode(obj)
 }

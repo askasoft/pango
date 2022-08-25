@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type xmlmap map[string]interface{}
+type xmlmap map[string]any
 
 // Allows type H to be used with xml.Marshal
 func (h xmlmap) MarshalXML(e *xml.Encoder, start xml.StartElement) error {

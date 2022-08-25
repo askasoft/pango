@@ -16,7 +16,7 @@ import (
 const Public1Year = "public, max-age=31536000"
 
 var (
-	// reg match english letters for http method name
+	// regEnLetter matches english letters for http method name
 	regEnLetter = regexp.MustCompile("^[A-Z]+$")
 
 	// anyMethods for RouterGroup Any method

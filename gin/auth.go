@@ -27,7 +27,7 @@ func (a authPairs) searchCredential(authValue string) (string, bool) {
 		return "", false
 	}
 	for _, pair := range a {
-		if subtle.ConstantTimeCompare([]byte(pair.value), []byte(authValue)) == 1 {
+		if subtle.ConstantTimeCompare(str.UnsafeBytes(pair.value), str.UnsafeBytes(authValue)) == 1 {
 			return pair.user, true
 		}
 	}

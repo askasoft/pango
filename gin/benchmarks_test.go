@@ -18,13 +18,6 @@ func BenchmarkRecoveryMiddleware(B *testing.B) {
 	runRequest(B, router, "GET", "/")
 }
 
-func BenchmarkLoggerMiddleware(B *testing.B) {
-	router := New()
-	//TODO	router.Use(LoggerWithWriter(newMockWriter()))
-	router.GET("/", func(c *Context) {})
-	runRequest(B, router, "GET", "/")
-}
-
 func BenchmarkManyHandlers(B *testing.B) {
 	router := New()
 	router.Use(Recovery())

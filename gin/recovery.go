@@ -10,7 +10,7 @@ import (
 )
 
 // IsBrokenPipeError Check for a broken connection error
-func IsBrokenPipeError(err interface{}) bool {
+func IsBrokenPipeError(err any) bool {
 	if err != nil {
 		// Check for a broken connection, as it is not really a
 		// condition that warrants a panic stack trace.

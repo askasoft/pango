@@ -9,7 +9,7 @@ import (
 // HTMLRender interface is to be implemented by HTMLProduction and HTMLDebug.
 type HTMLRender interface {
 	// Instance returns an HTML instance.
-	Instance(string, interface{}) Render
+	Instance(string, any) Render
 }
 
 // HTMLTemplates html templates interface for gin
@@ -30,7 +30,7 @@ func NewHTMLTemplates() HTMLTemplates {
 }
 
 // Instance implement gin interface
-func (html *htmlTemplates) Instance(name string, data interface{}) Render {
+func (html *htmlTemplates) Instance(name string, data any) Render {
 	return htmlRender{
 		html: html,
 		name: name,
@@ -42,7 +42,7 @@ func (html *htmlTemplates) Instance(name string, data interface{}) Render {
 type htmlRender struct {
 	html *htmlTemplates
 	name string
-	data interface{}
+	data any
 }
 
 // Render writes data with custom ContentType.

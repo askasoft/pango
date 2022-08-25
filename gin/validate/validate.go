@@ -14,14 +14,14 @@ type StructValidator interface {
 	// If the received type is a struct or pointer to a struct, the validation should be performed.
 	// If the struct is not valid or the validation itself fails, a descriptive error should be returned.
 	// Otherwise nil must be returned.
-	ValidateStruct(interface{}) error
+	ValidateStruct(any) error
 
 	// SetTagName allows for changing of the default tag name of 'validate'
 	SetTagName(name string)
 
 	// Engine returns the underlying validator engine which powers the
 	// StructValidator implementation.
-	Engine() interface{}
+	Engine() any
 }
 
 // NewStructValidator is the default validator which implements the StructValidator interface.

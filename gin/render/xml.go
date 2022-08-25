@@ -7,7 +7,7 @@ import (
 
 // XML contains the given interface object.
 type XML struct {
-	Data interface{}
+	Data any
 }
 
 var xmlContentType = []string{"application/xml; charset=utf-8"}

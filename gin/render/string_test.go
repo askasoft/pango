@@ -12,13 +12,13 @@ func TestRenderString(t *testing.T) {
 
 	(String{
 		Format: "hello %s %d",
-		Data:   []interface{}{},
+		Data:   []any{},
 	}).WriteContentType(w)
 	assert.Equal(t, "text/plain; charset=utf-8", w.Header().Get("Content-Type"))
 
 	err := (String{
 		Format: "hola %s %d",
-		Data:   []interface{}{"manu", 2},
+		Data:   []any{"manu", 2},
 	}).Render(w)
 
 	assert.NoError(t, err)
@@ -31,7 +31,7 @@ func TestRenderStringLenZero(t *testing.T) {
 
 	err := (String{
 		Format: "hola %s %d",
-		Data:   []interface{}{},
+		Data:   []any{},
 	}).Render(w)
 
 	assert.NoError(t, err)

@@ -52,7 +52,7 @@ func TestDefaultValidator(t *testing.T) {
 	tests := []struct {
 		name    string
 		v       StructValidator
-		obj     interface{}
+		obj     any
 		wantErr bool
 	}{
 		{"validate nil obj", v, nil, false},

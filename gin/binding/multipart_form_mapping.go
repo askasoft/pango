@@ -9,8 +9,6 @@ import (
 
 type multipartRequest http.Request
 
-var _ setter = (*multipartRequest)(nil)
-
 var (
 	// ErrMultiFileHeader multipart.FileHeader invalid
 	ErrMultiFileHeader = errors.New("unsupported field type for multipart.FileHeader")

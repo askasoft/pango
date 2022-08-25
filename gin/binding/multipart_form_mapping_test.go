@@ -10,6 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var _ setter = (*multipartRequest)(nil)
+
 func TestFormMultipartBindingBindOneFile(t *testing.T) {
 	var s struct {
 		FileValue   multipart.FileHeader     `form:"file"`
@@ -72,7 +74,7 @@ func TestFormMultipartBindingBindError(t *testing.T) {
 
 	for _, tt := range []struct {
 		name string
-		s    interface{}
+		s    any
 	}{
 		{"wrong type", &struct {
 			Files int `form:"file"`

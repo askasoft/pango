@@ -12,7 +12,7 @@ func TestRenderHTMLTemplate(t *testing.T) {
 
 	ht := NewHTMLTemplates()
 	ht.Load("testdata")
-	instance := ht.Instance("hello", map[string]interface{}{
+	instance := ht.Instance("hello", map[string]any{
 		"name": "alexandernyquist",
 	})
 

@@ -18,21 +18,21 @@ const (
 // the form POST.
 type Binding interface {
 	Name() string
-	Bind(*http.Request, interface{}) error
+	Bind(*http.Request, any) error
 }
 
 // BodyBinding adds BindBody method to Binding. BindBody is similar with Bind,
 // but it reads the body from supplied bytes instead of req.Body.
 type BodyBinding interface {
 	Binding
-	BindBody([]byte, interface{}) error
+	BindBody([]byte, any) error
 }
 
 // URIBinding adds BindUri method to Binding. BindUri is similar with Bind,
 // but it reads the Params.
 type URIBinding interface {
 	Name() string
-	BindUri(map[string][]string, interface{}) error
+	BindUri(map[string][]string, any) error
 }
 
 // These implement the Binding interface and can be used to bind the data

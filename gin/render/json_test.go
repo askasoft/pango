@@ -9,7 +9,7 @@ import (
 
 func TestRenderJSON(t *testing.T) {
 	w := httptest.NewRecorder()
-	data := map[string]interface{}{
+	data := map[string]any{
 		"foo":  "bar",
 		"html": "<b>",
 	}
@@ -34,7 +34,7 @@ func TestRenderJSONPanics(t *testing.T) {
 
 func TestRenderIndentedJSON(t *testing.T) {
 	w := httptest.NewRecorder()
-	data := map[string]interface{}{
+	data := map[string]any{
 		"foo": "bar",
 		"bar": "foo",
 	}
@@ -57,7 +57,7 @@ func TestRenderIndentedJSONPanics(t *testing.T) {
 
 func TestRenderSecureJSON(t *testing.T) {
 	w1 := httptest.NewRecorder()
-	data := map[string]interface{}{
+	data := map[string]any{
 		"foo": "bar",
 	}
 
@@ -71,7 +71,7 @@ func TestRenderSecureJSON(t *testing.T) {
 	assert.Equal(t, "application/json; charset=utf-8", w1.Header().Get("Content-Type"))
 
 	w2 := httptest.NewRecorder()
-	datas := []map[string]interface{}{{
+	datas := []map[string]any{{
 		"foo": "bar",
 	}, {
 		"bar": "foo",
@@ -94,7 +94,7 @@ func TestRenderSecureJSONFail(t *testing.T) {
 
 func TestRenderJsonpJSON(t *testing.T) {
 	w1 := httptest.NewRecorder()
-	data := map[string]interface{}{
+	data := map[string]any{
 		"foo": "bar",
 	}
 
@@ -108,7 +108,7 @@ func TestRenderJsonpJSON(t *testing.T) {
 	assert.Equal(t, "application/javascript; charset=utf-8", w1.Header().Get("Content-Type"))
 
 	w2 := httptest.NewRecorder()
-	datas := []map[string]interface{}{{
+	datas := []map[string]any{{
 		"foo": "bar",
 	}, {
 		"bar": "foo",
@@ -122,7 +122,7 @@ func TestRenderJsonpJSON(t *testing.T) {
 
 func TestRenderJsonpJSONError2(t *testing.T) {
 	w := httptest.NewRecorder()
-	data := map[string]interface{}{
+	data := map[string]any{
 		"foo": "bar",
 	}
 	(JsonpJSON{"", data}).WriteContentType(w)
@@ -146,7 +146,7 @@ func TestRenderJsonpJSONFail(t *testing.T) {
 
 func TestRenderAsciiJSON(t *testing.T) {
 	w1 := httptest.NewRecorder()
-	data1 := map[string]interface{}{
+	data1 := map[string]any{
 		"lang": "GO语言",
 		"tag":  "<br>",
 	}
@@ -175,7 +175,7 @@ func TestRenderAsciiJSONFail(t *testing.T) {
 
 func TestRenderPureJSON(t *testing.T) {
 	w := httptest.NewRecorder()
-	data := map[string]interface{}{
+	data := map[string]any{
 		"foo":  "bar",
 		"html": "<b>",
 	}

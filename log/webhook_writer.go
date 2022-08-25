@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"time"
@@ -23,6 +24,16 @@ type WebhookWriter struct {
 	hc *http.Client
 	bb bytes.Buffer // message buffer
 	eb *EventBuffer // event buffer
+}
+
+// SetWebhook set the webhook URL
+func (ww *WebhookWriter) SetWebhook(webhook string) error {
+	_, err := url.ParseRequestURI(webhook)
+	if err != nil {
+		return fmt.Errorf("WebhookWriter - Invalid webhook: %w", err)
+	}
+	ww.Webhook = webhook
+	return nil
 }
 
 // SetFormat set the log formatter

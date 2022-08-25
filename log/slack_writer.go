@@ -3,6 +3,7 @@ package log
 import (
 	"bytes"
 	"fmt"
+	"net/url"
 	"os"
 	"strconv"
 	"time"
@@ -24,6 +25,16 @@ type SlackWriter struct {
 	sb bytes.Buffer // subject buffer
 	mb bytes.Buffer // message buffer
 	eb *EventBuffer // event buffer
+}
+
+// SetWebhook set the webhook URL
+func (sw *SlackWriter) SetWebhook(webhook string) error {
+	_, err := url.ParseRequestURI(webhook)
+	if err != nil {
+		return fmt.Errorf("SlackWriter - Invalid webhook: %w", err)
+	}
+	sw.Webhook = webhook
+	return nil
 }
 
 // SetSubject set the subject formatter
@@ -149,6 +160,7 @@ func (sw *SlackWriter) write(le *Event) (err error) {
 
 	if err = slack.Post(sw.Webhook, sw.Timeout, sm); err != nil {
 		err = fmt.Errorf("SlackWriter(%q) - Post(): %w", sw.Webhook, err)
+		fmt.Fprint(os.Stderr, err.Error())
 	}
 	return
 }

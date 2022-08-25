@@ -203,6 +203,7 @@ func (sw *SMTPWriter) write(le *Event) (err error) {
 
 	if err = sw.sender.Send(sw.email); err != nil {
 		err = fmt.Errorf("SMTPWriter(%s:%d) - Send(): %w", sw.Host, sw.Port, err)
+		fmt.Fprint(os.Stderr, err.Error())
 	}
 	return
 }

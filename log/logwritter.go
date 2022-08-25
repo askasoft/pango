@@ -64,7 +64,12 @@ func setWriterProp(w Writer, k string, v any) (err error) {
 			return err
 		}
 
-		m.Call([]reflect.Value{reflect.ValueOf(i)})
+		rs := m.Call([]reflect.Value{reflect.ValueOf(i)})
+		for _, r := range rs {
+			if err, ok := r.Interface().(error); ok {
+				return err
+			}
+		}
 		return nil
 	}
 

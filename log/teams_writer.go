@@ -3,6 +3,7 @@ package log
 import (
 	"bytes"
 	"fmt"
+	"net/url"
 	"os"
 	"strconv"
 	"time"
@@ -22,6 +23,16 @@ type TeamsWriter struct {
 	sb bytes.Buffer // subject buffer
 	mb bytes.Buffer // message buffer
 	eb *EventBuffer // event buffer
+}
+
+// SetWebhook set the webhook URL
+func (tw *TeamsWriter) SetWebhook(webhook string) error {
+	_, err := url.ParseRequestURI(webhook)
+	if err != nil {
+		return fmt.Errorf("TeamsWriter - Invalid webhook: %w", err)
+	}
+	tw.Webhook = webhook
+	return nil
 }
 
 // SetSubject set the subject formatter
@@ -122,6 +133,7 @@ func (tw *TeamsWriter) write(le *Event) (err error) {
 
 	if err = teams.Post(tw.Webhook, tw.Timeout, tm); err != nil {
 		err = fmt.Errorf("TeamsWriter(%q) - Post(): %w", tw.Webhook, err)
+		fmt.Fprint(os.Stderr, err.Error())
 	}
 	return
 }

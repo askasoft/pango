@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"reflect"
 	"strconv"
 	"sync/atomic"
@@ -16,6 +17,117 @@ import (
 	"github.com/pandafw/pango/tpl"
 	"github.com/stretchr/testify/assert"
 )
+
+// testNewHttpServer create a http.Server instance
+func testNewHttpServer(engine *Engine) *http.Server {
+	server := &http.Server{
+		Handler:           engine,
+		ReadTimeout:       5 * time.Second,
+		ReadHeaderTimeout: 5 * time.Second,
+		WriteTimeout:      5 * time.Second,
+		IdleTimeout:       5 * time.Second,
+	}
+	return server
+}
+
+// testRun attaches the router to a http.Server and starts listening and serving HTTP requests.
+// It is a shortcut for http.ListenAndServe(addr, router)
+// Note: this method will block the calling goroutine indefinitely unless an error happens.
+func testRun(engine *Engine, address string) (err error) {
+	if engine.isUnsafeTrustedProxies() {
+		engine.Logger.Warn("You trusted all proxies, this is NOT safe. We recommend you to set a value.")
+	}
+
+	engine.Logger.Infof("Listening and serving HTTP on %s", address)
+	server := testNewHttpServer(engine)
+	server.Addr = address
+	err = server.ListenAndServe()
+	if err != nil {
+		engine.Logger.Errorf("Listening and serving HTTP on %s failed: %v", err)
+	}
+	return
+}
+
+// testRunTLS attaches the router to a http.Server and starts listening and serving HTTPS (secure) requests.
+// It is a shortcut for http.ListenAndServeTLS(addr, certFile, keyFile, router)
+// Note: this method will block the calling goroutine indefinitely unless an error happens.
+func testRunTLS(engine *Engine, address, certFile, keyFile string) (err error) {
+	engine.Logger.Infof("Listening and serving HTTPS on %s\n", address)
+
+	engine.warnUnsafeTrustedProxies()
+
+	server := testNewHttpServer(engine)
+	server.Addr = address
+	err = server.ListenAndServeTLS(certFile, keyFile)
+	if err != nil {
+		engine.Logger.Errorf("Listen and serve HTTPs on %s failed: %v", address, err)
+	}
+	return
+}
+
+// RunUnix attaches the router to a http.Server and starts listening and serving HTTP requests
+// through the specified unix socket (i.e. a file).
+// Note: this method will block the calling goroutine indefinitely unless an error happens.
+func testRunUnix(engine *Engine, file string) (err error) {
+	engine.Logger.Infof("Listening and serving HTTP on unix:/%s", file)
+
+	engine.warnUnsafeTrustedProxies()
+
+	var listener net.Listener
+	listener, err = net.Listen("unix", file)
+	if err != nil {
+		engine.Logger.Errorf("Listen on unix:/%s failed: %v", file, err)
+		return
+	}
+	defer listener.Close()
+	defer os.Remove(file)
+
+	server := testNewHttpServer(engine)
+	err = server.Serve(listener)
+	if err != nil {
+		engine.Logger.Errorf("Serve on unix:/%s failed: %v", file, err)
+	}
+	return
+}
+
+// testRunFd attaches the router to a http.Server and starts listening and serving HTTP requests
+// through the specified file descriptor.
+// Note: this method will block the calling goroutine indefinitely unless an error happens.
+func testRunFd(engine *Engine, fd int) (err error) {
+	engine.Logger.Infof("Listening and serving HTTP on fd@%d", fd)
+
+	engine.warnUnsafeTrustedProxies()
+
+	var listener net.Listener
+
+	f := os.NewFile(uintptr(fd), fmt.Sprintf("fd@%d", fd))
+	listener, err = net.FileListener(f)
+	if err != nil {
+		engine.Logger.Errorf("Listen on fd@%d failed: %v", fd, err)
+		return
+	}
+	defer listener.Close()
+
+	err = testRunListener(engine, listener)
+	if err != nil {
+		engine.Logger.Errorf("Listen on fd@%d failed: %v", fd, err)
+	}
+	return
+}
+
+// testRunListener attaches the router to a http.Server and starts listening and serving HTTP requests
+// through the specified net.Listener
+func testRunListener(engine *Engine, listener net.Listener) (err error) {
+	engine.Logger.Infof("Listening and serving HTTP on listener what's bind with address@%s", listener.Addr())
+
+	engine.warnUnsafeTrustedProxies()
+
+	err = http.Serve(listener, engine)
+	if err != nil {
+		engine.Logger.Errorf("Listen and serve HTTP on listener what's bind with address@%s failed: %v", listener.Addr(), err)
+	}
+	return err
+}
 
 func formatAsDate(t time.Time) string {
 	year, month, day := t.Date()

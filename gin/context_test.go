@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"reflect"
 	"strings"
 	"sync"
@@ -20,8 +21,6 @@ import (
 	"github.com/pandafw/pango/net/httpx/sse"
 	"github.com/stretchr/testify/assert"
 )
-
-var _ context.Context = &Context{}
 
 // Unit tests TODO
 // func (c *Context) File(filepath string) {
@@ -60,6 +59,8 @@ func must(err error) {
 }
 
 func TestContextFormFile(t *testing.T) {
+	defer os.Remove("test")
+
 	buf := new(bytes.Buffer)
 	mw := multipart.NewWriter(buf)
 	w, err := mw.CreateFormFile("file", "test")
@@ -80,6 +81,8 @@ func TestContextFormFile(t *testing.T) {
 }
 
 func TestContextMultipartForm(t *testing.T) {
+	defer os.Remove("test")
+
 	buf := new(bytes.Buffer)
 	mw := multipart.NewWriter(buf)
 	assert.NoError(t, mw.WriteField("foo", "bar"))
@@ -101,6 +104,8 @@ func TestContextMultipartForm(t *testing.T) {
 }
 
 func TestSaveUploadedOpenFailed(t *testing.T) {
+	defer os.Remove("test")
+
 	buf := new(bytes.Buffer)
 	mw := multipart.NewWriter(buf)
 	mw.Close()

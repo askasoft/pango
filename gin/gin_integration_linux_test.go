@@ -22,7 +22,7 @@ func TestUnixSocket(t *testing.T) {
 
 	go func() {
 		router.GET("/example", func(c *Context) { c.String(http.StatusOK, "it worked") })
-		assert.NoError(t, router.RunUnix(unixTestSocket))
+		assert.NoError(t, testRunUnix(router, unixTestSocket))
 	}()
 	// have to wait for the goroutine to start and run the server
 	// otherwise the main thread will complete
@@ -43,7 +43,7 @@ func TestUnixSocket(t *testing.T) {
 
 func TestBadUnixSocket(t *testing.T) {
 	router := New()
-	assert.Error(t, router.RunUnix("#/tmp/unix_unit_test"))
+	assert.Error(t, testRunUnix(router, "#/tmp/unix_unit_test"))
 }
 
 func TestFileDescriptor(t *testing.T) {
@@ -58,7 +58,7 @@ func TestFileDescriptor(t *testing.T) {
 
 	go func() {
 		router.GET("/example", func(c *Context) { c.String(http.StatusOK, "it worked") })
-		assert.NoError(t, router.RunFd(int(socketFile.Fd())))
+		assert.NoError(t, testRunFd(router, int(socketFile.Fd())))
 	}()
 	// have to wait for the goroutine to start and run the server
 	// otherwise the main thread will complete
@@ -79,5 +79,5 @@ func TestFileDescriptor(t *testing.T) {
 
 func TestBadFileDescriptor(t *testing.T) {
 	router := New()
-	assert.Error(t, router.RunFd(0))
+	assert.Error(t, testRunFd(router, 0))
 }

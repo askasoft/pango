@@ -1,10 +1,8 @@
 package gin
 
 import (
-	"fmt"
 	"net"
 	"net/http"
-	"os"
 	"path"
 	"strings"
 	"sync"
@@ -60,10 +58,10 @@ type RoutesInfo []RouteInfo
 
 // Trusted platforms
 const (
-	// When running on Google App Engine. Trust X-Appengine-Remote-Addr
+	// PlatformGoogleAppEngine when running on Google App Engine. Trust X-Appengine-Remote-Addr
 	// for determining the client's IP
 	PlatformGoogleAppEngine = "X-Appengine-Remote-Addr"
-	// When using Cloudflare's CDN. Trust CF-Connecting-IP for determining
+	// PlatformCloudflare when using Cloudflare's CDN. Trust CF-Connecting-IP for determining
 	// the client's IP
 	PlatformCloudflare = "CF-Connecting-IP"
 )
@@ -73,14 +71,14 @@ const (
 type Engine struct {
 	RouterGroup
 
-	// Enables automatic redirection if the current route can't be matched but a
+	// RedirectTrailingSlash enables automatic redirection if the current route can't be matched but a
 	// handler for the path with (without) the trailing slash exists.
 	// For example if /foo/ is requested but a route only exists for /foo, the
 	// client is redirected to /foo with http status code 301 for GET requests
 	// and 307 for all other request methods.
 	RedirectTrailingSlash bool
 
-	// If enabled, the router tries to fix the current request path, if no
+	// RedirectFixedPath if enabled, the router tries to fix the current request path, if no
 	// handle is registered for it.
 	// First superfluous path elements like ../ or // are removed.
 	// Afterwards the router does a case-insensitive lookup of the cleaned path.
@@ -91,7 +89,7 @@ type Engine struct {
 	// RedirectTrailingSlash is independent of this option.
 	RedirectFixedPath bool
 
-	// If enabled, the router checks if another method is allowed for the
+	// HandleMethodNotAllowed if enabled, the router checks if another method is allowed for the
 	// current route, if the current request can not be routed.
 	// If this is the case, the request is answered with 'Method Not Allowed'
 	// and HTTP status code 405.
@@ -99,16 +97,16 @@ type Engine struct {
 	// handler.
 	HandleMethodNotAllowed bool
 
-	// If enabled, client IP will be parsed from the request's headers that
+	// ForwardedByClientIP if enabled, client IP will be parsed from the request's headers that
 	// match those stored at `(*gin.Engine).RemoteIPHeaders`. If no IP was
 	// fetched, it falls back to the IP obtained from
 	// `(*gin.Context).Request.RemoteAddr`.
 	ForwardedByClientIP bool
 
-	// If enabled, the url.RawPath will be used to find parameters.
+	// UseRawPath if enabled, the url.RawPath will be used to find parameters.
 	UseRawPath bool
 
-	// If true, the path value will be unescaped.
+	// UnescapePathValues if true, the path value will be unescaped.
 	// If UseRawPath is false (by default), the UnescapePathValues effectively is true,
 	// as url.Path gonna be used, which is already unescaped.
 	UnescapePathValues bool
@@ -117,17 +115,17 @@ type Engine struct {
 	// See the PR #1817 and issue #1644
 	RemoveExtraSlash bool
 
-	// List of headers used to obtain the client IP when
+	// RemoteIPHeaders list of headers used to obtain the client IP when
 	// `(*gin.Engine).ForwardedByClientIP` is `true` and
 	// `(*gin.Context).Request.RemoteAddr` is matched by at least one of the
 	// network origins of list defined by `(*gin.Engine).SetTrustedProxies()`.
 	RemoteIPHeaders []string
 
-	// If set to a constant of value gin.Platform*, trusts the headers set by
+	// TrustedPlatform if set to a constant of value gin.Platform*, trusts the headers set by
 	// that platform, for example to determine the client IP
 	TrustedPlatform string
 
-	// Value of 'maxMemory' param that is given to http.Request's ParseMultipartForm
+	// MaxMultipartMemory value of 'maxMemory' param that is given to http.Request's ParseMultipartForm
 	// method call.
 	MaxMultipartMemory int64
 
@@ -152,8 +150,6 @@ type Engine struct {
 	trustedProxies   []string
 	trustedCIDRs     []*net.IPNet
 }
-
-var _ IRouter = &Engine{}
 
 // New returns a new blank Engine instance without any middleware attached.
 // By default, the configuration is:
@@ -300,22 +296,6 @@ func iterate(path, method string, routes RoutesInfo, root *node) RoutesInfo {
 	return routes
 }
 
-// Run attaches the router to a http.Server and starts listening and serving HTTP requests.
-// It is a shortcut for http.ListenAndServe(addr, router)
-// Note: this method will block the calling goroutine indefinitely unless an error happens.
-func (engine *Engine) Run(address string) (err error) {
-	if engine.isUnsafeTrustedProxies() {
-		engine.Logger.Warn("You trusted all proxies, this is NOT safe. We recommend you to set a value.")
-	}
-
-	engine.Logger.Infof("Listening and serving HTTP on %s", address)
-	err = http.ListenAndServe(address, engine)
-	if err != nil {
-		engine.Logger.Errorf("Listening and serving HTTP on %s failed: %v", err)
-	}
-	return
-}
-
 func (engine *Engine) prepareTrustedCIDRs() ([]*net.IPNet, error) {
 	if engine.trustedProxies == nil {
 		return nil, nil
@@ -425,84 +405,6 @@ func parseIP(ip string) net.IP {
 
 	// return ip in a 16-byte representation or nil
 	return parsedIP
-}
-
-// RunTLS attaches the router to a http.Server and starts listening and serving HTTPS (secure) requests.
-// It is a shortcut for http.ListenAndServeTLS(addr, certFile, keyFile, router)
-// Note: this method will block the calling goroutine indefinitely unless an error happens.
-func (engine *Engine) RunTLS(addr, certFile, keyFile string) (err error) {
-	engine.Logger.Infof("Listening and serving HTTPS on %s\n", addr)
-
-	engine.warnUnsafeTrustedProxies()
-
-	err = http.ListenAndServeTLS(addr, certFile, keyFile, engine)
-	if err != nil {
-		engine.Logger.Errorf("Listen and serve HTTPs on %s failed: %v", addr, err)
-	}
-	return
-}
-
-// RunUnix attaches the router to a http.Server and starts listening and serving HTTP requests
-// through the specified unix socket (i.e. a file).
-// Note: this method will block the calling goroutine indefinitely unless an error happens.
-func (engine *Engine) RunUnix(file string) (err error) {
-	engine.Logger.Infof("Listening and serving HTTP on unix:/%s", file)
-
-	engine.warnUnsafeTrustedProxies()
-
-	var listener net.Listener
-	listener, err = net.Listen("unix", file)
-	if err != nil {
-		engine.Logger.Errorf("Listen on unix:/%s failed: %v", file, err)
-		return
-	}
-	defer listener.Close()
-	defer os.Remove(file)
-
-	err = http.Serve(listener, engine)
-	if err != nil {
-		engine.Logger.Errorf("Serve on unix:/%s failed: %v", file, err)
-	}
-	return
-}
-
-// RunFd attaches the router to a http.Server and starts listening and serving HTTP requests
-// through the specified file descriptor.
-// Note: this method will block the calling goroutine indefinitely unless an error happens.
-func (engine *Engine) RunFd(fd int) (err error) {
-	engine.Logger.Infof("Listening and serving HTTP on fd@%d", fd)
-
-	engine.warnUnsafeTrustedProxies()
-
-	var listener net.Listener
-
-	f := os.NewFile(uintptr(fd), fmt.Sprintf("fd@%d", fd))
-	listener, err = net.FileListener(f)
-	if err != nil {
-		engine.Logger.Errorf("Listen on fd@%d failed: %v", fd, err)
-		return
-	}
-	defer listener.Close()
-
-	err = engine.RunListener(listener)
-	if err != nil {
-		engine.Logger.Errorf("Listen on fd@%d failed: %v", fd, err)
-	}
-	return
-}
-
-// RunListener attaches the router to a http.Server and starts listening and serving HTTP requests
-// through the specified net.Listener
-func (engine *Engine) RunListener(listener net.Listener) (err error) {
-	engine.Logger.Infof("Listening and serving HTTP on listener what's bind with address@%s", listener.Addr())
-
-	engine.warnUnsafeTrustedProxies()
-
-	err = http.Serve(listener, engine)
-	if err != nil {
-		engine.Logger.Errorf("Listen and serve HTTP on listener what's bind with address@%s failed: %v", listener.Addr(), err)
-	}
-	return err
 }
 
 // ServeHTTP conforms to the http.Handler interface.

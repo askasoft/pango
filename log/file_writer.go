@@ -344,18 +344,19 @@ func (fw *FileWriter) deleteOutdatedFiles() {
 	}
 	defer f.Close()
 
-	fis, err := f.Readdir(-1)
+	des, err := f.ReadDir(-1)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "FileWriter(%q) - Readdir(%q): %v\n", fw.Path, fw.dir, err)
+		fmt.Fprintf(os.Stderr, "FileWriter(%q) - ReadDir(%q): %v\n", fw.Path, fw.dir, err)
 		return
 	}
 
-	for _, fi := range fis {
-		if fi.IsDir() {
+	for _, de := range des {
+		if de.IsDir() {
 			continue
 		}
 
-		if fi.ModTime().Before(due) {
+		fi, err := de.Info()
+		if err == nil && fi.ModTime().Before(due) {
 			name := filepath.Base(fi.Name())
 			if strings.HasPrefix(name, fw.prefix) {
 				path := filepath.Join(fw.dir, fi.Name())

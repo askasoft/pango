@@ -50,7 +50,7 @@ func nameOfCallback(f any) string {
 
 func (t *Task) schedule() {
 	if t.Logger != nil {
-		t.Logger.Infof("Schedule task at [%s] --> %s", t.ScheduledTime.Format(execTimeFormat), nameOfCallback(t.Callback))
+		t.Logger.Infof("Schedule task %s() at %s", nameOfCallback(t.Callback), t.ScheduledTime.Format(execTimeFormat))
 	}
 	t.timer.Reset(time.Until(t.ScheduledTime))
 }
@@ -58,18 +58,24 @@ func (t *Task) schedule() {
 func (t *Task) Start() {
 	t.ScheduledTime = t.Trigger.NextExecutionTime(t)
 
-	// create a fake timer to get timer instance
-	t.timer = time.AfterFunc(time.Hour, func() {
-		t.run()
-	})
+	if t.timer == nil {
+		// create a fake timer to get timer instance
+		t.timer = time.AfterFunc(time.Hour, func() {
+			t.run()
+		})
+	}
 
 	// reset timer
 	t.schedule()
 }
 
 func (t *Task) Stop() bool {
-	if t.timer != nil {
-		return false
+	timer := t.timer
+	if timer != nil && timer.Stop() {
+		if t.Logger != nil {
+			t.Logger.Infof("Stop task %s() at %s", nameOfCallback(t.Callback), t.ScheduledTime.Format(execTimeFormat))
+		}
+		return true
 	}
-	return t.timer.Stop()
+	return false
 }

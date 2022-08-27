@@ -569,11 +569,13 @@ func (rb *RingBuffer) shrink() {
 func (rb *RingBuffer) resize(n int) {
 	data := make([]T, n)
 
-	if rb.head <= rb.tail {
-		copy(data, rb.data[rb.head:rb.tail+1])
-	} else {
-		n := copy(data, rb.data[rb.head:])
-		copy(data[n:], rb.data[:rb.tail+1])
+	if rb.len > 0 {
+		if rb.head <= rb.tail {
+			copy(data, rb.data[rb.head:rb.tail+1])
+		} else {
+			n := copy(data, rb.data[rb.head:])
+			copy(data[n:], rb.data[:rb.tail+1])
+		}
 	}
 
 	rb.head = 0

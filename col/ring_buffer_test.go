@@ -75,6 +75,26 @@ func TestRingBufferSimple(t *testing.T) {
 	}
 }
 
+func TestRingBufferSimple2(t *testing.T) {
+	rb := &RingBuffer{}
+
+	for i := 0; i < minArrayCap; i++ {
+		rb.Push(i)
+	}
+
+	for i := 0; i < minArrayCap; i++ {
+		v, _ := rb.Peek()
+		if v != i {
+			t.Error("peek", i, "had value", v)
+		}
+
+		x, _ := rb.Poll()
+		if x != i {
+			t.Error("poll", i, "had value", x)
+		}
+	}
+}
+
 func TestRingBufferWrapping(t *testing.T) {
 	rb := NewRingBuffer()
 

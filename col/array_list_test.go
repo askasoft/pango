@@ -79,7 +79,7 @@ func calcArrayCap(n int) int {
 }
 
 func TestArrayListGrow(t *testing.T) {
-	list := NewArrayList()
+	list := &ArrayList{}
 
 	for i := 0; i < 1000; i++ {
 		list.Add(i)

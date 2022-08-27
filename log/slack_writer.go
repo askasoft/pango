@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"net/url"
-	"os"
-	"strconv"
 	"time"
 
 	"github.com/pandafw/pango/bye"
@@ -24,7 +22,6 @@ type SlackWriter struct {
 
 	sb bytes.Buffer // subject buffer
 	mb bytes.Buffer // message buffer
-	eb *EventBuffer // event buffer
 }
 
 // SetWebhook set the webhook URL
@@ -62,38 +59,31 @@ func (sw *SlackWriter) SetTimeout(timeout string) error {
 	return nil
 }
 
-// SetBuffer set the event buffer size
-func (sw *SlackWriter) SetBuffer(buffer string) error {
-	bsz, err := strconv.Atoi(buffer)
-	if err != nil {
-		return fmt.Errorf("SlackWriter - Invalid buffer: %w", err)
-	}
-	if bsz > 0 {
-		sw.eb = &EventBuffer{BufSize: bsz}
-	}
-	return nil
-}
-
 // Write send log message to slack
-func (sw *SlackWriter) Write(le *Event) {
+func (sw *SlackWriter) Write(le *Event) (err error) {
 	if sw.Logfil != nil && sw.Logfil.Reject(le) {
 		return
 	}
 
-	if sw.eb == nil {
-		sw.write(le) //nolint: errcheck
-		return
+	sub, msg := sw.format(le)
+
+	sm := &slack.Message{}
+	sm.IconEmoji = sw.getIconEmoji(le.Level())
+	sm.Channel = sw.Channel
+	sm.Username = sw.Username
+	sm.Text = sub
+
+	sa := &slack.Attachment{Text: msg}
+	sm.AddAttachment(sa)
+
+	if sw.Timeout.Milliseconds() == 0 {
+		sw.Timeout = time.Second * 2
 	}
 
-	err := sw.flush()
-	if err == nil {
-		err = sw.write(le)
+	if err = slack.Post(sw.Webhook, sw.Timeout, sm); err != nil {
+		err = fmt.Errorf("SlackWriter(%q) - Post(): %w", sw.Webhook, err)
 	}
-
-	if err != nil {
-		sw.eb.Push(le)
-		fmt.Fprintln(os.Stderr, err)
-	}
+	return
 }
 
 // format format log event to (subject, message)
@@ -142,49 +132,12 @@ func (sw *SlackWriter) getIconEmoji(lvl Level) string {
 	}
 }
 
-func (sw *SlackWriter) write(le *Event) (err error) {
-	sub, msg := sw.format(le)
-
-	sm := &slack.Message{}
-	sm.IconEmoji = sw.getIconEmoji(le.Level())
-	sm.Channel = sw.Channel
-	sm.Username = sw.Username
-	sm.Text = sub
-
-	sa := &slack.Attachment{Text: msg}
-	sm.AddAttachment(sa)
-
-	if sw.Timeout.Milliseconds() == 0 {
-		sw.Timeout = time.Second * 2
-	}
-
-	if err = slack.Post(sw.Webhook, sw.Timeout, sm); err != nil {
-		err = fmt.Errorf("SlackWriter(%q) - Post(): %w", sw.Webhook, err)
-		fmt.Fprint(os.Stderr, err.Error())
-	}
-	return
-}
-
-// flush flush buffered event
-func (sw *SlackWriter) flush() error {
-	if sw.eb != nil {
-		for le := sw.eb.Peek(); le != nil; sw.eb.Poll() {
-			if err := sw.write(le); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
 // Flush implementing method. empty.
 func (sw *SlackWriter) Flush() {
-	sw.flush()
 }
 
 // Close implementing method. empty.
 func (sw *SlackWriter) Close() {
-	sw.flush()
 }
 
 func init() {

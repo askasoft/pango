@@ -15,10 +15,10 @@ type SyncWriter struct {
 }
 
 // Write synchronize write log event
-func (sw *SyncWriter) Write(le *Event) {
+func (sw *SyncWriter) Write(le *Event) error {
 	sw.mutex.Lock()
 	defer sw.mutex.Unlock()
-	sw.writer.Write(le)
+	return sw.writer.Write(le)
 }
 
 // Flush synchronize flush the underlying writer

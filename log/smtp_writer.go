@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"crypto/tls"
 	"fmt"
-	"os"
-	"strconv"
 	"time"
 
 	"github.com/pandafw/pango/bye"
@@ -32,7 +30,6 @@ type SMTPWriter struct {
 
 	sb bytes.Buffer // subject buffer
 	mb bytes.Buffer // message buffer
-	eb *EventBuffer // event buffer
 }
 
 // SetSubject set the subject formatter
@@ -70,26 +67,14 @@ func (sw *SMTPWriter) SetTimeout(timeout string) error {
 	return nil
 }
 
-// SetBuffer set the event buffer size
-func (sw *SMTPWriter) SetBuffer(buffer string) error {
-	bsz, err := strconv.Atoi(buffer)
-	if err != nil {
-		return fmt.Errorf("SMTPWriter - Invalid buffer: %w", err)
-	}
-	if bsz > 0 {
-		sw.eb = &EventBuffer{BufSize: bsz}
-	}
-	return nil
-}
-
 // Write send log message to smtp server.
-func (sw *SMTPWriter) Write(le *Event) {
+func (sw *SMTPWriter) Write(le *Event) (err error) {
 	if sw.Logfil != nil && sw.Logfil.Reject(le) {
 		return
 	}
 
 	if sw.email == nil {
-		if err := sw.initEmail(); err != nil {
+		if err = sw.initEmail(); err != nil {
 			return
 		}
 	}
@@ -98,20 +83,27 @@ func (sw *SMTPWriter) Write(le *Event) {
 		sw.initSender()
 	}
 
-	if sw.eb == nil {
-		sw.write(le) //nolint: errcheck
-		return
+	if !sw.sender.IsDialed() {
+		if err = sw.sender.Dial(); err != nil {
+			err = fmt.Errorf("SMTPWriter(%s:%d) - Dial(): %w", sw.Host, sw.Port, err)
+			return
+		}
+
+		if err = sw.sender.Login(); err != nil {
+			err = fmt.Errorf("SMTPWriter(%s:%d) - Login(%s, %s): %w", sw.Host, sw.Port, sw.Username, sw.Password, err)
+			sw.sender.Close()
+			return
+		}
 	}
 
-	err := sw.flush()
-	if err == nil {
-		err = sw.write(le)
-	}
+	sub, msg := sw.format(le)
+	sw.email.Subject = sub
+	sw.email.Message = msg
 
-	if err != nil {
-		sw.eb.Push(le)
-		fmt.Fprintln(os.Stderr, err)
+	if err = sw.sender.Send(sw.email); err != nil {
+		err = fmt.Errorf("SMTPWriter(%s:%d) - Send(): %w", sw.Host, sw.Port, err)
 	}
+	return
 }
 
 // format format log event to (subject, message)
@@ -182,55 +174,15 @@ func (sw *SMTPWriter) initEmail() (err error) {
 	return
 }
 
-// write send log message to smtp server.
-func (sw *SMTPWriter) write(le *Event) (err error) {
-	if !sw.sender.IsDialed() {
-		if err = sw.sender.Dial(); err != nil {
-			err = fmt.Errorf("SMTPWriter(%s:%d) - Dial(): %w", sw.Host, sw.Port, err)
-			return
-		}
-
-		if err = sw.sender.Login(); err != nil {
-			err = fmt.Errorf("SMTPWriter(%s:%d) - Login(%s, %s): %w", sw.Host, sw.Port, sw.Username, sw.Password, err)
-			sw.sender.Close()
-			return
-		}
-	}
-
-	sub, msg := sw.format(le)
-	sw.email.Subject = sub
-	sw.email.Message = msg
-
-	if err = sw.sender.Send(sw.email); err != nil {
-		err = fmt.Errorf("SMTPWriter(%s:%d) - Send(): %w", sw.Host, sw.Port, err)
-		fmt.Fprint(os.Stderr, err.Error())
-	}
-	return
-}
-
-// flush flush buffered event
-func (sw *SMTPWriter) flush() error {
-	if sw.eb != nil {
-		for le := sw.eb.Peek(); le != nil; sw.eb.Poll() {
-			if err := sw.write(le); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
 // Flush implementing method. empty.
 func (sw *SMTPWriter) Flush() {
-	sw.flush()
 }
 
 // Close close the mail sender
 func (sw *SMTPWriter) Close() {
-	sw.flush()
 	if sw.sender != nil {
 		if err := sw.sender.Close(); err != nil {
-			fmt.Fprintf(os.Stderr, "SMTPWriter(%s:%d) - Close(): %v\n", sw.Host, sw.Port, err)
+			perrorf("SMTPWriter(%s:%d) - Close(): %v", sw.Host, sw.Port, err)
 		}
 		sw.sender = nil
 	}

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"os"
 	"time"
 )
 
@@ -43,7 +42,7 @@ func (cw *ConnWriter) SetTimeout(timeout string) error {
 }
 
 // Write write logger message to connection.
-func (cw *ConnWriter) Write(le *Event) {
+func (cw *ConnWriter) Write(le *Event) (err error) {
 	if cw.Logfil != nil && cw.Logfil.Reject(le) {
 		return
 	}
@@ -56,8 +55,8 @@ func (cw *ConnWriter) Write(le *Event) {
 		}
 	}
 
-	cw.dial()
-	if cw.conn == nil {
+	err = cw.dial()
+	if err != nil {
 		return
 	}
 
@@ -66,20 +65,22 @@ func (cw *ConnWriter) Write(le *Event) {
 	lf.Write(&cw.bb, le)
 
 	// write log
-	_, err := cw.conn.Write(cw.bb.Bytes())
+	_, err = cw.conn.Write(cw.bb.Bytes())
 	if err != nil {
 		// This is probably due to a timeout, so reconnect and try again.
 		cw.Close()
-		cw.dial()
-		if cw.conn == nil {
+		err = cw.dial()
+		if err != nil {
 			return
 		}
-		_, err := cw.conn.Write(cw.bb.Bytes())
+
+		_, err = cw.conn.Write(cw.bb.Bytes())
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "ConnWriter(%q) - Write(%s): %v\n", cw.Addr, cw.bb.Bytes(), err)
+			err = fmt.Errorf("ConnWriter(%q) - Write(%s): %w", cw.Addr, cw.bb.Bytes(), err)
 			cw.Close()
 		}
 	}
+	return
 }
 
 // Flush implementing method. empty.
@@ -91,15 +92,15 @@ func (cw *ConnWriter) Close() {
 	if cw.conn != nil {
 		err := cw.conn.Close()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "ConnWriter(%q) - Close(): %v\n", cw.Addr, err)
+			perrorf("ConnWriter(%q) - Close(): %v", cw.Addr, err)
 		}
 		cw.conn = nil
 	}
 }
 
-func (cw *ConnWriter) dial() {
+func (cw *ConnWriter) dial() error {
 	if cw.conn != nil {
-		return
+		return nil
 	}
 
 	if cw.Net == "" {
@@ -112,19 +113,18 @@ func (cw *ConnWriter) dial() {
 
 	conn, err := net.DialTimeout(cw.Net, cw.Addr, cw.Timeout)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "ConnWriter(%q) - Dial(%q): %v\n", cw.Addr, cw.Net, err)
-		return
+		return fmt.Errorf("ConnWriter(%q) - Dial(%q): %w", cw.Addr, cw.Net, err)
 	}
 
 	if tcpConn, ok := conn.(*net.TCPConn); ok {
 		err = tcpConn.SetKeepAlive(true)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "ConnWriter(%q) - SetKeepAlive(%q): %v\n", cw.Addr, cw.Net, err)
-			return
+			return fmt.Errorf("ConnWriter(%q) - SetKeepAlive(%q): %w", cw.Addr, cw.Net, err)
 		}
 	}
 
 	cw.conn = conn
+	return nil
 }
 
 func newConnWriter() Writer {

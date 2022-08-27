@@ -17,7 +17,7 @@ type signal struct {
 	option any
 }
 
-// AsyncWriter write log to multiple writers.
+// AsyncWriter wrapper a log writer to implement asynchrous write
 type AsyncWriter struct {
 	writer  Writer
 	evtChan chan *Event
@@ -26,8 +26,9 @@ type AsyncWriter struct {
 }
 
 // Write async write the log event
-func (aw *AsyncWriter) Write(le *Event) {
+func (aw *AsyncWriter) Write(le *Event) error {
 	aw.evtChan <- le
+	return nil
 }
 
 // Flush async flush the underlying writer
@@ -60,12 +61,21 @@ func (aw *AsyncWriter) Stop() {
 	aw.waitg.Wait()
 }
 
+func (aw *AsyncWriter) write(w Writer, le *Event) {
+	err := w.Write(le)
+	if err != nil {
+		perror(err)
+	}
+}
+
 // drainOnce drain the event chan once (ignore after-coming event to prevent dead loop)
 func (aw *AsyncWriter) drainOnce() {
+	w := aw.writer
+
 	ec := aw.evtChan
 	for n := len(ec); n > 0; n-- {
 		le := <-ec
-		aw.writer.Write(le)
+		aw.write(w, le)
 	}
 }
 
@@ -77,7 +87,7 @@ func (aw *AsyncWriter) drainFull() {
 	ec := aw.evtChan
 	for len(ec) > 0 {
 		le := <-ec
-		w.Write(le)
+		aw.write(w, le)
 	}
 
 	// complete drain the signal chan
@@ -111,7 +121,7 @@ func (aw *AsyncWriter) run() {
 				done = true
 			}
 		case le := <-aw.evtChan:
-			aw.writer.Write(le)
+			aw.write(aw.writer, le)
 		}
 		if done {
 			break

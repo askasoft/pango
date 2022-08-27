@@ -107,7 +107,7 @@ func (log *Log) Close() {
 
 // write write a log event
 func (log *Log) write(le *Event) {
-	log.writer.Write(le)
+	log.writer.Write(le) //nolint: errcheck
 }
 
 // Outputer return a io.Writer for go log.SetOutput

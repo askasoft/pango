@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"os"
-	"strconv"
 	"time"
 
 	"github.com/pandafw/pango/iox"
@@ -23,7 +21,6 @@ type WebhookWriter struct {
 
 	hc *http.Client
 	bb bytes.Buffer // message buffer
-	eb *EventBuffer // event buffer
 }
 
 // SetWebhook set the webhook URL
@@ -56,69 +53,12 @@ func (ww *WebhookWriter) SetTimeout(timeout string) error {
 	return nil
 }
 
-// SetBuffer set the event buffer size
-func (ww *WebhookWriter) SetBuffer(buffer string) error {
-	bsz, err := strconv.Atoi(buffer)
-	if err != nil {
-		return fmt.Errorf("WebhookWriter - Invalid buffer: %w", err)
-	}
-	if bsz > 0 {
-		ww.eb = &EventBuffer{BufSize: bsz}
-	}
-	return nil
-}
-
 // Write send log message to webhook
-func (ww *WebhookWriter) Write(le *Event) {
+func (ww *WebhookWriter) Write(le *Event) error {
 	if ww.Logfil != nil && ww.Logfil.Reject(le) {
-		return
+		return nil
 	}
 
-	if ww.eb == nil {
-		ww.write(le) //nolint: errcheck
-		return
-	}
-
-	err := ww.flush()
-	if err == nil {
-		err = ww.write(le)
-	}
-
-	if err != nil {
-		ww.eb.Push(le)
-		fmt.Fprintln(os.Stderr, err)
-	}
-}
-
-func (ww *WebhookWriter) initClient() {
-	if ww.Method == "" {
-		ww.Method = "POST"
-	}
-
-	if ww.Timeout.Milliseconds() == 0 {
-		ww.Timeout = time.Second * 2
-	}
-
-	if ww.hc == nil {
-		ww.hc = &http.Client{Timeout: ww.Timeout}
-	}
-}
-
-func (ww *WebhookWriter) format(le *Event) {
-	lf := ww.Logfmt
-	if lf == nil {
-		lf = le.Logger().GetFormatter()
-		if lf == nil {
-			lf = JSONFmtDefault
-		}
-	}
-
-	ww.bb.Reset()
-	lf.Write(&ww.bb, le)
-}
-
-// write send log message to webhook
-func (ww *WebhookWriter) write(le *Event) error {
 	ww.initClient()
 
 	// format msg
@@ -148,26 +88,39 @@ func (ww *WebhookWriter) write(le *Event) error {
 	return err
 }
 
-// flush flush buffered event
-func (ww *WebhookWriter) flush() error {
-	if ww.eb != nil {
-		for le := ww.eb.Peek(); le != nil; ww.eb.Poll() {
-			if err := ww.write(le); err != nil {
-				return err
-			}
+func (ww *WebhookWriter) initClient() {
+	if ww.Method == "" {
+		ww.Method = "POST"
+	}
+
+	if ww.Timeout.Milliseconds() == 0 {
+		ww.Timeout = time.Second * 2
+	}
+
+	if ww.hc == nil {
+		ww.hc = &http.Client{Timeout: ww.Timeout}
+	}
+}
+
+func (ww *WebhookWriter) format(le *Event) {
+	lf := ww.Logfmt
+	if lf == nil {
+		lf = le.Logger().GetFormatter()
+		if lf == nil {
+			lf = JSONFmtDefault
 		}
 	}
-	return nil
+
+	ww.bb.Reset()
+	lf.Write(&ww.bb, le)
 }
 
 // Flush implementing method. empty.
 func (ww *WebhookWriter) Flush() {
-	ww.flush()
 }
 
 // Close implementing method. empty.
 func (ww *WebhookWriter) Close() {
-	ww.flush()
 }
 
 func init() {

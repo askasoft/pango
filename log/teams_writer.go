@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"net/url"
-	"os"
 	"strconv"
 	"time"
 
@@ -73,25 +72,25 @@ func (tw *TeamsWriter) SetBuffer(buffer string) error {
 }
 
 // Write send log message to teams
-func (tw *TeamsWriter) Write(le *Event) {
+func (tw *TeamsWriter) Write(le *Event) (err error) {
 	if tw.Logfil != nil && tw.Logfil.Reject(le) {
 		return
 	}
 
-	if tw.eb == nil {
-		tw.write(le) //nolint: errcheck
-		return
+	sub, msg := tw.format(le)
+
+	tm := &teams.Message{}
+	tm.Title = sub
+	tm.Text = msg
+
+	if tw.Timeout.Milliseconds() == 0 {
+		tw.Timeout = time.Second * 2
 	}
 
-	err := tw.flush()
-	if err == nil {
-		err = tw.write(le)
+	if err = teams.Post(tw.Webhook, tw.Timeout, tm); err != nil {
+		err = fmt.Errorf("TeamsWriter(%q) - Post(): %w", tw.Webhook, err)
 	}
-
-	if err != nil {
-		tw.eb.Push(le)
-		fmt.Fprintln(os.Stderr, err)
-	}
+	return
 }
 
 // format format log event to (message)
@@ -120,44 +119,12 @@ func (tw *TeamsWriter) format(le *Event) (sub, msg string) {
 	return
 }
 
-func (tw *TeamsWriter) write(le *Event) (err error) {
-	sub, msg := tw.format(le)
-
-	tm := &teams.Message{}
-	tm.Title = sub
-	tm.Text = msg
-
-	if tw.Timeout.Milliseconds() == 0 {
-		tw.Timeout = time.Second * 2
-	}
-
-	if err = teams.Post(tw.Webhook, tw.Timeout, tm); err != nil {
-		err = fmt.Errorf("TeamsWriter(%q) - Post(): %w", tw.Webhook, err)
-		fmt.Fprint(os.Stderr, err.Error())
-	}
-	return
-}
-
-// flush flush buffered event
-func (tw *TeamsWriter) flush() error {
-	if tw.eb != nil {
-		for le := tw.eb.Peek(); le != nil; tw.eb.Poll() {
-			if err := tw.write(le); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
 // Flush implementing method. empty.
 func (tw *TeamsWriter) Flush() {
-	tw.flush()
 }
 
 // Close implementing method. empty.
 func (tw *TeamsWriter) Close() {
-	tw.flush()
 }
 
 func init() {

@@ -11,10 +11,14 @@ type MultiWriter struct {
 }
 
 // Write write log event to multiple writers.
-func (mw *MultiWriter) Write(le *Event) {
+func (mw *MultiWriter) Write(le *Event) error {
 	for _, w := range mw.Writers {
-		w.Write(le)
+		err := w.Write(le)
+		if err != nil {
+			perror(err)
+		}
 	}
+	return nil
 }
 
 // Close close multiple writers.

@@ -10,7 +10,7 @@ import (
 
 // Writer log writer interface
 type Writer interface {
-	Write(le *Event)
+	Write(le *Event) error
 	Flush()
 	Close()
 }

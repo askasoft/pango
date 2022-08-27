@@ -42,6 +42,7 @@
 	}, {
 		"_": "smtp",
 		"_async": 1000,
+		"_failover": 5,
 		"host": "localhost",
 		"port": 25,
 		"username": "-----",

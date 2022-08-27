@@ -41,7 +41,7 @@ func (tw *testConcurrentDetectWriter) do() {
 	}
 }
 
-func (tw *testConcurrentDetectWriter) Write(le *Event) {
+func (tw *testConcurrentDetectWriter) Write(le *Event) error {
 	tw.do()
 
 	ss := str.Split(le.msg, " ")
@@ -62,6 +62,8 @@ func (tw *testConcurrentDetectWriter) Write(le *Event) {
 		fmt.Println(le.when, k, c, tw.count2)
 		tw.last = t
 	}
+
+	return nil
 }
 
 func (tw *testConcurrentDetectWriter) Flush() {

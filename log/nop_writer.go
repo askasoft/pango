@@ -8,7 +8,8 @@ type NopWriter struct {
 }
 
 // Write do nothing.
-func (nw *NopWriter) Write(le *Event) {
+func (nw *NopWriter) Write(le *Event) error {
+	return nil
 }
 
 // Flush do nothing.

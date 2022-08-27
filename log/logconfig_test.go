@@ -172,7 +172,12 @@ func assertLogConfig(t *testing.T, log *Log) {
 			t.Fatalf("Not AsyncWriter")
 		}
 
-		w, ok := aw.writer.(*SMTPWriter)
+		fw, ok := aw.writer.(*FailoverWriter)
+		if !ok {
+			t.Fatalf("Not FailoverWriter")
+		}
+
+		w, ok := fw.writer.(*SMTPWriter)
 		if !ok {
 			t.Fatalf("Not SMTPWriter")
 		}

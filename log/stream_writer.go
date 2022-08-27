@@ -28,7 +28,7 @@ func (sw *StreamWriter) SetFilter(filter string) {
 }
 
 // Write write message in console.
-func (sw *StreamWriter) Write(le *Event) {
+func (sw *StreamWriter) Write(le *Event) (err error) {
 	if sw.Logfil != nil && sw.Logfil.Reject(le) {
 		return
 	}
@@ -48,12 +48,19 @@ func (sw *StreamWriter) Write(le *Event) {
 	sw.bb.Reset()
 	lf.Write(&sw.bb, le)
 	if sw.Color {
-		sw.Output.Write([]byte(colors[le.Level()])) //nolint: errcheck
-		sw.Output.Write(sw.bb.Bytes())              //nolint: errcheck
-		sw.Output.Write([]byte(colors[0]))          //nolint: errcheck
+		_, err = sw.Output.Write(colors[le.Level()])
+		if err != nil {
+			return
+		}
+		_, err = sw.Output.Write(sw.bb.Bytes())
+		if err != nil {
+			return
+		}
+		_, err = sw.Output.Write(colors[0])
 	} else {
-		sw.Output.Write(sw.bb.Bytes()) //nolint: errcheck
+		_, err = sw.Output.Write(sw.bb.Bytes())
 	}
+	return
 }
 
 // Flush implementing method. empty.
@@ -64,14 +71,14 @@ func (sw *StreamWriter) Flush() {
 func (sw *StreamWriter) Close() {
 }
 
-var colors = []string{
-	iox.ConsoleColor.Reset,   // None
-	iox.ConsoleColor.Red,     // Fatal
-	iox.ConsoleColor.Magenta, // Error
-	iox.ConsoleColor.Yellow,  // Warn
-	iox.ConsoleColor.Blue,    // Info
-	iox.ConsoleColor.White,   // Debug
-	iox.ConsoleColor.Gray,    // Trace
+var colors = [][]byte{
+	[]byte(iox.ConsoleColor.Reset),   // None
+	[]byte(iox.ConsoleColor.Red),     // Fatal
+	[]byte(iox.ConsoleColor.Magenta), // Error
+	[]byte(iox.ConsoleColor.Yellow),  // Warn
+	[]byte(iox.ConsoleColor.Blue),    // Info
+	[]byte(iox.ConsoleColor.White),   // Debug
+	[]byte(iox.ConsoleColor.Gray),    // Trace
 }
 
 // NewConsoleWriter create a color console log writer

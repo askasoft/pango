@@ -29,14 +29,14 @@ type App interface {
 	// Init initialize the app
 	Init()
 
+	// Reload reload the app
+	Reload()
+
 	// Run run the app
 	Run()
 
 	// Shutdown shutdown the app
 	Shutdown()
-
-	// Reload reload the app
-	Reload()
 }
 
 // wait wait for server shutdown

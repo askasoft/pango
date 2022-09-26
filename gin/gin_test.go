@@ -65,7 +65,7 @@ func testRunTLS(engine *Engine, address, certFile, keyFile string) (err error) {
 	return
 }
 
-// RunUnix attaches the router to a http.Server and starts listening and serving HTTP requests
+// testRunUnix attaches the router to a http.Server and starts listening and serving HTTP requests
 // through the specified unix socket (i.e. a file).
 // Note: this method will block the calling goroutine indefinitely unless an error happens.
 func testRunUnix(engine *Engine, file string) (err error) {

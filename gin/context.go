@@ -414,32 +414,22 @@ func (c *Context) AddParam(key, value string) {
 }
 
 // Query returns the keyed url query value if it exists,
-// otherwise it returns an empty string `("")`.
+// otherwise it returns specified defs[0] string or an empty string `("")`.
 // It is shortcut for `c.Request.URL.Query().Get(key)`
 //
 //	    GET /path?id=1234&name=Manu&value=
 //		   c.Query("id") == "1234"
 //		   c.Query("name") == "Manu"
 //		   c.Query("value") == ""
-//		   c.Query("wtf") == ""
-func (c *Context) Query(key string) (value string) {
-	value, _ = c.GetQuery(key)
-	return
-}
-
-// DefaultQuery returns the keyed url query value if it exists,
-// otherwise it returns the specified defaultValue string.
-// See: Query() and GetQuery() for further information.
-//
-//	GET /?name=Manu&lastname=
-//	c.DefaultQuery("name", "unknown") == "Manu"
-//	c.DefaultQuery("id", "none") == "none"
-//	c.DefaultQuery("lastname", "none") == ""
-func (c *Context) DefaultQuery(key, defaultValue string) string {
+//		   c.Query("wtf", "none") == "none"
+func (c *Context) Query(key string, defs ...string) string {
 	if value, ok := c.GetQuery(key); ok {
 		return value
 	}
-	return defaultValue
+	if len(defs) > 0 {
+		return defs[0]
+	}
+	return ""
 }
 
 // GetQuery is like Query(), it returns the keyed url query value
@@ -497,20 +487,15 @@ func (c *Context) GetQueryMap(key string) (map[string]string, bool) {
 }
 
 // PostForm returns the specified key from a POST urlencoded form or multipart form
-// when it exists, otherwise it returns an empty string `("")`.
-func (c *Context) PostForm(key string) (value string) {
-	value, _ = c.GetPostForm(key)
-	return
-}
-
-// DefaultPostForm returns the specified key from a POST urlencoded form or multipart form
-// when it exists, otherwise it returns the specified defaultValue string.
-// See: PostForm() and GetPostForm() for further information.
-func (c *Context) DefaultPostForm(key, defaultValue string) string {
+// when it exists, otherwise it returns the specified defs[0] string or an empty string `("")`.
+func (c *Context) PostForm(key string, defs ...string) string {
 	if value, ok := c.GetPostForm(key); ok {
 		return value
 	}
-	return defaultValue
+	if len(defs) > 0 {
+		return defs[0]
+	}
+	return ""
 }
 
 // GetPostForm is like PostForm(key). It returns the specified key from a POST urlencoded
@@ -955,7 +940,7 @@ func (c *Context) SecureJSON(code int, obj any) {
 // It adds padding to response body to request data from a server residing in a different domain than the client.
 // It also sets the Content-Type as "application/javascript".
 func (c *Context) JSONP(code int, obj any) {
-	callback := c.DefaultQuery("callback", "")
+	callback := c.Query("callback")
 	if callback == "" {
 		c.Render(code, render.JSON{Data: obj})
 		return

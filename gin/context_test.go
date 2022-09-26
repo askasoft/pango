@@ -374,25 +374,25 @@ func TestContextQuery(t *testing.T) {
 	value, ok := c.GetQuery("foo")
 	assert.True(t, ok)
 	assert.Equal(t, "bar", value)
-	assert.Equal(t, "bar", c.DefaultQuery("foo", "none"))
+	assert.Equal(t, "bar", c.Query("foo", "none"))
 	assert.Equal(t, "bar", c.Query("foo"))
 
 	value, ok = c.GetQuery("page")
 	assert.True(t, ok)
 	assert.Equal(t, "10", value)
-	assert.Equal(t, "10", c.DefaultQuery("page", "0"))
+	assert.Equal(t, "10", c.Query("page", "0"))
 	assert.Equal(t, "10", c.Query("page"))
 
 	value, ok = c.GetQuery("id")
 	assert.True(t, ok)
 	assert.Empty(t, value)
-	assert.Empty(t, c.DefaultQuery("id", "nada"))
+	assert.Empty(t, c.Query("id", "nada"))
 	assert.Empty(t, c.Query("id"))
 
 	value, ok = c.GetQuery("NoKey")
 	assert.False(t, ok)
 	assert.Empty(t, value)
-	assert.Equal(t, "nada", c.DefaultQuery("NoKey", "nada"))
+	assert.Equal(t, "nada", c.Query("NoKey", "nada"))
 	assert.Empty(t, c.Query("NoKey"))
 
 	// postform should not mess
@@ -410,7 +410,7 @@ func TestContextDefaultQueryOnEmptyRequest(t *testing.T) {
 		assert.Empty(t, value)
 	})
 	assert.NotPanics(t, func() {
-		assert.Equal(t, "nada", c.DefaultQuery("NoKey", "nada"))
+		assert.Equal(t, "nada", c.Query("NoKey", "nada"))
 	})
 	assert.NotPanics(t, func() {
 		assert.Empty(t, c.Query("NoKey"))
@@ -424,14 +424,14 @@ func TestContextQueryAndPostForm(t *testing.T) {
 		"/?both=GET&id=main&id=omit&array[]=first&array[]=second&ids[a]=hi&ids[b]=3.14", body)
 	c.Request.Header.Add("Content-Type", MIMEPOSTForm)
 
-	assert.Equal(t, "bar", c.DefaultPostForm("foo", "none"))
+	assert.Equal(t, "bar", c.PostForm("foo", "none"))
 	assert.Equal(t, "bar", c.PostForm("foo"))
 	assert.Empty(t, c.Query("foo"))
 
 	value, ok := c.GetPostForm("page")
 	assert.True(t, ok)
 	assert.Equal(t, "11", value)
-	assert.Equal(t, "11", c.DefaultPostForm("page", "0"))
+	assert.Equal(t, "11", c.PostForm("page", "0"))
 	assert.Equal(t, "11", c.PostForm("page"))
 	assert.Empty(t, c.Query("page"))
 
@@ -439,13 +439,13 @@ func TestContextQueryAndPostForm(t *testing.T) {
 	assert.True(t, ok)
 	assert.Empty(t, value)
 	assert.Empty(t, c.PostForm("both"))
-	assert.Empty(t, c.DefaultPostForm("both", "nothing"))
+	assert.Empty(t, c.PostForm("both", "nothing"))
 	assert.Equal(t, "GET", c.Query("both"), "GET")
 
 	value, ok = c.GetQuery("id")
 	assert.True(t, ok)
 	assert.Equal(t, "main", value)
-	assert.Equal(t, "000", c.DefaultPostForm("id", "000"))
+	assert.Equal(t, "000", c.PostForm("id", "000"))
 	assert.Equal(t, "main", c.Query("id"))
 	assert.Empty(t, c.PostForm("id"))
 
@@ -455,8 +455,8 @@ func TestContextQueryAndPostForm(t *testing.T) {
 	value, ok = c.GetPostForm("NoKey")
 	assert.False(t, ok)
 	assert.Empty(t, value)
-	assert.Equal(t, "nada", c.DefaultPostForm("NoKey", "nada"))
-	assert.Equal(t, "nothing", c.DefaultQuery("NoKey", "nothing"))
+	assert.Equal(t, "nada", c.PostForm("NoKey", "nada"))
+	assert.Equal(t, "nothing", c.Query("NoKey", "nothing"))
 	assert.Empty(t, c.PostForm("NoKey"))
 	assert.Empty(t, c.Query("NoKey"))
 
@@ -549,7 +549,7 @@ func TestContextPostFormMultipart(t *testing.T) {
 	assert.False(t, ok)
 	assert.Empty(t, value)
 	assert.Empty(t, c.Query("bar"))
-	assert.Equal(t, "nothing", c.DefaultQuery("id", "nothing"))
+	assert.Equal(t, "nothing", c.Query("id", "nothing"))
 
 	value, ok = c.GetPostForm("foo")
 	assert.True(t, ok)
@@ -561,18 +561,18 @@ func TestContextPostFormMultipart(t *testing.T) {
 	assert.Equal(t, "first", value)
 	assert.Equal(t, "first", c.PostForm("array"))
 
-	assert.Equal(t, "10", c.DefaultPostForm("bar", "nothing"))
+	assert.Equal(t, "10", c.PostForm("bar", "nothing"))
 
 	value, ok = c.GetPostForm("id")
 	assert.True(t, ok)
 	assert.Empty(t, value)
 	assert.Empty(t, c.PostForm("id"))
-	assert.Empty(t, c.DefaultPostForm("id", "nothing"))
+	assert.Empty(t, c.PostForm("id", "nothing"))
 
 	value, ok = c.GetPostForm("nokey")
 	assert.False(t, ok)
 	assert.Empty(t, value)
-	assert.Equal(t, "nothing", c.DefaultPostForm("nokey", "nothing"))
+	assert.Equal(t, "nothing", c.PostForm("nokey", "nothing"))
 
 	values, ok := c.GetPostFormArray("array")
 	assert.True(t, ok)

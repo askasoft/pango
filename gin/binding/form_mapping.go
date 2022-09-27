@@ -57,73 +57,91 @@ func mapFormByTag(ptr any, form map[string][]string, tag string) error {
 
 // setter tries to set value on a walking by fields of a struct
 type setter interface {
-	TrySet(value reflect.Value, field reflect.StructField, key string, opt setOptions) (isSet bool, err error)
+	TrySet(value reflect.Value, field reflect.StructField, key string, opt setOptions) (isSet bool, err *BindError)
 }
 
 type formSource map[string][]string
 
 // TrySet tries to set a value by request's form source (like map[string][]string)
-func (form formSource) TrySet(value reflect.Value, field reflect.StructField, tagValue string, opt setOptions) (isSet bool, err error) {
-	return setByForm(value, field, form, tagValue, opt)
+func (form formSource) TrySet(value reflect.Value, field reflect.StructField, key string, opt setOptions) (isSet bool, err *BindError) {
+	return setByForm(value, field, form, key, opt)
 }
 
 func mappingByPtr(ptr any, setter setter, tag string) error {
-	_, err := mapping(reflect.ValueOf(ptr), emptyField, setter, tag)
-	return err
+	bes := &BindErrors{}
+	mapping("", reflect.ValueOf(ptr), emptyField, setter, tag, bes)
+	if bes.IsEmpty() {
+		return nil
+	}
+	return bes
 }
 
-func mapping(value reflect.Value, field reflect.StructField, setter setter, tag string) (bool, error) {
+func mapping(prefix string, value reflect.Value, field reflect.StructField, setter setter, tag string, bes *BindErrors) (isSet bool) {
 	if field.Tag.Get(tag) == "-" { // just ignoring this field
-		return false, nil
+		return
 	}
 
 	vKind := value.Kind()
 
 	if vKind == reflect.Ptr {
-		var isNew bool
+		isNew := false
 		vPtr := value
 		if value.IsNil() {
 			isNew = true
 			vPtr = reflect.New(value.Type().Elem())
 		}
-		isSet, err := mapping(vPtr.Elem(), field, setter, tag)
-		if err != nil {
-			return false, err
-		}
+		isSet = mapping(prefix, vPtr.Elem(), field, setter, tag, bes)
 		if isNew && isSet {
 			value.Set(vPtr)
 		}
-		return isSet, nil
+		return
 	}
 
 	if vKind != reflect.Struct || !field.Anonymous {
-		ok, err := tryToSetValue(value, field, setter, tag)
+		ok, err := tryToSetValue(prefix, value, field, setter, tag)
 		if err != nil {
-			return false, err
+			bes.AddError(err)
+			return false
 		}
 		if ok {
-			return true, nil
+			return true
 		}
 	}
 
 	if vKind == reflect.Struct {
+		prefix = getStructFieldPrefix(prefix, field, tag)
+
 		tValue := value.Type()
 
-		var isSet bool
 		for i := 0; i < value.NumField(); i++ {
 			sf := tValue.Field(i)
 			if sf.PkgPath != "" && !sf.Anonymous { // unexported
 				continue
 			}
-			ok, err := mapping(value.Field(i), sf, setter, tag)
-			if err != nil {
-				return false, err
-			}
+
+			ok := mapping(prefix, value.Field(i), sf, setter, tag, bes)
 			isSet = isSet || ok
 		}
-		return isSet, nil
+		return
 	}
-	return false, nil
+	return
+}
+
+func getStructFieldPrefix(prefix string, field reflect.StructField, tag string) string {
+	name := field.Tag.Get(tag)
+	name, _ = head(name, ",")
+
+	if name == "" && !field.Anonymous {
+		name = field.Name
+	}
+
+	if name != "" {
+		if prefix != "" {
+			prefix += "."
+		}
+		prefix += name
+	}
+	return prefix
 }
 
 type setOptions struct {
@@ -131,53 +149,59 @@ type setOptions struct {
 	defaultValue    string
 }
 
-func tryToSetValue(value reflect.Value, field reflect.StructField, setter setter, tag string) (bool, error) {
-	var tagValue string
-	var setOpt setOptions
+func tryToSetValue(prefix string, value reflect.Value, field reflect.StructField, setter setter, tag string) (isSet bool, err *BindError) {
+	var key, opts string
 
-	tagValue = field.Tag.Get(tag)
-	tagValue, opts := head(tagValue, ",")
+	key = field.Tag.Get(tag)
+	key, opts = head(key, ",")
 
-	if tagValue == "" { // default value is FieldName
-		tagValue = field.Name
+	if key == "" { // default value is FieldName
+		key = field.Name
 	}
-	if tagValue == "" { // when field is "emptyField" variable
+
+	if key == "" { // when field is "emptyField" variable
 		return false, nil
 	}
 
+	var setOpts setOptions
 	var opt string
 	for len(opts) > 0 {
 		opt, opts = head(opts, ",")
-
 		if k, v := head(opt, "="); k == "default" {
-			setOpt.isDefaultExists = true
-			setOpt.defaultValue = v
+			setOpts.isDefaultExists = true
+			setOpts.defaultValue = v
 		}
 	}
 
-	return setter.TrySet(value, field, tagValue, setOpt)
-}
-
-func setByForm(value reflect.Value, field reflect.StructField, form map[string][]string, tagValue string, opt setOptions) (isSet bool, err error) {
-	vs, ok := form[tagValue]
-	if !ok && !opt.isDefaultExists {
-		return false, nil
+	if prefix != "" {
+		key = prefix + "." + key
 	}
 
+	return setter.TrySet(value, field, key, setOpts)
+}
+
+func setByForm(value reflect.Value, field reflect.StructField, form map[string][]string, key string, opt setOptions) (isSet bool, be *BindError) {
+	vs, ok := form[key]
+	if !ok && !opt.isDefaultExists {
+		return
+	}
+
+	var err error
 	switch value.Kind() {
 	case reflect.Slice:
 		if !ok {
 			vs = []string{opt.defaultValue}
 		}
-		return true, setSlice(vs, value, field)
+		isSet, err = true, setSlice(vs, value, field)
 	case reflect.Array:
 		if !ok {
 			vs = []string{opt.defaultValue}
 		}
 		if len(vs) != value.Len() {
-			return false, fmt.Errorf("%q is not valid value for %s", vs, value.Type().String())
+			isSet, err = false, fmt.Errorf("%q is not valid value for %s", vs, value.Type().String())
+		} else {
+			isSet, err = true, setArray(vs, value, field)
 		}
-		return true, setArray(vs, value, field)
 	default:
 		var val string
 		if !ok {
@@ -187,8 +211,17 @@ func setByForm(value reflect.Value, field reflect.StructField, form map[string][
 		if len(vs) > 0 {
 			val = vs[0]
 		}
-		return true, setWithProperType(val, value, field)
+		isSet, err = true, setWithProperType(val, value, field)
 	}
+
+	if err != nil {
+		be = &BindError{
+			Name:   key,
+			Values: vs,
+			Cause:  err,
+		}
+	}
+	return
 }
 
 func setWithProperType(val string, value reflect.Value, field reflect.StructField) error {

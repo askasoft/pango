@@ -50,8 +50,11 @@ func TestMappingBaseTypes(t *testing.T) {
 
 		field := val.Elem().Type().Field(0)
 
-		_, err := mapping(val, emptyField, formSource{field.Name: {tt.form}}, "form")
-		assert.NoError(t, err, testName)
+		bes := &BindErrors{}
+		mapping("", val, emptyField, formSource{field.Name: {tt.form}}, "form", bes)
+		if !bes.IsEmpty() {
+			t.Errorf("Error: %v", bes)
+		}
 
 		actual := val.Elem().Field(0).Interface()
 		assert.Equal(t, tt.expect, actual, testName)
@@ -122,7 +125,20 @@ func TestMappingUnknownFieldType(t *testing.T) {
 
 	err := mappingByPtr(&s, formSource{"U": {"unknown"}}, "form")
 	assert.Error(t, err)
-	assert.Equal(t, errUnknownType, err)
+
+	if bes, ok := err.(*BindErrors); ok {
+		if 1 != len(bes.Errors) {
+			t.Errorf("Invalid errors: want 1, but %d, %v", len(bes.Errors), bes.Errors)
+			return
+		}
+
+		be0 := bes.Errors[0]
+		assert.Equal(t, "U", be0.Name)
+		assert.Equal(t, []string{"unknown"}, be0.Values)
+		assert.Equal(t, errUnknownType, be0.Cause)
+	} else {
+		t.Errorf("missing binding errors: %v", err)
+	}
 }
 
 func TestMappingURI(t *testing.T) {
@@ -285,4 +301,57 @@ func TestMappingIgnoredCircularRef(t *testing.T) {
 
 	err := mappingByPtr(&s, formSource{}, "form")
 	assert.NoError(t, err)
+}
+
+func TestMappingNest(t *testing.T) {
+	type s struct {
+		Int   int
+		Slice []int
+		Array [1]int
+	}
+	var p struct {
+		S *s
+	}
+
+	err := mappingByPtr(&p, formSource{"S.Int": {"1"}, "S.Slice": {"2"}, "S.Array": {"3"}}, "form")
+	assert.NoError(t, err)
+
+	assert.Equal(t, 1, p.S.Int)
+	assert.Equal(t, []int{2}, p.S.Slice)
+	assert.Equal(t, [1]int{3}, p.S.Array)
+}
+
+func TestMappingErrors(t *testing.T) {
+	type s struct {
+		Int   int
+		Slice []int
+		Array [1]int
+		Last  int
+	}
+	var p struct {
+		S *s
+	}
+	err := mappingByPtr(&p, formSource{"S.Int": {"i"}, "S.Slice": {"s"}, "S.Array": {"a"}, "S.Last": {"9"}}, "form")
+	if bes, ok := err.(*BindErrors); ok {
+		assert.Equal(t, 9, p.S.Last)
+
+		if 3 != len(bes.Errors) {
+			t.Errorf("Invalid errors: want 3, but %d, %v", len(bes.Errors), bes.Errors)
+			return
+		}
+
+		be0 := bes.Errors[0]
+		assert.Equal(t, "S.Int", be0.Name)
+		assert.Equal(t, []string{"i"}, be0.Values)
+
+		be1 := bes.Errors[1]
+		assert.Equal(t, "S.Slice", be1.Name)
+		assert.Equal(t, []string{"s"}, be1.Values)
+
+		be2 := bes.Errors[2]
+		assert.Equal(t, "S.Array", be2.Name)
+		assert.Equal(t, []string{"a"}, be2.Values)
+	} else {
+		t.Errorf("missing binding errors: %v", err)
+	}
 }

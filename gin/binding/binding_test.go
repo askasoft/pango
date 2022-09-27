@@ -98,25 +98,27 @@ type InvalidNameType struct {
 }
 
 type InvalidNameMapType struct {
-	TestName struct {
-		MapFoo map[string]any `form:"map_foo"`
-	}
+	MapFoo map[string]any `form:"map_foo"`
 }
 
 type FooStructForSliceType struct {
 	SliceFoo []int `form:"slice_foo"`
 }
 
+type StructFooIdx struct {
+	Idx int `form:"idx"`
+}
+
 type FooStructForStructType struct {
-	StructFoo struct {
-		Idx int `form:"idx"`
-	}
+	StructFooIdx
+}
+
+type StructFooName struct {
+	Name string `form:"name"`
 }
 
 type FooStructForStructPointerType struct {
-	StructPointerFoo *struct {
-		Name string `form:"name"`
-	}
+	*StructFooName
 }
 
 type FooStructForSliceMapType struct {
@@ -698,11 +700,13 @@ func TestURIBinding(t *testing.T) {
 }
 
 func TestURIInnerBinding(t *testing.T) {
+	type S struct {
+		Age int `uri:"age"`
+	}
+
 	type Tag struct {
 		Name string `uri:"name"`
-		S    struct {
-			Age int `uri:"age"`
-		}
+		S
 	}
 
 	expectedName := "mike"
@@ -988,24 +992,13 @@ func testFormBindingForType(t *testing.T, method, path, badPath, body, badBody s
 		obj := FooStructForStructType{}
 		err := b.Bind(req, &obj)
 		assert.NoError(t, err)
-		assert.Equal(t,
-			struct {
-				Idx int "form:\"idx\""
-			}(struct {
-				Idx int "form:\"idx\""
-			}{Idx: 123}),
-			obj.StructFoo)
+		assert.Equal(t, StructFooIdx{Idx: 123}, obj.StructFooIdx)
 	case "StructPointer":
 		obj := FooStructForStructPointerType{}
 		err := b.Bind(req, &obj)
 		assert.NoError(t, err)
-		assert.Equal(t,
-			struct {
-				Name string "form:\"name\""
-			}(struct {
-				Name string "form:\"name\""
-			}{Name: "thinkerou"}),
-			*obj.StructPointerFoo)
+		assert.NotNil(t, obj.StructFooName)
+		assert.Equal(t, StructFooName{Name: "thinkerou"}, *obj.StructFooName)
 	case "Map":
 		obj := FooStructForMapType{}
 		err := b.Bind(req, &obj)

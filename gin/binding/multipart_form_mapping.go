@@ -18,9 +18,17 @@ var (
 )
 
 // TrySet tries to set a value by the multipart request with the binding a form file
-func (r *multipartRequest) TrySet(value reflect.Value, field reflect.StructField, key string, opt setOptions) (bool, error) {
+func (r *multipartRequest) TrySet(value reflect.Value, field reflect.StructField, key string, opt setOptions) (bool, *BindError) {
 	if files := r.MultipartForm.File[key]; len(files) != 0 {
-		return setByMultipartFormFile(value, field, files)
+		ok, err := setByMultipartFormFile(value, field, files)
+		if err != nil {
+			be := &BindError{
+				Name:  key,
+				Cause: err,
+			}
+			return ok, be
+		}
+		return ok, nil
 	}
 
 	return setByForm(value, field, r.MultipartForm.Value, key, opt)

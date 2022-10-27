@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/pandafw/pango/iox"
+	"github.com/pandafw/pango/num"
 )
 
 func TestLogConfigJSON(t *testing.T) {
@@ -133,6 +134,7 @@ func assertLogConfig(t *testing.T, log *Log) {
 		}
 		assertLogEqual(t, `w.DirPerm`, uint32(0777), w.DirPerm)
 		assertLogEqual(t, `w.MaxDays`, 7, w.MaxDays)
+		assertLogEqual(t, `w.MaxSize`, int64(num.MB*4), w.MaxSize)
 		assertLogEqual(t, `w.SyncLevel`, LevelError, w.SyncLevel)
 
 		f, ok := w.Logfil.(*LevelFilter)

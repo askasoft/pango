@@ -234,7 +234,10 @@ func TestFileRotateMaxSizeGzip(t *testing.T) {
 	// check existing files
 	for i := 1; i < 9; i++ {
 		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%03d.log.gz", i))
-		bs, _ := ioutil.ReadFile(sp)
+		bs, err := ioutil.ReadFile(sp)
+		if err != nil {
+			t.Fatalf("TestFileRotateMaxSizeGzip\n failed to read %q, %v", sp, err)
+		}
 		gr, _ := gzip.NewReader(bytes.NewReader(bs))
 		bs, _ = ioutil.ReadAll(gr)
 

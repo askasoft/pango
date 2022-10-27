@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/pandafw/pango/num"
 )
 
 // FileWriter implements Writer.
@@ -51,6 +53,11 @@ func (fw *FileWriter) SetFormat(format string) {
 // SetFilter set the log filter
 func (fw *FileWriter) SetFilter(filter string) {
 	fw.Logfil = NewLogFilter(filter)
+}
+
+// SetMaxSize set the MaxSize
+func (fw *FileWriter) SetMaxSize(maxSize string) {
+	fw.MaxSize = num.MustParseSize(maxSize)
 }
 
 // Write write logger message into file.

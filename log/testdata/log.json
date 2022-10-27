@@ -26,6 +26,7 @@
 		"path": "/tmp/gotest/logs/test.log",
 		"dirPerm": 511,
 		"maxDays": 7,
+		"maxSize": "4 MB",
 		"syncLevel": "error",
 		"format": "%l %S:%L %F() - %m%n%T",
 		"filter": "level:info"

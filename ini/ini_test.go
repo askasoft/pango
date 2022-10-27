@@ -37,7 +37,7 @@ func testLoadFile(t *testing.T, fsrc, fexp, fout string) {
 	}
 
 	// empty
-	global := ini.Section("")
+	global := ini.GetSection("")
 	if v := global.GetString("empty", "def"); v != "def" {
 		t.Errorf(`global.GetString("empty", "def") = %v, want "def"`, v)
 	}
@@ -58,9 +58,9 @@ func testLoadFile(t *testing.T, fsrc, fexp, fout string) {
 	}
 
 	// value
-	other := ini.Section("other")
+	other := ini.GetSection("other")
 	if other == nil {
-		t.Error(`ini.Section("other") == nil`)
+		t.Error(`ini.GetSection("other") == nil`)
 	} else {
 		dec := other.GetInt("dec")
 		if 42 != dec {

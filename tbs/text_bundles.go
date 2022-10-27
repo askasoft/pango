@@ -102,7 +102,7 @@ func (tbs *TextBundles) loadFile(fsys fs.FS, path string) error {
 func (tbs *TextBundles) Get(locale, section, name string) (string, bool) {
 	for locale != "" {
 		if bundle, ok := tbs.bundles[locale]; ok {
-			if sec := bundle.Section(section); sec != nil {
+			if sec := bundle.GetSection(section); sec != nil {
 				if val := sec.Get(name); val != "" {
 					return val, ok
 				}
@@ -118,7 +118,7 @@ func (tbs *TextBundles) Get(locale, section, name string) (string, bool) {
 	}
 
 	if bundle, ok := tbs.bundles[locale]; ok {
-		if sec := bundle.Section(section); sec != nil {
+		if sec := bundle.GetSection(section); sec != nil {
 			if val := sec.Get(name); val != "" {
 				return val, ok
 			}

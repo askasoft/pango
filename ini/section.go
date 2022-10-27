@@ -8,6 +8,7 @@ import (
 
 	"github.com/pandafw/pango/col"
 	"github.com/pandafw/pango/iox"
+	"github.com/pandafw/pango/num"
 )
 
 // Entry ini entry
@@ -211,6 +212,21 @@ func (sec *Section) GetBool(key string, defs ...bool) bool {
 		return defs[0]
 	}
 	return false
+}
+
+// GetSize get a int64 size value of the key from the section
+// if not found or convert error, returns the default defs[0] int value
+func (sec *Section) GetSize(key string, defs ...int64) int64 {
+	e := sec.GetEntry(key)
+	if e != nil && e.Value != "" {
+		if sz, err := num.ParseSize(e.Value); err == nil {
+			return sz
+		}
+	}
+	if len(defs) > 0 {
+		return defs[0]
+	}
+	return 0
 }
 
 // GetDuration get a time.Duration value of the key from the section

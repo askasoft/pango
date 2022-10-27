@@ -86,7 +86,7 @@ func (log *Log) configINI(filename string) (err error) {
 		return err
 	}
 
-	sec := ini.Section("level")
+	sec := ini.GetSection("level")
 	if sec != nil {
 		lvls := sec.Map()
 		if err = log.configLogLevels(lvls); err != nil {
@@ -101,7 +101,7 @@ func (log *Log) configINI(filename string) (err error) {
 			for i, w := range ss {
 				var es map[string]any
 
-				sec := ini.Section("writer." + w)
+				sec := ini.GetSection("writer." + w)
 				if sec == nil {
 					es = make(map[string]any, 1)
 				} else {

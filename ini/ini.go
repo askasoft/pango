@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/pandafw/pango/bye"
@@ -109,8 +110,18 @@ func (ini *Ini) Sections() []*Section {
 	return ss
 }
 
-// Section return a section with the specified name or nil if section not exists
-func (ini *Ini) Section(name string) *Section {
+// Section return a section with the specified name.
+// if the section does not exists, create and add it to ini.
+func (ini *Ini) Section(name string) (sec *Section) {
+	if sec = ini.GetSection(name); sec == nil {
+		sec = ini.NewSection(name)
+		ini.AddSection(sec)
+	}
+	return
+}
+
+// GetSection return a section with the specified name or nil if section not exists
+func (ini *Ini) GetSection(name string) *Section {
 	if sec, ok := ini.sections.Get(name); ok {
 		return sec.(*Section)
 	}
@@ -146,6 +157,69 @@ func (ini *Ini) RemoveSection(name string) *Section {
 	return sec.(*Section)
 }
 
+// emptySection empty section for internal use
+var emptySection = NewSection("")
+
+// esection get a section from ini, or a empty section if it does not exists
+func (ini *Ini) esection(name string) *Section {
+	if sec, ok := ini.sections.Get(name); ok {
+		return sec.(*Section)
+	}
+	return emptySection
+}
+
+// Set set a key/value entry to the section sec
+func (ini *Ini) Set(sec, key, value string, comments ...string) *Entry {
+	return ini.Section(sec).Set(key, value, comments...)
+}
+
+// Get get a value of the key from the section sec
+func (ini *Ini) Get(sec, key string) string {
+	return ini.esection(sec).Get(key)
+}
+
+// GetString get a string value of the key from the section sec
+// if not found, returns the default defs[0] string value
+func (ini *Ini) GetString(sec, key string, defs ...string) string {
+	return ini.esection(sec).GetString(key, defs...)
+}
+
+// GetInt get a int value of the key from the section sec
+// if not found or convert error, returns the default defs[0] int value
+func (ini *Ini) GetInt(sec, key string, defs ...int) int {
+	return ini.esection(sec).GetInt(key, defs...)
+}
+
+// GetInt64 get a int64 value of the key from the section sec
+// if not found or convert error, returns the default defs[0] int64 value
+func (ini *Ini) GetInt64(sec, key string, defs ...int64) int64 {
+	return ini.esection(sec).GetInt64(key, defs...)
+}
+
+// GetFloat get a float value of the key from the section sec
+// if not found or convert error, returns the default defs[0] float value
+func (ini *Ini) GetFloat(sec, key string, defs ...float64) float64 {
+	return ini.esection(sec).GetFloat(key, defs...)
+}
+
+// GetBool get a bool value of the key from the section sec
+// if not found or convert error, returns the default defs[0] bool value
+func (ini *Ini) GetBool(sec, key string, defs ...bool) bool {
+	return ini.esection(sec).GetBool(key, defs...)
+}
+
+// GetSize get a int64 size value of the key from the section sec
+// if not found or convert error, returns the default defs[0] int value
+func (ini *Ini) GetSize(sec, key string, defs ...int64) int64 {
+	return ini.esection(sec).GetSize(key, defs...)
+}
+
+// GetDuration get a time.Duration value of the key from the section sec
+// if not found or convert error, returns the default defs[0] Duration value
+func (ini *Ini) GetDuration(sec, key string, defs ...time.Duration) time.Duration {
+	return ini.esection(sec).GetDuration(key, defs...)
+}
+
 // LoadFile load INI from file
 func (ini *Ini) LoadFile(path string) error {
 	f, err := os.Open(path)
@@ -170,15 +244,15 @@ func (ini *Ini) LoadFileFS(fsys fs.FS, path string) error {
 
 // LoadData load INI from io.Reader
 func (ini *Ini) LoadData(r io.Reader) (err error) {
-	lineContinue := false      // line continue flag
-	section := ini.Section("") // last section
-	var comments []string      // last comments
-	var key string             // last key
-	var val bytes.Buffer       // last value
-
 	if r, err = iox.SkipBOM(r); err != nil {
 		return err
 	}
+
+	lineContinue := false         // line continue flag
+	section := ini.GetSection("") // last section
+	var comments []string         // last comments
+	var key string                // last key
+	var val bytes.Buffer          // last value
 
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
@@ -220,7 +294,7 @@ func (ini *Ini) LoadData(r io.Reader) (err error) {
 		if len(bs) == 0 {
 			if len(comments) > 0 {
 				if ini.IsEmpty() {
-					global := ini.Section("") // global section / no name section
+					global := ini.GetSection("") // global section / no name section
 					if len(global.comments) == 0 {
 						global.comments = comments
 					} else {
@@ -251,7 +325,7 @@ func (ini *Ini) LoadData(r io.Reader) (err error) {
 			}
 
 			sn := string(bs[1 : len(bs)-1])
-			section = ini.Section(sn)
+			section = ini.GetSection(sn)
 			if section == nil {
 				section = ini.NewSection(sn, comments...)
 			}

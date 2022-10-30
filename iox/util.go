@@ -2,6 +2,7 @@ package iox
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -68,6 +69,21 @@ func ReadDir(dirname string) ([]os.DirEntry, error) {
 // the provided Reader r.
 func NopCloser(r io.Reader) io.ReadCloser {
 	return io.NopCloser(r)
+}
+
+// DirIsEmpty check if the directory dir contains sub folders or files
+func DirIsEmpty(dir string) error {
+	f, err := os.Open(dir)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	_, err = f.Readdirnames(1)
+	if errors.Is(err, io.EOF) {
+		return nil
+	}
+	return err // Either not empty or error, suits both cases
 }
 
 // DirExists check if the directory dir exists

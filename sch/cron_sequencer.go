@@ -31,6 +31,20 @@ type CronSequencer struct {
 	months      [13]bool
 }
 
+// Parse parse the cron exception
+// ┌───────────── second (0 - 59)
+// │ ┌───────────── minute (0 - 59)
+// │ │ ┌───────────── hour (0 - 23)
+// │ │ │ ┌───────────── day of the month (1 - 31)
+// │ │ │ │ ┌───────────── month (1 - 12)
+// │ │ │ │ │ ┌───────────── day of the week (0 - 6) (Sunday to Saturday; 7 is also Sunday)
+// │ │ │ │ │ │
+// │ │ │ │ │ │
+// │ │ │ │ │ │
+// * * * * * *
+// Comma ( , ): used to separate items of a list. For example, "MON,WED,FRI".
+// Dash ( - ) : used to define ranges. For example, "1-10"
+// Slash (/)  : combined with ranges to specify step values. For example, */5 in the minutes field indicates every 5 minutes It is shorthand for the more verbose POSIX form "5,10,15,20,25,30,35,40,45,50,55,00"
 func (cs *CronSequencer) Parse(expression string) (err error) {
 	cs.expression = expression
 	if cs.Location == nil {

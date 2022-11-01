@@ -59,7 +59,7 @@ type Context struct {
 	dict map[string]any
 
 	// Errors is a list of errors attached to all the handlers/middlewares who used this context.
-	Errors errorMsgs
+	Errors []error
 
 	// Accepted defines a list of manually accepted formats for content negotiation.
 	Accepted []string
@@ -215,9 +215,9 @@ func (c *Context) AbortWithStatusJSON(code int, jsonObj any) {
 // AbortWithError calls `AbortWithStatus()` and `Error()` internally.
 // This method stops the chain, writes the status code and pushes the specified error to `c.Errors`.
 // See Context.Error() for more details.
-func (c *Context) AbortWithError(code int, err error) *Error {
+func (c *Context) AbortWithError(code int, err error) {
 	c.AbortWithStatus(code)
-	return c.Error(err)
+	c.AddError(err)
 }
 
 /************************************/
@@ -229,22 +229,8 @@ func (c *Context) AbortWithError(code int, err error) *Error {
 // A middleware can be used to collect all the errors and push them to a database together,
 // print a log, or append it in the HTTP response.
 // Error will panic if err is nil.
-func (c *Context) Error(err error) *Error {
-	if err == nil {
-		panic("err is nil")
-	}
-
-	var parsedError *Error
-	ok := errors.As(err, &parsedError)
-	if !ok {
-		parsedError = &Error{
-			Err:  err,
-			Type: ErrorTypePrivate,
-		}
-	}
-
-	c.Errors = append(c.Errors, parsedError)
-	return parsedError
+func (c *Context) AddError(err error) {
+	c.Errors = append(c.Errors, err)
 }
 
 /************************************/
@@ -633,7 +619,7 @@ func (c *Context) BindHeader(obj any) error {
 // It will abort the request with HTTP 400 if any error occurs.
 func (c *Context) BindURI(obj any) error {
 	if err := c.ShouldBindURI(obj); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err).SetType(ErrorTypeBind) //nolint: errcheck
+		c.AbortWithError(http.StatusBadRequest, err)
 		return err
 	}
 	return nil
@@ -644,7 +630,7 @@ func (c *Context) BindURI(obj any) error {
 // See the binding package.
 func (c *Context) MustBindWith(obj any, b binding.Binding) error {
 	if err := c.ShouldBindWith(obj, b); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err).SetType(ErrorTypeBind) //nolint: errcheck
+		c.AbortWithError(http.StatusBadRequest, err)
 		return err
 	}
 	return nil

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"mime/multipart"
 	"net/http"
+	"path"
 	"reflect"
 )
 
@@ -18,13 +19,16 @@ var (
 )
 
 // TrySet tries to set a value by the multipart request with the binding a form file
-func (r *multipartRequest) TrySet(value reflect.Value, field reflect.StructField, key string, opt setOptions) (bool, *BindError) {
+func (r *multipartRequest) TrySet(value reflect.Value, field reflect.StructField, key string, opt setOptions) (bool, *FieldBindError) {
 	if files := r.MultipartForm.File[key]; len(files) != 0 {
 		ok, err := setByMultipartFormFile(value, field, files)
 		if err != nil {
-			be := &BindError{
+			be := &FieldBindError{
 				Name:  key,
 				Cause: err,
+			}
+			for _, f := range files {
+				be.Values = append(be.Values, path.Base(f.Filename))
 			}
 			return ok, be
 		}

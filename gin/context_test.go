@@ -148,7 +148,7 @@ func TestContextReset(t *testing.T) {
 	c.index = 2
 	c.Writer = &responseWriter{ResponseWriter: httptest.NewRecorder()}
 	c.Params = Params{Param{}}
-	c.Error(errors.New("test"))
+	c.AddError(errors.New("test"))
 	c.Set("foo", "bar")
 	c.reset()
 
@@ -156,8 +156,7 @@ func TestContextReset(t *testing.T) {
 	assert.Nil(t, c.dict)
 	assert.Nil(t, c.Accepted)
 	assert.Len(t, c.Errors, 0)
-	assert.Empty(t, c.Errors.Errors())
-	assert.Empty(t, c.Errors.ByType(ErrorTypeAny))
+	assert.Empty(t, c.Errors)
 	assert.Len(t, c.Params, 0)
 	assert.EqualValues(t, c.index, -1)
 	assert.Equal(t, c.Writer.(*responseWriter), &c.writermem)
@@ -1251,60 +1250,11 @@ func TestContextAbortWithStatusJSON(t *testing.T) {
 	assert.Equal(t, "{\"foo\":\"fooValue\",\"bar\":\"barValue\"}", jsonStringBody)
 }
 
-func TestContextError(t *testing.T) {
-	c, _ := CreateTestContext(httptest.NewRecorder())
-	assert.Empty(t, c.Errors)
-
-	firstErr := errors.New("first error")
-	c.Error(firstErr)
-	assert.Len(t, c.Errors, 1)
-	assert.Equal(t, "Error #01: first error\n", c.Errors.String())
-
-	secondErr := errors.New("second error")
-	c.Error(&Error{
-		Err:  secondErr,
-		Meta: "some data 2",
-		Type: ErrorTypePublic,
-	})
-	assert.Len(t, c.Errors, 2)
-
-	assert.Equal(t, firstErr, c.Errors[0].Err)
-	assert.Nil(t, c.Errors[0].Meta)
-	assert.Equal(t, ErrorTypePrivate, c.Errors[0].Type)
-
-	assert.Equal(t, secondErr, c.Errors[1].Err)
-	assert.Equal(t, "some data 2", c.Errors[1].Meta)
-	assert.Equal(t, ErrorTypePublic, c.Errors[1].Type)
-
-	assert.Equal(t, c.Errors.Last(), c.Errors[1])
-
-	defer func() {
-		if recover() == nil {
-			t.Error("didn't panic")
-		}
-	}()
-	c.Error(nil)
-}
-
-func TestContextTypedError(t *testing.T) {
-	c, _ := CreateTestContext(httptest.NewRecorder())
-	c.Error(errors.New("externo 0")).SetType(ErrorTypePublic)
-	c.Error(errors.New("interno 0")).SetType(ErrorTypePrivate)
-
-	for _, err := range c.Errors.ByType(ErrorTypePublic) {
-		assert.Equal(t, ErrorTypePublic, err.Type)
-	}
-	for _, err := range c.Errors.ByType(ErrorTypePrivate) {
-		assert.Equal(t, ErrorTypePrivate, err.Type)
-	}
-	assert.Equal(t, []string{"externo 0", "interno 0"}, c.Errors.Errors())
-}
-
 func TestContextAbortWithError(t *testing.T) {
 	w := httptest.NewRecorder()
 	c, _ := CreateTestContext(w)
 
-	c.AbortWithError(http.StatusUnauthorized, errors.New("bad input")).SetMeta("some input")
+	c.AbortWithError(http.StatusUnauthorized, errors.New("bad input"))
 
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 	assert.Equal(t, abortIndex, c.index)

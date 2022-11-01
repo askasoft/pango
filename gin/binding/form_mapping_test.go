@@ -50,7 +50,7 @@ func TestMappingBaseTypes(t *testing.T) {
 
 		field := val.Elem().Type().Field(0)
 
-		bes := &BindErrors{}
+		bes := &FieldBindErrors{}
 		mapping("", val, emptyField, formSource{field.Name: {tt.form}}, "form", bes)
 		if !bes.IsEmpty() {
 			t.Errorf("Error: %v", bes)
@@ -126,7 +126,7 @@ func TestMappingUnknownFieldType(t *testing.T) {
 	err := mappingByPtr(&s, formSource{"U": {"unknown"}}, "form")
 	assert.Error(t, err)
 
-	if bes, ok := err.(*BindErrors); ok {
+	if bes, ok := err.(*FieldBindErrors); ok {
 		if 1 != len(bes.Errors) {
 			t.Errorf("Invalid errors: want 1, but %d, %v", len(bes.Errors), bes.Errors)
 			return
@@ -332,7 +332,7 @@ func TestMappingErrors(t *testing.T) {
 		S *s
 	}
 	err := mappingByPtr(&p, formSource{"S.Int": {"i"}, "S.Slice": {"s"}, "S.Array": {"a"}, "S.Last": {"9"}}, "form")
-	if bes, ok := err.(*BindErrors); ok {
+	if bes, ok := err.(*FieldBindErrors); ok {
 		assert.Equal(t, 9, p.S.Last)
 
 		if 3 != len(bes.Errors) {

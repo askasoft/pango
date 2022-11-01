@@ -3,7 +3,7 @@ package binding
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
+	"fmt"
 	"io"
 	"net/http"
 )
@@ -19,6 +19,15 @@ var EnableDecoderUseNumber = false
 // keys which do not match any non-ignored, exported fields in the destination.
 var EnableDecoderDisallowUnknownFields = false
 
+type JsonBindError struct {
+	Cause error
+}
+
+// Error return a string representing the bind error
+func (jbe *JsonBindError) Error() string {
+	return fmt.Sprintf("JsonBindError: %v", jbe.Cause)
+}
+
 type jsonBinding struct{}
 
 func (jsonBinding) Name() string {
@@ -26,9 +35,6 @@ func (jsonBinding) Name() string {
 }
 
 func (jsonBinding) Bind(req *http.Request, obj any) error {
-	if req == nil || req.Body == nil {
-		return errors.New("invalid request")
-	}
 	return decodeJSON(req.Body, obj)
 }
 
@@ -44,5 +50,8 @@ func decodeJSON(r io.Reader, obj any) error {
 	if EnableDecoderDisallowUnknownFields {
 		decoder.DisallowUnknownFields()
 	}
-	return decoder.Decode(obj)
+	if err := decoder.Decode(obj); err != nil {
+		return &JsonBindError{err}
+	}
+	return nil
 }

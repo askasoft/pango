@@ -57,18 +57,18 @@ func mapFormByTag(ptr any, form map[string][]string, tag string) error {
 
 // setter tries to set value on a walking by fields of a struct
 type setter interface {
-	TrySet(value reflect.Value, field reflect.StructField, key string, opt setOptions) (isSet bool, err *BindError)
+	TrySet(value reflect.Value, field reflect.StructField, key string, opt setOptions) (isSet bool, err *FieldBindError)
 }
 
 type formSource map[string][]string
 
 // TrySet tries to set a value by request's form source (like map[string][]string)
-func (form formSource) TrySet(value reflect.Value, field reflect.StructField, key string, opt setOptions) (isSet bool, err *BindError) {
+func (form formSource) TrySet(value reflect.Value, field reflect.StructField, key string, opt setOptions) (isSet bool, err *FieldBindError) {
 	return setByForm(value, field, form, key, opt)
 }
 
 func mappingByPtr(ptr any, setter setter, tag string) error {
-	bes := &BindErrors{}
+	bes := &FieldBindErrors{}
 	mapping("", reflect.ValueOf(ptr), emptyField, setter, tag, bes)
 	if bes.IsEmpty() {
 		return nil
@@ -76,7 +76,7 @@ func mappingByPtr(ptr any, setter setter, tag string) error {
 	return bes
 }
 
-func mapping(prefix string, value reflect.Value, field reflect.StructField, setter setter, tag string, bes *BindErrors) (isSet bool) {
+func mapping(prefix string, value reflect.Value, field reflect.StructField, setter setter, tag string, bes *FieldBindErrors) (isSet bool) {
 	if field.Tag.Get(tag) == "-" { // just ignoring this field
 		return
 	}
@@ -149,7 +149,7 @@ type setOptions struct {
 	defaultValue    string
 }
 
-func tryToSetValue(prefix string, value reflect.Value, field reflect.StructField, setter setter, tag string) (isSet bool, err *BindError) {
+func tryToSetValue(prefix string, value reflect.Value, field reflect.StructField, setter setter, tag string) (isSet bool, err *FieldBindError) {
 	var key, opts string
 
 	key = field.Tag.Get(tag)
@@ -180,7 +180,7 @@ func tryToSetValue(prefix string, value reflect.Value, field reflect.StructField
 	return setter.TrySet(value, field, key, setOpts)
 }
 
-func setByForm(value reflect.Value, field reflect.StructField, form map[string][]string, key string, opt setOptions) (isSet bool, be *BindError) {
+func setByForm(value reflect.Value, field reflect.StructField, form map[string][]string, key string, opt setOptions) (isSet bool, be *FieldBindError) {
 	vs, ok := form[key]
 	if !ok && !opt.isDefaultExists {
 		return
@@ -215,7 +215,7 @@ func setByForm(value reflect.Value, field reflect.StructField, form map[string][
 	}
 
 	if err != nil {
-		be = &BindError{
+		be = &FieldBindError{
 			Name:   key,
 			Values: vs,
 			Cause:  err,

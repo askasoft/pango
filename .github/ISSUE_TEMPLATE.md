@@ -14,12 +14,12 @@
 package main
 
 import (
-	"github.com/pandafw/pango/gin"
+	"github.com/pandafw/pango/xin"
 )
 
 func main() {
-	g := gin.Default()
-	g.GET("/hello/:name", func(c *gin.Context) {
+	g := xin.Default()
+	g.GET("/hello/:name", func(c *xin.Context) {
 		c.String(200, "Hello %s", c.Param("name"))
 	})
 	g.Run(":9000")
@@ -45,5 +45,5 @@ $ curl -i http://localhost:8201/hello/world
 ## Environment
 
 - go version:
-- gin version (or commit ref):
+- xin version (or commit ref):
 - operating system:

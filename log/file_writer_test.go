@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pandafw/pango/iox"
+	"github.com/pandafw/pango/osu"
 )
 
 func TestFileTextFormatSimple(t *testing.T) {
@@ -316,7 +316,7 @@ func TestFileRotateMaxSplit(t *testing.T) {
 	for i := 1; i < 6; i++ {
 		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%03d.log", i))
 
-		err := iox.FileExists(sp)
+		err := osu.FileExists(sp)
 		if err == nil {
 			t.Errorf("TestFileRotateMaxSplit file %q exists: %v", sp, err)
 		}
@@ -364,7 +364,7 @@ func TestFileRotateMaxFilesHourly(t *testing.T) {
 	for i := 1; i < 6; i++ {
 		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%s-%03d.log", now.Format("2006010215"), i))
 
-		err := iox.FileExists(sp)
+		err := osu.FileExists(sp)
 		if err == nil {
 			t.Errorf("TestFileRotateMaxFilesHourly file %q exists: %v", sp, err)
 		}
@@ -479,7 +479,7 @@ func TestFileRotateDailyOutdated(t *testing.T) {
 	for i := 1; i < 7; i++ {
 		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%s.log", tm.Format("20060102")))
 
-		err := iox.FileExists(sp)
+		err := osu.FileExists(sp)
 		if err == nil {
 			t.Errorf("TestFileRotateDailyOutdated file %q exists: %v", sp, err)
 		}
@@ -597,7 +597,7 @@ func TestFileRotateHourlyOutdated(t *testing.T) {
 	for i := 1; i < 7; i++ {
 		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%s.log", tm.Format("2006010215")))
 
-		err := iox.FileExists(sp)
+		err := osu.FileExists(sp)
 		if err == nil {
 			t.Errorf("TestFileRotateHourlyOutdated file %q exists: %v", sp, err)
 		}

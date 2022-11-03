@@ -13,6 +13,7 @@ import (
 	"github.com/pandafw/pango/fsw"
 	"github.com/pandafw/pango/iox"
 	"github.com/pandafw/pango/log"
+	"github.com/pandafw/pango/osu"
 )
 
 const (
@@ -137,7 +138,7 @@ func testLogConfigFile1toFile2(t *testing.T, async1, async2 string) {
 		t.Errorf(`%q = %v, want %v`, logfile1, a, w)
 	}
 
-	err = iox.FileExists(logfile2)
+	err = osu.FileExists(logfile2)
 	if err == nil {
 		t.Errorf("%q not exists", logfile2)
 	}

@@ -2,20 +2,75 @@ package iox
 
 import (
 	"bufio"
-	"errors"
-	"fmt"
 	"io"
-	"io/fs"
-	"os"
-	"path/filepath"
 
-	"github.com/pandafw/pango/bye"
 	"github.com/pandafw/pango/str"
 )
 
 // Discard is an io.Writer on which all Write calls succeed
 // without doing anything.
 var Discard = io.Discard
+
+// Copy copies from src to dst until either EOF is reached
+// on src or an error occurs. It returns the number of bytes
+// copied and the first error encountered while copying, if any.
+//
+// A successful Copy returns err == nil, not err == EOF.
+// Because Copy is defined to read from src until EOF, it does
+// not treat an EOF from Read as an error to be reported.
+//
+// If src implements the WriterTo interface,
+// the copy is implemented by calling src.WriteTo(dst).
+// Otherwise, if dst implements the ReaderFrom interface,
+// the copy is implemented by calling dst.ReadFrom(src).
+func Copy(dst io.Writer, src io.Reader) (written int64, err error) {
+	return io.Copy(dst, src)
+}
+
+// CopyBuffer is identical to Copy except that it stages through the
+// provided buffer (if one is required) rather than allocating a
+// temporary one. If buf is nil, one is allocated; otherwise if it has
+// zero length, CopyBuffer panics.
+//
+// If either src implements WriterTo or dst implements ReaderFrom,
+// buf will not be used to perform the copy.
+func CopyBuffer(dst io.Writer, src io.Reader, buf []byte) (written int64, err error) {
+	return io.CopyBuffer(dst, src, buf)
+}
+
+// CopyN copies n bytes (or until an error) from src to dst.
+// It returns the number of bytes copied and the earliest
+// error encountered while copying.
+// On return, written == n if and only if err == nil.
+//
+// If dst implements the ReaderFrom interface,
+// the copy is implemented using it.
+func CopyN(dst io.Writer, src io.Reader, n int64) (written int64, err error) {
+	return io.CopyN(dst, src, n)
+}
+
+// Drain drain the reader
+func Drain(r io.Reader) {
+	io.Copy(Discard, r) //nolint: errcheck
+}
+
+// DrainAndClose drain and close the reader
+func DrainAndClose(r io.ReadCloser) {
+	Drain(r)
+	r.Close()
+}
+
+// NewSectionReader returns a SectionReader that reads from r
+// starting at offset off and stops with EOF after n bytes.
+func NewSectionReader(r io.ReaderAt, off int64, n int64) *io.SectionReader {
+	return io.NewSectionReader(r, off, n)
+}
+
+// NopCloser returns a ReadCloser with a no-op Close method wrapping
+// the provided Reader r.
+func NopCloser(r io.Reader) io.ReadCloser {
+	return io.NopCloser(r)
+}
 
 // ReadAll reads from r until an error or EOF and returns the data it read.
 // A successful call returns err == nil, not err == EOF. Because ReadAll is
@@ -25,122 +80,27 @@ func ReadAll(r io.Reader) ([]byte, error) {
 	return io.ReadAll(r)
 }
 
-// ReadFile reads the file named by filename and returns the contents.
-// A successful call returns err == nil, not err == EOF. Because ReadFile
-// reads the whole file, it does not treat an EOF from Read as an error
-// to be reported.
-func ReadFile(filename string) ([]byte, error) {
-	return os.ReadFile(filename)
+// ReadAtLeast reads from r into buf until it has read at least min bytes.
+// It returns the number of bytes copied and an error if fewer bytes were read.
+// The error is EOF only if no bytes were read.
+// If an EOF happens after reading fewer than min bytes,
+// ReadAtLeast returns ErrUnexpectedEOF.
+// If min is greater than the length of buf, ReadAtLeast returns ErrShortBuffer.
+// On return, n >= min if and only if err == nil.
+// If r returns an error having read at least min bytes, the error is dropped.
+func ReadAtLeast(r io.Reader, buf []byte, min int) (n int, err error) {
+	return io.ReadAtLeast(r, buf, min)
 }
 
-// ReadString reads the file named by filename and returns the contents as string.
-// A successful call returns err == nil, not err == EOF. Because ReadString
-// reads the whole file, it does not treat an EOF from Read as an error
-// to be reported.
-func ReadString(filename string) (string, error) {
-	bs, err := os.ReadFile(filename)
-	return bye.UnsafeString(bs), err
-}
-
-// WriteFile writes data to a file named by filename.
-// If the file does not exist, WriteFile creates it with permissions perm
-// (before umask); otherwise WriteFile truncates it before writing, without changing permissions.
-func WriteFile(filename string, data []byte, perm fs.FileMode) error {
-	return os.WriteFile(filename, data, perm)
-}
-
-// WriteString writes string data to a file named by filename.
-// If the file does not exist, WriteString creates it with permissions perm
-// (before umask); otherwise WriteString truncates it before writing, without changing permissions.
-func WriteString(filename string, data string, perm fs.FileMode) error {
-	return os.WriteFile(filename, str.UnsafeBytes(data), perm)
-}
-
-// ReadDir reads the named directory,
-// returning all its directory entries sorted by filename.
-// If an error occurs reading the directory,
-// ReadDir returns the entries it was able to read before the error,
-// along with the error.
-func ReadDir(dirname string) ([]os.DirEntry, error) {
-	return os.ReadDir(dirname)
-}
-
-// NopCloser returns a ReadCloser with a no-op Close method wrapping
-// the provided Reader r.
-func NopCloser(r io.Reader) io.ReadCloser {
-	return io.NopCloser(r)
-}
-
-// DirIsEmpty check if the directory dir contains sub folders or files
-func DirIsEmpty(dir string) error {
-	f, err := os.Open(dir)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	_, err = f.Readdirnames(1)
-	if errors.Is(err, io.EOF) {
-		return nil
-	}
-	return err // Either not empty or error, suits both cases
-}
-
-// DirExists check if the directory dir exists
-func DirExists(dir string) error {
-	fi, err := os.Stat(dir)
-	if err != nil {
-		return err
-	}
-	if !fi.IsDir() {
-		return fmt.Errorf("%q is not a directory", dir)
-	}
-	return nil
-}
-
-// FileExists check if the file exists
-func FileExists(file string) error {
-	fi, err := os.Stat(file)
-	if err != nil {
-		return err
-	}
-	if fi.IsDir() {
-		return fmt.Errorf("%q is directory", file)
-	}
-	return nil
-}
-
-// CopyFile copy src file to des file
-func CopyFile(src string, dst string) error {
-	ss, err := os.Stat(src)
-	if err != nil {
-		return err
-	}
-
-	if !ss.Mode().IsRegular() {
-		return fmt.Errorf("%s is not a regular file", src)
-	}
-
-	dd := filepath.Dir(dst)
-	err = os.MkdirAll(dd, ss.Mode().Perm())
-	if err != nil {
-		return err
-	}
-
-	sf, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer sf.Close()
-
-	df, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE, ss.Mode().Perm())
-	if err != nil {
-		return err
-	}
-	defer df.Close()
-
-	_, err = io.Copy(df, sf)
-	return err
+// ReadFull reads exactly len(buf) bytes from r into buf.
+// It returns the number of bytes copied and an error if fewer bytes were read.
+// The error is EOF only if no bytes were read.
+// If an EOF happens after reading some but not all the bytes,
+// ReadFull returns ErrUnexpectedEOF.
+// On return, n == len(buf) if and only if err == nil.
+// If r returns an error having read at least len(buf) bytes, the error is dropped.
+func ReadFull(r io.Reader, buf []byte) (n int, err error) {
+	return io.ReadFull(r, buf)
 }
 
 // SkipBOM skip bom and return a reader
@@ -157,13 +117,21 @@ func SkipBOM(r io.Reader) (io.Reader, error) {
 	return br, err
 }
 
-// Drain drain the reader
-func Drain(r io.Reader) {
-	io.Copy(Discard, r) //nolint: errcheck
+// TeeReader returns a Reader that writes to w what it reads from r.
+// All reads from r performed through it are matched with
+// corresponding writes to w. There is no internal buffering -
+// the write must complete before the read completes.
+// Any error encountered while writing is reported as a read error.
+func TeeReader(r io.Reader, w io.Writer) io.Reader {
+	return io.TeeReader(r, w)
 }
 
-// DrainAndClose drain and close the reader
-func DrainAndClose(r io.ReadCloser) {
-	Drain(r)
-	r.Close()
+// WriteString writes the contents of the string s to w, which accepts a slice of bytes.
+// If w implements StringWriter, its WriteString method is invoked directly.
+// Otherwise, w.Write is called exactly once.
+func WriteString(w io.Writer, s string) (n int, err error) {
+	if sw, ok := w.(io.StringWriter); ok {
+		return sw.WriteString(s)
+	}
+	return w.Write(str.UnsafeBytes(s))
 }

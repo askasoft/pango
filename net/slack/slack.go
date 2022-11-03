@@ -3,6 +3,7 @@ package slack
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -48,7 +49,7 @@ func Post(url string, timeout time.Duration, sm *Message) error {
 
 	if res.StatusCode != http.StatusOK {
 		e := &Error{Status: res.Status, StatusCode: res.StatusCode}
-		ra := res.Header.Get("retry-after")
+		ra := res.Header.Get("Retry-After")
 		if ra != "" {
 			e.RetryAfter, _ = strconv.Atoi(ra)
 		}
@@ -67,9 +68,9 @@ type Error struct {
 // Error return error string
 func (e *Error) Error() string {
 	if e.RetryAfter != 0 {
-		return e.Status + " - RetryAfter: " + strconv.Itoa(e.RetryAfter)
+		return fmt.Sprintf("%d %s (Retry-After: %d)", e.StatusCode, e.Status, e.RetryAfter)
 	}
-	return e.Status
+	return fmt.Sprintf("%d %s", e.StatusCode, e.Status)
 }
 
 // Message slack message

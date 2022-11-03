@@ -456,7 +456,7 @@ func (al *ArrayList[T]) checkSizeIndex(index int) int {
 // implements JSON Marshaller/Unmarshaller interface
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(al)
-func (al *ArrayList[T]) MarshalJSON() (res []byte, err error) {
+func (al *ArrayList[T]) MarshalJSON() ([]byte, error) {
 	return jsonMarshalCol[T](al)
 }
 

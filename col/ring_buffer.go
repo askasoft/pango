@@ -628,7 +628,7 @@ func (rb *RingBuffer) addJSONArrayItem(v T) jsonArray {
 }
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(rb)
-func (rb *RingBuffer) MarshalJSON() (res []byte, err error) {
+func (rb *RingBuffer) MarshalJSON() ([]byte, error) {
 	return jsonMarshalArray(rb)
 }
 

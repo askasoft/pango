@@ -569,7 +569,7 @@ func (tm *TreeMap) addJSONObjectItem(k string, v V) {
 }
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(tm)
-func (tm *TreeMap) MarshalJSON() (res []byte, err error) {
+func (tm *TreeMap) MarshalJSON() ([]byte, error) {
 	return jsonMarshalObject(tm)
 }
 

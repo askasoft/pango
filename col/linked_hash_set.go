@@ -550,7 +550,7 @@ func (ls *LinkedHashSet) addJSONArrayItem(v T) jsonArray {
 }
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(ls)
-func (ls *LinkedHashSet) MarshalJSON() (res []byte, err error) {
+func (ls *LinkedHashSet) MarshalJSON() ([]byte, error) {
 	return jsonMarshalArray(ls)
 }
 

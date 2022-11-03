@@ -253,7 +253,7 @@ func (hs *HashSet) addJSONArrayItem(v T) jsonArray {
 }
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(hs)
-func (hs *HashSet) MarshalJSON() (res []byte, err error) {
+func (hs *HashSet) MarshalJSON() ([]byte, error) {
 	return jsonMarshalArray(hs)
 }
 

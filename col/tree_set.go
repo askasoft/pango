@@ -657,7 +657,7 @@ func (ts *TreeSet) addJSONArrayItem(v T) jsonArray {
 }
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(ts)
-func (ts *TreeSet) MarshalJSON() (res []byte, err error) {
+func (ts *TreeSet) MarshalJSON() ([]byte, error) {
 	return jsonMarshalArray(ts)
 }
 

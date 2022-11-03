@@ -484,7 +484,7 @@ func (ll *LinkedList) addJSONArrayItem(v T) jsonArray {
 }
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(ll)
-func (ll *LinkedList) MarshalJSON() (res []byte, err error) {
+func (ll *LinkedList) MarshalJSON() ([]byte, error) {
 	return jsonMarshalArray(ll)
 }
 

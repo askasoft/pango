@@ -270,7 +270,7 @@ func (lm *LinkedHashMap) addJSONObjectItem(k string, v V) {
 }
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(lm)
-func (lm *LinkedHashMap) MarshalJSON() (res []byte, err error) {
+func (lm *LinkedHashMap) MarshalJSON() ([]byte, error) {
 	return jsonMarshalObject(lm)
 }
 

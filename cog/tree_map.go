@@ -570,7 +570,7 @@ func (tm *TreeMap[K, V]) debug() string {
 // implements JSON Marshaller/Unmarshaller interface
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(tm)
-func (tm *TreeMap[K, V]) MarshalJSON() (res []byte, err error) {
+func (tm *TreeMap[K, V]) MarshalJSON() ([]byte, error) {
 	return jsonMarshalMap[K, V](tm)
 }
 

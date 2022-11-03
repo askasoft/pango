@@ -178,7 +178,7 @@ func (hm *HashMap) addJSONObjectItem(k string, v V) {
 }
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(lm)
-func (hm *HashMap) MarshalJSON() (res []byte, err error) {
+func (hm *HashMap) MarshalJSON() ([]byte, error) {
 	return jsonMarshalObject(hm)
 }
 

@@ -626,7 +626,7 @@ func (rb *RingBuffer[T]) checkSizeIndex(index int) int {
 // implements JSON Marshaller/Unmarshaller interface
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(rb)
-func (rb *RingBuffer[T]) MarshalJSON() (res []byte, err error) {
+func (rb *RingBuffer[T]) MarshalJSON() ([]byte, error) {
 	return jsonMarshalCol[T](rb)
 }
 

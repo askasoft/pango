@@ -482,7 +482,7 @@ func (ll *LinkedList[T]) checkSizeIndex(index int) int {
 // implements JSON Marshaller/Unmarshaller interface
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(ll)
-func (ll *LinkedList[T]) MarshalJSON() (res []byte, err error) {
+func (ll *LinkedList[T]) MarshalJSON() ([]byte, error) {
 	return jsonMarshalCol[T](ll)
 }
 

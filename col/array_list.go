@@ -457,7 +457,7 @@ func (al *ArrayList) addJSONArrayItem(v T) jsonArray {
 }
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(al)
-func (al *ArrayList) MarshalJSON() (res []byte, err error) {
+func (al *ArrayList) MarshalJSON() ([]byte, error) {
 	return jsonMarshalArray(al)
 }
 

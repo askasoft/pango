@@ -656,7 +656,7 @@ func (ts *TreeSet[T]) debug() string {
 // implements JSON Marshaller/Unmarshaller interface
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(ts)
-func (ts *TreeSet[T]) MarshalJSON() (res []byte, err error) {
+func (ts *TreeSet[T]) MarshalJSON() ([]byte, error) {
 	return jsonMarshalCol[T](ts)
 }
 

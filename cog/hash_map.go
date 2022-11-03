@@ -193,7 +193,7 @@ func (hm *HashMap[K, V]) String() string {
 // implements JSON Marshaller/Unmarshaller interface
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(lm)
-func (hm *HashMap[K, V]) MarshalJSON() (res []byte, err error) {
+func (hm *HashMap[K, V]) MarshalJSON() ([]byte, error) {
 	return jsonMarshalMap[K, V](hm)
 }
 

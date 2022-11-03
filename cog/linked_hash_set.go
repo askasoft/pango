@@ -548,7 +548,7 @@ func (ls *LinkedHashSet[T]) checkSizeIndex(index int) int {
 // implements JSON Marshaller/Unmarshaller interface
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(ls)
-func (ls *LinkedHashSet[T]) MarshalJSON() (res []byte, err error) {
+func (ls *LinkedHashSet[T]) MarshalJSON() ([]byte, error) {
 	return jsonMarshalCol[T](ls)
 }
 

@@ -268,7 +268,7 @@ func (lm *LinkedHashMap[K, V]) deleteNode(ln *LinkedMapNode[K, V]) {
 // implements JSON Marshaller/Unmarshaller interface
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(lm)
-func (lm *LinkedHashMap[K, V]) MarshalJSON() (res []byte, err error) {
+func (lm *LinkedHashMap[K, V]) MarshalJSON() ([]byte, error) {
 	return jsonMarshalMap[K, V](lm)
 }
 

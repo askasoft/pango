@@ -239,7 +239,7 @@ func (hs *HashSet[T]) String() string {
 // implements JSON Marshaller/Unmarshaller interface
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(hs)
-func (hs *HashSet[T]) MarshalJSON() (res []byte, err error) {
+func (hs *HashSet[T]) MarshalJSON() ([]byte, error) {
 	return jsonMarshalCol[T](hs)
 }
 

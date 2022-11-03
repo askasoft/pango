@@ -9,12 +9,16 @@ import (
 )
 
 type XmlBindError struct {
-	Cause error
+	Err error
 }
 
 // Error return a string representing the bind error
-func (jbe *XmlBindError) Error() string {
-	return fmt.Sprintf("XmlBindError: %v", jbe.Cause)
+func (xbe *XmlBindError) Error() string {
+	return fmt.Sprintf("XmlBindError: %v", xbe.Err)
+}
+
+func (xbe *XmlBindError) Unwrap() error {
+	return xbe.Err
 }
 
 type xmlBinding struct{}

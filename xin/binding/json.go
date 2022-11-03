@@ -20,12 +20,16 @@ var EnableDecoderUseNumber = false
 var EnableDecoderDisallowUnknownFields = false
 
 type JsonBindError struct {
-	Cause error
+	Err error
 }
 
 // Error return a string representing the bind error
 func (jbe *JsonBindError) Error() string {
-	return fmt.Sprintf("JsonBindError: %v", jbe.Cause)
+	return fmt.Sprintf("JsonBindError: %v", jbe.Err)
+}
+
+func (jbe *JsonBindError) Unwrap() error {
+	return jbe.Err
 }
 
 type jsonBinding struct{}

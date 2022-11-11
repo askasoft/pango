@@ -5,12 +5,25 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"time"
 )
 
 var errNotSupport = errors.New("not support")
 
+var (
+	duraType = reflect.TypeOf(time.Duration(0))
+	timeType = reflect.TypeOf(time.Time{})
+)
+
 // Convert convert the value v to the specified Type t
 func Convert(v any, t reflect.Type) (cv any, err error) {
+	switch t {
+	case duraType:
+		return toDuration(v)
+	case timeType:
+		return toTime(v)
+	}
+
 	switch t.Kind() {
 	case reflect.Int:
 		cv, err = toInt(v)
@@ -49,7 +62,7 @@ func Convert(v any, t reflect.Type) (cv any, err error) {
 			if sv.IsZero() {
 				return reflect.New(t).Interface(), nil
 			}
-			if sv.IsNil() {
+			if sv.Kind() == reflect.Ptr && sv.IsNil() {
 				return nil, nil
 			}
 		}
@@ -62,7 +75,89 @@ func Convert(v any, t reflect.Type) (cv any, err error) {
 	return
 }
 
-func toInt(v any) (any, error) {
+func toDuration(v any) (time.Duration, error) {
+	if v == nil {
+		return 0, nil
+	}
+
+	switch s := v.(type) {
+	case string:
+		if s == "" {
+			return 0, nil
+		}
+		return time.ParseDuration(s)
+	case int8:
+		return time.Duration(s), nil
+	case int16:
+		return time.Duration(s), nil
+	case int32:
+		return time.Duration(s), nil
+	case int64:
+		return time.Duration(s), nil
+	case int:
+		return time.Duration(s), nil
+	case uint8:
+		return time.Duration(s), nil
+	case uint16:
+		return time.Duration(s), nil
+	case uint32:
+		return time.Duration(s), nil
+	case uint64:
+		return time.Duration(s), nil
+	case uint:
+		return time.Duration(s), nil
+	case float32:
+		return time.Duration(s), nil
+	case float64:
+		return time.Duration(s), nil
+	}
+	return 0, errNotSupport
+}
+
+func utcMilli(msec int64) time.Time {
+	return time.Unix(msec/1e3, (msec%1e3)*1e6).UTC()
+}
+
+func toTime(v any) (time.Time, error) {
+	if v == nil {
+		return time.Time{}, nil
+	}
+
+	switch s := v.(type) {
+	case string:
+		if s == "" {
+			return time.Time{}, nil
+		}
+		return time.Parse(time.RFC3339, s)
+	case int8:
+		return utcMilli(int64(s)), nil
+	case int16:
+		return utcMilli(int64(s)), nil
+	case int32:
+		return utcMilli(int64(s)), nil
+	case int64:
+		return utcMilli(int64(s)), nil
+	case int:
+		return utcMilli(int64(s)), nil
+	case uint8:
+		return utcMilli(int64(s)), nil
+	case uint16:
+		return utcMilli(int64(s)), nil
+	case uint32:
+		return utcMilli(int64(s)), nil
+	case uint64:
+		return utcMilli(int64(s)), nil
+	case uint:
+		return utcMilli(int64(s)), nil
+	case float32:
+		return utcMilli(int64(s)), nil
+	case float64:
+		return utcMilli(int64(s)), nil
+	}
+	return time.Time{}, errNotSupport
+}
+
+func toInt(v any) (int, error) {
 	if v == nil {
 		return int(0), nil
 	}
@@ -70,7 +165,7 @@ func toInt(v any) (any, error) {
 	switch s := v.(type) {
 	case string:
 		if s == "" {
-			return 0, nil
+			return int(0), nil
 		}
 		i, err := strconv.ParseInt(s, 0, strconv.IntSize)
 		return int(i), err
@@ -104,18 +199,18 @@ func toInt(v any) (any, error) {
 	case float64:
 		return int(s), nil
 	}
-	return nil, errNotSupport
+	return 0, errNotSupport
 }
 
-func toInt8(v any) (any, error) {
+func toInt8(v any) (int8, error) {
 	if v == nil {
-		return int8(0), nil
+		return 0, nil
 	}
 
 	switch s := v.(type) {
 	case string:
 		if s == "" {
-			return int8(0), nil
+			return 0, nil
 		}
 		i, err := strconv.ParseInt(s, 0, 8)
 		return int8(i), err
@@ -123,7 +218,7 @@ func toInt8(v any) (any, error) {
 		if s {
 			return int8(1), nil
 		}
-		return int8(0), nil
+		return 0, nil
 	case int8:
 		return int8(s), nil
 	case int16:
@@ -149,10 +244,10 @@ func toInt8(v any) (any, error) {
 	case float64:
 		return int8(s), nil
 	}
-	return nil, errNotSupport
+	return 0, errNotSupport
 }
 
-func toInt16(v any) (any, error) {
+func toInt16(v any) (int16, error) {
 	if v == nil {
 		return int16(0), nil
 	}
@@ -194,10 +289,10 @@ func toInt16(v any) (any, error) {
 	case float64:
 		return int16(s), nil
 	}
-	return nil, errNotSupport
+	return int16(0), errNotSupport
 }
 
-func toInt32(v any) (any, error) {
+func toInt32(v any) (int32, error) {
 	if v == nil {
 		return int32(0), nil
 	}
@@ -239,10 +334,10 @@ func toInt32(v any) (any, error) {
 	case float64:
 		return int32(s), nil
 	}
-	return nil, errNotSupport
+	return int32(0), errNotSupport
 }
 
-func toInt64(v any) (any, error) {
+func toInt64(v any) (int64, error) {
 	if v == nil {
 		return int64(0), nil
 	}
@@ -284,10 +379,10 @@ func toInt64(v any) (any, error) {
 	case float64:
 		return int64(s), nil
 	}
-	return nil, errNotSupport
+	return int64(0), errNotSupport
 }
 
-func toUint(v any) (any, error) {
+func toUint(v any) (uint, error) {
 	if v == nil {
 		return uint(0), nil
 	}
@@ -329,10 +424,10 @@ func toUint(v any) (any, error) {
 	case float64:
 		return uint(s), nil
 	}
-	return nil, errNotSupport
+	return uint(0), errNotSupport
 }
 
-func toUint8(v any) (any, error) {
+func toUint8(v any) (uint8, error) {
 	if v == nil {
 		return uint8(0), nil
 	}
@@ -374,10 +469,10 @@ func toUint8(v any) (any, error) {
 	case float64:
 		return uint8(s), nil
 	}
-	return nil, errNotSupport
+	return uint8(0), errNotSupport
 }
 
-func toUint16(v any) (any, error) {
+func toUint16(v any) (uint16, error) {
 	if v == nil {
 		return uint16(0), nil
 	}
@@ -419,7 +514,7 @@ func toUint16(v any) (any, error) {
 	case float64:
 		return uint16(s), nil
 	}
-	return nil, errNotSupport
+	return uint16(0), errNotSupport
 }
 
 func toUint32(v any) (any, error) {
@@ -464,10 +559,10 @@ func toUint32(v any) (any, error) {
 	case float64:
 		return uint32(s), nil
 	}
-	return nil, errNotSupport
+	return uint32(0), errNotSupport
 }
 
-func toUint64(v any) (any, error) {
+func toUint64(v any) (uint64, error) {
 	if v == nil {
 		return uint64(0), nil
 	}
@@ -509,10 +604,10 @@ func toUint64(v any) (any, error) {
 	case float64:
 		return uint64(s), nil
 	}
-	return nil, errNotSupport
+	return uint64(0), errNotSupport
 }
 
-func toFloat32(v any) (any, error) {
+func toFloat32(v any) (float32, error) {
 	if v == nil {
 		return float32(0), nil
 	}
@@ -554,10 +649,10 @@ func toFloat32(v any) (any, error) {
 	case float64:
 		return float32(s), nil
 	}
-	return nil, errNotSupport
+	return float32(0), errNotSupport
 }
 
-func toFloat64(v any) (any, error) {
+func toFloat64(v any) (float64, error) {
 	if v == nil {
 		return float64(0), nil
 	}
@@ -599,10 +694,10 @@ func toFloat64(v any) (any, error) {
 	case float64:
 		return float64(s), nil
 	}
-	return nil, errNotSupport
+	return float64(0), errNotSupport
 }
 
-func toBool(v any) (any, error) {
+func toBool(v any) (bool, error) {
 	if v == nil {
 		return false, nil
 	}
@@ -640,10 +735,10 @@ func toBool(v any) (any, error) {
 	case float64:
 		return s != 0, nil
 	}
-	return nil, errNotSupport
+	return false, errNotSupport
 }
 
-func toString(v any) (any, error) {
+func toString(v any) (string, error) {
 	if v == nil {
 		return "", nil
 	}
@@ -681,5 +776,5 @@ func toString(v any) (any, error) {
 	case float64:
 		return strconv.FormatFloat(s, 'f', -1, 64), nil
 	}
-	return nil, errNotSupport
+	return "", errNotSupport
 }

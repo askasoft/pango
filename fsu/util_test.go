@@ -1,4 +1,4 @@
-package osu
+package fsu
 
 import (
 	"errors"

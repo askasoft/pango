@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pandafw/pango/fsu"
 	"github.com/pandafw/pango/log"
-	"github.com/pandafw/pango/osu"
 )
 
 func testSleep() {
@@ -100,7 +100,7 @@ func TestWatchRecursive(t *testing.T) {
 
 	files := make(map[string]int)
 	fw.AddRecursive(testdir, OpModifies, func(path string, op Op) {
-		if err := osu.FileExists(path); err == nil {
+		if err := fsu.FileExists(path); err == nil {
 			files[path]++
 		}
 		fw.Logger.Infof("%q [%v]", path, op)
@@ -142,7 +142,7 @@ func TestWatchAgain(t *testing.T) {
 
 	files := make(map[string]int)
 	fw.AddRecursive(testdir, OpModifies, func(path string, op Op) {
-		if err := osu.FileExists(path); err == nil {
+		if err := fsu.FileExists(path); err == nil {
 			files[path]++
 		}
 		fw.Logger.Infof("%q [%v]", path, op)

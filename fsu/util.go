@@ -1,4 +1,4 @@
-package osu
+package fsu
 
 import (
 	"errors"
@@ -15,17 +15,17 @@ import (
 
 // A DirEntry is an entry read from a directory
 // (using the ReadDir function or a File's ReadDir method).
-type DirEntry = os.DirEntry
+type DirEntry = fs.DirEntry
 
 // A FileInfo describes a file and is returned by Stat and Lstat.
-type FileInfo = os.FileInfo
+type FileInfo = fs.FileInfo
 
 // A FileMode represents a file's mode and permission bits.
 // The bits have the same definition on all systems, so that
 // information about files can be moved from one system
 // to another portably. Not all bits apply to all systems.
 // The only required bit is ModeDir for directories.
-type FileMode = os.FileMode
+type FileMode = fs.FileMode
 
 var (
 	ErrInvalid    = fs.ErrInvalid    // "invalid argument"

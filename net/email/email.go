@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pandafw/pango/fsu"
 	"github.com/pandafw/pango/iox"
-	"github.com/pandafw/pango/osu"
 	"github.com/pandafw/pango/str"
 )
 
@@ -160,7 +160,7 @@ func (m *Email) AddAttachment(as ...*Attachment) {
 // AttachFile attach a file
 func (m *Email) AttachFile(paths ...string) error {
 	for _, path := range paths {
-		if err := osu.FileExists(path); err != nil {
+		if err := fsu.FileExists(path); err != nil {
 			return err
 		}
 		m.AddAttachment(&Attachment{Name: filepath.Base(path), Data: &iox.FileReader{Path: path}})
@@ -187,7 +187,7 @@ func (m *Email) AttachString(name string, data string) {
 
 // EmbedFile embed a file
 func (m *Email) EmbedFile(cid string, path string) error {
-	if err := osu.FileExists(path); err != nil {
+	if err := fsu.FileExists(path); err != nil {
 		return err
 	}
 	m.AddAttachment(&Attachment{Cid: cid, Name: filepath.Base(path), Data: &iox.FileReader{Path: path}})

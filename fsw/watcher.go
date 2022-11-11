@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/pandafw/pango/fsu"
 	"github.com/pandafw/pango/log"
-	"github.com/pandafw/pango/osu"
 )
 
 // Op describes a set of file operations.
@@ -286,7 +286,7 @@ func (fw *FileWatcher) procEvent(evt *fsnotify.Event) {
 	fsn, log := fw.fsnotify, fw.Logger
 
 	if evt.Op&OpCreate != 0 {
-		if err := osu.DirExists(evt.Name); err == nil {
+		if err := fsu.DirExists(evt.Name); err == nil {
 			if fw.isRecursive(evt.Name) {
 				if err = fw.doRecursive(evt.Name, true); err != nil && log != nil {
 					log.Errorf("fswatch: add %q error: %v", evt.Name, err)

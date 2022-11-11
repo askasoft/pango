@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pandafw/pango/fsu"
 	"github.com/pandafw/pango/num"
-	"github.com/pandafw/pango/osu"
 )
 
 func TestLogConfigJSON(t *testing.T) {
@@ -410,7 +410,7 @@ func testLogConfigFile1toFile2(t *testing.T, async1, async2 string) {
 		t.Errorf(`%q = %v, want %v`, logfile1, a, w)
 	}
 
-	err = osu.FileExists(logfile2)
+	err = fsu.FileExists(logfile2)
 	if err == nil {
 		t.Errorf("%q should not exists", logfile2)
 	}

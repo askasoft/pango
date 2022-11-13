@@ -153,7 +153,7 @@ func TestContextReset(t *testing.T) {
 	c.reset()
 
 	assert.False(t, c.IsAborted())
-	assert.Nil(t, c.dict)
+	assert.Nil(t, c.attrs)
 	assert.Nil(t, c.Accepted)
 	assert.Len(t, c.Errors, 0)
 	assert.Empty(t, c.Errors)
@@ -324,11 +324,11 @@ func TestContextCopy(t *testing.T) {
 	assert.Equal(t, &cp.writermem, cp.Writer.(*responseWriter))
 	assert.Equal(t, cp.Request, c.Request)
 	assert.Equal(t, cp.index, abortIndex)
-	assert.Equal(t, cp.dict, c.dict)
+	assert.Equal(t, cp.attrs, c.attrs)
 	assert.Equal(t, cp.engine, c.engine)
 	assert.Equal(t, cp.Params, c.Params)
 	cp.Set("foo", "notBar")
-	assert.False(t, cp.dict["foo"] == c.dict["foo"])
+	assert.False(t, cp.attrs["foo"] == c.attrs["foo"])
 }
 
 func TestContextHandlerName(t *testing.T) {
@@ -617,7 +617,7 @@ func TestContextSetCookiePathEmpty(t *testing.T) {
 	c, _ := CreateTestContext(httptest.NewRecorder())
 	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie("user", "xin", 1, "", "localhost", true, true)
-	assert.Equal(t, "user=xin; Path=/; Domain=localhost; Max-Age=1; HttpOnly; Secure; SameSite=Lax", c.Writer.Header().Get("Set-Cookie"))
+	assert.Equal(t, "user=xin; Domain=localhost; Max-Age=1; HttpOnly; Secure; SameSite=Lax", c.Writer.Header().Get("Set-Cookie"))
 }
 
 func TestContextGetCookie(t *testing.T) {

@@ -3,7 +3,6 @@ package xin
 import (
 	"errors"
 	"io"
-	"io/ioutil"
 	"math"
 	"mime/multipart"
 	"net"
@@ -55,8 +54,8 @@ type Context struct {
 	// locale string for the context of each request.
 	Locale string
 
-	// dict is a key/value pair exclusively for the context of each request.
-	dict map[string]any
+	// attrs is a key/value pair exclusively for the context of each request.
+	attrs map[string]any
 
 	// Errors is a list of errors attached to all the handlers/middlewares who used this context.
 	Errors []error
@@ -91,7 +90,7 @@ func (c *Context) reset() {
 
 	c.fullPath = ""
 	c.Locale = ""
-	c.dict = nil
+	c.attrs = nil
 	c.Errors = c.Errors[:0]
 	c.Accepted = nil
 	c.queryCache = nil
@@ -119,9 +118,9 @@ func (c *Context) Copy() *Context {
 	cp.Writer = &cp.writermem
 	cp.index = abortIndex
 	cp.handlers = nil
-	cp.dict = map[string]any{}
-	for k, v := range c.dict {
-		cp.dict[k] = v
+	cp.attrs = map[string]any{}
+	for k, v := range c.attrs {
+		cp.attrs[k] = v
 	}
 	paramCopy := make([]Param, len(cp.Params))
 	copy(paramCopy, cp.Params)
@@ -237,28 +236,28 @@ func (c *Context) AddError(err error) {
 /******** METADATA MANAGEMENT********/
 /************************************/
 
-// Dict get key/value map exclusively for this context.
-func (c *Context) Dict() map[string]any {
-	if c.dict == nil {
-		c.dict = make(map[string]any)
+// Attrs get key/value map exclusively for this context.
+func (c *Context) Attrs() map[string]any {
+	if c.attrs == nil {
+		c.attrs = make(map[string]any)
 	}
-	return c.dict
+	return c.attrs
 }
 
 // Set is used to store a new key/value pair exclusively for this context.
-// It also lazy initializes  c.dict if it was not used previously.
+// It also lazy initializes  c.attrs if it was not used previously.
 func (c *Context) Set(key string, value any) {
-	if c.dict == nil {
-		c.dict = make(map[string]any)
+	if c.attrs == nil {
+		c.attrs = make(map[string]any)
 	}
 
-	c.dict[key] = value
+	c.attrs[key] = value
 }
 
 // Get returns the value for the given key, ie: (value, true).
 // If the value does not exist it returns (nil, false)
 func (c *Context) Get(key string) (value any, exists bool) {
-	value, exists = c.dict[key]
+	value, exists = c.attrs[key]
 	return
 }
 
@@ -712,7 +711,7 @@ func (c *Context) ShouldBindBodyWith(obj any, bb binding.BodyBinding) (err error
 		}
 	}
 	if body == nil {
-		body, err = ioutil.ReadAll(c.Request.Body)
+		body, err = io.ReadAll(c.Request.Body)
 		if err != nil {
 			return
 		}
@@ -830,7 +829,7 @@ func (c *Context) GetHeader(key string) string {
 
 // GetRawData returns stream data.
 func (c *Context) GetRawData() ([]byte, error) {
-	return ioutil.ReadAll(c.Request.Body)
+	return io.ReadAll(c.Request.Body)
 }
 
 // SetSameSite with cookie
@@ -842,9 +841,6 @@ func (c *Context) SetSameSite(samesite http.SameSite) {
 // The provided cookie must have a valid Name. Invalid cookies may be
 // silently dropped.
 func (c *Context) SetCookie(name, value string, maxAge int, path, domain string, secure, httpOnly bool) {
-	if path == "" {
-		path = "/"
-	}
 	http.SetCookie(c.Writer, &http.Cookie{
 		Name:     name,
 		Value:    url.QueryEscape(value),

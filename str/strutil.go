@@ -7,6 +7,14 @@ import (
 	"unicode/utf8"
 )
 
+// IfEmpty return (a == "" ? b : a)
+func IfEmpty(a, b string) string {
+	if a == "" {
+		return b
+	}
+	return a
+}
+
 // Compare returns an integer comparing two strings lexicographically.
 // The result will be 0 if a==b, -1 if a < b, and +1 if a > b.
 func Compare(a, b string) int {

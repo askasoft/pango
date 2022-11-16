@@ -31,10 +31,13 @@ type Token struct {
 	Timestamp time.Time
 }
 
+func (t *Token) String() string {
+	return t.Secret + " " + t.Timestamp.Format("2006-01-02T15:04:05Z")
+}
+
 func NewToken() *Token {
 	t := &Token{
-		Secret:    str.RandString(SecretLength, SecretChars),
-		Timestamp: time.Now(),
+		Secret: str.RandString(SecretLength, SecretChars),
 	}
 	t.Refresh()
 	return t
@@ -61,6 +64,7 @@ func ParseToken(token string) (*Token, error) {
 
 func (t *Token) Refresh() {
 	t.Salt = str.RandString(SaltLength, SecretChars)
+	t.Timestamp = time.Now()
 	t.Token = t.Salt + t.saltSecret() + t.saltTimestamp()
 }
 

@@ -65,17 +65,25 @@ func (tp *TokenProtector) validate(c *xin.Context) bool {
 	if st == nil {
 		return false
 	}
+	c.Logger().Tracef("Source token: %v", st)
 
 	rt := tp.getRequestToken(c)
 	if rt == nil {
 		return false
 	}
+	c.Logger().Tracef("Request token: %v", rt)
 
-	if tp.Expires > 0 && rt.Timestamp.Add(tp.Expires).Before(time.Now()) {
+	if st.Secret != rt.Secret {
+		c.Logger().Warnf("Invalid token secret %q, want %q", rt.Secret, st.Secret)
 		return false
 	}
 
-	return st.Secret == rt.Secret
+	if tp.Expires > 0 && rt.Timestamp.Add(tp.Expires).Before(time.Now()) {
+		c.Logger().Warnf("Request token (%v) is expired for %v", rt, tp.Expires)
+		return false
+	}
+
+	return true
 }
 
 func (tp *TokenProtector) parseToken(ts string) (*cpt.Token, error) {

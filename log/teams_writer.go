@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/pandafw/pango/bye"
-	"github.com/pandafw/pango/net/teams"
+	"github.com/pandafw/pango/sdk/teams"
 )
 
 // TeamsWriter implements log Writer Interface and send log message to teams.

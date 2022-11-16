@@ -155,8 +155,6 @@ func assertLogConfig(t *testing.T, log *Log) {
 		if !ok {
 			t.Fatalf("Not SlackWriter")
 		}
-		assertLogEqual(t, `w.Channel`, "develop", w.Channel)
-		assertLogEqual(t, `w.Username`, "gotest", w.Username)
 		assertLogEqual(t, `w.Webhook`, "https://hooks.slack.com/services/...", w.Webhook)
 		assertLogEqual(t, `w.Timeout`, time.Second*5, w.Timeout)
 

@@ -7,18 +7,16 @@ import (
 	"time"
 
 	"github.com/pandafw/pango/bye"
-	"github.com/pandafw/pango/net/slack"
+	"github.com/pandafw/pango/sdk/slack"
 )
 
 // SlackWriter implements log Writer Interface and send log message to slack.
 type SlackWriter struct {
-	Webhook  string
-	Username string
-	Channel  string
-	Timeout  time.Duration
-	Subfmt   Formatter // subject formatter
-	Logfmt   Formatter // log formatter
-	Logfil   Filter    // log filter
+	Webhook string
+	Timeout time.Duration
+	Subfmt  Formatter // subject formatter
+	Logfmt  Formatter // log formatter
+	Logfil  Filter    // log filter
 
 	sb bytes.Buffer // subject buffer
 	mb bytes.Buffer // message buffer
@@ -69,8 +67,6 @@ func (sw *SlackWriter) Write(le *Event) (err error) {
 
 	sm := &slack.Message{}
 	sm.IconEmoji = sw.getIconEmoji(le.Level())
-	sm.Channel = sw.Channel
-	sm.Username = sw.Username
 	sm.Text = sub
 
 	sa := &slack.Attachment{Text: msg}

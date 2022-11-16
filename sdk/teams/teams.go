@@ -11,6 +11,28 @@ import (
 	"github.com/pandafw/pango/iox"
 )
 
+// Error teams api error
+type Error struct {
+	Status     string
+	StatusCode int
+	RetryAfter int
+}
+
+// Error return error string
+func (e *Error) Error() string {
+	if e.RetryAfter != 0 {
+		return fmt.Sprintf("%d %s (Retry-After: %d)", e.StatusCode, e.Status, e.RetryAfter)
+	}
+	return fmt.Sprintf("%d %s", e.StatusCode, e.Status)
+}
+
+// Message teams message
+type Message struct {
+	Type  string `json:"type,omitempty"`
+	Title string `json:"title,omitempty"`
+	Text  string `json:"text,omitempty"`
+}
+
 // Post post teams message
 func Post(url string, timeout time.Duration, tm *Message) error {
 	bs, err := json.Marshal(tm)
@@ -41,26 +63,4 @@ func Post(url string, timeout time.Duration, tm *Message) error {
 		return e
 	}
 	return nil
-}
-
-// Error teams api error
-type Error struct {
-	Status     string
-	StatusCode int
-	RetryAfter int
-}
-
-// Error return error string
-func (e *Error) Error() string {
-	if e.RetryAfter != 0 {
-		return fmt.Sprintf("%d %s (Retry-After: %d)", e.StatusCode, e.Status, e.RetryAfter)
-	}
-	return fmt.Sprintf("%d %s", e.StatusCode, e.Status)
-}
-
-// Message teams message
-type Message struct {
-	Type  string `json:"type"`
-	Title string `json:"title"`
-	Text  string `json:"text"`
 }

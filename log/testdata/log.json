@@ -33,8 +33,6 @@
 	}, {
 		"_": "slack",
 		"_async": 1000,
-		"channel": "develop",
-		"username": "gotest",
 		"webhook": "https://hooks.slack.com/services/...",
 		"timeout": "5s",
 		"subject": "%l - %m", 

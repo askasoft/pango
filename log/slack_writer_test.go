@@ -15,7 +15,7 @@ func TestSlackLog(t *testing.T) {
 
 	log := NewLog()
 	log.SetLevel(LevelTrace)
-	sw := &SlackWriter{Webhook: wh, Username: "gotest", Logfil: NewLevelFilter(LevelInfo)}
+	sw := &SlackWriter{Webhook: wh, Logfil: NewLevelFilter(LevelInfo)}
 	log.SetWriter(sw)
 
 	log.Debug("This is a slack debug log")

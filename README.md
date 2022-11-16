@@ -15,8 +15,8 @@ Pango is a GO development utility library.
 | [log](./log/)                    | a Log like Log4j                        |
 | [net/email](./net/email/)        | a email sender package                  |
 | [net/httpx](./net/httpx/)        | a package for http                      |
-| [net/slack](./net/slack/)        | a slack webhook sender package          |
-| [net/teams](./net/teams/)        | a teams webhook sender package          |
+| [sdk/slack](./sdk/slack/)        | a slack webhook sender package          |
+| [sdk/teams](./sdk/teams/)        | a teams webhook sender package          |
 | [str](./str/)                    | a strings package wrapper and provides some useful utility functions      |
 | [tpl](./tpl/)                    | a text/template, html/template wrapper for recursively load template file |
 

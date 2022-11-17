@@ -32,11 +32,11 @@ func TestTextFormatSimple(t *testing.T) {
 
 func TestTextFormatDefault(t *testing.T) {
 	tf := TextFmtDefault
-	le := newEvent(&logger{}, LevelInfo, "default")
+	le := newEvent(&logger{name: "TEXT"}, LevelInfo, "default")
 	le.when = time.Time{}
 	le.caller(2, false)
 
-	assertFormatEvent(t, tf, le, `0001-01-01T00:00:00.000 INFO  logformatter_test.go:`+
+	assertFormatEvent(t, tf, le, `0001-01-01T00:00:00.000 INFO  TEXT logformatter_test.go:`+
 		strconv.Itoa(le.Line())+` log.TestTextFormatDefault() - default`+EOL)
 }
 
@@ -116,32 +116,32 @@ func TestNewTextFormatSubject(t *testing.T) {
 
 func TestNewTextFormatDefault(t *testing.T) {
 	tf := NewTextFormatter("DEFAULT")
-	le := newEvent(&logger{}, LevelInfo, "default")
+	le := newEvent(&logger{name: "TEXT"}, LevelInfo, "default")
 	le.when = time.Time{}
 	le.caller(2, false)
 
-	assertFormatEvent(t, tf, le, `0001-01-01T00:00:00.000 INFO  logformatter_test.go:`+
+	assertFormatEvent(t, tf, le, `0001-01-01T00:00:00.000 INFO  TEXT logformatter_test.go:`+
 		strconv.Itoa(le.Line())+` log.TestNewTextFormatDefault() - default`+EOL)
 }
 
 func TestNewLogFormatTextDefault(t *testing.T) {
 	tf := NewLogFormatter("text:DEFAULT")
-	le := newEvent(&logger{}, LevelInfo, "default")
+	le := newEvent(&logger{name: "TEXT"}, LevelInfo, "default")
 	le.when = time.Time{}
 	le.caller(2, false)
 
-	assertFormatEvent(t, tf, le, `0001-01-01T00:00:00.000 INFO  logformatter_test.go:`+
+	assertFormatEvent(t, tf, le, `0001-01-01T00:00:00.000 INFO  TEXT logformatter_test.go:`+
 		strconv.Itoa(le.Line())+` log.TestNewLogFormatTextDefault() - default`+EOL)
 }
 
 func TestJSONFormatDefault(t *testing.T) {
 	jf := JSONFmtDefault
-	le := newEvent(&logger{}, LevelInfo, "default")
+	le := newEvent(&logger{name: "JSON"}, LevelInfo, "default")
 	le.when = time.Now()
 	le.caller(2, false)
 
 	assertFormatEvent(t, jf, le, `{"when": "`+le.when.Format(defaultTimeFormat)+
-		`", "level": "INFO", "file": "logformatter_test.go", "line": `+strconv.Itoa(le.Line())+
+		`", "level": "INFO", "name": "JSON", "file": "logformatter_test.go", "line": `+strconv.Itoa(le.Line())+
 		`, "func": "log.TestJSONFormatDefault", "msg": "default", "trace": ""}`+EOL)
 }
 
@@ -174,22 +174,22 @@ func TestJSONFormatProps(t *testing.T) {
 
 func TestNewJSONFormatDefault(t *testing.T) {
 	jf := NewJSONFormatter("DEFAULT")
-	le := newEvent(&logger{}, LevelInfo, "default")
+	le := newEvent(&logger{name: "JSON"}, LevelInfo, "default")
 	le.when = time.Now()
 	le.caller(2, false)
 
 	assertFormatEvent(t, jf, le, `{"when": "`+le.when.Format(defaultTimeFormat)+
-		`", "level": "INFO", "file": "logformatter_test.go", "line": `+strconv.Itoa(le.Line())+
+		`", "level": "INFO", "name": "JSON", "file": "logformatter_test.go", "line": `+strconv.Itoa(le.Line())+
 		`, "func": "log.TestNewJSONFormatDefault", "msg": "default", "trace": ""}`+EOL)
 }
 
 func TestNewLogFormatJSONDefault(t *testing.T) {
 	jf := NewLogFormatter("json:DEFAULT")
-	le := newEvent(&logger{}, LevelInfo, "default")
+	le := newEvent(&logger{name: "JSON"}, LevelInfo, "default")
 	le.when = time.Now()
 	le.caller(2, false)
 
 	assertFormatEvent(t, jf, le, `{"when": "`+le.when.Format(defaultTimeFormat)+
-		`", "level": "INFO", "file": "logformatter_test.go", "line": `+strconv.Itoa(le.Line())+
+		`", "level": "INFO", "name": "JSON", "file": "logformatter_test.go", "line": `+strconv.Itoa(le.Line())+
 		`, "func": "log.TestNewLogFormatJSONDefault", "msg": "default", "trace": ""}`+EOL)
 }

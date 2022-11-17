@@ -26,10 +26,10 @@ func DumpListener(listener net.Listener, path string) *ListenerDumper {
 	return &ListenerDumper{
 		Listener:   listener,
 		Path:       path,
-		RecvPrefix: "<<<<<<<<%s<<<<<<<<\r\n",
-		RecvSuffix: "\r\n\r\n",
-		SendPrefix: ">>>>>>>>%s>>>>>>>>\r\n",
-		SendSuffix: "\r\n\r\n",
+		RecvPrefix: ">>>>>>>> %s >>>>>>>>\r\n",
+		RecvSuffix: "\r\n%.s\r\n",
+		SendPrefix: "<<<<<<<< %s <<<<<<<<\r\n",
+		SendSuffix: "\r\n%.s\r\n",
 		Timestamp:  true,
 	}
 }

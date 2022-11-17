@@ -5,6 +5,26 @@ import (
 	"unicode"
 )
 
+type Builder = strings.Builder
+type Reader = strings.Reader
+type Replacer = strings.Replacer
+
+// NewReader returns a new Reader reading from s.
+// It is similar to bytes.NewBufferString but more efficient and read-only.
+func NewReader(s string) *Reader {
+	return strings.NewReader(s)
+}
+
+// NewReplacer returns a new Replacer from a list of old, new string
+// pairs. Replacements are performed in the order they appear in the
+// target string, without overlapping matches. The old string
+// comparisons are done in argument order.
+//
+// NewReplacer panics if given an odd number of arguments.
+func NewReplacer(oldnew ...string) *Replacer {
+	return strings.NewReplacer(oldnew...)
+}
+
 // Count counts the number of non-overlapping instances of substr in s.
 // If substr is an empty string, Count returns 1 + the number of Unicode code points in s.
 func Count(s, substr string) int {

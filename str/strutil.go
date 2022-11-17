@@ -7,6 +7,14 @@ import (
 	"unicode/utf8"
 )
 
+// If return (b ? t : f)
+func If(b bool, t, f string) string {
+	if b {
+		return t
+	}
+	return f
+}
+
 // IfEmpty return (a == "" ? b : a)
 func IfEmpty(a, b string) string {
 	if a == "" {
@@ -19,6 +27,17 @@ func IfEmpty(a, b string) string {
 // The result will be 0 if a==b, -1 if a < b, and +1 if a > b.
 func Compare(a, b string) int {
 	return bytes.Compare(UnsafeBytes(a), UnsafeBytes(b))
+}
+
+// Cut slices s around the first instance of sep,
+// returning the text before and after sep.
+// The found result reports whether sep appears in s.
+// If sep does not appear in s, cut returns s, "", false.
+func Cut(s, sep string) (before, after string, found bool) {
+	if i := Index(s, sep); i >= 0 {
+		return s[:i], s[i+len(sep):], true
+	}
+	return s, "", false
 }
 
 // Capitalize returns a copy of the string s that the start letter

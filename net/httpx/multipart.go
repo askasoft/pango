@@ -6,6 +6,7 @@ import (
 	"mime"
 	"mime/multipart"
 	"net/textproto"
+	"net/url"
 	"os"
 	"path"
 	"strings"
@@ -40,6 +41,19 @@ func (mw *MultipartWriter) CreateFormFile(fieldname, filename string) (io.Writer
 	return mw.CreatePart(mh)
 }
 
+// WriteFields calls WriteField and then writes the given fields values.
+func (mw *MultipartWriter) WriteFields(fields url.Values) error {
+	for k, vs := range fields {
+		for _, v := range vs {
+			err := mw.WriteField(k, v)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 // WriteFile calls CreateFormFile and then writes the given file.
 func (mw *MultipartWriter) WriteFile(fieldname, filename string) error {
 	fw, err := mw.CreateFormFile(fieldname, filename)
@@ -54,5 +68,16 @@ func (mw *MultipartWriter) WriteFile(fieldname, filename string) error {
 	defer fp.Close()
 
 	_, err = io.Copy(fw, fp)
+	return err
+}
+
+// WriteFileData calls CreateFormFile and then writes the given file data.
+func (mw *MultipartWriter) WriteFileData(fieldname, filename string, data []byte) error {
+	fw, err := mw.CreateFormFile(fieldname, filename)
+	if err != nil {
+		return err
+	}
+
+	_, err = fw.Write(data)
 	return err
 }

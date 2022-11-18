@@ -1,6 +1,8 @@
 package ars
 
 import (
+	"bytes"
+
 	"github.com/pandafw/pango/bye"
 )
 
@@ -82,6 +84,253 @@ func ContainsRune(a []rune, c rune) bool {
 // ContainsString reports whether the c is contained in the slice a.
 func ContainsString(a []string, c string) bool {
 	return IndexString(a, c) >= 0
+}
+
+// Equal reports whether a and b
+// are the same length and contain the same element.
+// A nil argument is equivalent to an empty slice.
+func Equal(a []any, b []any) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// EqualBytes reports whether a and b
+// are the same length and contain the same element.
+// A nil argument is equivalent to an empty slice.
+func EqualBytes(a []byte, b []byte) bool {
+	return bytes.Equal(a, b)
+}
+
+// EqualInts reports whether a and b
+// are the same length and contain the same element.
+// A nil argument is equivalent to an empty slice.
+func EqualInts(a []int, b []int) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// EqualInt8s reports whether a and b
+// are the same length and contain the same element.
+// A nil argument is equivalent to an empty slice.
+func EqualInt8s(a []int8, b []int8) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// EqualInt16s reports whether a and b
+// are the same length and contain the same element.
+// A nil argument is equivalent to an empty slice.
+func EqualInt16s(a []int16, b []int16) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// EqualInt32s reports whether a and b
+// are the same length and contain the same element.
+// A nil argument is equivalent to an empty slice.
+func EqualInt32s(a []int32, b []int32) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// EqualInt64s reports whether a and b
+// are the same length and contain the same element.
+// A nil argument is equivalent to an empty slice.
+func EqualInt64s(a []int64, b []int64) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// EqualUints reports whether a and b
+// are the same length and contain the same element.
+// A nil argument is equivalent to an empty slice.
+func EqualUints(a []uint, b []uint) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// EqualUint8s reports whether a and b
+// are the same length and contain the same element.
+// A nil argument is equivalent to an empty slice.
+func EqualUint8s(a []uint8, b []uint8) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// EqualUint16s reports whether a and b
+// are the same length and contain the same element.
+// A nil argument is equivalent to an empty slice.
+func EqualUint16s(a []uint16, b []uint16) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// EqualUint32s reports whether a and b
+// are the same length and contain the same element.
+// A nil argument is equivalent to an empty slice.
+func EqualUint32s(a []uint32, b []uint32) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// EqualUint64s reports whether a and b
+// are the same length and contain the same element.
+// A nil argument is equivalent to an empty slice.
+func EqualUint64s(a []uint64, b []uint64) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// EqualFloat32s reports whether a and b
+// are the same length and contain the same element.
+// A nil argument is equivalent to an empty slice.
+func EqualFloat32s(a []float32, b []float32) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// EqualFloat64s reports whether a and b
+// are the same length and contain the same element.
+// A nil argument is equivalent to an empty slice.
+func EqualFloat64s(a []float64, b []float64) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// EqualRunes reports whether a and b
+// are the same length and contain the same element.
+// A nil argument is equivalent to an empty slice.
+func EqualRunes(a []rune, b []rune) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// EqualStrings reports whether a and b
+// are the same length and contain the same element.
+// A nil argument is equivalent to an empty slice.
+func EqualStrings(a []string, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
 }
 
 // Index returns the index of the first instance of c in a, or -1 if c is not present in a.

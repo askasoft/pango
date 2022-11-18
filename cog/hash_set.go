@@ -89,6 +89,15 @@ func (hs *HashSet[T]) Delete(vs ...T) {
 	}
 }
 
+// DeleteIf delete all items that function f returns true
+func (hs *HashSet[T]) DeleteIf(f func(T) bool) {
+	for k := range hs.hash {
+		if f(k) {
+			delete(hs.hash, k)
+		}
+	}
+}
+
 // DeleteAll delete all of this collection's elements that are also contained in the specified collection
 func (hs *HashSet[T]) DeleteAll(ac Collection[T]) {
 	if hs == ac {

@@ -204,7 +204,9 @@ func TestRingBufferIndex(t *testing.T) {
 	}
 
 	expectedIndex = 2
-	if index := list.Index("c"); index != expectedIndex {
+	if index := list.IndexIf(func(v any) bool {
+		return v == "c"
+	}); index != expectedIndex {
 		t.Errorf("Got %v expected %v", index, expectedIndex)
 	}
 }
@@ -216,7 +218,9 @@ func TestRingBufferDelete(t *testing.T) {
 		l.Add(i)
 	}
 
-	l.Delete(101)
+	l.DeleteIf(func(d any) bool {
+		return d == 101
+	})
 	if l.Len() != 100 {
 		t.Error("RingBuffer.Delete(101) should do nothing")
 	}

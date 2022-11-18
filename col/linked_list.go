@@ -67,6 +67,19 @@ func (ll *LinkedList) Delete(vs ...T) {
 	}
 }
 
+// DeleteIf delete all items that function f returns true
+func (ll *LinkedList) DeleteIf(f func(T) bool) {
+	if ll.IsEmpty() {
+		return
+	}
+
+	for ln := ll.head; ln != nil; ln = ln.next {
+		if f(ln.value) {
+			ll.deleteNode(ln)
+		}
+	}
+}
+
 // DeleteAll delete all of this collection's elements that are also contained in the specified collection
 func (ll *LinkedList) DeleteAll(ac Collection) {
 	if ll.IsEmpty() || ac.IsEmpty() {
@@ -271,6 +284,17 @@ func (ll *LinkedList) InsertAll(index int, ac Collection) {
 func (ll *LinkedList) Index(v T) int {
 	for i, ln := 0, ll.head; ln != nil; ln = ln.next {
 		if ln.value == v {
+			return i
+		}
+		i++
+	}
+	return -1
+}
+
+// IndexIf returns the index of the first true returned by function f in this list, or -1 if this list does not contain v.
+func (ll *LinkedList) IndexIf(f func(T) bool) int {
+	for i, ln := 0, ll.head; ln != nil; ln = ln.next {
+		if f(ln.value) {
 			return i
 		}
 		i++

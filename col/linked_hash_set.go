@@ -77,6 +77,19 @@ func (ls *LinkedHashSet) Delete(vs ...T) {
 	}
 }
 
+// DeleteIf delete all items that function f returns true
+func (ls *LinkedHashSet) DeleteIf(f func(T) bool) {
+	if ls.IsEmpty() {
+		return
+	}
+
+	for ln := ls.head; ln != nil; ln = ln.next {
+		if f(ln.value) {
+			ls.deleteNode(ln)
+		}
+	}
+}
+
 // DeleteAll delete all of this collection's elements that are also contained in the specified collection
 func (ls *LinkedHashSet) DeleteAll(ac Collection) {
 	if ls.IsEmpty() || ac.IsEmpty() {

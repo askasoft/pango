@@ -52,31 +52,34 @@ type Collection interface {
 	Container
 
 	// Add adds items of vs
-	Add(vs ...interface{})
+	Add(vs ...any)
 
 	// AddAll adds all items of another collection
 	AddAll(ac Collection)
 
 	// Delete delete all items of vs
-	Delete(vs ...interface{})
+	Delete(vs ...any)
+
+	// DeleteIf delete all items that function f returns true
+	DeleteIf(f func(any) bool)
 
 	// DeleteAll delete all of this collection's elements that are also contained in the specified collection
 	DeleteAll(ac Collection)
 
 	// Contains Test to see if the collection contains all items of vs
-	Contains(vs ...interface{}) bool
+	Contains(vs ...any) bool
 
 	// ContainsAll Test to see if the collection contains all items of another collection
 	ContainsAll(ac Collection) bool
 
 	// Retain Retains only the elements in this collection that are contained in the argument array vs.
-	Retain(vs ...interface{})
+	Retain(vs ...any)
 
 	// RetainAll Retains only the elements in this collection that are contained in the specified collection.
 	RetainAll(ac Collection)
 
 	// Values returns a slice contains all the items of the collection
-	Values() []interface{}
+	Values() []any
 
 	Eachable
 }
@@ -98,15 +101,15 @@ type List interface {
 	Iterable
 
 	// Get returns the value at the specified index in this list
-	Get(index int) interface{}
+	Get(index int) any
 
 	// Set set the v at the specified index in this list and returns the old value.
-	Set(index int, v interface{}) interface{}
+	Set(index int, v any) any
 
 	// Insert inserts values at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
 	// Does not do anything if position is bigger than list's size
 	// Note: position equal to list's size is valid, i.e. append.
-	Insert(index int, vs ...interface{})
+	Insert(index int, vs ...any)
 
 	// InsertAll inserts values of another collection ac at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
 	// Does not do anything if position is bigger than list's size
@@ -114,7 +117,10 @@ type List interface {
 	InsertAll(index int, ac Collection)
 
 	// Index returns the index of the first occurrence of the specified v in this list, or -1 if this list does not contain v.
-	Index(v interface{}) int
+	Index(v any) int
+
+	// IndexIf returns the index of the first true returned by function f in this list, or -1 if this list does not contain v.
+	IndexIf(f func(any) bool) int
 
 	// Remove delete the item at the specified position in this list
 	Remove(index int)
@@ -308,12 +314,12 @@ type Map interface {
 
 	// Get looks for the given key, and returns the value associated with it,
 	// or nil if not found. The boolean it returns says whether the key is ok in the map.
-	Get(key interface{}) (interface{}, bool)
+	Get(key any) (any, bool)
 
 	// Set sets the paired key-value items, and returns what `Get` would have returned
 	// on that key prior to the call to `Set`.
 	// Example: lm.Set("k1", "v1", "k2", "v2")
-	Set(kvs ...interface{}) (ov interface{}, ok bool)
+	Set(kvs ...any) (ov any, ok bool)
 
 	// SetAll set items from another map am, override the existing items
 	SetAll(am Map)
@@ -322,21 +328,21 @@ type Map interface {
 	// and returns what `Get` would have returned
 	// on that key prior to the call to `Set`.
 	// Example: lm.SetIfAbsent("k1", "v1", "k2", "v2")
-	SetIfAbsent(kvs ...interface{}) (ov interface{}, ok bool)
+	SetIfAbsent(kvs ...any) (ov any, ok bool)
 
 	// Delete delete all items with key of ks,
 	// and returns what `Get` would have returned
 	// on that key prior to the call to `Set`.
-	Delete(ks ...interface{}) (ov interface{}, ok bool)
+	Delete(ks ...any) (ov any, ok bool)
 
 	// Contains looks for the given key, and returns true if the key exists in the map.
-	Contains(ks ...interface{}) bool
+	Contains(ks ...any) bool
 
 	// Keys returns the key slice
-	Keys() []interface{}
+	Keys() []any
 
 	// Values returns a slice contains all the items of the collection
-	Values() []interface{}
+	Values() []any
 
 	Eachable2
 }
@@ -497,27 +503,27 @@ Comparator is defined as:
 Comparator signature:
 
 ```go
-type Compare func(a, b interface{}) int
+type Compare func(a, b any) int
 ```
 
 All common comparators for builtin types are included in the package:
 
 ```go
-func CompareString(a, b interface{}) int
-func CompareInt(a, b interface{}) int
-func CompareInt8(a, b interface{}) int
-func CompareInt16(a, b interface{}) int
-func CompareInt32(a, b interface{}) int
-func CompareInt64(a, b interface{}) int
-func CompareUInt(a, b interface{}) int
-func CompareUInt8(a, b interface{}) int
-func CompareUInt16(a, b interface{}) int
-func CompareUInt32(a, b interface{}) int
-func CompareUInt64(a, b interface{}) int
-func CompareFloat32(a, b interface{}) int
-func CompareFloat64(a, b interface{}) int
-func CompareByte(a, b interface{}) int
-func CompareRune(a, b interface{}) int
+func CompareString(a, b any) int
+func CompareInt(a, b any) int
+func CompareInt8(a, b any) int
+func CompareInt16(a, b any) int
+func CompareInt32(a, b any) int
+func CompareInt64(a, b any) int
+func CompareUInt(a, b any) int
+func CompareUInt8(a, b any) int
+func CompareUInt16(a, b any) int
+func CompareUInt32(a, b any) int
+func CompareUInt64(a, b any) int
+func CompareFloat32(a, b any) int
+func CompareFloat64(a, b any) int
+func CompareByte(a, b any) int
+func CompareRune(a, b any) int
 ```
 
 Writing custom comparators is easy:
@@ -536,7 +542,7 @@ type User struct {
 }
 
 // Custom comparator (sort by IDs)
-func byID(a, b interface{}) int {
+func byID(a, b any) int {
 
 	// Type assertion, program will panic if this is not respected
 	c1 := a.(User)
@@ -579,27 +585,27 @@ Less comparator is defined as:
 Comparator signature:
 
 ```go
-type Less func(a, b interface{}) bool
+type Less func(a, b any) bool
 ```
 
 All common comparators for builtin types are included in the package:
 
 ```go
-func LessString(a, b interface{}) bool
-func LessByte(a, b interface{}) bool
-func LessRune(a, b interface{}) bool
-func LessInt(a, b interface{}) bool
-func LessInt8(a, b interface{}) bool
-func LessInt16(a, b interface{}) bool
-func LessInt32(a, b interface{}) bool
-func LessInt64(a, b interface{}) bool
-func LessUint(a, b interface{}) bool
-func LessUint8(a, b interface{}) bool
-func LessUint16(a, b interface{}) bool
-func LessUint32(a, b interface{}) bool
-func LessUint64(a, b interface{}) bool
-func LessFloat32(a, b interface{}) bool
-func LessFloat64(a, b interface{}) bool
+func LessString(a, b any) bool
+func LessByte(a, b any) bool
+func LessRune(a, b any) bool
+func LessInt(a, b any) bool
+func LessInt8(a, b any) bool
+func LessInt16(a, b any) bool
+func LessInt32(a, b any) bool
+func LessInt64(a, b any) bool
+func LessUint(a, b any) bool
+func LessUint8(a, b any) bool
+func LessUint16(a, b any) bool
+func LessUint32(a, b any) bool
+func LessUint64(a, b any) bool
+func LessFloat32(a, b any) bool
+func LessFloat64(a, b any) bool
 ```
 
 

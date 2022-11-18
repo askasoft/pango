@@ -682,7 +682,9 @@ func TestLinkedHashSetDelete(t *testing.T) {
 		lset.PushTail(i)
 	}
 
-	lset.Delete(101)
+	lset.DeleteIf(func(d any) bool {
+		return d == 101
+	})
 	if lset.Len() != 100 {
 		t.Error("LinkedHashSet.Delete(101) should do nothing")
 	}

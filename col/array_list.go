@@ -92,6 +92,15 @@ func (al *ArrayList) Delete(vs ...T) {
 	}
 }
 
+// DeleteIf delete all items that function f returns true
+func (al *ArrayList) DeleteIf(f func(T) bool) {
+	for i := al.Len() - 1; i >= 0; i-- {
+		if f(al.data[i]) {
+			al.Remove(i)
+		}
+	}
+}
+
 // DeleteAll delete all of this collection's elements that are also contained in the specified collection
 func (al *ArrayList) DeleteAll(ac Collection) {
 	if ac.IsEmpty() {
@@ -263,6 +272,16 @@ func (al *ArrayList) InsertAll(index int, ac Collection) {
 func (al *ArrayList) Index(v T) int {
 	for i, d := range al.data {
 		if d == v {
+			return i
+		}
+	}
+	return -1
+}
+
+// IndexIf returns the index of the first true returned by function f in this list, or -1 if this list does not contain v.
+func (al *ArrayList) IndexIf(f func(T) bool) int {
+	for i, v := range al.data {
+		if f(v) {
 			return i
 		}
 	}

@@ -89,6 +89,19 @@ func (ts *TreeSet[T]) Delete(vs ...T) {
 	}
 }
 
+// DeleteIf delete all items that function f returns true
+func (ts *TreeSet[T]) DeleteIf(f func(T) bool) {
+	if ts.IsEmpty() {
+		return
+	}
+
+	for tn := ts.head(); tn != nil; tn = tn.next() {
+		if f(tn.value) {
+			ts.deleteNode(tn)
+		}
+	}
+}
+
 // DeleteAll delete all of this collection's elements that are also contained in the specified collection
 func (ts *TreeSet[T]) DeleteAll(ac Collection[T]) {
 	if ts.IsEmpty() || ac.IsEmpty() {

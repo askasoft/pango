@@ -69,6 +69,20 @@ func (rb *RingBuffer) Delete(vs ...T) {
 	}
 }
 
+// DeleteIf delete all items that function f returns true
+func (rb *RingBuffer) DeleteIf(f func(T) bool) {
+	if rb.IsEmpty() {
+		return
+	}
+
+	it := rb.Iterator()
+	for it.Next() {
+		if f(it.Value()) {
+			it.Remove()
+		}
+	}
+}
+
 func (rb *RingBuffer) deleteAll(v T) {
 	for i := rb.Index(v); i >= 0; i = rb.Index(v) {
 		rb.Remove(i)
@@ -329,13 +343,20 @@ func (rb *RingBuffer) InsertAll(index int, ac Collection) {
 
 // Index returns the index of the first occurrence of the specified v in this RingBuffer, or -1 if this RingBuffer does not contain v.
 func (rb *RingBuffer) Index(v T) int {
+	return rb.IndexIf(func(d T) bool {
+		return any(d) == any(v)
+	})
+}
+
+// IndexIf returns the index of the first true returned by function f in this list, or -1 if this list does not contain v.
+func (rb *RingBuffer) IndexIf(f func(T) bool) int {
 	if rb.len == 0 {
 		return -1
 	}
 
 	if rb.head <= rb.tail {
 		for i := rb.head; i <= rb.tail; i++ {
-			if rb.data[i] == v {
+			if f(rb.data[i]) {
 				return i - rb.head
 			}
 		}
@@ -343,12 +364,12 @@ func (rb *RingBuffer) Index(v T) int {
 	}
 
 	for i := rb.head; i < rb.len; i++ {
-		if rb.data[i] == v {
+		if f(rb.data[i]) {
 			return i - rb.head
 		}
 	}
 	for i := 0; i <= rb.tail; i++ {
-		if rb.data[i] == v {
+		if f(rb.data[i]) {
 			return i
 		}
 	}

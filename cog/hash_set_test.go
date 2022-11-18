@@ -96,17 +96,14 @@ func TestHashSetSimple(t *testing.T) {
 	if s.Len() != 1 {
 		t.Errorf("Length should be 1")
 	}
-
 	if !s.Contains(5) {
 		t.Errorf("Membership test failed")
 	}
 
 	s.Delete(5)
-
 	if s.Len() != 0 {
 		t.Errorf("Length should be 0")
 	}
-
 	if s.Contains(5) {
 		t.Errorf("The set should be empty")
 	}
@@ -242,7 +239,9 @@ func TestHashSetDelete(t *testing.T) {
 	if av := set.Len(); av != 3 {
 		t.Errorf("Got %v expected %v", av, 3)
 	}
-	set.Delete(1)
+	set.DeleteIf(func(d int) bool {
+		return d == 1
+	})
 	if av := set.Len(); av != 2 {
 		t.Errorf("Got %v expected %v", av, 2)
 	}

@@ -34,6 +34,9 @@ type Collection[T any] interface {
 	// Delete delete all items of vs
 	Delete(vs ...T)
 
+	// DeleteIf delete all items that function f returns true
+	DeleteIf(f func(T) bool)
+
 	// DeleteAll delete all of this collection's elements that are also contained in the specified collection
 	DeleteAll(ac Collection[T])
 
@@ -87,6 +90,9 @@ type List[T any] interface {
 
 	// Index returns the index of the first occurrence of the specified v in this list, or -1 if this list does not contain v.
 	Index(v T) int
+
+	// IndexIf returns the index of the first true returned by function f in this list, or -1 if this list does not contain v.
+	IndexIf(f func(T) bool) int
 
 	// Remove delete the item at the specified position in this list
 	Remove(index int)

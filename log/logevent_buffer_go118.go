@@ -1,13 +1,13 @@
-//go:build !go1.18
-// +build !go1.18
+//go:build go1.18
+// +build go1.18
 
 package log
 
-import "github.com/pandafw/pango/col"
+import "github.com/pandafw/pango/cog"
 
 // EventBuffer a event buffer
 type EventBuffer struct {
-	buffer  col.RingBuffer
+	buffer  cog.RingBuffer[*Event]
 	BufSize int
 }
 
@@ -27,7 +27,7 @@ func (eb *EventBuffer) Push(le *Event) {
 // Poll poll event from the buffer
 func (eb *EventBuffer) Poll() *Event {
 	if le, ok := eb.buffer.Poll(); ok {
-		return le.(*Event)
+		return le
 	}
 	return nil
 }
@@ -35,7 +35,7 @@ func (eb *EventBuffer) Poll() *Event {
 // Peek peek event from the buffer
 func (eb *EventBuffer) Peek() *Event {
 	if le, ok := eb.buffer.Peek(); ok {
-		return le.(*Event)
+		return le
 	}
 	return nil
 }

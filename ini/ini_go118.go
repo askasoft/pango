@@ -1,5 +1,5 @@
-//go:build !go1.18
-// +build !go1.18
+//go:build go1.18
+// +build go1.18
 
 package ini
 
@@ -17,12 +17,12 @@ import (
 	"unicode"
 
 	"github.com/pandafw/pango/bye"
-	"github.com/pandafw/pango/col"
+	"github.com/pandafw/pango/cog"
 	"github.com/pandafw/pango/iox"
 	"github.com/pandafw/pango/str"
 )
 
-type Sections = col.LinkedHashMap
+type Sections = cog.LinkedHashMap[string, *Section]
 
 // Ini INI file reader / writer
 type Ini struct {
@@ -54,7 +54,7 @@ func (ini *Ini) IsEmpty() bool {
 	}
 
 	for it := ini.sections.Iterator(); it.Next(); {
-		sec := it.Value().(*Section)
+		sec := it.Value()
 		if sec.name != "" {
 			return false
 		}
@@ -70,7 +70,7 @@ func (ini *Ini) IsEmpty() bool {
 func (ini *Ini) StringMap() map[string]map[string]string {
 	m := make(map[string]map[string]string, ini.sections.Len())
 	for it := ini.sections.Iterator(); it.Next(); {
-		sec := it.Value().(*Section)
+		sec := it.Value()
 		m[sec.name] = sec.StringMap()
 	}
 	return m
@@ -80,7 +80,7 @@ func (ini *Ini) StringMap() map[string]map[string]string {
 func (ini *Ini) StringsMap() map[string]map[string][]string {
 	m := make(map[string]map[string][]string, ini.sections.Len())
 	for it := ini.sections.Iterator(); it.Next(); {
-		sec := it.Value().(*Section)
+		sec := it.Value()
 		m[sec.name] = sec.StringsMap()
 	}
 	return m
@@ -90,7 +90,7 @@ func (ini *Ini) StringsMap() map[string]map[string][]string {
 func (ini *Ini) Map() map[string]map[string]any {
 	m := make(map[string]map[string]any, ini.sections.Len())
 	for it := ini.sections.Iterator(); it.Next(); {
-		sec := it.Value().(*Section)
+		sec := it.Value()
 		m[sec.name] = sec.Map()
 	}
 	return m
@@ -98,20 +98,12 @@ func (ini *Ini) Map() map[string]map[string]any {
 
 // SectionNames returns the section array
 func (ini *Ini) SectionNames() []string {
-	ss := make([]string, ini.sections.Len())
-	for it := ini.sections.Iterator(); it.Next(); {
-		ss = append(ss, it.Key().(string))
-	}
-	return ss
+	return ini.sections.Keys()
 }
 
 // Sections returns the section array
 func (ini *Ini) Sections() []*Section {
-	ss := make([]*Section, ini.sections.Len())
-	for it := ini.sections.Iterator(); it.Next(); {
-		ss = append(ss, it.Value().(*Section))
-	}
-	return ss
+	return ini.sections.Values()
 }
 
 // Section return a section with the specified name.
@@ -127,7 +119,7 @@ func (ini *Ini) Section(name string) (sec *Section) {
 // GetSection return a section with the specified name or nil if section not exists
 func (ini *Ini) GetSection(name string) *Section {
 	if sec, ok := ini.sections.Get(name); ok {
-		return sec.(*Section)
+		return sec
 	}
 	return nil
 }
@@ -145,20 +137,14 @@ func (ini *Ini) AddSection(section *Section) {
 }
 
 // RemoveSection remove a section from INI
-func (ini *Ini) RemoveSection(name string) *Section {
+func (ini *Ini) RemoveSection(name string) (sec *Section) {
 	if name == "" {
-		sec, _ := ini.sections.Set("", NewSection(""))
-		if sec == nil {
-			return nil
-		}
-		return sec.(*Section)
+		sec, _ = ini.sections.Set("", NewSection(""))
+		return
 	}
 
-	sec, _ := ini.sections.Delete(name)
-	if sec == nil {
-		return nil
-	}
-	return sec.(*Section)
+	sec, _ = ini.sections.Delete(name)
+	return
 }
 
 // emptySection empty section for internal use
@@ -167,7 +153,7 @@ var emptySection = NewSection("")
 // esection get a section from ini, or a empty section if it does not exists
 func (ini *Ini) esection(name string) *Section {
 	if sec, ok := ini.sections.Get(name); ok {
-		return sec.(*Section)
+		return sec
 	}
 	return emptySection
 }
@@ -392,7 +378,7 @@ func (ini *Ini) WriteData(w io.Writer) (err error) {
 	bw := bufio.NewWriter(w)
 
 	for it := ini.sections.Iterator(); it.Next(); {
-		sec := it.Value().(*Section)
+		sec := it.Value()
 		if err := sec.Write(bw, ini.EOL); err != nil {
 			return err
 		}

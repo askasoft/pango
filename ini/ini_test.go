@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pandafw/pango/ars"
 	"github.com/pandafw/pango/iox"
 )
 
@@ -119,6 +120,25 @@ func testLoadFile(t *testing.T, fsrc, fexp, fout string) {
 		sec = ini.RemoveSection("not exist")
 		if sec != nil {
 			t.Errorf(`ini.RemoveSection("not exist") = %v`, sec)
+		}
+	}
+
+	// Map
+	{
+		sec := ini.Section("multi-2")
+		sm := sec.StringMap()
+		if len(sm) != 1 || sm["test"] != "a" {
+			t.Errorf(`sec.StringMap() = %v`, sm)
+		}
+
+		ssm := sec.StringsMap()
+		if len(ssm) != 1 || !ars.EqualStrings(ssm["test"], []string{"a", "b", "<tab>\t<tab>"}) {
+			t.Errorf(`sec.StringsMap() = %v`, ssm)
+		}
+
+		om := sec.Map()
+		if len(om) != 1 || !ars.EqualStrings(ssm["test"], []string{"a", "b", "<tab>\t<tab>"}) {
+			t.Errorf(`sec.Map() = %v`, ssm)
 		}
 	}
 }

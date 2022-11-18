@@ -1,5 +1,5 @@
-//go:build !go1.18
-// +build !go1.18
+//go:build go1.18
+// +build go1.18
 
 package ini
 
@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pandafw/pango/col"
+	"github.com/pandafw/pango/cog"
 	"github.com/pandafw/pango/iox"
 	"github.com/pandafw/pango/num"
 )
@@ -20,11 +20,15 @@ type Entry struct {
 	Comments []string
 }
 
+type EntryList = cog.LinkedList[*Entry]
+
+type EntriesMap = cog.LinkedHashMap[string, *EntryList]
+
 // Section ini section
 type Section struct {
-	name     string            // Name for this section.
-	comments []string          // Comment for this section.
-	entries  col.LinkedHashMap // Entries for this section.
+	name     string     // Name for this section.
+	comments []string   // Comment for this section.
+	entries  EntriesMap // Entries for this section.
 }
 
 // NewSection create a INI section
@@ -49,7 +53,7 @@ func (sec *Section) Comments() []string {
 func (sec *Section) Keys() []string {
 	ks := make([]string, sec.entries.Len())
 	for i, it := 0, sec.entries.Iterator(); it.Next(); {
-		ks[i] = it.Key().(string)
+		ks[i] = it.Key()
 		i++
 	}
 	return ks
@@ -59,8 +63,7 @@ func (sec *Section) Keys() []string {
 func (sec *Section) StringMap() map[string]string {
 	m := make(map[string]string, sec.entries.Len())
 	for it := sec.entries.Iterator(); it.Next(); {
-		es := it.Value().(*col.LinkedList)
-		m[it.Key().(string)] = (es.Head().(*Entry)).Value
+		m[it.Key()] = it.Value().Head().Value
 	}
 	return m
 }
@@ -69,7 +72,7 @@ func (sec *Section) StringMap() map[string]string {
 func (sec *Section) StringsMap() map[string][]string {
 	m := make(map[string][]string, sec.entries.Len())
 	for it := sec.entries.Iterator(); it.Next(); {
-		m[it.Key().(string)] = sec.toStrings(it.Value().(*col.LinkedList))
+		m[it.Key()] = sec.toStrings(it.Value())
 	}
 	return m
 }
@@ -79,21 +82,20 @@ func (sec *Section) Map() map[string]any {
 	m := make(map[string]any, sec.entries.Len())
 	for it := sec.entries.Iterator(); it.Next(); {
 		var v any
-		es := it.Value().(*col.LinkedList)
+		es := it.Value()
 		if es.Len() > 1 {
 			v = sec.toStrings(es)
 		} else {
-			v = (es.Head().(*Entry)).Value
+			v = es.Head().Value
 		}
-		m[it.Key().(string)] = v
+		m[it.Key()] = v
 	}
 	return m
 }
 
 // Add add a key/value entry to the section
 func (sec *Section) Add(key string, value string, comments ...string) *Entry {
-	if v, ok := sec.entries.Get(key); ok {
-		es := v.(*col.LinkedList)
+	if es, ok := sec.entries.Get(key); ok {
 		e := &Entry{Value: value, Comments: comments}
 		es.Add(e)
 		return e
@@ -105,7 +107,7 @@ func (sec *Section) Add(key string, value string, comments ...string) *Entry {
 // Set set a key/value entry to the section
 func (sec *Section) Set(key string, value string, comments ...string) *Entry {
 	e := &Entry{Value: value, Comments: comments}
-	es := col.NewLinkedList(e)
+	es := cog.NewLinkedList(e)
 	sec.entries.Set(key, es)
 	return e
 }
@@ -117,10 +119,9 @@ func (sec *Section) Delete(key string) {
 
 // Remove remove a key/value entry from the section
 func (sec *Section) Remove(key string, value string) (e *Entry) {
-	if v, ok := sec.entries.Get(key); ok {
-		es := v.(*col.LinkedList)
+	if es, ok := sec.entries.Get(key); ok {
 		for it := es.Iterator(); it.Next(); {
-			en := it.Value().(*Entry)
+			en := it.Value()
 			if en.Value == value {
 				e = en
 				it.Remove()
@@ -244,18 +245,17 @@ func (sec *Section) GetDuration(key string, defs ...time.Duration) time.Duration
 	return 0
 }
 
-func (sec *Section) toStrings(es *col.LinkedList) []string {
+func (sec *Section) toStrings(es *cog.LinkedList[*Entry]) []string {
 	ss := make([]string, 0, es.Len())
 	for it := es.Iterator(); it.Next(); {
-		ss = append(ss, it.Value().(*Entry).Value)
+		ss = append(ss, it.Value().Value)
 	}
 	return ss
 }
 
 // GetValues get the key's values from the section
 func (sec *Section) GetValues(key string) []string {
-	if v, ok := sec.entries.Get(key); ok {
-		es := v.(*col.LinkedList)
+	if es, ok := sec.entries.Get(key); ok {
 		return sec.toStrings(es)
 	}
 	return nil
@@ -263,22 +263,16 @@ func (sec *Section) GetValues(key string) []string {
 
 // GetEntry get the key's entry from the section
 func (sec *Section) GetEntry(key string) *Entry {
-	if v, ok := sec.entries.Get(key); ok {
-		es := v.(*col.LinkedList)
-		return es.Head().(*Entry)
+	if es, ok := sec.entries.Get(key); ok {
+		return es.Head()
 	}
 	return nil
 }
 
 // GetEntries get the key's entries from the section
 func (sec *Section) GetEntries(key string) []*Entry {
-	if v, ok := sec.entries.Get(key); ok {
-		el := v.(*col.LinkedList)
-		es := make([]*Entry, 0, el.Len())
-		el.Each(func(v any) {
-			es = append(es, v.(*Entry))
-		})
-		return es
+	if es, ok := sec.entries.Get(key); ok {
+		return es.Values()
 	}
 	return nil
 }
@@ -303,7 +297,7 @@ func (sec *Section) Merge(src *Section, multiple bool) {
 	for it := src.entries.Iterator(); it.Next(); {
 		if multiple {
 			if es, ok := sec.entries.Get(it.Key()); ok {
-				(es.(*col.LinkedList)).AddAll(it.Value().(*col.LinkedList))
+				es.AddAll(it.Value())
 				continue
 			}
 		}
@@ -375,9 +369,9 @@ func (sec *Section) writeSectionName(bw *bufio.Writer, eol string) (err error) {
 
 func (sec *Section) writeSectionEntries(bw *bufio.Writer, eol string) (err error) {
 	for sei := sec.entries.Iterator(); sei.Next(); {
-		es := sei.Value().(*col.LinkedList)
+		es := sei.Value()
 		for it := es.Iterator(); it.Next(); {
-			if err = sec.writeSectionEntry(bw, sei.Key().(string), it.Value().(*Entry), eol); err != nil {
+			if err = sec.writeSectionEntry(bw, sei.Key(), it.Value(), eol); err != nil {
 				return err
 			}
 		}

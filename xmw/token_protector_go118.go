@@ -1,5 +1,5 @@
-//go:build !go1.18
-// +build !go1.18
+//go:build go1.18
+// +build go1.18
 
 package xmw
 
@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/pandafw/pango/col"
+	"github.com/pandafw/pango/cog"
 	"github.com/pandafw/pango/cpt"
 	"github.com/pandafw/pango/xin"
 )
@@ -16,7 +16,7 @@ import (
 type TokenProtector struct {
 	Cryptor        cpt.Cryptor
 	Expires        time.Duration
-	Methods        col.HashSet
+	Methods        cog.HashSet[string]
 	AttrKey        string
 	HeaderKey      string
 	ParamName      string

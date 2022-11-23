@@ -59,11 +59,7 @@ func (ac *AesCBC) EncryptData(src []byte) (des []byte, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			des = nil
-			if er, ok := r.(error); ok {
-				err = er
-				return
-			}
-			err = fmt.Errorf("AESCBC: EncryptData: Panic: %v", r)
+			err = fmt.Errorf("AesCBC: EncryptData: Panic: %v", r)
 		}
 	}()
 
@@ -84,11 +80,7 @@ func (ac *AesCBC) DecryptData(src []byte) (des []byte, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			des = nil
-			if er, ok := r.(error); ok {
-				err = er
-				return
-			}
-			err = fmt.Errorf("AESCBC: DecryptData: Panic: %v", r)
+			err = fmt.Errorf("AesCBC: DecryptData: Panic: %v", r)
 		}
 	}()
 

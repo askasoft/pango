@@ -3,14 +3,13 @@ package srv
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 
 	"golang.org/x/sys/windows/svc"
 )
 
 func usage() {
-	fmt.Fprintf(os.Stderr,
+	fmt.Fprintf(flag.CommandLine.Output(),
 		"Usage: %s [options] <command>\n"+
 			"  <command>:\n"+
 			"     install      install as windows service.\n"+
@@ -34,16 +33,15 @@ func Main(app App) {
 	flag.Parse()
 
 	if *workdir != "" {
-		err := os.Chdir(*workdir)
-		if err != nil {
-			fmt.Println(err)
+		if err := os.Chdir(*workdir); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to change directory: %v\n", err)
 			os.Exit(1)
 		}
 	}
 
 	inService, err := svc.IsWindowsService()
 	if err != nil {
-		log.Fatalf("Failed to determine if we are running in service: %v", err)
+		fmt.Fprintf(os.Stderr, "Failed to determine if we are running in service: %v\n", err)
 		os.Exit(1)
 	}
 	if inService {
@@ -54,6 +52,7 @@ func Main(app App) {
 	cmd := flag.Arg(0)
 	switch cmd {
 	case "usage":
+		flag.CommandLine.SetOutput(os.Stdout)
 		usage()
 		os.Exit(0)
 	case "version":

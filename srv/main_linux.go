@@ -7,7 +7,7 @@ import (
 )
 
 func usage() {
-	fmt.Fprintf(os.Stderr,
+	fmt.Fprintf(flag.CommandLine.Output(),
 		"Usage: %s <command> [options]\n"+
 			"  <command>:\n"+
 			"     usage        print the usage information.\n"+
@@ -27,6 +27,7 @@ func Main(app App) {
 
 	switch flag.Arg(0) {
 	case "usage":
+		flag.CommandLine.SetOutput(os.Stdout)
 		usage()
 		os.Exit(0)
 	case "version":
@@ -35,9 +36,8 @@ func Main(app App) {
 	}
 
 	if *workdir != "" {
-		err := os.Chdir(*workdir)
-		if err != nil {
-			fmt.Println(err)
+		if err := os.Chdir(*workdir); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to change directory: %v\n", err)
 			os.Exit(1)
 		}
 	}

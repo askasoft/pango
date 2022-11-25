@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"time"
 
 	"github.com/pandafw/pango/ars"
 	"github.com/pandafw/pango/ini"
@@ -14,7 +15,8 @@ import (
 
 // TextBundles a localized text resource bundle container
 type TextBundles struct {
-	Extensions []string // file extensions
+	Extensions []string  // file extensions
+	Timestamp  time.Time // modified timestamp
 
 	bundles map[string]*ini.Ini
 }
@@ -26,6 +28,7 @@ func NewTextBundles(extensions ...string) *TextBundles {
 	}
 	return &TextBundles{
 		Extensions: extensions,
+		Timestamp:  time.Now(),
 		bundles:    make(map[string]*ini.Ini),
 	}
 }
@@ -33,40 +36,29 @@ func NewTextBundles(extensions ...string) *TextBundles {
 // Clear clear all loaded text resources
 func (tbs *TextBundles) Clear() {
 	tbs.bundles = make(map[string]*ini.Ini)
+	tbs.Timestamp = time.Now()
 }
 
 // Load glob and parse text files under root path
 func (tbs *TextBundles) Load(root string) error {
-	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+	return filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
 			return nil
 		}
 
 		return tbs.loadFile(nil, path)
 	})
-
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // LoadFS glob and parse template files from FS
 func (tbs *TextBundles) LoadFS(fsys fs.FS, root string) error {
-	err := fs.WalkDir(fsys, root, func(path string, d fs.DirEntry, err error) error {
+	return fs.WalkDir(fsys, root, func(path string, d fs.DirEntry, err error) error {
 		if d.IsDir() {
 			return nil
 		}
 
 		return tbs.loadFile(fsys, path)
 	})
-
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // loadFile load from path or fsys
@@ -95,6 +87,31 @@ func (tbs *TextBundles) loadFile(fsys fs.FS, path string) error {
 		}
 	}
 
+	tbs.Timestamp = time.Now()
+	return nil
+}
+
+// GetBundle get all target locale strings
+func (tbs *TextBundles) GetBundle(locale string) *ini.Ini {
+	if bundle, ok := tbs.bundles[locale]; ok {
+		return bundle
+	}
+
+	if locale != "" {
+		if bundle, ok := tbs.bundles[""]; ok {
+			return bundle
+		}
+	}
+
+	return nil
+}
+
+// GetAll get all target locale strings
+func (tbs *TextBundles) GetAll(locale string) map[string]map[string]string {
+	bundle := tbs.GetBundle(locale)
+	if bundle != nil {
+		return bundle.StringMap()
+	}
 	return nil
 }
 

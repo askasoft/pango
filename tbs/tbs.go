@@ -2,6 +2,8 @@ package tbs
 
 import (
 	"io/fs"
+
+	"github.com/pandafw/pango/ini"
 )
 
 var _tbs = NewTextBundles()
@@ -29,6 +31,16 @@ func Load(root string) error {
 // LoadFS glob and parse template files from FS
 func LoadFS(fsys fs.FS, root string) error {
 	return _tbs.LoadFS(fsys, root)
+}
+
+// GetBundle get all target locale strings
+func GetBundle(locale string) *ini.Ini {
+	return _tbs.GetBundle(locale)
+}
+
+// GetAll get all target locale strings
+func GetAll(locale string) map[string]map[string]string {
+	return _tbs.GetAll(locale)
 }
 
 // Get target locale string

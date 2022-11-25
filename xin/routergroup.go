@@ -12,8 +12,19 @@ import (
 	"github.com/pandafw/pango/net/httpx"
 )
 
-// Public1Year Cache-Control: public, max-age=31536000
-const Public1Year = "public, max-age=31536000"
+const (
+	// Public1Year Cache-Control: public, max-age=31536000
+	Public1Year = "public, max-age=31536000"
+
+	// Public1Month Cache-Control: public, max-age=2592000
+	Public1Month = "public, max-age=2592000"
+
+	// Public1Week Cache-Control: public, max-age=604800
+	Public1Week = "public, max-age=604800"
+
+	// Public1Day Cache-Control: public, max-age=86400
+	Public1Day = "public, max-age=86400"
+)
 
 var (
 	// regEnLetter matches english letters for http method name

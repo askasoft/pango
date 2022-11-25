@@ -19,7 +19,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v3.3.0
+        uses: golangci/golangci-lint-action@v3.3.1
         with:
           version: latest
           args: --verbose
@@ -28,13 +28,11 @@ jobs:
     needs: lint
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]
         go: [1.16, 1.17, 1.18, 1.19]
         include:
           - os: ubuntu-latest
             go-build: ~/.cache/go-build
-          - os: macos-latest
-            go-build: ~/Library/Caches/go-build
     name: ${{ matrix.os }} @ Go ${{ matrix.go }}
     runs-on: ${{ matrix.os }}
     environment: build

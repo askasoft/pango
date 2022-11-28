@@ -125,3 +125,80 @@ func TestASCIIConvert(t *testing.T) {
 		}
 	}
 }
+
+func TestHasFullWidth(t *testing.T) {
+	t.Parallel()
+
+	cs := []struct {
+		s string
+		w bool
+	}{
+		{"", false},
+		{"abc", false},
+		{"abc123", false},
+		{"!\"#$%&()<>/+=-_? ~^|.,@`{}[]", false},
+		{"ひらがな・カタカナ、．漢字", true},
+		{"３ー０　ａ＠ｃｏｍ", true},
+		{"Ｆｶﾀｶﾅﾞﾬ", true},
+		{"Good＝Parts", true},
+		{"", false},
+	}
+	for i, c := range cs {
+		a := HasFullWidth(c.s)
+		if a != c.w {
+			t.Errorf("[%d] HasFullWidth(%q) = %v, want %v", i, c.s, a, c.w)
+		}
+	}
+}
+
+func TestHasHalfWidth(t *testing.T) {
+	t.Parallel()
+
+	cs := []struct {
+		s string
+		w bool
+	}{
+		{"", false},
+		{"あいうえお", false},
+		{"００１１", false},
+		{"!\"#$%&()<>/+=-_? ~^|.,@`{}[]", true},
+		{"l-btn_02--active", true},
+		{"abc123い", true},
+		{"ｶﾀｶﾅﾞﾬ￩", true},
+		{"", false},
+	}
+	for i, c := range cs {
+		a := HasHalfWidth(c.s)
+		if a != c.w {
+			t.Errorf("[%d] HasHalfWidth(%q) = %v, want %v", i, c.s, a, c.w)
+		}
+	}
+}
+
+func TestIsVariableWidth(t *testing.T) {
+	t.Parallel()
+
+	cs := []struct {
+		s string
+		w bool
+	}{
+		{"", false},
+		{"ひらがなカタカナ漢字ABCDE", true},
+		{"３ー０123", true},
+		{"Ｆｶﾀｶﾅﾞﾬ", true},
+		{"", false},
+		{"Good＝Parts", true},
+		{"abc", false},
+		{"abc123", false},
+		{"!\"#$%&()<>/+=-_? ~^|.,@`{}[]", false},
+		{"ひらがな・カタカナ、．漢字", false},
+		{"１２３４５６", false},
+		{"ｶﾀｶﾅﾞﾬ", false},
+	}
+	for i, c := range cs {
+		a := IsVariableWidth(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsVariableWidth(%q) = %v, want %v", i, c.s, a, c.w)
+		}
+	}
+}

@@ -298,3 +298,11 @@ func IsFullWidth(s string) bool {
 
 	return !IsHalfWidth(s)
 }
+
+// IsVariableWidth checks if the string contains a mixture of full and half-width chars.
+func IsVariableWidth(s string) bool {
+	if s == "" {
+		return false
+	}
+	return HasHalfWidth(s) && HasFullWidth(s)
+}

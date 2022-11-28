@@ -1,4 +1,4 @@
-package vad
+package str
 
 import (
 	"regexp"

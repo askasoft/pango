@@ -15,6 +15,8 @@ import (
 	"sync"
 	"time"
 	"unicode/utf8"
+
+	"github.com/pandafw/pango/str"
 )
 
 // Func accepts a FieldLevel interface for all validation needs. The return
@@ -97,7 +99,7 @@ var (
 		"fieldcontains":                 fieldContains,
 		"fieldexcludes":                 fieldExcludes,
 		"alpha":                         isAlpha,
-		"alphanum":                      isAlphanum,
+		"alphanum":                      isAlphaNumber,
 		"alphaunicode":                  isAlphaUnicode,
 		"alphanumunicode":               isAlphanumUnicode,
 		"boolean":                       isBoolean,
@@ -132,17 +134,13 @@ var (
 		"btc_addr":                      isBitcoinAddress,
 		"btc_addr_bech32":               isBitcoinBech32Address,
 		"uuid":                          isUUID,
-		"uuid3":                         isUUID3,
-		"uuid4":                         isUUID4,
-		"uuid5":                         isUUID5,
-		"uuid_rfc4122":                  isUUIDRFC4122,
-		"uuid3_rfc4122":                 isUUID3RFC4122,
-		"uuid4_rfc4122":                 isUUID4RFC4122,
-		"uuid5_rfc4122":                 isUUID5RFC4122,
+		"uuid3":                         isUUIDv3,
+		"uuid4":                         isUUIDv4,
+		"uuid5":                         isUUIDv5,
 		"ulid":                          isULID,
 		"ascii":                         isASCII,
 		"printascii":                    isPrintableASCII,
-		"multibyte":                     hasMultiByteCharacter,
+		"multibyte":                     hasMultibyte,
 		"datauri":                       isDataURI,
 		"latitude":                      isLatitude,
 		"longitude":                     isLongitude,
@@ -169,9 +167,6 @@ var (
 		"fqdn":                          isFQDN,
 		"unique":                        isUnique,
 		"oneof":                         isOneOf,
-		"html":                          isHTML,
-		"html_encoded":                  isHTMLEncoded,
-		"url_encoded":                   isURLEncoded,
 		"dir":                           isDir,
 		"json":                          isJSON,
 		"jwt":                           isJWT,
@@ -182,7 +177,8 @@ var (
 		"timezone":                      isTimeZone,
 		"postcode_iso3166_alpha2":       isPostcodeByIso3166Alpha2,
 		"postcode_iso3166_alpha2_field": isPostcodeByIso3166Alpha2Field,
-		"bic":                           isIsoBicFormat,
+		"bic":                           isSwiftCode,
+		"swiftcode":                     isSwiftCode,
 		"semver":                        isSemverFormat,
 		"dns_rfc1035_label":             isDnsRFC1035LabelFormat,
 	}
@@ -205,18 +201,6 @@ func parseOneOfParam2(s string) []string {
 		oneofValsCacheRWLock.Unlock()
 	}
 	return vals
-}
-
-func isURLEncoded(fl FieldLevel) bool {
-	return uRLEncodedRegex.MatchString(fl.Field().String())
-}
-
-func isHTMLEncoded(fl FieldLevel) bool {
-	return hTMLEncodedRegex.MatchString(fl.Field().String())
-}
-
-func isHTML(fl FieldLevel) bool {
-	return hTMLRegex.MatchString(fl.Field().String())
 }
 
 func isOneOf(fl FieldLevel) bool {
@@ -295,70 +279,42 @@ func isUnique(fl FieldLevel) bool {
 
 // isMAC is the validation function for validating if the field's value is a valid MAC address.
 func isMAC(fl FieldLevel) bool {
-
-	_, err := net.ParseMAC(fl.Field().String())
-
-	return err == nil
+	return IsMAC(fl.Field().String())
 }
 
 // isCIDRv4 is the validation function for validating if the field's value is a valid v4 CIDR address.
 func isCIDRv4(fl FieldLevel) bool {
-
-	ip, _, err := net.ParseCIDR(fl.Field().String())
-
-	return err == nil && ip.To4() != nil
+	return IsCIDRv4(fl.Field().String())
 }
 
 // isCIDRv6 is the validation function for validating if the field's value is a valid v6 CIDR address.
 func isCIDRv6(fl FieldLevel) bool {
-
-	ip, _, err := net.ParseCIDR(fl.Field().String())
-
-	return err == nil && ip.To4() == nil
+	return IsCIDRv6(fl.Field().String())
 }
 
 // isCIDR is the validation function for validating if the field's value is a valid v4 or v6 CIDR address.
 func isCIDR(fl FieldLevel) bool {
-
-	_, _, err := net.ParseCIDR(fl.Field().String())
-
-	return err == nil
+	return IsCIDR(fl.Field().String())
 }
 
 // isIPv4 is the validation function for validating if a value is a valid v4 IP address.
 func isIPv4(fl FieldLevel) bool {
-
-	ip := net.ParseIP(fl.Field().String())
-
-	return ip != nil && ip.To4() != nil
+	return IsIPv4(fl.Field().String())
 }
 
 // isIPv6 is the validation function for validating if the field's value is a valid v6 IP address.
 func isIPv6(fl FieldLevel) bool {
-
-	ip := net.ParseIP(fl.Field().String())
-
-	return ip != nil && ip.To4() == nil
+	return IsIPv6(fl.Field().String())
 }
 
 // isIP is the validation function for validating if the field's value is a valid v4 or v6 IP address.
 func isIP(fl FieldLevel) bool {
-
-	ip := net.ParseIP(fl.Field().String())
-
-	return ip != nil
+	return IsIP(fl.Field().String())
 }
 
 // isSSN is the validation function for validating if the field's value is a valid SSN.
 func isSSN(fl FieldLevel) bool {
-
-	field := fl.Field()
-
-	if field.Len() != 11 {
-		return false
-	}
-
-	return sSNRegex.MatchString(field.String())
+	return IsSSN(fl.Field().String())
 }
 
 // isLongitude is the validation function for validating if the field's value is a valid longitude coordinate.
@@ -381,7 +337,7 @@ func isLongitude(fl FieldLevel) bool {
 		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 	}
 
-	return longitudeRegex.MatchString(v)
+	return IsLongitude(v)
 }
 
 // isLatitude is the validation function for validating if the field's value is a valid latitude coordinate.
@@ -404,85 +360,47 @@ func isLatitude(fl FieldLevel) bool {
 		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 	}
 
-	return latitudeRegex.MatchString(v)
+	return IsLatitude(v)
 }
 
 // isDataURI is the validation function for validating if the field's value is a valid data URI.
 func isDataURI(fl FieldLevel) bool {
-
-	uri := strings.SplitN(fl.Field().String(), ",", 2)
-
-	if len(uri) != 2 {
-		return false
-	}
-
-	if !dataURIRegex.MatchString(uri[0]) {
-		return false
-	}
-
-	return base64Regex.MatchString(uri[1])
+	return IsDataURI(fl.Field().String())
 }
 
-// hasMultiByteCharacter is the validation function for validating if the field's value has a multi byte character.
-func hasMultiByteCharacter(fl FieldLevel) bool {
-
-	field := fl.Field()
-
-	if field.Len() == 0 {
-		return true
-	}
-
-	return multibyteRegex.MatchString(field.String())
+// hasMultibyte is the validation function for validating if the field's value has a multi byte character.
+func hasMultibyte(fl FieldLevel) bool {
+	return str.HasMultibyte(fl.Field().String())
 }
 
 // isPrintableASCII is the validation function for validating if the field's value is a valid printable ASCII character.
 func isPrintableASCII(fl FieldLevel) bool {
-	return printableASCIIRegex.MatchString(fl.Field().String())
+	return str.IsPrintableASCII(fl.Field().String())
 }
 
 // isASCII is the validation function for validating if the field's value is a valid ASCII character.
 func isASCII(fl FieldLevel) bool {
-	return aSCIIRegex.MatchString(fl.Field().String())
+	return str.IsASCII(fl.Field().String())
 }
 
-// isUUID5 is the validation function for validating if the field's value is a valid v5 UUID.
-func isUUID5(fl FieldLevel) bool {
-	return uUID5Regex.MatchString(fl.Field().String())
+// isUUIDv5 is the validation function for validating if the field's value is a valid v5 UUID.
+func isUUIDv5(fl FieldLevel) bool {
+	return IsUUIDv5(fl.Field().String())
 }
 
-// isUUID4 is the validation function for validating if the field's value is a valid v4 UUID.
-func isUUID4(fl FieldLevel) bool {
-	return uUID4Regex.MatchString(fl.Field().String())
+// isUUIDv4 is the validation function for validating if the field's value is a valid v4 UUID.
+func isUUIDv4(fl FieldLevel) bool {
+	return IsUUIDv4(fl.Field().String())
 }
 
-// isUUID3 is the validation function for validating if the field's value is a valid v3 UUID.
-func isUUID3(fl FieldLevel) bool {
-	return uUID3Regex.MatchString(fl.Field().String())
+// isUUIDv3 is the validation function for validating if the field's value is a valid v3 UUID.
+func isUUIDv3(fl FieldLevel) bool {
+	return IsUUIDv3(fl.Field().String())
 }
 
 // isUUID is the validation function for validating if the field's value is a valid UUID of any version.
 func isUUID(fl FieldLevel) bool {
-	return uUIDRegex.MatchString(fl.Field().String())
-}
-
-// isUUID5RFC4122 is the validation function for validating if the field's value is a valid RFC4122 v5 UUID.
-func isUUID5RFC4122(fl FieldLevel) bool {
-	return uUID5RFC4122Regex.MatchString(fl.Field().String())
-}
-
-// isUUID4RFC4122 is the validation function for validating if the field's value is a valid RFC4122 v4 UUID.
-func isUUID4RFC4122(fl FieldLevel) bool {
-	return uUID4RFC4122Regex.MatchString(fl.Field().String())
-}
-
-// isUUID3RFC4122 is the validation function for validating if the field's value is a valid RFC4122 v3 UUID.
-func isUUID3RFC4122(fl FieldLevel) bool {
-	return uUID3RFC4122Regex.MatchString(fl.Field().String())
-}
-
-// isUUIDRFC4122 is the validation function for validating if the field's value is a valid RFC4122 UUID of any version.
-func isUUIDRFC4122(fl FieldLevel) bool {
-	return uUIDRFC4122Regex.MatchString(fl.Field().String())
+	return IsUUID(fl.Field().String())
 }
 
 // isULID is the validation function for validating if the field's value is a valid ULID.
@@ -497,48 +415,12 @@ func isISBN(fl FieldLevel) bool {
 
 // isISBN13 is the validation function for validating if the field's value is a valid v13 ISBN.
 func isISBN13(fl FieldLevel) bool {
-
-	s := strings.Replace(strings.Replace(fl.Field().String(), "-", "", 4), " ", "", 4)
-
-	if !iSBN13Regex.MatchString(s) {
-		return false
-	}
-
-	var checksum int32
-	var i int32
-
-	factor := []int32{1, 3}
-
-	for i = 0; i < 12; i++ {
-		checksum += factor[i%2] * int32(s[i]-'0')
-	}
-
-	return (int32(s[12]-'0'))-((10-(checksum%10))%10) == 0
+	return IsISBN13(fl.Field().String())
 }
 
 // isISBN10 is the validation function for validating if the field's value is a valid v10 ISBN.
 func isISBN10(fl FieldLevel) bool {
-
-	s := strings.Replace(strings.Replace(fl.Field().String(), "-", "", 3), " ", "", 3)
-
-	if !iSBN10Regex.MatchString(s) {
-		return false
-	}
-
-	var checksum int32
-	var i int32
-
-	for i = 0; i < 9; i++ {
-		checksum += (i + 1) * int32(s[i]-'0')
-	}
-
-	if s[9] == 'X' {
-		checksum += 10 * 10
-	} else {
-		checksum += 10 * int32(s[9]-'0')
-	}
-
-	return checksum%11 == 0
+	return IsISBN10(fl.Field().String())
 }
 
 // isBitcoinAddress is the validation function for validating if the field's value is a valid btc address
@@ -1216,12 +1098,12 @@ func isPostcodeByIso3166Alpha2Field(fl FieldLevel) bool {
 
 // isBase64 is the validation function for validating if the current field's value is a valid base 64.
 func isBase64(fl FieldLevel) bool {
-	return base64Regex.MatchString(fl.Field().String())
+	return IsBase64(fl.Field().String())
 }
 
 // isBase64URL is the validation function for validating if the current field's value is a valid base64 URL safe string.
 func isBase64URL(fl FieldLevel) bool {
-	return base64URLRegex.MatchString(fl.Field().String())
+	return IsBase64URL(fl.Field().String())
 }
 
 // isURI is the validation function for validating if the current field's value is a valid URI.
@@ -1311,37 +1193,37 @@ func isE164(fl FieldLevel) bool {
 
 // isEmail is the validation function for validating if the current field's value is a valid email address.
 func isEmail(fl FieldLevel) bool {
-	return emailRegex.MatchString(fl.Field().String())
+	return IsEmail(fl.Field().String())
 }
 
 // isHSLA is the validation function for validating if the current field's value is a valid HSLA color.
 func isHSLA(fl FieldLevel) bool {
-	return hslaRegex.MatchString(fl.Field().String())
+	return IsHSLAColor(fl.Field().String())
 }
 
 // isHSL is the validation function for validating if the current field's value is a valid HSL color.
 func isHSL(fl FieldLevel) bool {
-	return hslRegex.MatchString(fl.Field().String())
+	return IsHSLColor(fl.Field().String())
 }
 
 // isRGBA is the validation function for validating if the current field's value is a valid RGBA color.
 func isRGBA(fl FieldLevel) bool {
-	return rgbaRegex.MatchString(fl.Field().String())
+	return IsRGBAColor(fl.Field().String())
 }
 
 // isRGB is the validation function for validating if the current field's value is a valid RGB color.
 func isRGB(fl FieldLevel) bool {
-	return rgbRegex.MatchString(fl.Field().String())
+	return IsRGBColor(fl.Field().String())
 }
 
 // isHEXColor is the validation function for validating if the current field's value is a valid HEX color.
 func isHEXColor(fl FieldLevel) bool {
-	return hexColorRegex.MatchString(fl.Field().String())
+	return IsHexColor(fl.Field().String())
 }
 
 // isHexadecimal is the validation function for validating if the current field's value is a valid hexadecimal.
 func isHexadecimal(fl FieldLevel) bool {
-	return hexadecimalRegex.MatchString(fl.Field().String())
+	return str.IsHexDecimal(fl.Field().String())
 }
 
 // isNumber is the validation function for validating if the current field's value is a valid number.
@@ -1350,7 +1232,7 @@ func isNumber(fl FieldLevel) bool {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr, reflect.Float32, reflect.Float64:
 		return true
 	default:
-		return numberRegex.MatchString(fl.Field().String())
+		return str.IsNumber(fl.Field().String())
 	}
 }
 
@@ -1364,14 +1246,14 @@ func isNumeric(fl FieldLevel) bool {
 	}
 }
 
-// isAlphanum is the validation function for validating if the current field's value is a valid alphanumeric value.
-func isAlphanum(fl FieldLevel) bool {
-	return alphaNumericRegex.MatchString(fl.Field().String())
+// isAlphaNumber is the validation function for validating if the current field's value is a valid alphanumeric value.
+func isAlphaNumber(fl FieldLevel) bool {
+	return str.IsAlphaNumber(fl.Field().String())
 }
 
 // isAlpha is the validation function for validating if the current field's value is a valid alpha value.
 func isAlpha(fl FieldLevel) bool {
-	return alphaRegex.MatchString(fl.Field().String())
+	return str.IsAlpha(fl.Field().String())
 }
 
 // isAlphanumUnicode is the validation function for validating if the current field's value is a valid alphanumeric unicode value.
@@ -2072,38 +1954,17 @@ func isUDPAddrResolvable(fl FieldLevel) bool {
 
 // isIP4AddrResolvable is the validation function for validating if the field's value is a resolvable ip4 address.
 func isIP4AddrResolvable(fl FieldLevel) bool {
-
-	if !isIPv4(fl) {
-		return false
-	}
-
-	_, err := net.ResolveIPAddr("ip4", fl.Field().String())
-
-	return err == nil
+	return IsIP4AddrResolvable(fl.Field().String())
 }
 
 // isIP6AddrResolvable is the validation function for validating if the field's value is a resolvable ip6 address.
 func isIP6AddrResolvable(fl FieldLevel) bool {
-
-	if !isIPv6(fl) {
-		return false
-	}
-
-	_, err := net.ResolveIPAddr("ip6", fl.Field().String())
-
-	return err == nil
+	return IsIP6AddrResolvable(fl.Field().String())
 }
 
 // isIPAddrResolvable is the validation function for validating if the field's value is a resolvable ip address.
 func isIPAddrResolvable(fl FieldLevel) bool {
-
-	if !isIP(fl) {
-		return false
-	}
-
-	_, err := net.ResolveIPAddr("ip", fl.Field().String())
-
-	return err == nil
+	return IsIPAddrResolvable(fl.Field().String())
 }
 
 // isUnixAddrResolvable is the validation function for validating if the field's value is a resolvable unix address.
@@ -2190,7 +2051,7 @@ func isJSON(fl FieldLevel) bool {
 
 // isJWT is the validation function for validating if the current field's value is a valid JWT string.
 func isJWT(fl FieldLevel) bool {
-	return jWTRegex.MatchString(fl.Field().String())
+	return IsJWT(fl.Field().String())
 }
 
 // isHostnamePort validates a <dns>:<port> combination for fields typically used for socket address.
@@ -2276,11 +2137,9 @@ func isTimeZone(fl FieldLevel) bool {
 	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
 }
 
-// isIsoBicFormat is the validation function for validating if the current field's value is a valid Business Identifier Code (SWIFT code), defined in ISO 9362
-func isIsoBicFormat(fl FieldLevel) bool {
-	bicString := fl.Field().String()
-
-	return bicRegex.MatchString(bicString)
+// isSwiftCode is the validation function for validating if the current field's value is a valid Business Identifier Code (SWIFT code), defined in ISO 9362
+func isSwiftCode(fl FieldLevel) bool {
+	return IsSwiftCode(fl.Field().String())
 }
 
 // isSemverFormat is the validation function for validating if the current field's value is a valid semver version, defined in Semantic Versioning 2.0.0

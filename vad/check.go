@@ -5,11 +5,9 @@ import (
 	"net"
 	"net/url"
 	"strconv"
-	"unicode"
 	"unicode/utf8"
 
 	"github.com/pandafw/pango/str"
-	"github.com/pandafw/pango/str/mbs"
 )
 
 // IsFileName is illegal file name
@@ -37,7 +35,7 @@ func IsExistingEmail(email string) bool {
 		return false
 	}
 
-	if userDotRegexp.MatchString(user) || !userRegexp.MatchString(user) || !hostRegexp.MatchString(host) {
+	if rxUserDot.MatchString(user) || !rxUser.MatchString(user) || !rxHost.MatchString(host) {
 		return false
 	}
 	if _, err := net.LookupMX(host); err != nil {
@@ -98,146 +96,6 @@ func IsRequestURI(rawurl string) bool {
 	return err == nil
 }
 
-// IsAlpha checks if the string contains only letters (a-zA-Z).
-func IsAlpha(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	l := len(s)
-	for i := 0; i < l; i++ {
-		b := s[i]
-		if !((b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z')) {
-			return false
-		}
-	}
-	return true
-}
-
-// IsUTFLetter checks if the string contains only unicode letter characters.
-// Similar to IsAlpha but for all languages.
-func IsUTFLetter(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	for _, c := range s {
-		if !unicode.IsLetter(c) {
-			return false
-		}
-	}
-	return true
-
-}
-
-// IsAlphaNumeric checks if the string contains only letters and numbers.
-func IsAlphaNumeric(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	l := len(s)
-	for i := 0; i < l; i++ {
-		b := s[i]
-		if !((b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || (b >= '0' && b <= '9')) {
-			return false
-		}
-	}
-	return true
-}
-
-// IsUTFLetterNumeric checks if the string contains only unicode letters and numbers.
-func IsUTFLetterNumeric(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	for _, c := range s {
-		if !unicode.IsLetter(c) && !unicode.IsNumber(c) { //letters && numbers are ok
-			return false
-		}
-	}
-	return true
-
-}
-
-// IsNumeric checks if the string contains only numbers.
-func IsNumeric(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	l := len(s)
-	for i := 0; i < l; i++ {
-		b := s[i]
-		if b < '0' || b > '9' {
-			return false
-		}
-	}
-	return true
-}
-
-// IsUTFNumeric checks if the string contains only unicode numbers of any kind.
-// Numbers can be 0-9 but also Fractions ¾,Roman Ⅸ and Hangzhou 〩.
-func IsUTFNumeric(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	if str.IndexAny(s, "+-") > 0 {
-		return false
-	}
-	if len(s) > 1 {
-		s = str.TrimPrefix(s, "-")
-		s = str.TrimPrefix(s, "+")
-	}
-	for _, c := range s {
-		if !unicode.IsNumber(c) { //numbers && minus sign are ok
-			return false
-		}
-	}
-	return true
-
-}
-
-// IsUTFDigit checks if the string contains only unicode radix-10 decimal digits.
-func IsUTFDigit(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	if str.IndexAny(s, "+-") > 0 {
-		return false
-	}
-	if len(s) > 1 {
-		s = str.TrimPrefix(s, "-")
-		s = str.TrimPrefix(s, "+")
-	}
-	for _, c := range s {
-		if !unicode.IsDigit(c) { //digits && minus sign are ok
-			return false
-		}
-	}
-	return true
-
-}
-
-// IsHexDecimal checks if the string is a hexadecimal number.
-func IsHexDecimal(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	l := len(s)
-	for i := 0; i < l; i++ {
-		b := s[i]
-		if !((b >= 'a' && b <= 'f') || (b >= 'A' && b <= 'F') || (b >= '0' && b <= '9')) {
-			return false
-		}
-	}
-	return true
-}
-
 // IsHexColor checks if the string is a hex decimal color.
 func IsHexColor(s string) bool {
 	if s == "" || s[0] != '#' {
@@ -247,7 +105,7 @@ func IsHexColor(s string) bool {
 	s = s[1:]
 	switch len(s) {
 	case 3, 6:
-		return IsHexDecimal(s)
+		return str.IsHexDecimal(s)
 	default:
 		return false
 	}
@@ -255,114 +113,22 @@ func IsHexColor(s string) bool {
 
 // IsRGBColor checks if the string is a valid RGB color in form rgb(RRR, GGG, BBB).
 func IsRGBColor(s string) bool {
-	return rxRGBcolor.MatchString(s)
+	return rxRGBColor.MatchString(s)
 }
 
-// IsLowerCase checks if the string is lowercase.
-func IsLowerCase(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	for _, r := range s {
-		if unicode.IsUpper(r) {
-			return false
-		}
-	}
-	return true
+// IsRGBAColor checks if the string is a valid RGBA color in form rgb(RRR, GGG, BBB).
+func IsRGBAColor(s string) bool {
+	return rxRGBAColor.MatchString(s)
 }
 
-// HasLowerCase checks if the string contains at least 1 lowercase.
-func HasLowerCase(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	for _, r := range s {
-		if unicode.IsLower(r) {
-			return true
-		}
-	}
-	return false
+// IsHSLColor  checks if the string is a valid HSLA color in form hsl(0, 100%, 50%).
+func IsHSLColor(s string) bool {
+	return rxHSLColor.MatchString(s)
 }
 
-// IsUpperCase checks if the string is uppercase.
-func IsUpperCase(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	for _, r := range s {
-		if unicode.IsLower(r) {
-			return false
-		}
-	}
-	return true
-}
-
-// HasUpperCase checks if the string contains as least 1 uppercase.
-func HasUpperCase(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	for _, r := range s {
-		if unicode.IsUpper(r) {
-			return true
-		}
-	}
-	return false
-}
-
-// IsInt checks if the string is an integer.
-func IsInt(s string) bool {
-	if s == "" {
-		return false
-	}
-	return rxInt.MatchString(s)
-}
-
-// IsFloat checks if the string is a float.
-func IsFloat(s string) bool {
-	return s != "" && rxFloat.MatchString(s)
-}
-
-// IsEmpty checks if the string is null.
-func IsEmpty(s string) bool {
-	return len(s) == 0
-}
-
-// IsNotEmpty checks if the string is not null.
-func IsNotEmpty(s string) bool {
-	return len(s) > 0
-}
-
-// IsWhitespace checks the string only contains whitespace
-func IsWhitespace(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	for _, r := range s {
-		if !unicode.IsSpace(r) {
-			return false
-		}
-	}
-	return true
-}
-
-// HasWhitespace checks if the string contains any whitespace
-func HasWhitespace(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	for _, r := range s {
-		if unicode.IsSpace(r) {
-			return true
-		}
-	}
-	return false
+// IsHSLAColor  checks if the string is a valid HSLA color in form hsla(0, 100%, 50%, 0.5).
+func IsHSLAColor(s string) bool {
+	return rxHSLAColor.MatchString(s)
 }
 
 // IsByteLength checks if the string's length (in bytes) falls in a range.
@@ -467,61 +233,7 @@ func IsISBN(s string, version int) bool {
 
 // IsJSON checks if the string is valid JSON (note: uses json.Unmarshal).
 func IsJSON(s string) bool {
-	var js json.RawMessage
-	return json.Unmarshal([]byte(s), &js) == nil
-}
-
-// IsMultibyte checks if the string contains one or more multibyte chars.
-func IsMultibyte(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	l := len(s)
-	for i := 0; i < l; i++ {
-		if s[i] > unicode.MaxASCII {
-			return true
-		}
-	}
-	return false
-}
-
-// IsASCII checks if the string contains ASCII chars only.
-func IsASCII(s string) bool {
-	return str.IsASCII(s)
-}
-
-// IsPrintableASCII checks if the string contains printable ASCII chars only.
-func IsPrintableASCII(s string) bool {
-	return str.IsPrintableASCII(s)
-}
-
-// HasFullWidth checks if the string contains any full-width chars.
-func HasFullWidth(s string) bool {
-	return mbs.HasFullWidth(s)
-}
-
-// HasHalfWidth checks if the string contains any half-width chars.
-func HasHalfWidth(s string) bool {
-	return mbs.HasHalfWidth(s)
-}
-
-// IsFullWidth checks if the string contains full-width chars only.
-func IsFullWidth(s string) bool {
-	return mbs.IsFullWidth(s)
-}
-
-// IsHalfWidth checks if the string contains half-width chars only.
-func IsHalfWidth(s string) bool {
-	return mbs.IsHalfWidth(s)
-}
-
-// IsVariableWidth checks if the string contains a mixture of full and half-width chars.
-func IsVariableWidth(s string) bool {
-	if s == "" {
-		return false
-	}
-	return HasHalfWidth(s) && HasFullWidth(s)
+	return json.Valid(str.UnsafeBytes(s))
 }
 
 // IsBase64 checks if a string is base64 encoded.
@@ -529,13 +241,25 @@ func IsBase64(s string) bool {
 	return rxBase64.MatchString(s)
 }
 
+// IsBase64URL checks if a string is base64 url safe encoded.
+func IsBase64URL(s string) bool {
+	return rxBase64URL.MatchString(s)
+}
+
 // IsDataURI checks if a string is base64 encoded data URI such as an image
 func IsDataURI(s string) bool {
-	dataURI := str.Split(s, ",")
-	if !rxDataURI.MatchString(dataURI[0]) {
+	if !str.StartsWith(s, "data:") {
 		return false
 	}
-	return IsBase64(dataURI[1])
+
+	kind, data, ok := str.Cut(s, ",")
+	if !ok {
+		return false
+	}
+	if str.EndsWith(kind, ";base64") {
+		return IsBase64(data)
+	}
+	return true
 }
 
 // IsMagnetURI checks if a string is valid magnet URI
@@ -580,7 +304,7 @@ func IsHash(s string, algorithm string) bool {
 	if len(s) != n {
 		return false
 	}
-	return IsAlphaNumeric(s)
+	return str.IsAlphaNumber(s)
 }
 
 // IsSHA512 checks is a string is a SHA512 hash. Alias for `IsHash(s, "sha512")`
@@ -657,11 +381,6 @@ func IsDialString(s string) bool {
 	return false
 }
 
-// IsIP checks if a string is either IP version 4 or 6. Alias for `net.ParseIP`
-func IsIP(s string) bool {
-	return net.ParseIP(s) != nil
-}
-
 // IsPort checks if a string represents a valid port
 func IsPort(s string) bool {
 	if i, err := strconv.Atoi(s); err == nil && i > 0 && i < 65536 {
@@ -670,21 +389,68 @@ func IsPort(s string) bool {
 	return false
 }
 
+// IsCIDRv4 checks if a string is a valid v4 CIDR address.
+func IsCIDRv4(s string) bool {
+	ip, _, err := net.ParseCIDR(s)
+	return err == nil && ip.To4() != nil
+}
+
+// IsCIDRv6 checks if a string is a valid v6 CIDR address.
+func IsCIDRv6(s string) bool {
+	ip, _, err := net.ParseCIDR(s)
+	return err == nil && ip.To4() == nil
+}
+
+// IsCIDR checks if a string is a valid v4 or v6 CIDR address.
+func IsCIDR(s string) bool {
+	_, _, err := net.ParseCIDR(s)
+	return err == nil
+}
+
+// IsIP checks if a string is either IP version 4 or 6. Alias for `net.ParseIP`
+func IsIP(s string) bool {
+	return net.ParseIP(s) != nil
+}
+
 // IsIPv4 checks if the string is an IP version 4.
 func IsIPv4(s string) bool {
 	ip := net.ParseIP(s)
-	return ip != nil && str.Contains(s, ".")
+	return ip != nil && ip.To4() != nil
 }
 
 // IsIPv6 checks if the string is an IP version 6.
 func IsIPv6(s string) bool {
 	ip := net.ParseIP(s)
-	return ip != nil && str.Contains(s, ":")
+	return ip != nil && ip.To4() == nil
 }
 
-// IsCIDR checks if the string is an valid CIDR notiation (IPV4 & IPV6)
-func IsCIDR(s string) bool {
-	_, _, err := net.ParseCIDR(s)
+// IsIP4AddrResolvable checks if the string is a resolvable ip v4 address.
+func IsIP4AddrResolvable(s string) bool {
+	if !IsIPv4(s) {
+		return false
+	}
+
+	_, err := net.ResolveIPAddr("ip4", s)
+	return err == nil
+}
+
+// IsIP6AddrResolvable checks if the string is a resolvable ip v6 address.
+func IsIP6AddrResolvable(s string) bool {
+	if !IsIPv6(s) {
+		return false
+	}
+
+	_, err := net.ResolveIPAddr("ip6", s)
+	return err == nil
+}
+
+// IsIPAddrResolvable checks if the string is a resolvable ip address.
+func IsIPAddrResolvable(s string) bool {
+	if !IsIP(s) {
+		return false
+	}
+
+	_, err := net.ResolveIPAddr("ip", s)
 	return err == nil
 }
 
@@ -714,6 +480,21 @@ func IsLatitude(s string) bool {
 // IsLongitude checks if a string is valid longitude.
 func IsLongitude(s string) bool {
 	return rxLongitude.MatchString(s)
+}
+
+// IsJWT checks if the string is a valid JWT string.
+func IsJWT(s string) bool {
+	return rxJWT.MatchString(s)
+}
+
+// IsSSN checks if the string is a valid SSN string.
+func IsSSN(s string) bool {
+	return rxSSN.MatchString(s)
+}
+
+// IsSwiftCode checks if the string is a valid Business Identifier Code (SWIFT code), defined in ISO 9362
+func IsSwiftCode(s string) bool {
+	return rxSwiftCode.MatchString(s)
 }
 
 // IsIMEI checks if a string is valid IMEI

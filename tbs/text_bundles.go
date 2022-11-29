@@ -91,28 +91,30 @@ func (tbs *TextBundles) loadFile(fsys fs.FS, path string) error {
 	return nil
 }
 
-// GetBundle get all target locale strings
+// GetBundle get target locale ini bundle
 func (tbs *TextBundles) GetBundle(locale string) *ini.Ini {
-	if bundle, ok := tbs.bundles[locale]; ok {
-		return bundle
-	}
+	bundles := []*ini.Ini{}
+	for locale != "" {
+		if bundle, ok := tbs.bundles[locale]; ok {
+			bundles = append(bundles, bundle)
+		}
 
-	if locale != "" {
-		if bundle, ok := tbs.bundles[""]; ok {
-			return bundle
+		if l2, _, ok := str.LastCutByte(locale, '-'); ok {
+			locale = l2
+		} else {
+			break
 		}
 	}
 
-	return nil
-}
-
-// GetAll get all target locale strings
-func (tbs *TextBundles) GetAll(locale string) map[string]map[string]string {
-	bundle := tbs.GetBundle(locale)
-	if bundle != nil {
-		return bundle.StringMap()
+	if bundle, ok := tbs.bundles[""]; ok {
+		bundles = append(bundles, bundle)
 	}
-	return nil
+
+	b := ini.NewIni()
+	for i := len(bundles) - 1; i >= 0; i-- {
+		b.Copy(bundles[i])
+	}
+	return b
 }
 
 // Get target locale string
@@ -126,15 +128,14 @@ func (tbs *TextBundles) Get(locale, section, name string) (string, bool) {
 			}
 		}
 
-		locale2 := str.SubstrBeforeByte(locale, '-')
-		if locale2 == locale {
-			locale = ""
+		if l2, _, ok := str.LastCutByte(locale, '-'); ok {
+			locale = l2
 		} else {
-			locale = locale2
+			break
 		}
 	}
 
-	if bundle, ok := tbs.bundles[locale]; ok {
+	if bundle, ok := tbs.bundles[""]; ok {
 		if sec := bundle.GetSection(section); sec != nil {
 			if val := sec.Get(name); val != "" {
 				return val, ok

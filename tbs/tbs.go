@@ -33,14 +33,9 @@ func LoadFS(fsys fs.FS, root string) error {
 	return _tbs.LoadFS(fsys, root)
 }
 
-// GetBundle get all target locale strings
+// GetBundle get target locale ini bundle
 func GetBundle(locale string) *ini.Ini {
 	return _tbs.GetBundle(locale)
-}
-
-// GetAll get all target locale strings
-func GetAll(locale string) map[string]map[string]string {
-	return _tbs.GetAll(locale)
 }
 
 // Get target locale string

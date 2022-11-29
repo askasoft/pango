@@ -2,7 +2,11 @@ package tbs
 
 import (
 	"embed"
+	"strings"
 	"testing"
+
+	"github.com/pandafw/pango/fsu"
+	"github.com/pandafw/pango/iox"
 )
 
 //go:embed testdata
@@ -22,6 +26,8 @@ func TestNewLoad(t *testing.T) {
 	testFormat(t, func(locale, format string, args ...any) string {
 		return tbs.Format(locale, format, args...)
 	})
+
+	testGetBundle(t, tbs)
 }
 
 func TestNewLoadFS(t *testing.T) {
@@ -36,6 +42,8 @@ func TestNewLoadFS(t *testing.T) {
 	testFormat(t, func(locale, format string, args ...any) string {
 		return tbs.Format(locale, format, args...)
 	})
+
+	testGetBundle(t, tbs)
 }
 
 func testFormat(t *testing.T, fmt func(locale, format string, args ...any) string) {
@@ -58,5 +66,24 @@ func testFormat(t *testing.T, fmt func(locale, format string, args ...any) strin
 		if a != c.want {
 			t.Errorf("%d Foramt(%q, %q, %v) = %q, want %q", i, c.lang, c.name, c.args, a, c.want)
 		}
+	}
+}
+
+func testGetBundle(t *testing.T, tbs *TextBundles) {
+	fexp := "testdata/bundles.ini"
+	fout := "testdata/bundles.out"
+
+	b := tbs.GetBundle("ja-JP")
+	b.EOL = iox.CRLF
+
+	sout := &strings.Builder{}
+	if err := b.WriteData(sout); err != nil {
+		t.Fatalf("WriteData(): %v", err)
+	}
+
+	sexp, _ := fsu.ReadString(fexp)
+	if sexp != sout.String() {
+		b.WriteFile(fout)
+		t.Fatalf("GetBundle()\n actual: %v\n   want: %v", sout.String(), sexp)
 	}
 }

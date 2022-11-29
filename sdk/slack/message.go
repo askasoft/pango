@@ -35,7 +35,7 @@ type Message struct {
 	IconEmoji   string        `json:"icon_emoji,omitempty"`
 	Text        string        `json:"text,omitempty"`
 	Attachments []*Attachment `json:"attachments,omitempty"`
-	Markdown    bool          `json:"mrkdwn,omitempty"`
+	Markdown    bool          `json:"mrkdwn"`
 }
 
 // AddAttachment add a attachment

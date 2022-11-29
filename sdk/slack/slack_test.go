@@ -33,13 +33,13 @@ func TestSlackPostText(t *testing.T) {
 
 // Test post slack message with icon
 func TestSlackPostWithIcon(t *testing.T) {
-	sm := &Message{IconEmoji: ":bug:", Text: "TestSlackPostWithIcon"}
+	sm := &Message{IconEmoji: ":bug:", Text: "**TestSlackPostWithIcon**"}
 	postSlack(t, sm)
 }
 
 // Test post slack message with attach
 func TestSlackPostWithAttach(t *testing.T) {
-	sm := &Message{IconEmoji: ":fire:", Text: "TestSlackPostWithAttach"}
-	sm.AddAttachment(&Attachment{Text: "attachment text"})
+	sm := &Message{IconEmoji: ":fire:", Text: "**TestSlackPostWithAttach**"}
+	sm.AddAttachment(&Attachment{Text: "**attachment text**"})
 	postSlack(t, sm)
 }

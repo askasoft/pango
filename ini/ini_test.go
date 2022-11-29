@@ -1,13 +1,13 @@
 package ini
 
 import (
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/pandafw/pango/ars"
+	"github.com/pandafw/pango/fsu"
 	"github.com/pandafw/pango/iox"
 )
 
@@ -82,8 +82,7 @@ func testLoadFile(t *testing.T, fsrc, fexp, fout string) {
 	}
 
 	// expected file
-	bexp, _ := ioutil.ReadFile(fexp)
-	sexp := string(bexp)
+	sexp, _ := fsu.ReadString(fexp)
 
 	// write data
 	{
@@ -104,8 +103,7 @@ func testLoadFile(t *testing.T, fsrc, fexp, fout string) {
 			t.Errorf(`ini.WriteFile(fout) = %v`, werr)
 		}
 
-		bout, _ := ioutil.ReadFile(fout)
-		sout := string(bout)
+		sout, _ := fsu.ReadString(fout)
 		if sexp != sout {
 			t.Errorf(`ini.WriteFile(fout)\n actual: %v\n   want: %v`, fout, sexp)
 		}
@@ -139,6 +137,80 @@ func testLoadFile(t *testing.T, fsrc, fexp, fout string) {
 		om := sec.Map()
 		if len(om) != 1 || !ars.EqualStrings(ssm["test"], []string{"a", "b", "<tab>\t<tab>"}) {
 			t.Errorf(`sec.Map() = %v`, ssm)
+		}
+	}
+}
+
+func TestIniCopy(t *testing.T) {
+	f1 := "testdata/t1.ini"
+	f2 := "testdata/t2.ini"
+	fexp := "testdata/copy-expect.ini"
+	fout := "testdata/copy-output.ini"
+
+	i1 := NewIni()
+	i1.EOL = iox.CRLF
+	if err := i1.LoadFile(f1); err != nil {
+		t.Fatalf(`Failed to load %s: %v`, f1, err)
+	}
+
+	i2 := NewIni()
+	i2.EOL = iox.CRLF
+	if err := i2.LoadFile(f2); err != nil {
+		t.Fatalf(`Failed to load %s: %v`, f2, err)
+	}
+
+	i1.Copy(i2)
+
+	// expected file
+	sexp, _ := fsu.ReadString(fexp)
+
+	// write data
+	{
+		sout := &strings.Builder{}
+		if err := i1.WriteData(sout); err != nil {
+			t.Fatalf(`ini.WriteData(sout) = %v`, err)
+		}
+		if sexp != sout.String() {
+			i1.WriteFile(fout)
+			t.Fatalf(`ini.WriteData(sout)\n actual: %v\n   want: %v`, sout.String(), sexp)
+		}
+	}
+}
+
+func TestIniMerge(t *testing.T) {
+	f1 := "testdata/t1.ini"
+	f2 := "testdata/t2.ini"
+	fexp := "testdata/merge-expect.ini"
+	fout := "testdata/merge-output.ini"
+
+	i1 := NewIni()
+	i1.EOL = iox.CRLF
+	i1.Multiple = true
+	if err := i1.LoadFile(f1); err != nil {
+		t.Fatalf(`Failed to load %s: %v`, f1, err)
+	}
+
+	i2 := NewIni()
+	i2.EOL = iox.CRLF
+	i2.Multiple = true
+	if err := i2.LoadFile(f2); err != nil {
+		t.Fatalf(`Failed to load %s: %v`, f2, err)
+	}
+
+	i1.Merge(i2)
+
+	// expected file
+	sexp, _ := fsu.ReadString(fexp)
+
+	// write data
+	{
+		sout := &strings.Builder{}
+		if err := i1.WriteData(sout); err != nil {
+			t.Fatalf(`ini.WriteData(sout) = %v`, err)
+		}
+		if sexp != sout.String() {
+			i1.WriteFile(fout)
+			t.Fatalf(`ini.WriteData(sout)\n actual: %v\n   want: %v`, sout.String(), sexp)
 		}
 	}
 }

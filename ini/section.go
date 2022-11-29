@@ -289,7 +289,7 @@ func (sec *Section) Clear() {
 	sec.entries.Clear()
 }
 
-// Copy copy entries from src section, overrite existing entries
+// Copy copy entries from src section, overwrite existing entries
 func (sec *Section) Copy(src *Section) {
 	if len(src.comments) > 0 {
 		sec.comments = src.comments
@@ -297,17 +297,15 @@ func (sec *Section) Copy(src *Section) {
 	sec.entries.SetAll(&src.entries)
 }
 
-// Merge merge entries from src section
-func (sec *Section) Merge(src *Section, multiple bool) {
+// Merge merge entries from src section, existing entries will be merged
+func (sec *Section) Merge(src *Section) {
 	sec.comments = append(sec.comments, src.comments...)
 	for it := src.entries.Iterator(); it.Next(); {
-		if multiple {
-			if es, ok := sec.entries.Get(it.Key()); ok {
-				(es.(*col.LinkedList)).AddAll(it.Value().(*col.LinkedList))
-				continue
-			}
+		if es, ok := sec.entries.Get(it.Key()); ok {
+			(es.(*col.LinkedList)).AddAll(it.Value().(*col.LinkedList))
+		} else {
+			sec.entries.Set(it.Key(), it.Value())
 		}
-		sec.entries.Set(it.Key(), it.Value())
 	}
 }
 

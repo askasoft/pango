@@ -210,6 +210,28 @@ func (ini *Ini) GetDuration(sec, key string, defs ...time.Duration) time.Duratio
 	return ini.esection(sec).GetDuration(key, defs...)
 }
 
+// Copy copy section/entries from src ini, overwrite existing entries
+func (ini *Ini) Copy(src *Ini) {
+	for it := src.sections.Iterator(); it.Next(); {
+		if ss, ok := ini.sections.Get(it.Key()); ok {
+			ss.Copy(it.Value())
+		} else {
+			ini.sections.Set(it.Key(), it.Value())
+		}
+	}
+}
+
+// Merge merge entries from src ini, existing section/entries will be merged
+func (ini *Ini) Merge(src *Ini) {
+	for it := src.sections.Iterator(); it.Next(); {
+		if ss, ok := ini.sections.Get(it.Key()); ok {
+			ss.Merge(it.Value())
+		} else {
+			ini.sections.Set(it.Key(), it.Value())
+		}
+	}
+}
+
 // LoadFile load INI from file
 func (ini *Ini) LoadFile(path string) error {
 	f, err := os.Open(path)

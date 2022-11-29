@@ -130,7 +130,7 @@ func SubstrAfterLastRune(s string, r rune) string {
 
 // SubstrBefore Gets the substring before the first occurrence of a separator b.
 // The separator b is not returned.
-// If nothing is found, the empty string is returned.
+// If nothing is found, the input string is returned.
 // SubstrBefore("", *)        = ""
 // SubstrBefore("abc", "a")   = ""
 // SubstrBefore("abcba", "b") = "a"
@@ -150,7 +150,7 @@ func SubstrBefore(s string, b string) string {
 
 // SubstrBeforeByte Gets the substring before the first occurrence of a separator b.
 // The separator b is not returned.
-// If nothing is found, the empty string is returned.
+// If nothing is found, the input string is returned.
 // SubstrBeforeByte("", *)        = ""
 // SubstrBeforeByte("abc", 'a')   = ""
 // SubstrBeforeByte("abcba", 'b') = "a"
@@ -170,7 +170,7 @@ func SubstrBeforeByte(s string, b byte) string {
 
 // SubstrBeforeRune Gets the substring before the first occurrence of a separator r.
 // The separator r is not returned.
-// If nothing is found, the empty string is returned.
+// If nothing is found, the input string is returned.
 // SubstrBeforeRune("", *)        = ""
 // SubstrBeforeRune("abc", 'a')   = ""
 // SubstrBeforeRune("abcba", 'b') = "a"
@@ -190,7 +190,7 @@ func SubstrBeforeRune(s string, r rune) string {
 
 // SubstrBeforeLast Gets the substring before the last occurrence of a separator b.
 // The separator b is not returned.
-// If nothing is found, the empty string is returned.
+// If nothing is found, the input string is returned.
 //
 // SubstrBeforeLast("", *)        = ""
 // SubstrBeforeLast("abc", "a")   = ""
@@ -213,7 +213,7 @@ func SubstrBeforeLast(s string, b string) string {
 
 // SubstrBeforeLastByte Gets the substring before the last occurrence of a separator b.
 // The separator b is not returned.
-// If nothing is found, the empty string is returned.
+// If nothing is found, the input string is returned.
 //
 // SubstrBeforeLastByte("", *)        = ""
 // SubstrBeforeLastByte("abc", 'a')   = ""
@@ -235,7 +235,7 @@ func SubstrBeforeLastByte(s string, b byte) string {
 
 // SubstrBeforeLastRune Gets the substring before the last occurrence of a separator r.
 // The separator r is not returned.
-// If nothing is found, the empty string is returned.
+// If nothing is found, the input string is returned.
 //
 // SubstrBeforeLastRune("", *)        = ""
 // SubstrBeforeLastRune("abc", 'a')   = ""
@@ -253,4 +253,70 @@ func SubstrBeforeLastRune(s string, r rune) string {
 		return s
 	}
 	return s[:i]
+}
+
+// Cut slices s around the first instance of sep,
+// returning the text before and after sep.
+// The found result reports whether sep appears in s.
+// If sep does not appear in s, cut returns s, "", false.
+func Cut(s, sep string) (before, after string, found bool) {
+	if i := Index(s, sep); i >= 0 {
+		return s[:i], s[i+len(sep):], true
+	}
+	return s, "", false
+}
+
+// CutByte slices s around the first instance of sep,
+// returning the text before and after sep.
+// The found result reports whether sep appears in s.
+// If sep does not appear in s, cut returns s, "", false.
+func CutByte(s string, sep byte) (before, after string, found bool) {
+	if i := IndexByte(s, sep); i >= 0 {
+		return s[:i], s[i+1:], true
+	}
+	return s, "", false
+}
+
+// CutRune slices s around the first instance of sep,
+// returning the text before and after sep.
+// The found result reports whether sep appears in s.
+// If sep does not appear in s, cut returns s, "", false.
+func CutRune(s string, sep rune) (before, after string, found bool) {
+	if i := IndexRune(s, sep); i >= 0 {
+		return s[:i], s[i+RuneLen(sep):], true
+	}
+	return s, "", false
+}
+
+// LastCut slices s around the last instance of sep,
+// returning the text before and after sep.
+// The found result reports whether sep appears in s.
+// If sep does not appear in s, cut returns s, "", false.
+func LastCut(s, sep string) (before, after string, found bool) {
+	if i := LastIndex(s, sep); i >= 0 {
+		return s[:i], s[i+len(sep):], true
+	}
+	return s, "", false
+}
+
+// LastCutByte slices s around the first instance of sep,
+// returning the text before and after sep.
+// The found result reports whether sep appears in s.
+// If sep does not appear in s, cut returns s, "", false.
+func LastCutByte(s string, sep byte) (before, after string, found bool) {
+	if i := LastIndexByte(s, sep); i >= 0 {
+		return s[:i], s[i+1:], true
+	}
+	return s, "", false
+}
+
+// LastCutRune slices s around the first instance of sep,
+// returning the text before and after sep.
+// The found result reports whether sep appears in s.
+// If sep does not appear in s, cut returns s, "", false.
+func LastCutRune(s string, sep rune) (before, after string, found bool) {
+	if i := LastIndexRune(s, sep); i >= 0 {
+		return s[:i], s[i+RuneLen(sep):], true
+	}
+	return s, "", false
 }

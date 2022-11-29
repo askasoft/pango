@@ -29,17 +29,6 @@ func Compare(a, b string) int {
 	return bytes.Compare(UnsafeBytes(a), UnsafeBytes(b))
 }
 
-// Cut slices s around the first instance of sep,
-// returning the text before and after sep.
-// The found result reports whether sep appears in s.
-// If sep does not appear in s, cut returns s, "", false.
-func Cut(s, sep string) (before, after string, found bool) {
-	if i := Index(s, sep); i >= 0 {
-		return s[:i], s[i+len(sep):], true
-	}
-	return s, "", false
-}
-
 // Capitalize returns a copy of the string s that the start letter
 // mapped to their Unicode upper case.
 func Capitalize(s string) string {
@@ -170,6 +159,11 @@ func StripRight(s string) string {
 	// non-space bytes, so we're done. Non-ASCII cases have already
 	// been handled above.
 	return s[:stop]
+}
+
+// RuneLen returns the number of runes in s.
+func RuneLen(r rune) int {
+	return utf8.RuneLen(r)
 }
 
 // RuneCount returns the number of runes in s.

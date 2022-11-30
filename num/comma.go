@@ -27,7 +27,7 @@ func Comma(n any, c ...string) string {
 	case reflect.Float32, reflect.Float64:
 		return CommaFloat(v.Float(), c...)
 	default:
-		panic(fmt.Sprintf("Comma: unknown type for %q (%T)", n, v))
+		panic(fmt.Sprintf("Comma: unknown type for '%v' (%T)", n, n))
 	}
 }
 

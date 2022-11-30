@@ -8,10 +8,12 @@ import (
 	"github.com/pandafw/pango/ref"
 )
 
+// Array returns a []any{args[0], args[1], ...}
 func Array(args ...any) []any {
 	return args
 }
 
+// Map returns a map[string]any{kvs[0]: kvs[1], kvs[2]: kvs[3], ...}
 func Map(kvs ...any) (map[string]any, error) {
 	if len(kvs)&1 != 0 {
 		return nil, errors.New("Map(): invalid arguments")
@@ -38,8 +40,8 @@ func Map(kvs ...any) (map[string]any, error) {
 //	    },
 //	}
 //
-// {{ map_get m "a" }} // return 1
-// {{ map_get m 1 "c" }} // return 4
+// {{MapGet m "a" }} // return 1
+// {{MapGet m 1 "c" }} // return 4
 func MapGet(dict any, keys ...any) (any, error) {
 	if dict == nil || len(keys) == 0 {
 		return nil, nil
@@ -78,10 +80,11 @@ func MapGet(dict any, keys ...any) (any, error) {
 	return val, nil
 }
 
+// MapSet setting value to the map
 func MapSet(dict any, key, val any) (any, error) {
 	mt := reflect.TypeOf(dict)
 	if mt.Kind() != reflect.Map {
-		return nil, fmt.Errorf("MapGet(): invalid map")
+		return nil, fmt.Errorf("MapSet(): invalid map")
 	}
 
 	kv := reflect.ValueOf(key)
@@ -89,7 +92,7 @@ func MapSet(dict any, key, val any) (any, error) {
 	if kt.Kind() != mt.Key().Kind() {
 		cv, err := ref.Convert(key, mt.Key())
 		if err != nil {
-			return nil, fmt.Errorf("MapGet(): invalid key type - %w", err)
+			return nil, fmt.Errorf("MapSet(): invalid key type - %w", err)
 		}
 
 		kv = reflect.ValueOf(cv)
@@ -100,7 +103,7 @@ func MapSet(dict any, key, val any) (any, error) {
 	if vt.Kind() != mt.Elem().Kind() {
 		cv, err := ref.Convert(val, mt.Elem())
 		if err != nil {
-			return nil, fmt.Errorf("MapGet(): invalid value type - %w", err)
+			return nil, fmt.Errorf("MapSet(): invalid value type - %w", err)
 		}
 
 		vv = reflect.ValueOf(cv)

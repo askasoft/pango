@@ -2,65 +2,52 @@ package tpl
 
 import (
 	"embed"
-	"fmt"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/pandafw/pango/str"
+	"github.com/pandafw/pango/fsu"
 )
 
-func htmlTestLoad(t *testing.T, ht *HTMLTemplates) {
-	sb := &strings.Builder{}
+func testNewHtmlTpls() *HTMLTemplates {
+	ht := NewHTMLTemplates()
+	ht.Funcs(Functions())
+	return ht
+}
 
-	ctx := map[string]any{
-		"Title":   "Front Page",
-		"Message": "Hello world!",
-		"Time":    time.Now(),
-	}
-	err := ht.Render(sb, "index", ctx)
+func testHtmlPage(t *testing.T, ht *HTMLTemplates, page string, ctx any) {
+	fexp := "testdata/" + page + ".html.exp"
+	fout := "testdata/" + page + ".html.out"
+
+	sb := &strings.Builder{}
+	err := ht.Render(sb, page, ctx)
 	if err != nil {
 		t.Errorf(`ht.Render(sb, "index", ctx) = %v`, err)
 		return
 	}
 
-	htm := sb.String()
-	if !str.Contains(htm, fmt.Sprintf("<title>%s</title>", ctx["Title"])) {
-		t.Errorf("Incorrect Title\n%s", htm)
-	}
-	if !str.Contains(htm, fmt.Sprintf("<p>%s</p>", ctx["Message"])) {
-		t.Errorf("Incorrect Message\n%s", htm)
-	}
-	if !str.Contains(htm, fmt.Sprintf("<p>Time: %s</p>", ctx["Time"].(time.Time).Format("2006/1/2 15:04:05"))) {
-		t.Errorf("Incorrect Message\n%s", htm)
-	}
+	out := sb.String()
+	exp, _ := fsu.ReadString(fexp)
 
-	sb.Reset()
-	ctx = map[string]any{
-		"Title":   "Admin Page",
-		"Message": "Hello world!",
-		"Time":    time.Now(),
-	}
-	err = ht.Render(sb, "admin/admin", ctx)
-	if err != nil {
-		t.Errorf(`ht.Render(sb, "admin/admin", ctx) = %v`, err)
-		return
-	}
-
-	htm = sb.String()
-	if !str.Contains(htm, fmt.Sprintf("<title>%s</title>", ctx["Title"])) {
-		t.Errorf("Incorrect Title\n%s", htm)
-	}
-	if !str.Contains(htm, fmt.Sprintf("<p>Admin: %s</p>", ctx["Message"])) {
-		t.Errorf("Incorrect Message\n%s", htm)
-	}
-	if !str.Contains(htm, fmt.Sprintf("<p>Time: %s</p>", ctx["Time"].(time.Time).Format("2006/1/2 15:04:05"))) {
-		t.Errorf("Incorrect Message\n%s", htm)
+	if out != exp {
+		fsu.WriteString(fout, out, fsu.FileMode(0666))
+		t.Errorf("[%s] = %q, want %q", page, out, exp)
 	}
 }
 
+func testHtmlLoad(t *testing.T, ht *HTMLTemplates) {
+	testHtmlPage(t, ht, "index", map[string]any{
+		"Title":   "Front Page",
+		"Message": "Hello world!",
+	})
+
+	testHtmlPage(t, ht, "admin/admin", map[string]any{
+		"Title":   "Admin Page",
+		"Message": "Hello world!",
+	})
+}
+
 func TestLoadHTML(t *testing.T) {
-	ht := NewHTMLTemplates()
+	ht := testNewHtmlTpls()
 	root := "testdata"
 
 	err := ht.Load(root)
@@ -69,11 +56,11 @@ func TestLoadHTML(t *testing.T) {
 		return
 	}
 
-	htmlTestLoad(t, ht)
+	testHtmlLoad(t, ht)
 }
 
 func TestLoadHTML2(t *testing.T) {
-	ht := NewHTMLTemplates()
+	ht := testNewHtmlTpls()
 	root := "./testdata"
 
 	err := ht.Load(root)
@@ -82,14 +69,14 @@ func TestLoadHTML2(t *testing.T) {
 		return
 	}
 
-	htmlTestLoad(t, ht)
+	testHtmlLoad(t, ht)
 }
 
 //go:embed testdata
 var testdata embed.FS
 
 func TestFSLoadHTML(t *testing.T) {
-	ht := NewHTMLTemplates()
+	ht := testNewHtmlTpls()
 	root := "testdata"
 
 	err := ht.LoadFS(testdata, root)
@@ -98,5 +85,5 @@ func TestFSLoadHTML(t *testing.T) {
 		return
 	}
 
-	htmlTestLoad(t, ht)
+	testHtmlLoad(t, ht)
 }

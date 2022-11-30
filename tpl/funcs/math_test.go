@@ -1,447 +1,107 @@
 package funcs
 
-import "testing"
+import (
+	"errors"
+	"fmt"
+	"testing"
+)
 
-func TestAdd_int_int(t *testing.T) {
-	result, err := Add(1, 2)
-	if err != nil {
-		t.Fatal(err)
+func TestAdd(t *testing.T) {
+	cs := []struct {
+		a, b, w any
+		e       error
+	}{
+		{1, 2, int64(3), nil},
+		{1, uint(2), int64(3), nil},
+		{1, 2.0, float64(3), nil},
+		{uint(1), 2, int64(3), nil},
+		{uint(1), uint(2), uint64(3), nil},
+		{uint(1), 2.0, float64(3), nil},
+		{1.0, 2, float64(3), nil},
+		{1.0, uint(2), float64(3), nil},
+		{1.0, 2.0, float64(3), nil},
+		{"foo", 2, nil, errors.New("Add: unknown type for 'foo' (string)")},
 	}
 
-	if result != int64(3) {
-		t.Errorf("expected %d to be %d", result, int64(3))
-	}
-}
-
-func TestAdd_int_uint(t *testing.T) {
-	result, err := Add(1, uint(2))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != int64(3) {
-		t.Errorf("expected %d to be %d", result, int64(3))
-	}
-}
-
-func TestAdd_int_float(t *testing.T) {
-	result, err := Add(1, 2.0)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != float64(3) {
-		t.Errorf("expected %f to be %f", result, float64(3))
+	for i, c := range cs {
+		r, e := Add(c.a, c.b)
+		if c.w != r || fmt.Sprint(c.e) != fmt.Sprint(e) {
+			t.Errorf("[%d] Add(%v, %v) = (%T, %v, %v), want: (%T, %v, %v)", i, c.a, c.b, r, r, e, c.w, c.w, c.e)
+		}
 	}
 }
 
-func TestAdd_uint_int(t *testing.T) {
-	result, err := Add(uint(1), 2)
-	if err != nil {
-		t.Fatal(err)
+func TestSubtract(t *testing.T) {
+	cs := []struct {
+		a, b, w any
+		e       error
+	}{
+		{2, 1, int64(1), nil},
+		{uint(2), 1, int64(1), nil},
+		{2.0, 1, float64(1), nil},
+		{2, uint(1), int64(1), nil},
+		{uint(2), uint(1), uint64(1), nil},
+		{2.0, uint(1), float64(1), nil},
+		{2, 1.0, float64(1), nil},
+		{uint(2), 1.0, float64(1), nil},
+		{2.0, 1.0, float64(1), nil},
+		{"foo", 2, nil, errors.New("Subtract: unknown type for 'foo' (string)")},
 	}
 
-	if result != int64(3) {
-		t.Errorf("expected %d to be %d", result, int64(3))
-	}
-}
-
-func TestAdd_uint_uint(t *testing.T) {
-	result, err := Add(uint(1), uint(2))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != uint64(3) {
-		t.Errorf("expected %d to be %d", result, uint64(3))
-	}
-}
-
-func TestAdd_uint_float(t *testing.T) {
-	result, err := Add(uint(1), 2.0)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != float64(3) {
-		t.Errorf("expected %f to be %f", result, float64(3))
+	for i, c := range cs {
+		r, e := Subtract(c.a, c.b)
+		if c.w != r || fmt.Sprint(c.e) != fmt.Sprint(e) {
+			t.Errorf("[%d] Subtract(%v, %v) = (%T, %v, %v), want: (%T, %v, %v)", i, c.a, c.b, r, r, e, c.w, c.w, c.e)
+		}
 	}
 }
 
-func TestAdd_float_int(t *testing.T) {
-	result, err := Add(1.0, 2)
-	if err != nil {
-		t.Fatal(err)
+func TestMultiply(t *testing.T) {
+	cs := []struct {
+		a, b, w any
+		e       error
+	}{
+		{2, 3, int64(6), nil},
+		{uint(3), 2, int64(6), nil},
+		{3.0, 2, float64(6), nil},
+		{3, uint(2), int64(6), nil},
+		{uint(3), uint(2), uint64(6), nil},
+		{3.0, uint(2), float64(6), nil},
+		{3.0, 2, float64(6), nil},
+		{uint(3), 2.0, float64(6), nil},
+		{3.0, 2.0, float64(6), nil},
+		{"foo", 2, nil, errors.New("Multiply: unknown type for 'foo' (string)")},
 	}
 
-	if result != float64(3) {
-		t.Errorf("expected %f to be %f", result, float64(3))
-	}
-}
-
-func TestAdd_float_uint(t *testing.T) {
-	result, err := Add(1.0, uint(2))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != float64(3) {
-		t.Errorf("expected %f to be %f", result, float64(3))
-	}
-}
-
-func TestAdd_float_float(t *testing.T) {
-	result, err := Add(1.0, 2.0)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != float64(3) {
-		t.Errorf("expected %f to be %f", result, float64(3))
+	for i, c := range cs {
+		r, e := Multiply(c.a, c.b)
+		if c.w != r || fmt.Sprint(c.e) != fmt.Sprint(e) {
+			t.Errorf("[%d] Multiply(%v, %v) = (%T, %v, %v), want: (%T, %v, %v)", i, c.a, c.b, r, r, e, c.w, c.w, c.e)
+		}
 	}
 }
 
-func TestAdd_string_int(t *testing.T) {
-	_, err := Add("foo", 2)
-	if err == nil {
-		t.Fatal("expected error, but nothing was returned")
+func TestDivide(t *testing.T) {
+	cs := []struct {
+		a, b, w any
+		e       error
+	}{
+		{10, 2, int64(5), nil},
+		{uint(10), 2, int64(5), nil},
+		{10.0, 2, float64(5), nil},
+		{10, uint(2), int64(5), nil},
+		{uint(10), uint(2), uint64(5), nil},
+		{10.0, uint(2), float64(5), nil},
+		{10, 2.0, float64(5), nil},
+		{uint(10), 2.0, float64(5), nil},
+		{10.0, 2.0, float64(5), nil},
+		{"foo", 2, nil, errors.New("Divide: unknown type for 'foo' (string)")},
 	}
 
-	expected := "add: unknown type for \"foo\" (string)"
-	if err.Error() != expected {
-		t.Errorf("expected %q to be %q", err.Error(), expected)
-	}
-}
-
-func TestSubtract_int_int(t *testing.T) {
-	result, err := Subtract(1, 2)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != int64(1) {
-		t.Errorf("expected %d to be %d", result, int64(1))
-	}
-}
-
-func TestSubtract_int_uint(t *testing.T) {
-	result, err := Subtract(1, uint(2))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != int64(1) {
-		t.Errorf("expected %d to be %d", result, int64(1))
-	}
-}
-
-func TestSubtract_int_float(t *testing.T) {
-	result, err := Subtract(1, 2.0)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != float64(1) {
-		t.Errorf("expected %f to be %f", result, float64(1))
-	}
-}
-
-func TestSubtract_uint_int(t *testing.T) {
-	result, err := Subtract(uint(1), 2)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != int64(1) {
-		t.Errorf("expected %d to be %d", result, int64(1))
-	}
-}
-
-func TestSubtract_uint_uint(t *testing.T) {
-	result, err := Subtract(uint(1), uint(2))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != uint64(1) {
-		t.Errorf("expected %d to be %d", result, uint64(1))
-	}
-}
-
-func TestSubtract_uint_float(t *testing.T) {
-	result, err := Subtract(uint(1), 2.0)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != float64(1) {
-		t.Errorf("expected %f to be %f", result, float64(1))
-	}
-}
-
-func TestSubtract_float_int(t *testing.T) {
-	result, err := Subtract(1.0, 2)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != float64(1) {
-		t.Errorf("expected %f to be %f", result, float64(1))
-	}
-}
-
-func TestSubtract_float_uint(t *testing.T) {
-	result, err := Subtract(1.0, uint(2))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != float64(1) {
-		t.Errorf("expected %f to be %f", result, float64(1))
-	}
-}
-
-func TestSubtract_float_float(t *testing.T) {
-	result, err := Subtract(1.0, 2.0)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != float64(1) {
-		t.Errorf("expected %f to be %f", result, float64(1))
-	}
-}
-
-func TestSubtract_string_int(t *testing.T) {
-	_, err := Subtract("foo", 2)
-	if err == nil {
-		t.Fatal("expected error, but nothing was returned")
-	}
-
-	expected := "subtract: unknown type for \"foo\" (string)"
-	if err.Error() != expected {
-		t.Errorf("expected %q to be %q", err.Error(), expected)
-	}
-}
-
-func TestMultiply_int_int(t *testing.T) {
-	result, err := Multiply(2, 3)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != int64(6) {
-		t.Errorf("expected %d to be %d", result, int64(6))
-	}
-}
-
-func TestMultiply_int_uint(t *testing.T) {
-	result, err := Multiply(2, uint(3))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != int64(6) {
-		t.Errorf("expected %d to be %d", result, int64(6))
-	}
-}
-
-func TestMultiply_int_float(t *testing.T) {
-	result, err := Multiply(2, 3.0)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != float64(6) {
-		t.Errorf("expected %f to be %f", result, float64(6))
-	}
-}
-
-func TestMultiply_uint_int(t *testing.T) {
-	result, err := Multiply(uint(2), 3)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != int64(6) {
-		t.Errorf("expected %d to be %d", result, int64(6))
-	}
-}
-
-func TestMultiply_uint_uint(t *testing.T) {
-	result, err := Multiply(uint(2), uint(3))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != uint64(6) {
-		t.Errorf("expected %d to be %d", result, uint64(6))
-	}
-}
-
-func TestMultiply_uint_float(t *testing.T) {
-	result, err := Multiply(uint(2), 3.0)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != float64(6) {
-		t.Errorf("expected %f to be %f", result, float64(6))
-	}
-}
-
-func TestMultiply_float_int(t *testing.T) {
-	result, err := Multiply(2.0, 3)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != float64(6) {
-		t.Errorf("expected %f to be %f", result, float64(6))
-	}
-}
-
-func TestMultiply_float_uint(t *testing.T) {
-	result, err := Multiply(2.0, uint(3))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != float64(6) {
-		t.Errorf("expected %f to be %f", result, float64(6))
-	}
-}
-
-func TestMultiply_float_float(t *testing.T) {
-	result, err := Multiply(2.0, 3.0)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != float64(6) {
-		t.Errorf("expected %f to be %f", result, float64(6))
-	}
-}
-
-func TestMultiply_string_int(t *testing.T) {
-	_, err := Multiply("foo", 2)
-	if err == nil {
-		t.Fatal("expected error, but nothing was returned")
-	}
-
-	expected := "multiply: unknown type for \"foo\" (string)"
-	if err.Error() != expected {
-		t.Errorf("expected %q to be %q", err.Error(), expected)
-	}
-}
-
-func TestDivide_int_int(t *testing.T) {
-	result, err := Divide(2, 10)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != int64(5) {
-		t.Errorf("expected %d to be %d", result, int64(5))
-	}
-}
-
-func TestDivide_int_uint(t *testing.T) {
-	result, err := Divide(2, uint(10))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != int64(5) {
-		t.Errorf("expected %d to be %d", result, int64(5))
-	}
-}
-
-func TestDivide_int_float(t *testing.T) {
-	result, err := Divide(2, 10.0)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != float64(5) {
-		t.Errorf("expected %f to be %f", result, float64(5))
-	}
-}
-
-func TestDivide_uint_int(t *testing.T) {
-	result, err := Divide(uint(2), 10)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != int64(5) {
-		t.Errorf("expected %d to be %d", result, int64(5))
-	}
-}
-
-func TestDivide_uint_uint(t *testing.T) {
-	result, err := Divide(uint(2), uint(10))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != uint64(5) {
-		t.Errorf("expected %d to be %d", result, uint64(5))
-	}
-}
-
-func TestDivide_uint_float(t *testing.T) {
-	result, err := Divide(uint(2), 10.0)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != float64(5) {
-		t.Errorf("expected %f to be %f", result, float64(5))
-	}
-}
-
-func TestDivide_float_int(t *testing.T) {
-	result, err := Divide(2.0, 10)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != float64(5) {
-		t.Errorf("expected %f to be %f", result, float64(5))
-	}
-}
-
-func TestDivide_float_uint(t *testing.T) {
-	result, err := Divide(2.0, uint(10))
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != float64(5) {
-		t.Errorf("expected %f to be %f", result, float64(5))
-	}
-}
-
-func TestDivide_float_float(t *testing.T) {
-	result, err := Divide(2.0, 10.0)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if result != float64(5) {
-		t.Errorf("expected %f to be %f", result, float64(5))
-	}
-}
-
-func TestDivide_string_int(t *testing.T) {
-	_, err := Divide("foo", 2)
-	if err == nil {
-		t.Fatal("expected error, but nothing was returned")
-	}
-
-	expected := "divide: unknown type for \"foo\" (string)"
-	if err.Error() != expected {
-		t.Errorf("expected %q to be %q", err.Error(), expected)
+	for i, c := range cs {
+		r, e := Divide(c.a, c.b)
+		if c.w != r || fmt.Sprint(c.e) != fmt.Sprint(e) {
+			t.Errorf("[%d] Divide(%v, %v) = (%T, %v, %v), want: (%T, %v, %v)", i, c.a, c.b, r, r, e, c.w, c.w, c.e)
+		}
 	}
 }

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Admin Page</title>
+</head>
+<body>
+<h1>Admin Page</h1>
+
+
+<p>Admin: Hello world!</p>
+
+<h2>Unescape</h2>
+<p>HTML:       <a>test</a> </p>
+<p>HTMLAttr:   a&b&c </p>
+<p>JS:         var a = '<a></a>'; </p>
+<p>JSStr:      var a = "<a></a>"; </p>
+<p>CSS:        a { color: red; } </p>
+<p>URL:        http://a.b.com/?a=1&b=2 </p>
+<p>Srcset:     http://a.b.com/?a=1&b=2 </p>
+
+<h2>Format</h2>
+<p>Comma:      1,234</p>
+<p>HumanSize:  1.205 KB</p>
+<p>JSON:       {"Message":"Hello world!","Title":"Admin Page"}</p>
+
+<h2>Math</h2>
+<p>Add:      10</p>
+<p>Subtract: 1</p>
+<p>Multiply: 24</p>
+<p>Divide:   2</p>
+
+<h2>Collection</h2>
+<p>MapSet('Array'): </p>
+<p>MapGet('Array'): [a1 a2]</p>
+<p>MapSet('Map'):   </p>
+<p>MapSet('Map'):   map[k1:v1 k2:v2]</p>
+
+
+<div>Copyright &copy; pango</div>
+</body>
+</html>

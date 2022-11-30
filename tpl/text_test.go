@@ -1,64 +1,52 @@
 package tpl
 
 import (
-	"fmt"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/pandafw/pango/str"
+	"github.com/pandafw/pango/fsu"
 )
 
-func textTestLoad(t *testing.T, tt *TextTemplates) {
-	sb := &strings.Builder{}
+func testNewTextTpls() *TextTemplates {
+	tt := NewTextTemplates()
+	tt.Funcs(Functions())
+	return tt
+}
 
-	ctx := map[string]any{
-		"Title":   "Front Page",
-		"Message": "Hello world!",
-		"Time":    time.Now(),
-	}
-	err := tt.Render(sb, "index", ctx)
+func testTextPage(t *testing.T, tt *TextTemplates, page string, ctx any) {
+	fexp := "testdata/" + page + ".txt.exp"
+	fout := "testdata/" + page + ".txt.out"
+
+	sb := &strings.Builder{}
+	err := tt.Render(sb, page, ctx)
 	if err != nil {
 		t.Errorf(`tt.Render(sb, "index", ctx) = %v`, err)
 		return
 	}
 
-	txt := sb.String()
-	if !str.Contains(txt, fmt.Sprintf("<title>%s</title>", ctx["Title"])) {
-		t.Errorf("Incorrect Title\n%s", txt)
-	}
-	if !str.Contains(txt, fmt.Sprintf("<p>%s</p>", ctx["Message"])) {
-		t.Errorf("Incorrect Message\n%s", txt)
-	}
-	if !str.Contains(txt, fmt.Sprintf("<p>Time: %s</p>", ctx["Time"].(time.Time).Format("2006/1/2 15:04:05"))) {
-		t.Errorf("Incorrect Message\n%s", txt)
-	}
+	out := sb.String()
+	exp, _ := fsu.ReadString(fexp)
 
-	sb.Reset()
-	ctx = map[string]any{
-		"Title":   "Admin Page",
-		"Message": "Hello world!",
-		"Time":    time.Now(),
-	}
-	err = tt.Render(sb, "admin/admin", ctx)
-	if err != nil {
-		t.Errorf(`tt.Render(sb, "admin/admin", ctx) = %v`, err)
-		return
-	}
-	txt = sb.String()
-	if !str.Contains(txt, fmt.Sprintf("<title>%s</title>", ctx["Title"])) {
-		t.Errorf("Incorrect Title\n%s", txt)
-	}
-	if !str.Contains(txt, fmt.Sprintf("<p>Admin: %s</p>", ctx["Message"])) {
-		t.Errorf("Incorrect Message\n%s", txt)
-	}
-	if !str.Contains(txt, fmt.Sprintf("<p>Time: %s</p>", ctx["Time"].(time.Time).Format("2006/1/2 15:04:05"))) {
-		t.Errorf("Incorrect Message\n%s", txt)
+	if out != exp {
+		fsu.WriteString(fout, out, fsu.FileMode(0666))
+		t.Errorf("[%s] = %q, want %q", page, out, exp)
 	}
 }
 
+func testTextLoad(t *testing.T, tt *TextTemplates) {
+	testTextPage(t, tt, "index", map[string]any{
+		"Title":   "Front Page",
+		"Message": "Hello world!",
+	})
+
+	testTextPage(t, tt, "admin/admin", map[string]any{
+		"Title":   "Admin Page",
+		"Message": "Hello world!",
+	})
+}
+
 func TestLoadText(t *testing.T) {
-	tt := NewTextTemplates()
+	tt := testNewTextTpls()
 	root := "testdata"
 
 	err := tt.Load(root)
@@ -67,11 +55,11 @@ func TestLoadText(t *testing.T) {
 		return
 	}
 
-	textTestLoad(t, tt)
+	testTextLoad(t, tt)
 }
 
 func TestLoadText2(t *testing.T) {
-	tt := NewTextTemplates()
+	tt := testNewTextTpls()
 	root := "./testdata"
 
 	err := tt.Load(root)
@@ -80,11 +68,11 @@ func TestLoadText2(t *testing.T) {
 		return
 	}
 
-	textTestLoad(t, tt)
+	testTextLoad(t, tt)
 }
 
 func TestFSLoadText(t *testing.T) {
-	tt := NewTextTemplates()
+	tt := testNewTextTpls()
 	root := "testdata"
 
 	err := tt.LoadFS(testdata, root)
@@ -93,5 +81,5 @@ func TestFSLoadText(t *testing.T) {
 		return
 	}
 
-	textTestLoad(t, tt)
+	testTextLoad(t, tt)
 }

@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/pandafw/pango/num"
 	"github.com/pandafw/pango/tpl/funcs"
 )
 
@@ -83,14 +82,30 @@ func toTemplateName(root, path, ext string) string {
 // Functions default utility functions for template
 func Functions() FuncMap {
 	return FuncMap{
+		// unescape
+		"HTML":     funcs.HTML,
+		"HTMLAttr": funcs.HTMLAttr,
+		"CSS":      funcs.CSS,
+		"JS":       funcs.JS,
+		"JSStr":    funcs.JSStr,
+		"URL":      funcs.URL,
+		"Srcset":   funcs.Srcset,
+
+		// format
+		"JSON":      funcs.JSON,
+		"Comma":     funcs.Comma,
+		"HumanSize": funcs.HumanSize,
+
+		// Math
 		"Add":      funcs.Add,
 		"Subtract": funcs.Subtract,
 		"Multiply": funcs.Multiply,
 		"Divide":   funcs.Divide,
-		"Comma":    num.Comma,
-		"Array":    funcs.Array,
-		"Map":      funcs.Map,
-		"MapGet":   funcs.MapGet,
-		"MapSet":   funcs.MapSet,
+
+		// Collection
+		"Array":  funcs.Array,
+		"Map":    funcs.Map,
+		"MapGet": funcs.MapGet,
+		"MapSet": funcs.MapSet,
 	}
 }

@@ -1,4 +1,31 @@
 {{template "header" .}}
+
 <p>{{.Message}}</p>
-<p>Time: {{.Time.Format "2006/1/2 15:04:05"}}</p>
+
+<h2>Unescape</h2>
+<p>HTML:       {{HTML "<a>test</a>"}} </p>
+<p>HTMLAttr:   {{HTMLAttr "a&b&c" | HTML}} </p>
+<p>JS:         {{JS "var a = '<a></a>';" | HTML}} </p>
+<p>JSStr:      {{JSStr `var a = "<a></a>";` | HTML}} </p>
+<p>CSS:        {{CSS "a { color: red; }" | HTML}} </p>
+<p>URL:        {{URL "http://a.b.com/?a=1&b=2" | HTML}} </p>
+<p>Srcset:     {{Srcset "http://a.b.com/?a=1&b=2" | HTML}} </p>
+
+<h2>Format</h2>
+<p>Comma:      {{Comma 1234}}</p>
+<p>HumanSize:  {{HumanSize 1234}}</p>
+<p>JSON:       {{JSON . | HTML}}</p>
+
+<h2>Math</h2>
+<p>Add:      {{Add 1 2 3 4}}</p>
+<p>Subtract: {{Subtract 11 1 2 3 4}}</p>
+<p>Multiply: {{Multiply 1 2 3 4}}</p>
+<p>Divide:   {{Divide 48 1 2 3 4}}</p>
+
+<h2>Collection</h2>
+<p>MapSet('Array'): {{MapSet . "Array" (Array "a1" "a2")}}</p>
+<p>MapGet('Array'): {{MapGet . "Array" }}</p>
+<p>MapSet('Map'):   {{MapSet . "Map" (Map "k1" "v1" "k2" "v2")}}</p>
+<p>MapSet('Map'):   {{MapGet . "Map" }}</p>
+
 {{template "footer"}}

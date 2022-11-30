@@ -5,8 +5,19 @@ import (
 	"reflect"
 )
 
-// Add returns the sum of a and b.
-func Add(b, a any) (any, error) {
+// Add returns the result of a + b[0] + b[1] ...
+func Add(a any, b ...any) (r any, err error) {
+	r = a
+	for _, v := range b {
+		r, err = add(r, v)
+		if err != nil {
+			return
+		}
+	}
+	return
+}
+
+func add(a, b any) (any, error) {
 	av := reflect.ValueOf(a)
 	bv := reflect.ValueOf(b)
 
@@ -20,7 +31,7 @@ func Add(b, a any) (any, error) {
 		case reflect.Float32, reflect.Float64:
 			return float64(av.Int()) + bv.Float(), nil
 		default:
-			return nil, fmt.Errorf("add: unknown type for %q (%T)", bv, b)
+			return nil, fmt.Errorf("Add: unknown type for '%v' (%T)", bv, b)
 		}
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		switch bv.Kind() {
@@ -31,7 +42,7 @@ func Add(b, a any) (any, error) {
 		case reflect.Float32, reflect.Float64:
 			return float64(av.Uint()) + bv.Float(), nil
 		default:
-			return nil, fmt.Errorf("add: unknown type for %q (%T)", bv, b)
+			return nil, fmt.Errorf("Add: unknown type for '%v' (%T)", bv, b)
 		}
 	case reflect.Float32, reflect.Float64:
 		switch bv.Kind() {
@@ -42,15 +53,26 @@ func Add(b, a any) (any, error) {
 		case reflect.Float32, reflect.Float64:
 			return av.Float() + bv.Float(), nil
 		default:
-			return nil, fmt.Errorf("add: unknown type for %q (%T)", bv, b)
+			return nil, fmt.Errorf("Add: unknown type for '%v' (%T)", bv, b)
 		}
 	default:
-		return nil, fmt.Errorf("add: unknown type for %q (%T)", av, a)
+		return nil, fmt.Errorf("Add: unknown type for '%v' (%T)", av, a)
 	}
 }
 
-// Subtract returns the difference of b from a.
-func Subtract(b, a any) (any, error) {
+// Subtract returns the result of a - b[0] - b[1] ...
+func Subtract(a any, b ...any) (r any, err error) {
+	r = a
+	for _, v := range b {
+		r, err = subtract(r, v)
+		if err != nil {
+			return
+		}
+	}
+	return
+}
+
+func subtract(a, b any) (any, error) {
 	av := reflect.ValueOf(a)
 	bv := reflect.ValueOf(b)
 
@@ -64,7 +86,7 @@ func Subtract(b, a any) (any, error) {
 		case reflect.Float32, reflect.Float64:
 			return float64(av.Int()) - bv.Float(), nil
 		default:
-			return nil, fmt.Errorf("subtract: unknown type for %q (%T)", bv, b)
+			return nil, fmt.Errorf("Subtract: unknown type for '%v' (%T)", bv, b)
 		}
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		switch bv.Kind() {
@@ -75,7 +97,7 @@ func Subtract(b, a any) (any, error) {
 		case reflect.Float32, reflect.Float64:
 			return float64(av.Uint()) - bv.Float(), nil
 		default:
-			return nil, fmt.Errorf("subtract: unknown type for %q (%T)", bv, b)
+			return nil, fmt.Errorf("Subtract: unknown type for '%v' (%T)", bv, b)
 		}
 	case reflect.Float32, reflect.Float64:
 		switch bv.Kind() {
@@ -86,15 +108,26 @@ func Subtract(b, a any) (any, error) {
 		case reflect.Float32, reflect.Float64:
 			return av.Float() - bv.Float(), nil
 		default:
-			return nil, fmt.Errorf("subtract: unknown type for %q (%T)", bv, b)
+			return nil, fmt.Errorf("Subtract: unknown type for '%v' (%T)", bv, b)
 		}
 	default:
-		return nil, fmt.Errorf("subtract: unknown type for %q (%T)", av, a)
+		return nil, fmt.Errorf("Subtract: unknown type for '%v' (%T)", av, a)
 	}
 }
 
-// Multiply returns the product of a and b.
-func Multiply(b, a any) (any, error) {
+// Multiply returns the result of a * b[0] * b[1] ...
+func Multiply(a any, b ...any) (r any, err error) {
+	r = a
+	for _, v := range b {
+		r, err = multiply(r, v)
+		if err != nil {
+			return
+		}
+	}
+	return
+}
+
+func multiply(a, b any) (any, error) {
 	av := reflect.ValueOf(a)
 	bv := reflect.ValueOf(b)
 
@@ -108,7 +141,7 @@ func Multiply(b, a any) (any, error) {
 		case reflect.Float32, reflect.Float64:
 			return float64(av.Int()) * bv.Float(), nil
 		default:
-			return nil, fmt.Errorf("multiply: unknown type for %q (%T)", bv, b)
+			return nil, fmt.Errorf("Multiply: unknown type for '%v' (%T)", bv, b)
 		}
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		switch bv.Kind() {
@@ -119,7 +152,7 @@ func Multiply(b, a any) (any, error) {
 		case reflect.Float32, reflect.Float64:
 			return float64(av.Uint()) * bv.Float(), nil
 		default:
-			return nil, fmt.Errorf("multiply: unknown type for %q (%T)", bv, b)
+			return nil, fmt.Errorf("Multiply: unknown type for '%v' (%T)", bv, b)
 		}
 	case reflect.Float32, reflect.Float64:
 		switch bv.Kind() {
@@ -130,15 +163,26 @@ func Multiply(b, a any) (any, error) {
 		case reflect.Float32, reflect.Float64:
 			return av.Float() * bv.Float(), nil
 		default:
-			return nil, fmt.Errorf("multiply: unknown type for %q (%T)", bv, b)
+			return nil, fmt.Errorf("Multiply: unknown type for '%v' (%T)", bv, b)
 		}
 	default:
-		return nil, fmt.Errorf("multiply: unknown type for %q (%T)", av, a)
+		return nil, fmt.Errorf("Multiply: unknown type for '%v' (%T)", av, a)
 	}
 }
 
-// Divide returns the division of b from a.
-func Divide(b, a any) (any, error) {
+// Divide returns the result of a / b[0] / b[1] ...
+func Divide(a any, b ...any) (r any, err error) {
+	r = a
+	for _, v := range b {
+		r, err = divide(r, v)
+		if err != nil {
+			return
+		}
+	}
+	return
+}
+
+func divide(a, b any) (any, error) {
 	av := reflect.ValueOf(a)
 	bv := reflect.ValueOf(b)
 
@@ -152,7 +196,7 @@ func Divide(b, a any) (any, error) {
 		case reflect.Float32, reflect.Float64:
 			return float64(av.Int()) / bv.Float(), nil
 		default:
-			return nil, fmt.Errorf("divide: unknown type for %q (%T)", bv, b)
+			return nil, fmt.Errorf("Divide: unknown type for '%v' (%T)", bv, b)
 		}
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		switch bv.Kind() {
@@ -163,7 +207,7 @@ func Divide(b, a any) (any, error) {
 		case reflect.Float32, reflect.Float64:
 			return float64(av.Uint()) / bv.Float(), nil
 		default:
-			return nil, fmt.Errorf("divide: unknown type for %q (%T)", bv, b)
+			return nil, fmt.Errorf("Divide: unknown type for '%v' (%T)", bv, b)
 		}
 	case reflect.Float32, reflect.Float64:
 		switch bv.Kind() {
@@ -174,9 +218,9 @@ func Divide(b, a any) (any, error) {
 		case reflect.Float32, reflect.Float64:
 			return av.Float() / bv.Float(), nil
 		default:
-			return nil, fmt.Errorf("divide: unknown type for %q (%T)", bv, b)
+			return nil, fmt.Errorf("Divide: unknown type for '%v' (%T)", bv, b)
 		}
 	default:
-		return nil, fmt.Errorf("divide: unknown type for %q (%T)", av, a)
+		return nil, fmt.Errorf("Divide: unknown type for '%v' (%T)", av, a)
 	}
 }

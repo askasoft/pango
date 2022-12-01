@@ -17,7 +17,7 @@ func TestRequestLimiter(t *testing.T) {
 	router.Use(NewRequestLimiter(10).Handler())
 	router.POST("/", func(c *xin.Context) {
 		m := map[string]string{}
-		if err := c.BindJSON(&m); err == nil {
+		if err := c.MustBindJSON(&m); err == nil {
 			c.String(200, "OK")
 		}
 	})

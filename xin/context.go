@@ -579,7 +579,7 @@ func (c *Context) SaveUploadedFile(file *multipart.FileHeader, dst string) error
 	return SaveUploadedFile(file, dst)
 }
 
-// Bind checks the Content-Type to select a binding engine automatically,
+// MustBind checks the Content-Type to select a binding engine automatically,
 // Depending on the "Content-Type" header different bindings are used:
 //
 //	"application/json" --> JSON binding
@@ -589,35 +589,35 @@ func (c *Context) SaveUploadedFile(file *multipart.FileHeader, dst string) error
 // It parses the request's body as JSON if Content-Type == "application/json" using JSON or XML as a JSON input.
 // It decodes the json payload into the struct specified as a pointer.
 // It writes a 400 error and sets Content-Type header "text/plain" in the response if input is not valid.
-func (c *Context) Bind(obj any) error {
+func (c *Context) MustBind(obj any) error {
 	b := binding.Default(c.Request.Method, c.ContentType())
 	return c.MustBindWith(obj, b)
 }
 
-// BindJSON is a shortcut for c.MustBindWith(obj, binding.JSON).
-func (c *Context) BindJSON(obj any) error {
+// MustBindJSON is a shortcut for c.MustBindWith(obj, binding.JSON).
+func (c *Context) MustBindJSON(obj any) error {
 	return c.MustBindWith(obj, binding.JSON)
 }
 
-// BindXML is a shortcut for c.MustBindWith(obj, binding.BindXML).
-func (c *Context) BindXML(obj any) error {
+// MustBindXML is a shortcut for c.MustBindWith(obj, binding.BindXML).
+func (c *Context) MustBindXML(obj any) error {
 	return c.MustBindWith(obj, binding.XML)
 }
 
-// BindQuery is a shortcut for c.MustBindWith(obj, binding.Query).
-func (c *Context) BindQuery(obj any) error {
+// MustBindQuery is a shortcut for c.MustBindWith(obj, binding.Query).
+func (c *Context) MustBindQuery(obj any) error {
 	return c.MustBindWith(obj, binding.Query)
 }
 
-// BindHeader is a shortcut for c.MustBindWith(obj, binding.Header).
-func (c *Context) BindHeader(obj any) error {
+// MustBindHeader is a shortcut for c.MustBindWith(obj, binding.Header).
+func (c *Context) MustBindHeader(obj any) error {
 	return c.MustBindWith(obj, binding.Header)
 }
 
-// BindURI binds the passed struct pointer using binding.Uri.
+// MustBindURI binds the passed struct pointer using binding.Uri.
 // It will abort the request with HTTP 400 if any error occurs.
-func (c *Context) BindURI(obj any) error {
-	if err := c.ShouldBindURI(obj); err != nil {
+func (c *Context) MustBindURI(obj any) error {
+	if err := c.BindURI(obj); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return err
 	}
@@ -628,14 +628,14 @@ func (c *Context) BindURI(obj any) error {
 // It will abort the request with HTTP 400 if any error occurs.
 // See the binding package.
 func (c *Context) MustBindWith(obj any, b binding.Binding) error {
-	if err := c.ShouldBindWith(obj, b); err != nil {
+	if err := c.BindWith(obj, b); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return err
 	}
 	return nil
 }
 
-// ShouldBind checks the Content-Type to select a binding engine automatically,
+// Bind checks the Content-Type to select a binding engine automatically,
 // Depending on the "Content-Type" header different bindings are used:
 //
 //	"application/json" --> JSON binding
@@ -645,33 +645,33 @@ func (c *Context) MustBindWith(obj any, b binding.Binding) error {
 // It parses the request's body as JSON if Content-Type == "application/json" using JSON or XML as a JSON input.
 // It decodes the json payload into the struct specified as a pointer.
 // Like c.Bind() but this method does not set the response status code to 400 and abort if the json is not valid.
-func (c *Context) ShouldBind(obj any) error {
+func (c *Context) Bind(obj any) error {
 	b := binding.Default(c.Request.Method, c.ContentType())
-	return c.ShouldBindWith(obj, b)
+	return c.BindWith(obj, b)
 }
 
-// ShouldBindJSON is a shortcut for c.ShouldBindWith(obj, binding.JSON).
-func (c *Context) ShouldBindJSON(obj any) error {
-	return c.ShouldBindWith(obj, binding.JSON)
+// BindJSON is a shortcut for c.BindWith(obj, binding.JSON).
+func (c *Context) BindJSON(obj any) error {
+	return c.BindWith(obj, binding.JSON)
 }
 
-// ShouldBindXML is a shortcut for c.ShouldBindWith(obj, binding.XML).
-func (c *Context) ShouldBindXML(obj any) error {
-	return c.ShouldBindWith(obj, binding.XML)
+// BindXML is a shortcut for c.BindWith(obj, binding.XML).
+func (c *Context) BindXML(obj any) error {
+	return c.BindWith(obj, binding.XML)
 }
 
-// ShouldBindQuery is a shortcut for c.ShouldBindWith(obj, binding.Query).
-func (c *Context) ShouldBindQuery(obj any) error {
-	return c.ShouldBindWith(obj, binding.Query)
+// BindQuery is a shortcut for c.BindWith(obj, binding.Query).
+func (c *Context) BindQuery(obj any) error {
+	return c.BindWith(obj, binding.Query)
 }
 
-// ShouldBindHeader is a shortcut for c.ShouldBindWith(obj, binding.Header).
-func (c *Context) ShouldBindHeader(obj any) error {
-	return c.ShouldBindWith(obj, binding.Header)
+// BindHeader is a shortcut for c.BindWith(obj, binding.Header).
+func (c *Context) BindHeader(obj any) error {
+	return c.BindWith(obj, binding.Header)
 }
 
-// ShouldBindURI binds the passed struct pointer using the specified binding engine.
-func (c *Context) ShouldBindURI(obj any) (err error) {
+// BindURI binds the passed struct pointer using the specified binding engine.
+func (c *Context) BindURI(obj any) (err error) {
 	m := make(map[string][]string)
 	for _, v := range c.Params {
 		m[v.Key] = []string{v.Value}
@@ -686,9 +686,9 @@ func (c *Context) ShouldBindURI(obj any) (err error) {
 	return
 }
 
-// ShouldBindWith binds the passed struct pointer using the specified binding engine.
+// BindWith binds the passed struct pointer using the specified binding engine.
 // See the binding package.
-func (c *Context) ShouldBindWith(obj any, b binding.Binding) (err error) {
+func (c *Context) BindWith(obj any, b binding.Binding) (err error) {
 	err = b.Bind(c.Request, obj)
 	if err != nil {
 		return err
@@ -698,12 +698,12 @@ func (c *Context) ShouldBindWith(obj any, b binding.Binding) (err error) {
 	return
 }
 
-// ShouldBindBodyWith is similar with ShouldBindWith, but it stores the request
+// BindBodyWith is similar with BindWith, but it stores the request
 // body into the context, and reuse when it is called again.
 //
 // NOTE: This method reads the body before binding. So you should use
-// ShouldBindWith for better performance if you need to call only once.
-func (c *Context) ShouldBindBodyWith(obj any, bb binding.BodyBinding) (err error) {
+// BindWith for better performance if you need to call only once.
+func (c *Context) BindBodyWith(obj any, bb binding.BodyBinding) (err error) {
 	var body []byte
 	if cb, ok := c.Get(BodyBytesKey); ok {
 		if cbb, ok := cb.([]byte); ok {

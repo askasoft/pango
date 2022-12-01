@@ -15,19 +15,17 @@ import (
 // BindKey indicates a default bind key.
 const BindKey = "XIN_BIND_KEY"
 
-// Bind is a helper function for given interface object and returns a Xin middleware.
-func Bind(val any) HandlerFunc {
+// MustBind is a helper function for given interface object and returns a Xin middleware.
+func MustBind(val any) HandlerFunc {
 	value := reflect.ValueOf(val)
 	if value.Kind() == reflect.Ptr {
-		panic(`Bind struct can not be a pointer. Example:
-	Use: xin.Bind(Struct{}) instead of xin.Bind(&Struct{})
-`)
+		panic(`Bind struct can not be a pointer. Use: xin.MustBind(Struct{}) instead of xin.MustBind(&Struct{})`)
 	}
-	typ := value.Type()
 
+	type_ := value.Type()
 	return func(c *Context) {
-		obj := reflect.New(typ).Interface()
-		if c.Bind(obj) == nil {
+		obj := reflect.New(type_).Interface()
+		if c.MustBind(obj) == nil {
 			c.Set(BindKey, obj)
 		}
 	}

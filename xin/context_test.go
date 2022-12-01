@@ -1401,6 +1401,118 @@ func TestContextContentType(t *testing.T) {
 	assert.Equal(t, "application/json", c.ContentType())
 }
 
+func TestContextMustAutoBindJSON(t *testing.T) {
+	c, _ := CreateTestContext(httptest.NewRecorder())
+	c.Request, _ = http.NewRequest("POST", "/", bytes.NewBufferString("{\"foo\":\"bar\", \"bar\":\"foo\"}"))
+	c.Request.Header.Add("Content-Type", MIMEJSON)
+
+	var obj struct {
+		Foo string `json:"foo"`
+		Bar string `json:"bar"`
+	}
+	assert.NoError(t, c.MustBind(&obj))
+	assert.Equal(t, "foo", obj.Bar)
+	assert.Equal(t, "bar", obj.Foo)
+	assert.Empty(t, c.Errors)
+}
+
+func TestContextMustBindWithJSON(t *testing.T) {
+	w := httptest.NewRecorder()
+	c, _ := CreateTestContext(w)
+
+	c.Request, _ = http.NewRequest("POST", "/", bytes.NewBufferString("{\"foo\":\"bar\", \"bar\":\"foo\"}"))
+	c.Request.Header.Add("Content-Type", MIMEXML) // set fake content-type
+
+	var obj struct {
+		Foo string `json:"foo"`
+		Bar string `json:"bar"`
+	}
+	assert.NoError(t, c.MustBindJSON(&obj))
+	assert.Equal(t, "foo", obj.Bar)
+	assert.Equal(t, "bar", obj.Foo)
+	assert.Equal(t, 0, w.Body.Len())
+}
+
+func TestContextMustBindWithXML(t *testing.T) {
+	w := httptest.NewRecorder()
+	c, _ := CreateTestContext(w)
+
+	c.Request, _ = http.NewRequest("POST", "/", bytes.NewBufferString(`<?xml version="1.0" encoding="UTF-8"?>
+		<root>
+			<foo>FOO</foo>
+		   	<bar>BAR</bar>
+		</root>`))
+	c.Request.Header.Add("Content-Type", MIMEXML) // set fake content-type
+
+	var obj struct {
+		Foo string `xml:"foo"`
+		Bar string `xml:"bar"`
+	}
+	assert.NoError(t, c.MustBindXML(&obj))
+	assert.Equal(t, "FOO", obj.Foo)
+	assert.Equal(t, "BAR", obj.Bar)
+	assert.Equal(t, 0, w.Body.Len())
+}
+
+func TestContextMustBindHeader(t *testing.T) {
+	w := httptest.NewRecorder()
+	c, _ := CreateTestContext(w)
+
+	c.Request, _ = http.NewRequest("POST", "/", nil)
+	c.Request.Header.Add("rate", "8000")
+	c.Request.Header.Add("domain", "music")
+	c.Request.Header.Add("limit", "1000")
+
+	var testHeader struct {
+		Rate   int    `header:"Rate"`
+		Domain string `header:"Domain"`
+		Limit  int    `header:"limit"`
+	}
+
+	assert.NoError(t, c.MustBindHeader(&testHeader))
+	assert.Equal(t, 8000, testHeader.Rate)
+	assert.Equal(t, "music", testHeader.Domain)
+	assert.Equal(t, 1000, testHeader.Limit)
+	assert.Equal(t, 0, w.Body.Len())
+}
+
+func TestContextMustBindWithQuery(t *testing.T) {
+	w := httptest.NewRecorder()
+	c, _ := CreateTestContext(w)
+
+	c.Request, _ = http.NewRequest("POST", "/?foo=bar&bar=foo", bytes.NewBufferString("foo=unused"))
+
+	var obj struct {
+		Foo string `form:"foo"`
+		Bar string `form:"bar"`
+	}
+	assert.NoError(t, c.MustBindQuery(&obj))
+	assert.Equal(t, "foo", obj.Bar)
+	assert.Equal(t, "bar", obj.Foo)
+	assert.Equal(t, 0, w.Body.Len())
+}
+
+func TestContextBadMustAutoBind(t *testing.T) {
+	w := httptest.NewRecorder()
+	c, _ := CreateTestContext(w)
+
+	c.Request, _ = http.NewRequest("POST", "http://example.com", bytes.NewBufferString("\"foo\":\"bar\", \"bar\":\"foo\"}"))
+	c.Request.Header.Add("Content-Type", MIMEJSON)
+	var obj struct {
+		Foo string `json:"foo"`
+		Bar string `json:"bar"`
+	}
+
+	assert.False(t, c.IsAborted())
+	assert.Error(t, c.MustBind(&obj))
+	c.Writer.WriteHeaderNow()
+
+	assert.Empty(t, obj.Bar)
+	assert.Empty(t, obj.Foo)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	assert.True(t, c.IsAborted())
+}
+
 func TestContextAutoBindJSON(t *testing.T) {
 	c, _ := CreateTestContext(httptest.NewRecorder())
 	c.Request, _ = http.NewRequest("POST", "/", bytes.NewBufferString("{\"foo\":\"bar\", \"bar\":\"foo\"}"))
@@ -1440,7 +1552,7 @@ func TestContextBindWithXML(t *testing.T) {
 	c.Request, _ = http.NewRequest("POST", "/", bytes.NewBufferString(`<?xml version="1.0" encoding="UTF-8"?>
 		<root>
 			<foo>FOO</foo>
-		   	<bar>BAR</bar>
+			<bar>BAR</bar>
 		</root>`))
 	c.Request.Header.Add("Content-Type", MIMEXML) // set fake content-type
 
@@ -1480,15 +1592,19 @@ func TestContextBindWithQuery(t *testing.T) {
 	w := httptest.NewRecorder()
 	c, _ := CreateTestContext(w)
 
-	c.Request, _ = http.NewRequest("POST", "/?foo=bar&bar=foo", bytes.NewBufferString("foo=unused"))
+	c.Request, _ = http.NewRequest("POST", "/?foo=bar&bar=foo&Foo=bar1&Bar=foo1", bytes.NewBufferString("foo=unused"))
 
 	var obj struct {
-		Foo string `form:"foo"`
-		Bar string `form:"bar"`
+		Foo  string `form:"foo"`
+		Bar  string `form:"bar"`
+		Foo1 string `form:"Foo"`
+		Bar1 string `form:"Bar"`
 	}
 	assert.NoError(t, c.BindQuery(&obj))
 	assert.Equal(t, "foo", obj.Bar)
 	assert.Equal(t, "bar", obj.Foo)
+	assert.Equal(t, "foo1", obj.Bar1)
+	assert.Equal(t, "bar1", obj.Foo1)
 	assert.Equal(t, 0, w.Body.Len())
 }
 
@@ -1505,129 +1621,13 @@ func TestContextBadAutoBind(t *testing.T) {
 
 	assert.False(t, c.IsAborted())
 	assert.Error(t, c.Bind(&obj))
-	c.Writer.WriteHeaderNow()
-
-	assert.Empty(t, obj.Bar)
-	assert.Empty(t, obj.Foo)
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-	assert.True(t, c.IsAborted())
-}
-
-func TestContextAutoShouldBindJSON(t *testing.T) {
-	c, _ := CreateTestContext(httptest.NewRecorder())
-	c.Request, _ = http.NewRequest("POST", "/", bytes.NewBufferString("{\"foo\":\"bar\", \"bar\":\"foo\"}"))
-	c.Request.Header.Add("Content-Type", MIMEJSON)
-
-	var obj struct {
-		Foo string `json:"foo"`
-		Bar string `json:"bar"`
-	}
-	assert.NoError(t, c.ShouldBind(&obj))
-	assert.Equal(t, "foo", obj.Bar)
-	assert.Equal(t, "bar", obj.Foo)
-	assert.Empty(t, c.Errors)
-}
-
-func TestContextShouldBindWithJSON(t *testing.T) {
-	w := httptest.NewRecorder()
-	c, _ := CreateTestContext(w)
-
-	c.Request, _ = http.NewRequest("POST", "/", bytes.NewBufferString("{\"foo\":\"bar\", \"bar\":\"foo\"}"))
-	c.Request.Header.Add("Content-Type", MIMEXML) // set fake content-type
-
-	var obj struct {
-		Foo string `json:"foo"`
-		Bar string `json:"bar"`
-	}
-	assert.NoError(t, c.ShouldBindJSON(&obj))
-	assert.Equal(t, "foo", obj.Bar)
-	assert.Equal(t, "bar", obj.Foo)
-	assert.Equal(t, 0, w.Body.Len())
-}
-
-func TestContextShouldBindWithXML(t *testing.T) {
-	w := httptest.NewRecorder()
-	c, _ := CreateTestContext(w)
-
-	c.Request, _ = http.NewRequest("POST", "/", bytes.NewBufferString(`<?xml version="1.0" encoding="UTF-8"?>
-		<root>
-			<foo>FOO</foo>
-			<bar>BAR</bar>
-		</root>`))
-	c.Request.Header.Add("Content-Type", MIMEXML) // set fake content-type
-
-	var obj struct {
-		Foo string `xml:"foo"`
-		Bar string `xml:"bar"`
-	}
-	assert.NoError(t, c.ShouldBindXML(&obj))
-	assert.Equal(t, "FOO", obj.Foo)
-	assert.Equal(t, "BAR", obj.Bar)
-	assert.Equal(t, 0, w.Body.Len())
-}
-
-func TestContextShouldBindHeader(t *testing.T) {
-	w := httptest.NewRecorder()
-	c, _ := CreateTestContext(w)
-
-	c.Request, _ = http.NewRequest("POST", "/", nil)
-	c.Request.Header.Add("rate", "8000")
-	c.Request.Header.Add("domain", "music")
-	c.Request.Header.Add("limit", "1000")
-
-	var testHeader struct {
-		Rate   int    `header:"Rate"`
-		Domain string `header:"Domain"`
-		Limit  int    `header:"limit"`
-	}
-
-	assert.NoError(t, c.ShouldBindHeader(&testHeader))
-	assert.Equal(t, 8000, testHeader.Rate)
-	assert.Equal(t, "music", testHeader.Domain)
-	assert.Equal(t, 1000, testHeader.Limit)
-	assert.Equal(t, 0, w.Body.Len())
-}
-
-func TestContextShouldBindWithQuery(t *testing.T) {
-	w := httptest.NewRecorder()
-	c, _ := CreateTestContext(w)
-
-	c.Request, _ = http.NewRequest("POST", "/?foo=bar&bar=foo&Foo=bar1&Bar=foo1", bytes.NewBufferString("foo=unused"))
-
-	var obj struct {
-		Foo  string `form:"foo"`
-		Bar  string `form:"bar"`
-		Foo1 string `form:"Foo"`
-		Bar1 string `form:"Bar"`
-	}
-	assert.NoError(t, c.ShouldBindQuery(&obj))
-	assert.Equal(t, "foo", obj.Bar)
-	assert.Equal(t, "bar", obj.Foo)
-	assert.Equal(t, "foo1", obj.Bar1)
-	assert.Equal(t, "bar1", obj.Foo1)
-	assert.Equal(t, 0, w.Body.Len())
-}
-
-func TestContextBadAutoShouldBind(t *testing.T) {
-	w := httptest.NewRecorder()
-	c, _ := CreateTestContext(w)
-
-	c.Request, _ = http.NewRequest("POST", "http://example.com", bytes.NewBufferString("\"foo\":\"bar\", \"bar\":\"foo\"}"))
-	c.Request.Header.Add("Content-Type", MIMEJSON)
-	var obj struct {
-		Foo string `json:"foo"`
-		Bar string `json:"bar"`
-	}
-
-	assert.False(t, c.IsAborted())
-	assert.Error(t, c.ShouldBind(&obj))
 
 	assert.Empty(t, obj.Bar)
 	assert.Empty(t, obj.Foo)
 	assert.False(t, c.IsAborted())
 }
 
-func TestContextShouldBindBodyWith(t *testing.T) {
+func TestContextBindBodyWith(t *testing.T) {
 	type typeA struct {
 		Foo string `json:"foo" xml:"foo" binding:"required"`
 	}
@@ -1681,10 +1681,10 @@ func TestContextShouldBindBodyWith(t *testing.T) {
 			// When it binds to typeA and typeB, it finds the body is
 			// not typeB but typeA.
 			objA := typeA{}
-			assert.NoError(t, c.ShouldBindBodyWith(&objA, tt.bindingA))
+			assert.NoError(t, c.BindBodyWith(&objA, tt.bindingA))
 			assert.Equal(t, typeA{"FOO"}, objA)
 			objB := typeB{}
-			assert.Error(t, c.ShouldBindBodyWith(&objB, tt.bindingB))
+			assert.Error(t, c.BindBodyWith(&objB, tt.bindingB))
 			assert.NotEqual(t, typeB{"BAR"}, objB)
 		}
 		// bodyB to typeA and typeB
@@ -1697,10 +1697,10 @@ func TestContextShouldBindBodyWith(t *testing.T) {
 				"POST", "http://example.com", bytes.NewBufferString(tt.bodyB),
 			)
 			objA := typeA{}
-			assert.Error(t, c.ShouldBindBodyWith(&objA, tt.bindingA))
+			assert.Error(t, c.BindBodyWith(&objA, tt.bindingA))
 			assert.NotEqual(t, typeA{"FOO"}, objA)
 			objB := typeB{}
-			assert.NoError(t, c.ShouldBindBodyWith(&objB, tt.bindingB))
+			assert.NoError(t, c.BindBodyWith(&objB, tt.bindingB))
 			assert.Equal(t, typeB{"BAR"}, objB)
 		}
 	}

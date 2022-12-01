@@ -103,11 +103,11 @@ type bindTestStruct struct {
 	Bar int    `form:"bar" binding:"min=4"`
 }
 
-func TestBindMiddleware(t *testing.T) {
+func TestMustBindMiddleware(t *testing.T) {
 	var value *bindTestStruct
 	var called bool
 	router := New()
-	router.GET("/", Bind(bindTestStruct{}), func(c *Context) {
+	router.GET("/", MustBind(bindTestStruct{}), func(c *Context) {
 		called = true
 		value = c.MustGet(BindKey).(*bindTestStruct)
 	})
@@ -121,7 +121,7 @@ func TestBindMiddleware(t *testing.T) {
 	assert.False(t, called)
 
 	assert.Panics(t, func() {
-		Bind(&bindTestStruct{})
+		MustBind(&bindTestStruct{})
 	})
 }
 

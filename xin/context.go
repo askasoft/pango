@@ -3,7 +3,6 @@ package xin
 import (
 	"errors"
 	"io"
-	"math"
 	"mime/multipart"
 	"net"
 	"net/http"
@@ -33,7 +32,7 @@ const (
 const BodyBytesKey = "XIN_BODY_BYTES"
 
 // abortIndex represents a typical value used in abort functions.
-const abortIndex int8 = math.MaxInt8 >> 1
+const abortIndex = 128
 
 // Context is the most important part of xin. It allows us to pass variables between middleware,
 // manage the flow, validate the JSON of a request and render a JSON response for example.
@@ -44,7 +43,7 @@ type Context struct {
 
 	Params   Params
 	handlers HandlersChain
-	index    int8
+	index    int
 	fullPath string
 
 	engine       *Engine
@@ -176,7 +175,7 @@ func (c *Context) FullPath() string {
 // See example in GitHub.
 func (c *Context) Next() {
 	c.index++
-	for c.index < int8(len(c.handlers)) {
+	for c.index < len(c.handlers) {
 		c.handlers[c.index](c)
 		c.index++
 	}
@@ -1062,7 +1061,9 @@ func (c *Context) Negotiate(code int, config Negotiate) {
 
 // NegotiateFormat returns an acceptable Accept format.
 func (c *Context) NegotiateFormat(offered ...string) string {
-	assert1(len(offered) > 0, "you must provide at least one offer")
+	if len(offered) == 0 {
+		panic("you must provide at least one offer")
+	}
 
 	if c.Accepted == nil {
 		c.Accepted = parseAccept(c.requestHeader("Accept"))

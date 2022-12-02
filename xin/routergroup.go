@@ -12,20 +12,6 @@ import (
 	"github.com/pandafw/pango/net/httpx"
 )
 
-const (
-	// Public1Year Cache-Control: public, max-age=31536000
-	Public1Year = "public, max-age=31536000"
-
-	// Public1Month Cache-Control: public, max-age=2592000
-	Public1Month = "public, max-age=2592000"
-
-	// Public1Week Cache-Control: public, max-age=604800
-	Public1Week = "public, max-age=604800"
-
-	// Public1Day Cache-Control: public, max-age=86400
-	Public1Day = "public, max-age=86400"
-)
-
 var (
 	// regEnLetter matches english letters for http method name
 	regEnLetter = regexp.MustCompile("^[A-Z]+$")
@@ -305,7 +291,9 @@ func (group *RouterGroup) StaticContent(relativePath string, data []byte, modtim
 
 func (group *RouterGroup) combineHandlers(handlers HandlersChain) HandlersChain {
 	finalSize := len(group.Handlers) + len(handlers)
-	assert1(finalSize < int(abortIndex), "too many handlers")
+	if finalSize >= abortIndex {
+		panic("too many handlers")
+	}
 	mergedHandlers := make(HandlersChain, finalSize)
 	copy(mergedHandlers, group.Handlers)
 	copy(mergedHandlers[len(group.Handlers):], handlers)

@@ -88,12 +88,6 @@ func SaveUploadedFile(file *multipart.FileHeader, dst string) error {
 	return err
 }
 
-func assert1(guard bool, text string) {
-	if !guard {
-		panic(text)
-	}
-}
-
 func filterFlags(content string) string {
 	for i, char := range content {
 		if char == ' ' || char == ';' {

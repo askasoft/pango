@@ -1,6 +1,3 @@
-//go:build !go1.18
-// +build !go1.18
-
 package xmw
 
 import (
@@ -10,7 +7,6 @@ import (
 	"regexp"
 	"sync"
 
-	"github.com/pandafw/pango/col"
 	"github.com/pandafw/pango/str"
 	"github.com/pandafw/pango/xin"
 )
@@ -53,7 +49,7 @@ type HTTPGziper struct {
 	compressLevel int
 
 	// mimeTypes Enables gzipping of responses for the specified MIME types.
-	mimeTypes *col.HashSet
+	mimeTypes *stringSet
 
 	// ignorePathPrefixs Ignored URL Path Prefixs
 	ignorePathPrefixs prefixs
@@ -199,7 +195,7 @@ func (z *HTTPGziper) SetMimeTypes(mts ...string) {
 		return
 	}
 
-	hs := col.NewStringHashSet(mts...)
+	hs := newStringSet(mts...)
 	if hs.Contains("*") {
 		hs = nil
 	}

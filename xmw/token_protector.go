@@ -1,13 +1,9 @@
-//go:build !go1.18
-// +build !go1.18
-
 package xmw
 
 import (
 	"net/http"
 	"time"
 
-	"github.com/pandafw/pango/col"
 	"github.com/pandafw/pango/cpt"
 	"github.com/pandafw/pango/xin"
 )
@@ -16,7 +12,6 @@ import (
 type TokenProtector struct {
 	Cryptor        cpt.Cryptor
 	Expires        time.Duration
-	Methods        col.HashSet
 	AttrKey        string
 	HeaderKey      string
 	ParamName      string
@@ -26,9 +21,12 @@ type TokenProtector struct {
 	CookiePath     string
 	CookieSecure   bool
 	CookieHttpOnly bool
+
+	methods *stringSet
 }
 
 // NewTokenProtector create a default TokenProtector
+// default methods: DELETE, PATCH, POST, PUT
 func NewTokenProtector(secret string) *TokenProtector {
 	t := &TokenProtector{
 		Cryptor:        cpt.NewAesCBC(secret),
@@ -39,9 +37,20 @@ func NewTokenProtector(secret string) *TokenProtector {
 		CookieName:     "WW_TOKEN",
 		CookieMaxAge:   time.Hour * 24 * 30,
 		CookieHttpOnly: true,
+		methods:        newStringSet(http.MethodDelete, http.MethodPatch, http.MethodPost, http.MethodPut),
 	}
-	t.Methods.Add(http.MethodDelete, http.MethodPatch, http.MethodPost, http.MethodPost)
 	return t
+}
+
+// SetMethods Set the http methods to protect
+// default methods: DELETE, PATCH, POST, PUT
+func (tp *TokenProtector) SetMethods(ms ...string) {
+	if len(ms) == 0 {
+		tp.methods = nil
+		return
+	}
+
+	tp.methods = newStringSet(ms...)
 }
 
 // Handler returns the xin.HandlerFunc
@@ -53,7 +62,8 @@ func (tp *TokenProtector) Handler() xin.HandlerFunc {
 
 // handle process xin request
 func (tp *TokenProtector) handle(c *xin.Context) {
-	if tp.Methods.Contains(c.Request.Method) {
+	ms := tp.methods
+	if ms != nil && ms.Contains(c.Request.Method) {
 		if !tp.validate(c) {
 			c.AbortWithStatus(http.StatusBadRequest)
 			return

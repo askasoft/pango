@@ -63,9 +63,10 @@ func (g *gzipWriter) checkHeader() {
 		return
 	}
 
-	if g.hgz.mimeTypes != nil {
+	mts := g.hgz.mimeTypes
+	if mts != nil {
 		ct := str.SubstrBeforeByte(h.Get("Content-Type"), ';')
-		if !g.hgz.mimeTypes.Contains(ct) {
+		if !mts.Contains(ct) {
 			g.state = gzwStateSkip
 			return
 		}

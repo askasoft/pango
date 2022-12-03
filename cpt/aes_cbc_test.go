@@ -1,23 +1,19 @@
 package cpt
 
 import (
-	"fmt"
 	"testing"
+
+	"github.com/pandafw/pango/str"
 )
 
 func TestAesCBCEncryptString(t *testing.T) {
-	cs := []string{
-		"123456789",
-		"abcdefg",
-	}
-
 	ac := NewAesCBC("1234567890123456")
-	for i, c := range cs {
+	for i := 1; i < 100; i++ {
+		c := str.RandLetterNumbers(i)
 		o, err := ac.EncryptString(c)
 		if err != nil {
 			t.Fatal(i, err)
 		}
-		fmt.Println(i, o)
 
 		s, err := ac.DecryptString(o)
 		if err != nil {
@@ -25,32 +21,27 @@ func TestAesCBCEncryptString(t *testing.T) {
 		}
 
 		if s != c {
-			t.Errorf("[%d] want %q, but %q", i, c, s)
+			t.Fatalf("[%d] want %q, but %q", i, c, s)
 		}
 	}
 }
 
 func TestAesCBCEncryptData(t *testing.T) {
-	cs := [][]byte{
-		[]byte("123456789"),
-		[]byte("abcdefg"),
-	}
-
 	ac := NewAesCBC("1234567890123456", "0987654321654321")
-	for i, c := range cs {
-		o, err := ac.EncryptData(c)
+	for i := 1; i < 100; i++ {
+		c := str.RandLetterNumbers(i)
+		o, err := ac.EncryptData(str.UnsafeBytes(c))
 		if err != nil {
 			t.Fatal(i, err)
 		}
-		fmt.Println(i, o)
 
 		s, err := ac.DecryptData(o)
 		if err != nil {
 			t.Fatal(i, err)
 		}
 
-		if string(s) != string(c) {
-			t.Errorf("[%d] want %q, but %q", i, c, s)
+		if string(s) != c {
+			t.Fatalf("[%d] want %q, but %q", i, c, string(s))
 		}
 	}
 }

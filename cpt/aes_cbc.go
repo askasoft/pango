@@ -38,11 +38,11 @@ func (ac *AesCBC) EncryptString(src string) (string, error) {
 		return "", err
 	}
 
-	return base64.StdEncoding.EncodeToString(bs), nil
+	return base64.RawURLEncoding.EncodeToString(bs), nil
 }
 
 func (ac *AesCBC) DecryptString(src string) (string, error) {
-	bs, err := base64.StdEncoding.DecodeString(src)
+	bs, err := base64.RawURLEncoding.DecodeString(src)
 	if err != nil {
 		return "", err
 	}

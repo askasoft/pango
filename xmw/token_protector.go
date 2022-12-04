@@ -78,21 +78,21 @@ func (tp *TokenProtector) validate(c *xin.Context) bool {
 	if st == nil {
 		return false
 	}
-	c.Logger().Tracef("Source token: %v", st)
+	c.Logger.Tracef("Source token: %v", st)
 
 	rt := tp.getRequestToken(c)
 	if rt == nil {
 		return false
 	}
-	c.Logger().Tracef("Request token: %v", rt)
+	c.Logger.Tracef("Request token: %v", rt)
 
 	if st.Secret != rt.Secret {
-		c.Logger().Warnf("Invalid token secret %q, want %q", rt.Secret, st.Secret)
+		c.Logger.Warnf("Invalid token secret %q, want %q", rt.Secret, st.Secret)
 		return false
 	}
 
 	if tp.Expires > 0 && rt.Timestamp.Add(tp.Expires).Before(time.Now()) {
-		c.Logger().Warnf("Request token (%v) is expired for %v", rt, tp.Expires)
+		c.Logger.Warnf("Request token (%v) is expired for %v", rt, tp.Expires)
 		return false
 	}
 
@@ -117,7 +117,7 @@ func (tp *TokenProtector) getSourceToken(c *xin.Context) *cpt.Token {
 		if t, ok := av.(*cpt.Token); ok {
 			return t
 		}
-		c.Logger().Errorf("Invalid Context Token: %v", av)
+		c.Logger.Errorf("Invalid Context Token: %v", av)
 	}
 
 	ts, err := c.Cookie(tp.CookieName)
@@ -127,7 +127,7 @@ func (tp *TokenProtector) getSourceToken(c *xin.Context) *cpt.Token {
 
 	t, err := tp.parseToken(ts)
 	if err != nil {
-		c.Logger().Warnf("Invalid Cookie Token: %v: %q", err, ts)
+		c.Logger.Warnf("Invalid Cookie Token: %v: %q", err, ts)
 		return nil
 	}
 
@@ -141,7 +141,7 @@ func (tp *TokenProtector) getRequestToken(c *xin.Context) *cpt.Token {
 		if err == nil {
 			return t
 		}
-		c.Logger().Warnf("Invalid Form Token: %v: %q", err, ts)
+		c.Logger.Warnf("Invalid Form Token: %v: %q", err, ts)
 	}
 
 	if ts := c.Query(tp.ParamName); ts != "" {
@@ -149,7 +149,7 @@ func (tp *TokenProtector) getRequestToken(c *xin.Context) *cpt.Token {
 		if err == nil {
 			return t
 		}
-		c.Logger().Warnf("Invalid Query Token: %v: %q", err, ts)
+		c.Logger.Warnf("Invalid Query Token: %v: %q", err, ts)
 	}
 
 	if ts := c.GetHeader(tp.HeaderKey); ts != "" {
@@ -157,7 +157,7 @@ func (tp *TokenProtector) getRequestToken(c *xin.Context) *cpt.Token {
 		if err == nil {
 			return t
 		}
-		c.Logger().Warnf("Invalid Header Token: %v: %q", err, ts)
+		c.Logger.Warnf("Invalid Header Token: %v: %q", err, ts)
 	}
 	return nil
 }
@@ -175,7 +175,7 @@ func (tp *TokenProtector) RefreshToken(c *xin.Context) string {
 	if err == nil {
 		c.SetCookie(tp.CookieName, ts, int(tp.CookieMaxAge.Seconds()), tp.CookiePath, tp.CookieDomain, tp.CookieSecure, tp.CookieHttpOnly)
 	} else {
-		c.Logger().Errorf("EncryptToken: %v", err)
+		c.Logger.Errorf("EncryptToken: %v", err)
 	}
 	return ts
 }

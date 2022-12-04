@@ -15,11 +15,6 @@ import (
 
 const defaultMultipartMemory = 32 << 20 // 32 MB
 
-var (
-	default404Body = []byte("404 page not found")
-	default405Body = []byte("405 method not allowed")
-)
-
 var defaultTrustedCIDRs = []*net.IPNet{
 	{ // 0.0.0.0/0 (IPv4)
 		IP:   net.IP{0x0, 0x0, 0x0, 0x0},
@@ -178,7 +173,7 @@ func New() *Engine {
 		MaxMultipartMemory:     defaultMultipartMemory,
 		HTMLTemplates:          render.NewHTMLTemplates(),
 		Validator:              validate.NewStructValidator(),
-		Logger:                 log.Default(),
+		Logger:                 log.GetLogger("XIN"),
 		trees:                  make(methodTrees, 0, 9),
 		secureJSONPrefix:       "while(1);",
 		trustedProxies:         []string{"0.0.0.0/0"},
@@ -202,7 +197,7 @@ func Default() *Engine {
 func (engine *Engine) allocateContext() *Context {
 	v := make(Params, 0, engine.maxParams)
 	skippedNodes := make([]skippedNode, 0, engine.maxSections)
-	return &Context{engine: engine, params: &v, skippedNodes: &skippedNodes}
+	return &Context{engine: engine, params: &v, skippedNodes: &skippedNodes, Logger: engine.Logger.GetLogger("XINC")}
 }
 
 // SecureJSONPrefix sets the secureJSONPrefix used in Context.SecureJSON.
@@ -487,29 +482,19 @@ func (engine *Engine) handleHTTPRequest(c *Context) {
 			}
 			if value := tree.root.getValue(rPath, nil, c.skippedNodes, unescape); value.handlers != nil {
 				c.handlers = engine.allNoMethod
-				serveError(c, http.StatusMethodNotAllowed, default405Body)
+				serveError(c, http.StatusMethodNotAllowed)
 				return
 			}
 		}
 	}
 	c.handlers = engine.allNoRoute
-	serveError(c, http.StatusNotFound, default404Body)
+	serveError(c, http.StatusNotFound)
 }
 
-var mimePlain = []string{MIMEPlain}
-
-func serveError(c *Context, code int, defaultMessage []byte) {
+func serveError(c *Context, code int) {
 	c.writermem.status = code
 	c.Next()
 	if c.writermem.Written() {
-		return
-	}
-	if c.writermem.Status() == code {
-		c.writermem.Header()["Content-Type"] = mimePlain
-		_, err := c.Writer.Write(defaultMessage)
-		if err != nil {
-			c.Logger().Warnf("cannot write message to writer during serve error: %v", err)
-		}
 		return
 	}
 	c.writermem.WriteHeaderNow()
@@ -550,7 +535,7 @@ func redirectRequest(c *Context) {
 		code = http.StatusTemporaryRedirect
 	}
 
-	c.Logger().Debugf("redirect request %d: %s --> %s", code, rPath, rURL)
+	c.Logger.Debugf("redirect request %d: %s --> %s", code, rPath, rURL)
 	http.Redirect(c.Writer, req, rURL, code)
 	c.writermem.WriteHeaderNow()
 }

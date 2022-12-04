@@ -74,7 +74,7 @@ type Context struct {
 	sameSite http.SameSite
 
 	// Logger
-	logger log.Logger
+	Logger log.Logger
 }
 
 /************************************/
@@ -97,9 +97,7 @@ func (c *Context) reset() {
 	*c.params = (*c.params)[:0]
 	*c.skippedNodes = (*c.skippedNodes)[:0]
 
-	if c.logger != nil {
-		c.logger.SetProps(nil)
-	}
+	c.Logger.SetProps(nil)
 }
 
 // Copy returns a copy of the current context that can be safely used outside the request's scope.
@@ -110,8 +108,8 @@ func (c *Context) Copy() *Context {
 		Request:   c.Request,
 		Params:    c.Params,
 		engine:    c.engine,
-		logger:    c.logger,
 		Locale:    c.Locale,
+		Logger:    c.Logger,
 	}
 	cp.writermem.ResponseWriter = nil
 	cp.Writer = &cp.writermem
@@ -125,14 +123,6 @@ func (c *Context) Copy() *Context {
 	copy(paramCopy, cp.Params)
 	cp.Params = paramCopy
 	return &cp
-}
-
-// Logger get context logger
-func (c *Context) Logger() log.Logger {
-	if c.logger == nil {
-		c.logger = c.engine.Logger.GetLogger("XINC")
-	}
-	return c.logger
 }
 
 // HandlerName returns the main handler's name. For example if the handler is "handleGetUsers()",
@@ -509,7 +499,7 @@ func (c *Context) initFormCache() {
 		req := c.Request
 		if err := req.ParseMultipartForm(c.engine.MaxMultipartMemory); err != nil {
 			if !errors.Is(err, http.ErrNotMultipart) {
-				c.Logger().Warnf("error on parse multipart form array: %v", err)
+				c.Logger.Warnf("error on parse multipart form array: %v", err)
 			}
 		}
 		c.formCache = req.PostForm

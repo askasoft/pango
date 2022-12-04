@@ -34,13 +34,13 @@ func Recovery() HandlerFunc {
 				// Check for a broken connection, as it is not really a
 				// condition that warrants a panic stack trace.
 				if IsBrokenPipeError(err) {
-					c.Logger().Debug("Abort: %v", err)
+					c.Logger.Debug("Abort: %v", err)
 					// If the connection is dead, we can't write a status to it.
 					c.Abort()
 					return
 				}
 
-				c.Logger().Errorf("Panic: %v", err)
+				c.Logger.Errorf("Panic: %v", err)
 				c.AbortWithStatus(http.StatusInternalServerError)
 			}
 		}()

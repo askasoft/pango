@@ -28,7 +28,6 @@ type Sections = cog.LinkedHashMap[string, *Section]
 type Ini struct {
 	sections Sections // Parsed sections
 	EOL      string   // End of Line
-	Multiple bool     // Multiple entry with same key
 }
 
 // NewIni create a Ini
@@ -158,6 +157,11 @@ func (ini *Ini) esection(name string) *Section {
 	return emptySection
 }
 
+// Add add a key/value entry to the section sec
+func (ini *Ini) Add(sec, key, value string, comments ...string) *Entry {
+	return ini.Section(sec).Add(key, value, comments...)
+}
+
 // Set set a key/value entry to the section sec
 func (ini *Ini) Set(sec, key, value string, comments ...string) *Entry {
 	return ini.Section(sec).Set(key, value, comments...)
@@ -233,33 +237,40 @@ func (ini *Ini) Merge(src *Ini) {
 }
 
 // LoadFile load INI from file
-func (ini *Ini) LoadFile(path string) error {
+// if multiple = true, allow multiple entry with same key
+func (ini *Ini) LoadFile(path string, multiple ...bool) error {
 	f, err := os.Open(path)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
-	return ini.LoadData(f)
+	return ini.LoadData(f, multiple...)
 }
 
 // LoadFileFS load INI from file
-func (ini *Ini) LoadFileFS(fsys fs.FS, path string) error {
+// if multiple = true, allow multiple entry with same key
+func (ini *Ini) LoadFileFS(fsys fs.FS, path string, multiple ...bool) error {
 	f, err := fsys.Open(path)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
-	return ini.LoadData(f)
+	return ini.LoadData(f, multiple...)
 }
 
 // LoadData load INI from io.Reader
-func (ini *Ini) LoadData(r io.Reader) (err error) {
+// if multiple = true, allow multiple entry with same key
+func (ini *Ini) LoadData(r io.Reader, multiple ...bool) (err error) {
 	if r, err = iox.SkipBOM(r); err != nil {
 		return err
 	}
 
+	multi := false
+	if len(multiple) > 0 {
+		multi = multiple[0]
+	}
 	lineContinue := false         // line continue flag
 	section := ini.GetSection("") // last section
 	var comments []string         // last comments
@@ -373,7 +384,7 @@ func (ini *Ini) LoadData(r io.Reader) (err error) {
 			return err
 		}
 
-		if ini.Multiple {
+		if multi {
 			section.Add(k, s, comments...)
 		} else {
 			section.Set(k, s, comments...)

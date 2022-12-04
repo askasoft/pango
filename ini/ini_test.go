@@ -30,10 +30,9 @@ func testLoadFile(t *testing.T, fsrc, fexp, fout string) {
 
 	ini := NewIni()
 	ini.EOL = iox.CRLF
-	ini.Multiple = true
 
 	// load
-	if ini.LoadFile(fsrc) != nil {
+	if ini.LoadFile(fsrc, true) != nil {
 		t.Errorf("ini.LoadFile(%q) != nil", fsrc)
 	}
 
@@ -185,15 +184,13 @@ func TestIniMerge(t *testing.T) {
 
 	i1 := NewIni()
 	i1.EOL = iox.CRLF
-	i1.Multiple = true
-	if err := i1.LoadFile(f1); err != nil {
+	if err := i1.LoadFile(f1, true); err != nil {
 		t.Fatalf(`Failed to load %s: %v`, f1, err)
 	}
 
 	i2 := NewIni()
 	i2.EOL = iox.CRLF
-	i2.Multiple = true
-	if err := i2.LoadFile(f2); err != nil {
+	if err := i2.LoadFile(f2, true); err != nil {
 		t.Fatalf(`Failed to load %s: %v`, f2, err)
 	}
 

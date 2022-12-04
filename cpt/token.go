@@ -2,7 +2,6 @@ package cpt
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -10,14 +9,13 @@ import (
 	"github.com/pandafw/pango/str"
 )
 
-const (
-	SaltLength      = 16
-	SecretLength    = 32
-	TimestampLength = 16
-	TokenLength     = SaltLength + SecretLength + TimestampLength
-)
+const TimestampLength = 8
 
-var SecretChars = str.LetterNumbers
+var (
+	SaltLength   = 8
+	SecretLength = 16
+	SecretChars  = str.LetterNumbers
+)
 
 var (
 	ErrTokenLength    = errors.New("invalid token length")
@@ -44,7 +42,8 @@ func NewToken() *Token {
 }
 
 func ParseToken(token string) (*Token, error) {
-	if len(token) != TokenLength {
+	tokenLength := SaltLength + SecretLength + TimestampLength
+	if len(token) != tokenLength {
 		return nil, ErrTokenLength
 	}
 
@@ -53,7 +52,7 @@ func ParseToken(token string) (*Token, error) {
 	t.Salt = token[:SaltLength]
 	t.Secret = Unsalt(token[SaltLength:SaltLength+SecretLength], t.Salt)
 
-	s := Unsalt(token[TokenLength-TimestampLength:], t.Salt)
+	s := Unsalt(token[tokenLength-TimestampLength:], t.Salt)
 	ts, err := strconv.ParseInt(s, 16, 64)
 	if err != nil {
 		return nil, ErrTokenTimestamp
@@ -73,7 +72,7 @@ func (t *Token) saltSecret() string {
 }
 
 func (t *Token) saltTimestamp() string {
-	s := fmt.Sprintf("%016X", t.Timestamp.Unix())
+	s := str.PadLeftByte(strconv.FormatInt(t.Timestamp.Unix(), 16), TimestampLength, '0')
 	return Salt(s, t.Salt)
 }
 

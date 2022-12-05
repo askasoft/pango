@@ -24,7 +24,7 @@ func TestRandLetters(t *testing.T) {
 
 func TestRandString(t *testing.T) {
 	for i := 10; i < 100; i++ {
-		testRandString(t, "RandString", func(z int) string { return RandString(z, "") }, i, LetterNumberSymbols)
+		testRandString(t, "RandString", func(z int) string { return RandString(z) }, i, LetterNumberSymbols)
 	}
 }
 

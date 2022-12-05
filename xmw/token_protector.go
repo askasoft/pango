@@ -86,12 +86,12 @@ func (tp *TokenProtector) validate(c *xin.Context) bool {
 	}
 	c.Logger.Tracef("Request token: %v", rt)
 
-	if st.Secret != rt.Secret {
-		c.Logger.Warnf("Invalid token secret %q, want %q", rt.Secret, st.Secret)
+	if st.Secret() != rt.Secret() {
+		c.Logger.Warnf("Invalid token secret %q, want %q", rt.Secret(), st.Secret())
 		return false
 	}
 
-	if tp.Expires > 0 && rt.Timestamp.Add(tp.Expires).Before(time.Now()) {
+	if tp.Expires > 0 && rt.Timestamp().Add(tp.Expires).Before(time.Now()) {
 		c.Logger.Warnf("Request token (%v) is expired for %v", rt, tp.Expires)
 		return false
 	}
@@ -171,7 +171,7 @@ func (tp *TokenProtector) RefreshToken(c *xin.Context) string {
 		t.Refresh()
 	}
 
-	ts, err := tp.Cryptor.EncryptString(t.Token)
+	ts, err := tp.Cryptor.EncryptString(t.Token())
 	if err == nil {
 		c.SetCookie(tp.CookieName, ts, int(tp.CookieMaxAge.Seconds()), tp.CookiePath, tp.CookieDomain, tp.CookieSecure, tp.CookieHttpOnly)
 	} else {

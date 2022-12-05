@@ -2,19 +2,15 @@ package cpt
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/pandafw/pango/str"
 )
 
-const TimestampLength = 8
-
-var (
-	SaltLength   = 8
-	SecretLength = 16
-	SecretChars  = str.LetterNumbers
+const (
+	SecretChars = str.Base64URL
 )
 
 var (
@@ -22,92 +18,99 @@ var (
 	ErrTokenTimestamp = errors.New("invalid token timestamp")
 )
 
-type Token struct {
-	Token     string
-	Secret    string
-	Salt      string
-	Timestamp time.Time
-}
+var timestampLength = 16
 
-func (t *Token) String() string {
-	return t.Secret + " " + t.Timestamp.Format("2006-01-02T15:04:05Z")
+var tokener = NewTokener(8, 16)
+
+func NewTokener(saltLength, secretLength int) *Tokener {
+	return &Tokener{
+		saltLength:   saltLength,
+		secretLength: secretLength,
+	}
 }
 
 func NewToken() *Token {
+	return tokener.NewToken()
+}
+
+func ParseToken(token string) (t *Token, err error) {
+	return tokener.ParseToken(token)
+}
+
+type Tokener struct {
+	saltLength   int
+	secretLength int
+}
+
+func (tr *Tokener) NewToken(secret ...string) *Token {
 	t := &Token{
-		Secret: str.RandString(SecretLength, SecretChars),
+		salt: str.RepeatByte(' ', tr.saltLength),
+	}
+	if len(secret) > 0 {
+		t.secret = secret[0]
+	} else {
+		t.secret = str.RandString(tr.secretLength, SecretChars)
 	}
 	t.Refresh()
 	return t
 }
 
-func ParseToken(token string) (*Token, error) {
-	tokenLength := SaltLength + SecretLength + TimestampLength
-	if len(token) != tokenLength {
+func (tr *Tokener) ParseToken(token string) (*Token, error) {
+	if len(token) <= tr.saltLength+tr.secretLength {
 		return nil, ErrTokenLength
 	}
 
-	t := &Token{Token: token}
+	t := &Token{
+		token: token,
+		salt:  token[:tr.saltLength],
+	}
 
-	t.Salt = token[:SaltLength]
-	t.Secret = Unsalt(token[SaltLength:SaltLength+SecretLength], t.Salt)
-
-	s := Unsalt(token[tokenLength-TimestampLength:], t.Salt)
-	ts, err := strconv.ParseInt(s, 16, 64)
+	ts := t.token[tr.saltLength : tr.saltLength+timestampLength]
+	ts = Unsalt(SecretChars, t.salt, ts)
+	tp, err := strconv.ParseInt(ts, 16, 64)
 	if err != nil {
 		return nil, ErrTokenTimestamp
 	}
-	t.Timestamp = time.Unix(ts, 0)
+	t.timestamp = time.Unix(tp, 0)
+
+	t.secret = t.token[tr.saltLength+timestampLength:]
+	t.secret = Unsalt(SecretChars, t.salt, t.secret)
 	return t, nil
 }
 
+type Token struct {
+	salt      string
+	timestamp time.Time
+	secret    string
+	token     string
+}
+
+func (t *Token) Salt() string {
+	return t.salt
+}
+
+func (t *Token) Timestamp() time.Time {
+	return t.timestamp
+}
+
+func (t *Token) Secret() string {
+	return t.secret
+}
+
+func (t *Token) Token() string {
+	return t.token
+}
+
+func (t *Token) String() string {
+	return t.timestamp.Format("2006-01-02T15:04:05Z") + " " + t.secret
+}
+
 func (t *Token) Refresh() {
-	t.Salt = str.RandString(SaltLength, SecretChars)
-	t.Timestamp = time.Now()
-	t.Token = t.Salt + t.saltSecret() + t.saltTimestamp()
-}
+	t.salt = str.RandString(len(t.salt), SecretChars)
 
-func (t *Token) saltSecret() string {
-	return Salt(t.Secret, t.Salt)
-}
-
-func (t *Token) saltTimestamp() string {
-	s := str.PadLeftByte(strconv.FormatInt(t.Timestamp.Unix(), 16), TimestampLength, '0')
-	return Salt(s, t.Salt)
-}
-
-func getByte(src string, i int) byte {
-	size := len(src)
-	if i < 0 {
-		i = (i % size) + size
-	} else if i >= size {
-		i %= size
-	}
-	return src[i]
-}
-
-func Salt(src, salt string) string {
-	size := len(src)
-
-	salted := &strings.Builder{}
-	salted.Grow(size)
-	for i := 0; i < size; i++ {
-		x := strings.IndexByte(SecretChars, getByte(src, i))
-		y := strings.IndexByte(SecretChars, getByte(salt, i))
-		salted.WriteByte(getByte(SecretChars, x+y))
-	}
-
-	return salted.String()
-}
-
-func Unsalt(src, salt string) string {
-	size := len(src)
-
-	unsalted := &strings.Builder{}
-	for i := 0; i < size; i++ {
-		x := strings.IndexByte(SecretChars, getByte(src, i))
-		y := strings.IndexByte(SecretChars, getByte(salt, i))
-		unsalted.WriteByte(getByte(SecretChars, x-y))
-	}
-	return unsalted.String()
+	t.timestamp = time.Now()
+	ts := fmt.Sprintf("%016x", t.timestamp.Unix())
+	st := Salt(SecretChars, t.salt, ts)
+	ss := Salt(SecretChars, t.salt, t.secret)
+	t.token = t.salt + st + ss
 }

@@ -2,39 +2,23 @@ package cpt
 
 import "testing"
 
-func TestTokenSalt(t *testing.T) {
-	for i := 0; i < 100; i++ {
-		token := NewToken()
-
-		salted := Salt(token.Secret, token.Salt)
-		if len(token.Secret) != len(salted) {
-			t.Fatalf("[%d] len(secret)=%d, len(salted)=%d", i, len(token.Secret), len(salted))
-		}
-
-		unsalted := Unsalt(salted, token.Salt)
-		if token.Secret != unsalted {
-			t.Fatalf("[%d] secret = %q, want %q", i, token.Secret, unsalted)
-		}
-	}
-}
-
 func TestTokenParse(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		t1 := NewToken()
 
-		t2, err := ParseToken(t1.Token)
+		t2, err := ParseToken(t1.token)
 		if err != nil {
-			t.Fatalf("[%d] ParseToken(%q)=%v", i, t1.Token, err)
+			t.Fatalf("[%d] ParseToken(%q)=%v", i, t1.token, err)
 		}
 
-		if t1.Secret != t2.Secret {
-			t.Fatalf("[%d] t1.Secret = %q, t2.Secret = %q", i, t1.Secret, t2.Secret)
+		if t1.salt != t2.salt {
+			t.Fatalf("[%d] t1.Salt = %q, t2.Salt = %q", i, t1.salt, t2.salt)
 		}
-		if t1.Salt != t2.Salt {
-			t.Fatalf("[%d] t1.Salt = %q, t2.Salt = %q", i, t1.Salt, t2.Salt)
+		if t1.timestamp.Unix() != t2.timestamp.Unix() {
+			t.Fatalf("[%d] t1.Timestamp = %d, t2.Timestamp = %d", i, t1.timestamp.Unix(), t2.timestamp.Unix())
 		}
-		if t1.Timestamp.Unix() != t2.Timestamp.Unix() {
-			t.Fatalf("[%d] t1.Timestamp = %d, t2.Timestamp = %d", i, t1.Timestamp.Unix(), t2.Timestamp.Unix())
+		if t1.secret != t2.secret {
+			t.Fatalf("[%d] t1.Secret = %q, t2.Secret = %q", i, t1.secret, t2.secret)
 		}
 	}
 }

@@ -1264,7 +1264,6 @@ func TestContextAbortWithError(t *testing.T) {
 func TestContextClientIP(t *testing.T) {
 	c, _ := CreateTestContext(httptest.NewRecorder())
 	c.Request, _ = http.NewRequest("POST", "/", nil)
-	c.engine.trustedCIDRs, _ = c.engine.prepareTrustedCIDRs()
 	resetContextForClientIPTests(c)
 
 	// Legacy tests (validating that the defaults don't break the
@@ -1279,7 +1278,7 @@ func TestContextClientIP(t *testing.T) {
 
 	c.Request.Header.Del("X-Forwarded-For")
 	c.Request.Header.Del("X-Real-IP")
-	c.engine.TrustedPlatform = PlatformGoogleAppEngine
+	c.engine.TrustedIPHeader = PlatformGoogleAppEngine
 	assert.Equal(t, "50.50.50.50", c.ClientIP())
 
 	c.Request.Header.Del("X-Appengine-Remote-Addr")
@@ -1323,10 +1322,12 @@ func TestContextClientIP(t *testing.T) {
 	assert.Equal(t, "20.20.20.20", c.ClientIP())
 
 	// Use hostname that resolves to all the proxies
+	_ = c.engine.SetTrustedProxies(nil)
 	_ = c.engine.SetTrustedProxies([]string{"foo"})
 	assert.Equal(t, "40.40.40.40", c.ClientIP())
 
 	// Use hostname that returns an error
+	_ = c.engine.SetTrustedProxies(nil)
 	_ = c.engine.SetTrustedProxies([]string{"bar"})
 	assert.Equal(t, "40.40.40.40", c.ClientIP())
 
@@ -1338,6 +1339,7 @@ func TestContextClientIP(t *testing.T) {
 	// Result from LookupHost has non-IP element. This should never
 	// happen, but we should test it to make sure we handle it
 	// gracefully.
+	_ = c.engine.SetTrustedProxies(nil)
 	_ = c.engine.SetTrustedProxies([]string{"baz"})
 	c.Request.Header.Set("X-Forwarded-For", " 30.30.30.30 ")
 	assert.Equal(t, "40.40.40.40", c.ClientIP())
@@ -1348,35 +1350,35 @@ func TestContextClientIP(t *testing.T) {
 	assert.Equal(t, "10.10.10.10", c.ClientIP())
 
 	c.engine.RemoteIPHeaders = []string{}
-	c.engine.TrustedPlatform = PlatformGoogleAppEngine
+	c.engine.TrustedIPHeader = PlatformGoogleAppEngine
 	assert.Equal(t, "50.50.50.50", c.ClientIP())
 
-	// Use custom TrustedPlatform header
-	c.engine.TrustedPlatform = "X-CDN-IP"
+	// Use custom TrustedIPHeader header
+	c.engine.TrustedIPHeader = "X-CDN-IP"
 	c.Request.Header.Set("X-CDN-IP", "80.80.80.80")
 	assert.Equal(t, "80.80.80.80", c.ClientIP())
 	// wrong header
-	c.engine.TrustedPlatform = "X-Wrong-Header"
+	c.engine.TrustedIPHeader = "X-Wrong-Header"
 	assert.Equal(t, "40.40.40.40", c.ClientIP())
 
 	c.Request.Header.Del("X-CDN-IP")
-	// TrustedPlatform is empty
-	c.engine.TrustedPlatform = ""
+	// TrustedIPHeader is empty
+	c.engine.TrustedIPHeader = ""
 	assert.Equal(t, "40.40.40.40", c.ClientIP())
 
 	// appengine
-	c.engine.TrustedPlatform = PlatformGoogleAppEngine
+	c.engine.TrustedIPHeader = PlatformGoogleAppEngine
 	c.Request.Header.Del("X-Appengine-Remote-Addr")
 	assert.Equal(t, "40.40.40.40", c.ClientIP())
 
 	// cloudflare
-	c.engine.TrustedPlatform = PlatformCloudflare
+	c.engine.TrustedIPHeader = PlatformCloudflare
 	assert.Equal(t, "60.60.60.60", c.ClientIP())
 
 	c.Request.Header.Del("CF-Connecting-IP")
 	assert.Equal(t, "40.40.40.40", c.ClientIP())
 
-	c.engine.TrustedPlatform = ""
+	c.engine.TrustedIPHeader = ""
 
 	// no port
 	c.Request.RemoteAddr = "50.50.50.50"
@@ -1389,8 +1391,8 @@ func resetContextForClientIPTests(c *Context) {
 	c.Request.Header.Set("X-Appengine-Remote-Addr", "50.50.50.50")
 	c.Request.Header.Set("CF-Connecting-IP", "60.60.60.60")
 	c.Request.RemoteAddr = "  40.40.40.40:42123 "
-	c.engine.TrustedPlatform = ""
-	c.engine.trustedCIDRs = defaultTrustedCIDRs
+	c.engine.TrustedIPHeader = ""
+	c.engine.SetTrustedProxies(defaultTrustedProxies)
 }
 
 func TestContextContentType(t *testing.T) {

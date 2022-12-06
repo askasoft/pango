@@ -723,9 +723,9 @@ func (c *Context) BindBodyWith(obj any, bb binding.BodyBinding) (err error) {
 // the remote IP (coming from Request.RemoteAddr) is returned.
 func (c *Context) ClientIP() string {
 	// Check if we're running on a trusted platform, continue running backwards if error
-	if c.engine.TrustedPlatform != "" {
+	if c.engine.TrustedIPHeader != "" {
 		// Developers can define their own header of Trusted Platform or use predefined constants
-		if addr := c.requestHeader(c.engine.TrustedPlatform); addr != "" {
+		if addr := c.requestHeader(c.engine.TrustedIPHeader); addr != "" {
 			return addr
 		}
 	}
@@ -738,8 +738,7 @@ func (c *Context) ClientIP() string {
 		return ""
 	}
 
-	trusted := c.engine.isTrustedProxy(remoteIP)
-	if trusted && c.engine.ForwardedByClientIP && c.engine.RemoteIPHeaders != nil {
+	if len(c.engine.RemoteIPHeaders) > 0 && c.engine.isTrustedProxy(remoteIP) {
 		for _, headerName := range c.engine.RemoteIPHeaders {
 			ip, valid := c.engine.validateClientIP(c.requestHeader(headerName))
 			if valid {

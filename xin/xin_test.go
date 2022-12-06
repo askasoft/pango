@@ -34,10 +34,6 @@ func testNewHttpServer(engine *Engine) *http.Server {
 // It is a shortcut for http.ListenAndServe(addr, router)
 // Note: this method will block the calling goroutine indefinitely unless an error happens.
 func testRun(engine *Engine, address string) (err error) {
-	if engine.isUnsafeTrustedProxies() {
-		engine.Logger.Warn("You trusted all proxies, this is NOT safe. We recommend you to set a value.")
-	}
-
 	engine.Logger.Infof("Listening and serving HTTP on %s", address)
 	server := testNewHttpServer(engine)
 	server.Addr = address
@@ -54,8 +50,6 @@ func testRun(engine *Engine, address string) (err error) {
 func testRunTLS(engine *Engine, address, certFile, keyFile string) (err error) {
 	engine.Logger.Infof("Listening and serving HTTPS on %s\n", address)
 
-	engine.warnUnsafeTrustedProxies()
-
 	server := testNewHttpServer(engine)
 	server.Addr = address
 	err = server.ListenAndServeTLS(certFile, keyFile)
@@ -70,8 +64,6 @@ func testRunTLS(engine *Engine, address, certFile, keyFile string) (err error) {
 // Note: this method will block the calling goroutine indefinitely unless an error happens.
 func testRunUnix(engine *Engine, file string) (err error) {
 	engine.Logger.Infof("Listening and serving HTTP on unix:/%s", file)
-
-	engine.warnUnsafeTrustedProxies()
 
 	var listener net.Listener
 	listener, err = net.Listen("unix", file)
@@ -96,8 +88,6 @@ func testRunUnix(engine *Engine, file string) (err error) {
 func testRunFd(engine *Engine, fd int) (err error) {
 	engine.Logger.Infof("Listening and serving HTTP on fd@%d", fd)
 
-	engine.warnUnsafeTrustedProxies()
-
 	var listener net.Listener
 
 	f := os.NewFile(uintptr(fd), fmt.Sprintf("fd@%d", fd))
@@ -119,8 +109,6 @@ func testRunFd(engine *Engine, fd int) (err error) {
 // through the specified net.Listener
 func testRunListener(engine *Engine, listener net.Listener) (err error) {
 	engine.Logger.Infof("Listening and serving HTTP on listener what's bind with address@%s", listener.Addr())
-
-	engine.warnUnsafeTrustedProxies()
 
 	err = http.Serve(listener, engine)
 	if err != nil {
@@ -529,7 +517,7 @@ func TestPrepareTrustedCIRDsWith(t *testing.T) {
 		err := r.SetTrustedProxies([]string{"0.0.0.0/0"})
 
 		assert.NoError(t, err)
-		assert.Equal(t, expectedTrustedCIDRs, r.trustedCIDRs)
+		assert.Equal(t, expectedTrustedCIDRs, r.trustedProxies)
 	}
 
 	// invalid ipv4 cidr
@@ -546,7 +534,7 @@ func TestPrepareTrustedCIRDsWith(t *testing.T) {
 		err := r.SetTrustedProxies([]string{"192.168.1.33"})
 
 		assert.NoError(t, err)
-		assert.Equal(t, expectedTrustedCIDRs, r.trustedCIDRs)
+		assert.Equal(t, expectedTrustedCIDRs, r.trustedProxies)
 	}
 
 	// invalid ipv4 address
@@ -562,7 +550,7 @@ func TestPrepareTrustedCIRDsWith(t *testing.T) {
 		err := r.SetTrustedProxies([]string{"2002:0000:0000:1234:abcd:ffff:c0a8:0101"})
 
 		assert.NoError(t, err)
-		assert.Equal(t, expectedTrustedCIDRs, r.trustedCIDRs)
+		assert.Equal(t, expectedTrustedCIDRs, r.trustedProxies)
 	}
 
 	// invalid ipv6 address
@@ -578,7 +566,7 @@ func TestPrepareTrustedCIRDsWith(t *testing.T) {
 		err := r.SetTrustedProxies([]string{"::/0"})
 
 		assert.NoError(t, err)
-		assert.Equal(t, expectedTrustedCIDRs, r.trustedCIDRs)
+		assert.Equal(t, expectedTrustedCIDRs, r.trustedProxies)
 	}
 
 	// invalid ipv6 cidr
@@ -602,7 +590,7 @@ func TestPrepareTrustedCIRDsWith(t *testing.T) {
 		})
 
 		assert.NoError(t, err)
-		assert.Equal(t, expectedTrustedCIDRs, r.trustedCIDRs)
+		assert.Equal(t, expectedTrustedCIDRs, r.trustedProxies)
 	}
 
 	// invalid combination
@@ -620,7 +608,7 @@ func TestPrepareTrustedCIRDsWith(t *testing.T) {
 	{
 		err := r.SetTrustedProxies(nil)
 
-		assert.Nil(t, r.trustedCIDRs)
+		assert.Empty(t, r.trustedProxies)
 		assert.Nil(t, err)
 	}
 }

@@ -4,27 +4,18 @@ import (
 	"net"
 	"net/http"
 	"path"
-	"strings"
 	"sync"
 
 	"github.com/pandafw/pango/bye"
 	"github.com/pandafw/pango/log"
+	"github.com/pandafw/pango/str"
 	"github.com/pandafw/pango/xin/render"
 	"github.com/pandafw/pango/xin/validate"
 )
 
 const defaultMultipartMemory = 32 << 20 // 32 MB
 
-var defaultTrustedCIDRs = []*net.IPNet{
-	{ // 0.0.0.0/0 (IPv4)
-		IP:   net.IP{0x0, 0x0, 0x0, 0x0},
-		Mask: net.IPMask{0x0, 0x0, 0x0, 0x0},
-	},
-	{ // ::/0 (IPv6)
-		IP:   net.IP{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0},
-		Mask: net.IPMask{0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0},
-	},
-}
+var defaultTrustedProxies = []string{"0.0.0.0/0", "::/0"}
 
 // HandlerFunc defines the handler used by xin middleware as return value.
 type HandlerFunc func(*Context)
@@ -92,12 +83,6 @@ type Engine struct {
 	// handler.
 	HandleMethodNotAllowed bool
 
-	// ForwardedByClientIP if enabled, client IP will be parsed from the request's headers that
-	// match those stored at `(*xin.Engine).RemoteIPHeaders`. If no IP was
-	// fetched, it falls back to the IP obtained from
-	// `(*xin.Context).Request.RemoteAddr`.
-	ForwardedByClientIP bool
-
 	// UseRawPath if enabled, the url.RawPath will be used to find parameters.
 	UseRawPath bool
 
@@ -111,14 +96,13 @@ type Engine struct {
 	RemoveExtraSlash bool
 
 	// RemoteIPHeaders list of headers used to obtain the client IP when
-	// `(*xin.Engine).ForwardedByClientIP` is `true` and
 	// `(*xin.Context).Request.RemoteAddr` is matched by at least one of the
 	// network origins of list defined by `(*xin.Engine).SetTrustedProxies()`.
 	RemoteIPHeaders []string
 
-	// TrustedPlatform if set to a constant of value xin.Platform*, trusts the headers set by
-	// that platform, for example to determine the client IP
-	TrustedPlatform string
+	// TrustedIPHeader if set to a constant of value xin.Platform*, trusts the headers set by
+	// that platform to determine the client IP
+	TrustedIPHeader string
 
 	// MaxMultipartMemory value of 'maxMemory' param that is given to http.Request's ParseMultipartForm
 	// method call.
@@ -142,8 +126,7 @@ type Engine struct {
 	trees            methodTrees
 	maxParams        uint16
 	maxSections      uint16
-	trustedProxies   []string
-	trustedCIDRs     []*net.IPNet
+	trustedProxies   []*net.IPNet
 }
 
 // New returns a new blank Engine instance without any middleware attached.
@@ -164,9 +147,8 @@ func New() *Engine {
 		RedirectTrailingSlash:  true,
 		RedirectFixedPath:      false,
 		HandleMethodNotAllowed: false,
-		ForwardedByClientIP:    true,
 		RemoteIPHeaders:        []string{"X-Forwarded-For", "X-Real-IP"},
-		TrustedPlatform:        "",
+		TrustedIPHeader:        "",
 		UseRawPath:             false,
 		RemoveExtraSlash:       false,
 		UnescapePathValues:     true,
@@ -176,13 +158,12 @@ func New() *Engine {
 		Logger:                 log.GetLogger("XIN"),
 		trees:                  make(methodTrees, 0, 9),
 		secureJSONPrefix:       "while(1);",
-		trustedProxies:         []string{"0.0.0.0/0"},
-		trustedCIDRs:           defaultTrustedCIDRs,
 	}
 	engine.RouterGroup.engine = engine
 	engine.pool.New = func() interface{} {
 		return engine.allocateContext()
 	}
+	engine.SetTrustedProxies(defaultTrustedProxies) //nolint: errcheck
 	return engine
 }
 
@@ -297,35 +278,6 @@ func iterate(path, method string, routes RoutesInfo, root *node) RoutesInfo {
 	return routes
 }
 
-func (engine *Engine) prepareTrustedCIDRs() ([]*net.IPNet, error) {
-	if engine.trustedProxies == nil {
-		return nil, nil
-	}
-
-	cidr := make([]*net.IPNet, 0, len(engine.trustedProxies))
-	for _, trustedProxy := range engine.trustedProxies {
-		if !strings.Contains(trustedProxy, "/") {
-			ip := parseIP(trustedProxy)
-			if ip == nil {
-				return cidr, &net.ParseError{Type: "IP address", Text: trustedProxy}
-			}
-
-			switch len(ip) {
-			case net.IPv4len:
-				trustedProxy += "/32"
-			case net.IPv6len:
-				trustedProxy += "/128"
-			}
-		}
-		_, cidrNet, err := net.ParseCIDR(trustedProxy)
-		if err != nil {
-			return cidr, err
-		}
-		cidr = append(cidr, cidrNet)
-	}
-	return cidr, nil
-}
-
 // SetTrustedProxies set a list of network origins (IPv4 addresses,
 // IPv4 CIDRs, IPv6 addresses or IPv6 CIDRs) from which to trust
 // request's headers that contain alternative client IP when
@@ -335,35 +287,36 @@ func (engine *Engine) prepareTrustedCIDRs() ([]*net.IPNet, error) {
 // Engine.SetTrustedProxies(nil), then Context.ClientIP() will
 // return the remote address directly.
 func (engine *Engine) SetTrustedProxies(trustedProxies []string) error {
-	engine.trustedProxies = trustedProxies
-	return engine.parseTrustedProxies()
-}
+	cidr := make([]*net.IPNet, 0, len(trustedProxies))
+	for _, trustedProxy := range trustedProxies {
+		if !str.ContainsByte(trustedProxy, '/') {
+			ip := parseIP(trustedProxy)
+			if ip == nil {
+				return &net.ParseError{Type: "IP address", Text: trustedProxy}
+			}
 
-// isUnsafeTrustedProxies checks if Engine.trustedCIDRs contains all IPs, it's not safe if it has (returns true)
-func (engine *Engine) isUnsafeTrustedProxies() bool {
-	return engine.isTrustedProxy(net.ParseIP("0.0.0.0")) || engine.isTrustedProxy(net.ParseIP("::"))
-}
+			switch len(ip) {
+			case net.IPv4len:
+				trustedProxy += "/32"
+			case net.IPv6len:
+				trustedProxy += "/128"
+			}
+		}
 
-// warnUnsafeTrustedProxies print warn message if isUnsafeTrustedProxies
-func (engine *Engine) warnUnsafeTrustedProxies() {
-	if engine.isUnsafeTrustedProxies() {
-		engine.Logger.Warn("You trusted all proxies, this is NOT safe. We recommend you to set a value.")
+		_, cidrNet, err := net.ParseCIDR(trustedProxy)
+		if err != nil {
+			return err
+		}
+		cidr = append(cidr, cidrNet)
 	}
+
+	engine.trustedProxies = cidr
+	return nil
 }
 
-// parseTrustedProxies parse Engine.trustedProxies to Engine.trustedCIDRs
-func (engine *Engine) parseTrustedProxies() error {
-	trustedCIDRs, err := engine.prepareTrustedCIDRs()
-	engine.trustedCIDRs = trustedCIDRs
-	return err
-}
-
-// isTrustedProxy will check whether the IP address is included in the trusted list according to Engine.trustedCIDRs
+// isTrustedProxy will check whether the IP address is included in the trusted list according to Engine.trustedProxies
 func (engine *Engine) isTrustedProxy(ip net.IP) bool {
-	if engine.trustedCIDRs == nil {
-		return false
-	}
-	for _, cidr := range engine.trustedCIDRs {
+	for _, cidr := range engine.trustedProxies {
 		if cidr.Contains(ip) {
 			return true
 		}
@@ -377,9 +330,9 @@ func (engine *Engine) validateClientIP(header string) (clientIP string, valid bo
 		return "", false
 	}
 
-	items := strings.Split(header, ",")
+	items := str.FieldsRune(header, ',')
 	for i := len(items) - 1; i >= 0; i-- {
-		ipStr := strings.TrimSpace(items[i])
+		ipStr := str.TrimSpace(items[i])
 		ip := net.ParseIP(ipStr)
 		if ip == nil {
 			break

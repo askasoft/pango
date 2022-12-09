@@ -43,8 +43,8 @@ func TestTicketAPIs(t *testing.T) {
 		Phone:       "09012345678",
 		Subject:     "test " + time.Now().String(),
 		Description: "description " + time.Now().String(),
-		Status:      StatusOpen,
-		Priority:    PriorityMedium,
+		Status:      TicketStatusOpen,
+		Priority:    TicketPriorityMedium,
 	}
 
 	ct, err := fd.CreateTicket(ot)

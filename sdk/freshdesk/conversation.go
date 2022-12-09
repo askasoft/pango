@@ -1,7 +1,5 @@
 package freshdesk
 
-import "io"
-
 type Conversation struct {
 	// ID of the conversation
 	ID int64 `json:"id,omitempty"`
@@ -59,10 +57,6 @@ func (c *Conversation) AddAttachment(path string, data ...[]byte) {
 
 func (c *Conversation) GetAttachments() []*Attachment {
 	return c.Attachments
-}
-
-func (c *Conversation) BuildRequest() (io.Reader, string, error) {
-	return buildAttachmentsRequest(c)
 }
 
 func (c *Conversation) Values() Values {

@@ -1,22 +1,33 @@
 package freshdesk
 
 const (
-	SourceEmail          = 1
-	SourceProtal         = 2
-	SourcePhone          = 3
-	SourceChat           = 7
-	SourceFeedbackWidget = 9
-	SourceOutboundEmail  = 10
+	TicketSourceEmail          = 1
+	TicketSourceProtal         = 2
+	TicketSourcePhone          = 3
+	TicketSourceChat           = 7
+	TicketSourceFeedbackWidget = 9
+	TicketSourceOutboundEmail  = 10
 
-	StatusOpen     = 2
-	StatusPending  = 3
-	StatusResolved = 4
-	StatusClosed   = 5
+	TicketStatusOpen     = 2
+	TicketStatusPending  = 3
+	TicketStatusResolved = 4
+	TicketStatusClosed   = 5
 
-	PriorityLow    = 1
-	PriorityMedium = 2
-	PriorityHigh   = 3
-	PriorityUrgent = 4
+	TicketPriorityLow    = 1
+	TicketPriorityMedium = 2
+	TicketPriorityHigh   = 3
+	TicketPriorityUrgent = 4
+
+	FolderVisibilityAllUsers                = 1
+	FolderVisibilityLoggedInUsers           = 2
+	FolderVisibilityAgents                  = 3
+	FolderVisibilitySelectedCompanies       = 4
+	FolderVisibilityBots                    = 5
+	FolderVisibilitySelectedContactSegments = 6
+	FolderVisibilitySelectedCompanySegments = 7
+
+	ArticleStatusDraft     = 1
+	ArticleStatusPublished = 2
 
 	OrderByCreatedAt = "created_at"
 	OrderByDueBy     = "due_by"

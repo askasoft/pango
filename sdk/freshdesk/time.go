@@ -1,7 +1,6 @@
 package freshdesk
 
 import (
-	"encoding/json"
 	"time"
 )
 
@@ -30,12 +29,4 @@ func (t *Time) UnmarshalJSON(data []byte) (err error) {
 
 	t.Time, err = time.Parse(jsonTimeFormat, str)
 	return
-}
-
-func toString(o any) string {
-	bs, err := json.MarshalIndent(o, "", "  ")
-	if err != nil {
-		return err.Error()
-	}
-	return string(bs)
 }

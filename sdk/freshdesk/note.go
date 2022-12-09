@@ -1,9 +1,5 @@
 package freshdesk
 
-import (
-	"io"
-)
-
 type Note struct {
 	// ID of the conversation
 	ID int64 `json:"id,omitempty"`
@@ -57,16 +53,12 @@ func (n *Note) GetAttachments() []*Attachment {
 	return n.Attachments
 }
 
-func (n *Note) BuildRequest() (io.Reader, string, error) {
-	return buildAttachmentsRequest(n)
-}
-
 func (n *Note) Values() Values {
 	vs := Values{}
 
 	vs.SetBool("incoming", n.Incoming)
 	vs.SetBool("private", n.Private)
-	vs.SetStrings("notify_emails[]", n.NotifyEmails)
+	vs.SetStrings("notify_emails", n.NotifyEmails)
 	vs.SetInt64("user_id", n.UserID)
 	vs.SetString("body", n.Body)
 

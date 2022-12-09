@@ -3,12 +3,23 @@ package freshdesk
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
+	"net/http"
 	"net/url"
 
+	"github.com/pandafw/pango/iox"
 	"github.com/pandafw/pango/net/httpx"
 	"github.com/pandafw/pango/num"
 )
+
+func toString(o any) string {
+	bs, err := json.MarshalIndent(o, "", "  ")
+	if err != nil {
+		return err.Error()
+	}
+	return string(bs)
+}
 
 type WithAttachments interface {
 	GetAttachments() []*Attachment
@@ -36,9 +47,18 @@ func (vs Values) SetString(name string, value string) {
 }
 
 func (vs Values) SetStrings(name string, value []string) {
+	name += "[]"
 	if len(value) > 0 {
 		for _, s := range value {
 			(url.Values)(vs).Add(name, s)
+		}
+	}
+}
+
+func (vs Values) SetMap(name string, value map[string]string) {
+	if len(value) > 0 {
+		for k, v := range value {
+			(url.Values)(vs).Add(fmt.Sprintf("%s[%s]", name, k), v)
 		}
 	}
 }
@@ -85,15 +105,16 @@ func addMultipartAttachments(mw *httpx.MultipartWriter, as []*Attachment) (err e
 	return
 }
 
+func buildRequest(a any) (io.Reader, string, error) {
+	if wa, ok := a.(WithAttachments); ok {
+		return buildAttachmentsRequest(wa)
+	}
+	return buildJsonRequest(a)
+}
+
 func buildAttachmentsRequest(wa WithAttachments) (io.Reader, string, error) {
 	if len(wa.GetAttachments()) == 0 {
-		body, err := json.Marshal(wa)
-		if err != nil {
-			return nil, "", err
-		}
-
-		buf := bytes.NewReader(body)
-		return buf, contentTypeJSON, nil
+		return buildJsonRequest(wa)
 	}
 
 	buf := &bytes.Buffer{}
@@ -112,4 +133,32 @@ func buildAttachmentsRequest(wa WithAttachments) (io.Reader, string, error) {
 	}
 
 	return buf, contentType, nil
+}
+
+func buildJsonRequest(a any) (io.Reader, string, error) {
+	body, err := json.Marshal(a)
+	if err != nil {
+		return nil, "", err
+	}
+
+	buf := bytes.NewReader(body)
+	return buf, contentTypeJSON, nil
+}
+
+func decodeResponse(res *http.Response, status int, obj any) error {
+	defer iox.DrainAndClose(res.Body)
+
+	decoder := json.NewDecoder(res.Body)
+	if res.StatusCode == status {
+		if obj != nil {
+			return decoder.Decode(obj)
+		}
+		return nil
+	}
+
+	er := &ErrorResult{}
+	if err := decoder.Decode(er); err != nil {
+		return err
+	}
+	return er
 }

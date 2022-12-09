@@ -1,9 +1,5 @@
 package freshdesk
 
-import (
-	"io"
-)
-
 type Reply struct {
 	// ID of the reply
 	ID int64 `json:"id,omitempty"`
@@ -51,17 +47,13 @@ func (r *Reply) GetAttachments() []*Attachment {
 	return r.Attachments
 }
 
-func (r *Reply) BuildRequest() (io.Reader, string, error) {
-	return buildAttachmentsRequest(r)
-}
-
 func (r *Reply) Values() Values {
 	vs := Values{}
 
 	vs.SetString("from_email", r.FromEmail)
 	vs.SetInt64("user_id", r.UserID)
-	vs.SetStrings("cc_emails[]", r.CcEmails)
-	vs.SetStrings("bcc_emails[]", r.BccEmails)
+	vs.SetStrings("cc_emails", r.CcEmails)
+	vs.SetStrings("bcc_emails", r.BccEmails)
 	vs.SetString("body", r.Body)
 
 	return vs

@@ -1,9 +1,5 @@
 package freshdesk
 
-import (
-	"io"
-)
-
 type Ticket struct {
 	// Parent Unique ID of the ticket
 	ParentID int64 `json:"parent_id,omitempty"`
@@ -135,10 +131,6 @@ func (t *Ticket) GetAttachments() []*Attachment {
 	return t.Attachments
 }
 
-func (t *Ticket) BuildRequest() (io.Reader, string, error) {
-	return buildAttachmentsRequest(t)
-}
-
 func (t *Ticket) Values() Values {
 	vs := Values{}
 
@@ -157,13 +149,13 @@ func (t *Ticket) Values() Values {
 	vs.SetInt("priority", t.Priority)
 	vs.SetString("description", t.Description)
 	vs.SetInt64("responder_id", t.ResponderID)
-	vs.SetStrings("cc_emails[]", t.CcEmails)
+	vs.SetStrings("cc_emails", t.CcEmails)
 	vs.SetTimePtr("due_by", t.DueBy)
 	vs.SetTimePtr("fr_due_by", t.FrDueBy)
 	vs.SetInt64("group_id", t.GroupID)
 	vs.SetInt64("product_id", t.ProductID)
 	vs.SetInt("source", t.Source)
-	vs.SetStrings("tags[]", t.Tags)
+	vs.SetStrings("tags", t.Tags)
 	vs.SetInt64("company_id", t.CompanyID)
 	vs.SetInt64("internal_agent_id", t.InternalAgentID)
 	vs.SetInt64("internal_group_id", t.InternalGroupID)

@@ -3,7 +3,7 @@ package xmw
 //nolint: gosec
 import (
 	"bytes"
-	"crypto/sha1"
+	"crypto/md5"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -15,7 +15,7 @@ import (
 	"github.com/pandafw/pango/xin"
 )
 
-const dumperDefaultTimeFormat = "2006-01-02T15:04:05.000"
+const dumpTimeFormat = "2006-01-02T15:04:05.000"
 
 // HTTPDumper dump http request and response
 type HTTPDumper struct {
@@ -81,11 +81,11 @@ const eol = "\r\n"
 func dumpRequest(w io.Writer, req *http.Request) string {
 	bs, _ := httputil.DumpRequest(req, true)
 
-	id := fmt.Sprintf("%x", sha1.Sum(bs)) //nolint: gosec
+	id := fmt.Sprintf("%x", md5.Sum(bs)) //nolint: gosec
 
 	bb := &bytes.Buffer{}
 
-	bb.WriteString(fmt.Sprintf(">>>>>>>> %s %s >>>>>>>>", time.Now().Format(dumperDefaultTimeFormat), id))
+	bb.WriteString(fmt.Sprintf(">>>>>>>> %s %s >>>>>>>>", time.Now().Format(dumpTimeFormat), id))
 	bb.WriteString(eol)
 	if len(bs) > 0 {
 		bb.Write(bs)
@@ -101,7 +101,7 @@ func dumpRequest(w io.Writer, req *http.Request) string {
 func dumpResponse(w io.Writer, id string, dw *dumpWriter) {
 	bb := &bytes.Buffer{}
 
-	bb.WriteString(fmt.Sprintf("<<<<<<<< %s %s <<<<<<<<", time.Now().Format(dumperDefaultTimeFormat), id))
+	bb.WriteString(fmt.Sprintf("<<<<<<<< %s %s <<<<<<<<", time.Now().Format(dumpTimeFormat), id))
 	bb.WriteString(eol)
 
 	dw.res.StatusCode = dw.ResponseWriter.Status()

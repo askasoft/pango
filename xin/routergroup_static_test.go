@@ -176,14 +176,14 @@ func TestRouterStaticFile(t *testing.T) {
 
 func TestRouterStaticFS_AppendPrefix(t *testing.T) {
 	r := Default()
-	r.StaticFS("", "/testdata", http.FS(testdata), "private")
+	r.StaticFS("", "/testdata", FS(testdata), "private")
 	testGetFile(t, r, "/root1.txt", "private")
 	testGetFile(t, r, "/files/file1.txt", "private")
 }
 
 func TestRouterStaticFS_AppendPrefix2(t *testing.T) {
 	r := Default()
-	r.StaticFS("/", "/testdata", http.FS(testdata), "private")
+	r.StaticFS("/", "/testdata", FS(testdata), "private")
 	testGetFile(t, r, "/root1.txt", "private")
 	testGetFile(t, r, "/files/file1.txt", "private")
 }
@@ -192,14 +192,14 @@ func TestRouterStaticFS_StripPrefix(t *testing.T) {
 	r := Default()
 	g := r.Group("/web")
 
-	g.StaticFS("/", "", http.FS(testdata), "private")
+	g.StaticFS("/", "", FS(testdata), "private")
 	testGetFile(t, r, "/web/testdata/root1.txt", "private")
 	testGetFile(t, r, "/web/testdata/files/file1.txt", "private")
 }
 
 func TestRouterStaticFS_URLReplace(t *testing.T) {
 	r := Default()
-	r.StaticFS("/data", "/testdata", http.FS(testdata), "private")
+	r.StaticFS("/data", "/testdata", FS(testdata), "private")
 	testGetFile(t, r, "/data/root1.txt", "private")
 	testGetFile(t, r, "/data/files/file1.txt", "private")
 }
@@ -207,14 +207,14 @@ func TestRouterStaticFS_URLReplace(t *testing.T) {
 func TestRouterStaticFS_URLReplace2(t *testing.T) {
 	r := Default()
 	g := r.Group("web")
-	g.StaticFS("/", "/testdata", http.FS(testdata), "private")
+	g.StaticFS("/", "/testdata", FS(testdata), "private")
 	testGetFile(t, r, "/web/root1.txt", "private")
 	testGetFile(t, r, "/web/files/file1.txt", "private")
 }
 
 func TestRouterStaticFSFile(t *testing.T) {
 	r := Default()
-	r.StaticFSFile("/root1.txt", "testdata/root1.txt", http.FS(testdata), "public")
+	r.StaticFSFile("/root1.txt", "testdata/root1.txt", FS(testdata), "public")
 	testGetFile(t, r, "/root1.txt", "public")
 }
 

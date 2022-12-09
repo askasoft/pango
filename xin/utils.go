@@ -3,6 +3,7 @@ package xin
 import (
 	"encoding/xml"
 	"io"
+	"io/fs"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -10,6 +11,9 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
+	"time"
+
+	"github.com/pandafw/pango/net/httpx"
 )
 
 // BindKey indicates a default bind key.
@@ -88,6 +92,26 @@ func SaveUploadedFile(file *multipart.FileHeader, dst string) error {
 	return err
 }
 
+// Dir returns a http.FileSystem that can be used by http.FileServer().
+// if browsable == true, then it works the same as http.Dir() otherwise it returns
+// a filesystem that prevents http.FileServer() to list the directory files.
+func Dir(root string, browsable ...bool) http.FileSystem {
+	return httpx.Dir(root, browsable...)
+}
+
+// FS returns a http.FileSystem that can be used by http.FileServer().
+// if browsable == true, then it works the same as http.FS() otherwise it returns
+// a filesystem that prevents http.FileServer() to list the directory files.
+func FS(fsys fs.FS, browsable ...bool) http.FileSystem {
+	return httpx.FS(fsys, browsable...)
+}
+
+// FixedModTimeFS returns a FileSystem with fixed ModTime
+func FixedModTimeFS(hfs http.FileSystem, mt time.Time) http.FileSystem {
+	return httpx.FixedModTimeFS(hfs, mt)
+}
+
+// --------------------------------------------------------------------
 func filterFlags(content string) string {
 	for i, char := range content {
 		if char == ' ' || char == ';' {

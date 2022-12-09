@@ -106,37 +106,37 @@ func (group *RouterGroup) Handle(httpMethod, relativePath string, handlers ...Ha
 	return group.handle(httpMethod, relativePath, handlers)
 }
 
-// POST is a shortcut for router.Handle("POST", path, handle).
+// POST is a shortcut for router.Handle("POST", path, handlers).
 func (group *RouterGroup) POST(relativePath string, handlers ...HandlerFunc) IRoutes {
 	return group.handle(http.MethodPost, relativePath, handlers)
 }
 
-// GET is a shortcut for router.Handle("GET", path, handle).
+// GET is a shortcut for router.Handle("GET", path, handlers).
 func (group *RouterGroup) GET(relativePath string, handlers ...HandlerFunc) IRoutes {
 	return group.handle(http.MethodGet, relativePath, handlers)
 }
 
-// DELETE is a shortcut for router.Handle("DELETE", path, handle).
+// DELETE is a shortcut for router.Handle("DELETE", path, handlers).
 func (group *RouterGroup) DELETE(relativePath string, handlers ...HandlerFunc) IRoutes {
 	return group.handle(http.MethodDelete, relativePath, handlers)
 }
 
-// PATCH is a shortcut for router.Handle("PATCH", path, handle).
+// PATCH is a shortcut for router.Handle("PATCH", path, handlers).
 func (group *RouterGroup) PATCH(relativePath string, handlers ...HandlerFunc) IRoutes {
 	return group.handle(http.MethodPatch, relativePath, handlers)
 }
 
-// PUT is a shortcut for router.Handle("PUT", path, handle).
+// PUT is a shortcut for router.Handle("PUT", path, handlers).
 func (group *RouterGroup) PUT(relativePath string, handlers ...HandlerFunc) IRoutes {
 	return group.handle(http.MethodPut, relativePath, handlers)
 }
 
-// OPTIONS is a shortcut for router.Handle("OPTIONS", path, handle).
+// OPTIONS is a shortcut for router.Handle("OPTIONS", path, handlers).
 func (group *RouterGroup) OPTIONS(relativePath string, handlers ...HandlerFunc) IRoutes {
 	return group.handle(http.MethodOptions, relativePath, handlers)
 }
 
-// HEAD is a shortcut for router.Handle("HEAD", path, handle).
+// HEAD is a shortcut for router.Handle("HEAD", path, handlers).
 func (group *RouterGroup) HEAD(relativePath string, handlers ...HandlerFunc) IRoutes {
 	return group.handle(http.MethodHead, relativePath, handlers)
 }
@@ -192,7 +192,7 @@ func (group *RouterGroup) StaticFile(relativePath, localPath string, cacheContro
 //
 //	router.Static("/static", "/var/www")
 func (group *RouterGroup) Static(relativePath, root string, cacheControls ...string) IRoutes {
-	return group.StaticFS(relativePath, "", http.Dir(root), cacheControls...)
+	return group.StaticFS(relativePath, "", httpx.Dir(root), cacheControls...)
 }
 
 // StaticFS works just like `Static()` but a custom `http.FileSystem` can be used instead.
@@ -234,7 +234,7 @@ func (group *RouterGroup) StaticFS(relativePath string, localPath string, hfs ht
 }
 
 // StaticFSFile registers a single route in order to serve a single file of the filesystem.
-// router.StaticFSFile("favicon.ico", "./resources/favicon.ico", hfs, xin.Public1Year)
+// router.StaticFSFile("favicon.ico", "./resources/favicon.ico", hfs, "public, max-age=31536000")
 func (group *RouterGroup) StaticFSFile(relativePath, filePath string, hfs http.FileSystem, cacheControls ...string) IRoutes {
 	if strings.Contains(relativePath, ":") || strings.Contains(relativePath, "*") {
 		panic("URL parameters can not be used when serving a static file")
@@ -266,7 +266,7 @@ func (group *RouterGroup) StaticFSFile(relativePath, filePath string, hfs http.F
 // StaticContent registers a single route in order to serve a single file of the data.
 // //go:embed favicon.ico
 // var favicon []byte
-// router.StaticContent("favicon.ico", favicon, time.Now(), "public")
+// router.StaticContent("favicon.ico", favicon, time.Now(), "public, max-age=31536000")
 func (group *RouterGroup) StaticContent(relativePath string, data []byte, modtime time.Time, cacheControls ...string) IRoutes {
 	if strings.Contains(relativePath, ":") || strings.Contains(relativePath, "*") {
 		panic("URL parameters can not be used when serving a static content")

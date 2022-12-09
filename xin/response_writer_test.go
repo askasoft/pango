@@ -27,7 +27,7 @@ func TestResponseWriterReset(t *testing.T) {
 	writer := &responseWriter{}
 	var w ResponseWriter = writer
 
-	writer.reset(nil, testWriter)
+	writer.reset(testWriter, nil)
 	assert.Equal(t, -1, writer.size)
 	assert.Equal(t, http.StatusOK, writer.status)
 	assert.Equal(t, testWriter, writer.ResponseWriter)
@@ -39,7 +39,7 @@ func TestResponseWriterReset(t *testing.T) {
 func TestResponseWriterWriteHeader(t *testing.T) {
 	testWriter := httptest.NewRecorder()
 	writer := &responseWriter{}
-	writer.reset(nil, testWriter)
+	writer.reset(testWriter, nil)
 	w := ResponseWriter(writer)
 
 	w.WriteHeader(http.StatusMultipleChoices)
@@ -54,7 +54,7 @@ func TestResponseWriterWriteHeader(t *testing.T) {
 func TestResponseWriterWriteHeadersNow(t *testing.T) {
 	testWriter := httptest.NewRecorder()
 	writer := &responseWriter{}
-	writer.reset(nil, testWriter)
+	writer.reset(testWriter, nil)
 	w := ResponseWriter(writer)
 
 	w.WriteHeader(http.StatusMultipleChoices)
@@ -72,7 +72,7 @@ func TestResponseWriterWriteHeadersNow(t *testing.T) {
 func TestResponseWriterWrite(t *testing.T) {
 	testWriter := httptest.NewRecorder()
 	writer := &responseWriter{}
-	writer.reset(nil, testWriter)
+	writer.reset(testWriter, nil)
 	w := ResponseWriter(writer)
 
 	n, err := w.Write([]byte("hola"))
@@ -93,7 +93,7 @@ func TestResponseWriterWrite(t *testing.T) {
 func TestResponseWriterHijack(t *testing.T) {
 	testWriter := httptest.NewRecorder()
 	writer := &responseWriter{}
-	writer.reset(nil, testWriter)
+	writer.reset(testWriter, nil)
 	w := ResponseWriter(writer)
 
 	assert.Panics(t, func() {
@@ -112,7 +112,7 @@ func TestResponseWriterHijack(t *testing.T) {
 func TestResponseWriterFlush(t *testing.T) {
 	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		writer := &responseWriter{}
-		writer.reset(nil, w)
+		writer.reset(w, nil)
 
 		writer.WriteHeader(http.StatusInternalServerError)
 		writer.Flush()

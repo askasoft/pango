@@ -108,6 +108,9 @@ type Engine struct {
 	// method call.
 	MaxMultipartMemory int64
 
+	// ContextWithFallback enable fallback Context.Deadline(), Context.Done(), Context.Err() and Context.Value() when Context.Request.Context() is not nil.
+	ContextWithFallback bool
+
 	// HTMLTemplates html templates
 	HTMLTemplates render.HTMLTemplates
 
@@ -160,8 +163,8 @@ func New() *Engine {
 		secureJSONPrefix:       "while(1);",
 	}
 	engine.RouterGroup.engine = engine
-	engine.pool.New = func() interface{} {
-		return engine.allocateContext()
+	engine.pool.New = func() any {
+		return engine.allocateContext(engine.maxParams)
 	}
 	engine.SetTrustedProxies(defaultTrustedProxies) //nolint: errcheck
 	return engine
@@ -175,8 +178,8 @@ func Default() *Engine {
 	return engine
 }
 
-func (engine *Engine) allocateContext() *Context {
-	v := make(Params, 0, engine.maxParams)
+func (engine *Engine) allocateContext(maxParams uint16) *Context {
+	v := make(Params, 0, maxParams)
 	skippedNodes := make([]skippedNode, 0, engine.maxSections)
 	return &Context{engine: engine, params: &v, skippedNodes: &skippedNodes, Logger: engine.Logger.GetLogger("XINC")}
 }
@@ -364,7 +367,7 @@ func parseIP(ip string) net.IP {
 // ServeHTTP conforms to the http.Handler interface.
 func (engine *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	c := engine.pool.Get().(*Context)
-	c.writermem.reset(c, w)
+	c.writermem.reset(w, c.Logger)
 	c.Request = req
 	c.reset()
 

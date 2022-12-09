@@ -31,6 +31,9 @@ const (
 // BodyBytesKey indicates a default body bytes key.
 const BodyBytesKey = "XIN_BODY_BYTES"
 
+// ContextKey is the key that a Context returns itself for.
+const ContextKey = "XIN_CONTEXT"
+
 // abortIndex represents a typical value used in abort functions.
 const abortIndex = 128
 
@@ -106,7 +109,6 @@ func (c *Context) Copy() *Context {
 	cp := Context{
 		writermem: c.writermem,
 		Request:   c.Request,
-		Params:    c.Params,
 		engine:    c.engine,
 		Locale:    c.Locale,
 		Logger:    c.Logger,
@@ -115,13 +117,12 @@ func (c *Context) Copy() *Context {
 	cp.Writer = &cp.writermem
 	cp.index = abortIndex
 	cp.handlers = nil
-	cp.attrs = map[string]any{}
+	cp.attrs = make(map[string]any, len(c.attrs))
 	for k, v := range c.attrs {
 		cp.attrs[k] = v
 	}
-	paramCopy := make([]Param, len(cp.Params))
-	copy(paramCopy, cp.Params)
-	cp.Params = paramCopy
+	cp.Params = make([]Param, len(c.Params))
+	copy(cp.Params, c.Params)
 	return &cp
 }
 
@@ -1092,7 +1093,7 @@ func (c *Context) SetAccepted(formats ...string) {
 
 // Deadline returns that there is no deadline (ok==false) when c.Request has no Context.
 func (c *Context) Deadline() (deadline time.Time, ok bool) {
-	if c.Request == nil || c.Request.Context() == nil {
+	if !c.engine.ContextWithFallback || c.Request == nil || c.Request.Context() == nil {
 		return
 	}
 	return c.Request.Context().Deadline()
@@ -1100,7 +1101,7 @@ func (c *Context) Deadline() (deadline time.Time, ok bool) {
 
 // Done returns nil (chan which will wait forever) when c.Request has no Context.
 func (c *Context) Done() <-chan struct{} {
-	if c.Request == nil || c.Request.Context() == nil {
+	if !c.engine.ContextWithFallback || c.Request == nil || c.Request.Context() == nil {
 		return nil
 	}
 	return c.Request.Context().Done()
@@ -1108,7 +1109,7 @@ func (c *Context) Done() <-chan struct{} {
 
 // Err returns nil when c.Request has no Context.
 func (c *Context) Err() error {
-	if c.Request == nil || c.Request.Context() == nil {
+	if !c.engine.ContextWithFallback || c.Request == nil || c.Request.Context() == nil {
 		return nil
 	}
 	return c.Request.Context().Err()
@@ -1120,6 +1121,9 @@ func (c *Context) Err() error {
 func (c *Context) Value(key any) any {
 	if key == 0 {
 		return c.Request
+	}
+	if key == ContextKey {
+		return c
 	}
 	if keyAsString, ok := key.(string); ok {
 		if val, exists := c.Get(keyAsString); exists {

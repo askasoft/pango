@@ -5,6 +5,8 @@ import (
 	"io"
 	"net"
 	"net/http"
+
+	"github.com/pandafw/pango/log"
 )
 
 const (
@@ -40,23 +42,23 @@ type ResponseWriter interface {
 }
 
 type responseWriter struct {
-	ctx *Context
 	http.ResponseWriter
 	size   int
 	status int
+	logger log.Logger
 }
 
-func (w *responseWriter) reset(c *Context, writer http.ResponseWriter) {
-	w.ctx = c
+func (w *responseWriter) reset(writer http.ResponseWriter, logger log.Logger) {
 	w.ResponseWriter = writer
 	w.size = noWritten
 	w.status = defaultStatus
+	w.logger = logger
 }
 
 func (w *responseWriter) WriteHeader(code int) {
 	if code > 0 && w.status != code {
 		if w.Written() {
-			w.ctx.Logger.Warnf("Headers were already written. Wanted to override status code %d with %d", w.status, code)
+			w.logger.Warnf("Headers were already written. Wanted to override status code %d with %d", w.status, code)
 		}
 		w.status = code
 	}

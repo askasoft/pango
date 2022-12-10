@@ -21,7 +21,7 @@ func httpHandler(w http.ResponseWriter, req *http.Request) {
 	sse.Encode(w, sse.Event{
 		Id:    "124",
 		Event: "message",
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"user":    "manu",
 			"date":    time.Now().Unix(),
 			"content": "hi!",

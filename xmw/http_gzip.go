@@ -85,7 +85,7 @@ func NewHTTPGziper(compressLevel, minLength int) *HTTPGziper {
 		minLength:     minLength,
 	}
 	z.pool = &sync.Pool{
-		New: func() interface{} {
+		New: func() any {
 			gw := &gzipWriter{}
 			w, err := gzip.NewWriterLevel(io.Discard, z.compressLevel)
 			if err != nil {

@@ -12,8 +12,8 @@ func TestStringCompare(t *testing.T) {
 		a bool
 		m string
 	}{
-		{true, interface{}("") != nil, `interface{}("") != nil`},
-		{true, interface{}("") == "", `interface{}("") == ""`},
+		{true, any("") != nil, `any("") != nil`},
+		{true, any("") == "", `any("") == ""`},
 	}
 
 	for _, c := range cs {

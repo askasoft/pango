@@ -70,7 +70,7 @@ func TestTextLog(t *testing.T) {
 	logAssertContains(t, "GET /notfound", buffer.String(), "404", "GET", "/notfound")
 }
 
-func assertJSONResult(t *testing.T, result map[string]interface{}, sc int, method string, url string) {
+func assertJSONResult(t *testing.T, result map[string]any, sc int, method string, url string) {
 	if result["status"] != float64(sc) {
 		t.Errorf("status = %v, want %v", result["status"], sc)
 	}
@@ -83,7 +83,7 @@ func assertJSONResult(t *testing.T, result map[string]interface{}, sc int, metho
 }
 
 func TestJSONLog(t *testing.T) {
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 	buffer := new(bytes.Buffer)
 	router := xin.New()
 

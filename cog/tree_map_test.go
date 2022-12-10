@@ -32,7 +32,7 @@ func TestTreeMapSet(t *testing.T) {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
 
-	tests1 := [][]interface{}{
+	tests1 := [][]any{
 		{1, "a", true},
 		{2, "b", true},
 		{3, "c", true},
@@ -87,7 +87,7 @@ func TestTreeMapDelete(t *testing.T) {
 		t.Errorf("Got %v expected %v", av, 7)
 	}
 
-	tests2 := [][]interface{}{
+	tests2 := [][]any{
 		{1, "a", true},
 		{2, "b", true},
 		{3, "c", true},
@@ -179,7 +179,7 @@ func TestTreeMapFloor(t *testing.T) {
 	m.Set(1, "a")
 
 	// key,expectedKey,expectedValue,expectedFound
-	tests1 := [][]interface{}{
+	tests1 := [][]any{
 		{-1, nil, nil, false},
 		{0, nil, nil, false},
 		{1, 1, "a", true},
@@ -215,7 +215,7 @@ func TestTreeMapCeiling(t *testing.T) {
 	m.Set(1, "a")
 
 	// key,expectedKey,expectedValue,expectedFound
-	tests1 := [][]interface{}{
+	tests1 := [][]any{
 		{-1, 1, "a", true},
 		{0, 1, "a", true},
 		{1, 1, "a", true},

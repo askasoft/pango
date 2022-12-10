@@ -55,8 +55,12 @@ func (c *Conversation) AddAttachment(path string, data ...[]byte) {
 	c.Attachments = append(c.Attachments, a)
 }
 
-func (c *Conversation) GetAttachments() []*Attachment {
-	return c.Attachments
+func (c *Conversation) Files() Files {
+	fs := make(Files, len(c.Attachments))
+	for i, a := range c.Attachments {
+		fs[i] = a
+	}
+	return fs
 }
 
 func (c *Conversation) Values() Values {

@@ -127,8 +127,12 @@ func (t *Ticket) AddAttachment(path string, data ...[]byte) {
 	t.Attachments = append(t.Attachments, a)
 }
 
-func (t *Ticket) GetAttachments() []*Attachment {
-	return t.Attachments
+func (t *Ticket) Files() Files {
+	fs := make(Files, len(t.Attachments))
+	for i, a := range t.Attachments {
+		fs[i] = a
+	}
+	return fs
 }
 
 func (t *Ticket) Values() Values {
@@ -159,6 +163,7 @@ func (t *Ticket) Values() Values {
 	vs.SetInt64("company_id", t.CompanyID)
 	vs.SetInt64("internal_agent_id", t.InternalAgentID)
 	vs.SetInt64("internal_group_id", t.InternalGroupID)
+	vs.SetMap("custom_fields", t.CustomFields)
 
 	return vs
 }

@@ -42,4 +42,9 @@ const (
 	IncludeConversations = "conversations"
 	IncludeRequester     = "requester"
 	IncludeStats         = "stats"
+
+	StateBlocked    = "blocked"
+	StateDeleted    = "deleted"
+	StateUnverified = "unverified"
+	StateVerified   = "verified"
 )

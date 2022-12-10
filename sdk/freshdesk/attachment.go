@@ -18,20 +18,32 @@ type Attachment struct {
 	// data attachment data
 	data []byte
 
-	// path attachment file path
-	path string
+	// file attachment file
+	file string
 }
 
-func NewAttachment(path string, data ...[]byte) *Attachment {
+func (a *Attachment) String() string {
+	return toString(a)
+}
+
+func (a *Attachment) Field() string {
+	return "attachments[]"
+}
+
+func (a *Attachment) File() string {
+	return a.file
+}
+
+func (a *Attachment) Data() []byte {
+	return a.data
+}
+
+func NewAttachment(file string, data ...[]byte) *Attachment {
 	a := &Attachment{
-		path: path,
+		file: file,
 	}
 	if len(data) > 0 {
 		a.data = data[0]
 	}
 	return a
-}
-
-func (a *Attachment) String() string {
-	return toString(a)
 }

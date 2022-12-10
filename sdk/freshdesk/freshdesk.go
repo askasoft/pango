@@ -103,6 +103,30 @@ func (fd *Freshdesk) doGet(url string, obj any) error {
 	return decodeResponse(res, http.StatusOK, obj)
 }
 
+func (fd *Freshdesk) doList(url string, lo ListOption, ap any) (bool, error) {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return false, err
+	}
+
+	if lo != nil {
+		q := lo.Values()
+		req.URL.RawQuery = q.Encode()
+	}
+
+	res, err := fd.call(req)
+	if err != nil {
+		return false, err
+	}
+
+	if err := decodeResponse(res, http.StatusOK, ap); err != nil {
+		return false, err
+	}
+
+	next := res.Header.Get("Link") != ""
+	return next, nil
+}
+
 func (fd *Freshdesk) doCreate(url string, source, result any) error {
 	buf, ct, err := buildRequest(source)
 	if err != nil {
@@ -140,7 +164,7 @@ func (fd *Freshdesk) doUpdate(url string, source, result any) error {
 		return err
 	}
 
-	return decodeResponse(res, http.StatusCreated, result)
+	return decodeResponse(res, http.StatusOK, result)
 }
 
 func (fd *Freshdesk) doDelete(url string) error {
@@ -188,28 +212,14 @@ func (fd *Freshdesk) UpdateTicket(tid int64, ticket *Ticket) (*Ticket, error) {
 // include: conversations, requester, company, stats
 func (fd *Freshdesk) GetTicket(tid int64, include ...string) (*Ticket, error) {
 	url := fmt.Sprintf("%s/api/v2/tickets/%d", fd.Domain, tid)
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return nil, err
-	}
-
 	if len(include) > 0 {
-		q := req.URL.Query()
 		s := strings.Join(include, ",")
-		q.Add("include", s)
-		req.URL.RawQuery = q.Encode()
-	}
-
-	res, err := fd.call(req)
-	if err != nil {
-		return nil, err
+		url += "?include=" + s
 	}
 
 	ticket := &Ticket{}
-	if err := decodeResponse(res, http.StatusOK, ticket); err != nil {
-		return nil, err
-	}
-	return ticket, nil
+	err := fd.doGet(url, ticket)
+	return ticket, err
 }
 
 func (fd *Freshdesk) RestoreTicket(tid int64) error {
@@ -266,69 +276,169 @@ func (fd *Freshdesk) DeleteConversation(cid int64) error {
 
 type ListTicketsOption struct {
 	Filter           string // The various filters available are new_and_my_open, watching, spam, deleted.
-	RequestID        string
+	RequestID        int64
 	Email            string
 	UniqueExternalID string
-	CompanyID        string
-	UpdatedSince     *Time
+	CompanyID        int64
+	UpdatedSince     Time
 	Include          string // stats, requester, description
 	OrderBy          string // created_at, due_by, updated_at, status
 	OrderType        string // asc, desc (default)
+	Page             int
+	PerPage          int
 }
 
-func (lto *ListTicketsOption) BuildQuery() url.Values {
-	q := url.Values{}
-	if lto.Filter != "" {
-		q.Add("filter", lto.Filter)
-	}
-	if lto.RequestID != "" {
-		q.Add("request_id", lto.RequestID)
-	}
-	if lto.Email != "" {
-		q.Add("email", lto.Email)
-	}
-	if lto.UniqueExternalID != "" {
-		q.Add("unique_external_id", lto.UniqueExternalID)
-	}
-	if lto.CompanyID != "" {
-		q.Add("company_id", lto.CompanyID)
-	}
-	if lto.UpdatedSince != nil {
-		q.Add("updated_since", lto.UpdatedSince.String())
-	}
-	if lto.Include != "" {
-		q.Add("include", lto.Include)
-	}
-	if lto.OrderBy != "" {
-		q.Add("order_by", lto.OrderBy)
-	}
-	if lto.OrderType != "" {
-		q.Add("order_type", lto.OrderType)
-	}
+func (lto *ListTicketsOption) Values() Values {
+	q := Values{}
+	q.SetString("filter", lto.Filter)
+	q.SetInt64("request_id", lto.RequestID)
+	q.SetString("email", lto.Email)
+	q.SetString("unique_external_id", lto.UniqueExternalID)
+	q.SetInt64("company_id", lto.CompanyID)
+	q.SetTime("updated_since", lto.UpdatedSince)
+	q.SetString("include", lto.Include)
+	q.SetString("order_by", lto.OrderBy)
+	q.SetString("order_type", lto.OrderType)
+	q.SetInt("page", lto.Page)
+	q.SetInt("per_page", lto.PerPage)
 	return q
 }
 
-func (fd *Freshdesk) ListTickets(lto *ListTicketsOption) ([]*Ticket, error) {
+func (fd *Freshdesk) ListTickets(lto *ListTicketsOption) ([]*Ticket, bool, error) {
 	url := fmt.Sprintf("%s/api/v2/tickets", fd.Domain)
-
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	q := lto.BuildQuery()
-	req.URL.RawQuery = q.Encode()
-
-	res, err := fd.call(req)
-	if err != nil {
-		return nil, err
-	}
-
 	tickets := []*Ticket{}
-	if err := decodeResponse(res, http.StatusOK, &tickets); err != nil {
-		return nil, err
+	next, err := fd.doList(url, lto, &tickets)
+	return tickets, next, err
+}
+
+func (fd *Freshdesk) IterTickets(lto *ListTicketsOption, itf func(*Ticket) bool) error {
+	if lto == nil {
+		lto = &ListTicketsOption{}
 	}
-	return tickets, nil
+	if lto.Page < 1 {
+		lto.Page = 1
+	}
+	if lto.PerPage < 1 {
+		lto.PerPage = 100
+	}
+
+	for {
+		tickets, next, err := fd.ListTickets(lto)
+		if err != nil {
+			return err
+		}
+		for _, t := range tickets {
+			if !itf(t) {
+				return nil
+			}
+		}
+		if !next {
+			break
+		}
+		lto.Page++
+	}
+	return nil
+}
+
+func (fd *Freshdesk) CreateContact(contact *Contact) (*Contact, error) {
+	url := fmt.Sprintf("%s/api/v2/contacts", fd.Domain)
+	result := &Contact{}
+	err := fd.doCreate(url, contact, result)
+	return result, err
+}
+
+func (fd *Freshdesk) UpdateContact(cid int64, contact *Contact) (*Contact, error) {
+	url := fmt.Sprintf("%s/api/v2/contacts/%d", fd.Domain, cid)
+	result := &Contact{}
+	err := fd.doUpdate(url, contact, result)
+	return result, err
+}
+
+func (fd *Freshdesk) GetContact(cid int64) (*Contact, error) {
+	url := fmt.Sprintf("%s/api/v2/contacts/%d", fd.Domain, cid)
+	contact := &Contact{}
+	err := fd.doGet(url, contact)
+	return contact, err
+}
+
+func (fd *Freshdesk) DeleteContact(cid int64) error {
+	url := fmt.Sprintf("%s/api/v2/contacts/%d", fd.Domain, cid)
+	return fd.doDelete(url)
+}
+
+func (fd *Freshdesk) HardDeleteContact(cid int64, force ...bool) error {
+	url := fmt.Sprintf("%s/api/v2/contacts/%d/hard_delete", fd.Domain, cid)
+	if len(force) > 0 && force[0] {
+		url += "?force=true"
+	}
+	return fd.doDelete(url)
+}
+
+type ListContactsOption struct {
+	Email        string
+	Mobile       string
+	Phone        string
+	CompanyID    int64
+	UpdatedSince Time
+	State        string // [blocked/deleted/unverified/verified]
+	Page         int
+	PerPage      int
+}
+
+func (lco *ListContactsOption) Values() Values {
+	q := Values{}
+	q.SetString("email", lco.Email)
+	q.SetString("mobile", lco.Mobile)
+	q.SetString("phone", lco.Phone)
+	q.SetInt64("company_id", lco.CompanyID)
+	q.SetString("state", lco.State)
+	q.SetTime("updated_since", lco.UpdatedSince)
+	q.SetInt("page", lco.Page)
+	q.SetInt("per_page", lco.PerPage)
+	return q
+}
+
+func (fd *Freshdesk) ListContacts(lco *ListContactsOption) ([]*Contact, bool, error) {
+	url := fmt.Sprintf("%s/api/v2/contacts", fd.Domain)
+	contacts := []*Contact{}
+	next, err := fd.doList(url, lco, &contacts)
+	return contacts, next, err
+}
+
+func (fd *Freshdesk) IterContacts(lco *ListContactsOption, itf func(*Contact) bool) error {
+	if lco == nil {
+		lco = &ListContactsOption{}
+	}
+	if lco.Page < 1 {
+		lco.Page = 1
+	}
+	if lco.PerPage < 1 {
+		lco.PerPage = 100
+	}
+
+	for {
+		contacts, next, err := fd.ListContacts(lco)
+		if err != nil {
+			return err
+		}
+		for _, c := range contacts {
+			if !itf(c) {
+				return nil
+			}
+		}
+		if !next {
+			break
+		}
+		lco.Page++
+	}
+	return nil
+}
+
+func (fd *Freshdesk) SearchContacts(keyword string) ([]*Contact, error) {
+	url := fmt.Sprintf("%s/api/v2/contacts/autocomplete?term=%s", fd.Domain, url.QueryEscape(keyword))
+	contacts := []*Contact{}
+	err := fd.doGet(url, &contacts)
+	return contacts, err
 }
 
 func (fd *Freshdesk) CreateCategory(category *Category) (*Category, error) {

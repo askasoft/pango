@@ -21,8 +21,20 @@ func toString(o any) string {
 	return string(bs)
 }
 
-type WithAttachments interface {
-	GetAttachments() []*Attachment
+type ListOption interface {
+	Values() Values
+}
+
+type File interface {
+	Field() string
+	File() string
+	Data() []byte
+}
+
+type Files []File
+
+type WithFiles interface {
+	Files() Files
 	Values() Values
 }
 
@@ -55,10 +67,10 @@ func (vs Values) SetStrings(name string, value []string) {
 	}
 }
 
-func (vs Values) SetMap(name string, value map[string]string) {
+func (vs Values) SetMap(name string, value map[string]any) {
 	if len(value) > 0 {
 		for k, v := range value {
-			(url.Values)(vs).Add(fmt.Sprintf("%s[%s]", name, k), v)
+			(url.Values)(vs).Add(fmt.Sprintf("%s[%s]", name, k), fmt.Sprint(v))
 		}
 	}
 }
@@ -87,16 +99,20 @@ func (vs Values) SetInt64(name string, value int64) {
 	}
 }
 
+func (vs Values) Encode() string {
+	return (url.Values)(vs).Encode()
+}
+
 func addMultipartValues(mw *httpx.MultipartWriter, vs Values) error {
 	return mw.WriteFields(url.Values(vs))
 }
 
-func addMultipartAttachments(mw *httpx.MultipartWriter, as []*Attachment) (err error) {
-	for _, a := range as {
-		if len(a.data) > 0 {
-			err = mw.WriteFileData("attachments[]", a.path, a.data)
+func addMultipartFiles(mw *httpx.MultipartWriter, fs Files) (err error) {
+	for _, f := range fs {
+		if len(f.Data()) > 0 {
+			err = mw.WriteFileData(f.Field(), f.File(), f.Data())
 		} else {
-			err = mw.WriteFile("attachments[]", a.path)
+			err = mw.WriteFile(f.Field(), f.File())
 		}
 		if err != nil {
 			return
@@ -106,15 +122,15 @@ func addMultipartAttachments(mw *httpx.MultipartWriter, as []*Attachment) (err e
 }
 
 func buildRequest(a any) (io.Reader, string, error) {
-	if wa, ok := a.(WithAttachments); ok {
-		return buildAttachmentsRequest(wa)
+	if wa, ok := a.(WithFiles); ok {
+		return buildFileRequest(wa)
 	}
 	return buildJsonRequest(a)
 }
 
-func buildAttachmentsRequest(wa WithAttachments) (io.Reader, string, error) {
-	if len(wa.GetAttachments()) == 0 {
-		return buildJsonRequest(wa)
+func buildFileRequest(wf WithFiles) (io.Reader, string, error) {
+	if len(wf.Files()) == 0 {
+		return buildJsonRequest(wf)
 	}
 
 	buf := &bytes.Buffer{}
@@ -122,10 +138,10 @@ func buildAttachmentsRequest(wa WithAttachments) (io.Reader, string, error) {
 
 	contentType := mw.FormDataContentType()
 
-	if err := addMultipartValues(mw, wa.Values()); err != nil {
+	if err := addMultipartValues(mw, wf.Values()); err != nil {
 		return nil, "", err
 	}
-	if err := addMultipartAttachments(mw, wa.GetAttachments()); err != nil {
+	if err := addMultipartFiles(mw, wf.Files()); err != nil {
 		return nil, "", err
 	}
 	if err := mw.Close(); err != nil {

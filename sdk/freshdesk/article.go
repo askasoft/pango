@@ -31,7 +31,7 @@ type Article struct {
 	Status int `json:"status,omitempty"`
 
 	// Meta data for search engine optimization. Allows meta_title, meta_description and meta_keywords
-	SeoData map[string]string `json:"seo_data,omitempty"`
+	SeoData map[string]any `json:"seo_data,omitempty"`
 
 	// Tags that have been associated with the solution article
 	Tags []string `json:"tags,omitempty"`

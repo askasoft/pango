@@ -122,26 +122,26 @@ func addMultipartFiles(mw *httpx.MultipartWriter, fs Files) (err error) {
 }
 
 func buildRequest(a any) (io.Reader, string, error) {
-	if wa, ok := a.(WithFiles); ok {
-		return buildFileRequest(wa)
+	if wf, ok := a.(WithFiles); ok {
+		fs := wf.Files()
+		if len(fs) > 0 {
+			vs := wf.Values()
+			return buildFileRequest(vs, fs)
+		}
 	}
 	return buildJsonRequest(a)
 }
 
-func buildFileRequest(wf WithFiles) (io.Reader, string, error) {
-	if len(wf.Files()) == 0 {
-		return buildJsonRequest(wf)
-	}
-
+func buildFileRequest(vs Values, fs Files) (io.Reader, string, error) {
 	buf := &bytes.Buffer{}
 	mw := httpx.NewMultipartWriter(buf)
 
 	contentType := mw.FormDataContentType()
 
-	if err := addMultipartValues(mw, wf.Values()); err != nil {
+	if err := addMultipartValues(mw, vs); err != nil {
 		return nil, "", err
 	}
-	if err := addMultipartFiles(mw, wf.Files()); err != nil {
+	if err := addMultipartFiles(mw, fs); err != nil {
 		return nil, "", err
 	}
 	if err := mw.Close(); err != nil {
@@ -172,7 +172,7 @@ func decodeResponse(res *http.Response, status int, obj any) error {
 		return nil
 	}
 
-	er := &ErrorResult{}
+	er := &ErrorResult{StatusCode: res.StatusCode}
 	if err := decoder.Decode(er); err != nil {
 		return err
 	}

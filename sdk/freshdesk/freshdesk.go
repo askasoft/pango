@@ -83,7 +83,7 @@ func (fd *Freshdesk) call(req *http.Request) (*http.Response, error) {
 			n = 60 // invalid number, default to 60s
 		}
 		iox.DrainAndClose(res.Body)
-		return res, &RateLimitedError{n}
+		return res, &RateLimitedError{StatusCode: res.StatusCode, RetryAfter: n}
 	}
 
 	return res, err
@@ -265,7 +265,7 @@ func (fd *Freshdesk) CreateNote(tid int64, note *Note) (*Note, error) {
 func (fd *Freshdesk) UpdateConversation(cid int64, conversation *Conversation) (*Conversation, error) {
 	url := fmt.Sprintf("%s/api/v2/conversations/%d", fd.Domain, cid)
 	result := &Conversation{}
-	err := fd.doCreate(url, conversation, result)
+	err := fd.doUpdate(url, conversation, result)
 	return result, err
 }
 
@@ -324,6 +324,9 @@ func (fd *Freshdesk) IterTickets(lto *ListTicketsOption, itf func(*Ticket) bool)
 
 	for {
 		tickets, next, err := fd.ListTickets(lto)
+		if fd.SleepForRetry(err) {
+			continue
+		}
 		if err != nil {
 			return err
 		}
@@ -418,6 +421,9 @@ func (fd *Freshdesk) IterContacts(lco *ListContactsOption, itf func(*Contact) bo
 
 	for {
 		contacts, next, err := fd.ListContacts(lco)
+		if fd.SleepForRetry(err) {
+			continue
+		}
 		if err != nil {
 			return err
 		}

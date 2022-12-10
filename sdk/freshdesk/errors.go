@@ -2,16 +2,17 @@ package freshdesk
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
 type RateLimitedError struct {
-	// retry after seconds
-	RetryAfter int
+	StatusCode int // http status code
+	RetryAfter int // retry after seconds
 }
 
 func (e *RateLimitedError) Error() string {
-	return fmt.Sprintf("Retry-After: %d seconds", e.RetryAfter)
+	return fmt.Sprintf("%d Retry After %d seconds", e.StatusCode, e.RetryAfter)
 }
 
 type Error struct {
@@ -25,13 +26,28 @@ func (e *Error) Error() string {
 }
 
 type ErrorResult struct {
+	StatusCode  int      `json:"-"` // http status code
+	Code        string   `json:"code,omitempty"`
+	Message     string   `json:"message,omitempty"`
 	Description string   `json:"description,omitempty"`
 	Errors      []*Error `json:"errors,omitempty"`
 }
 
 func (er *ErrorResult) Error() string {
 	var sb strings.Builder
-	sb.WriteString(er.Description)
+	sb.WriteString(strconv.Itoa(er.StatusCode))
+	if er.Code != "" {
+		sb.WriteString(": ")
+		sb.WriteString(er.Code)
+	}
+	if er.Message != "" {
+		sb.WriteString(": ")
+		sb.WriteString(er.Message)
+	}
+	if er.Description != "" {
+		sb.WriteString(": ")
+		sb.WriteString(er.Description)
+	}
 	for _, e := range er.Errors {
 		sb.WriteRune('\n')
 		sb.WriteString(e.Error())

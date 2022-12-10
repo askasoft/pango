@@ -8,13 +8,20 @@ import (
 	"github.com/pandafw/pango/xin"
 )
 
+const (
+	TokenAttrKey    = "WW_TOKEN"
+	TokenParamName  = "_token_"
+	TokenHeaderName = "X-WW-TOKEN" //nolint: gosec
+	TokenCookieName = "WW_TOKEN"
+)
+
 // TokenProtector token protector for CSRF
 type TokenProtector struct {
 	Cryptor        cpt.Cryptor
 	Expires        time.Duration
 	AttrKey        string
-	HeaderKey      string
 	ParamName      string
+	HeaderName     string
 	CookieName     string
 	CookieMaxAge   time.Duration
 	CookieDomain   string
@@ -31,11 +38,11 @@ func NewTokenProtector(secret string) *TokenProtector {
 	t := &TokenProtector{
 		Cryptor:        cpt.NewAesCBC(secret),
 		Expires:        time.Hour * 24,
-		AttrKey:        "WW_TOKEN",
-		HeaderKey:      "X-WW-TOKEN",
-		ParamName:      "_token_",
-		CookieName:     "WW_TOKEN",
-		CookieMaxAge:   time.Hour * 24 * 30,
+		AttrKey:        TokenAttrKey,
+		ParamName:      TokenParamName,
+		HeaderName:     TokenHeaderName,
+		CookieName:     TokenCookieName,
+		CookieMaxAge:   time.Hour * 24 * 30, // 30 days
 		CookieHttpOnly: true,
 		methods:        newStringSet(http.MethodDelete, http.MethodPatch, http.MethodPost, http.MethodPut),
 	}
@@ -152,7 +159,7 @@ func (tp *TokenProtector) getRequestToken(c *xin.Context) *cpt.Token {
 		c.Logger.Warnf("Invalid Query Token: %v: %q", err, ts)
 	}
 
-	if ts := c.GetHeader(tp.HeaderKey); ts != "" {
+	if ts := c.GetHeader(tp.HeaderName); ts != "" {
 		t, err := tp.parseToken(ts)
 		if err == nil {
 			return t

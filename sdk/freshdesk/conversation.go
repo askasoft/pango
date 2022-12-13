@@ -4,10 +4,10 @@ type Conversation struct {
 	// ID of the conversation
 	ID int64 `json:"id,omitempty"`
 
-	// Attachments associated with the conversation. The total size of all of a ticket's attachments cannot exceed 20MB.
+	// Attachments (Updatable) associated with the conversation. The total size of all of a ticket's attachments cannot exceed 20MB.
 	Attachments []*Attachment `json:"attachments,omitempty"`
 
-	// Content of the conversation in HTML
+	// Body (Updatable) Content of the conversation in HTML
 	Body string `json:"body,omitempty"`
 
 	// Content of the conversation in plain text
@@ -23,7 +23,7 @@ type Conversation struct {
 	Private bool `json:"private,omitempty"`
 
 	// Denotes the type of the conversation.
-	Source int64 `json:"source,omitempty"`
+	Source int `json:"source,omitempty"`
 
 	// Email address from which the reply is sent. For notes, this value will be null.
 	SupportEmail string `json:"support_email,omitempty"`

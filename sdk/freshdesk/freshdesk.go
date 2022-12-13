@@ -62,6 +62,8 @@ func (fd *Freshdesk) logResponse(res *http.Response, rid uint64) {
 }
 
 func (fd *Freshdesk) call(req *http.Request) (*http.Response, error) {
+	fd.Logger.Infof("%s %s", req.Method, req.URL)
+
 	fd.authenticate(req)
 	rid := fd.logRequest(req)
 
@@ -181,6 +183,7 @@ func (fd *Freshdesk) doDelete(url string) error {
 	return decodeResponse(res, http.StatusNoContent, nil)
 }
 
+// SleepForRetry if err is RateLimitedError, sleep Retry-After and return true
 func (fd *Freshdesk) SleepForRetry(err error) bool {
 	if err != nil {
 		if rle, ok := err.(*RateLimitedError); ok { //nolint: errorlint
@@ -192,6 +195,19 @@ func (fd *Freshdesk) SleepForRetry(err error) bool {
 		}
 	}
 	return false
+}
+
+func (fd *Freshdesk) SleepAndRetry(api func() error, maxRetry int) (err error) {
+	for i := 0; ; i++ {
+		err = api()
+		if i >= maxRetry {
+			break
+		}
+		if !fd.SleepForRetry(err) {
+			break
+		}
+	}
+	return err
 }
 
 func (fd *Freshdesk) CreateTicket(ticket *Ticket) (*Ticket, error) {
@@ -274,34 +290,11 @@ func (fd *Freshdesk) DeleteConversation(cid int64) error {
 	return fd.doDelete(url)
 }
 
-type ListTicketsOption struct {
-	Filter           string // The various filters available are new_and_my_open, watching, spam, deleted.
-	RequestID        int64
-	Email            string
-	UniqueExternalID string
-	CompanyID        int64
-	UpdatedSince     Time
-	Include          string // stats, requester, description
-	OrderBy          string // created_at, due_by, updated_at, status
-	OrderType        string // asc, desc (default)
-	Page             int
-	PerPage          int
-}
-
-func (lto *ListTicketsOption) Values() Values {
-	q := Values{}
-	q.SetString("filter", lto.Filter)
-	q.SetInt64("request_id", lto.RequestID)
-	q.SetString("email", lto.Email)
-	q.SetString("unique_external_id", lto.UniqueExternalID)
-	q.SetInt64("company_id", lto.CompanyID)
-	q.SetTime("updated_since", lto.UpdatedSince)
-	q.SetString("include", lto.Include)
-	q.SetString("order_by", lto.OrderBy)
-	q.SetString("order_type", lto.OrderType)
-	q.SetInt("page", lto.Page)
-	q.SetInt("per_page", lto.PerPage)
-	return q
+func (fd *Freshdesk) ReplyToForward(tid int64, forward *Forward) (*Forward, error) {
+	url := fmt.Sprintf("%s/api/v2/tickets/%d/reply_to_forward", fd.Domain, tid)
+	result := &Forward{}
+	err := fd.doCreate(url, forward, result)
+	return result, err
 }
 
 func (fd *Freshdesk) ListTickets(lto *ListTicketsOption) ([]*Ticket, bool, error) {
@@ -375,30 +368,6 @@ func (fd *Freshdesk) HardDeleteContact(cid int64, force ...bool) error {
 		url += "?force=true"
 	}
 	return fd.doDelete(url)
-}
-
-type ListContactsOption struct {
-	Email        string
-	Mobile       string
-	Phone        string
-	CompanyID    int64
-	UpdatedSince Time
-	State        string // [blocked/deleted/unverified/verified]
-	Page         int
-	PerPage      int
-}
-
-func (lco *ListContactsOption) Values() Values {
-	q := Values{}
-	q.SetString("email", lco.Email)
-	q.SetString("mobile", lco.Mobile)
-	q.SetString("phone", lco.Phone)
-	q.SetInt64("company_id", lco.CompanyID)
-	q.SetString("state", lco.State)
-	q.SetTime("updated_since", lco.UpdatedSince)
-	q.SetInt("page", lco.Page)
-	q.SetInt("per_page", lco.PerPage)
-	return q
 }
 
 func (fd *Freshdesk) ListContacts(lco *ListContactsOption) ([]*Contact, bool, error) {

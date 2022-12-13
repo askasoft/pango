@@ -33,6 +33,7 @@ func testNewFreshdesk(t *testing.T) *Freshdesk {
 	}
 
 	logs := log.NewLog()
+	logs.SetLevel(log.LevelInfo)
 	fd := &Freshdesk{
 		Domain: domain,
 		Apikey: apikey,

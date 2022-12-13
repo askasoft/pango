@@ -1,17 +1,11 @@
 package freshdesk
 
 type Reply struct {
-	// ID of the reply
-	ID int64 `json:"id,omitempty"`
-
-	// Attachments associated with the conversation. The total size of all of a ticket's attachments cannot exceed 20MB.
-	Attachments []*Attachment `json:"attachments,omitempty"`
-
 	// Content of the conversation in HTML
 	Body string `json:"body,omitempty"`
 
-	// Content of the conversation in plain text
-	BodyText string `json:"body_text,omitempty"`
+	// Attachments associated with the conversation. The total size of all of a ticket's attachments cannot exceed 20MB.
+	Attachments []*Attachment `json:"attachments,omitempty"`
 
 	// The email address from which the reply is sent. By default the global support email will be used.
 	FromEmail string `json:"from_email,omitempty"`
@@ -25,17 +19,15 @@ type Reply struct {
 	// Email address added in the 'bcc' field of the outgoing ticket email.
 	BccEmails []string `json:"bcc_emails,omitempty"`
 
-	// ID of the ticket to which this conversation is being added
-	TicketID int64 `json:"ticket_id,omitempty"`
+	// ------------------------------------------------------
+	// response
 
-	// Email address
+	ID         int64    `json:"id,omitempty"`
+	BodyText   string   `json:"body_text,omitempty"`
+	TicketID   int64    `json:"ticket_id,omitempty"`
 	RepliedTos []string `json:"replied_to,omitempty"`
-
-	// Conversation creation timestamp
-	CreatedAt *Time `json:"created_at,omitempty"`
-
-	// Conversation updated timestamp
-	UpdatedAt *Time `json:"updated_at,omitempty"`
+	CreatedAt  *Time    `json:"created_at,omitempty"`
+	UpdatedAt  *Time    `json:"updated_at,omitempty"`
 }
 
 func (r *Reply) AddAttachment(path string, data ...[]byte) {

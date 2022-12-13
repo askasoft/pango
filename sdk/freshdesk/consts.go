@@ -18,6 +18,15 @@ const (
 	TicketPriorityHigh   = 3
 	TicketPriorityUrgent = 4
 
+	ConversationSourceReply     = 0
+	ConversationSourceNote      = 2
+	ConversationSourceTweets    = 5
+	ConversationSourceSurvey    = 6
+	ConversationSourceFacebook  = 7
+	ConversationSourceForwarded = 8
+	ConversationSourcePhone     = 9
+	ConversationSourceECommerce = 11
+
 	FolderVisibilityAllUsers                = 1
 	FolderVisibilityLoggedInUsers           = 2
 	FolderVisibilityAgents                  = 3

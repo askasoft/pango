@@ -2,7 +2,10 @@ package str
 
 import (
 	"math/rand"
+	"time"
 )
+
+var seed = rand.New(rand.NewSource(time.Now().UnixNano())) //nolint: gosec
 
 // RandNumbers create a random number string
 func RandNumbers(size int) string {
@@ -22,15 +25,15 @@ func RandLetters(size int) string {
 // RandString create a random string by the input chars
 // if chars is omitted, the LetterNumberSymbols is used
 func RandString(size int, chars ...string) string {
-	seed := LetterNumberSymbols
+	cs := LetterNumberSymbols
 	if len(chars) > 0 {
-		seed = chars[0]
+		cs = chars[0]
 	}
 
-	n := len(seed)
+	n := len(cs)
 	buf := make([]byte, size)
 	for i := 0; i < size; i++ {
-		buf[i] = seed[rand.Intn(n)] //nolint: gosec
+		buf[i] = cs[seed.Intn(n)]
 	}
 
 	return string(buf)

@@ -9,7 +9,7 @@ import (
 
 func TestSalt(t *testing.T) {
 	for i := 0; i < 100; i++ {
-		salt := str.RandLetterNumbers(rand.Intn(100))
+		salt := str.RandLetterNumbers(rand.Intn(100) + 1)
 		src := str.RandLetterNumbers(i)
 
 		salted := Salt(SecretChars, salt, src)

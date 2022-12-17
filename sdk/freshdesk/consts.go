@@ -52,8 +52,15 @@ const (
 	IncludeRequester     = "requester"
 	IncludeStats         = "stats"
 
-	StateBlocked    = "blocked"
-	StateDeleted    = "deleted"
-	StateUnverified = "unverified"
-	StateVerified   = "verified"
+	ContactStateBlocked    = "blocked"
+	ContactStateDeleted    = "deleted"
+	ContactStateUnverified = "unverified"
+	ContactStateVerified   = "verified"
+
+	AgentStateFulltime   = "fulltime"
+	AgentStateOccasional = "occasional"
+
+	AgentTicketScopeGlobal     = 1
+	AgentTicketScopeGroup      = 2
+	AgentTicketScopeRestricted = 3
 )

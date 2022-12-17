@@ -53,3 +53,23 @@ func (lco *ListContactsOption) Values() Values {
 	q.SetInt("per_page", lco.PerPage)
 	return q
 }
+
+type ListAgentsOption struct {
+	Email   string
+	Mobile  string
+	Phone   string
+	State   string // [fulltime/occasional]
+	Page    int
+	PerPage int
+}
+
+func (lao *ListAgentsOption) Values() Values {
+	q := Values{}
+	q.SetString("email", lao.Email)
+	q.SetString("mobile", lao.Mobile)
+	q.SetString("phone", lao.Phone)
+	q.SetString("state", lao.State)
+	q.SetInt("page", lao.Page)
+	q.SetInt("per_page", lao.PerPage)
+	return q
+}

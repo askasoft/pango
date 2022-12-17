@@ -20,9 +20,9 @@ func TestWithFiles(t *testing.T) {
 }
 
 func testNewFreshdesk(t *testing.T) *Freshdesk {
-	apikey := os.Getenv("FD_API_KEY")
+	apikey := os.Getenv("FD_APIKEY")
 	if apikey == "" {
-		t.Skip("FD_API_KEY not set")
+		t.Skip("FD_APIKEY not set")
 		return nil
 	}
 
@@ -33,7 +33,7 @@ func testNewFreshdesk(t *testing.T) *Freshdesk {
 	}
 
 	logs := log.NewLog()
-	logs.SetLevel(log.LevelInfo)
+	//logs.SetLevel(log.LevelInfo)
 	fd := &Freshdesk{
 		Domain: domain,
 		Apikey: apikey,
@@ -163,24 +163,17 @@ func TestContactAPIs(t *testing.T) {
 		return
 	}
 
-	oc := &Contact{
+	cn := &Contact{
 		Mobile:      str.RandNumbers(11),
 		Description: "create description " + time.Now().String(),
 	}
-	oc.Name = "panda " + oc.Mobile
+	cn.Name = "panda " + cn.Mobile
 
-	cc, err := fd.CreateContact(oc)
+	cc, err := fd.CreateContact(cn)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-
-	gc, err := fd.GetContact(cc.ID)
-	if err != nil {
-		t.Fatalf("ERROR: %v", err)
-	}
-	if gc.ID != cc.ID {
-		t.Fatalf("ContactID: %v, want %v", gc.ID, cc.ID)
-	}
+	fmt.Println(cc)
 
 	cu := &Contact{}
 	cu.Description = "update description " + time.Now().String()
@@ -190,9 +183,13 @@ func TestContactAPIs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	if uc.ID != cc.ID {
-		t.Fatalf("ContactID: %v, want %v", uc.ID, cc.ID)
+	fmt.Println(uc)
+
+	gc, err := fd.GetContact(cc.ID)
+	if err != nil {
+		t.Fatalf("ERROR: %v", err)
 	}
+	fmt.Println(gc)
 
 	err = fd.IterContacts(nil, func(c *Contact) bool {
 		fmt.Println(c)
@@ -206,4 +203,69 @@ func TestContactAPIs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
+}
+
+func TestAgentAPIs(t *testing.T) {
+	fd := testNewFreshdesk(t)
+	if fd == nil {
+		return
+	}
+
+	ac := &AgentRequest{
+		Email:       str.RandNumbers(11) + "@" + str.RandLetters(8) + ".com",
+		TicketScope: AgentTicketScopeGlobal,
+	}
+
+	ca, err := fd.CreateAgent(ac)
+	if err != nil {
+		t.Fatalf("ERROR: %v", err)
+	}
+	fmt.Println(ca)
+
+	au := &AgentRequest{
+		Occasional: true,
+	}
+	//au.Avatar = NewAvatar("../../logo.png")
+
+	ua, err := fd.UpdateAgent(ca.ID, au)
+	if err != nil {
+		t.Fatalf("ERROR: %v", err)
+	}
+	fmt.Println(ua)
+
+	ga, err := fd.GetAgent(ua.ID)
+	if err != nil {
+		t.Fatalf("ERROR: %v", err)
+	}
+	fmt.Println(ga)
+
+	err = fd.IterAgents(nil, func(a *Agent) bool {
+		fmt.Println(a)
+		return true
+	})
+	if err != nil {
+		t.Fatalf("ERROR: %v", err)
+	}
+
+	err = fd.DeleteAgent(ga.ID)
+	if err != nil {
+		t.Fatalf("ERROR: %v", err)
+	}
+}
+
+func TestListAgents(t *testing.T) {
+	fd := testNewFreshdesk(t)
+	if fd == nil {
+		return
+	}
+
+	lao := &ListAgentsOption{PerPage: 10}
+	as, _, err := fd.ListAgents(lao)
+	if err != nil {
+		t.Fatalf("ERROR: %v", err)
+	}
+	if len(as) < 1 {
+		t.Fatal("ListAgents return empty array")
+	}
+	fmt.Println(as)
 }

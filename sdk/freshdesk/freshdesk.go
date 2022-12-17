@@ -210,6 +210,11 @@ func (fd *Freshdesk) SleepAndRetry(api func() error, maxRetry int) (err error) {
 	return err
 }
 
+// GetHelpdeskAttachmentURL return a permlink for helpdesk attachment/avator URL
+func (fd *Freshdesk) GetHelpdeskAttachmentURL(aid int64) string {
+	return fmt.Sprintf("%s/helpdesk/attachments/%d", fd.Domain, aid)
+}
+
 func (fd *Freshdesk) CreateTicket(ticket *Ticket) (*Ticket, error) {
 	url := fmt.Sprintf("%s/api/v2/tickets", fd.Domain)
 	result := &Ticket{}
@@ -334,6 +339,85 @@ func (fd *Freshdesk) IterTickets(lto *ListTicketsOption, itf func(*Ticket) bool)
 		lto.Page++
 	}
 	return nil
+}
+
+func (fd *Freshdesk) GetAgent(aid int64) (*Agent, error) {
+	url := fmt.Sprintf("%s/api/v2/agents/%d", fd.Domain, aid)
+	agent := &Agent{}
+	err := fd.doGet(url, agent)
+	return agent, err
+}
+
+func (fd *Freshdesk) ListAgents(lao *ListAgentsOption) ([]*Agent, bool, error) {
+	url := fmt.Sprintf("%s/api/v2/agents", fd.Domain)
+	agents := []*Agent{}
+	next, err := fd.doList(url, lao, &agents)
+	return agents, next, err
+}
+
+func (fd *Freshdesk) IterAgents(lao *ListAgentsOption, iaf func(*Agent) bool) error {
+	if lao == nil {
+		lao = &ListAgentsOption{}
+	}
+	if lao.Page < 1 {
+		lao.Page = 1
+	}
+	if lao.PerPage < 1 {
+		lao.PerPage = 100
+	}
+
+	for {
+		agents, next, err := fd.ListAgents(lao)
+		if fd.SleepForRetry(err) {
+			continue
+		}
+		if err != nil {
+			return err
+		}
+		for _, c := range agents {
+			if !iaf(c) {
+				return nil
+			}
+		}
+		if !next {
+			break
+		}
+		lao.Page++
+	}
+	return nil
+}
+
+func (fd *Freshdesk) CreateAgent(agent *AgentRequest) (*Agent, error) {
+	url := fmt.Sprintf("%s/api/v2/agents", fd.Domain)
+	result := &Agent{}
+	err := fd.doCreate(url, agent, result)
+	return result, err
+}
+
+func (fd *Freshdesk) UpdateAgent(aid int64, agent *AgentRequest) (*Agent, error) {
+	url := fmt.Sprintf("%s/api/v2/agents/%d", fd.Domain, aid)
+	result := &Agent{}
+	err := fd.doUpdate(url, agent, result)
+	return result, err
+}
+
+func (fd *Freshdesk) DeleteAgent(aid int64) error {
+	url := fmt.Sprintf("%s/api/v2/agents/%d", fd.Domain, aid)
+	return fd.doDelete(url)
+}
+
+func (fd *Freshdesk) GetCurrentAgent() (*Agent, error) {
+	url := fmt.Sprintf("%s/api/v2/agents/me", fd.Domain)
+	agent := &Agent{}
+	err := fd.doGet(url, agent)
+	return agent, err
+}
+
+func (fd *Freshdesk) SearchAgents(keyword string) ([]*Agent, error) {
+	url := fmt.Sprintf("%s/api/v2/agents/autocomplete?term=%s", fd.Domain, url.QueryEscape(keyword))
+	agents := []*Agent{}
+	err := fd.doGet(url, &agents)
+	return agents, err
 }
 
 func (fd *Freshdesk) CreateContact(contact *Contact) (*Contact, error) {
@@ -618,8 +702,4 @@ func (fd *Freshdesk) SearchArticles(keyword string) ([]*ArticleEx, error) {
 	articles := []*ArticleEx{}
 	err := fd.doGet(url, &articles)
 	return articles, err
-}
-
-func (fd *Freshdesk) GetArticleAttachmentURL(aid int64) string {
-	return fmt.Sprintf("%s/helpdesk/attachments/%d", fd.Domain, aid)
 }

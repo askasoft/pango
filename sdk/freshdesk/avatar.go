@@ -11,6 +11,10 @@ type Avatar struct {
 
 	AvatarURL string `json:"avatar_url,omitempty"`
 
+	AttachmentURL string `json:"attachment_url,omitempty"`
+
+	ThumbURL string `json:"thumb_url,omitempty"`
+
 	CreatedAt *Time `json:"created_at,omitempty"`
 
 	UpdatedAt *Time `json:"updated_at,omitempty"`

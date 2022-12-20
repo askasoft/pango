@@ -1,6 +1,8 @@
 package freshdesk
 
 const (
+	JobStatusInProgress = "IN PROGRESS"
+
 	TicketSourceEmail          = 1
 	TicketSourceProtal         = 2
 	TicketSourcePhone          = 3

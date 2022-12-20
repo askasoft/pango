@@ -171,3 +171,92 @@ func (t *Ticket) Values() Values {
 func (t *Ticket) String() string {
 	return toString(t)
 }
+
+type TicketProperties struct {
+	// Support email from which the reply should be sent
+	FromEmail string `json:"from_email,omitempty"`
+
+	// Used to skip email notifications sent to requesters on closing a ticket
+	SkipCloseNotification bool `json:"skip_close_notification"`
+
+	// ID of email config which is used for this ticket. (i.e., support@yourcompany.com/sales@yourcompany.com)
+	EmailConfigID int64 `json:"email_config_id,omitempty"`
+
+	// ID of the group to which the ticket has been assigned
+	GroupID int64 `json:"group_id,omitempty"`
+
+	// Priority of the ticket
+	Priority int `json:"priority,omitempty"`
+
+	// Parent Unique ID of the ticket
+	ParentID int64 `json:"parent_id,omitempty"`
+
+	// User ID of the requester. For existing contacts, the requester_id can be passed instead of the requester's email.
+	RequesterID int64 `json:"requester_id,omitempty"`
+
+	// ID of the agent to whom the ticket has been assigned.
+	ResponderID int64 `json:"responder_id,omitempty"`
+
+	// Status of the ticket
+	Status int `json:"status,omitempty"`
+
+	// The channel through which the ticket was created
+	Source int `json:"source,omitempty"`
+
+	// Helps categorize the ticket according to the different kinds of issues your support team deals with.
+	Type string `json:"type,omitempty"`
+
+	// ID of the product to which the ticket is associated
+	ProductID int64 `json:"product_id,omitempty"`
+
+	// Timestamp that denotes when the ticket is due to be resolved
+	DueBy *Time `json:"due_by,omitempty"`
+
+	// Timestamp that denotes when the first response is due
+	FrDueBy *Time `json:"fr_due_by,omitempty"`
+
+	// Key value pairs containing the names and values of custom fields. Read more here
+	CustomFields map[string]any `json:"custom_fields,omitempty"`
+
+	// Tags that have been associated with the ticket
+	Tags []string `json:"tags,omitempty"`
+
+	// ID of the internal agent which the ticket should be assigned with
+	InternalAgentID int64 `json:"internal_agent_id,omitempty"`
+
+	// ID of the internal group to which the ticket should be assigned with
+	InternalGroupID int64 `json:"internal_group_id,omitempty"`
+}
+
+func (tp *TicketProperties) String() string {
+	return toString(tp)
+}
+
+type TicketsMerge struct {
+	// Ticket to which conversations from secondary tickets will be merged
+	PrimaryID int64 `json:"primary_id,omitempty"`
+
+	// Array of numbers	IDs of tickets to be merged
+	TicketIDs []int64 `json:"ticket_ids,omitempty"`
+
+	// This contains the note added to the primary ticket along with the type of the note (public/private). A default note gets added if this is not specified in the request
+	NoteInPrimary *Note `json:"note_in_primary,omitempty"`
+
+	// This contains the note added to the secondary tickets along with the type of the note (public/private). A default note gets added if this is not specified in the request
+	NoteInSecondary *Note `json:"note_in_secondary,omitempty"`
+
+	// This will add recipients from secondary tickets in CC of the primary ticket
+	ConvertRecipientsToCc bool `json:"convert_recipients_to_cc,omitempty"`
+}
+
+func (tm *TicketsMerge) String() string {
+	return toString(tm)
+}
+
+type TicketWatchers struct {
+	WatcherIDs []int64 `json:"watcher_ids,omitempty"`
+}
+
+func (tw *TicketWatchers) String() string {
+	return toString(tw)
+}

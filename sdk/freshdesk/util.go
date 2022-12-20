@@ -140,6 +140,10 @@ func addMultipartFiles(mw *httpx.MultipartWriter, fs Files) (err error) {
 }
 
 func buildRequest(a any) (io.Reader, string, error) {
+	if a == nil {
+		return nil, "", nil
+	}
+
 	if wf, ok := a.(WithFiles); ok {
 		fs := wf.Files()
 		if len(fs) > 0 {
@@ -179,11 +183,11 @@ func buildJsonRequest(a any) (io.Reader, string, error) {
 	return buf, contentTypeJSON, nil
 }
 
-func decodeResponse(res *http.Response, status int, obj any) error {
+func decodeResponse(res *http.Response, obj any) error {
 	defer iox.DrainAndClose(res.Body)
 
 	decoder := json.NewDecoder(res.Body)
-	if res.StatusCode == status {
+	if res.StatusCode == http.StatusOK || res.StatusCode == http.StatusCreated || res.StatusCode == http.StatusNoContent {
 		if obj != nil {
 			return decoder.Decode(obj)
 		}

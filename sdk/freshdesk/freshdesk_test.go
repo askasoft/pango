@@ -33,7 +33,7 @@ func testNewFreshdesk(t *testing.T) *Freshdesk {
 	}
 
 	logs := log.NewLog()
-	//logs.SetLevel(log.LevelInfo)
+	logs.SetLevel(log.LevelDebug)
 	fd := &Freshdesk{
 		Domain: domain,
 		Apikey: apikey,
@@ -67,9 +67,7 @@ func TestTicketAPIs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	if gt.ID != ct.ID {
-		t.Fatalf("TicketID: %v, want %v", gt.ID, ct.ID)
-	}
+	fd.Logger.Debug(gt)
 
 	tu := &Ticket{}
 	tu.Description = `<div>
@@ -83,36 +81,34 @@ func TestTicketAPIs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	if ut.ID != ct.ID {
-		t.Fatalf("TicketID: %v, want %v", ut.ID, ct.ID)
+
+	err = fd.DeleteAttachment(ut.Attachments[0].ID)
+	if err != nil {
+		t.Fatalf("ERROR: %v", err)
 	}
 
-	on := &Note{
+	nc := &Note{
 		Body:    "create note " + time.Now().String(),
 		Private: true,
 	}
-	nn, err := fd.CreateNote(ct.ID, on)
+	cn, err := fd.CreateNote(ct.ID, nc)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	if nn.TicketID != ct.ID {
-		t.Fatalf("TicketID: %v, want %v", nn.TicketID, ct.ID)
-	}
+	fd.Logger.Debug(cn)
 
-	uc := &Conversation{
+	cu := &Conversation{
 		Body: "update note " + time.Now().String(),
 	}
-	uc.AddAttachment("./conversation.go")
-	nc, err := fd.UpdateConversation(nn.ID, uc)
+	cu.AddAttachment("./conversation.go")
+	uc, err := fd.UpdateConversation(cn.ID, cu)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	if nc.TicketID != ct.ID {
-		t.Fatalf("TicketID: %v, want %v", nc.TicketID, ct.ID)
-	}
+	fd.Logger.Debug(uc)
 
 	err = fd.IterTickets(nil, func(t *Ticket) bool {
-		fmt.Println(t)
+		fd.Logger.Debug(t)
 		return true
 	})
 	if err != nil {
@@ -136,9 +132,7 @@ func TestListTicket(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	if len(ts) < 1 {
-		t.Fatal("ListTickets return empty array")
-	}
+	fd.Logger.Debug(ts)
 }
 
 func TestIterTicket(t *testing.T) {
@@ -149,7 +143,7 @@ func TestIterTicket(t *testing.T) {
 
 	ltp := &ListTicketsOption{PerPage: 2}
 	err := fd.IterTickets(ltp, func(t *Ticket) bool {
-		fmt.Println(t)
+		fd.Logger.Debug(t)
 		return true
 	})
 	if err != nil {
@@ -173,7 +167,7 @@ func TestContactAPIs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	fmt.Println(cc)
+	fd.Logger.Debug(cc)
 
 	cu := &Contact{}
 	cu.Description = "update description " + time.Now().String()
@@ -183,16 +177,16 @@ func TestContactAPIs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	fmt.Println(uc)
+	fd.Logger.Debug(uc)
 
 	gc, err := fd.GetContact(cc.ID)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	fmt.Println(gc)
+	fd.Logger.Debug(gc)
 
 	err = fd.IterContacts(nil, func(c *Contact) bool {
-		fmt.Println(c)
+		fd.Logger.Debug(c)
 		return true
 	})
 	if err != nil {
@@ -220,7 +214,7 @@ func TestAgentAPIs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	fmt.Println(ca)
+	fd.Logger.Debug(ca)
 
 	au := &AgentRequest{
 		Occasional: true,
@@ -231,16 +225,16 @@ func TestAgentAPIs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	fmt.Println(ua)
+	fd.Logger.Debug(ua)
 
 	ga, err := fd.GetAgent(ua.ID)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	fmt.Println(ga)
+	fd.Logger.Debug(ga)
 
 	err = fd.IterAgents(nil, func(a *Agent) bool {
-		fmt.Println(a)
+		fd.Logger.Debug(a)
 		return true
 	})
 	if err != nil {
@@ -267,5 +261,5 @@ func TestListAgents(t *testing.T) {
 	if len(as) < 1 {
 		t.Fatal("ListAgents return empty array")
 	}
-	fmt.Println(as)
+	fd.Logger.Debug(as)
 }

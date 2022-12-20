@@ -102,7 +102,7 @@ func (fd *Freshdesk) doGet(url string, obj any) error {
 		return err
 	}
 
-	return decodeResponse(res, http.StatusOK, obj)
+	return decodeResponse(res, obj)
 }
 
 func (fd *Freshdesk) doList(url string, lo ListOption, ap any) (bool, error) {
@@ -121,7 +121,7 @@ func (fd *Freshdesk) doList(url string, lo ListOption, ap any) (bool, error) {
 		return false, err
 	}
 
-	if err := decodeResponse(res, http.StatusOK, ap); err != nil {
+	if err := decodeResponse(res, ap); err != nil {
 		return false, err
 	}
 
@@ -129,7 +129,7 @@ func (fd *Freshdesk) doList(url string, lo ListOption, ap any) (bool, error) {
 	return next, nil
 }
 
-func (fd *Freshdesk) doCreate(url string, source, result any) error {
+func (fd *Freshdesk) doPost(url string, source, result any) error {
 	buf, ct, err := buildRequest(source)
 	if err != nil {
 		return err
@@ -139,17 +139,19 @@ func (fd *Freshdesk) doCreate(url string, source, result any) error {
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Content-Type", ct)
+	if ct != "" {
+		req.Header.Set("Content-Type", ct)
+	}
 
 	res, err := fd.call(req)
 	if err != nil {
 		return err
 	}
 
-	return decodeResponse(res, http.StatusCreated, result)
+	return decodeResponse(res, result)
 }
 
-func (fd *Freshdesk) doUpdate(url string, source, result any) error {
+func (fd *Freshdesk) doPut(url string, source, result any) error {
 	buf, ct, err := buildRequest(source)
 	if err != nil {
 		return err
@@ -159,14 +161,16 @@ func (fd *Freshdesk) doUpdate(url string, source, result any) error {
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Content-Type", ct)
+	if ct != "" {
+		req.Header.Set("Content-Type", ct)
+	}
 
 	res, err := fd.call(req)
 	if err != nil {
 		return err
 	}
 
-	return decodeResponse(res, http.StatusOK, result)
+	return decodeResponse(res, result)
 }
 
 func (fd *Freshdesk) doDelete(url string) error {
@@ -180,7 +184,7 @@ func (fd *Freshdesk) doDelete(url string) error {
 		return err
 	}
 
-	return decodeResponse(res, http.StatusNoContent, nil)
+	return decodeResponse(res, nil)
 }
 
 // SleepForRetry if err is RateLimitedError, sleep Retry-After and return true
@@ -215,17 +219,17 @@ func (fd *Freshdesk) GetHelpdeskAttachmentURL(aid int64) string {
 	return fmt.Sprintf("%s/helpdesk/attachments/%d", fd.Domain, aid)
 }
 
+func (fd *Freshdesk) GetJob(jid int64) (*Job, error) {
+	url := fmt.Sprintf("%s/api/v2/jobs/%d", fd.Domain, jid)
+	job := &Job{}
+	err := fd.doGet(url, job)
+	return job, err
+}
+
 func (fd *Freshdesk) CreateTicket(ticket *Ticket) (*Ticket, error) {
 	url := fmt.Sprintf("%s/api/v2/tickets", fd.Domain)
 	result := &Ticket{}
-	err := fd.doCreate(url, ticket, result)
-	return result, err
-}
-
-func (fd *Freshdesk) UpdateTicket(tid int64, ticket *Ticket) (*Ticket, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d", fd.Domain, tid)
-	result := &Ticket{}
-	err := fd.doUpdate(url, ticket, result)
+	err := fd.doPost(url, ticket, result)
 	return result, err
 }
 
@@ -241,65 +245,6 @@ func (fd *Freshdesk) GetTicket(tid int64, include ...string) (*Ticket, error) {
 	ticket := &Ticket{}
 	err := fd.doGet(url, ticket)
 	return ticket, err
-}
-
-func (fd *Freshdesk) RestoreTicket(tid int64) error {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d/restore", fd.Domain, tid)
-
-	req, err := http.NewRequest(http.MethodPut, url, nil)
-	if err != nil {
-		return err
-	}
-
-	res, err := fd.call(req)
-	if err != nil {
-		return err
-	}
-
-	return decodeResponse(res, http.StatusNoContent, nil)
-}
-
-func (fd *Freshdesk) DeleteTicket(tid int64) error {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d", fd.Domain, tid)
-	return fd.doDelete(url)
-}
-
-func (fd *Freshdesk) DeleteAttachment(aid int64) error {
-	url := fmt.Sprintf("%s/api/v2/attachments/%d", fd.Domain, aid)
-	return fd.doDelete(url)
-}
-
-func (fd *Freshdesk) CreateReply(tid int64, reply *Reply) (*Reply, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d/reply", fd.Domain, tid)
-	result := &Reply{}
-	err := fd.doCreate(url, reply, result)
-	return result, err
-}
-
-func (fd *Freshdesk) CreateNote(tid int64, note *Note) (*Note, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d/notes", fd.Domain, tid)
-	result := &Note{}
-	err := fd.doCreate(url, note, result)
-	return result, err
-}
-
-func (fd *Freshdesk) UpdateConversation(cid int64, conversation *Conversation) (*Conversation, error) {
-	url := fmt.Sprintf("%s/api/v2/conversations/%d", fd.Domain, cid)
-	result := &Conversation{}
-	err := fd.doUpdate(url, conversation, result)
-	return result, err
-}
-
-func (fd *Freshdesk) DeleteConversation(cid int64) error {
-	url := fmt.Sprintf("%s/api/v2/conversations/%d", fd.Domain, cid)
-	return fd.doDelete(url)
-}
-
-func (fd *Freshdesk) ReplyToForward(tid int64, forward *Forward) (*Forward, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d/reply_to_forward", fd.Domain, tid)
-	result := &Forward{}
-	err := fd.doCreate(url, forward, result)
-	return result, err
 }
 
 func (fd *Freshdesk) ListTickets(lto *ListTicketsOption) ([]*Ticket, bool, error) {
@@ -339,6 +284,152 @@ func (fd *Freshdesk) IterTickets(lto *ListTicketsOption, itf func(*Ticket) bool)
 		lto.Page++
 	}
 	return nil
+}
+
+// FilterTickets
+// Use custom ticket fields that you have created in your account to filter through the tickets and get a list of tickets matching the specified ticket fields.
+// Query Format: "(ticket_field:integer OR ticket_field:'string') AND ticket_field:boolean"
+func (fd *Freshdesk) FilterTickets(fto *FilterTicketsOption) ([]*Ticket, bool, error) {
+	url := fmt.Sprintf("%s/api/v2/search/tickets", fd.Domain)
+	tickets := []*Ticket{}
+	next, err := fd.doList(url, fto, &tickets)
+	return tickets, next, err
+}
+
+func (fd *Freshdesk) UpdateTicket(tid int64, ticket *Ticket) (*Ticket, error) {
+	url := fmt.Sprintf("%s/api/v2/tickets/%d", fd.Domain, tid)
+	result := &Ticket{}
+	err := fd.doPut(url, ticket, result)
+	return result, err
+}
+
+// BulkUpdateTickets returns job id
+func (fd *Freshdesk) BulkUpdateTickets(tids []int64, properties *TicketProperties) (string, error) {
+	url := fmt.Sprintf("%s/api/v2/tickets/bulk_update", fd.Domain)
+	data := map[string]any{
+		"bulk_action": map[string]any{
+			"ids":        tids,
+			"properties": properties,
+		},
+	}
+	result := map[string]string{}
+	err := fd.doPut(url, data, &result)
+	return result["job_id"], err
+}
+
+func (fd *Freshdesk) ForwardTicket(tid int64, tf *TicketForward) (*ForwardResult, error) {
+	url := fmt.Sprintf("%s/api/v2/tickets/%d/forward", fd.Domain, tid)
+	result := &ForwardResult{}
+	err := fd.doPost(url, tf, result)
+	return result, err
+}
+
+// MergeTickets
+// Sometimes, a customer might try to get your attention regarding a particular issue by contacting you through separate channels.
+// Sometimes, the same issue might be reported by different people in the team or someone might accidentally open a new ticket instead of following up on an existing one.
+// To avoid conflicts, you can merge all related tickets together and keep the communication streamlined.
+func (fd *Freshdesk) MergeTickets(tm *TicketsMerge) error {
+	url := fmt.Sprintf("%s/api/v2/tickets/merge", fd.Domain)
+	err := fd.doPut(url, tm, nil)
+	return err
+}
+
+func (fd *Freshdesk) ListTicketWatchers(tid int64) ([]int64, error) {
+	url := fmt.Sprintf("%s/api/v2/tickets/%d/watchers", fd.Domain, tid)
+	result := &TicketWatchers{}
+	err := fd.doGet(url, result)
+	return result.WatcherIDs, err
+}
+
+func (fd *Freshdesk) AddTicketWatcher(tid, uid int64) error {
+	url := fmt.Sprintf("%s/api/v2/tickets/%d/watchers", fd.Domain, tid)
+	data := map[string]any{
+		"user_id": uid,
+	}
+	return fd.doPost(url, data, nil)
+}
+
+func (fd *Freshdesk) UnwatchTicket(tid int64) error {
+	url := fmt.Sprintf("%s/api/v2/tickets/%d/unwatch", fd.Domain, tid)
+	return fd.doPut(url, nil, nil)
+}
+
+func (fd *Freshdesk) BulkWatchTickets(tids []int64, uid int64) error {
+	url := fmt.Sprintf("%s/api/v2/tickets/buld_watch", fd.Domain)
+	data := map[string]any{
+		"ids":     tids,
+		"user_id": uid,
+	}
+	return fd.doPut(url, data, nil)
+}
+
+func (fd *Freshdesk) BulkUnwatchTickets(tids []int64, uid int64) error {
+	url := fmt.Sprintf("%s/api/v2/tickets/buld_unwatch", fd.Domain)
+	data := map[string]any{
+		"ids":     tids,
+		"user_id": uid,
+	}
+	return fd.doPut(url, data, nil)
+}
+
+func (fd *Freshdesk) RestoreTicket(tid int64) error {
+	url := fmt.Sprintf("%s/api/v2/tickets/%d/restore", fd.Domain, tid)
+	return fd.doPut(url, nil, nil)
+}
+
+func (fd *Freshdesk) DeleteTicket(tid int64) error {
+	url := fmt.Sprintf("%s/api/v2/tickets/%d", fd.Domain, tid)
+	return fd.doDelete(url)
+}
+
+func (fd *Freshdesk) BulkDeleteTickets(tids []int64) (string, error) {
+	url := fmt.Sprintf("%s/api/v2/tickets/bulk_delete", fd.Domain)
+	data := map[string]any{
+		"bulk_action": map[string]any{
+			"ids": tids,
+		},
+	}
+	result := map[string]string{}
+	err := fd.doPut(url, data, &result)
+	return result["job_id"], err
+}
+
+func (fd *Freshdesk) DeleteAttachment(aid int64) error {
+	url := fmt.Sprintf("%s/api/v2/attachments/%d", fd.Domain, aid)
+	return fd.doDelete(url)
+}
+
+func (fd *Freshdesk) CreateReply(tid int64, reply *Reply) (*Reply, error) {
+	url := fmt.Sprintf("%s/api/v2/tickets/%d/reply", fd.Domain, tid)
+	result := &Reply{}
+	err := fd.doPost(url, reply, result)
+	return result, err
+}
+
+func (fd *Freshdesk) CreateNote(tid int64, note *Note) (*Note, error) {
+	url := fmt.Sprintf("%s/api/v2/tickets/%d/notes", fd.Domain, tid)
+	result := &Note{}
+	err := fd.doPost(url, note, result)
+	return result, err
+}
+
+func (fd *Freshdesk) UpdateConversation(cid int64, conversation *Conversation) (*Conversation, error) {
+	url := fmt.Sprintf("%s/api/v2/conversations/%d", fd.Domain, cid)
+	result := &Conversation{}
+	err := fd.doPut(url, conversation, result)
+	return result, err
+}
+
+func (fd *Freshdesk) DeleteConversation(cid int64) error {
+	url := fmt.Sprintf("%s/api/v2/conversations/%d", fd.Domain, cid)
+	return fd.doDelete(url)
+}
+
+func (fd *Freshdesk) ReplyToForward(tid int64, rf *ReplyForward) (*ForwardResult, error) {
+	url := fmt.Sprintf("%s/api/v2/tickets/%d/reply_to_forward", fd.Domain, tid)
+	result := &ForwardResult{}
+	err := fd.doPost(url, rf, result)
+	return result, err
 }
 
 func (fd *Freshdesk) GetAgent(aid int64) (*Agent, error) {
@@ -390,14 +481,14 @@ func (fd *Freshdesk) IterAgents(lao *ListAgentsOption, iaf func(*Agent) bool) er
 func (fd *Freshdesk) CreateAgent(agent *AgentRequest) (*Agent, error) {
 	url := fmt.Sprintf("%s/api/v2/agents", fd.Domain)
 	result := &Agent{}
-	err := fd.doCreate(url, agent, result)
+	err := fd.doPost(url, agent, result)
 	return result, err
 }
 
 func (fd *Freshdesk) UpdateAgent(aid int64, agent *AgentRequest) (*Agent, error) {
 	url := fmt.Sprintf("%s/api/v2/agents/%d", fd.Domain, aid)
 	result := &Agent{}
-	err := fd.doUpdate(url, agent, result)
+	err := fd.doPut(url, agent, result)
 	return result, err
 }
 
@@ -423,14 +514,14 @@ func (fd *Freshdesk) SearchAgents(keyword string) ([]*Agent, error) {
 func (fd *Freshdesk) CreateContact(contact *Contact) (*Contact, error) {
 	url := fmt.Sprintf("%s/api/v2/contacts", fd.Domain)
 	result := &Contact{}
-	err := fd.doCreate(url, contact, result)
+	err := fd.doPost(url, contact, result)
 	return result, err
 }
 
 func (fd *Freshdesk) UpdateContact(cid int64, contact *Contact) (*Contact, error) {
 	url := fmt.Sprintf("%s/api/v2/contacts/%d", fd.Domain, cid)
 	result := &Contact{}
-	err := fd.doUpdate(url, contact, result)
+	err := fd.doPut(url, contact, result)
 	return result, err
 }
 
@@ -503,28 +594,28 @@ func (fd *Freshdesk) SearchContacts(keyword string) ([]*Contact, error) {
 func (fd *Freshdesk) CreateCategory(category *Category) (*Category, error) {
 	url := fmt.Sprintf("%s/api/v2/solutions/categories", fd.Domain)
 	result := &Category{}
-	err := fd.doCreate(url, category, result)
+	err := fd.doPost(url, category, result)
 	return result, err
 }
 
 func (fd *Freshdesk) CreateCategoryTranslated(cid int64, lang string, category *Category) (*Category, error) {
 	url := fmt.Sprintf("%s/api/v2/solutions/categories/%d/%s", fd.Domain, cid, lang)
 	result := &Category{}
-	err := fd.doCreate(url, category, result)
+	err := fd.doPost(url, category, result)
 	return result, err
 }
 
 func (fd *Freshdesk) UpdateCategory(cid int64, category *Category) (*Category, error) {
 	url := fmt.Sprintf("%s/api/v2/solutions/categories/%d", fd.Domain, cid)
 	result := &Category{}
-	err := fd.doUpdate(url, category, result)
+	err := fd.doPut(url, category, result)
 	return result, err
 }
 
 func (fd *Freshdesk) UpdateCategoryTranslated(cid int64, lang string, category *Category) (*Category, error) {
 	url := fmt.Sprintf("%s/api/v2/solutions/categories/%d/%s", fd.Domain, cid, lang)
 	result := &Category{}
-	err := fd.doUpdate(url, category, result)
+	err := fd.doPut(url, category, result)
 	return result, err
 }
 
@@ -564,28 +655,28 @@ func (fd *Freshdesk) DeleteCategory(cid int64) error {
 func (fd *Freshdesk) CreateFolder(cid int64, folder *Folder) (*Folder, error) {
 	url := fmt.Sprintf("%s/api/v2/solutions/categories/%d/folders", fd.Domain, cid)
 	result := &Folder{}
-	err := fd.doCreate(url, folder, result)
+	err := fd.doPost(url, folder, result)
 	return result, err
 }
 
 func (fd *Freshdesk) CreateFolderTranslated(fid int64, lang string, folder *Folder) (*Folder, error) {
 	url := fmt.Sprintf("%s/api/v2/solutions/folders/%d/%s", fd.Domain, fid, lang)
 	result := &Folder{}
-	err := fd.doCreate(url, folder, result)
+	err := fd.doPost(url, folder, result)
 	return result, err
 }
 
 func (fd *Freshdesk) UpdateFolder(fid int64, folder *Folder) (*Folder, error) {
 	url := fmt.Sprintf("%s/api/v2/solutions/folders/%d", fd.Domain, fid)
 	result := &Folder{}
-	err := fd.doUpdate(url, folder, result)
+	err := fd.doPut(url, folder, result)
 	return result, err
 }
 
 func (fd *Freshdesk) UpdateFolderTranslated(fid int64, lang string, folder *Folder) (*Folder, error) {
 	url := fmt.Sprintf("%s/api/v2/solutions/folders/%d/%s", fd.Domain, fid, lang)
 	result := &Folder{}
-	err := fd.doUpdate(url, folder, result)
+	err := fd.doPut(url, folder, result)
 	return result, err
 }
 
@@ -639,28 +730,28 @@ func (fd *Freshdesk) DeleteFolder(fid int64) error {
 func (fd *Freshdesk) CreateArticle(fid int64, article *Article) (*Article, error) {
 	url := fmt.Sprintf("%s/api/v2/solutions/folders/%d", fd.Domain, fid)
 	result := &Article{}
-	err := fd.doCreate(url, article, result)
+	err := fd.doPost(url, article, result)
 	return result, err
 }
 
 func (fd *Freshdesk) CreateArticleTranslated(fid int64, lang string, article *Article) (*Article, error) {
 	url := fmt.Sprintf("%s/api/v2/solutions/folders/%d/%s", fd.Domain, fid, lang)
 	result := &Article{}
-	err := fd.doCreate(url, article, result)
+	err := fd.doPost(url, article, result)
 	return result, err
 }
 
 func (fd *Freshdesk) UpdateArticle(aid int64, article *Article) (*Article, error) {
 	url := fmt.Sprintf("%s/api/v2/solutions/articles/%d", fd.Domain, aid)
 	result := &Article{}
-	err := fd.doUpdate(url, article, result)
+	err := fd.doPut(url, article, result)
 	return result, err
 }
 
 func (fd *Freshdesk) UpdateArticleTranslated(aid int64, lang string, article *Article) (*Article, error) {
 	url := fmt.Sprintf("%s/api/v2/solutions/articles/%d/%s", fd.Domain, aid, lang)
 	result := &Article{}
-	err := fd.doUpdate(url, article, result)
+	err := fd.doPut(url, article, result)
 	return result, err
 }
 

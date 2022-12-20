@@ -30,6 +30,20 @@ func (lto *ListTicketsOption) Values() Values {
 	return q
 }
 
+type FilterTicketsOption struct {
+	Query   string
+	Page    int
+	PerPage int
+}
+
+func (fto *FilterTicketsOption) Values() Values {
+	q := Values{}
+	q.SetString("query", fto.Query)
+	q.SetInt("page", fto.Page)
+	q.SetInt("per_page", fto.PerPage)
+	return q
+}
+
 type ListContactsOption struct {
 	Email        string
 	Mobile       string

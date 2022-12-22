@@ -1,7 +1,9 @@
 package freshdesk
 
 const (
-	JobStatusInProgress = "IN PROGRESS"
+	//JobStatusInProgress  = "IN PROGRESS"
+	JobStatusInProgress = "in_progress"
+	JobStatusCompleted  = "completed"
 
 	TicketSourceEmail          = 1
 	TicketSourceProtal         = 2

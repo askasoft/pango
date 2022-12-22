@@ -2,7 +2,6 @@ package freshdesk
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 )
 
@@ -27,6 +26,7 @@ func (e *Error) Error() string {
 
 type ErrorResult struct {
 	StatusCode  int      `json:"-"` // http status code
+	Status      string   `json:"-"` // http status
 	Code        string   `json:"code,omitempty"`
 	Message     string   `json:"message,omitempty"`
 	Description string   `json:"description,omitempty"`
@@ -35,7 +35,7 @@ type ErrorResult struct {
 
 func (er *ErrorResult) Error() string {
 	var sb strings.Builder
-	sb.WriteString(strconv.Itoa(er.StatusCode))
+	sb.WriteString(er.Status)
 	if er.Code != "" {
 		sb.WriteString(": ")
 		sb.WriteString(er.Code)

@@ -33,7 +33,7 @@ func testNewFreshdesk(t *testing.T) *Freshdesk {
 	}
 
 	logs := log.NewLog()
-	logs.SetLevel(log.LevelDebug)
+	//logs.SetLevel(log.LevelDebug)
 	fd := &Freshdesk{
 		Domain: domain,
 		Apikey: apikey,
@@ -62,12 +62,6 @@ func TestTicketAPIs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-
-	gt, err := fd.GetTicket(ct.ID, IncludeConversations)
-	if err != nil {
-		t.Fatalf("ERROR: %v", err)
-	}
-	fd.Logger.Debug(gt)
 
 	tu := &Ticket{}
 	tu.Description = `<div>
@@ -107,13 +101,17 @@ func TestTicketAPIs(t *testing.T) {
 	}
 	fd.Logger.Debug(uc)
 
-	err = fd.IterTickets(nil, func(t *Ticket) bool {
-		fd.Logger.Debug(t)
-		return true
-	})
+	gtc, err := fd.GetTicket(ct.ID, IncludeConversations)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
+	fd.Logger.Debug(gtc)
+
+	gtr, err := fd.GetTicket(ct.ID, IncludeRequester)
+	if err != nil {
+		t.Fatalf("ERROR: %v", err)
+	}
+	fd.Logger.Debug(gtr)
 
 	err = fd.DeleteTicket(ct.ID)
 	if err != nil {
@@ -262,4 +260,22 @@ func TestListAgents(t *testing.T) {
 		t.Fatal("ListAgents return empty array")
 	}
 	fd.Logger.Debug(as)
+}
+
+func TestExportContacts(t *testing.T) {
+	fd := testNewFreshdesk(t)
+	if fd == nil {
+		return
+	}
+
+	id, err := fd.ExportContacts([]string{"name", "email"}, nil)
+	if err != nil {
+		t.Fatalf("ERROR: %v", err)
+	}
+
+	job, err := fd.GetExportedContactsURL(id)
+	if err != nil {
+		t.Fatalf("ERROR: %v", err)
+	}
+	fd.Logger.Debug(job)
 }

@@ -194,9 +194,11 @@ func decodeResponse(res *http.Response, obj any) error {
 		return nil
 	}
 
-	er := &ErrorResult{StatusCode: res.StatusCode}
-	if err := decoder.Decode(er); err != nil {
-		return err
+	er := &ErrorResult{StatusCode: res.StatusCode, Code: res.Status}
+	if res.StatusCode != http.StatusNotFound {
+		if err := decoder.Decode(er); err != nil {
+			return err
+		}
 	}
 	return er
 }

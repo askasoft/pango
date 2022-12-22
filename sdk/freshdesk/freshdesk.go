@@ -219,8 +219,8 @@ func (fd *Freshdesk) GetHelpdeskAttachmentURL(aid int64) string {
 	return fmt.Sprintf("%s/helpdesk/attachments/%d", fd.Domain, aid)
 }
 
-func (fd *Freshdesk) GetJob(jid int64) (*Job, error) {
-	url := fmt.Sprintf("%s/api/v2/jobs/%d", fd.Domain, jid)
+func (fd *Freshdesk) GetJob(jid string) (*Job, error) {
+	url := fmt.Sprintf("%s/api/v2/jobs/%s", fd.Domain, jid)
 	job := &Job{}
 	err := fd.doGet(url, job)
 	return job, err
@@ -413,6 +413,7 @@ func (fd *Freshdesk) CreateNote(tid int64, note *Note) (*Note, error) {
 	return result, err
 }
 
+// UpdateConversation only public & private notes can be edited.
 func (fd *Freshdesk) UpdateConversation(cid int64, conversation *Conversation) (*Conversation, error) {
 	url := fmt.Sprintf("%s/api/v2/conversations/%d", fd.Domain, cid)
 	result := &Conversation{}
@@ -420,6 +421,7 @@ func (fd *Freshdesk) UpdateConversation(cid int64, conversation *Conversation) (
 	return result, err
 }
 
+// DeleteConversation delete a conversation (Incoming Reply can not be deleted)
 func (fd *Freshdesk) DeleteConversation(cid int64) error {
 	url := fmt.Sprintf("%s/api/v2/conversations/%d", fd.Domain, cid)
 	return fd.doDelete(url)
@@ -589,6 +591,40 @@ func (fd *Freshdesk) SearchContacts(keyword string) ([]*Contact, error) {
 	contacts := []*Contact{}
 	err := fd.doGet(url, &contacts)
 	return contacts, err
+}
+
+func (fd *Freshdesk) RestoreContact(cid int64) error {
+	url := fmt.Sprintf("%s/api/v2/contacts/%d/restore", fd.Domain, cid)
+	return fd.doPut(url, nil, nil)
+}
+
+func (fd *Freshdesk) InviteContact(cid int64) error {
+	url := fmt.Sprintf("%s/api/v2/contacts/%d/send_invite", fd.Domain, cid)
+	return fd.doPut(url, nil, nil)
+}
+
+func (fd *Freshdesk) MergeContacts(cm *ContactsMerge) error {
+	url := fmt.Sprintf("%s/api/v2/contacts/merge", fd.Domain)
+	return fd.doPost(url, nil, nil)
+}
+
+// ExportContacts return a job id, call GetExportedContactsURL() to get the job detail
+func (fd *Freshdesk) ExportContacts(defaultFields, customFields []string) (string, error) {
+	url := fmt.Sprintf("%s/api/v2/contacts/export", fd.Domain)
+	data := map[string]any{
+		"fields": &ContactsExport{defaultFields, customFields},
+	}
+	result := map[string]string{}
+	err := fd.doPost(url, data, &result)
+	return result["id"], err
+}
+
+// GetExportedContactsURL get the exported contacts url
+func (fd *Freshdesk) GetExportedContactsURL(jid string) (*Job, error) {
+	url := fmt.Sprintf("%s/api/v2/contacts/export/%s", fd.Domain, jid)
+	job := &Job{}
+	err := fd.doGet(url, job)
+	return job, err
 }
 
 func (fd *Freshdesk) CreateCategory(category *Category) (*Category, error) {

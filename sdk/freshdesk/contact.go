@@ -63,6 +63,9 @@ type Contact struct {
 	// Additional companies associated with the contact
 	OtherCompanies []string `json:"other_companies,omitempty"`
 
+	// IDs of the companies associated with the contact (only used by MergeContact)
+	CompanyIDs int64 `json:"company_ids,omitempty"`
+
 	CreatedAt *Time `json:"created_at,omitempty"`
 
 	UpdatedAt *Time `json:"updated_at,omitempty"`
@@ -99,4 +102,30 @@ func (c *Contact) Values() Values {
 
 func (c *Contact) String() string {
 	return toString(c)
+}
+
+type ContactsMerge struct {
+	// ID of the primary contact
+	PrimaryContactID int64 `json:"primary_contact_id,omitempty"`
+
+	// Array of numbers	IDs of contacts to be merged
+	SecondaryContactIDs []int64 `json:"secondary_contact_ids,omitempty"`
+
+	// Contains attributes that need to be updated in the primary contact during merge (optional)
+	// email, phone, mobile, twitter_id, unique_external_id, other_emails, company_ids
+	Contact *Contact `json:"contact,omitempty"`
+}
+
+func (cm *ContactsMerge) String() string {
+	return toString(cm)
+}
+
+type ContactsExport struct {
+	DefaultFields []string `json:"default_fields,omitempty"`
+
+	CustomFields []string `json:"custom_fields,omitempty"`
+}
+
+func (ce *ContactsExport) String() string {
+	return toString(ce)
 }

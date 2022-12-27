@@ -246,7 +246,7 @@ type TicketsMerge struct {
 	NoteInSecondary *Note `json:"note_in_secondary,omitempty"`
 
 	// This will add recipients from secondary tickets in CC of the primary ticket
-	ConvertRecipientsToCc bool `json:"convert_recipients_to_cc,omitempty"`
+	ConvertRecepientsToCc bool `json:"convert_recepients_to_cc,omitempty"` //nolint: misspell
 }
 
 func (tm *TicketsMerge) String() string {

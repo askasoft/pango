@@ -115,6 +115,18 @@ func FileExists(file string) error {
 	return nil
 }
 
+// FileSize get the file size
+func FileSize(file string) (int64, error) {
+	fi, err := os.Stat(file)
+	if err != nil {
+		return 0, err
+	}
+	if fi.IsDir() {
+		return 0, &fs.PathError{Op: "FileSize", Path: file, Err: ErrIsDir}
+	}
+	return fi.Size(), nil
+}
+
 // Mkdir creates a new directory with the specified name and permission
 // bits (before umask).
 // If there is an error, it will be of type *PathError.

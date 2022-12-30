@@ -24,6 +24,8 @@ type Freshdesk struct {
 	Transport http.RoundTripper
 	Timeout   time.Duration
 	Logger    log.Logger
+
+	RetryOnRateLimited int
 }
 
 const (
@@ -61,48 +63,56 @@ func (fd *Freshdesk) logResponse(res *http.Response, rid uint64) {
 	}
 }
 
-func (fd *Freshdesk) call(req *http.Request) (*http.Response, error) {
-	fd.Logger.Infof("%s %s", req.Method, req.URL)
+func (fd *Freshdesk) call(req *http.Request) (res *http.Response, err error) {
+	err = fd.SleepAndRetry(func() error {
+		fd.Logger.Infof("%s %s", req.Method, req.URL)
 
-	fd.authenticate(req)
-	rid := fd.logRequest(req)
+		fd.authenticate(req)
+		rid := fd.logRequest(req)
 
-	client := http.Client{
-		Transport: fd.Transport,
-		Timeout:   fd.Timeout,
-	}
-
-	res, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	fd.logResponse(res, rid)
-
-	if res.StatusCode == http.StatusTooManyRequests {
-		s := res.Header.Get("Retry-After")
-		n, _ := strconv.Atoi(s)
-		if n <= 0 {
-			n = 60 // invalid number, default to 60s
+		client := http.Client{
+			Transport: fd.Transport,
+			Timeout:   fd.Timeout,
 		}
-		iox.DrainAndClose(res.Body)
-		return res, &RateLimitedError{StatusCode: res.StatusCode, RetryAfter: n}
-	}
 
-	return res, err
+		res, err = client.Do(req)
+		if err != nil {
+			return err
+		}
+		fd.logResponse(res, rid)
+
+		if res.StatusCode == http.StatusTooManyRequests {
+			s := res.Header.Get("Retry-After")
+			n, _ := strconv.Atoi(s)
+			if n <= 0 {
+				n = 60 // invalid number, default to 60s
+			}
+			iox.DrainAndClose(res.Body)
+			return &RateLimitedError{StatusCode: res.StatusCode, RetryAfter: n}
+		}
+
+		return err
+	}, fd.RetryOnRateLimited)
+
+	return
 }
 
-func (fd *Freshdesk) doGet(url string, obj any) error {
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return err
-	}
-
+func (fd *Freshdesk) doCall(req *http.Request, result any) error {
 	res, err := fd.call(req)
 	if err != nil {
 		return err
 	}
 
-	return decodeResponse(res, obj)
+	return decodeResponse(res, result)
+}
+
+func (fd *Freshdesk) doGet(url string, result any) error {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return err
+	}
+
+	return fd.doCall(req, result)
 }
 
 func (fd *Freshdesk) doList(url string, lo ListOption, ap any) (bool, error) {
@@ -143,12 +153,7 @@ func (fd *Freshdesk) doPost(url string, source, result any) error {
 		req.Header.Set("Content-Type", ct)
 	}
 
-	res, err := fd.call(req)
-	if err != nil {
-		return err
-	}
-
-	return decodeResponse(res, result)
+	return fd.doCall(req, result)
 }
 
 func (fd *Freshdesk) doPut(url string, source, result any) error {
@@ -165,12 +170,7 @@ func (fd *Freshdesk) doPut(url string, source, result any) error {
 		req.Header.Set("Content-Type", ct)
 	}
 
-	res, err := fd.call(req)
-	if err != nil {
-		return err
-	}
-
-	return decodeResponse(res, result)
+	return fd.doCall(req, result)
 }
 
 func (fd *Freshdesk) doDelete(url string) error {
@@ -179,12 +179,7 @@ func (fd *Freshdesk) doDelete(url string) error {
 		return err
 	}
 
-	res, err := fd.call(req)
-	if err != nil {
-		return err
-	}
-
-	return decodeResponse(res, nil)
+	return fd.doCall(req, nil)
 }
 
 // SleepForRetry if err is RateLimitedError, sleep Retry-After and return true
@@ -267,9 +262,6 @@ func (fd *Freshdesk) IterTickets(lto *ListTicketsOption, itf func(*Ticket) bool)
 
 	for {
 		tickets, next, err := fd.ListTickets(lto)
-		if fd.SleepForRetry(err) {
-			continue
-		}
 		if err != nil {
 			return err
 		}
@@ -461,9 +453,6 @@ func (fd *Freshdesk) IterAgents(lao *ListAgentsOption, iaf func(*Agent) bool) er
 
 	for {
 		agents, next, err := fd.ListAgents(lao)
-		if fd.SleepForRetry(err) {
-			continue
-		}
 		if err != nil {
 			return err
 		}
@@ -567,9 +556,6 @@ func (fd *Freshdesk) IterContacts(lco *ListContactsOption, itf func(*Contact) bo
 
 	for {
 		contacts, next, err := fd.ListContacts(lco)
-		if fd.SleepForRetry(err) {
-			continue
-		}
 		if err != nil {
 			return err
 		}

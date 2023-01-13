@@ -194,7 +194,7 @@ func decodeResponse(res *http.Response, obj any) error {
 		return nil
 	}
 
-	er := &ErrorResult{StatusCode: res.StatusCode, Code: res.Status}
+	er := &ErrorResult{StatusCode: res.StatusCode, Status: res.Status}
 	if res.StatusCode != http.StatusNotFound {
 		if err := decoder.Decode(er); err != nil {
 			return err

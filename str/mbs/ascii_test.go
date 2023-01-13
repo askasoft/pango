@@ -20,11 +20,11 @@ var (
 	// fullLetter 全角英字: ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ
 	fullLetter = ("ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ")
 
-	// halfSymbol 半角記号: !"""#$%&'()*+,----./:;<=>?@[\]^_`{|}~~
-	halfSymbol = (" !\"\"\"#$%&'()*+,----./:;<=>?@[\\]^_`{|}~~")
+	// halfSymbol 半角記号: !""""#$%&'()*+,----./:;<=>?@[\\]^_`{|}~~
+	halfSymbol = (" !\"\"\"\"#$%&'()*+,----./:;<=>?@[\\\\]^_`{|}~~")
 
-	// fullSymbol 全角記号: ！″“”＃＄％＆’（）＊＋，－ー‐−．／：；＜＝＞？＠［￥］＾＿｀｛｜｝～〜
-	fullSymbol = ("　！″”“＃＄％＆’（）＊＋，－ー‐−．／：；＜＝＞？＠［￥］＾＿｀｛｜｝～〜")
+	// fullSymbol 全角記号: ！″＂”“＃＄％＆’（）＊＋，－ー‐−．／：；＜＝＞？＠［＼￥］＾＿｀｛｜｝～〜
+	fullSymbol = ("　！″＂”“＃＄％＆’（）＊＋，－ー‐−．／：；＜＝＞？＠［＼￥］＾＿｀｛｜｝～〜")
 
 	// halfASCII 半角: !"#$%&'()*+,-./0123456789:<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~~
 	halfASCII      = halfNumber + halfLetter + halfSymbol
@@ -41,10 +41,14 @@ func testASCII(t *testing.T, name, zen, han string) {
 
 func specialZ(c rune) rune {
 	switch c {
-	case '“', '”':
-		return '″'
+	case '“', '”', '″':
+		return '＂'
 	case '〜':
 		return '～'
+	case '’':
+		return '＇'
+	case '￥':
+		return '＼'
 	case 'ー', '‐', '−':
 		return '－'
 	default:
@@ -87,7 +91,6 @@ func TestASCIIPair(t *testing.T) {
 	testASCII(t, "Number", fullNumber, halfNumber)
 	testASCII(t, "Letter", fullLetter, halfLetter)
 	testASCII(t, "Symbol", fullSymbol, halfSymbol)
-	testASCII(t, "ASCII", fullASCII, halfASCII)
 	testASCII(t, "ASCII", fullASCII, halfASCII)
 }
 

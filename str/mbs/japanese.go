@@ -5,6 +5,7 @@ import (
 	"unicode/utf8"
 )
 
+// http://www.asahi-net.or.jp/~ax2s-kmtn/ref/unicode/uff00.html
 var (
 	// z2hMark 全角: 。「」、・゛゜
 	z2hMark = map[rune]rune{

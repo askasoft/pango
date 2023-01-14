@@ -279,3 +279,29 @@ func TestExportContacts(t *testing.T) {
 	}
 	fd.Logger.Debug(job)
 }
+
+func TestListRoles(t *testing.T) {
+	fd := testNewFreshdesk(t)
+	if fd == nil {
+		return
+	}
+
+	roles, err := fd.ListRoles()
+	if err != nil {
+		t.Fatalf("ERROR: %v", err)
+	}
+	fd.Logger.Debug(roles)
+}
+
+func TestListGroups(t *testing.T) {
+	fd := testNewFreshdesk(t)
+	if fd == nil {
+		return
+	}
+
+	groups, err := fd.ListGroups()
+	if err != nil {
+		t.Fatalf("ERROR: %v", err)
+	}
+	fd.Logger.Debug(groups)
+}

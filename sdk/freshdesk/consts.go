@@ -67,4 +67,10 @@ const (
 	AgentTicketScopeGlobal     = 1
 	AgentTicketScopeGroup      = 2
 	AgentTicketScopeRestricted = 3
+
+	AssignDisabled             = 0
+	AssignRoundRobin           = 1
+	AssignSkillBasedRoundRobin = 2
+	AssignLoadBasedRoundRobin  = 3
+	AssignOmniroute            = 4
 )

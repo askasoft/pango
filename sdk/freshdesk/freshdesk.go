@@ -613,6 +613,13 @@ func (fd *Freshdesk) GetExportedContactsURL(jid string) (*Job, error) {
 	return job, err
 }
 
+func (fd *Freshdesk) MakeAgent(cid int64, agent *Agent) (*Contact, error) {
+	url := fmt.Sprintf("%s/api/v2/contacts/%d/make_agent", fd.Domain, cid)
+	result := &Contact{}
+	err := fd.doPut(url, agent, result)
+	return result, err
+}
+
 func (fd *Freshdesk) CreateCategory(category *Category) (*Category, error) {
 	url := fmt.Sprintf("%s/api/v2/solutions/categories", fd.Domain)
 	result := &Category{}

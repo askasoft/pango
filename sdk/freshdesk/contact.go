@@ -69,6 +69,9 @@ type Contact struct {
 	CreatedAt *Time `json:"created_at,omitempty"`
 
 	UpdatedAt *Time `json:"updated_at,omitempty"`
+
+	// Return by MakeAgent()
+	Agent *Agent `json:"agent,omitempty"`
 }
 
 func (c *Contact) Files() Files {

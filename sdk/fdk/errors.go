@@ -1,4 +1,4 @@
-package freshdesk
+package fdk
 
 import (
 	"fmt"

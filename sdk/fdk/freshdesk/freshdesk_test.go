@@ -19,25 +19,26 @@ func TestWithFiles(t *testing.T) {
 	fmt.Println(tt, tc, ac)
 }
 
-func testNewFreshdesk(t *testing.T) *Freshdesk {
-	apikey := os.Getenv("FD_APIKEY")
+func testNewFreshdesk(t *testing.T) *FreshDesk {
+	apikey := os.Getenv("FDK_APIKEY")
 	if apikey == "" {
-		t.Skip("FD_APIKEY not set")
+		t.Skip("FDK_APIKEY not set")
 		return nil
 	}
 
-	domain := os.Getenv("FD_DOMAIN")
+	domain := os.Getenv("FDK_DOMAIN")
 	if domain == "" {
-		t.Skip("FD_DOMAIN not set")
+		t.Skip("FDK_DOMAIN not set")
 		return nil
 	}
 
 	logs := log.NewLog()
 	//logs.SetLevel(log.LevelDebug)
-	fd := &Freshdesk{
-		Domain: domain,
-		Apikey: apikey,
-		Logger: logs.GetLogger("FDK"),
+	fd := &FreshDesk{
+		Domain:             domain,
+		Apikey:             apikey,
+		Logger:             logs.GetLogger("FDK"),
+		RetryOnRateLimited: 1,
 	}
 
 	return fd
@@ -69,7 +70,7 @@ func TestTicketAPIs(t *testing.T) {
 <div>問い合わせです。</div>
 <p> 外部 image</p><img src="https://github.com/pandafw/pango/raw/master/logo.png"><br/><br/><br/>
 </div>`
-	tu.AddAttachment("./avatar.go")
+	tu.AddAttachment("./any.go")
 
 	ut, err := fd.UpdateTicket(ct.ID, tu)
 	if err != nil {
@@ -94,7 +95,7 @@ func TestTicketAPIs(t *testing.T) {
 	cu := &Conversation{
 		Body: "update note " + time.Now().String(),
 	}
-	cu.AddAttachment("./conversation.go")
+	cu.AddAttachment("./any.go")
 	uc, err := fd.UpdateConversation(cn.ID, cu)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)

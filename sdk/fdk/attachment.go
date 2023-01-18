@@ -1,4 +1,4 @@
-package freshdesk
+package fdk
 
 type Attachment struct {
 	ID int64 `json:"id,omitempty"`
@@ -10,6 +10,8 @@ type Attachment struct {
 	ContentType string `json:"content_type,omitempty"`
 
 	AttachmentURL string `json:"attachment_url,omitempty"`
+
+	CanonicalURL string `json:"canonical_url,omitempty"`
 
 	CreatedAt *Time `json:"created_at,omitempty"`
 
@@ -23,7 +25,7 @@ type Attachment struct {
 }
 
 func (a *Attachment) String() string {
-	return toString(a)
+	return ToString(a)
 }
 
 func (a *Attachment) Field() string {

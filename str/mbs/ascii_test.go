@@ -47,6 +47,8 @@ func specialZ(c rune) rune {
 		return '～'
 	case '’':
 		return '＇'
+	case '\u00a0':
+		return '\u3000'
 	case '￥':
 		return '＼'
 	case 'ー', '‐', '−':

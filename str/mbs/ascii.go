@@ -12,7 +12,7 @@ var (
 	// s2m single-byte to multi-byte rune rune
 	s2m = map[rune]rune{
 		// space
-		'\u0020': '\u3000', //   =>
+		'\u0020': '\u3000', // 　=>
 		// Symbol
 		'\u0021': '\uFF01', // ! => ！
 		'\u0022': '\uFF02', // " => ＂
@@ -118,13 +118,14 @@ var (
 
 	// m2s multi-byte rune to single-byte rune
 	m2s = merge(reverse(s2m), map[rune]rune{
+		// non-breaking space
+		//'\u00A0': '\u0020', //   =>
 		// Symbol
 		'\uFFE5': '\u005C', // ￥ => \
 		'\uFF61': '\u002E', // ｡ => .
 		'\uFF62': '\u005B', // ｢ => [
 		'\uFF63': '\u005D', // ｣ => ]
 		'\uFF64': '\u002C', // ､ => ,
-		// Symbol
 		'\u2010': '\u002D', // ‐ => -
 		'\u2019': '\u0027', // ’ => '
 		'\u201C': '\u0022', // “ => "

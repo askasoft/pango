@@ -45,14 +45,15 @@ func (fto *FilterTicketsOption) Values() Values {
 }
 
 type ListContactsOption struct {
-	Email        string
-	Mobile       string
-	Phone        string
-	CompanyID    int64
-	UpdatedSince Time
-	State        string // [blocked/deleted/unverified/verified]
-	Page         int
-	PerPage      int
+	Email            string
+	Mobile           string
+	Phone            string
+	UniqueExternalID string
+	CompanyID        int64
+	UpdatedSince     Time
+	State            string // [blocked/deleted/unverified/verified]
+	Page             int
+	PerPage          int
 }
 
 func (lco *ListContactsOption) Values() Values {
@@ -60,6 +61,7 @@ func (lco *ListContactsOption) Values() Values {
 	q.SetString("email", lco.Email)
 	q.SetString("mobile", lco.Mobile)
 	q.SetString("phone", lco.Phone)
+	q.SetString("unique_external_id", lco.UniqueExternalID)
 	q.SetInt64("company_id", lco.CompanyID)
 	q.SetString("state", lco.State)
 	q.SetTime("updated_since", lco.UpdatedSince)

@@ -333,6 +333,134 @@ func EqualStrings(a []string, b []string) bool {
 	return true
 }
 
+// Get get element at the specified index i.
+func Get(a []any, i int) (v any, ok bool) {
+	if i >= 0 && i < len(a) {
+		v, ok = a[i], true
+	}
+	return
+}
+
+// GetByte get element at the specified index i.
+func GetByte(a []byte, i int) (v byte, ok bool) {
+	if i >= 0 && i < len(a) {
+		v, ok = a[i], true
+	}
+	return
+}
+
+// GetInt get element at the specified index i.
+func GetInt(a []int, i int) (v int, ok bool) {
+	if i >= 0 && i < len(a) {
+		v, ok = a[i], true
+	}
+	return
+}
+
+// GetInt8 get element at the specified index i.
+func GetInt8(a []int8, i int) (v int8, ok bool) {
+	if i >= 0 && i < len(a) {
+		v, ok = a[i], true
+	}
+	return
+}
+
+// GetInt16 get element at the specified index i.
+func GetInt16(a []int16, i int) (v int16, ok bool) {
+	if i >= 0 && i < len(a) {
+		v, ok = a[i], true
+	}
+	return
+}
+
+// GetInt32 get element at the specified index i.
+func GetInt32(a []int32, i int) (v int32, ok bool) {
+	if i >= 0 && i < len(a) {
+		v, ok = a[i], true
+	}
+	return
+}
+
+// GetInt64 get element at the specified index i.
+func GetInt64(a []int64, i int) (v int64, ok bool) {
+	if i >= 0 && i < len(a) {
+		v, ok = a[i], true
+	}
+	return
+}
+
+// GetUint get element at the specified index i.
+func GetUint(a []uint, i int) (v uint, ok bool) {
+	if i >= 0 && i < len(a) {
+		v, ok = a[i], true
+	}
+	return
+}
+
+// GetUint8 get element at the specified index i.
+func GetUint8(a []uint8, i int) (v uint8, ok bool) {
+	if i >= 0 && i < len(a) {
+		v, ok = a[i], true
+	}
+	return
+}
+
+// GetUint16 get element at the specified index i.
+func GetUint16(a []uint16, i int) (v uint16, ok bool) {
+	if i >= 0 && i < len(a) {
+		v, ok = a[i], true
+	}
+	return
+}
+
+// GetUint32 get element at the specified index i.
+func GetUint32(a []uint32, i int) (v uint32, ok bool) {
+	if i >= 0 && i < len(a) {
+		v, ok = a[i], true
+	}
+	return
+}
+
+// GetUint64 get element at the specified index i.
+func GetUint64(a []uint64, i int) (v uint64, ok bool) {
+	if i >= 0 && i < len(a) {
+		v, ok = a[i], true
+	}
+	return
+}
+
+// GetFloat32 get element at the specified index i.
+func GetFloat32(a []float32, i int) (v float32, ok bool) {
+	if i >= 0 && i < len(a) {
+		v, ok = a[i], true
+	}
+	return
+}
+
+// GetFloat64 get element at the specified index i.
+func GetFloat64(a []float64, i int) (v float64, ok bool) {
+	if i >= 0 && i < len(a) {
+		v, ok = a[i], true
+	}
+	return
+}
+
+// GetRune get element at the specified index i.
+func GetRune(a []rune, i int) (v rune, ok bool) {
+	if i >= 0 && i < len(a) {
+		v, ok = a[i], true
+	}
+	return
+}
+
+// GetString get element at the specified index i.
+func GetString(a []string, i int) (v string, ok bool) {
+	if i >= 0 && i < len(a) {
+		v, ok = a[i], true
+	}
+	return
+}
+
 // Index returns the index of the first instance of c in a, or -1 if c is not present in a.
 func Index(a []any, c any) int {
 	for i, e := range a {

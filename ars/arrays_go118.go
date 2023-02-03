@@ -24,6 +24,14 @@ func EqualOf[T any](a []T, b []T) bool {
 	return true
 }
 
+// GetOf get element at the specified index i.
+func GetOf[T any](a []T, i int) (v T, ok bool) {
+	if i >= 0 && i < len(a) {
+		v, ok = a[i], true
+	}
+	return
+}
+
 // IndexOf returns the index of the first instance of c in a, or -1 if c is not present in a.
 func IndexOf[T any](a []T, c T) int {
 	for i, e := range a {

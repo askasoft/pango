@@ -22,6 +22,11 @@ const (
 	TicketPriorityHigh   = 3
 	TicketPriorityUrgent = 4
 
+	TicketFilterNewAndMyOpen = "new_and_my_open"
+	TicketFilterWatching     = "watching"
+	TicketFilterSpam         = "spam"
+	TicketFilterDeleted      = "deleted"
+
 	ConversationSourceReply     = 0
 	ConversationSourceNote      = 2
 	ConversationSourceTweets    = 5
@@ -73,4 +78,27 @@ const (
 	AssignSkillBasedRoundRobin = 2
 	AssignLoadBasedRoundRobin  = 3
 	AssignOmniroute            = 4
+
+	AutomationTypeTicketCreation = 1
+	AutomationTypeTimeTriggers   = 3
+	AutomationTypeTicketUpdates  = 4
+
+	AutomationOperatorAnd = "AND"
+	AutomationOperatorOr  = "OR"
+
+	AutomationPerformerAgent            = 1
+	AutomationPerformerRequester        = 2
+	AutomationPerformerAgentOrRequester = 3
+	AutomationPerformerSystem           = 4
+
+	AutomationMatchTypeAll = "all"
+	AutomationMatchTypeAny = "any"
+
+	AutomationActionPushToSlack     = "Slack"
+	AutomationActionPushToOffice365 = "Office365"
+
+	AutomationActionSameTicket    = "Same_ticket"
+	AutomationActionParentTicket  = "parent_ticket"
+	AutomationActionTrackerTicket = "tracker_ticket"
+	AutomationActionCustomObject  = "custom_object"
 )

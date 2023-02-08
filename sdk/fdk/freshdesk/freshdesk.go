@@ -220,6 +220,13 @@ func (fd *FreshDesk) DeleteAttachment(aid int64) error {
 	return fd.doDelete(url)
 }
 
+func (fd *FreshDesk) ListTicketConversations(tid int64) ([]*Conversation, error) {
+	url := fmt.Sprintf("%s/api/v2/tickets/%d/conversations", fd.Domain, tid)
+	result := []*Conversation{}
+	err := fd.doGet(url, &result)
+	return result, err
+}
+
 func (fd *FreshDesk) CreateReply(tid int64, reply *Reply) (*Reply, error) {
 	url := fmt.Sprintf("%s/api/v2/tickets/%d/reply", fd.Domain, tid)
 	result := &Reply{}
@@ -698,4 +705,37 @@ func (fd *FreshDesk) UpdateGroup(gid int64, group *Group) (*Group, error) {
 func (fd *FreshDesk) DeleteGroup(gid int64) error {
 	url := fmt.Sprintf("%s/api/v2/groups/%d", fd.Domain, gid)
 	return fd.doDelete(url)
+}
+
+func (fd *FreshDesk) ListAutomationRules(automationTypeID int) ([]*AutomationRule, error) {
+	url := fmt.Sprintf("%s/api/v2/automations/%d/rules", fd.Domain, automationTypeID)
+	rules := []*AutomationRule{}
+	_, err := fd.doList(url, nil, &rules)
+	return rules, err
+}
+
+func (fd *FreshDesk) GetAutomationRule(automationTypeID int, rid int64) (*AutomationRule, error) {
+	url := fmt.Sprintf("%s/api/v2/automations/%d/rules/%d", fd.Domain, automationTypeID, rid)
+	rule := &AutomationRule{}
+	err := fd.doGet(url, rule)
+	return rule, err
+}
+
+func (fd *FreshDesk) DeleteAutomationRule(automationTypeID int, rid int64) error {
+	url := fmt.Sprintf("%s/api/v2/automations/%d/rules/%d", fd.Domain, automationTypeID, rid)
+	return fd.doDelete(url)
+}
+
+func (fd *FreshDesk) CreateAutomationRule(automationTypeID int, rule *AutomationRule) (*AutomationRule, error) {
+	url := fmt.Sprintf("%s/api/v2/automations/%d/rules", fd.Domain, automationTypeID)
+	result := &AutomationRule{}
+	err := fd.doPost(url, rule, result)
+	return result, err
+}
+
+func (fd *FreshDesk) UpdateAutomationRule(automationTypeID int, rid int64, rule *AutomationRule) (*AutomationRule, error) {
+	url := fmt.Sprintf("%s/api/v2/automations/%d/rules/%d", fd.Domain, automationTypeID, rid)
+	result := &AutomationRule{}
+	err := fd.doPut(url, rule, result)
+	return result, err
 }

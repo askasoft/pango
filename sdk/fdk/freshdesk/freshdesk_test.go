@@ -170,7 +170,7 @@ func TestContactAPIs(t *testing.T) {
 
 	cu := &Contact{}
 	cu.Description = "update description " + time.Now().String()
-	cu.Avatar = NewAvatar("../../logo.png")
+	cu.Avatar = NewAvatar("../../../logo.png")
 
 	uc, err := fd.UpdateContact(cc.ID, cu)
 	if err != nil {

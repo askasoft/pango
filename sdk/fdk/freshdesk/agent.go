@@ -30,11 +30,11 @@ type Agent struct {
 	// Role IDs associated with the agent
 	RoleIDs []int64 `json:"role_ids,omitempty"`
 
+	Contact *Contact `json:"contact,omitempty"`
+
 	CreatedAt *Time `json:"created_at,omitempty"`
 
 	UpdatedAt *Time `json:"updated_at,omitempty"`
-
-	Contact *Contact
 }
 
 func (a *Agent) String() string {

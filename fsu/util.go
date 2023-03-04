@@ -160,6 +160,36 @@ func RemoveAll(path string) error {
 	return os.RemoveAll(path)
 }
 
+// Remove removes all files return the by filepath.Glob().
+func RemoveGlob(path string) error {
+	fns, err := filepath.Glob(path)
+	if err != nil {
+		return err
+	}
+	for _, fn := range fns {
+		err := os.Remove(fn)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Remove removes all files and children return the by filepath.Glob().
+func RemoveGlobAll(path string) error {
+	fns, err := filepath.Glob(path)
+	if err != nil {
+		return err
+	}
+	for _, fn := range fns {
+		err := os.RemoveAll(fn)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // Chdir changes the current working directory to the named directory.
 // If there is an error, it will be of type *PathError.
 func Chdir(dir string) error {

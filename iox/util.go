@@ -110,7 +110,7 @@ func SkipBOM(r io.Reader) (io.Reader, error) {
 	if err != nil {
 		return br, err
 	}
-	if c != '\uFEFF' {
+	if c != BOM {
 		// Not a BOM -- put the rune back
 		err = br.UnreadRune()
 	}

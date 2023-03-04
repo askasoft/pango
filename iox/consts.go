@@ -2,6 +2,9 @@ package iox
 
 import "runtime"
 
+// BOM '\uFEFF'
+const BOM = '\uFEFF'
+
 // CR "\r"
 const CR = "\r"
 

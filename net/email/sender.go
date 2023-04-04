@@ -139,14 +139,14 @@ func (s *Sender) dial(host string, port int) error {
 	return nil
 }
 
-func (s *Sender) send(mail *Email) error {
+func (s *Sender) send(recipients []string, email *Email) error {
 	c := s.client
-	if err := c.Mail(mail.GetSender()); err != nil {
+	if err := c.Mail(email.GetSender()); err != nil {
 		return err
 	}
 
-	for _, addr := range mail.GetTos() {
-		if err := c.Rcpt(addr.Address); err != nil {
+	for _, addr := range recipients {
+		if err := c.Rcpt(addr); err != nil {
 			return err
 		}
 	}
@@ -156,7 +156,7 @@ func (s *Sender) send(mail *Email) error {
 		return err
 	}
 
-	err = s.writeMail(w, mail)
+	err = s.writeMail(w, email)
 	if err != nil {
 		w.Close()
 		return err

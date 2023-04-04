@@ -220,8 +220,8 @@ func (m *Email) GetRecipients() []string {
 	return as
 }
 
-// GetRcptsByDomain return a (domain => address string array) map
-func (m *Email) GetRcptsByDomain() map[string][]string {
+// GetRecipientsByDomain return a (domain => address string array) map
+func (m *Email) GetRecipientsByDomain() map[string][]string {
 	rcpts := m.GetRecipients()
 	rs := make(map[string][]string, len(rcpts))
 	for _, r := range rcpts {

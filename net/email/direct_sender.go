@@ -22,9 +22,9 @@ func (ds *DirectSender) DirectSend(ms ...*Email) error {
 }
 
 func (ds *DirectSender) directSend(mail *Email) error {
-	rm := mail.GetRcptsByDomain()
-	for domain, addrs := range rm {
-		if err := ds.directSends(domain, addrs, mail); err != nil {
+	rm := mail.GetRecipientsByDomain()
+	for domain, recipients := range rm {
+		if err := ds.directSends(domain, recipients, mail); err != nil {
 			return err
 		}
 	}
@@ -32,7 +32,7 @@ func (ds *DirectSender) directSend(mail *Email) error {
 	return nil
 }
 
-func (ds *DirectSender) directSends(domain string, addrs []string, mail *Email) error {
+func (ds *DirectSender) directSends(domain string, recipients []string, mail *Email) error {
 	mxrs, err := net.LookupMX(domain)
 	if err != nil {
 		return err
@@ -53,7 +53,7 @@ func (ds *DirectSender) directSends(domain string, addrs []string, mail *Email) 
 
 		err = ds.dial(host, port)
 		if err == nil {
-			err = ds.send(mail)
+			err = ds.send(recipients, mail)
 			ds.Close()
 			break
 		}

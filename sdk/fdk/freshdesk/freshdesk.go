@@ -220,11 +220,11 @@ func (fd *FreshDesk) DeleteAttachment(aid int64) error {
 	return fd.doDelete(url)
 }
 
-func (fd *FreshDesk) ListTicketConversations(tid int64) ([]*Conversation, error) {
+func (fd *FreshDesk) ListTicketConversations(tid int64, lco *ListConversationsOption) ([]*Conversation, bool, error) {
 	url := fmt.Sprintf("%s/api/v2/tickets/%d/conversations", fd.Domain, tid)
-	result := []*Conversation{}
-	err := fd.doGet(url, &result)
-	return result, err
+	conversations := []*Conversation{}
+	next, err := fd.doList(url, lco, &conversations)
+	return conversations, next, err
 }
 
 func (fd *FreshDesk) CreateReply(tid int64, reply *Reply) (*Reply, error) {

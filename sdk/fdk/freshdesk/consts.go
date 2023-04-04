@@ -56,10 +56,10 @@ const (
 	OrderDesc = "desc"
 
 	IncludeDescription   = "description"
-	IncludeCompany       = "company"
-	IncludeConversations = "conversations"
-	IncludeRequester     = "requester"
-	IncludeStats         = "stats"
+	IncludeCompany       = "company"       // Will return the company's id and name.
+	IncludeConversations = "conversations" // Will return up to 10 conversations sorted by "created_at" in ascending order
+	IncludeRequester     = "requester"     // Will return the requester's email, id, mobile, name, and phone
+	IncludeStats         = "stats"         // Will return the ticket’s closed_at, resolved_at and first_responded_at time
 
 	ContactStateBlocked    = "blocked"
 	ContactStateDeleted    = "deleted"

@@ -50,7 +50,11 @@ func TestTreeMapSet(t *testing.T) {
 
 func TestTreeMapDebug(t *testing.T) {
 	tree := NewTreeMap(CompareInt)
-	tree.debug()
+	ev := "(empty)"
+	av := tree.debug()
+	if av != ev {
+		t.Errorf("Got %v expected %v", av, ev)
+	}
 }
 
 func TestTreeMapDelete(t *testing.T) {
@@ -408,11 +412,11 @@ func testTreeMapIterPrevKey(t *testing.T, cmp Compare, kvs []P, vcnt bool) {
 func testTreeMapIterRemoveHead2Tail(t *testing.T, cmp Compare, kvs []P, vcnt bool) {
 	tree := NewTreeMap(cmp, kvs...)
 
-	len := tree.Len()
+	sz := tree.Len()
 	count := 0
 	for it := tree.Iterator(); it.Next(); {
 		it.Remove()
-		len--
+		sz--
 		count++
 		key := it.Key()
 		if vcnt {
@@ -428,8 +432,8 @@ func testTreeMapIterRemoveHead2Tail(t *testing.T, cmp Compare, kvs []P, vcnt boo
 				t.Errorf("Got %v expected %v", av, ev)
 			}
 		}
-		if len != tree.Len() {
-			t.Errorf("tree.len = %v, want %v", tree.Len(), len)
+		if sz != tree.Len() {
+			t.Errorf("tree.len = %v, want %v", tree.Len(), sz)
 		}
 	}
 }

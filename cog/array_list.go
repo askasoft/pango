@@ -255,11 +255,11 @@ func (al *ArrayList[T]) Insert(index int, vs ...T) {
 		return
 	}
 
-	len := al.Len()
+	z := al.Len()
 
 	al.expand(n)
-	if index < len {
-		copy(al.data[index+n:], al.data[index:len-index])
+	if index < z {
+		copy(al.data[index+n:], al.data[index:z-index])
 	}
 	copy(al.data[index:], vs)
 }
@@ -448,25 +448,25 @@ func (al *ArrayList[T]) expand(x int) {
 }
 
 func (al *ArrayList[T]) checkItemIndex(index int) int {
-	len := al.Len()
-	if index >= len || index < -len {
-		panic(fmt.Sprintf("ArrayList out of bounds: index=%d, len=%d", index, len))
+	sz := al.Len()
+	if index >= sz || index < -sz {
+		panic(fmt.Sprintf("ArrayList out of bounds: index=%d, len=%d", index, sz))
 	}
 
 	if index < 0 {
-		index += len
+		index += sz
 	}
 	return index
 }
 
 func (al *ArrayList[T]) checkSizeIndex(index int) int {
-	len := al.Len()
-	if index > len || index < -len {
-		panic(fmt.Sprintf("ArrayList out of bounds: index=%d, len=%d", index, len))
+	sz := al.Len()
+	if index > sz || index < -sz {
+		panic(fmt.Sprintf("ArrayList out of bounds: index=%d, len=%d", index, sz))
 	}
 
 	if index < 0 {
-		index += len
+		index += sz
 	}
 	return index
 }

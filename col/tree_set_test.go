@@ -38,7 +38,11 @@ func TestTreeSetNew(t *testing.T) {
 
 func TestTreeSetDebug(t *testing.T) {
 	tset := NewTreeSet(CompareString)
-	tset.debug()
+	ev := "(empty)"
+	av := tset.debug()
+	if av != ev {
+		t.Errorf("Got %v expected %v", av, ev)
+	}
 }
 
 func TestTreeSetAdd(t *testing.T) {

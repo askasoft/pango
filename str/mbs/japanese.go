@@ -382,18 +382,18 @@ func ToZenkaku(s string) string {
 		return s
 	}
 
-	len := len(s)
+	sz := len(s)
 
 	sb := &strings.Builder{}
-	sb.Grow(len)
+	sb.Grow(sz)
 
 	var c rune
 	var w int
-	for i := 0; i < len; {
+	for i := 0; i < sz; {
 		if w == 0 {
 			c, w = utf8.DecodeRuneInString(s[i:])
 		}
-		if i+w < len {
+		if i+w < sz {
 			nc, nw := utf8.DecodeRuneInString(s[i+w:])
 			if nc == '\uFF9E' { // ﾞ
 				z := ToZenkakuDakuRune(c)

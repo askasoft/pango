@@ -30,14 +30,14 @@ func RepeatRune(r rune, count int) string {
 		return ""
 	}
 
-	len := utf8.RuneLen(r)
+	rlen := utf8.RuneLen(r)
 
 	// Since we cannot return an error on overflow,
 	// we should panic if the repeat will generate
 	// an overflow.
 	// See Issue golang.org/issue/16237
-	size := len * count
-	if size/count != len {
+	size := rlen * count
+	if size/count != rlen {
 		panic("str: RepeatRune count causes overflow")
 	}
 

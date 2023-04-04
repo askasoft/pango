@@ -614,9 +614,9 @@ func (rb *RingBuffer) checkItemIndex(index int) int {
 	}
 
 	index += rb.head
-	len := len(rb.data)
-	if index >= len {
-		index -= len
+	sz := len(rb.data)
+	if index >= sz {
+		index -= sz
 	}
 
 	return index
@@ -632,9 +632,9 @@ func (rb *RingBuffer) checkSizeIndex(index int) int {
 	}
 
 	index += rb.head
-	len := len(rb.data)
-	if index > len {
-		index -= len
+	sz := len(rb.data)
+	if index > sz {
+		index -= sz
 	}
 
 	return index

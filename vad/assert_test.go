@@ -44,26 +44,16 @@ func assertIsEqual(val1, val2 any) bool {
 
 	if v1 == v1Underlying {
 		if v2 == v2Underlying {
-			goto CASE4
-		} else {
-			goto CASE3
+			return reflect.DeepEqual(v1, v2)
 		}
-	} else {
-		if v2 == v2Underlying {
-			goto CASE2
-		} else {
-			goto CASE1
-		}
+		return reflect.DeepEqual(v1, v2.Interface())
 	}
 
-CASE1:
+	if v2 == v2Underlying {
+		return reflect.DeepEqual(v1.Interface(), v2)
+	}
+
 	return reflect.DeepEqual(v1.Interface(), v2.Interface())
-CASE2:
-	return reflect.DeepEqual(v1.Interface(), v2)
-CASE3:
-	return reflect.DeepEqual(v1, v2.Interface())
-CASE4:
-	return reflect.DeepEqual(v1, v2)
 }
 
 // NotMatchRegex validates that value matches the regex, either string or *regex

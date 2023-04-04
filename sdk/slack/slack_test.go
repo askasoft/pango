@@ -8,9 +8,12 @@ import (
 )
 
 func TestSlackError(t *testing.T) {
-	e := &Error{Status: "429 Too Many Requests", StatusCode: 429, RetryAfter: 30}
-	fmt.Printf("%v\n", e)
-	fmt.Printf("%s\n", e)
+	e := &Error{Status: "Too Many Requests", StatusCode: 429, RetryAfter: 30}
+	ev := "429 Too Many Requests (Retry-After: 30)"
+	av := fmt.Sprintf("%v", e)
+	if ev != av {
+		t.Errorf("Got %v, want %v", av, ev)
+	}
 }
 
 func postSlack(t *testing.T, sm *Message) {

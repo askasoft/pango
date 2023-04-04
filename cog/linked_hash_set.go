@@ -534,25 +534,25 @@ func (ls *LinkedHashSet[T]) node(i int) *linkedSetNode[T] {
 }
 
 func (ls *LinkedHashSet[T]) checkItemIndex(index int) int {
-	len := ls.Len()
-	if index >= len || index < -len {
-		panic(fmt.Sprintf("LinkedHashSet out of bounds: index=%d, len=%d", index, len))
+	sz := ls.Len()
+	if index >= sz || index < -sz {
+		panic(fmt.Sprintf("LinkedHashSet out of bounds: index=%d, len=%d", index, sz))
 	}
 
 	if index < 0 {
-		index += len
+		index += sz
 	}
 	return index
 }
 
 func (ls *LinkedHashSet[T]) checkSizeIndex(index int) int {
-	len := ls.Len()
-	if index > len || index < -len {
-		panic(fmt.Sprintf("LinkedHashSet out of bounds: index=%d, len=%d", index, len))
+	sz := ls.Len()
+	if index > sz || index < -sz {
+		panic(fmt.Sprintf("LinkedHashSet out of bounds: index=%d, len=%d", index, sz))
 	}
 
 	if index < 0 {
-		index += len
+		index += sz
 	}
 	return index
 }

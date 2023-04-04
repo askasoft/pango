@@ -31,14 +31,22 @@ issues:
       text: "SA1019:"
     - linters:
         - revive
+      text: "empty-block:"
+    - linters:
+        - revive
       text: "var-naming:"
+    - linters:
+        - revive
+      text: "unused-parameter:"
     - linters:
         - revive
       text: "exported:"
     - path: _test\.go
       linters: # security is not make sense in tests
-        - wastedassign
-        - staticcheck
+        - deadcode
         - errcheck
         - errorlint
         - gosec
+        - revive
+        - staticcheck
+        - wastedassign

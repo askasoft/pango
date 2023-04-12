@@ -59,6 +59,14 @@ func (a *Article) GetAttachments() []*Attachment {
 	return a.Attachments
 }
 
+func (a *Article) Files() Files {
+	fs := make(Files, len(a.Attachments))
+	for i, a := range a.Attachments {
+		fs[i] = a
+	}
+	return fs
+}
+
 func (a *Article) Values() Values {
 	vs := Values{}
 

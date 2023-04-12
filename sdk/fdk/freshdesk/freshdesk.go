@@ -227,6 +227,35 @@ func (fd *FreshDesk) ListTicketConversations(tid int64, lco *ListConversationsOp
 	return conversations, next, err
 }
 
+func (fd *FreshDesk) IterTicketConversations(tid int64, lco *ListConversationsOption, icf func(*Conversation) bool) error {
+	if lco == nil {
+		lco = &ListConversationsOption{}
+	}
+	if lco.Page < 1 {
+		lco.Page = 1
+	}
+	if lco.PerPage < 1 {
+		lco.PerPage = 100
+	}
+
+	for {
+		conversations, next, err := fd.ListTicketConversations(tid, lco)
+		if err != nil {
+			return err
+		}
+		for _, c := range conversations {
+			if !icf(c) {
+				return nil
+			}
+		}
+		if !next {
+			break
+		}
+		lco.Page++
+	}
+	return nil
+}
+
 func (fd *FreshDesk) CreateReply(tid int64, reply *Reply) (*Reply, error) {
 	url := fmt.Sprintf("%s/api/v2/tickets/%d/reply", fd.Domain, tid)
 	result := &Reply{}
@@ -593,14 +622,14 @@ func (fd *FreshDesk) DeleteFolder(fid int64) error {
 }
 
 func (fd *FreshDesk) CreateArticle(fid int64, article *Article) (*Article, error) {
-	url := fmt.Sprintf("%s/api/v2/solutions/folders/%d", fd.Domain, fid)
+	url := fmt.Sprintf("%s/api/v2/solutions/folders/%d/articles", fd.Domain, fid)
 	result := &Article{}
 	err := fd.doPost(url, article, result)
 	return result, err
 }
 
-func (fd *FreshDesk) CreateArticleTranslated(fid int64, lang string, article *Article) (*Article, error) {
-	url := fmt.Sprintf("%s/api/v2/solutions/folders/%d/%s", fd.Domain, fid, lang)
+func (fd *FreshDesk) CreateArticleTranslated(aid int64, lang string, article *Article) (*Article, error) {
+	url := fmt.Sprintf("%s/api/v2/solutions/articles/%d/%s", fd.Domain, aid, lang)
 	result := &Article{}
 	err := fd.doPost(url, article, result)
 	return result, err

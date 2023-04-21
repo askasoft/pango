@@ -103,7 +103,7 @@ func TestMatch(t *testing.T) {
 		// Test case - 13.
 		// Test case to validate that `*` can be expanded into multiple prefixes.
 		{
-			pattern: "my-bucket/In*/Ka*/Ban",
+			pattern: "my-bucket/In**/Ka**/Ban",
 			text:    "my-bucket/India/Karnataka/Area1/Area2/Area3/Ban",
 			matched: true,
 		},

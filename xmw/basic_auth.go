@@ -3,7 +3,7 @@ package xmw
 import (
 	"net/http"
 
-	"github.com/pandafw/pango/xin"
+	"github.com/askasoft/pango/xin"
 )
 
 // AuthUserKey is the key for user credential authenticated saved in context

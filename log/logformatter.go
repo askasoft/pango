@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pandafw/pango/iox"
+	"github.com/askasoft/pango/iox"
 )
 
 // EOL windows: "\r\n" other: "\n"

@@ -3,7 +3,7 @@ package cpt
 import (
 	"testing"
 
-	"github.com/pandafw/pango/str"
+	"github.com/askasoft/pango/str"
 )
 
 func TestAesCBCEncryptString(t *testing.T) {

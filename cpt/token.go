@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/pandafw/pango/str"
+	"github.com/askasoft/pango/str"
 )
 
 const (

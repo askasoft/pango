@@ -8,9 +8,9 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/pandafw/pango/ars"
-	"github.com/pandafw/pango/ini"
-	"github.com/pandafw/pango/str"
+	"github.com/askasoft/pango/ars"
+	"github.com/askasoft/pango/ini"
+	"github.com/askasoft/pango/str"
 )
 
 // TextBundles a localized text resource bundle container

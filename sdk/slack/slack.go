@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pandafw/pango/iox"
+	"github.com/askasoft/pango/iox"
 )
 
 // Error slack api error

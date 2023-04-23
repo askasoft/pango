@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/pandafw/pango/xin/binding"
-	"github.com/pandafw/pango/xin/validate"
+	"github.com/askasoft/pango/xin/binding"
+	"github.com/askasoft/pango/xin/validate"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -3,7 +3,7 @@ package xmw
 import (
 	"io"
 
-	"github.com/pandafw/pango/xin"
+	"github.com/askasoft/pango/xin"
 )
 
 // MaxBytesError is returned by MaxBytesReader when its read limit is exceeded.

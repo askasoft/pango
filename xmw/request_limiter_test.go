@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/pandafw/pango/xin"
+	"github.com/askasoft/pango/xin"
 )
 
 func TestRequestLimiter(t *testing.T) {

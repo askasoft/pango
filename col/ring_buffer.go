@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/pandafw/pango/ars"
+	"github.com/askasoft/pango/ars"
 )
 
 // RingBuffer A fast Golang queue using a ring-buffer, based on the version suggested by Dariusz Górecki.

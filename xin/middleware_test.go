@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/pandafw/pango/net/httpx/sse"
+	"github.com/askasoft/pango/net/httpx/sse"
 	"github.com/stretchr/testify/assert"
 )
 

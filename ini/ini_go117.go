@@ -16,10 +16,10 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/pandafw/pango/bye"
-	"github.com/pandafw/pango/col"
-	"github.com/pandafw/pango/iox"
-	"github.com/pandafw/pango/str"
+	"github.com/askasoft/pango/bye"
+	"github.com/askasoft/pango/col"
+	"github.com/askasoft/pango/iox"
+	"github.com/askasoft/pango/str"
 )
 
 type Sections = col.LinkedHashMap

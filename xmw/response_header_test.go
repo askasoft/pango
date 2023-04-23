@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/pandafw/pango/xin"
+	"github.com/askasoft/pango/xin"
 )
 
 func TestResponseHeader(t *testing.T) {

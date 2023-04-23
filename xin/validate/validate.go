@@ -1,7 +1,7 @@
 package validate
 
 import (
-	"github.com/pandafw/pango/vad"
+	"github.com/askasoft/pango/vad"
 )
 
 // StructValidator is the minimal interface which needs to be implemented in

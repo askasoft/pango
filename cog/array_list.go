@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/pandafw/pango/ars"
+	"github.com/askasoft/pango/ars"
 )
 
 // NewArrayList returns an initialized list.

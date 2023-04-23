@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/pandafw/pango/ars"
+	"github.com/askasoft/pango/ars"
 )
 
 // HTMLTemplates html template engine

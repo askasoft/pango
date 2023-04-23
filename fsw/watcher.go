@@ -7,9 +7,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/askasoft/pango/fsu"
+	"github.com/askasoft/pango/log"
 	"github.com/fsnotify/fsnotify"
-	"github.com/pandafw/pango/fsu"
-	"github.com/pandafw/pango/log"
 )
 
 // Op describes a set of file operations.

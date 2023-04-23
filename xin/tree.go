@@ -7,8 +7,8 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/pandafw/pango/bye"
-	"github.com/pandafw/pango/str"
+	"github.com/askasoft/pango/bye"
+	"github.com/askasoft/pango/str"
 )
 
 var (

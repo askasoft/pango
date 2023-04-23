@@ -4,7 +4,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/pandafw/pango/str/rabinkarp"
+	"github.com/askasoft/pango/str/rabinkarp"
 )
 
 // CountRune counts the number of non-overlapping instances of rune c in s.

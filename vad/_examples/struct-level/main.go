@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/pandafw/pango/vad"
+	"github.com/askasoft/pango/vad"
 )
 
 // User contains user information

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/pandafw/pango/ars"
+	"github.com/askasoft/pango/ars"
 )
 
 // NewLinkedHashSet returns an initialized set.

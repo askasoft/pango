@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pandafw/pango/col"
-	"github.com/pandafw/pango/iox"
-	"github.com/pandafw/pango/num"
+	"github.com/askasoft/pango/col"
+	"github.com/askasoft/pango/iox"
+	"github.com/askasoft/pango/num"
 )
 
 // Entry ini entry

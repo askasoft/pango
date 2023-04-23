@@ -7,7 +7,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/pandafw/pango/num"
+	"github.com/askasoft/pango/num"
 )
 
 // If return (b ? t : f)

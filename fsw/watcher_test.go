@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pandafw/pango/fsu"
-	"github.com/pandafw/pango/log"
+	"github.com/askasoft/pango/fsu"
+	"github.com/askasoft/pango/log"
 )
 
 func testSleep() {

@@ -6,7 +6,7 @@ import (
 	"html/template"
 	"reflect"
 
-	"github.com/pandafw/pango/num"
+	"github.com/askasoft/pango/num"
 )
 
 // JSON returns a json marshal string.

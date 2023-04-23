@@ -11,8 +11,8 @@ import (
 	"net/http/httputil"
 	"time"
 
-	"github.com/pandafw/pango/log"
-	"github.com/pandafw/pango/xin"
+	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/xin"
 )
 
 const dumpTimeFormat = "2006-01-02T15:04:05.000"

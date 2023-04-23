@@ -11,10 +11,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/pandafw/pango/bye"
-	"github.com/pandafw/pango/iox"
-	"github.com/pandafw/pango/log"
-	"github.com/pandafw/pango/net/httpx"
+	"github.com/askasoft/pango/bye"
+	"github.com/askasoft/pango/iox"
+	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/net/httpx"
 )
 
 const (

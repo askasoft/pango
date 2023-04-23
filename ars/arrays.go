@@ -3,7 +3,7 @@ package ars
 import (
 	"bytes"
 
-	"github.com/pandafw/pango/bye"
+	"github.com/askasoft/pango/bye"
 )
 
 // Contains reports whether the c is contained in the slice a.

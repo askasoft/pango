@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/pandafw/pango/ref"
+	"github.com/askasoft/pango/ref"
 )
 
 // Writer log writer interface

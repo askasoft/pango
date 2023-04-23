@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/pandafw/pango/tpl/funcs"
+	"github.com/askasoft/pango/tpl/funcs"
 )
 
 // FuncMap is the type of the map defining the mapping from names to

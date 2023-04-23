@@ -1,7 +1,7 @@
 package freshservice
 
 import (
-	"github.com/pandafw/pango/sdk/fdk"
+	"github.com/askasoft/pango/sdk/fdk"
 )
 
 type RateLimitedError = fdk.RateLimitedError

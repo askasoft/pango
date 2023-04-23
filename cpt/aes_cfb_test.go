@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/pandafw/pango/str"
+	"github.com/askasoft/pango/str"
 )
 
 func TestAesCFBEncryptString(t *testing.T) {

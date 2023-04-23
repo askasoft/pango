@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pandafw/pango/fsu"
-	"github.com/pandafw/pango/num"
+	"github.com/askasoft/pango/fsu"
+	"github.com/askasoft/pango/num"
 )
 
 func TestLogConfigJSON(t *testing.T) {

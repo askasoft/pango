@@ -1,7 +1,7 @@
 package col
 
 import (
-	"github.com/pandafw/pango/str"
+	"github.com/askasoft/pango/str"
 )
 
 // Compare will make type assertion (see CompareString(a,b) for example),

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/pandafw/pango/fsu"
+	"github.com/askasoft/pango/fsu"
 )
 
 func testNewHtmlTpls() *HTMLTemplates {

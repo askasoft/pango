@@ -8,7 +8,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/pandafw/pango/str"
+	"github.com/askasoft/pango/str"
 )
 
 func TestRingBufferInterface(t *testing.T) {

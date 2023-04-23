@@ -8,8 +8,8 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/pandafw/pango/ars"
-	"github.com/pandafw/pango/str"
+	"github.com/askasoft/pango/ars"
+	"github.com/askasoft/pango/str"
 )
 
 func TestLinkedHashSetInterface(t *testing.T) {

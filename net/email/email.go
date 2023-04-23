@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pandafw/pango/fsu"
-	"github.com/pandafw/pango/iox"
-	"github.com/pandafw/pango/str"
+	"github.com/askasoft/pango/fsu"
+	"github.com/askasoft/pango/iox"
+	"github.com/askasoft/pango/str"
 )
 
 // Email email struct

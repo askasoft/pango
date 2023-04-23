@@ -3,7 +3,7 @@ package render
 import (
 	"net/http"
 
-	"github.com/pandafw/pango/tpl"
+	"github.com/askasoft/pango/tpl"
 )
 
 // HTMLRender interface is to be implemented by HTMLProduction and HTMLDebug.

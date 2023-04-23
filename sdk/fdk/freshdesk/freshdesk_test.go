@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pandafw/pango/log"
-	"github.com/pandafw/pango/str"
+	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/str"
 )
 
 func TestWithFiles(t *testing.T) {
@@ -70,7 +70,7 @@ func TestTicketAPIs(t *testing.T) {
 	tu.Description = `<div>
 <div>test05 - 非公開メモ</div>
 <div>問い合わせです。</div>
-<p> 外部 image</p><img src="https://github.com/pandafw/pango/raw/master/logo.png"><br/><br/><br/>
+<p> 外部 image</p><img src="https://github.com/askasoft/pango/raw/master/logo.png"><br/><br/><br/>
 </div>`
 	tu.AddAttachment("./any.go")
 

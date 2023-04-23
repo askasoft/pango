@@ -1,7 +1,7 @@
  Pango
 =====================================================================
 
-![](https://github.com/pandafw/pango/raw/master/logo.png) [![Build Status](https://github.com/pandafw/pango/actions/workflows/build.yml/badge.svg)](https://github.com/pandafw/pango/actions?query=branch%3Amaster) [![codecov](https://codecov.io/gh/pandafw/pango/branch/master/graph/badge.svg)](https://codecov.io/gh/pandafw/pango) [![MIT](https://img.shields.io/badge/license-MIT-green)](https://opensource.org/licenses/MIT) ![](https://github.com/pandafw/pango/raw/master/logo.png)
+![](https://github.com/askasoft/pango/raw/master/logo.png) [![Build Status](https://github.com/askasoft/pango/actions/workflows/build.yml/badge.svg)](https://github.com/askasoft/pango/actions?query=branch%3Amaster) [![codecov](https://codecov.io/gh/askasoft/pango/branch/master/graph/badge.svg)](https://codecov.io/gh/askasoft/pango) [![MIT](https://img.shields.io/badge/license-MIT-green)](https://opensource.org/licenses/MIT) ![](https://github.com/askasoft/pango/raw/master/logo.png)
 
 
 
@@ -24,7 +24,7 @@ Pango is a GO development utility library.
 
 ### How to install?
 
-	go get github.com/pandafw/pango
+	go get github.com/askasoft/pango
 
 
 

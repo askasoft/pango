@@ -7,7 +7,7 @@ it allows you to monitor all folders underneath the folder you specify.
 
 ### Install:
 
-	go get github.com/pandafw/pango
+	go get github.com/askasoft/pango
 
 
 ### Example:
@@ -17,7 +17,7 @@ it allows you to monitor all folders underneath the folder you specify.
 ```golang
 import (
 	"fmt"
-	github.com/pandafw/pango/fsw
+	github.com/askasoft/pango/fsw
 )
 
 // works exactly like fsnotify and implements the same API.

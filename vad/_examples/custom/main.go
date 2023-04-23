@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/pandafw/pango/vad"
+	"github.com/askasoft/pango/vad"
 )
 
 // DbBackedUser User struct

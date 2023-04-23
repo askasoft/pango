@@ -3,7 +3,7 @@ package wildcard
 import (
 	"unicode/utf8"
 
-	"github.com/pandafw/pango/str"
+	"github.com/askasoft/pango/str"
 )
 
 // MatchSimple - finds whether the text matches/satisfies the pattern string.

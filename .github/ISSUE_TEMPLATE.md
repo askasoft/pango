@@ -14,7 +14,7 @@
 package main
 
 import (
-	"github.com/pandafw/pango/xin"
+	"github.com/askasoft/pango/xin"
 )
 
 func main() {

@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/pandafw/pango/iox"
+	"github.com/askasoft/pango/iox"
 )
 
 // StreamWriter implements log Writer Interface and writes messages to terminal.

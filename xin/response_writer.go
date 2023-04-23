@@ -6,7 +6,7 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/pandafw/pango/log"
+	"github.com/askasoft/pango/log"
 )
 
 const (

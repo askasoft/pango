@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pandafw/pango/iox"
-	"github.com/pandafw/pango/str"
+	"github.com/askasoft/pango/iox"
+	"github.com/askasoft/pango/str"
 )
 
 //-----------------------------------------------------

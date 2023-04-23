@@ -4,7 +4,7 @@
 package xmw
 
 import (
-	"github.com/pandafw/pango/cog"
+	"github.com/askasoft/pango/cog"
 )
 
 type stringSet = cog.HashSet[string]

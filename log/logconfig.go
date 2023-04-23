@@ -9,9 +9,9 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/pandafw/pango/ini"
-	"github.com/pandafw/pango/ref"
-	"github.com/pandafw/pango/str"
+	"github.com/askasoft/pango/ini"
+	"github.com/askasoft/pango/ref"
+	"github.com/askasoft/pango/str"
 )
 
 // Config config log by configuration file

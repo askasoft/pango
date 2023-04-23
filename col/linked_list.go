@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/pandafw/pango/ars"
+	"github.com/askasoft/pango/ars"
 )
 
 // NewLinkedList returns an initialized list.

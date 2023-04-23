@@ -6,7 +6,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/pandafw/pango/str"
+	"github.com/askasoft/pango/str"
 )
 
 func TestHashSetInterface(t *testing.T) {

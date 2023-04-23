@@ -9,8 +9,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/pandafw/pango/str"
-	"github.com/pandafw/pango/xin"
+	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/xin"
 )
 
 func logPerformRequest(r http.Handler, method, path string) *httptest.ResponseRecorder {

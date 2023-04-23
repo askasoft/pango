@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pandafw/pango/net/httpx"
+	"github.com/askasoft/pango/net/httpx"
 )
 
 // BindKey indicates a default bind key.

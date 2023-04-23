@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/pandafw/pango/vad"
+	"github.com/askasoft/pango/vad"
 )
 
 // MyStruct ..

@@ -6,7 +6,7 @@ package cog
 import (
 	"encoding/json"
 
-	"github.com/pandafw/pango/ars"
+	"github.com/askasoft/pango/ars"
 )
 
 // NewTreeSet creates a new TreeSet.

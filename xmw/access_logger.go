@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pandafw/pango/iox"
-	"github.com/pandafw/pango/log"
-	"github.com/pandafw/pango/xin"
+	"github.com/askasoft/pango/iox"
+	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/xin"
 )
 
 // DefaultLogTimeFormat default log time format

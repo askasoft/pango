@@ -62,7 +62,7 @@ func (l *logger) GetLogger(name string) Logger {
 //
 //	import (
 //	  golog "log"
-//	  "github.com/pandafw/pango/log"
+//	  "github.com/askasoft/pango/log"
 //	)
 //	golog.SetOutput(log.Outputer("GO", log.LevelInfo, 3))
 func (l *logger) GetOutputer(name string, lvl Level, callerDepth ...int) Outputer {

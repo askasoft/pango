@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pandafw/pango/iox"
+	"github.com/askasoft/pango/iox"
 )
 
 // treeSetNode is a node of red-black tree

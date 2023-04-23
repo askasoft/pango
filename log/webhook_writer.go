@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/pandafw/pango/iox"
+	"github.com/askasoft/pango/iox"
 )
 
 // WebhookWriter implements log Writer Interface and send log message to webhook.

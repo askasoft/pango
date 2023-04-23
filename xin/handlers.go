@@ -3,7 +3,7 @@ package xin
 import (
 	"net/http"
 
-	"github.com/pandafw/pango/str"
+	"github.com/askasoft/pango/str"
 )
 
 // RedirectToSlach is a HandlerFunc that redirect to the URL's path + "/"

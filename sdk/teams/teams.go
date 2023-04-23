@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/pandafw/pango/iox"
+	"github.com/askasoft/pango/iox"
 )
 
 // Error teams api error

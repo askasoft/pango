@@ -6,8 +6,8 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/pandafw/pango/str"
-	"github.com/pandafw/pango/xin"
+	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/xin"
 )
 
 const (

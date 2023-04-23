@@ -5,7 +5,7 @@ import (
 	"crypto/cipher"
 	"encoding/base64"
 
-	"github.com/pandafw/pango/str"
+	"github.com/askasoft/pango/str"
 )
 
 type AesCFB struct {

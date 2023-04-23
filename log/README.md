@@ -6,7 +6,7 @@ A Go Log library like Log4j. It can use many log writers. This package is inspir
 
 ### How to install?
 
-	go get github.com/pandafw/pango
+	go get github.com/askasoft/pango
 
 
 ### What writers are supported?
@@ -20,7 +20,7 @@ First you must import it
 
 ```golang
 import (
-	"github.com/pandafw/pango/log"
+	"github.com/askasoft/pango/log"
 )
 ```
 

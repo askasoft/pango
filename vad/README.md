@@ -18,11 +18,11 @@ Installation
 
 Use go get.
 
-	go get github.com/pandafw/pango
+	go get github.com/askasoft/pango
 
 Then import the validator package into your own code.
 
-	import "github.com/pandafw/pango/vad"
+	import "github.com/askasoft/pango/vad"
 
 Error Return Value
 -------

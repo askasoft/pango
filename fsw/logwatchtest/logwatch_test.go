@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pandafw/pango/fsu"
-	"github.com/pandafw/pango/fsw"
-	"github.com/pandafw/pango/iox"
-	"github.com/pandafw/pango/log"
+	"github.com/askasoft/pango/fsu"
+	"github.com/askasoft/pango/fsw"
+	"github.com/askasoft/pango/iox"
+	"github.com/askasoft/pango/log"
 )
 
 const (

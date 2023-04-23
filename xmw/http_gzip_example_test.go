@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pandafw/pango/xin"
+	"github.com/askasoft/pango/xin"
 )
 
 func ExampleHTTPGziper() {

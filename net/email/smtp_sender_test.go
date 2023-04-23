@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pandafw/pango/iox"
-	"github.com/pandafw/pango/net/netutil"
-	"github.com/pandafw/pango/str"
+	"github.com/askasoft/pango/iox"
+	"github.com/askasoft/pango/net/netutil"
+	"github.com/askasoft/pango/str"
 )
 
 func skipTest(t *testing.T, msg string) {

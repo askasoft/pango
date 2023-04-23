@@ -3,7 +3,7 @@ package col
 import (
 	"fmt"
 
-	"github.com/pandafw/pango/ars"
+	"github.com/askasoft/pango/ars"
 )
 
 // NewHashSet Create a new hash set

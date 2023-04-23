@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pandafw/pango/bye"
-	"github.com/pandafw/pango/net/email"
-	"github.com/pandafw/pango/str"
+	"github.com/askasoft/pango/bye"
+	"github.com/askasoft/pango/net/email"
+	"github.com/askasoft/pango/str"
 )
 
 // SMTPWriter implements log Writer Interface and send log message.

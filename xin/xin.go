@@ -6,11 +6,11 @@ import (
 	"path"
 	"sync"
 
-	"github.com/pandafw/pango/bye"
-	"github.com/pandafw/pango/log"
-	"github.com/pandafw/pango/str"
-	"github.com/pandafw/pango/xin/render"
-	"github.com/pandafw/pango/xin/validate"
+	"github.com/askasoft/pango/bye"
+	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/xin/render"
+	"github.com/askasoft/pango/xin/validate"
 )
 
 const defaultMultipartMemory = 32 << 20 // 32 MB

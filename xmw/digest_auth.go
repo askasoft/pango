@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pandafw/pango/bye"
-	"github.com/pandafw/pango/cpt"
-	"github.com/pandafw/pango/net/httpx"
-	"github.com/pandafw/pango/str"
-	"github.com/pandafw/pango/xin"
+	"github.com/askasoft/pango/bye"
+	"github.com/askasoft/pango/cpt"
+	"github.com/askasoft/pango/net/httpx"
+	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/xin"
 )
 
 // DigestAuth digest http authenticator

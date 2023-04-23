@@ -10,11 +10,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pandafw/pango/log"
-	"github.com/pandafw/pango/net/httpx/sse"
-	"github.com/pandafw/pango/str"
-	"github.com/pandafw/pango/xin/binding"
-	"github.com/pandafw/pango/xin/render"
+	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/net/httpx/sse"
+	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/xin/binding"
+	"github.com/askasoft/pango/xin/render"
 )
 
 // Content-Type MIME of the most common data formats.

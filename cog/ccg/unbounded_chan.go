@@ -4,7 +4,7 @@
 package ccg
 
 import (
-	"github.com/pandafw/pango/cog"
+	"github.com/askasoft/pango/cog"
 )
 
 // UnboundedChan unbounded channel

@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/pandafw/pango/str"
+	"github.com/askasoft/pango/str"
 )
 
 // IsBrokenPipeError Check for a broken connection error

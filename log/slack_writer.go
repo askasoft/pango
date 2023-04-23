@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/pandafw/pango/bye"
-	"github.com/pandafw/pango/sdk/slack"
+	"github.com/askasoft/pango/bye"
+	"github.com/askasoft/pango/sdk/slack"
 )
 
 // SlackWriter implements log Writer Interface and send log message to slack.

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pandafw/pango/vad"
+	"github.com/askasoft/pango/vad"
 	"github.com/stretchr/testify/assert"
 )
 

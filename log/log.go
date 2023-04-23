@@ -1,7 +1,7 @@
 // Package log provide a general log interface
 // Usage:
 //
-// import "github.com/pandafw/pango/log"
+// import "github.com/askasoft/pango/log"
 //
 //	log := log.NewLog()
 //	log.SetWriter(log.NewAsyncWriter(log.NewConsoleWriter()))
@@ -55,7 +55,7 @@ func GetLogger(name string) Logger {
 //
 //	import (
 //	  golog "log"
-//	  "github.com/pandafw/pango/log"
+//	  "github.com/askasoft/pango/log"
 //	)
 //	golog.SetOutput(log.Outputer("GO", log.LevelInfo, 2))
 func GetOutputer(name string, lvl Level, callerDepth ...int) Outputer {

@@ -3,7 +3,7 @@ package log
 import (
 	"strings"
 
-	"github.com/pandafw/pango/str"
+	"github.com/askasoft/pango/str"
 )
 
 // Filter log filter

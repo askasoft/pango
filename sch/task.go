@@ -5,7 +5,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/pandafw/pango/log"
+	"github.com/askasoft/pango/log"
 )
 
 const execTimeFormat = "2006-01-02T15:04:05"

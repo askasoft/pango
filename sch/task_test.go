@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pandafw/pango/log"
+	"github.com/askasoft/pango/log"
 )
 
 func testPeriodicTriggerTask(t *testing.T, logger log.Logger) {

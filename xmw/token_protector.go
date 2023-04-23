@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/pandafw/pango/cpt"
-	"github.com/pandafw/pango/xin"
+	"github.com/askasoft/pango/cpt"
+	"github.com/askasoft/pango/xin"
 )
 
 const (

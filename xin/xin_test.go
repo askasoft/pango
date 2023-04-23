@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pandafw/pango/tpl"
+	"github.com/askasoft/pango/tpl"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -430,27 +430,27 @@ func TestListOfRoutes(t *testing.T) {
 	assertRoutePresent(t, list, RouteInfo{
 		Method:  "GET",
 		Path:    "/favicon.ico",
-		Handler: "^(.*/vendor/)?github.com/pandafw/pango/xin.handlerTest1$",
+		Handler: "^(.*/vendor/)?github.com/askasoft/pango/xin.handlerTest1$",
 	})
 	assertRoutePresent(t, list, RouteInfo{
 		Method:  "GET",
 		Path:    "/",
-		Handler: "^(.*/vendor/)?github.com/pandafw/pango/xin.handlerTest1$",
+		Handler: "^(.*/vendor/)?github.com/askasoft/pango/xin.handlerTest1$",
 	})
 	assertRoutePresent(t, list, RouteInfo{
 		Method:  "GET",
 		Path:    "/users/",
-		Handler: "^(.*/vendor/)?github.com/pandafw/pango/xin.handlerTest2$",
+		Handler: "^(.*/vendor/)?github.com/askasoft/pango/xin.handlerTest2$",
 	})
 	assertRoutePresent(t, list, RouteInfo{
 		Method:  "GET",
 		Path:    "/users/:id",
-		Handler: "^(.*/vendor/)?github.com/pandafw/pango/xin.handlerTest1$",
+		Handler: "^(.*/vendor/)?github.com/askasoft/pango/xin.handlerTest1$",
 	})
 	assertRoutePresent(t, list, RouteInfo{
 		Method:  "POST",
 		Path:    "/users/:id",
-		Handler: "^(.*/vendor/)?github.com/pandafw/pango/xin.handlerTest2$",
+		Handler: "^(.*/vendor/)?github.com/askasoft/pango/xin.handlerTest2$",
 	})
 }
 

@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"io"
 
-	"github.com/pandafw/pango/str"
+	"github.com/askasoft/pango/str"
 )
 
 // Discard is an io.Writer on which all Write calls succeed

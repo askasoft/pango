@@ -3,7 +3,7 @@ package log
 import (
 	"io"
 
-	"github.com/pandafw/pango/bye"
+	"github.com/askasoft/pango/bye"
 )
 
 // Outputer interface for io.Writer, gorm.logger.Writer

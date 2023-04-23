@@ -6,7 +6,7 @@ A Go Collection/Container package.
 
 ### How to install?
 
-	go get github.com/pandafw/pango
+	go get github.com/askasoft/pango
 
 
 ### Container
@@ -140,7 +140,7 @@ Implements [List](#list), [Iterator](#iterator) interfaces.
 package main
 
 import (
-	"github.com/pandafw/pango/col"
+	"github.com/askasoft/pango/col"
 )
 
 func main() {
@@ -176,7 +176,7 @@ Implements [List](#list), [Iterator](#iterator) interfaces.
 package main
 
 import (
-	"github.com/pandafw/pango/col"
+	"github.com/askasoft/pango/col"
 )
 
 func main() {
@@ -222,7 +222,7 @@ Implements [Set](#set) interfaces.
 package main
 
 import (
-	"github.com/pandafw/pango/col"
+	"github.com/askasoft/pango/col"
 )
 
 func main() {
@@ -251,8 +251,8 @@ Implements [Set](#set), [Iterator](#iterator) interfaces.
 package main
 
 import (
-	"github.com/pandafw/pango/col"
-	"github.com/pandafw/pango/cmp"
+	"github.com/askasoft/pango/col"
+	"github.com/askasoft/pango/cmp"
 )
 
 func main() {
@@ -282,7 +282,7 @@ Implements [Set](#set), [Iterator](#iterator) interfaces.
 package main
 
 import (
-	"github.com/pandafw/pango/col"
+	"github.com/askasoft/pango/col"
 )
 
 func main() {
@@ -358,7 +358,7 @@ Implements [Map](#map) interfaces.
 package main
 
 import (
-	"github.com/pandafw/pango/col"
+	"github.com/askasoft/pango/col"
 )
 
 func main() {
@@ -387,7 +387,7 @@ Implements [Map](#map), [Iterator](#iterator) interfaces.
 package main
 
 import (
-	"github.com/pandafw/pango/col"
+	"github.com/askasoft/pango/col"
 )
 
 func main() {
@@ -416,7 +416,7 @@ Implements [Map](#map), [Iterator2](#iterator2) interfaces.
 package main
 
 import (
-	"github.com/pandafw/pango/col"
+	"github.com/askasoft/pango/col"
 )
 
 func main() {
@@ -533,7 +533,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/pandafw/pango/col"
+	"github.com/askasoft/pango/col"
 )
 
 type User struct {

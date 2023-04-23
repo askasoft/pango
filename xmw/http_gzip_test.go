@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/pandafw/pango/xin"
+	"github.com/askasoft/pango/xin"
 )
 
 func assertGzipHeader(t *testing.T, rr *httptest.ResponseRecorder, sc int, hce, hvary, hcl string) {

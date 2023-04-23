@@ -8,7 +8,7 @@ Server-sent events (SSE) is a technology where a browser receives automatic upda
 ## Sample code
 
 ```go
-import "github.com/pandafw/pango/net/httpx/sse"
+import "github.com/askasoft/pango/net/httpx/sse"
 
 func httpHandler(w http.ResponseWriter, req *http.Request) {
 	// data can be a primitive like a string, an integer or a float

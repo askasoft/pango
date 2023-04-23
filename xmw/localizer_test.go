@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/pandafw/pango/xin"
+	"github.com/askasoft/pango/xin"
 )
 
 func doLocalizerTest(t *testing.T, req *http.Request, want string) {

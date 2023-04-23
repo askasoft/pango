@@ -3,7 +3,7 @@
 
 package log
 
-import "github.com/pandafw/pango/cog"
+import "github.com/askasoft/pango/cog"
 
 // EventBuffer a event buffer
 type EventBuffer struct {

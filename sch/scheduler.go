@@ -3,7 +3,7 @@ package sch
 import (
 	"sync"
 
-	"github.com/pandafw/pango/log"
+	"github.com/askasoft/pango/log"
 )
 
 // Scheduler task scheduler

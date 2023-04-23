@@ -11,7 +11,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/pandafw/pango/ars"
+	"github.com/askasoft/pango/ars"
 )
 
 func TestTreeSetInterface(t *testing.T) {

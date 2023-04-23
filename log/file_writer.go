@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pandafw/pango/num"
+	"github.com/askasoft/pango/num"
 )
 
 // FileWriter implements Writer.

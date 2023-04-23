@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pandafw/pango/str"
+	"github.com/askasoft/pango/str"
 )
 
 var (

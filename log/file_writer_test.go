@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pandafw/pango/fsu"
+	"github.com/askasoft/pango/fsu"
 )
 
 func TestFileTextFormatSimple(t *testing.T) {

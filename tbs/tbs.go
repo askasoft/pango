@@ -3,7 +3,7 @@ package tbs
 import (
 	"io/fs"
 
-	"github.com/pandafw/pango/ini"
+	"github.com/askasoft/pango/ini"
 )
 
 var _tbs = NewTextBundles()

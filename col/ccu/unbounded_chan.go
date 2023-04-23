@@ -1,7 +1,7 @@
 package ccu
 
 import (
-	"github.com/pandafw/pango/col"
+	"github.com/askasoft/pango/col"
 )
 
 // UnboundedChan unbounded channel

@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pandafw/pango/ars"
-	"github.com/pandafw/pango/fsu"
-	"github.com/pandafw/pango/iox"
+	"github.com/askasoft/pango/ars"
+	"github.com/askasoft/pango/fsu"
+	"github.com/askasoft/pango/iox"
 )
 
 func TestLoadFile(t *testing.T) {

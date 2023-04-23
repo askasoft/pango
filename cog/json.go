@@ -11,7 +11,7 @@ import (
 	"io"
 	"reflect"
 
-	"github.com/pandafw/pango/ref"
+	"github.com/askasoft/pango/ref"
 )
 
 func jsonAddColItem[T any](c Collection[T], v any) error {

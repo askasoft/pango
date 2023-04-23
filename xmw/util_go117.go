@@ -3,7 +3,7 @@
 
 package xmw
 
-import "github.com/pandafw/pango/col"
+import "github.com/askasoft/pango/col"
 
 type stringSet = col.HashSet
 

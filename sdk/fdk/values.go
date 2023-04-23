@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/pandafw/pango/num"
+	"github.com/askasoft/pango/num"
 )
 
 type ListOption interface {

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pandafw/pango/net/httpx"
+	"github.com/askasoft/pango/net/httpx"
 )
 
 var (

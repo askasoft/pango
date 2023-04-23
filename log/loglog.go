@@ -117,7 +117,7 @@ func (log *Log) write(le *Event) {
 //
 //	import (
 //	  golog "log"
-//	  "github.com/pandafw/pango/log"
+//	  "github.com/askasoft/pango/log"
 //	)
 //	golog.SetOutput(log.Outputer("GO", log.LevelInfo, 3))
 func (log *Log) GetOutputer(name string, lvl Level, callerDepth ...int) Outputer {

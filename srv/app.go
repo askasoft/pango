@@ -37,10 +37,13 @@ type App interface {
 
 	// Shutdown shutdown the app
 	Shutdown()
+
+	// Wait wait signal for reload or shutdown
+	Wait()
 }
 
-// wait wait for server shutdown
-func wait(app App) {
+// Wait wait signal for reload or shutdown the app
+func Wait(app App) {
 	// signal channel
 	sigChan := make(chan os.Signal, 1)
 
@@ -57,4 +60,12 @@ func wait(app App) {
 			break
 		}
 	}
+}
+
+func runStandalone(app App) {
+	app.Init()
+
+	app.Run()
+
+	app.Wait()
 }

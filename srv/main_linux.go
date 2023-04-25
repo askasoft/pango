@@ -10,8 +10,8 @@ func usage() {
 	fmt.Fprintf(flag.CommandLine.Output(),
 		"Usage: %s <command> [options]\n"+
 			"  <command>:\n"+
-			"     usage        print the usage information.\n"+
-			"     version      print the version information.\n"+
+			"    help | usage    print the usage information.\n"+
+			"    version         print the version information.\n"+
 			"  <options>:\n",
 		os.Args[0])
 
@@ -20,20 +20,10 @@ func usage() {
 
 // Main server main
 func Main(app App) {
-	workdir := flag.String("d", "", "working directory")
+	workdir := flag.String("d", "", "set the working directory.")
 
 	flag.CommandLine.Usage = usage
 	flag.Parse()
-
-	switch flag.Arg(0) {
-	case "usage":
-		flag.CommandLine.SetOutput(os.Stdout)
-		usage()
-		os.Exit(0)
-	case "version":
-		fmt.Printf("%s.%s (%s)\n", app.Version(), app.Revision(), app.BuildTime())
-		os.Exit(0)
-	}
 
 	if *workdir != "" {
 		if err := os.Chdir(*workdir); err != nil {
@@ -42,9 +32,17 @@ func Main(app App) {
 		}
 	}
 
-	app.Init()
-
-	app.Run()
-
-	wait(app)
+	cmd := flag.Arg(0)
+	switch cmd {
+	case "help", "usage":
+		flag.CommandLine.SetOutput(os.Stdout)
+		usage()
+	case "version":
+		fmt.Printf("%s.%s (%s)\n", app.Version(), app.Revision(), app.BuildTime().Local())
+	case "":
+		runStandalone(app)
+	default:
+		fmt.Fprintf(os.Stderr, "Invalid command %q\n\n", cmd)
+		usage()
+	}
 }

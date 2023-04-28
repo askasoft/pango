@@ -61,7 +61,7 @@ type Contact struct {
 	UniqueExternalID string `json:"unique_external_id,omitempty"`
 
 	// Additional companies associated with the contact
-	OtherCompanies []string `json:"other_companies,omitempty"`
+	OtherCompanies []int64 `json:"other_companies,omitempty"`
 
 	// IDs of the companies associated with the contact (only used by MergeContact)
 	CompanyIDs int64 `json:"company_ids,omitempty"`
@@ -92,7 +92,7 @@ func (c *Contact) Values() Values {
 	vs.SetStrings("other_emails", c.OtherEmails)
 	vs.SetInt64("company_id", c.CompanyID)
 	vs.SetBool("view_all_tickets", c.ViewAllTickets)
-	vs.SetStrings("other_companies", c.OtherCompanies)
+	vs.SetInt64s("other_companies", c.OtherCompanies)
 	vs.SetString("address", c.Address)
 	vs.SetMap("custom_fields", c.CustomFields)
 	vs.SetString("description", c.Description)

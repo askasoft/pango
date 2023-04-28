@@ -6,11 +6,15 @@ import (
 
 type RateLimitedError = fdk.RateLimitedError
 
+type Date = fdk.Date
+
 type Time = fdk.Time
 
 type Attachment = fdk.Attachment
 
 type ListOption = fdk.ListOption
+
+type PageOption = fdk.PageOption
 
 type File = fdk.File
 

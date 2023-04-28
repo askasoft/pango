@@ -19,25 +19,25 @@ func TestWithFiles(t *testing.T) {
 	fmt.Println(at)
 }
 
-func testNewFreshservice(t *testing.T) *FreshService {
-	apikey := os.Getenv("FSE_APIKEY")
+func testNewFreshservice(t *testing.T) *Freshservice {
+	apikey := os.Getenv("FSV_APIKEY")
 	if apikey == "" {
-		t.Skip("FSE_APIKEY not set")
+		t.Skip("FSV_APIKEY not set")
 		return nil
 	}
 
-	domain := os.Getenv("FSE_DOMAIN")
+	domain := os.Getenv("FSV_DOMAIN")
 	if domain == "" {
-		t.Skip("FSE_DOMAIN not set")
+		t.Skip("FSV_DOMAIN not set")
 		return nil
 	}
 
 	logs := log.NewLog()
 	//logs.SetLevel(log.LevelDebug)
-	fd := &FreshService{
+	fd := &Freshservice{
 		Domain:             domain,
 		Apikey:             apikey,
-		Logger:             logs.GetLogger("FSE"),
+		Logger:             logs.GetLogger("FSV"),
 		RetryOnRateLimited: 1,
 	}
 

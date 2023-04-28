@@ -5,10 +5,23 @@ import (
 	"net/url"
 
 	"github.com/askasoft/pango/num"
+	"github.com/askasoft/pango/str"
 )
 
 type ListOption interface {
 	Values() Values
+}
+
+type PageOption struct {
+	Page    int
+	PerPage int
+}
+
+func (po *PageOption) Values() Values {
+	q := Values{}
+	q.SetInt("page", po.Page)
+	q.SetInt("per_page", po.PerPage)
+	return q
 }
 
 type File interface {
@@ -31,10 +44,7 @@ func (vs Values) Map() map[string][]string {
 }
 
 func (vs Values) SetBool(name string, value bool) {
-	s := "false"
-	if value {
-		s = "true"
-	}
+	s := str.If(value, "true", "false")
 	(url.Values)(vs).Set(name, s)
 }
 
@@ -76,6 +86,18 @@ func (vs Values) SetMap(name string, value map[string]any) {
 		for k, v := range value {
 			(url.Values)(vs).Add(fmt.Sprintf("%s[%s]", name, k), fmt.Sprint(v))
 		}
+	}
+}
+
+func (vs Values) SetDate(name string, value Date) {
+	if !value.IsZero() {
+		(url.Values)(vs).Set(name, value.String())
+	}
+}
+
+func (vs Values) SetDatePtr(name string, value *Date) {
+	if value != nil && !value.IsZero() {
+		(url.Values)(vs).Set(name, value.String())
 	}
 }
 

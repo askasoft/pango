@@ -21,7 +21,7 @@ func TestWithFiles(t *testing.T) {
 	fmt.Println(tt, tc, at, ac)
 }
 
-func testNewFreshdesk(t *testing.T) *FreshDesk {
+func testNewFreshdesk(t *testing.T) *Freshdesk {
 	apikey := os.Getenv("FDK_APIKEY")
 	if apikey == "" {
 		t.Skip("FDK_APIKEY not set")
@@ -36,7 +36,7 @@ func testNewFreshdesk(t *testing.T) *FreshDesk {
 
 	logs := log.NewLog()
 	//logs.SetLevel(log.LevelDebug)
-	fd := &FreshDesk{
+	fd := &Freshdesk{
 		Domain:             domain,
 		Apikey:             apikey,
 		Logger:             logs.GetLogger("FDK"),
@@ -143,9 +143,9 @@ func TestIterTicket(t *testing.T) {
 	}
 
 	ltp := &ListTicketsOption{PerPage: 2}
-	err := fd.IterTickets(ltp, func(t *Ticket) bool {
+	err := fd.IterTickets(ltp, func(t *Ticket) error {
 		fd.Logger.Debug(t)
-		return true
+		return nil
 	})
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
@@ -186,9 +186,9 @@ func TestContactAPIs(t *testing.T) {
 	}
 	fd.Logger.Debug(gc)
 
-	err = fd.IterContacts(nil, func(c *Contact) bool {
+	err = fd.IterContacts(nil, func(c *Contact) error {
 		fd.Logger.Debug(c)
-		return true
+		return nil
 	})
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
@@ -234,9 +234,9 @@ func TestAgentAPIs(t *testing.T) {
 	}
 	fd.Logger.Debug(ga)
 
-	err = fd.IterAgents(nil, func(a *Agent) bool {
+	err = fd.IterAgents(nil, func(a *Agent) error {
 		fd.Logger.Debug(a)
-		return true
+		return nil
 	})
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)

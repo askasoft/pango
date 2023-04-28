@@ -44,17 +44,8 @@ func (fto *FilterTicketsOption) Values() Values {
 	return q
 }
 
-type ListConversationsOption struct {
-	Page    int
-	PerPage int // 1 ~ 100, default: 30
-}
-
-func (lco *ListConversationsOption) Values() Values {
-	q := Values{}
-	q.SetInt("page", lco.Page)
-	q.SetInt("per_page", lco.PerPage)
-	return q
-}
+// PerPage: 1 ~ 100, default: 30
+type ListConversationsOption = PageOption
 
 type ListContactsOption struct {
 	Email            string

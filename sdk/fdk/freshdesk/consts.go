@@ -5,6 +5,20 @@ const (
 	JobStatusInProgress = "in_progress"
 	JobStatusCompleted  = "completed"
 
+	OrderByCreatedAt = "created_at"
+	OrderByDueBy     = "due_by"
+	OrderByUpdatedAt = "updated_at"
+	OrderByStatus    = "status"
+
+	OrderAsc  = "asc"
+	OrderDesc = "desc"
+
+	IncludeDescription   = "description"   // Will return the ticket description and description_text.
+	IncludeCompany       = "company"       // Will return the company's id and name.
+	IncludeConversations = "conversations" // Will return up to 10 conversations sorted by "created_at" in ascending order
+	IncludeRequester     = "requester"     // Will return the requester's email, id, mobile, name, and phone
+	IncludeStats         = "stats"         // Will return the ticket's closed_at, resolved_at and first_responded_at time
+
 	TicketSourceEmail          = 1
 	TicketSourceProtal         = 2
 	TicketSourcePhone          = 3
@@ -46,20 +60,6 @@ const (
 
 	ArticleStatusDraft     = 1
 	ArticleStatusPublished = 2
-
-	OrderByCreatedAt = "created_at"
-	OrderByDueBy     = "due_by"
-	OrderByUpdatedAt = "updated_at"
-	OrderByStatus    = "status"
-
-	OrderAsc  = "asc"
-	OrderDesc = "desc"
-
-	IncludeDescription   = "description"
-	IncludeCompany       = "company"       // Will return the company's id and name.
-	IncludeConversations = "conversations" // Will return up to 10 conversations sorted by "created_at" in ascending order
-	IncludeRequester     = "requester"     // Will return the requester's email, id, mobile, name, and phone
-	IncludeStats         = "stats"         // Will return the ticket’s closed_at, resolved_at and first_responded_at time
 
 	ContactStateBlocked    = "blocked"
 	ContactStateDeleted    = "deleted"

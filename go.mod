@@ -2,7 +2,7 @@ module github.com/askasoft/pango
 
 go 1.20
 
-require github.com/stretchr/testify v1.8.2
+require github.com/stretchr/testify v1.8.3
 
 require golang.org/x/sys v0.7.0
 

@@ -47,6 +47,8 @@ func (fto *FilterTicketsOption) Values() Values {
 // PerPage: 1 ~ 100, default: 30
 type ListConversationsOption = PageOption
 
+type ListCompaniesOption = PageOption
+
 type ListContactsOption struct {
 	Email            string
 	Mobile           string
@@ -91,4 +93,22 @@ func (lao *ListAgentsOption) Values() Values {
 	q.SetInt("page", lao.Page)
 	q.SetInt("per_page", lao.PerPage)
 	return q
+}
+
+type ExportFields struct {
+	DefaultFields []string `json:"default_fields,omitempty"`
+
+	CustomFields []string `json:"custom_fields,omitempty"`
+}
+
+func (ef *ExportFields) String() string {
+	return toString(ef)
+}
+
+type ExportOption struct {
+	Fields *ExportFields `json:"fields,omitempty"`
+}
+
+func (eo *ExportOption) String() string {
+	return toString(eo)
 }

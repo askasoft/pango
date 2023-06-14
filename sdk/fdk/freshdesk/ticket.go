@@ -100,7 +100,7 @@ type Ticket struct {
 	// Ticket attachments. The total size of these attachments cannot exceed 15MB.
 	Attachments []*Attachment `json:"attachments,omitempty"`
 
-	// Key value pairs containing the names and values of custom fields. Read more here
+	// Key value pairs containing the names and values of custom fields.
 	CustomFields map[string]any `json:"custom_fields,omitempty"`
 
 	// include=requester
@@ -215,7 +215,7 @@ type TicketProperties struct {
 	// Timestamp that denotes when the first response is due
 	FrDueBy *Time `json:"fr_due_by,omitempty"`
 
-	// Key value pairs containing the names and values of custom fields. Read more here
+	// Key value pairs containing the names and values of custom fields.
 	CustomFields map[string]any `json:"custom_fields,omitempty"`
 
 	// Tags that have been associated with the ticket

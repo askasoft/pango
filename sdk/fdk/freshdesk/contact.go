@@ -18,7 +18,7 @@ type Contact struct {
 	// Set to true if the contact can see all tickets that are associated with the company to which he belong
 	ViewAllTickets bool `json:"view_all_tickets,omitempty"`
 
-	// Key value pair containing the name and value of the custom fields. Read more here
+	// Key value pair containing the name and value of the custom fields.
 	CustomFields map[string]any `json:"custom_fields,omitempty"`
 
 	// Set to true if the contact has been deleted. Note that this attribute will only be present for deleted contacts
@@ -121,14 +121,4 @@ type ContactsMerge struct {
 
 func (cm *ContactsMerge) String() string {
 	return toString(cm)
-}
-
-type ContactsExport struct {
-	DefaultFields []string `json:"default_fields,omitempty"`
-
-	CustomFields []string `json:"custom_fields,omitempty"`
-}
-
-func (ce *ContactsExport) String() string {
-	return toString(ce)
 }

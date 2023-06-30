@@ -34,8 +34,12 @@ func stripTrailingDigits(s string, digits int) string {
 	return s
 }
 
-func Atoi(s string) int {
-	i, _ := strconv.Atoi(s)
+// Atoi use strconv.Atoi(s) to parse string 's' to int, return n[0] if error.
+func Atoi(s string, n ...int) int {
+	i, err := strconv.Atoi(s)
+	if err != nil && len(n) > 0 {
+		return n[0]
+	}
 	return i
 }
 
@@ -43,8 +47,12 @@ func Itoa(i int) string {
 	return strconv.Itoa(i)
 }
 
-func Atol(s string) int64 {
-	i, _ := strconv.ParseInt(s, 10, 64)
+// Atol use strconv.ParseInt(s, 10, 64) to parse string 's' to int64, return n[0] if error.
+func Atol(s string, n ...int64) int64 {
+	i, err := strconv.ParseInt(s, 10, 64)
+	if err != nil && len(n) > 0 {
+		return n[0]
+	}
 	return i
 }
 
@@ -52,8 +60,12 @@ func Ltoa(i int64) string {
 	return strconv.FormatInt(i, 10)
 }
 
-func Atof(s string) float64 {
-	f, _ := strconv.ParseFloat(s, 64)
+// Atol use strconv.ParseFloat(s, 64) to parse string 's' to float64, return n[0] if error.
+func Atof(s string, n ...float64) float64 {
+	f, err := strconv.ParseFloat(s, 64)
+	if err != nil && len(n) > 0 {
+		return n[0]
+	}
 	return f
 }
 

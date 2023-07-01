@@ -95,7 +95,7 @@ func (fdk *FDK) DoList(url string, lo ListOption, ap any) (bool, error) {
 		return false, err
 	}
 
-	if lo != nil {
+	if !lo.IsNil() {
 		q := lo.Values()
 		req.URL.RawQuery = q.Encode()
 	}

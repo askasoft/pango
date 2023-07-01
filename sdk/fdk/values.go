@@ -9,12 +9,17 @@ import (
 )
 
 type ListOption interface {
+	IsNil() bool
 	Values() Values
 }
 
 type PageOption struct {
 	Page    int
 	PerPage int
+}
+
+func (po *PageOption) IsNil() bool {
+	return po == nil
 }
 
 func (po *PageOption) Values() Values {

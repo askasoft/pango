@@ -118,6 +118,15 @@ func Strip(s string) string {
 	return strings.TrimSpace(s)
 }
 
+// Strips strip all string in the string array ss.
+func Strips(ss []string) []string {
+	cnt := len(ss)
+	for i := 0; i < cnt; i++ {
+		ss[i] = Strip(ss[i])
+	}
+	return ss
+}
+
 var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
 
 // StripLeft returns a slice of the string s, with all leading
@@ -143,6 +152,15 @@ func StripLeft(s string) string {
 	return s[start:]
 }
 
+// StripLefts left strip all string in the string array ss.
+func StripLefts(ss []string) []string {
+	cnt := len(ss)
+	for i := 0; i < cnt; i++ {
+		ss[i] = StripLeft(ss[i])
+	}
+	return ss
+}
+
 // StripRight returns a slice of the string s, with all
 // trailing white space removed, as defined by Unicode.
 func StripRight(s string) string {
@@ -162,6 +180,15 @@ func StripRight(s string) string {
 	// non-space bytes, so we're done. Non-ASCII cases have already
 	// been handled above.
 	return s[:stop]
+}
+
+// StripRights right strip all string in the string array ss.
+func StripRights(ss []string) []string {
+	cnt := len(ss)
+	for i := 0; i < cnt; i++ {
+		ss[i] = StripRight(ss[i])
+	}
+	return ss
 }
 
 // RuneLen returns the number of runes in s.

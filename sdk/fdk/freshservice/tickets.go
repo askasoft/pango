@@ -1,7 +1,6 @@
 package freshservice
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -60,7 +59,7 @@ func (fto *FilterTicketsOption) Values() Values {
 type ListConversationsOption = PageOption
 
 func (fs *Freshservice) CreateTicket(ticket *Ticket) (*Ticket, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets", fs.Domain)
+	url := fs.endpoint("/tickets")
 	result := &ticketResult{}
 	err := fs.doPost(url, ticket, result)
 	return result.Ticket, err
@@ -69,7 +68,7 @@ func (fs *Freshservice) CreateTicket(ticket *Ticket) (*Ticket, error) {
 // GetTicket Get a Ticket
 // include: conversations, requester, requested_for, stats, problem, assets, change, related_tickets
 func (fs *Freshservice) GetTicket(tid int64, include ...string) (*Ticket, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d", fs.Domain, tid)
+	url := fs.endpoint("/tickets/%d", tid)
 	if len(include) > 0 {
 		s := strings.Join(include, ",")
 		url += "?include=" + s
@@ -127,7 +126,7 @@ func (fs *Freshservice) GetTicket(tid int64, include ...string) (*Ticket, error)
 // 3. Date and date_time fields to be enclosed in single quotes('yyyy-mm-dd')
 // 4. only :> and :< are supported for date and date_time fields. Both fields expect input in the same format as 'yyyy-mm-dd'
 func (fs *Freshservice) FilterTickets(fto *FilterTicketsOption) ([]*Ticket, bool, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets/filter", fs.Domain)
+	url := fs.endpoint("/tickets/filter")
 	result := &ticketResult{}
 	next, err := fs.doList(url, fto, result)
 	return result.Tickets, next, err
@@ -140,7 +139,7 @@ func (fs *Freshservice) FilterTickets(fto *FilterTicketsOption) ([]*Ticket, bool
 // 2. Use 'include' to embed additional details in the response. Each include will consume an additional 2 credits. For example if you embed the stats information you will be charged a total of 3 API credits (1 credit for the API call, and 2 credits for the additional stats embedding).
 // 3. By default, only tickets from the primary workspace will be returned for accounts with the 'Workspaces' feature enabled. For tickets from other workspaces, use the workspace_id filter.
 func (fs *Freshservice) ListTickets(lto *ListTicketsOption) ([]*Ticket, bool, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets", fs.Domain)
+	url := fs.endpoint("/tickets")
 	result := &ticketResult{}
 	next, err := fs.doList(url, lto, result)
 	return result.Tickets, next, err
@@ -183,26 +182,26 @@ func (fs *Freshservice) IterTickets(lto *ListTicketsOption, itf func(*Ticket) er
 // Query Parameters	Handle
 // bypass_mandatory: To bypass mandatory fields check while updating the ticket except for requester_id, source. Any business rules trying to mandate certain fields will also be bypassed. All fields configured as mandatory upon closing or resolving the ticket will be skipped while updating the ticket. This can only be passed by an admin.
 func (fs *Freshservice) UpdateTicket(tid int64, ticket *Ticket) (*Ticket, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d", fs.Domain, tid)
+	url := fs.endpoint("/tickets/%d", tid)
 	result := &ticketResult{}
 	err := fs.doPut(url, ticket, result)
 	return result.Ticket, err
 }
 
 func (fs *Freshservice) DeleteTicket(tid int64) error {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d", fs.Domain, tid)
+	url := fs.endpoint("/tickets/%d", tid)
 	return fs.doDelete(url)
 }
 
 func (fs *Freshservice) DeleteTicketAttachment(tid, aid int64) error {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d/attachments/%d", fs.Domain, tid, aid)
+	url := fs.endpoint("/tickets/%d/attachments/%d", tid, aid)
 	return fs.doDelete(url)
 }
 
 // Restore a Ticket
 // The API mentioned previously. If you deleted some tickets and regret doing so now, this API will help you restore them.
 func (fs *Freshservice) Restore(tid int64) error {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d/restore", fs.Domain, tid)
+	url := fs.endpoint("/tickets/%d/restore", tid)
 	return fs.doPut(url, nil, nil)
 }
 
@@ -214,21 +213,21 @@ func (fs *Freshservice) Restore(tid int64) error {
 // 3. Association of child tickets to a deleted or a spammed ticket is not allowed.
 // 4. Nesting of a child ticket under another child ticket is not supported.
 func (fs *Freshservice) CreateChildTicket(tid int64, ticket *Ticket) (*Ticket, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d/create_child_ticket", fs.Domain, tid)
+	url := fs.endpoint("/tickets/%d/create_child_ticket", tid)
 	result := &ticketResult{}
 	err := fs.doPost(url, ticket, result)
 	return result.Ticket, err
 }
 
 func (fs *Freshservice) GetTicketFields() ([]*TicketField, error) {
-	url := fmt.Sprintf("%s/api/v2/ticket_form_fields", fs.Domain)
+	url := fs.endpoint("/ticket_form_fields")
 	result := &ticketFieldResult{}
 	err := fs.doGet(url, result)
 	return result.TicketFields, err
 }
 
 func (fs *Freshservice) GetTicketActivities(tid int64) ([]*TicketActivity, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d/activities", fs.Domain, tid)
+	url := fs.endpoint("/tickets/%d/activities", tid)
 	result := &ticketActivityResult{}
 	err := fs.doGet(url, result)
 	return result.TicketActivitys, err
@@ -238,14 +237,14 @@ func (fs *Freshservice) GetTicketActivities(tid int64) ([]*TicketActivity, error
 // Conversation
 
 func (fs *Freshservice) CreateReply(tid int64, reply *Reply) (*Conversation, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d/reply", fs.Domain, tid)
+	url := fs.endpoint("/tickets/%d/reply", tid)
 	result := &conversationResult{}
 	err := fs.doPost(url, reply, result)
 	return result.Conversation, err
 }
 
 func (fs *Freshservice) CreateNote(tid int64, note *Note) (*Conversation, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d/note", fs.Domain, tid)
+	url := fs.endpoint("/tickets/%d/note", tid)
 	result := &conversationResult{}
 	err := fs.doPost(url, note, result)
 	return result.Conversation, err
@@ -254,24 +253,24 @@ func (fs *Freshservice) CreateNote(tid int64, note *Note) (*Conversation, error)
 // Update a Conversation
 // Only public & private notes can be edited.
 func (fs *Freshservice) UpdateConversation(cid int64, conversation *Conversation) (*Conversation, error) {
-	url := fmt.Sprintf("%s/api/v2/conversations/%d", fs.Domain, cid)
+	url := fs.endpoint("/conversations/%d", cid)
 	result := &conversationResult{}
 	err := fs.doPut(url, conversation, result)
 	return result.Conversation, err
 }
 
 func (fs *Freshservice) DeleteConversation(cid int64) error {
-	url := fmt.Sprintf("%s/api/v2/conversations/%d", fs.Domain, cid)
+	url := fs.endpoint("/conversations/%d", cid)
 	return fs.doDelete(url)
 }
 
 func (fs *Freshservice) DeleteConversationAttachment(cid, aid int64) error {
-	url := fmt.Sprintf("%s/api/v2/conversations/%d/attachments/%d", fs.Domain, cid, aid)
+	url := fs.endpoint("/conversations/%d/attachments/%d", cid, aid)
 	return fs.doDelete(url)
 }
 
 func (fs *Freshservice) ListTicketConversations(tid int64, lco *ListConversationsOption) ([]*Conversation, bool, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d/conversations", fs.Domain, tid)
+	url := fs.endpoint("/tickets/%d/conversations", tid)
 	conversations := []*Conversation{}
 	next, err := fs.doList(url, lco, &conversations)
 	return conversations, next, err

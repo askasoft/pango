@@ -8,6 +8,10 @@ import (
 
 type Freshdesk fdk.FDK
 
+func (fd *Freshdesk) endpoint(format string, a ...any) string {
+	return (*fdk.FDK)(fd).Endpoint(format, a...)
+}
+
 func (fd *Freshdesk) doGet(url string, result any) error {
 	return (*fdk.FDK)(fd).DoGet(url, result)
 }
@@ -38,12 +42,12 @@ func (fd *Freshdesk) SaveFile(url string, filename string) error {
 
 // GetHelpdeskAttachmentURL return a permlink for helpdesk attachment/avator URL
 func (fd *Freshdesk) GetHelpdeskAttachmentURL(aid int64) string {
-	return fmt.Sprintf("%s/helpdesk/attachments/%d", fd.Domain, aid)
+	return fmt.Sprintf("https://%s/helpdesk/attachments/%d", fd.Domain, aid)
 }
 
 // GetJob get job detail
 func (fd *Freshdesk) GetJob(jid string) (*Job, error) {
-	url := fmt.Sprintf("%s/api/v2/jobs/%s", fd.Domain, jid)
+	url := fd.endpoint("/jobs/%s", jid)
 	job := &Job{}
 	err := fd.doGet(url, job)
 	return job, err

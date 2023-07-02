@@ -1,7 +1,6 @@
 package freshdesk
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -64,7 +63,7 @@ func (fto *FilterTicketsOption) Values() Values {
 type ListConversationsOption = PageOption
 
 func (fd *Freshdesk) CreateTicket(ticket *Ticket) (*Ticket, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets", fd.Domain)
+	url := fd.endpoint("/tickets")
 	result := &Ticket{}
 	err := fd.doPost(url, ticket, result)
 	return result, err
@@ -73,7 +72,7 @@ func (fd *Freshdesk) CreateTicket(ticket *Ticket) (*Ticket, error) {
 // GetTicket Get a Ticket
 // include: conversations, requester, company, stats
 func (fd *Freshdesk) GetTicket(tid int64, include ...string) (*Ticket, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d", fd.Domain, tid)
+	url := fd.endpoint("/tickets/%d", tid)
 	if len(include) > 0 {
 		s := strings.Join(include, ",")
 		url += "?include=" + s
@@ -94,7 +93,7 @@ func (fd *Freshdesk) GetTicket(tid int64, include ...string) (*Ticket, error) {
 // 4. Use 'include' to embed additional details in the response. Each include will consume an additional 2 credits. For example if you embed the stats information you will be charged a total of 3 API credits for the call.
 // 5. For accounts created after 2018-11-30, you will have to use include to get description.
 func (fd *Freshdesk) ListTickets(lto *ListTicketsOption) ([]*Ticket, bool, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets", fd.Domain)
+	url := fd.endpoint("/tickets")
 	tickets := []*Ticket{}
 	next, err := fd.doList(url, lto, &tickets)
 	return tickets, next, err
@@ -133,14 +132,14 @@ func (fd *Freshdesk) IterTickets(lto *ListTicketsOption, itf func(*Ticket) error
 // Use custom ticket fields that you have created in your account to filter through the tickets and get a list of tickets matching the specified ticket fields.
 // Query Format: "(ticket_field:integer OR ticket_field:'string') AND ticket_field:boolean"
 func (fd *Freshdesk) FilterTickets(fto *FilterTicketsOption) ([]*Ticket, bool, error) {
-	url := fmt.Sprintf("%s/api/v2/search/tickets", fd.Domain)
+	url := fd.endpoint("/search/tickets")
 	tickets := []*Ticket{}
 	next, err := fd.doList(url, fto, &tickets)
 	return tickets, next, err
 }
 
 func (fd *Freshdesk) UpdateTicket(tid int64, ticket *Ticket) (*Ticket, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d", fd.Domain, tid)
+	url := fd.endpoint("/tickets/%d", tid)
 	result := &Ticket{}
 	err := fd.doPut(url, ticket, result)
 	return result, err
@@ -148,7 +147,7 @@ func (fd *Freshdesk) UpdateTicket(tid int64, ticket *Ticket) (*Ticket, error) {
 
 // BulkUpdateTickets returns job id
 func (fd *Freshdesk) BulkUpdateTickets(tids []int64, properties *TicketProperties) (string, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets/bulk_update", fd.Domain)
+	url := fd.endpoint("/tickets/bulk_update")
 	data := map[string]any{
 		"bulk_action": map[string]any{
 			"ids":        tids,
@@ -161,7 +160,7 @@ func (fd *Freshdesk) BulkUpdateTickets(tids []int64, properties *TicketPropertie
 }
 
 func (fd *Freshdesk) ForwardTicket(tid int64, tf *TicketForward) (*ForwardResult, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d/forward", fd.Domain, tid)
+	url := fd.endpoint("/tickets/%d/forward", tid)
 	result := &ForwardResult{}
 	err := fd.doPost(url, tf, result)
 	return result, err
@@ -172,20 +171,20 @@ func (fd *Freshdesk) ForwardTicket(tid int64, tf *TicketForward) (*ForwardResult
 // Sometimes, the same issue might be reported by different people in the team or someone might accidentally open a new ticket instead of following up on an existing one.
 // To avoid conflicts, you can merge all related tickets together and keep the communication streamlined.
 func (fd *Freshdesk) MergeTickets(tm *TicketsMerge) error {
-	url := fmt.Sprintf("%s/api/v2/tickets/merge", fd.Domain)
+	url := fd.endpoint("/tickets/merge")
 	err := fd.doPut(url, tm, nil)
 	return err
 }
 
 func (fd *Freshdesk) ListTicketWatchers(tid int64) ([]int64, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d/watchers", fd.Domain, tid)
+	url := fd.endpoint("/tickets/%d/watchers", tid)
 	result := &TicketWatchers{}
 	err := fd.doGet(url, result)
 	return result.WatcherIDs, err
 }
 
 func (fd *Freshdesk) AddTicketWatcher(tid, uid int64) error {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d/watchers", fd.Domain, tid)
+	url := fd.endpoint("/tickets/%d/watchers", tid)
 	data := map[string]any{
 		"user_id": uid,
 	}
@@ -193,12 +192,12 @@ func (fd *Freshdesk) AddTicketWatcher(tid, uid int64) error {
 }
 
 func (fd *Freshdesk) UnwatchTicket(tid int64) error {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d/unwatch", fd.Domain, tid)
+	url := fd.endpoint("/tickets/%d/unwatch", tid)
 	return fd.doPut(url, nil, nil)
 }
 
 func (fd *Freshdesk) BulkWatchTickets(tids []int64, uid int64) error {
-	url := fmt.Sprintf("%s/api/v2/tickets/buld_watch", fd.Domain)
+	url := fd.endpoint("/tickets/buld_watch")
 	data := map[string]any{
 		"ids":     tids,
 		"user_id": uid,
@@ -207,7 +206,7 @@ func (fd *Freshdesk) BulkWatchTickets(tids []int64, uid int64) error {
 }
 
 func (fd *Freshdesk) BulkUnwatchTickets(tids []int64, uid int64) error {
-	url := fmt.Sprintf("%s/api/v2/tickets/buld_unwatch", fd.Domain)
+	url := fd.endpoint("/tickets/buld_unwatch")
 	data := map[string]any{
 		"ids":     tids,
 		"user_id": uid,
@@ -216,17 +215,17 @@ func (fd *Freshdesk) BulkUnwatchTickets(tids []int64, uid int64) error {
 }
 
 func (fd *Freshdesk) RestoreTicket(tid int64) error {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d/restore", fd.Domain, tid)
+	url := fd.endpoint("/tickets/%d/restore", tid)
 	return fd.doPut(url, nil, nil)
 }
 
 func (fd *Freshdesk) DeleteTicket(tid int64) error {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d", fd.Domain, tid)
+	url := fd.endpoint("/tickets/%d", tid)
 	return fd.doDelete(url)
 }
 
 func (fd *Freshdesk) BulkDeleteTickets(tids []int64) (string, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets/bulk_delete", fd.Domain)
+	url := fd.endpoint("/tickets/bulk_delete")
 	data := map[string]any{
 		"bulk_action": map[string]any{
 			"ids": tids,
@@ -238,7 +237,7 @@ func (fd *Freshdesk) BulkDeleteTickets(tids []int64) (string, error) {
 }
 
 func (fd *Freshdesk) DeleteAttachment(aid int64) error {
-	url := fmt.Sprintf("%s/api/v2/attachments/%d", fd.Domain, aid)
+	url := fd.endpoint("/attachments/%d", aid)
 	return fd.doDelete(url)
 }
 
@@ -246,7 +245,7 @@ func (fd *Freshdesk) DeleteAttachment(aid int64) error {
 // Conversation
 
 func (fd *Freshdesk) ListTicketConversations(tid int64, lco *ListConversationsOption) ([]*Conversation, bool, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d/conversations", fd.Domain, tid)
+	url := fd.endpoint("/tickets/%d/conversations", tid)
 	conversations := []*Conversation{}
 	next, err := fd.doList(url, lco, &conversations)
 	return conversations, next, err
@@ -282,14 +281,14 @@ func (fd *Freshdesk) IterTicketConversations(tid int64, lco *ListConversationsOp
 }
 
 func (fd *Freshdesk) CreateReply(tid int64, reply *Reply) (*Reply, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d/reply", fd.Domain, tid)
+	url := fd.endpoint("/tickets/%d/reply", tid)
 	result := &Reply{}
 	err := fd.doPost(url, reply, result)
 	return result, err
 }
 
 func (fd *Freshdesk) CreateNote(tid int64, note *Note) (*Note, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d/notes", fd.Domain, tid)
+	url := fd.endpoint("/tickets/%d/notes", tid)
 	result := &Note{}
 	err := fd.doPost(url, note, result)
 	return result, err
@@ -297,7 +296,7 @@ func (fd *Freshdesk) CreateNote(tid int64, note *Note) (*Note, error) {
 
 // UpdateConversation only public & private notes can be edited.
 func (fd *Freshdesk) UpdateConversation(cid int64, conversation *Conversation) (*Conversation, error) {
-	url := fmt.Sprintf("%s/api/v2/conversations/%d", fd.Domain, cid)
+	url := fd.endpoint("/conversations/%d", cid)
 	result := &Conversation{}
 	err := fd.doPut(url, conversation, result)
 	return result, err
@@ -305,12 +304,12 @@ func (fd *Freshdesk) UpdateConversation(cid int64, conversation *Conversation) (
 
 // DeleteConversation delete a conversation (Incoming Reply can not be deleted)
 func (fd *Freshdesk) DeleteConversation(cid int64) error {
-	url := fmt.Sprintf("%s/api/v2/conversations/%d", fd.Domain, cid)
+	url := fd.endpoint("/conversations/%d", cid)
 	return fd.doDelete(url)
 }
 
 func (fd *Freshdesk) ReplyToForward(tid int64, rf *ReplyForward) (*ForwardResult, error) {
-	url := fmt.Sprintf("%s/api/v2/tickets/%d/reply_to_forward", fd.Domain, tid)
+	url := fd.endpoint("/tickets/%d/reply_to_forward", tid)
 	result := &ForwardResult{}
 	err := fd.doPost(url, rf, result)
 	return result, err

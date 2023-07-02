@@ -1,8 +1,6 @@
 package freshservice
 
 import (
-	"fmt"
-
 	"github.com/askasoft/pango/str"
 )
 
@@ -58,21 +56,21 @@ func (lro *ListRequestersOption) Values() Values {
 }
 
 func (fs *Freshservice) CreateRequesterGroup(rg *RequesterGroup) (*RequesterGroup, error) {
-	url := fmt.Sprintf("%s/api/v2/requester_groups", fs.Domain)
+	url := fs.endpoint("/requester_groups")
 	result := &requesterGroupResult{}
 	err := fs.doPost(url, rg, result)
 	return result.RequesterGroup, err
 }
 
 func (fs *Freshservice) GetRequesterGroup(id int64) (*RequesterGroup, error) {
-	url := fmt.Sprintf("%s/api/v2/requester_groups/%d", fs.Domain, id)
+	url := fs.endpoint("/requester_groups/%d", id)
 	result := &requesterGroupResult{}
 	err := fs.doGet(url, result)
 	return result.RequesterGroup, err
 }
 
 func (fs *Freshservice) ListRequesterGroups() ([]*RequesterGroup, error) {
-	url := fmt.Sprintf("%s/api/v2/requester_groups", fs.Domain)
+	url := fs.endpoint("/requester_groups")
 	result := &requesterGroupResult{}
 	err := fs.doGet(url, result)
 	return result.RequesterGroups, err
@@ -81,7 +79,7 @@ func (fs *Freshservice) ListRequesterGroups() ([]*RequesterGroup, error) {
 // Note:
 // Only groups of type “manual” can be updated through this API.
 func (fs *Freshservice) UpdateRequesterGroup(id int64, rg *RequesterGroup) (*RequesterGroup, error) {
-	url := fmt.Sprintf("%s/api/v2/requester_groups/%d", fs.Domain, id)
+	url := fs.endpoint("/requester_groups/%d", id)
 	result := &requesterGroupResult{}
 	err := fs.doPut(url, rg, result)
 	return result.RequesterGroup, err
@@ -92,7 +90,7 @@ func (fs *Freshservice) UpdateRequesterGroup(id int64, rg *RequesterGroup) (*Req
 // 1. Deleting a Requester Group will only disband the requester group and will not delete its members.
 // 2. Deleted requester groups cannot be restored.
 func (fs *Freshservice) DeleteRequesterGroup(id int64) error {
-	url := fmt.Sprintf("%s/api/v2/requester_groups/%d", fs.Domain, id)
+	url := fs.endpoint("/requester_groups/%d", id)
 	return fs.doDelete(url)
 }
 
@@ -101,7 +99,7 @@ func (fs *Freshservice) DeleteRequesterGroup(id int64) error {
 // 1.Requesters can be added only to manual requester groups.
 // 2.Requester can be added one at a time.
 func (fs *Freshservice) AddRequesterToRequesterGroup(rgid, rid int64) error {
-	url := fmt.Sprintf("%s/api/v2/requester_groups/%d/members/%d", fs.Domain, rgid, rid)
+	url := fs.endpoint("/requester_groups/%d/members/%d", rgid, rid)
 	return fs.doPost(url, nil, nil)
 }
 
@@ -110,26 +108,26 @@ func (fs *Freshservice) AddRequesterToRequesterGroup(rgid, rid int64) error {
 // 1.Requesters can be removed only from manual requester groups.
 // 2.Requester can be removed one at a time.
 func (fs *Freshservice) DeleteRequesterFromRequesterGroup(rgid, rid int64) error {
-	url := fmt.Sprintf("%s/api/v2/requester_groups/%d/members/%d", fs.Domain, rgid, rid)
+	url := fs.endpoint("/requester_groups/%d/members/%d", rgid, rid)
 	return fs.doDelete(url)
 }
 
 func (fs *Freshservice) ListRequesterGroupMembers(rgid int64, lmo *ListMembersOption) ([]*Requester, bool, error) {
-	url := fmt.Sprintf("%s/api/v2/requester_groups/%d/members", fs.Domain, rgid)
+	url := fs.endpoint("/requester_groups/%d/members", rgid)
 	result := &requesterResult{}
 	next, err := fs.doList(url, lmo, result)
 	return result.Requesters, next, err
 }
 
 func (fs *Freshservice) CreateRequester(requester *Requester) (*Requester, error) {
-	url := fmt.Sprintf("%s/api/v2/requesters", fs.Domain)
+	url := fs.endpoint("/requesters")
 	result := &requesterResult{}
 	err := fs.doPost(url, requester, result)
 	return result.Requester, err
 }
 
 func (fs *Freshservice) GetRequester(id int64) (*Requester, error) {
-	url := fmt.Sprintf("%s/api/v2/requesters/%d", fs.Domain, id)
+	url := fs.endpoint("/requesters/%d", id)
 	result := &requesterResult{}
 	err := fs.doGet(url, result)
 	return result.Requester, err
@@ -158,14 +156,14 @@ func (fs *Freshservice) GetRequester(id int64) (*Requester, error) {
 // Date	date
 // Phone number	string
 func (fs *Freshservice) ListRequesters(lro *ListRequestersOption) ([]*Requester, bool, error) {
-	url := fmt.Sprintf("%s/api/v2/requesters", fs.Domain)
+	url := fs.endpoint("/requesters")
 	result := &requesterResult{}
 	next, err := fs.doList(url, lro, result)
 	return result.Requesters, next, err
 }
 
 func (fs *Freshservice) GetRequesterFields() ([]*RequesterField, error) {
-	url := fmt.Sprintf("%s/api/v2/requester_fields", fs.Domain)
+	url := fs.endpoint("/requester_fields")
 	result := &requesterFieldResult{}
 	err := fs.doGet(url, result)
 	return result.RequesterFields, err
@@ -176,7 +174,7 @@ func (fs *Freshservice) GetRequesterFields() ([]*RequesterField, error) {
 // Note:
 // can_see_all_tickets_from_associated_departments will automatically be set to false unless it is explicitly set to true in the payload, irrespective of the previous value of the field.
 func (fs *Freshservice) UpdateRequester(id int64, requester *Requester) (*Requester, error) {
-	url := fmt.Sprintf("%s/api/v2/requesters/%d", fs.Domain, id)
+	url := fs.endpoint("/requesters/%d", id)
 	result := &requesterResult{}
 	err := fs.doPut(url, requester, result)
 	return result.Requester, err
@@ -185,20 +183,20 @@ func (fs *Freshservice) UpdateRequester(id int64, requester *Requester) (*Reques
 // Deactivate a Requester
 // This operation allows you to deactivate a requester.
 func (fs *Freshservice) DeactivateRequester(id int64) error {
-	url := fmt.Sprintf("%s/api/v2/requesters/%d", fs.Domain, id)
+	url := fs.endpoint("/requesters/%d", id)
 	return fs.doDelete(url)
 }
 
 // Forget a Requester
 // This operation allows you to permanently delete a requester and the tickets that they requested.
 func (fs *Freshservice) ForgetRequester(id int64) error {
-	url := fmt.Sprintf("%s/api/v2/requesters/%d/forget", fs.Domain, id)
+	url := fs.endpoint("/requesters/%d/forget", id)
 	return fs.doDelete(url)
 }
 
 // Convert a requester to an occasional agent with SD Agent role and no group memberships.
 func (fs *Freshservice) ConvertRequesterToAgent(id int64) (*Agent, error) {
-	url := fmt.Sprintf("%s/api/v2/requesters/%d/convert_to_agent", fs.Domain, id)
+	url := fs.endpoint("/requesters/%d/convert_to_agent", id)
 	result := &agentResult{}
 	err := fs.doPut(url, nil, result)
 	return result.Agent, err
@@ -206,7 +204,7 @@ func (fs *Freshservice) ConvertRequesterToAgent(id int64) (*Agent, error) {
 
 // Merge secondary requesters into a primary requester.
 func (fs *Freshservice) MergeRequesters(id int64, ids ...int64) (*Requester, error) {
-	url := fmt.Sprintf("%s/api/v2/requesters/%d/merge?secondary_requesters=%s", fs.Domain, id, str.JoinInt64s(ids, ","))
+	url := fs.endpoint("/requesters/%d/merge?secondary_requesters=%s", id, str.JoinInt64s(ids, ","))
 	result := &requesterResult{}
 	err := fs.doPut(url, nil, result)
 	return result.Requester, err
@@ -215,7 +213,7 @@ func (fs *Freshservice) MergeRequesters(id int64, ids ...int64) (*Requester, err
 // Reactivate a Requester
 // This operation allows you to reactivate a particular deactivated requester.
 func (fs *Freshservice) ReactivateRequester(id int64) (*Requester, error) {
-	url := fmt.Sprintf("%s/api/v2/requesters/%d/reactivate", fs.Domain, id)
+	url := fs.endpoint("/requesters/%d/reactivate", id)
 	result := &requesterResult{}
 	err := fs.doPut(url, nil, result)
 	return result.Requester, err

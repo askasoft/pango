@@ -1,7 +1,6 @@
 package freshdesk
 
 import (
-	"fmt"
 	"net/url"
 )
 
@@ -33,14 +32,14 @@ func (lao *ListAgentsOption) Values() Values {
 }
 
 func (fd *Freshdesk) GetAgent(aid int64) (*Agent, error) {
-	url := fmt.Sprintf("%s/api/v2/agents/%d", fd.Domain, aid)
+	url := fd.endpoint("/agents/%d", aid)
 	agent := &Agent{}
 	err := fd.doGet(url, agent)
 	return agent, err
 }
 
 func (fd *Freshdesk) ListAgents(lao *ListAgentsOption) ([]*Agent, bool, error) {
-	url := fmt.Sprintf("%s/api/v2/agents", fd.Domain)
+	url := fd.endpoint("/agents")
 	agents := []*Agent{}
 	next, err := fd.doList(url, lao, &agents)
 	return agents, next, err
@@ -76,33 +75,33 @@ func (fd *Freshdesk) IterAgents(lao *ListAgentsOption, iaf func(*Agent) error) e
 }
 
 func (fd *Freshdesk) CreateAgent(agent *AgentRequest) (*Agent, error) {
-	url := fmt.Sprintf("%s/api/v2/agents", fd.Domain)
+	url := fd.endpoint("/agents")
 	result := &Agent{}
 	err := fd.doPost(url, agent, result)
 	return result, err
 }
 
 func (fd *Freshdesk) UpdateAgent(aid int64, agent *AgentRequest) (*Agent, error) {
-	url := fmt.Sprintf("%s/api/v2/agents/%d", fd.Domain, aid)
+	url := fd.endpoint("/agents/%d", aid)
 	result := &Agent{}
 	err := fd.doPut(url, agent, result)
 	return result, err
 }
 
 func (fd *Freshdesk) DeleteAgent(aid int64) error {
-	url := fmt.Sprintf("%s/api/v2/agents/%d", fd.Domain, aid)
+	url := fd.endpoint("/agents/%d", aid)
 	return fd.doDelete(url)
 }
 
 func (fd *Freshdesk) GetCurrentAgent() (*Agent, error) {
-	url := fmt.Sprintf("%s/api/v2/agents/me", fd.Domain)
+	url := fd.endpoint("/agents/me")
 	agent := &Agent{}
 	err := fd.doGet(url, agent)
 	return agent, err
 }
 
 func (fd *Freshdesk) SearchAgents(keyword string) ([]*Agent, error) {
-	url := fmt.Sprintf("%s/api/v2/agents/autocomplete?term=%s", fd.Domain, url.QueryEscape(keyword))
+	url := fd.endpoint("/agents/autocomplete?term=%s", url.QueryEscape(keyword))
 	agents := []*Agent{}
 	err := fd.doGet(url, &agents)
 	return agents, err

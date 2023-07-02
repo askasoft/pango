@@ -1,7 +1,5 @@
 package freshservice
 
-import "fmt"
-
 // ---------------------------------------------------
 // Agent
 
@@ -54,61 +52,61 @@ func (lao *ListAgentsOption) Values() Values {
 }
 
 func (fs *Freshservice) GetAgentRole(id int64) (*AgentRole, error) {
-	url := fmt.Sprintf("%s/api/v2/roles/%d", fs.Domain, id)
+	url := fs.endpoint("/roles/%d", id)
 	result := &agentRoleResult{}
 	err := fs.doGet(url, result)
 	return result.Role, err
 }
 
 func (fs *Freshservice) ListAgentRoles() ([]*AgentRole, error) {
-	url := fmt.Sprintf("%s/api/v2/roles", fs.Domain)
+	url := fs.endpoint("/roles")
 	result := &agentRoleResult{}
 	err := fs.doGet(url, result)
 	return result.Roles, err
 }
 
 func (fs *Freshservice) CreateAgentGroup(ag *AgentGroup) (*AgentGroup, error) {
-	url := fmt.Sprintf("%s/api/v2/groups", fs.Domain)
+	url := fs.endpoint("/groups")
 	result := &agentGroupResult{}
 	err := fs.doPost(url, ag, result)
 	return result.Group, err
 }
 
 func (fs *Freshservice) GetAgentGroup(id int64) (*AgentGroup, error) {
-	url := fmt.Sprintf("%s/api/v2/groups/%d", fs.Domain, id)
+	url := fs.endpoint("/groups/%d", id)
 	result := &agentGroupResult{}
 	err := fs.doGet(url, result)
 	return result.Group, err
 }
 
 func (fs *Freshservice) ListAgentGroups() ([]*AgentGroup, error) {
-	url := fmt.Sprintf("%s/api/v2/groups", fs.Domain)
+	url := fs.endpoint("/groups")
 	result := &agentGroupResult{}
 	err := fs.doGet(url, result)
 	return result.Groups, err
 }
 
 func (fs *Freshservice) UpdateAgentGroup(id int64, ag *AgentGroup) (*AgentGroup, error) {
-	url := fmt.Sprintf("%s/api/v2/groups/%d", fs.Domain, id)
+	url := fs.endpoint("/groups/%d", id)
 	result := &agentGroupResult{}
 	err := fs.doPut(url, ag, result)
 	return result.Group, err
 }
 
 func (fs *Freshservice) DeleteAgentGroup(id int64) error {
-	url := fmt.Sprintf("%s/api/v2/groups/%d", fs.Domain, id)
+	url := fs.endpoint("/groups/%d", id)
 	return fs.doDelete(url)
 }
 
 func (fs *Freshservice) CreateAgent(agent *Agent) (*Agent, error) {
-	url := fmt.Sprintf("%s/api/v2/agents", fs.Domain)
+	url := fs.endpoint("/agents")
 	result := &agentResult{}
 	err := fs.doPost(url, agent, result)
 	return result.Agent, err
 }
 
 func (fs *Freshservice) GetAgent(id int64) (*Agent, error) {
-	url := fmt.Sprintf("%s/api/v2/agents/%d", fs.Domain, id)
+	url := fs.endpoint("/agents/%d", id)
 	result := &agentResult{}
 	err := fs.doGet(url, result)
 	return result.Agent, err
@@ -130,7 +128,7 @@ func (fs *Freshservice) GetAgent(id int64) (*Agent, error) {
 // 11. The "~" query operator can be used for "starts with" text searches. "Starts with" search is supported for one or more of the following attributes: first_name, last_name, name, email, mobile_phone_number, work_phone_number. The query format is https://domain.freshservice.com/api/v2/agents?query="~[attribute_1|attribute_2]:'somestring'". The query needs to be URL encoded. This would return a list of users for whom attribute_1 OR attribute_2 starts with "somestring". Refer to examples 11, 12, and 13.
 // 12. Please note that any update made to an agent either in Freshservice application or through API may take a few minutes to get indexed, after which the updated results will be available through API.
 func (fs *Freshservice) ListAgents(lro *ListAgentsOption) ([]*Agent, bool, error) {
-	url := fmt.Sprintf("%s/api/v2/agents", fs.Domain)
+	url := fs.endpoint("/agents")
 	result := &agentResult{}
 	next, err := fs.doList(url, lro, result)
 	return result.Agents, next, err
@@ -141,7 +139,7 @@ func (fs *Freshservice) ListAgents(lro *ListAgentsOption) ([]*Agent, bool, error
 // Note:
 // can_see_all_tickets_from_associated_departments will automatically be set to false unless it is explicitly set to true in the payload, irrespective of the previous value of the field.
 func (fs *Freshservice) UpdateAgent(id int64, agent *Agent) (*Agent, error) {
-	url := fmt.Sprintf("%s/api/v2/agents/%d", fs.Domain, id)
+	url := fs.endpoint("/agents/%d", id)
 	result := &agentResult{}
 	err := fs.doPut(url, agent, result)
 	return result.Agent, err
@@ -150,21 +148,21 @@ func (fs *Freshservice) UpdateAgent(id int64, agent *Agent) (*Agent, error) {
 // Deactivate a Agent
 // This operation allows you to deactivate a agent.
 func (fs *Freshservice) DeactivateAgent(id int64) error {
-	url := fmt.Sprintf("%s/api/v2/agents/%d", fs.Domain, id)
+	url := fs.endpoint("/agents/%d", id)
 	return fs.doDelete(url)
 }
 
 // Forget a Agent
 // This operation allows you to permanently delete a agent and the tickets that they requested.
 func (fs *Freshservice) ForgetAgent(id int64) error {
-	url := fmt.Sprintf("%s/api/v2/agents/%d/forget", fs.Domain, id)
+	url := fs.endpoint("/agents/%d/forget", id)
 	return fs.doDelete(url)
 }
 
 // Reactivate a Agent
 // This operation allows you to reactivate a particular deactivated agent.
 func (fs *Freshservice) ReactivateAgent(id int64) (*Agent, error) {
-	url := fmt.Sprintf("%s/api/v2/agents/%d/reactivate", fs.Domain, id)
+	url := fs.endpoint("/agents/%d/reactivate", id)
 	result := &agentResult{}
 	err := fs.doPut(url, nil, result)
 	return result.Agent, err
@@ -172,14 +170,14 @@ func (fs *Freshservice) ReactivateAgent(id int64) (*Agent, error) {
 
 // Convert a particular agent into a requester.
 func (fs *Freshservice) ConvertAgentToRequester(id int64) (*Agent, error) {
-	url := fmt.Sprintf("%s/api/v2/agents/%d/convert_to_requester", fs.Domain, id)
+	url := fs.endpoint("/agents/%d/convert_to_requester", id)
 	result := &agentResult{}
 	err := fs.doPut(url, nil, result)
 	return result.Agent, err
 }
 
 func (fs *Freshservice) GetAgentFields() ([]*AgentField, error) {
-	url := fmt.Sprintf("%s/api/v2/agent_fields", fs.Domain)
+	url := fs.endpoint("/agent_fields")
 	result := &agentFieldResult{}
 	err := fs.doGet(url, result)
 	return result.AgentFields, err

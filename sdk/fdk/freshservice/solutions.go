@@ -1,7 +1,5 @@
 package freshservice
 
-import "fmt"
-
 // ---------------------------------------------------
 // Solutions
 
@@ -35,28 +33,28 @@ func (sao *SearchArticlesOption) Values() Values {
 }
 
 func (fs *Freshservice) CreateCategory(category *Category) (*Category, error) {
-	url := fmt.Sprintf("%s/api/v2/solutions/categories", fs.Domain)
+	url := fs.endpoint("/solutions/categories")
 	result := &categoryResult{}
 	err := fs.doPost(url, category, result)
 	return result.Category, err
 }
 
 func (fs *Freshservice) UpdateCategory(cid int64, category *Category) (*Category, error) {
-	url := fmt.Sprintf("%s/api/v2/solutions/categories/%d", fs.Domain, cid)
+	url := fs.endpoint("/solutions/categories/%d", cid)
 	result := &categoryResult{}
 	err := fs.doPut(url, category, result)
 	return result.Category, err
 }
 
 func (fs *Freshservice) GetCategory(cid int64) (*Category, error) {
-	url := fmt.Sprintf("%s/api/v2/solutions/categories/%d", fs.Domain, cid)
+	url := fs.endpoint("/solutions/categories/%d", cid)
 	result := &categoryResult{}
 	err := fs.doGet(url, result)
 	return result.Category, err
 }
 
 func (fs *Freshservice) ListCategories(lco *ListCategoriesOption) ([]*Category, bool, error) {
-	url := fmt.Sprintf("%s/api/v2/solutions/categories", fs.Domain)
+	url := fs.endpoint("/solutions/categories")
 	result := &categoryResult{}
 	next, err := fs.doList(url, lco, result)
 	return result.Categories, next, err
@@ -92,33 +90,33 @@ func (fs *Freshservice) IterCategories(lco *ListCategoriesOption, icf func(*Cate
 }
 
 func (fs *Freshservice) DeleteCategory(cid int64) error {
-	url := fmt.Sprintf("%s/api/v2/solutions/categories/%d", fs.Domain, cid)
+	url := fs.endpoint("/solutions/categories/%d", cid)
 	return fs.doDelete(url)
 }
 
 func (fs *Freshservice) CreateFolder(folder *Folder) (*Folder, error) {
-	url := fmt.Sprintf("%s/api/v2/solutions/folders", fs.Domain)
+	url := fs.endpoint("/solutions/folders")
 	result := &folderResult{}
 	err := fs.doPost(url, folder, result)
 	return result.Foler, err
 }
 
 func (fs *Freshservice) UpdateFolder(fid int64, folder *Folder) (*Folder, error) {
-	url := fmt.Sprintf("%s/api/v2/solutions/folders/%d", fs.Domain, fid)
+	url := fs.endpoint("/solutions/folders/%d", fid)
 	result := &folderResult{}
 	err := fs.doPut(url, folder, result)
 	return result.Foler, err
 }
 
 func (fs *Freshservice) GetFolder(fid int64) (*Folder, error) {
-	url := fmt.Sprintf("%s/api/v2/solutions/folders/%d", fs.Domain, fid)
+	url := fs.endpoint("/solutions/folders/%d", fid)
 	result := &folderResult{}
 	err := fs.doGet(url, result)
 	return result.Foler, err
 }
 
 func (fs *Freshservice) ListCategoryFolders(cid int64, lfo *ListFoldersOption) ([]*Folder, bool, error) {
-	url := fmt.Sprintf("%s/api/v2/solutions/folders?category_id=%d", fs.Domain, cid)
+	url := fs.endpoint("/solutions/folders?category_id=%d", cid)
 	result := &folderResult{}
 	next, err := fs.doList(url, lfo, result)
 	return result.Folders, next, err
@@ -154,52 +152,52 @@ func (fs *Freshservice) IterCategoryFolders(cid int64, lfo *ListFoldersOption, i
 }
 
 func (fs *Freshservice) DeleteFolder(fid int64) error {
-	url := fmt.Sprintf("%s/api/v2/solutions/folders/%d", fs.Domain, fid)
+	url := fs.endpoint("/solutions/folders/%d", fid)
 	return fs.doDelete(url)
 }
 
 func (fs *Freshservice) CreateArticle(fid int64, article *Article) (*Article, error) {
-	url := fmt.Sprintf("%s/api/v2/solutions/folders/%d", fs.Domain, fid)
+	url := fs.endpoint("/solutions/folders/%d", fid)
 	result := &articleResult{}
 	err := fs.doPost(url, article, result)
 	return result.Article, err
 }
 
 func (fs *Freshservice) SendArticleToApproval(aid int64) (*Article, error) {
-	url := fmt.Sprintf("%s/api/v2/solutions/articles/%d/send_for_approval", fs.Domain, aid)
+	url := fs.endpoint("/solutions/articles/%d/send_for_approval", aid)
 	result := &articleResult{}
 	err := fs.doPut(url, nil, result)
 	return result.Article, err
 }
 
 func (fs *Freshservice) UpdateArticle(aid int64, article *Article) (*Article, error) {
-	url := fmt.Sprintf("%s/api/v2/solutions/articles/%d", fs.Domain, aid)
+	url := fs.endpoint("/solutions/articles/%d", aid)
 	result := &articleResult{}
 	err := fs.doPut(url, article, result)
 	return result.Article, err
 }
 
 func (fs *Freshservice) GetArticle(aid int64) (*Article, error) {
-	url := fmt.Sprintf("%s/api/v2/solutions/articles/%d", fs.Domain, aid)
+	url := fs.endpoint("/solutions/articles/%d", aid)
 	result := &articleResult{}
 	err := fs.doGet(url, result)
 	return result.Article, err
 }
 
 func (fs *Freshservice) ListFolderArticles(fid int64, lao *ListArticlesOption) ([]*Article, bool, error) {
-	url := fmt.Sprintf("%s/api/v2/solutions/articles?folder_id=%d", fs.Domain, fid)
+	url := fs.endpoint("/solutions/articles?folder_id=%d", fid)
 	result := &articleResult{}
 	next, err := fs.doList(url, lao, result)
 	return result.Articles, next, err
 }
 
 func (fs *Freshservice) DeleteArticle(aid int64) error {
-	url := fmt.Sprintf("%s/api/v2/solutions/articles/%d", fs.Domain, aid)
+	url := fs.endpoint("/solutions/articles/%d", aid)
 	return fs.doDelete(url)
 }
 
 func (fs *Freshservice) SearchArticles(sao *SearchArticlesOption) ([]*Article, bool, error) {
-	url := fmt.Sprintf("%s/api/v2/solutions/articles/search", fs.Domain)
+	url := fs.endpoint("/solutions/articles/search")
 	result := &articleResult{}
 	next, err := fs.doList(url, sao, result)
 	return result.Articles, next, err

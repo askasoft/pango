@@ -8,6 +8,10 @@ import (
 
 type Freshservice fdk.FDK
 
+func (fs *Freshservice) endpoint(format string, a ...any) string {
+	return (*fdk.FDK)(fs).Endpoint(format, a...)
+}
+
 func (fs *Freshservice) doGet(url string, result any) error {
 	return (*fdk.FDK)(fs).DoGet(url, result)
 }
@@ -38,5 +42,5 @@ func (fs *Freshservice) SaveFile(url string, filename string) error {
 
 // GetHelpdeskAttachmentURL return a permlink for helpdesk attachment/avator URL
 func (fs *Freshservice) GetHelpdeskAttachmentURL(aid int64) string {
-	return fmt.Sprintf("%s/helpdesk/attachments/%d", fs.Domain, aid)
+	return fmt.Sprintf("https://%s/helpdesk/attachments/%d", fs.Domain, aid)
 }

@@ -2,6 +2,7 @@ package fdk
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -21,6 +22,11 @@ type FDK struct {
 	Logger    log.Logger
 
 	RetryOnRateLimited int
+}
+
+// Endpoint formats endpoint url
+func (fdk *FDK) Endpoint(format string, a ...any) string {
+	return "https://" + fdk.Domain + "/api/v2" + fmt.Sprintf(format, a...)
 }
 
 func (fdk *FDK) authenticate(req *http.Request) {

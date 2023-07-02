@@ -1,7 +1,6 @@
 package freshdesk
 
 import (
-	"fmt"
 	"net/url"
 )
 
@@ -39,33 +38,33 @@ func (lco *ListContactsOption) Values() Values {
 }
 
 func (fd *Freshdesk) CreateContact(contact *Contact) (*Contact, error) {
-	url := fmt.Sprintf("%s/api/v2/contacts", fd.Domain)
+	url := fd.endpoint("/contacts")
 	result := &Contact{}
 	err := fd.doPost(url, contact, result)
 	return result, err
 }
 
 func (fd *Freshdesk) UpdateContact(cid int64, contact *Contact) (*Contact, error) {
-	url := fmt.Sprintf("%s/api/v2/contacts/%d", fd.Domain, cid)
+	url := fd.endpoint("/contacts/%d", cid)
 	result := &Contact{}
 	err := fd.doPut(url, contact, result)
 	return result, err
 }
 
 func (fd *Freshdesk) GetContact(cid int64) (*Contact, error) {
-	url := fmt.Sprintf("%s/api/v2/contacts/%d", fd.Domain, cid)
+	url := fd.endpoint("/contacts/%d", cid)
 	contact := &Contact{}
 	err := fd.doGet(url, contact)
 	return contact, err
 }
 
 func (fd *Freshdesk) DeleteContact(cid int64) error {
-	url := fmt.Sprintf("%s/api/v2/contacts/%d", fd.Domain, cid)
+	url := fd.endpoint("/contacts/%d", cid)
 	return fd.doDelete(url)
 }
 
 func (fd *Freshdesk) HardDeleteContact(cid int64, force ...bool) error {
-	url := fmt.Sprintf("%s/api/v2/contacts/%d/hard_delete", fd.Domain, cid)
+	url := fd.endpoint("/contacts/%d/hard_delete", cid)
 	if len(force) > 0 && force[0] {
 		url += "?force=true"
 	}
@@ -73,7 +72,7 @@ func (fd *Freshdesk) HardDeleteContact(cid int64, force ...bool) error {
 }
 
 func (fd *Freshdesk) ListContacts(lco *ListContactsOption) ([]*Contact, bool, error) {
-	url := fmt.Sprintf("%s/api/v2/contacts", fd.Domain)
+	url := fd.endpoint("/contacts")
 	contacts := []*Contact{}
 	next, err := fd.doList(url, lco, &contacts)
 	return contacts, next, err
@@ -109,30 +108,30 @@ func (fd *Freshdesk) IterContacts(lco *ListContactsOption, itf func(*Contact) er
 }
 
 func (fd *Freshdesk) SearchContacts(keyword string) ([]*Contact, error) {
-	url := fmt.Sprintf("%s/api/v2/contacts/autocomplete?term=%s", fd.Domain, url.QueryEscape(keyword))
+	url := fd.endpoint("/contacts/autocomplete?term=%s", url.QueryEscape(keyword))
 	contacts := []*Contact{}
 	err := fd.doGet(url, &contacts)
 	return contacts, err
 }
 
 func (fd *Freshdesk) RestoreContact(cid int64) error {
-	url := fmt.Sprintf("%s/api/v2/contacts/%d/restore", fd.Domain, cid)
+	url := fd.endpoint("/contacts/%d/restore", cid)
 	return fd.doPut(url, nil, nil)
 }
 
 func (fd *Freshdesk) InviteContact(cid int64) error {
-	url := fmt.Sprintf("%s/api/v2/contacts/%d/send_invite", fd.Domain, cid)
+	url := fd.endpoint("/contacts/%d/send_invite", cid)
 	return fd.doPut(url, nil, nil)
 }
 
 func (fd *Freshdesk) MergeContacts(cm *ContactsMerge) error {
-	url := fmt.Sprintf("%s/api/v2/contacts/merge", fd.Domain)
+	url := fd.endpoint("/contacts/merge")
 	return fd.doPost(url, nil, nil)
 }
 
 // ExportContacts return a job id, call GetExportedContactsURL() to get the job detail
 func (fd *Freshdesk) ExportContacts(defaultFields, customFields []string) (string, error) {
-	url := fmt.Sprintf("%s/api/v2/contacts/export", fd.Domain)
+	url := fd.endpoint("/contacts/export")
 	opt := &ExportOption{
 		Fields: &ExportFields{
 			DefaultFields: defaultFields,
@@ -146,14 +145,14 @@ func (fd *Freshdesk) ExportContacts(defaultFields, customFields []string) (strin
 
 // GetExportedContactsURL get the exported contacts url
 func (fd *Freshdesk) GetExportedContactsURL(jid string) (*Job, error) {
-	url := fmt.Sprintf("%s/api/v2/contacts/export/%s", fd.Domain, jid)
+	url := fd.endpoint("/contacts/export/%s", jid)
 	job := &Job{}
 	err := fd.doGet(url, job)
 	return job, err
 }
 
 func (fd *Freshdesk) MakeAgent(cid int64, agent *Agent) (*Contact, error) {
-	url := fmt.Sprintf("%s/api/v2/contacts/%d/make_agent", fd.Domain, cid)
+	url := fd.endpoint("/contacts/%d/make_agent", cid)
 	result := &Contact{}
 	err := fd.doPut(url, agent, result)
 	return result, err

@@ -41,3 +41,9 @@ func IndexOf[T any](a []T, c T) int {
 	}
 	return -1
 }
+
+// RemoveOf remove the element at index i of array a.
+func RemoveOf[T any](a []T, i int) []T {
+	copy(a[i:], a[i+1:])
+	return a[:len(a)-1]
+}

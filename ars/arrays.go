@@ -615,3 +615,87 @@ func IndexString(a []string, c string) int {
 	}
 	return -1
 }
+
+// RemoveByte remove the element at index i of array a.
+func RemoveByte(a []byte, i int) []byte {
+	copy(a[i:], a[i+1:])
+	return a[:len(a)-1]
+}
+
+// RemoveInt remove the element at index i of array a.
+func RemoveInt(a []int, i int) []int {
+	copy(a[i:], a[i+1:])
+	return a[:len(a)-1]
+}
+
+// RemoveInt8 remove the element at index i of array a.
+func RemoveInt8(a []int8, i int) []int8 {
+	copy(a[i:], a[i+1:])
+	return a[:len(a)-1]
+}
+
+// RemoveInt16 remove the element at index i of array a.
+func RemoveInt16(a []int16, i int) []int16 {
+	copy(a[i:], a[i+1:])
+	return a[:len(a)-1]
+}
+
+// RemoveInt32 remove the element at index i of array a.
+func RemoveInt32(a []int32, i int) []int32 {
+	copy(a[i:], a[i+1:])
+	return a[:len(a)-1]
+}
+
+// RemoveInt64 remove the element at index i of array a.
+func RemoveInt64(a []int64, i int) []int64 {
+	copy(a[i:], a[i+1:])
+	return a[:len(a)-1]
+}
+
+// RemoveUint remove the element at index i of array a.
+func RemoveUint(a []uint, i int) []uint {
+	copy(a[i:], a[i+1:])
+	return a[:len(a)-1]
+}
+
+// RemoveUint8 remove the element at index i of array a.
+func RemoveUint8(a []uint8, i int) []uint8 {
+	copy(a[i:], a[i+1:])
+	return a[:len(a)-1]
+}
+
+// RemoveUint16 remove the element at index i of array a.
+func RemoveUint16(a []uint16, i int) []uint16 {
+	copy(a[i:], a[i+1:])
+	return a[:len(a)-1]
+}
+
+// RemoveUint64 remove the element at index i of array a.
+func RemoveUint64(a []uint64, i int) []uint64 {
+	copy(a[i:], a[i+1:])
+	return a[:len(a)-1]
+}
+
+// RemoveFloat32 remove the element at index i of array a.
+func RemoveFloat32(a []float32, i int) []float32 {
+	copy(a[i:], a[i+1:])
+	return a[:len(a)-1]
+}
+
+// RemoveFloat64 remove the element at index i of array a.
+func RemoveFloat64(a []float64, i int) []float64 {
+	copy(a[i:], a[i+1:])
+	return a[:len(a)-1]
+}
+
+// RemoveRune remove the element at index i of array a.
+func RemoveRune(a []rune, i int) []rune {
+	copy(a[i:], a[i+1:])
+	return a[:len(a)-1]
+}
+
+// RemoveString remove the element at index i of array a.
+func RemoveString(a []string, i int) []string {
+	copy(a[i:], a[i+1:])
+	return a[:len(a)-1]
+}

@@ -41,7 +41,16 @@ func (fdk *FDK) authenticate(req *http.Request) {
 	}
 }
 
-func (fdk *FDK) call(req *http.Request) (res *http.Response, err error) {
+func (fdk *FDK) callNoAuth(req *http.Request) (res *http.Response, err error) {
+	client := &http.Client{
+		Transport: fdk.Transport,
+		Timeout:   fdk.Timeout,
+	}
+
+	return Call(client, req, fdk.Logger)
+}
+
+func (fdk *FDK) callWithRetry(req *http.Request) (res *http.Response, err error) {
 	fdk.authenticate(req)
 
 	client := &http.Client{
@@ -49,11 +58,11 @@ func (fdk *FDK) call(req *http.Request) (res *http.Response, err error) {
 		Timeout:   fdk.Timeout,
 	}
 
-	return Call(client, req, fdk.RetryOnRateLimited, fdk.Logger)
+	return CallWithRetry(client, req, fdk.RetryOnRateLimited, fdk.Logger)
 }
 
 func (fdk *FDK) doCall(req *http.Request, result any) error {
-	res, err := fdk.call(req)
+	res, err := fdk.callWithRetry(req)
 	if err != nil {
 		return err
 	}
@@ -67,7 +76,7 @@ func (fdk *FDK) DoDownload(url string) ([]byte, error) {
 		return nil, err
 	}
 
-	res, err := fdk.call(req)
+	res, err := fdk.callWithRetry(req)
 	if err != nil {
 		return nil, err
 	}
@@ -78,8 +87,33 @@ func (fdk *FDK) DoDownload(url string) ([]byte, error) {
 	return buf.Bytes(), err
 }
 
-func (fdk *FDK) DoSave(url string, filename string) error {
+func (fdk *FDK) DoSaveFile(url string, filename string) error {
 	bs, err := fdk.DoDownload(url)
+	if err != nil {
+		return err
+	}
+	return fsu.WriteFile(filename, bs, fsu.FileMode(0660))
+}
+
+func (fdk *FDK) DoDownloadNoAuth(url string) ([]byte, error) {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := fdk.callNoAuth(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer iox.DrainAndClose(res.Body)
+	buf := &bytes.Buffer{}
+	_, err = iox.Copy(buf, res.Body)
+	return buf.Bytes(), err
+}
+
+func (fdk *FDK) DoSaveFileNoAuth(url string, filename string) error {
+	bs, err := fdk.DoDownloadNoAuth(url)
 	if err != nil {
 		return err
 	}
@@ -106,7 +140,7 @@ func (fdk *FDK) DoList(url string, lo ListOption, ap any) (bool, error) {
 		req.URL.RawQuery = q.Encode()
 	}
 
-	res, err := fdk.call(req)
+	res, err := fdk.callWithRetry(req)
 	if err != nil {
 		return false, err
 	}

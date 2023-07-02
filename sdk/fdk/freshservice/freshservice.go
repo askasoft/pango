@@ -37,7 +37,7 @@ func (fs *Freshservice) Download(url string) ([]byte, error) {
 }
 
 func (fs *Freshservice) SaveFile(url string, filename string) error {
-	return (*fdk.FDK)(fs).DoSave(url, filename)
+	return (*fdk.FDK)(fs).DoSaveFile(url, filename)
 }
 
 // GetHelpdeskAttachmentURL return a permlink for helpdesk attachment/avator URL

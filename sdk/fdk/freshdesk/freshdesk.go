@@ -37,12 +37,25 @@ func (fd *Freshdesk) Download(url string) ([]byte, error) {
 }
 
 func (fd *Freshdesk) SaveFile(url string, filename string) error {
-	return (*fdk.FDK)(fd).DoSave(url, filename)
+	return (*fdk.FDK)(fd).DoSaveFile(url, filename)
+}
+
+func (fd *Freshdesk) DownloadNoAuth(url string) ([]byte, error) {
+	return (*fdk.FDK)(fd).DoDownloadNoAuth(url)
+}
+
+func (fd *Freshdesk) SaveFileNoAuth(url string, filename string) error {
+	return (*fdk.FDK)(fd).DoSaveFileNoAuth(url, filename)
 }
 
 // GetHelpdeskAttachmentURL return a permlink for helpdesk attachment/avator URL
 func (fd *Freshdesk) GetHelpdeskAttachmentURL(aid int64) string {
 	return fmt.Sprintf("https://%s/helpdesk/attachments/%d", fd.Domain, aid)
+}
+
+func (fd *Freshdesk) DeleteAttachment(aid int64) error {
+	url := fd.endpoint("/attachments/%d", aid)
+	return fd.doDelete(url)
 }
 
 // GetJob get job detail

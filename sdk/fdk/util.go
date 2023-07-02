@@ -111,19 +111,27 @@ func buildJsonRequest(a any) (io.Reader, string, error) {
 	return buf, contentTypeJSON, nil
 }
 
-func Call(client *http.Client, req *http.Request, retryOnRateLimited int, log log.Logger) (res *http.Response, err error) {
+func Call(client *http.Client, req *http.Request, log log.Logger) (res *http.Response, err error) {
+	if log != nil {
+		log.Infof("%s %s", req.Method, req.URL)
+	}
+
+	rid := LogRequest(log, req)
+
+	res, err = client.Do(req)
+	if err == nil {
+		LogResponse(log, res, rid)
+	}
+
+	return res, err
+}
+
+func CallWithRetry(client *http.Client, req *http.Request, retryOnRateLimited int, log log.Logger) (res *http.Response, err error) {
 	err = SleepAndRetry(func() error {
-		if log != nil {
-			log.Infof("%s %s", req.Method, req.URL)
-		}
-
-		rid := LogRequest(log, req)
-
-		res, err = client.Do(req)
+		res, err = Call(client, req, log)
 		if err != nil {
 			return err
 		}
-		LogResponse(log, res, rid)
 
 		if res.StatusCode == http.StatusTooManyRequests {
 			s := res.Header.Get("Retry-After")

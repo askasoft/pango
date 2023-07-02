@@ -236,11 +236,6 @@ func (fd *Freshdesk) BulkDeleteTickets(tids []int64) (string, error) {
 	return result["job_id"], err
 }
 
-func (fd *Freshdesk) DeleteAttachment(aid int64) error {
-	url := fd.endpoint("/attachments/%d", aid)
-	return fd.doDelete(url)
-}
-
 // ---------------------------------------------------
 // Conversation
 

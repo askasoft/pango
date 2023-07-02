@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/askasoft/pango/bye"
+	"github.com/askasoft/pango/fsu"
 	"github.com/askasoft/pango/str"
 )
 
@@ -60,10 +62,31 @@ func TestSolutionAPIs(t *testing.T) {
 		}
 	}()
 
-	art.AddAttachment("./any.go")
-	_, err = fd.UpdateArticle(art.ID, art)
+	aad, err := fsu.ReadFile("./any.go")
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
+	}
+
+	art.AddAttachment("./any.go")
+	ua, err := fd.UpdateArticle(art.ID, art)
+	if err != nil {
+		t.Fatalf("ERROR: %v", err)
+	}
+
+	uad, err := fd.DownloadNoAuth(ua.Attachments[0].AttachmentURL)
+	if err != nil {
+		t.Fatalf("ERROR: %v", err)
+	}
+
+	if !bye.Equal(aad, uad) {
+		t.Fatal("Attachment content not equal")
+	}
+
+	for _, at := range ua.Attachments {
+		err = fd.DeleteAttachment(at.ID)
+		if err != nil {
+			t.Fatalf("ERROR: %v", err)
+		}
 	}
 
 	cats, _, err := fd.ListCategories(nil)

@@ -40,7 +40,25 @@ func (fs *Freshservice) SaveFile(url string, filename string) error {
 	return (*fdk.FDK)(fs).DoSaveFile(url, filename)
 }
 
+func (fs *Freshservice) DownloadNoAuth(url string) ([]byte, error) {
+	return (*fdk.FDK)(fs).DoDownloadNoAuth(url)
+}
+
+func (fs *Freshservice) SaveFileNoAuth(url string, filename string) error {
+	return (*fdk.FDK)(fs).DoSaveFileNoAuth(url, filename)
+}
+
 // GetHelpdeskAttachmentURL return a permlink for helpdesk attachment/avator URL
 func (fs *Freshservice) GetHelpdeskAttachmentURL(aid int64) string {
 	return fmt.Sprintf("https://%s/helpdesk/attachments/%d", fs.Domain, aid)
+}
+
+func (fs *Freshservice) DownloadAttachment(aid int64) ([]byte, error) {
+	url := fs.endpoint("/attachments/%d", aid)
+	return fs.Download(url)
+}
+
+func (fs *Freshservice) SaveAttachment(aid int64, filename string) error {
+	url := fs.endpoint("/attachments/%d", aid)
+	return fs.SaveFile(url, filename)
 }

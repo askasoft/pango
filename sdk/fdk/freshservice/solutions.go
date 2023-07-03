@@ -7,10 +7,42 @@ package freshservice
 type ListCategoriesOption = PageOption
 
 // PerPage: 1 ~ 100, default: 30
-type ListFoldersOption = PageOption
+type ListFoldersOption struct {
+	categoryID int64
+	Page       int
+	PerPage    int
+}
+
+func (lfo *ListFoldersOption) IsNil() bool {
+	return lfo == nil
+}
+
+func (lfo *ListFoldersOption) Values() Values {
+	q := Values{}
+	q.SetInt64("category_id", lfo.categoryID)
+	q.SetInt("page", lfo.Page)
+	q.SetInt("per_page", lfo.PerPage)
+	return q
+}
 
 // PerPage: 1 ~ 100, default: 30
-type ListArticlesOption = PageOption
+type ListArticlesOption struct {
+	folderID int64
+	Page     int
+	PerPage  int
+}
+
+func (lao *ListArticlesOption) IsNil() bool {
+	return lao == nil
+}
+
+func (lao *ListArticlesOption) Values() Values {
+	q := Values{}
+	q.SetInt64("folder_id", lao.folderID)
+	q.SetInt("page", lao.Page)
+	q.SetInt("per_page", lao.PerPage)
+	return q
+}
 
 type SearchArticlesOption struct {
 	SearchTerm string // The keywords for which the solution articles have to be searched.
@@ -116,7 +148,12 @@ func (fs *Freshservice) GetFolder(fid int64) (*Folder, error) {
 }
 
 func (fs *Freshservice) ListCategoryFolders(cid int64, lfo *ListFoldersOption) ([]*Folder, bool, error) {
-	url := fs.endpoint("/solutions/folders?category_id=%d", cid)
+	if lfo == nil {
+		lfo = &ListFoldersOption{}
+	}
+	lfo.categoryID = cid
+
+	url := fs.endpoint("/solutions/folders")
 	result := &folderResult{}
 	next, err := fs.doList(url, lfo, result)
 	return result.Folders, next, err
@@ -156,8 +193,8 @@ func (fs *Freshservice) DeleteFolder(fid int64) error {
 	return fs.doDelete(url)
 }
 
-func (fs *Freshservice) CreateArticle(fid int64, article *Article) (*Article, error) {
-	url := fs.endpoint("/solutions/folders/%d", fid)
+func (fs *Freshservice) CreateArticle(article *Article) (*Article, error) {
+	url := fs.endpoint("/solutions/articles")
 	result := &articleResult{}
 	err := fs.doPost(url, article, result)
 	return result.Article, err
@@ -185,10 +222,44 @@ func (fs *Freshservice) GetArticle(aid int64) (*Article, error) {
 }
 
 func (fs *Freshservice) ListFolderArticles(fid int64, lao *ListArticlesOption) ([]*Article, bool, error) {
-	url := fs.endpoint("/solutions/articles?folder_id=%d", fid)
+	if lao == nil {
+		lao = &ListArticlesOption{}
+	}
+	lao.folderID = fid
+
+	url := fs.endpoint("/solutions/articles")
 	result := &articleResult{}
 	next, err := fs.doList(url, lao, result)
 	return result.Articles, next, err
+}
+
+func (fs *Freshservice) IterFolderArticles(fid int64, lao *ListArticlesOption, iaf func(*Article) error) error {
+	if lao == nil {
+		lao = &ListArticlesOption{}
+	}
+	if lao.Page < 1 {
+		lao.Page = 1
+	}
+	if lao.PerPage < 1 {
+		lao.PerPage = 100
+	}
+
+	for {
+		articles, next, err := fs.ListFolderArticles(fid, lao)
+		if err != nil {
+			return err
+		}
+		for _, a := range articles {
+			if err = iaf(a); err != nil {
+				return err
+			}
+		}
+		if !next {
+			break
+		}
+		lao.Page++
+	}
+	return nil
 }
 
 func (fs *Freshservice) DeleteArticle(aid int64) error {
@@ -202,3 +273,8 @@ func (fs *Freshservice) SearchArticles(sao *SearchArticlesOption) ([]*Article, b
 	next, err := fs.doList(url, sao, result)
 	return result.Articles, next, err
 }
+
+// func (fs *Freshservice) DeleteArticleAttachment(aid, tid int64) error {
+// 	url := fs.endpoint("/solutions/articles/%d/attachments/%d", aid, tid)
+// 	return fs.doDelete(url)
+// }

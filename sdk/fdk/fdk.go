@@ -70,54 +70,13 @@ func (fdk *FDK) doCall(req *http.Request, result any) error {
 	return DecodeResponse(res, result)
 }
 
-func (fdk *FDK) DoDownload(url string) ([]byte, error) {
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := fdk.callWithRetry(req)
-	if err != nil {
-		return nil, err
-	}
-
-	defer iox.DrainAndClose(res.Body)
-	buf := &bytes.Buffer{}
-	_, err = iox.Copy(buf, res.Body)
-	return buf.Bytes(), err
+// SleepForRetry if err is RateLimitedError, sleep Retry-After and return true
+func (fdk *FDK) SleepForRetry(err error) bool {
+	return SleepForRetry(err, fdk.Logger)
 }
 
-func (fdk *FDK) DoSaveFile(url string, filename string) error {
-	bs, err := fdk.DoDownload(url)
-	if err != nil {
-		return err
-	}
-	return fsu.WriteFile(filename, bs, fsu.FileMode(0660))
-}
-
-func (fdk *FDK) DoDownloadNoAuth(url string) ([]byte, error) {
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := fdk.callNoAuth(req)
-	if err != nil {
-		return nil, err
-	}
-
-	defer iox.DrainAndClose(res.Body)
-	buf := &bytes.Buffer{}
-	_, err = iox.Copy(buf, res.Body)
-	return buf.Bytes(), err
-}
-
-func (fdk *FDK) DoSaveFileNoAuth(url string, filename string) error {
-	bs, err := fdk.DoDownloadNoAuth(url)
-	if err != nil {
-		return err
-	}
-	return fsu.WriteFile(filename, bs, fsu.FileMode(0660))
+func (fdk *FDK) SleepAndRetry(api func() error, maxRetry int) (err error) {
+	return SleepAndRetry(api, maxRetry, fdk.Logger)
 }
 
 func (fdk *FDK) DoGet(url string, result any) error {
@@ -196,11 +155,74 @@ func (fdk *FDK) DoDelete(url string) error {
 	return fdk.doCall(req, nil)
 }
 
-// SleepForRetry if err is RateLimitedError, sleep Retry-After and return true
-func (fdk *FDK) SleepForRetry(err error) bool {
-	return SleepForRetry(err, fdk.Logger)
+func (fdk *FDK) DoDownload(url string) ([]byte, error) {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := fdk.callWithRetry(req)
+	if err != nil {
+		return nil, err
+	}
+
+	buf := &bytes.Buffer{}
+	_, err = iox.Copy(buf, res.Body)
+	iox.DrainAndClose(res.Body)
+
+	return buf.Bytes(), err
 }
 
-func (fdk *FDK) SleepAndRetry(api func() error, maxRetry int) (err error) {
-	return SleepAndRetry(api, maxRetry, fdk.Logger)
+func (fdk *FDK) DoSaveFile(url string, filename string) error {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return err
+	}
+
+	res, err := fdk.callWithRetry(req)
+	if err != nil {
+		return err
+	}
+
+	err = fsu.WriteReader(filename, res.Body, fsu.FileMode(0660))
+
+	iox.DrainAndClose(res.Body)
+
+	return err
+}
+
+func (fdk *FDK) DoDownloadNoAuth(url string) ([]byte, error) {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := fdk.callNoAuth(req)
+	if err != nil {
+		return nil, err
+	}
+
+	buf := &bytes.Buffer{}
+	_, err = iox.Copy(buf, res.Body)
+	iox.DrainAndClose(res.Body)
+
+	return buf.Bytes(), err
+}
+
+func (fdk *FDK) DoSaveFileNoAuth(url string, filename string) error {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return err
+	}
+
+	res, err := fdk.callNoAuth(req)
+	if err != nil {
+		return err
+	}
+
+	err = fsu.WriteReader(filename, res.Body, fsu.FileMode(0660))
+
+	iox.DrainAndClose(res.Body)
+
+	return err
 }

@@ -6,6 +6,43 @@ import (
 	"github.com/askasoft/pango/sdk/fdk"
 )
 
+type RateLimitedError = fdk.RateLimitedError
+
+type Date = fdk.Date
+
+type Time = fdk.Time
+
+type Attachment = fdk.Attachment
+
+type Attachments = fdk.Attachments
+
+type ListOption = fdk.ListOption
+
+type PageOption = fdk.PageOption
+
+type File = fdk.File
+
+type Files = fdk.Files
+
+type WithFiles = fdk.WithFiles
+
+type Values = fdk.Values
+
+type OrderType string
+
+const (
+	OrderAsc  OrderType = "asc"
+	OrderDesc OrderType = "desc"
+)
+
+func NewAttachment(file string, data ...[]byte) *Attachment {
+	return fdk.NewAttachment(file, data...)
+}
+
+func toString(o any) string {
+	return fdk.ToString(o)
+}
+
 type Freshdesk fdk.FDK
 
 func (fd *Freshdesk) endpoint(format string, a ...any) string {

@@ -1,5 +1,16 @@
 package freshservice
 
+type ArticleType int
+type ArticleStatus int
+
+const (
+	ArticleTypePermanent  ArticleType = 1
+	ArticleTypeWorkaround ArticleType = 2
+
+	ArticleStatusDraft     ArticleStatus = 1
+	ArticleStatusPublished ArticleStatus = 2
+)
+
 type Article struct {
 	ID int64 `json:"id,omitempty"`
 
@@ -13,7 +24,7 @@ type Article struct {
 	Position int `json:"position,omitempty"`
 
 	// The type of the article. ( 1 - permanent, 2 - workaround )
-	ArticleType int `json:"article_type,omitempty"`
+	ArticleType ArticleType `json:"article_type,omitempty"`
 
 	// ID of the folder to which the solution article belongs
 	FolderID int64 `json:"folder_id,omitempty"`
@@ -22,10 +33,10 @@ type Article struct {
 	CagetoryID int64 `json:"category_id,omitempty"`
 
 	// Status of the solution article.  ( 1 - draft, 2 - published )
-	Status int `json:"status,omitempty"`
+	Status ArticleStatus `json:"status,omitempty"`
 
 	// Approval status of the article.
-	ApprovalStatus int `json:"approval_status,omitempty"`
+	ApprovalStatus ApprovalStatus `json:"approval_status,omitempty"`
 
 	// Number of upvotes for the solution article
 	ThumbsUp int `json:"thumbs_up,omitempty"`
@@ -64,16 +75,8 @@ func (a *Article) AddAttachment(path string, data ...[]byte) {
 	a.Attachments = append(a.Attachments, aa)
 }
 
-func (a *Article) GetAttachments() []*Attachment {
-	return a.Attachments
-}
-
 func (a *Article) Files() Files {
-	fs := make(Files, len(a.Attachments))
-	for i, a := range a.Attachments {
-		fs[i] = a
-	}
-	return fs
+	return ((Attachments)(a.Attachments)).Files()
 }
 
 func (a *Article) Values() Values {
@@ -81,9 +84,9 @@ func (a *Article) Values() Values {
 
 	vs.SetString("title", a.Title)
 	vs.SetString("description", a.Description)
-	vs.SetInt("article_type", a.ArticleType)
+	vs.SetInt("article_type", (int)(a.ArticleType))
 	vs.SetInt64("folder_id", a.FolderID)
-	vs.SetInt("status", a.Status)
+	vs.SetInt("status", (int)(a.Status))
 	vs.SetStrings("tags", a.Tags)
 	vs.SetStrings("keywords", a.Keywords)
 	vs.SetTimePtr("review_date", a.ReviewDate)

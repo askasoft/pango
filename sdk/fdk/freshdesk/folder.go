@@ -1,5 +1,17 @@
 package freshdesk
 
+type FolderVisibility int
+
+const (
+	FolderVisibilityAllUsers                FolderVisibility = 1
+	FolderVisibilityLoggedInUsers           FolderVisibility = 2
+	FolderVisibilityAgents                  FolderVisibility = 3
+	FolderVisibilitySelectedCompanies       FolderVisibility = 4
+	FolderVisibilityBots                    FolderVisibility = 5
+	FolderVisibilitySelectedContactSegments FolderVisibility = 6
+	FolderVisibilitySelectedCompanySegments FolderVisibility = 7
+)
+
 type Folder struct {
 	ID int64 `json:"id,omitempty"`
 
@@ -19,7 +31,7 @@ type Folder struct {
 	SubFoldersCount int `json:"sub_folders_count,omitempty"`
 
 	// Accessibility of this folder. Please refer to Folder Properties table.
-	Visibility int `json:"visibility,omitempty"`
+	Visibility FolderVisibility `json:"visibility,omitempty"`
 
 	// IDs of the companies to whom this solution folder is visible
 	CompanyIDs []int64 `json:"company_ids,omitempty"`

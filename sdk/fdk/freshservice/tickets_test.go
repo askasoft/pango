@@ -1,4 +1,4 @@
-package freshdesk
+package freshservice
 
 import (
 	"testing"
@@ -17,8 +17,8 @@ func TestTicketTypes(t *testing.T) {
 }
 
 func TestTicketAPIs(t *testing.T) {
-	fd := testNewFreshdesk(t)
-	if fd == nil {
+	fs := testNewFreshservice(t)
+	if fs == nil {
 		return
 	}
 
@@ -31,7 +31,7 @@ func TestTicketAPIs(t *testing.T) {
 		Priority:    TicketPriorityMedium,
 	}
 
-	ct, err := fd.CreateTicket(ot)
+	ct, err := fs.CreateTicket(ot)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
@@ -44,12 +44,12 @@ func TestTicketAPIs(t *testing.T) {
 </div>`
 	tu.AddAttachment("./any.go")
 
-	ut, err := fd.UpdateTicket(ct.ID, tu)
+	ut, err := fs.UpdateTicket(ct.ID, tu)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 
-	err = fd.DeleteAttachment(ut.Attachments[0].ID)
+	err = fs.DeleteTicketAttachment(ut.ID, ut.Attachments[0].ID)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
@@ -58,63 +58,63 @@ func TestTicketAPIs(t *testing.T) {
 		Body:    "create note " + time.Now().String(),
 		Private: true,
 	}
-	cn, err := fd.CreateNote(ct.ID, nc)
+	cn, err := fs.CreateNote(ct.ID, nc)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	fd.Logger.Debug(cn)
+	fs.Logger.Debug(cn)
 
 	cu := &Conversation{
 		Body: "update note " + time.Now().String(),
 	}
 	cu.AddAttachment("./any.go")
-	uc, err := fd.UpdateConversation(cn.ID, cu)
+	uc, err := fs.UpdateConversation(cn.ID, cu)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	fd.Logger.Debug(uc)
+	fs.Logger.Debug(uc)
 
-	gtc, err := fd.GetTicket(ct.ID, TicketIncludeConversations)
+	gtc, err := fs.GetTicket(ct.ID, TicketIncludeConversations)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	fd.Logger.Debug(gtc)
+	fs.Logger.Debug(gtc)
 
-	gtr, err := fd.GetTicket(ct.ID, TicketIncludeRequester)
+	gtr, err := fs.GetTicket(ct.ID, TicketIncludeRequester)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	fd.Logger.Debug(gtr)
+	fs.Logger.Debug(gtr)
 
-	err = fd.DeleteTicket(ct.ID)
+	err = fs.DeleteTicket(ct.ID)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 }
 
 func TestListTicket(t *testing.T) {
-	fd := testNewFreshdesk(t)
-	if fd == nil {
+	fs := testNewFreshservice(t)
+	if fs == nil {
 		return
 	}
 
 	ltp := &ListTicketsOption{PerPage: 1}
-	ts, _, err := fd.ListTickets(ltp)
+	ts, _, err := fs.ListTickets(ltp)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	fd.Logger.Debug(ts)
+	fs.Logger.Debug(ts)
 }
 
 func TestIterTicket(t *testing.T) {
-	fd := testNewFreshdesk(t)
-	if fd == nil {
+	fs := testNewFreshservice(t)
+	if fs == nil {
 		return
 	}
 
 	ltp := &ListTicketsOption{PerPage: 2}
-	err := fd.IterTickets(ltp, func(t *Ticket) error {
-		fd.Logger.Debug(t)
+	err := fs.IterTickets(ltp, func(t *Ticket) error {
+		fs.Logger.Debug(t)
 		return nil
 	})
 	if err != nil {

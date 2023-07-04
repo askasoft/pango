@@ -1,5 +1,38 @@
 package freshservice
 
+type TicketSource int
+type TicketStatus int
+type TicketPriority int
+type TicketFilter string
+
+const (
+	TicketSourceEmail          TicketSource = 1
+	TicketSourceProtal         TicketSource = 2
+	TicketSourcePhone          TicketSource = 3
+	TicketSourceChat           TicketSource = 4
+	TicketSourceFeedbackWidget TicketSource = 5
+	TicketSourceYammer         TicketSource = 6
+	TicketSourceAWSCloudwatch  TicketSource = 7
+	TicketSourcePagerduty      TicketSource = 8
+	TicketSourceWalkup         TicketSource = 9
+	TicketSourceSlack          TicketSource = 10
+
+	TicketStatusOpen     TicketStatus = 2
+	TicketStatusPending  TicketStatus = 3
+	TicketStatusResolved TicketStatus = 4
+	TicketStatusClosed   TicketStatus = 5
+
+	TicketPriorityLow    TicketPriority = 1
+	TicketPriorityMedium TicketPriority = 2
+	TicketPriorityHigh   TicketPriority = 3
+	TicketPriorityUrgent TicketPriority = 4
+
+	TicketFilterNewAndMyOpen TicketFilter = "new_and_my_open"
+	TicketFilterWatching     TicketFilter = "watching"
+	TicketFilterSpam         TicketFilter = "spam"
+	TicketFilterDeleted      TicketFilter = "deleted"
+)
+
 type Ticket struct {
 	// Unique ID of the ticket
 	ID int64 `json:"id,omitempty"`
@@ -33,13 +66,13 @@ type Ticket struct {
 	Type string `json:"type,omitempty"`
 
 	// Status of the ticket
-	Status int `json:"status,omitempty"`
+	Status TicketStatus `json:"status,omitempty"`
 
 	// Priority of the ticket
-	Priority int `json:"priority,omitempty"`
+	Priority TicketPriority `json:"priority,omitempty"`
 
 	// The channel through which the ticket was created
-	Source int `json:"source,omitempty"`
+	Source TicketSource `json:"source,omitempty"`
 
 	// Set to true if the ticket has been deleted/trashed. Deleted tickets will not be displayed in any views except the "deleted" filter
 	Deleted bool `json:"deleted,omitempty"`
@@ -120,11 +153,7 @@ func (t *Ticket) AddAttachment(path string, data ...[]byte) {
 }
 
 func (t *Ticket) Files() Files {
-	fs := make(Files, len(t.Attachments))
-	for i, a := range t.Attachments {
-		fs[i] = a
-	}
-	return fs
+	return ((Attachments)(t.Attachments)).Files()
 }
 
 func (t *Ticket) Values() Values {
@@ -137,8 +166,8 @@ func (t *Ticket) Values() Values {
 	vs.SetInt64("email_config_id", t.EmailConfigID)
 	vs.SetString("subject", t.Subject)
 	vs.SetString("type", t.Type)
-	vs.SetInt("status", t.Status)
-	vs.SetInt("priority", t.Priority)
+	vs.SetInt("status", (int)(t.Status))
+	vs.SetInt("priority", (int)(t.Priority))
 	vs.SetString("description", t.Description)
 	vs.SetInt64("responder_id", t.ResponderID)
 	vs.SetStrings("cc_emails", t.CcEmails)
@@ -147,7 +176,7 @@ func (t *Ticket) Values() Values {
 	vs.SetInt64("group_id", t.GroupID)
 	vs.SetInt64("workspace_id", t.WorkspaceID)
 	vs.SetInt64("department_id", t.DepartmentID)
-	vs.SetInt("source", t.Source)
+	vs.SetInt("source", (int)(t.Source))
 	vs.SetStrings("tags", t.Tags)
 	vs.SetString("category", t.Category)
 	vs.SetString("sub_category", t.SubCategory)

@@ -1,5 +1,17 @@
 package freshservice
 
+type ConversationSource int
+
+const (
+	ConversationSourceEmail          ConversationSource = 0
+	ConversationSourceForm           ConversationSource = 1
+	ConversationSourceNote           ConversationSource = 2
+	ConversationSourceStatus         ConversationSource = 3
+	ConversationSourceMeta           ConversationSource = 4
+	ConversationSourceFeedback       ConversationSource = 5
+	ConversationSourceForwardedEmail ConversationSource = 6
+)
+
 type Conversation struct {
 	// ID of the conversation
 	ID int64 `json:"id,omitempty"`
@@ -20,7 +32,7 @@ type Conversation struct {
 	Private bool `json:"private,omitempty"`
 
 	// Denotes the type of the conversation.
-	Source int `json:"source,omitempty"`
+	Source ConversationSource `json:"source,omitempty"`
 
 	// Email address from which the reply is sent. For notes, this value will be null.
 	SupportEmail string `json:"support_email,omitempty"`
@@ -61,11 +73,7 @@ func (c *Conversation) AddAttachment(path string, data ...[]byte) {
 }
 
 func (c *Conversation) Files() Files {
-	fs := make(Files, len(c.Attachments))
-	for i, a := range c.Attachments {
-		fs[i] = a
-	}
-	return fs
+	return ((Attachments)(c.Attachments)).Files()
 }
 
 func (c *Conversation) Values() Values {

@@ -7,6 +7,15 @@ import (
 // ---------------------------------------------------
 // Contact
 
+type ContactState string
+
+const (
+	ContactStateBlocked    ContactState = "blocked"
+	ContactStateDeleted    ContactState = "deleted"
+	ContactStateUnverified ContactState = "unverified"
+	ContactStateVerified   ContactState = "verified"
+)
+
 type ListContactsOption struct {
 	Email            string
 	Mobile           string
@@ -14,7 +23,7 @@ type ListContactsOption struct {
 	UniqueExternalID string
 	CompanyID        int64
 	UpdatedSince     Time
-	State            string // [blocked/deleted/unverified/verified]
+	State            ContactState // [blocked/deleted/unverified/verified]
 	Page             int
 	PerPage          int
 }
@@ -30,7 +39,7 @@ func (lco *ListContactsOption) Values() Values {
 	q.SetString("phone", lco.Phone)
 	q.SetString("unique_external_id", lco.UniqueExternalID)
 	q.SetInt64("company_id", lco.CompanyID)
-	q.SetString("state", lco.State)
+	q.SetString("state", (string)(lco.State))
 	q.SetTime("updated_since", lco.UpdatedSince)
 	q.SetInt("page", lco.Page)
 	q.SetInt("per_page", lco.PerPage)

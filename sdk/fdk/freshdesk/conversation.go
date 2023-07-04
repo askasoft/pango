@@ -1,5 +1,18 @@
 package freshdesk
 
+type ConversationSource int
+
+const (
+	ConversationSourceReply     ConversationSource = 0
+	ConversationSourceNote      ConversationSource = 2
+	ConversationSourceTweets    ConversationSource = 5
+	ConversationSourceSurvey    ConversationSource = 6
+	ConversationSourceFacebook  ConversationSource = 7
+	ConversationSourceForwarded ConversationSource = 8
+	ConversationSourcePhone     ConversationSource = 9
+	ConversationSourceECommerce ConversationSource = 11
+)
+
 type Conversation struct {
 	// ID of the conversation
 	ID int64 `json:"id,omitempty"`
@@ -23,7 +36,7 @@ type Conversation struct {
 	Private bool `json:"private,omitempty"`
 
 	// Denotes the type of the conversation.
-	Source int `json:"source,omitempty"`
+	Source ConversationSource `json:"source,omitempty"`
 
 	// Email address from which the reply is sent. For notes, this value will be null.
 	SupportEmail string `json:"support_email,omitempty"`
@@ -56,11 +69,7 @@ func (c *Conversation) AddAttachment(path string, data ...[]byte) {
 }
 
 func (c *Conversation) Files() Files {
-	fs := make(Files, len(c.Attachments))
-	for i, a := range c.Attachments {
-		fs[i] = a
-	}
-	return fs
+	return ((Attachments)(c.Attachments)).Files()
 }
 
 func (c *Conversation) Values() Values {

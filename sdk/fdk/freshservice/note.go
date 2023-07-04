@@ -25,8 +25,8 @@ func (n *Note) AddAttachment(path string, data ...[]byte) {
 	n.Attachments = append(n.Attachments, a)
 }
 
-func (n *Note) GetAttachments() []*Attachment {
-	return n.Attachments
+func (n *Note) Files() Files {
+	return ((Attachments)(n.Attachments)).Files()
 }
 
 func (n *Note) Values() Values {

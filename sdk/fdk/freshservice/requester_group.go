@@ -1,5 +1,12 @@
 package freshservice
 
+type RequesterGroupType string
+
+const (
+	RequesterGroupTypeManual    RequesterGroupType = "manual"
+	RequesterGroupTypeRuleBased RequesterGroupType = "rule_based"
+)
+
 type RequesterGroup struct {
 	ID int64 `json:"id,omitempty"`
 
@@ -10,7 +17,7 @@ type RequesterGroup struct {
 	Description string `json:"description,omitempty"`
 
 	// Method of requester addition. “manual” if individual requesters can be chosen manually, and “rule_based” if members are automatically added based on rules.
-	Type string `json:"type,omitempty"`
+	Type RequesterGroupType `json:"type,omitempty"`
 }
 
 func (rg *RequesterGroup) String() string {

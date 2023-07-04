@@ -7,6 +7,17 @@ import (
 // ---------------------------------------------------
 // Ticket
 
+const (
+	TicketIncludeConversations  = "conversations"
+	TicketIncludeRequester      = "requester"
+	TicketIncludeRequestedFor   = "requested_for"
+	TicketIncludeStats          = "stats"
+	TicketIncludeProblem        = "problem"
+	TicketIncludeAssets         = "assets"
+	TicketIncludeChange         = "change"
+	TicketIncludeRelatedTickets = "related_tickets"
+)
+
 type ListTicketsOption struct {
 	Filter       string // The various filters available are new_and_my_open, watching, spam, deleted.
 	WorkspaceID  int64
@@ -244,7 +255,7 @@ func (fs *Freshservice) CreateReply(tid int64, reply *Reply) (*Conversation, err
 }
 
 func (fs *Freshservice) CreateNote(tid int64, note *Note) (*Conversation, error) {
-	url := fs.endpoint("/tickets/%d/note", tid)
+	url := fs.endpoint("/tickets/%d/notes", tid)
 	result := &conversationResult{}
 	err := fs.doPost(url, note, result)
 	return result.Conversation, err

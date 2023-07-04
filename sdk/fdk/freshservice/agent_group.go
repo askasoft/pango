@@ -1,5 +1,19 @@
 package freshservice
 
+type AgentGroupUnassignedFor string
+
+const (
+	AgentGroupUnassignedFor30m AgentGroupUnassignedFor = "30m"
+	AgentGroupUnassignedFor1h  AgentGroupUnassignedFor = "1h"
+	AgentGroupUnassignedFor2h  AgentGroupUnassignedFor = "2h"
+	AgentGroupUnassignedFor4h  AgentGroupUnassignedFor = "4h"
+	AgentGroupUnassignedFor8h  AgentGroupUnassignedFor = "8h"
+	AgentGroupUnassignedFor12h AgentGroupUnassignedFor = "12h"
+	AgentGroupUnassignedFor1d  AgentGroupUnassignedFor = "1d"
+	AgentGroupUnassignedFor2d  AgentGroupUnassignedFor = "2d"
+	AgentGroupUnassignedFor3d  AgentGroupUnassignedFor = "3d"
+)
+
 type AgentGroup struct {
 	ID int64 `json:"id,omitempty"`
 
@@ -11,7 +25,7 @@ type AgentGroup struct {
 
 	// The time after which an escalation email is sent if a ticket in the group remains unassigned.
 	// The accepted values are “30m” for 30 minutes, “1h” for 1 hour, “2h” for 2 hours, “4h” for 4 hours, “8h” for 8 hours, “12h” for 12 hours, “1d” for 1 day, “2d” for 2 days, and “3d” for 3 days.
-	UnassignedFor string `json:"unassigned_for,omitempty"`
+	UnassignedFor AgentGroupUnassignedFor `json:"unassigned_for,omitempty"`
 
 	// Unique ID of the business hours configuration associated with the group.
 	BusinessHoursID int64 `json:"business_hours_id,omitempty"`

@@ -49,3 +49,13 @@ func NewAttachment(file string, data ...[]byte) *Attachment {
 	}
 	return a
 }
+
+type Attachments []*Attachment
+
+func (as Attachments) Files() Files {
+	fs := make(Files, len(as))
+	for i, a := range as {
+		fs[i] = a
+	}
+	return fs
+}

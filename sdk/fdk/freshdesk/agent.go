@@ -1,5 +1,13 @@
 package freshdesk
 
+type AgentTicketScope int
+
+const (
+	AgentTicketScopeGlobal     AgentTicketScope = 1
+	AgentTicketScopeGroup      AgentTicketScope = 2
+	AgentTicketScopeRestricted AgentTicketScope = 3
+)
+
 type Agent struct {
 	ID int64 `json:"id,omitempty"`
 
@@ -16,7 +24,7 @@ type Agent struct {
 	Signature string `json:"signature,omitempty"`
 
 	// Ticket permission of the agent (1 -> Global Access, 2 -> Group Access, 3 -> Restricted Access)
-	TicketScope int `json:"ticket_scope,omitempty"`
+	TicketScope AgentTicketScope `json:"ticket_scope,omitempty"`
 
 	// Type of Agent (support_agent -> Support Agent, field_agent -> Field Agent, collaborator -> Collaborator)
 	Type string `json:"type,omitempty"`
@@ -49,7 +57,7 @@ type AgentRequest struct {
 	Signature string `json:"signature,omitempty"`
 
 	// Ticket permission of the agent (1 -> Global Access, 2 -> Group Access, 3 -> Restricted Access)
-	TicketScope int `json:"ticket_scope,omitempty"`
+	TicketScope AgentTicketScope `json:"ticket_scope,omitempty"`
 
 	// Type of Agent (support_agent -> Support Agent, field_agent -> Field Agent, collaborator -> Collaborator)
 	AgentType string `json:"agent_type,omitempty"`

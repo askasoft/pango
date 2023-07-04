@@ -1,5 +1,16 @@
 package freshservice
 
+type FolderVisibility int
+
+const (
+	FolderVisibilityAllUsers      FolderVisibility = 1
+	FolderVisibilityLoggedInUsers FolderVisibility = 2
+	FolderVisibilityAgentsOnly    FolderVisibility = 3
+	FolderVisibilityDepartments   FolderVisibility = 4
+	FolderVisibilityAgentGroups   FolderVisibility = 5
+	FolderVisibilityContactGroups FolderVisibility = 6
+)
+
 type Folder struct {
 	ID int64 `json:"id,omitempty"`
 
@@ -16,7 +27,7 @@ type Folder struct {
 	CategoryID int64 `json:"category_id,omitempty"`
 
 	// Accessibility of this folder. Please refer to Folder Properties table.
-	Visibility int `json:"visibility,omitempty"`
+	Visibility FolderVisibility `json:"visibility,omitempty"`
 
 	// Approval settings that have been associated with the folder. Key-value pair containing the approval_type, approval_ids and its values.
 	ApprovalSettings map[string]string `json:"approval_settings,omitempty"`

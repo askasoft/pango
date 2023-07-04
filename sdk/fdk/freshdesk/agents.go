@@ -7,11 +7,18 @@ import (
 // ---------------------------------------------------
 // Agent
 
+type AgentState string
+
+const (
+	AgentStateFulltime   AgentState = "fulltime"
+	AgentStateOccasional AgentState = "occasional"
+)
+
 type ListAgentsOption struct {
 	Email   string
 	Mobile  string
 	Phone   string
-	State   string // [fulltime/occasional]
+	State   AgentState // [fulltime/occasional]
 	Page    int
 	PerPage int
 }
@@ -25,7 +32,7 @@ func (lao *ListAgentsOption) Values() Values {
 	q.SetString("email", lao.Email)
 	q.SetString("mobile", lao.Mobile)
 	q.SetString("phone", lao.Phone)
-	q.SetString("state", lao.State)
+	q.SetString("state", (string)(lao.State))
 	q.SetInt("page", lao.Page)
 	q.SetInt("per_page", lao.PerPage)
 	return q

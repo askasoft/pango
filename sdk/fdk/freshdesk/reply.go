@@ -35,8 +35,8 @@ func (r *Reply) AddAttachment(path string, data ...[]byte) {
 	r.Attachments = append(r.Attachments, a)
 }
 
-func (r *Reply) GetAttachments() []*Attachment {
-	return r.Attachments
+func (r *Reply) Files() Files {
+	return ((Attachments)(r.Attachments)).Files()
 }
 
 func (r *Reply) Values() Values {

@@ -1,5 +1,12 @@
 package freshdesk
 
+type ArticleStatus int
+
+const (
+	ArticleStatusDraft     ArticleStatus = 1
+	ArticleStatusPublished ArticleStatus = 2
+)
+
 type Article struct {
 	ID int64 `json:"id,omitempty"`
 
@@ -28,7 +35,7 @@ type Article struct {
 	Hits int64 `json:"hits,omitempty"`
 
 	// Status of the solution article
-	Status int `json:"status,omitempty"`
+	Status ArticleStatus `json:"status,omitempty"`
 
 	// Meta data for search engine optimization. Allows meta_title, meta_description and meta_keywords
 	SeoData map[string]any `json:"seo_data,omitempty"`
@@ -55,16 +62,8 @@ func (a *Article) AddAttachment(path string, data ...[]byte) {
 	a.Attachments = append(a.Attachments, aa)
 }
 
-func (a *Article) GetAttachments() []*Attachment {
-	return a.Attachments
-}
-
 func (a *Article) Files() Files {
-	fs := make(Files, len(a.Attachments))
-	for i, a := range a.Attachments {
-		fs[i] = a
-	}
-	return fs
+	return ((Attachments)(a.Attachments)).Files()
 }
 
 func (a *Article) Values() Values {
@@ -72,7 +71,7 @@ func (a *Article) Values() Values {
 
 	vs.SetString("title", a.Title)
 	vs.SetString("description", a.Description)
-	vs.SetInt("status", a.Status)
+	vs.SetInt("status", (int)(a.Status))
 	vs.SetStrings("tags", a.Tags)
 	vs.SetMap("seo_data", a.SeoData)
 	return vs

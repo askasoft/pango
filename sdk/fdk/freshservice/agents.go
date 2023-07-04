@@ -3,6 +3,13 @@ package freshservice
 // ---------------------------------------------------
 // Agent
 
+type AgentState string
+
+const (
+	AgentStateFulltime   AgentState = "fulltime"
+	AgentStateOccasional AgentState = "occasional"
+)
+
 type ListAgentsOption struct {
 	FirstName          string
 	LastName           string
@@ -12,7 +19,7 @@ type ListAgentsOption struct {
 	MobilePhoneNumber  string
 	WorkPhoneNumber    string
 	Active             bool
-	State              string // fulltime or occasional
+	State              AgentState // fulltime or occasional
 	DepartmentID       int64
 	ReportingManagerID int64
 	TimeZone           string
@@ -38,7 +45,7 @@ func (lao *ListAgentsOption) Values() Values {
 	q.SetString("mobile_phone_number", lao.MobilePhoneNumber)
 	q.SetString("work_phone_number", lao.WorkPhoneNumber)
 	q.SetBool("active", lao.Active)
-	q.SetString("state", lao.State)
+	q.SetString("state", (string)(lao.State))
 	q.SetInt64("department_id", lao.DepartmentID)
 	q.SetInt64("reporting_manager_id", lao.ReportingManagerID)
 	q.SetString("time_zone", lao.TimeZone)

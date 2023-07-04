@@ -1,5 +1,11 @@
 package freshdesk
 
+const (
+	//JobStatusInProgress  = "IN PROGRESS"
+	JobStatusInProgress = "in_progress"
+	JobStatusCompleted  = "completed"
+)
+
 type Job struct {
 	ID string `json:"id,omitempty"`
 

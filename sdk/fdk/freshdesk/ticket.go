@@ -1,5 +1,34 @@
 package freshdesk
 
+type TicketSource int
+type TicketStatus int
+type TicketPriority int
+type TicketFilter string
+
+const (
+	TicketSourceEmail          TicketSource = 1
+	TicketSourceProtal         TicketSource = 2
+	TicketSourcePhone          TicketSource = 3
+	TicketSourceChat           TicketSource = 7
+	TicketSourceFeedbackWidget TicketSource = 9
+	TicketSourceOutboundEmail  TicketSource = 10
+
+	TicketStatusOpen     TicketStatus = 2
+	TicketStatusPending  TicketStatus = 3
+	TicketStatusResolved TicketStatus = 4
+	TicketStatusClosed   TicketStatus = 5
+
+	TicketPriorityLow    TicketPriority = 1
+	TicketPriorityMedium TicketPriority = 2
+	TicketPriorityHigh   TicketPriority = 3
+	TicketPriorityUrgent TicketPriority = 4
+
+	TicketFilterNewAndMyOpen TicketFilter = "new_and_my_open"
+	TicketFilterWatching     TicketFilter = "watching"
+	TicketFilterSpam         TicketFilter = "spam"
+	TicketFilterDeleted      TicketFilter = "deleted"
+)
+
 type Ticket struct {
 	// Parent Unique ID of the ticket
 	ParentID int64 `json:"parent_id,omitempty"`
@@ -35,13 +64,13 @@ type Ticket struct {
 	Type string `json:"type,omitempty"`
 
 	// Status of the ticket
-	Status int `json:"status,omitempty"`
+	Status TicketStatus `json:"status,omitempty"`
 
 	// Priority of the ticket
-	Priority int `json:"priority,omitempty"`
+	Priority TicketPriority `json:"priority,omitempty"`
 
 	// The channel through which the ticket was created
-	Source int `json:"source,omitempty"`
+	Source TicketSource `json:"source,omitempty"`
 
 	// Set to true if the ticket has been deleted/trashed. Deleted tickets will not be displayed in any views except the "deleted" filter
 	Deleted bool `json:"deleted,omitempty"`
@@ -128,11 +157,7 @@ func (t *Ticket) AddAttachment(path string, data ...[]byte) {
 }
 
 func (t *Ticket) Files() Files {
-	fs := make(Files, len(t.Attachments))
-	for i, a := range t.Attachments {
-		fs[i] = a
-	}
-	return fs
+	return ((Attachments)(t.Attachments)).Files()
 }
 
 func (t *Ticket) Values() Values {
@@ -149,8 +174,8 @@ func (t *Ticket) Values() Values {
 	vs.SetInt64("email_config_id", t.EmailConfigID)
 	vs.SetString("subject", t.Subject)
 	vs.SetString("type", t.Type)
-	vs.SetInt("status", t.Status)
-	vs.SetInt("priority", t.Priority)
+	vs.SetInt("status", (int)(t.Status))
+	vs.SetInt("priority", (int)(t.Priority))
 	vs.SetString("description", t.Description)
 	vs.SetInt64("responder_id", t.ResponderID)
 	vs.SetStrings("cc_emails", t.CcEmails)
@@ -158,7 +183,7 @@ func (t *Ticket) Values() Values {
 	vs.SetTimePtr("fr_due_by", t.FrDueBy)
 	vs.SetInt64("group_id", t.GroupID)
 	vs.SetInt64("product_id", t.ProductID)
-	vs.SetInt("source", t.Source)
+	vs.SetInt("source", (int)(t.Source))
 	vs.SetStrings("tags", t.Tags)
 	vs.SetInt64("company_id", t.CompanyID)
 	vs.SetInt64("internal_agent_id", t.InternalAgentID)
@@ -186,7 +211,7 @@ type TicketProperties struct {
 	GroupID int64 `json:"group_id,omitempty"`
 
 	// Priority of the ticket
-	Priority int `json:"priority,omitempty"`
+	Priority TicketPriority `json:"priority,omitempty"`
 
 	// Parent Unique ID of the ticket
 	ParentID int64 `json:"parent_id,omitempty"`
@@ -198,10 +223,10 @@ type TicketProperties struct {
 	ResponderID int64 `json:"responder_id,omitempty"`
 
 	// Status of the ticket
-	Status int `json:"status,omitempty"`
+	Status TicketStatus `json:"status,omitempty"`
 
 	// The channel through which the ticket was created
-	Source int `json:"source,omitempty"`
+	Source TicketSource `json:"source,omitempty"`
 
 	// Helps categorize the ticket according to the different kinds of issues your support team deals with.
 	Type string `json:"type,omitempty"`

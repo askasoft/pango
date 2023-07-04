@@ -7,6 +7,21 @@ import (
 // ---------------------------------------------------
 // Ticket
 
+type TicketOrderBy string
+
+const (
+	TicketIncludeDescription   = "description"   // Will return the ticket description and description_text.
+	TicketIncludeCompany       = "company"       // Will return the company's id and name.
+	TicketIncludeConversations = "conversations" // Will return up to 10 conversations sorted by "created_at" in ascending order
+	TicketIncludeRequester     = "requester"     // Will return the requester's email, id, mobile, name, and phone
+	TicketIncludeStats         = "stats"         // Will return the ticket's closed_at, resolved_at and first_responded_at time
+
+	TicketOrderByCreatedAt TicketOrderBy = "created_at"
+	TicketOrderByDueBy     TicketOrderBy = "due_by"
+	TicketOrderByUpdatedAt TicketOrderBy = "updated_at"
+	TicketOrderByStatus    TicketOrderBy = "status"
+)
+
 type ListTicketsOption struct {
 	Filter           string // The various filters available are new_and_my_open, watching, spam, deleted.
 	RequestID        int64
@@ -14,9 +29,9 @@ type ListTicketsOption struct {
 	UniqueExternalID string
 	CompanyID        int64
 	UpdatedSince     Time
-	Include          string // stats, requester, description
-	OrderBy          string // created_at, due_by, updated_at, status
-	OrderType        string // asc, desc (default)
+	Include          string        // stats, requester, description
+	OrderBy          TicketOrderBy // created_at, due_by, updated_at, status
+	OrderType        OrderType     // asc, desc (default)
 	Page             int
 	PerPage          int
 }
@@ -34,8 +49,8 @@ func (lto *ListTicketsOption) Values() Values {
 	q.SetInt64("company_id", lto.CompanyID)
 	q.SetTime("updated_since", lto.UpdatedSince)
 	q.SetString("include", lto.Include)
-	q.SetString("order_by", lto.OrderBy)
-	q.SetString("order_type", lto.OrderType)
+	q.SetString("order_by", (string)(lto.OrderBy))
+	q.SetString("order_type", (string)(lto.OrderType))
 	q.SetInt("page", lto.Page)
 	q.SetInt("per_page", lto.PerPage)
 	return q

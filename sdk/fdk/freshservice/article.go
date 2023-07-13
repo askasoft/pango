@@ -1,5 +1,7 @@
 package freshservice
 
+import "github.com/askasoft/pango/num"
+
 type ArticleType int
 type ArticleStatus int
 
@@ -10,6 +12,50 @@ const (
 	ArticleStatusDraft     ArticleStatus = 1
 	ArticleStatusPublished ArticleStatus = 2
 )
+
+func (at ArticleType) String() string {
+	switch at {
+	case ArticleTypePermanent:
+		return "Permanent"
+	case ArticleTypeWorkaround:
+		return "Workaround"
+	default:
+		return num.Itoa(int(at))
+	}
+}
+
+func ParseArticleType(s string) ArticleType {
+	switch s {
+	case "Permanent":
+		return ArticleTypePermanent
+	case "Workaround":
+		return ArticleTypeWorkaround
+	default:
+		return 0
+	}
+}
+
+func (as ArticleStatus) String() string {
+	switch as {
+	case ArticleStatusDraft:
+		return "Draft"
+	case ArticleStatusPublished:
+		return "Published"
+	default:
+		return num.Itoa(int(as))
+	}
+}
+
+func ParseArticleStatus(s string) ArticleStatus {
+	switch s {
+	case "Draft":
+		return ArticleStatusDraft
+	case "Published":
+		return ArticleStatusPublished
+	default:
+		return 0
+	}
+}
 
 type Article struct {
 	ID int64 `json:"id,omitempty"`

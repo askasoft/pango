@@ -1,5 +1,7 @@
 package freshservice
 
+import "github.com/askasoft/pango/num"
+
 type ConversationSource int
 
 const (
@@ -11,6 +13,48 @@ const (
 	ConversationSourceFeedback       ConversationSource = 5
 	ConversationSourceForwardedEmail ConversationSource = 6
 )
+
+func (cs ConversationSource) String() string {
+	switch cs {
+	case ConversationSourceEmail:
+		return "Email"
+	case ConversationSourceForm:
+		return "Form"
+	case ConversationSourceNote:
+		return "Note"
+	case ConversationSourceStatus:
+		return "Status"
+	case ConversationSourceMeta:
+		return "Meta"
+	case ConversationSourceFeedback:
+		return "Feedback"
+	case ConversationSourceForwardedEmail:
+		return "ForwardedEmail"
+	default:
+		return num.Itoa(int(cs))
+	}
+}
+
+func ParseConversationSource(s string) ConversationSource {
+	switch s {
+	case "Email":
+		return ConversationSourceEmail
+	case "Form":
+		return ConversationSourceForm
+	case "Note":
+		return ConversationSourceNote
+	case "Status":
+		return ConversationSourceStatus
+	case "Meta":
+		return ConversationSourceMeta
+	case "Feedback":
+		return ConversationSourceFeedback
+	case "ForwardedEmail":
+		return ConversationSourceForwardedEmail
+	default:
+		return -1
+	}
+}
 
 type Conversation struct {
 	// ID of the conversation

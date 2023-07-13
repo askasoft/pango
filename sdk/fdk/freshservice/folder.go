@@ -1,5 +1,7 @@
 package freshservice
 
+import "github.com/askasoft/pango/num"
+
 type FolderVisibility int
 
 const (
@@ -10,6 +12,44 @@ const (
 	FolderVisibilityAgentGroups   FolderVisibility = 5
 	FolderVisibilityContactGroups FolderVisibility = 6
 )
+
+func (fv FolderVisibility) String() string {
+	switch fv {
+	case FolderVisibilityAllUsers:
+		return "AllUsers"
+	case FolderVisibilityLoggedInUsers:
+		return "LoggedInUsers"
+	case FolderVisibilityAgentsOnly:
+		return "AgentsOnly"
+	case FolderVisibilityDepartments:
+		return "Departments"
+	case FolderVisibilityAgentGroups:
+		return "AgentGroups"
+	case FolderVisibilityContactGroups:
+		return "ContactGroups"
+	default:
+		return num.Itoa(int(fv))
+	}
+}
+
+func ParseFolderVisibility(s string) FolderVisibility {
+	switch s {
+	case "AllUsers":
+		return FolderVisibilityAllUsers
+	case "LoggedInUsers":
+		return FolderVisibilityLoggedInUsers
+	case "AgentsOnly":
+		return FolderVisibilityAgentsOnly
+	case "Departments":
+		return FolderVisibilityDepartments
+	case "AgentGroups":
+		return FolderVisibilityAgentGroups
+	case "ContactGroups":
+		return FolderVisibilityContactGroups
+	default:
+		return 0
+	}
+}
 
 type Folder struct {
 	ID int64 `json:"id,omitempty"`

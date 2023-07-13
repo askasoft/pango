@@ -1,5 +1,7 @@
 package freshdesk
 
+import "github.com/askasoft/pango/num"
+
 type FolderVisibility int
 
 const (
@@ -11,6 +13,48 @@ const (
 	FolderVisibilitySelectedContactSegments FolderVisibility = 6
 	FolderVisibilitySelectedCompanySegments FolderVisibility = 7
 )
+
+func (fv FolderVisibility) String() string {
+	switch fv {
+	case FolderVisibilityAllUsers:
+		return "AllUsers"
+	case FolderVisibilityLoggedInUsers:
+		return "LoggedInUsers"
+	case FolderVisibilityAgents:
+		return "Agents"
+	case FolderVisibilitySelectedCompanies:
+		return "SelectedCompanies"
+	case FolderVisibilityBots:
+		return "Bots"
+	case FolderVisibilitySelectedContactSegments:
+		return "SelectedContactSegments"
+	case FolderVisibilitySelectedCompanySegments:
+		return "SelectedCompanySegments"
+	default:
+		return num.Itoa(int(fv))
+	}
+}
+
+func ParseFolderVisibility(s string) FolderVisibility {
+	switch s {
+	case "AllUsers":
+		return FolderVisibilityAllUsers
+	case "LoggedInUsers":
+		return FolderVisibilityLoggedInUsers
+	case "Agents":
+		return FolderVisibilityAgents
+	case "SelectedCompanies":
+		return FolderVisibilitySelectedCompanies
+	case "Bots":
+		return FolderVisibilityBots
+	case "SelectedContactSegments":
+		return FolderVisibilitySelectedContactSegments
+	case "SelectedCompanySegments":
+		return FolderVisibilitySelectedCompanySegments
+	default:
+		return 0
+	}
+}
 
 type Folder struct {
 	ID int64 `json:"id,omitempty"`

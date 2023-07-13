@@ -1,11 +1,35 @@
 package freshdesk
 
+import "github.com/askasoft/pango/num"
+
 type ArticleStatus int
 
 const (
 	ArticleStatusDraft     ArticleStatus = 1
 	ArticleStatusPublished ArticleStatus = 2
 )
+
+func (as ArticleStatus) String() string {
+	switch as {
+	case ArticleStatusDraft:
+		return "Draft"
+	case ArticleStatusPublished:
+		return "Published"
+	default:
+		return num.Itoa(int(as))
+	}
+}
+
+func ParseArticleStatus(s string) ArticleStatus {
+	switch s {
+	case "Draft":
+		return ArticleStatusDraft
+	case "Published":
+		return ArticleStatusPublished
+	default:
+		return 0
+	}
+}
 
 type Article struct {
 	ID int64 `json:"id,omitempty"`

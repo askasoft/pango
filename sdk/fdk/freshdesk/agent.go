@@ -1,5 +1,7 @@
 package freshdesk
 
+import "github.com/askasoft/pango/num"
+
 type AgentTicketScope int
 
 const (
@@ -7,6 +9,32 @@ const (
 	AgentTicketScopeGroup      AgentTicketScope = 2
 	AgentTicketScopeRestricted AgentTicketScope = 3
 )
+
+func (ats AgentTicketScope) String() string {
+	switch ats {
+	case AgentTicketScopeGlobal:
+		return "Global"
+	case AgentTicketScopeGroup:
+		return "Group"
+	case AgentTicketScopeRestricted:
+		return "Restricted"
+	default:
+		return num.Itoa(int(ats))
+	}
+}
+
+func ParseAgentTicketScope(s string) AgentTicketScope {
+	switch s {
+	case "Global":
+		return AgentTicketScopeGlobal
+	case "Group":
+		return AgentTicketScopeGroup
+	case "Restricted":
+		return AgentTicketScopeRestricted
+	default:
+		return 0
+	}
+}
 
 type Agent struct {
 	ID int64 `json:"id,omitempty"`

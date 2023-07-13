@@ -1,5 +1,7 @@
 package freshdesk
 
+import "github.com/askasoft/pango/num"
+
 type ConversationSource int
 
 const (
@@ -12,6 +14,52 @@ const (
 	ConversationSourcePhone     ConversationSource = 9
 	ConversationSourceECommerce ConversationSource = 11
 )
+
+func (cs ConversationSource) String() string {
+	switch cs {
+	case ConversationSourceReply:
+		return "Reply"
+	case ConversationSourceNote:
+		return "Note"
+	case ConversationSourceTweets:
+		return "Tweets"
+	case ConversationSourceSurvey:
+		return "Survey"
+	case ConversationSourceFacebook:
+		return "Facebook"
+	case ConversationSourceForwarded:
+		return "Forwarded"
+	case ConversationSourcePhone:
+		return "Phone"
+	case ConversationSourceECommerce:
+		return "ECommerce"
+	default:
+		return num.Itoa(int(cs))
+	}
+}
+
+func ParseConversationSource(s string) ConversationSource {
+	switch s {
+	case "Reply":
+		return ConversationSourceReply
+	case "Note":
+		return ConversationSourceNote
+	case "Tweets":
+		return ConversationSourceTweets
+	case "Survey":
+		return ConversationSourceSurvey
+	case "Facebook":
+		return ConversationSourceFacebook
+	case "Forwarded":
+		return ConversationSourceForwarded
+	case "Phone":
+		return ConversationSourcePhone
+	case "ECommerce":
+		return ConversationSourceECommerce
+	default:
+		return -1
+	}
+}
 
 type Conversation struct {
 	// ID of the conversation

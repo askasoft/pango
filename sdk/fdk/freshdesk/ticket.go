@@ -1,5 +1,7 @@
 package freshdesk
 
+import "github.com/askasoft/pango/num"
+
 type TicketSource int
 type TicketStatus int
 type TicketPriority int
@@ -7,7 +9,7 @@ type TicketFilter string
 
 const (
 	TicketSourceEmail          TicketSource = 1
-	TicketSourceProtal         TicketSource = 2
+	TicketSourcePortal         TicketSource = 2
 	TicketSourcePhone          TicketSource = 3
 	TicketSourceChat           TicketSource = 7
 	TicketSourceFeedbackWidget TicketSource = 9
@@ -28,6 +30,104 @@ const (
 	TicketFilterSpam         TicketFilter = "spam"
 	TicketFilterDeleted      TicketFilter = "deleted"
 )
+
+func (ts TicketSource) String() string {
+	switch ts {
+	case TicketSourceEmail:
+		return "Email"
+	case TicketSourcePortal:
+		return "Portal"
+	case TicketSourcePhone:
+		return "Phone"
+	case TicketSourceChat:
+		return "Chat"
+	case TicketSourceFeedbackWidget:
+		return "FeedbackWidget"
+	case TicketSourceOutboundEmail:
+		return "OutboundEmail"
+	default:
+		return num.Itoa(int(ts))
+	}
+}
+
+func ParseTicketSource(s string) TicketSource {
+	switch s {
+	case "Email":
+		return TicketSourceEmail
+	case "Portal":
+		return TicketSourcePortal
+	case "Phone":
+		return TicketSourcePhone
+	case "Chat":
+		return TicketSourceChat
+	case "FeedbackWidget":
+		return TicketSourceFeedbackWidget
+	case "OutboundEmail":
+		return TicketSourceOutboundEmail
+	default:
+		return 0
+	}
+}
+
+func (ts TicketStatus) String() string {
+	switch ts {
+	case TicketStatusOpen:
+		return "Open"
+	case TicketStatusPending:
+		return "Pending"
+	case TicketStatusResolved:
+		return "Resolved"
+	case TicketStatusClosed:
+		return "Closed"
+	default:
+		return num.Itoa(int(ts))
+	}
+}
+
+func ParseTicketStatus(s string) TicketStatus {
+	switch s {
+	case "Open":
+		return TicketStatusOpen
+	case "Pending":
+		return TicketStatusPending
+	case "Resolved":
+		return TicketStatusResolved
+	case "Closed":
+		return TicketStatusClosed
+	default:
+		return 0
+	}
+}
+
+func (tp TicketPriority) String() string {
+	switch tp {
+	case TicketPriorityLow:
+		return "Low"
+	case TicketPriorityMedium:
+		return "Medium"
+	case TicketPriorityHigh:
+		return "High"
+	case TicketPriorityUrgent:
+		return "Urgent"
+	default:
+		return num.Itoa(int(tp))
+	}
+}
+
+func ParseTicketPriority(s string) TicketPriority {
+	switch s {
+	case "Low":
+		return TicketPriorityLow
+	case "Medium":
+		return TicketPriorityMedium
+	case "High":
+		return TicketPriorityHigh
+	case "Urgent":
+		return TicketPriorityUrgent
+	default:
+		return 0
+	}
+}
 
 type Ticket struct {
 	// Parent Unique ID of the ticket

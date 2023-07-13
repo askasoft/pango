@@ -1,13 +1,10 @@
 package fdk
 
 import (
-	"bytes"
 	"fmt"
 	"net/http"
 	"time"
 
-	"github.com/askasoft/pango/fsu"
-	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/log"
 )
 
@@ -29,6 +26,15 @@ func (fdk *FDK) Endpoint(format string, a ...any) string {
 	return "https://" + fdk.Domain + "/api/v2" + fmt.Sprintf(format, a...)
 }
 
+// SleepForRateLimited if err is RateLimitedError, sleep Retry-After and return true
+func (fdk *FDK) SleepForRateLimited(err error) bool {
+	return SleepForRateLimited(err, fdk.Logger)
+}
+
+func (fdk *FDK) RetryForRateLimited(api func() error) (err error) {
+	return RetryForRateLimited(api, fdk.RetryOnRateLimited, fdk.Logger)
+}
+
 func (fdk *FDK) authenticate(req *http.Request) {
 	if req.Header.Get("Content-Type") == "" {
 		req.Header.Set("Content-Type", contentTypeJSON)
@@ -41,7 +47,7 @@ func (fdk *FDK) authenticate(req *http.Request) {
 	}
 }
 
-func (fdk *FDK) callNoAuth(req *http.Request) (res *http.Response, err error) {
+func (fdk *FDK) call(req *http.Request) (res *http.Response, err error) {
 	client := &http.Client{
 		Transport: fdk.Transport,
 		Timeout:   fdk.Timeout,
@@ -50,19 +56,13 @@ func (fdk *FDK) callNoAuth(req *http.Request) (res *http.Response, err error) {
 	return Call(client, req, fdk.Logger)
 }
 
-func (fdk *FDK) callWithRetry(req *http.Request) (res *http.Response, err error) {
+func (fdk *FDK) authAndCall(req *http.Request) (res *http.Response, err error) {
 	fdk.authenticate(req)
-
-	client := &http.Client{
-		Transport: fdk.Transport,
-		Timeout:   fdk.Timeout,
-	}
-
-	return CallWithRetry(client, req, fdk.RetryOnRateLimited, fdk.Logger)
+	return fdk.call(req)
 }
 
 func (fdk *FDK) doCall(req *http.Request, result any) error {
-	res, err := fdk.callWithRetry(req)
+	res, err := fdk.authAndCall(req)
 	if err != nil {
 		return err
 	}
@@ -70,16 +70,13 @@ func (fdk *FDK) doCall(req *http.Request, result any) error {
 	return DecodeResponse(res, result)
 }
 
-// SleepForRetry if err is RateLimitedError, sleep Retry-After and return true
-func (fdk *FDK) SleepForRetry(err error) bool {
-	return SleepForRetry(err, fdk.Logger)
-}
-
-func (fdk *FDK) SleepAndRetry(api func() error, maxRetry int) (err error) {
-	return SleepAndRetry(api, maxRetry, fdk.Logger)
-}
-
 func (fdk *FDK) DoGet(url string, result any) error {
+	return fdk.RetryForRateLimited(func() error {
+		return fdk.doGet(url, result)
+	})
+}
+
+func (fdk *FDK) doGet(url string, result any) error {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return err
@@ -88,7 +85,15 @@ func (fdk *FDK) DoGet(url string, result any) error {
 	return fdk.doCall(req, result)
 }
 
-func (fdk *FDK) DoList(url string, lo ListOption, ap any) (bool, error) {
+func (fdk *FDK) DoList(url string, lo ListOption, ap any) (next bool, err error) {
+	err = fdk.RetryForRateLimited(func() error {
+		next, err = fdk.doList(url, lo, ap)
+		return err
+	})
+	return
+}
+
+func (fdk *FDK) doList(url string, lo ListOption, result any) (bool, error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return false, err
@@ -99,12 +104,13 @@ func (fdk *FDK) DoList(url string, lo ListOption, ap any) (bool, error) {
 		req.URL.RawQuery = q.Encode()
 	}
 
-	res, err := fdk.callWithRetry(req)
+	res, err := fdk.authAndCall(req)
 	if err != nil {
 		return false, err
 	}
 
-	if err := DecodeResponse(res, ap); err != nil {
+	err = DecodeResponse(res, result)
+	if err != nil {
 		return false, err
 	}
 
@@ -113,6 +119,12 @@ func (fdk *FDK) DoList(url string, lo ListOption, ap any) (bool, error) {
 }
 
 func (fdk *FDK) DoPost(url string, source, result any) error {
+	return fdk.RetryForRateLimited(func() error {
+		return fdk.doPost(url, source, result)
+	})
+}
+
+func (fdk *FDK) doPost(url string, source, result any) error {
 	buf, ct, err := BuildRequest(source)
 	if err != nil {
 		return err
@@ -130,6 +142,12 @@ func (fdk *FDK) DoPost(url string, source, result any) error {
 }
 
 func (fdk *FDK) DoPut(url string, source, result any) error {
+	return fdk.RetryForRateLimited(func() error {
+		return fdk.doPut(url, source, result)
+	})
+}
+
+func (fdk *FDK) doPut(url string, source, result any) error {
 	buf, ct, err := BuildRequest(source)
 	if err != nil {
 		return err
@@ -147,6 +165,12 @@ func (fdk *FDK) DoPut(url string, source, result any) error {
 }
 
 func (fdk *FDK) DoDelete(url string) error {
+	return fdk.RetryForRateLimited(func() error {
+		return fdk.doDelete(url)
+	})
+}
+
+func (fdk *FDK) doDelete(url string) error {
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
 		return err
@@ -155,74 +179,86 @@ func (fdk *FDK) DoDelete(url string) error {
 	return fdk.doCall(req, nil)
 }
 
-func (fdk *FDK) DoDownload(url string) ([]byte, error) {
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := fdk.callWithRetry(req)
-	if err != nil {
-		return nil, err
-	}
-
-	buf := &bytes.Buffer{}
-	_, err = iox.Copy(buf, res.Body)
-	iox.DrainAndClose(res.Body)
-
-	return buf.Bytes(), err
+func (fdk *FDK) DoDownload(url string) (buf []byte, err error) {
+	err = fdk.RetryForRateLimited(func() error {
+		buf, err = fdk.doDownload(url)
+		return err
+	})
+	return
 }
 
-func (fdk *FDK) DoSaveFile(url string, filename string) error {
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return err
-	}
-
-	res, err := fdk.callWithRetry(req)
-	if err != nil {
-		return err
-	}
-
-	err = fsu.WriteReader(filename, res.Body, fsu.FileMode(0660))
-
-	iox.DrainAndClose(res.Body)
-
-	return err
-}
-
-func (fdk *FDK) DoDownloadNoAuth(url string) ([]byte, error) {
+func (fdk *FDK) doDownload(url string) ([]byte, error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := fdk.callNoAuth(req)
+	res, err := fdk.authAndCall(req)
 	if err != nil {
 		return nil, err
 	}
 
-	buf := &bytes.Buffer{}
-	_, err = iox.Copy(buf, res.Body)
-	iox.DrainAndClose(res.Body)
-
-	return buf.Bytes(), err
+	return CopyResponse(res)
 }
 
-func (fdk *FDK) DoSaveFileNoAuth(url string, filename string) error {
+func (fdk *FDK) DoSaveFile(url string, path string) error {
+	return fdk.RetryForRateLimited(func() error {
+		return fdk.doSaveFile(url, path)
+	})
+}
+
+func (fdk *FDK) doSaveFile(url string, path string) error {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return err
 	}
 
-	res, err := fdk.callNoAuth(req)
+	res, err := fdk.authAndCall(req)
 	if err != nil {
 		return err
 	}
 
-	err = fsu.WriteReader(filename, res.Body, fsu.FileMode(0660))
+	return SaveResponse(res, path)
+}
 
-	iox.DrainAndClose(res.Body)
+func (fdk *FDK) DoDownloadNoAuth(url string) (buf []byte, err error) {
+	err = fdk.RetryForRateLimited(func() error {
+		buf, err = fdk.doDownloadNoAuth(url)
+		return err
+	})
+	return
+}
 
-	return err
+func (fdk *FDK) doDownloadNoAuth(url string) ([]byte, error) {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := fdk.call(req)
+	if err != nil {
+		return nil, err
+	}
+
+	return CopyResponse(res)
+}
+
+func (fdk *FDK) DoSaveFileNoAuth(url string, path string) error {
+	return fdk.RetryForRateLimited(func() error {
+		return fdk.doSaveFileNoAuth(url, path)
+	})
+}
+
+func (fdk *FDK) doSaveFileNoAuth(url string, path string) error {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return err
+	}
+
+	res, err := fdk.call(req)
+	if err != nil {
+		return err
+	}
+
+	return SaveResponse(res, path)
 }

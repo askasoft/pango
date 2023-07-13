@@ -57,8 +57,8 @@ func (fs *Freshservice) doGet(url string, result any) error {
 	return (*fdk.FDK)(fs).DoGet(url, result)
 }
 
-func (fs *Freshservice) doList(url string, lo ListOption, ap any) (bool, error) {
-	return (*fdk.FDK)(fs).DoList(url, lo, ap)
+func (fs *Freshservice) doList(url string, lo ListOption, result any) (bool, error) {
+	return (*fdk.FDK)(fs).DoList(url, lo, result)
 }
 
 func (fs *Freshservice) doPost(url string, source, result any) error {
@@ -77,16 +77,16 @@ func (fs *Freshservice) Download(url string) ([]byte, error) {
 	return (*fdk.FDK)(fs).DoDownload(url)
 }
 
-func (fs *Freshservice) SaveFile(url string, filename string) error {
-	return (*fdk.FDK)(fs).DoSaveFile(url, filename)
+func (fs *Freshservice) SaveFile(url string, path string) error {
+	return (*fdk.FDK)(fs).DoSaveFile(url, path)
 }
 
 func (fs *Freshservice) DownloadNoAuth(url string) ([]byte, error) {
 	return (*fdk.FDK)(fs).DoDownloadNoAuth(url)
 }
 
-func (fs *Freshservice) SaveFileNoAuth(url string, filename string) error {
-	return (*fdk.FDK)(fs).DoSaveFileNoAuth(url, filename)
+func (fs *Freshservice) SaveFileNoAuth(url string, path string) error {
+	return (*fdk.FDK)(fs).DoSaveFileNoAuth(url, path)
 }
 
 // GetHelpdeskAttachmentURL return a permlink for helpdesk attachment/avator URL
@@ -99,7 +99,7 @@ func (fs *Freshservice) DownloadAttachment(aid int64) ([]byte, error) {
 	return fs.Download(url)
 }
 
-func (fs *Freshservice) SaveAttachment(aid int64, filename string) error {
+func (fs *Freshservice) SaveAttachment(aid int64, path string) error {
 	url := fs.endpoint("/attachments/%d", aid)
-	return fs.SaveFile(url, filename)
+	return fs.SaveFile(url, path)
 }

@@ -53,8 +53,8 @@ func (fd *Freshdesk) doGet(url string, result any) error {
 	return (*fdk.FDK)(fd).DoGet(url, result)
 }
 
-func (fd *Freshdesk) doList(url string, lo ListOption, ap any) (bool, error) {
-	return (*fdk.FDK)(fd).DoList(url, lo, ap)
+func (fd *Freshdesk) doList(url string, lo ListOption, result any) (bool, error) {
+	return (*fdk.FDK)(fd).DoList(url, lo, result)
 }
 
 func (fd *Freshdesk) doPost(url string, source, result any) error {
@@ -73,16 +73,16 @@ func (fd *Freshdesk) Download(url string) ([]byte, error) {
 	return (*fdk.FDK)(fd).DoDownload(url)
 }
 
-func (fd *Freshdesk) SaveFile(url string, filename string) error {
-	return (*fdk.FDK)(fd).DoSaveFile(url, filename)
+func (fd *Freshdesk) SaveFile(url string, path string) error {
+	return (*fdk.FDK)(fd).DoSaveFile(url, path)
 }
 
 func (fd *Freshdesk) DownloadNoAuth(url string) ([]byte, error) {
 	return (*fdk.FDK)(fd).DoDownloadNoAuth(url)
 }
 
-func (fd *Freshdesk) SaveFileNoAuth(url string, filename string) error {
-	return (*fdk.FDK)(fd).DoSaveFileNoAuth(url, filename)
+func (fd *Freshdesk) SaveFileNoAuth(url string, path string) error {
+	return (*fdk.FDK)(fd).DoSaveFileNoAuth(url, path)
 }
 
 // GetHelpdeskAttachmentURL return a permlink for helpdesk attachment/avator URL

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/bye"
+	"github.com/askasoft/pango/fsu"
 	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/net/httpx"
@@ -121,32 +122,19 @@ func Call(client *http.Client, req *http.Request, log log.Logger) (res *http.Res
 	res, err = client.Do(req)
 	if err == nil {
 		LogResponse(log, res, rid)
-	}
-
-	return res, err
-}
-
-func CallWithRetry(client *http.Client, req *http.Request, retryOnRateLimited int, log log.Logger) (res *http.Response, err error) {
-	err = SleepAndRetry(func() error {
-		res, err = Call(client, req, log)
-		if err != nil {
-			return err
-		}
 
 		if res.StatusCode == http.StatusTooManyRequests {
 			s := res.Header.Get("Retry-After")
 			n, _ := strconv.Atoi(s)
 			if n <= 0 {
-				n = 60 // invalid number, default to 60s
+				n = 30 // invalid number, default to 30s
 			}
 			iox.DrainAndClose(res.Body)
-			return &RateLimitedError{StatusCode: res.StatusCode, RetryAfter: n}
+			return res, &RateLimitedError{StatusCode: res.StatusCode, RetryAfter: n}
 		}
+	}
 
-		return err
-	}, retryOnRateLimited, log)
-
-	return
+	return res, err
 }
 
 func DecodeResponse(res *http.Response, obj any) error {
@@ -162,15 +150,35 @@ func DecodeResponse(res *http.Response, obj any) error {
 
 	er := &ErrorResult{StatusCode: res.StatusCode, Status: res.Status}
 	if res.StatusCode != http.StatusNotFound {
-		if err := decoder.Decode(er); err != nil {
-			return err
-		}
+		_ = decoder.Decode(er)
 	}
 	return er
 }
 
-// SleepForRetry if err is RateLimitedError, sleep Retry-After and return true
-func SleepForRetry(err error, log log.Logger) bool {
+func CopyResponse(res *http.Response) ([]byte, error) {
+	defer iox.DrainAndClose(res.Body)
+
+	if res.StatusCode != http.StatusOK {
+		return nil, &ErrorResult{StatusCode: res.StatusCode, Status: res.Status}
+	}
+
+	buf := &bytes.Buffer{}
+	_, err := iox.Copy(buf, res.Body)
+	return buf.Bytes(), err
+}
+
+func SaveResponse(res *http.Response, path string) error {
+	defer iox.DrainAndClose(res.Body)
+
+	if res.StatusCode != http.StatusOK {
+		return &ErrorResult{StatusCode: res.StatusCode, Status: res.Status}
+	}
+
+	return fsu.WriteReader(path, res.Body, fsu.FileMode(0660))
+}
+
+// SleepForRateLimited if err is RateLimitedError, sleep Retry-After and return true
+func SleepForRateLimited(err error, log log.Logger) bool {
 	if err != nil {
 		if rle, ok := err.(*RateLimitedError); ok { //nolint: errorlint
 			if log != nil {
@@ -183,13 +191,13 @@ func SleepForRetry(err error, log log.Logger) bool {
 	return false
 }
 
-func SleepAndRetry(api func() error, maxRetry int, log log.Logger) (err error) {
+func RetryForRateLimited(api func() error, maxRetry int, log log.Logger) (err error) {
 	for i := 0; ; i++ {
 		err = api()
 		if i >= maxRetry {
 			break
 		}
-		if !SleepForRetry(err, log) {
+		if !SleepForRateLimited(err, log) {
 			break
 		}
 	}

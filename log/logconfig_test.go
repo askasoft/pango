@@ -2,7 +2,6 @@ package log
 
 import (
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"strconv"
@@ -259,7 +258,7 @@ func TestLogConfigFile1(t *testing.T) {
 	log.Error("This is error.")
 	log.Close()
 
-	bs, _ := ioutil.ReadFile("conftest/logs/file1.log")
+	bs, _ := os.ReadFile("conftest/logs/file1.log")
 	a := string(bs)
 	w := "ERROR - This is error." + EOL
 	if a != w {
@@ -284,14 +283,14 @@ func TestLogConfigFile2(t *testing.T) {
 	tl.Error("This is ERROR.")
 	log.Close()
 
-	bs, _ := ioutil.ReadFile("conftest/logs/file1.log")
+	bs, _ := os.ReadFile("conftest/logs/file1.log")
 	a := string(bs)
 	w := "ERROR - This is error." + EOL + "ERROR - This is ERROR." + EOL
 	if a != w {
 		t.Errorf("\n actual = %v\n expect = %v", a, w)
 	}
 
-	bs, _ = ioutil.ReadFile("conftest/logs/file2.log")
+	bs, _ = os.ReadFile("conftest/logs/file2.log")
 	a = string(bs)
 	w = "WARN - This is WARN." + EOL + "ERROR - This is ERROR." + EOL
 	if a != w {
@@ -401,7 +400,7 @@ func testLogConfigFile1toFile2(t *testing.T, async1, async2 string) {
 	// Sleep for file sync
 	time.Sleep(time.Second)
 
-	bs, _ := ioutil.ReadFile(logfile1)
+	bs, _ := os.ReadFile(logfile1)
 	a := string(bs)
 	w := "ERROR - This is error." + EOL
 	if a != w {
@@ -443,14 +442,14 @@ func testLogConfigFile1toFile2(t *testing.T, async1, async2 string) {
 	// Close log
 	lg.Close()
 
-	bs, _ = ioutil.ReadFile(logfile1)
+	bs, _ = os.ReadFile(logfile1)
 	a = string(bs)
 	w = "ERROR - This is error." + EOL + "ERROR - This is error." + EOL + "ERROR - This is ERROR." + EOL
 	if a != w {
 		t.Errorf(`%q = %v, want %v`, logfile1, a, w)
 	}
 
-	bs, _ = ioutil.ReadFile(logfile2)
+	bs, _ = os.ReadFile(logfile2)
 	a = string(bs)
 	w = "WARN - This is WARN." + EOL + "ERROR - This is ERROR." + EOL
 	if a != w {

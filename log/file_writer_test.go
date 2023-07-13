@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math/rand"
 	"os"
 	"strconv"
@@ -29,7 +29,7 @@ func TestFileTextFormatSimple(t *testing.T) {
 	log.Close()
 
 	// check lastest file
-	bs, _ := ioutil.ReadFile(path + ".log")
+	bs, _ := os.ReadFile(path + ".log")
 	e := `[I] hello` + EOL
 	a := string(bs)
 	if a != e {
@@ -51,7 +51,7 @@ func TestFilePropGlobal(t *testing.T) {
 	Close()
 
 	// check lastest file
-	bs, _ := ioutil.ReadFile(path + ".log")
+	bs, _ := os.ReadFile(path + ".log")
 	e := fmt.Sprintf("INFO - %s - %s%s", "val", "hello", EOL)
 	a := string(bs)
 	if a != e {
@@ -74,7 +74,7 @@ func TestFilePropDefault(t *testing.T) {
 	log1.Close()
 
 	// check lastest file
-	bs, _ := ioutil.ReadFile(path + ".log")
+	bs, _ := os.ReadFile(path + ".log")
 	e := fmt.Sprintf("INFO - %s - %s%s", "val", "hello", EOL)
 	a := string(bs)
 	if a != e {
@@ -101,7 +101,7 @@ func TestFilePropNewLog(t *testing.T) {
 	log1.Close()
 
 	// check lastest file
-	bs, _ := ioutil.ReadFile(path + ".log")
+	bs, _ := os.ReadFile(path + ".log")
 	e1 := fmt.Sprintf("INFO - %s=%s - %s%s", "key1", "val1", "hello", EOL) +
 		fmt.Sprintf("INFO - %s=%s %s=%s - %s%s", "key1", "val1", "key2", "val2", "hello", EOL)
 	e2 := fmt.Sprintf("INFO - %s=%s - %s%s", "key1", "val1", "hello", EOL) +
@@ -126,7 +126,7 @@ func TestFileCallerGlobal(t *testing.T) {
 	Close()
 
 	// check lastest file
-	bs, _ := ioutil.ReadFile(path + ".log")
+	bs, _ := os.ReadFile(path + ".log")
 	e := fmt.Sprintf("INFO %s:%d %s() - hello%s", file, line, ffun, EOL)
 	a := string(bs)
 	if a != e {
@@ -149,7 +149,7 @@ func TestFileCallerNewLog(t *testing.T) {
 	log.Close()
 
 	// check lastest file
-	bs, _ := ioutil.ReadFile(path + ".log")
+	bs, _ := os.ReadFile(path + ".log")
 	e := fmt.Sprintf("INFO %s:%d %s() - hello%s", file, line, ffun, EOL)
 	a := string(bs)
 	if a != e {
@@ -172,7 +172,7 @@ func TestFileCallerNewLog2(t *testing.T) {
 	log.Close()
 
 	// check lastest file
-	bs, _ := ioutil.ReadFile(path + ".log")
+	bs, _ := os.ReadFile(path + ".log")
 	e := fmt.Sprintf("INFO %s:%d %s() - hello%s", file, line, ffun, EOL)
 	a := string(bs)
 	if a != e {
@@ -198,7 +198,7 @@ func TestFileRotateMaxSize(t *testing.T) {
 	// check existing files
 	for i := 1; i < 9; i++ {
 		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%03d.log", i))
-		bs, _ := ioutil.ReadFile(sp)
+		bs, _ := os.ReadFile(sp)
 		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
 		if a != e {
@@ -207,7 +207,7 @@ func TestFileRotateMaxSize(t *testing.T) {
 	}
 
 	// check lastest file
-	bs, _ := ioutil.ReadFile(path)
+	bs, _ := os.ReadFile(path)
 	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
 	if a != e {
@@ -234,12 +234,15 @@ func TestFileRotateMaxSizeGzip(t *testing.T) {
 	// check existing files
 	for i := 1; i < 9; i++ {
 		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%03d.log.gz", i))
-		bs, err := ioutil.ReadFile(sp)
+		bs, err := os.ReadFile(sp)
 		if err != nil {
-			t.Fatalf("TestFileRotateMaxSizeGzip\n failed to read %q, %v", sp, err)
+			t.Fatalf("TestFileRotateMaxSizeGzip\n failed to read file %q, %v", sp, err)
 		}
 		gr, _ := gzip.NewReader(bytes.NewReader(bs))
-		bs, _ = ioutil.ReadAll(gr)
+		bs, err = io.ReadAll(gr)
+		if err != nil {
+			t.Fatalf("TestFileRotateMaxSizeGzip\n failed to read gzip %q, %v", sp, err)
+		}
 
 		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
@@ -249,7 +252,7 @@ func TestFileRotateMaxSizeGzip(t *testing.T) {
 	}
 
 	// check lastest file
-	bs, _ := ioutil.ReadFile(path)
+	bs, _ := os.ReadFile(path)
 
 	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
@@ -278,7 +281,7 @@ func TestFileRotateMaxSizeDaily(t *testing.T) {
 	// check existing files
 	for i := 1; i < 9; i++ {
 		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%s-%03d.log", now.Format("20060102"), i))
-		bs, _ := ioutil.ReadFile(sp)
+		bs, _ := os.ReadFile(sp)
 
 		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
@@ -288,7 +291,7 @@ func TestFileRotateMaxSizeDaily(t *testing.T) {
 	}
 
 	// check lastest file
-	bs, _ := ioutil.ReadFile(path)
+	bs, _ := os.ReadFile(path)
 
 	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
@@ -325,7 +328,7 @@ func TestFileRotateMaxSplit(t *testing.T) {
 	// check existing files
 	for i := 6; i < 9; i++ {
 		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%03d.log", i))
-		bs, _ := ioutil.ReadFile(sp)
+		bs, _ := os.ReadFile(sp)
 
 		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
@@ -335,7 +338,7 @@ func TestFileRotateMaxSplit(t *testing.T) {
 	}
 
 	// check lastest file
-	bs, _ := ioutil.ReadFile(path)
+	bs, _ := os.ReadFile(path)
 
 	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
@@ -373,7 +376,7 @@ func TestFileRotateMaxFilesHourly(t *testing.T) {
 	// check existing files
 	for i := 6; i < 9; i++ {
 		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%s-%03d.log", now.Format("2006010215"), i))
-		bs, _ := ioutil.ReadFile(sp)
+		bs, _ := os.ReadFile(sp)
 
 		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
@@ -383,7 +386,7 @@ func TestFileRotateMaxFilesHourly(t *testing.T) {
 	}
 
 	// check lastest file
-	bs, _ := ioutil.ReadFile(path)
+	bs, _ := os.ReadFile(path)
 
 	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
@@ -421,7 +424,7 @@ func TestFileRotateDaily(t *testing.T) {
 	tm = now
 	for i := 1; i < 9; i++ {
 		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%s.log", tm.Format("20060102")))
-		bs, _ := ioutil.ReadFile(sp)
+		bs, _ := os.ReadFile(sp)
 
 		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
@@ -433,7 +436,7 @@ func TestFileRotateDaily(t *testing.T) {
 	}
 
 	// check lastest file
-	bs, _ := ioutil.ReadFile(path)
+	bs, _ := os.ReadFile(path)
 
 	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
@@ -490,7 +493,7 @@ func TestFileRotateDailyOutdated(t *testing.T) {
 	// check existing files
 	for i := 7; i < 9; i++ {
 		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%s.log", tm.Format("20060102")))
-		bs, _ := ioutil.ReadFile(sp)
+		bs, _ := os.ReadFile(sp)
 
 		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
@@ -502,7 +505,7 @@ func TestFileRotateDailyOutdated(t *testing.T) {
 	}
 
 	// check lastest file
-	bs, _ := ioutil.ReadFile(path)
+	bs, _ := os.ReadFile(path)
 	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
 	if a != e {
@@ -539,7 +542,7 @@ func TestFileRotateHourly(t *testing.T) {
 	tm = now
 	for i := 1; i < 9; i++ {
 		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%s.log", tm.Format("2006010215")))
-		bs, _ := ioutil.ReadFile(sp)
+		bs, _ := os.ReadFile(sp)
 
 		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
@@ -551,7 +554,7 @@ func TestFileRotateHourly(t *testing.T) {
 	}
 
 	// check lastest file
-	bs, _ := ioutil.ReadFile(path)
+	bs, _ := os.ReadFile(path)
 
 	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
@@ -608,7 +611,7 @@ func TestFileRotateHourlyOutdated(t *testing.T) {
 	// check existing files
 	for i := 7; i < 9; i++ {
 		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%s.log", tm.Format("2006010215")))
-		bs, _ := ioutil.ReadFile(sp)
+		bs, _ := os.ReadFile(sp)
 
 		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
@@ -620,7 +623,7 @@ func TestFileRotateHourlyOutdated(t *testing.T) {
 	}
 
 	// check lastest file
-	bs, _ := ioutil.ReadFile(path)
+	bs, _ := os.ReadFile(path)
 	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
 	if a != e {

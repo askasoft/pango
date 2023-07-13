@@ -2,7 +2,6 @@ package log
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -39,7 +38,7 @@ func TestGoLogFileCallerGlobal(t *testing.T) {
 	golog.Print("hello", "golog")
 	Close()
 
-	bs, _ := ioutil.ReadFile(path + ".log")
+	bs, _ := os.ReadFile(path + ".log")
 	a := string(bs)
 	w := fmt.Sprintf("INFO %s:%d %s() - hellogolog\n", file, line, ffun)
 	if a != w {
@@ -62,7 +61,7 @@ func TestGoLogFileCallerNewLog(t *testing.T) {
 	golog.Print("hello", "golog")
 	log.Close()
 
-	bs, _ := ioutil.ReadFile(path + ".log")
+	bs, _ := os.ReadFile(path + ".log")
 	a := string(bs)
 	w := fmt.Sprintf("INFO %s:%d %s() - hellogolog\n", file, line, ffun)
 	if a != w {
@@ -84,7 +83,7 @@ func TestIoWriterFileCallerGlobal(t *testing.T) {
 	iow.Write(([]byte)("hello writer"))
 	Close()
 
-	bs, _ := ioutil.ReadFile(path + ".log")
+	bs, _ := os.ReadFile(path + ".log")
 	a := string(bs)
 	w := fmt.Sprintf("INFO %s:%d %s() - hello writer"+EOL, file, line, ffun)
 	if a != w {
@@ -107,7 +106,7 @@ func TestIoWriterFileCallerNewLog(t *testing.T) {
 	iow.Write(([]byte)("hello writer"))
 	log.Close()
 
-	bs, _ := ioutil.ReadFile(path + ".log")
+	bs, _ := os.ReadFile(path + ".log")
 	a := string(bs)
 	w := fmt.Sprintf("INFO %s:%d %s() - hello writer"+EOL, file, line, ffun)
 	if a != w {

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -597,12 +596,12 @@ func TestBindingFormFilesMultipart(t *testing.T) {
 	// file from os
 	f, _ := os.Open("form.go")
 	defer f.Close()
-	fileActual, _ := ioutil.ReadAll(f)
+	fileActual, _ := io.ReadAll(f)
 
 	// file from multipart
 	mf, _ := obj.File.Open()
 	defer mf.Close()
-	fileExpect, _ := ioutil.ReadAll(mf)
+	fileExpect, _ := io.ReadAll(mf)
 
 	assert.Equal(t, FormMultipart.Name(), "multipart/form-data")
 	assert.Equal(t, obj.Foo, "bar")

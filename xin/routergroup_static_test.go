@@ -2,7 +2,6 @@ package xin
 
 import (
 	"embed"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -64,7 +63,7 @@ func TestMiddlewareCalledOnceByRouterStaticFSNotFound(t *testing.T) {
 func TestRouteStaticFile(t *testing.T) {
 	// SETUP file
 	testRoot, _ := os.Getwd()
-	f, err := ioutil.TempFile(testRoot, "")
+	f, err := os.CreateTemp(testRoot, "")
 	if err != nil {
 		t.Error(err)
 	}

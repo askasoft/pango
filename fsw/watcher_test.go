@@ -2,7 +2,6 @@ package fsw
 
 import (
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -26,7 +25,7 @@ func prepareTestDir(log log.Logger, testdir string) {
 			for k := 1; k <= 2; k++ {
 				fn, _ := filepath.Abs(filepath.Join(dir, fmt.Sprintf("t%d.txt", k)))
 				log.Info("Prepare ", fn)
-				ioutil.WriteFile(fn, []byte("init"), os.FileMode(0660))
+				os.WriteFile(fn, []byte("init"), os.FileMode(0660))
 			}
 		}
 	}
@@ -43,11 +42,11 @@ func changeTestFiles(log log.Logger, testdir string) {
 
 				time.Sleep(time.Millisecond * 200)
 				log.Info("Change 1 - ", fn)
-				ioutil.WriteFile(fn, []byte("test1"), os.FileMode(0660))
+				os.WriteFile(fn, []byte("test1"), os.FileMode(0660))
 
 				time.Sleep(time.Millisecond * 200)
 				log.Info("Change 2 - ", fn)
-				ioutil.WriteFile(fn, []byte("test2"), os.FileMode(0660))
+				os.WriteFile(fn, []byte("test2"), os.FileMode(0660))
 			}
 		}
 	}

@@ -3,7 +3,7 @@ package xmw
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -35,7 +35,7 @@ func ExampleLocalizer() {
 	client := &http.Client{Timeout: time.Second * 1}
 	res, _ := client.Do(req)
 
-	raw, _ := ioutil.ReadAll(res.Body)
+	raw, _ := io.ReadAll(res.Body)
 	fmt.Println(string(raw))
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

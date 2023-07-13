@@ -3,7 +3,6 @@ package sse
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 )
 
 type decoder struct {
@@ -34,7 +33,7 @@ func (d *decoder) dispatchEvent(event Event, data string) {
 }
 
 func (d *decoder) decode(r io.Reader) ([]Event, error) {
-	buf, err := ioutil.ReadAll(r)
+	buf, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}

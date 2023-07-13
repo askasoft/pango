@@ -3,7 +3,7 @@ package xin
 import (
 	"crypto/tls"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -171,7 +171,7 @@ func TestLoadHTMLGlobDebugMode(t *testing.T) {
 		fmt.Println(err)
 	}
 
-	resp, _ := ioutil.ReadAll(res.Body)
+	resp, _ := io.ReadAll(res.Body)
 	assert.Equal(t, "<h1>Hello world</h1>", string(resp))
 }
 
@@ -190,7 +190,7 @@ func TestLoadHTMLGlobTestMode(t *testing.T) {
 		fmt.Println(err)
 	}
 
-	resp, _ := ioutil.ReadAll(res.Body)
+	resp, _ := io.ReadAll(res.Body)
 	assert.Equal(t, "<h1>Hello world</h1>", string(resp))
 }
 
@@ -209,7 +209,7 @@ func TestLoadHTMLGlobReleaseMode(t *testing.T) {
 		fmt.Println(err)
 	}
 
-	resp, _ := ioutil.ReadAll(res.Body)
+	resp, _ := io.ReadAll(res.Body)
 	assert.Equal(t, "<h1>Hello world</h1>", string(resp))
 }
 
@@ -235,7 +235,7 @@ func TestLoadHTMLGlobUsingTLS(t *testing.T) {
 		fmt.Println(err)
 	}
 
-	resp, _ := ioutil.ReadAll(res.Body)
+	resp, _ := io.ReadAll(res.Body)
 	assert.Equal(t, "<h1>Hello world</h1>", string(resp))
 }
 
@@ -254,7 +254,7 @@ func TestLoadHTMLGlobFromFuncMap(t *testing.T) {
 		fmt.Println(err)
 	}
 
-	resp, _ := ioutil.ReadAll(res.Body)
+	resp, _ := io.ReadAll(res.Body)
 	assert.Equal(t, "Date: 2017/07/01\n", string(resp))
 }
 

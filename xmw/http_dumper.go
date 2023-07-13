@@ -6,7 +6,6 @@ import (
 	"crypto/md5"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
 	"time"
@@ -106,7 +105,7 @@ func dumpResponse(w io.Writer, id string, dw *dumpWriter) {
 
 	dw.res.StatusCode = dw.ResponseWriter.Status()
 	dw.res.Header = dw.ResponseWriter.Header()
-	dw.res.Body = ioutil.NopCloser(dw.bb)
+	dw.res.Body = io.NopCloser(dw.bb)
 	dw.res.Write(bb) //nolint: errcheck
 	bb.WriteString(eol)
 	bb.WriteString(eol)

@@ -2,7 +2,6 @@ package log
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -58,7 +57,7 @@ func TestAsyncWriteFile(t *testing.T) {
 	log.Close()
 
 	// read actual log
-	bs, _ := ioutil.ReadFile(path)
+	bs, _ := os.ReadFile(path)
 	as := strings.Split(strings.TrimSuffix(string(bs), EOL), EOL)
 	sort.Strings(as)
 

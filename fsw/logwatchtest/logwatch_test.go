@@ -2,7 +2,6 @@ package logwatchtest
 
 import (
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"strconv"
@@ -131,7 +130,7 @@ func testLogConfigFile1toFile2(t *testing.T, async1, async2 string) {
 	// Sleep for async flush
 	time.Sleep(time.Second)
 
-	bs, _ := ioutil.ReadFile(logfile1)
+	bs, _ := os.ReadFile(logfile1)
 	a := string(bs)
 	w := "ERROR - This is error." + iox.EOL
 	if a != w {
@@ -177,14 +176,14 @@ func testLogConfigFile1toFile2(t *testing.T, async1, async2 string) {
 	// Close log
 	lg.Close()
 
-	bs, _ = ioutil.ReadFile(logfile1)
+	bs, _ = os.ReadFile(logfile1)
 	a = string(bs)
 	w = "ERROR - This is error." + iox.EOL + "ERROR - This is error." + iox.EOL + "ERROR - This is ERROR." + iox.EOL
 	if a != w {
 		t.Errorf(`%q = %v, want %v`, logfile1, a, w)
 	}
 
-	bs, _ = ioutil.ReadFile(logfile2)
+	bs, _ = os.ReadFile(logfile2)
 	a = string(bs)
 	w = "WARN - This is WARN." + iox.EOL + "ERROR - This is ERROR." + iox.EOL
 	if a != w {

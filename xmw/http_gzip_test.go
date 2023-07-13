@@ -3,7 +3,7 @@ package xmw
 import (
 	"compress/gzip"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -49,7 +49,7 @@ func assertGzipEnable(t *testing.T, rr *httptest.ResponseRecorder, body string) 
 	}
 	defer gr.Close()
 
-	bdec, _ := ioutil.ReadAll(gr)
+	bdec, _ := io.ReadAll(gr)
 	if body != string(bdec) {
 		t.Errorf("BODY = %v, want %v", string(bdec), body)
 	}

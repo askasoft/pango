@@ -69,8 +69,9 @@ func TestSolutionAPIs(t *testing.T) {
 		t.Fatalf("ERROR: %v", err)
 	}
 
-	art.AddAttachment("./any.go")
-	ua, err := fs.UpdateArticle(art.ID, art)
+	ua := &Article{}
+	ua.AddAttachment("./any.go")
+	ua, err = fs.UpdateArticle(art.ID, ua)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
@@ -91,17 +92,29 @@ func TestSolutionAPIs(t *testing.T) {
 		t.Fatal("Attachment content not equal")
 	}
 
-	art = &Article{}
-	art.AddAttachment("./note.go")
-	ua2, err := fs.UpdateArticle(ua.ID, art)
+	ua2 := &Article{}
+	ua2.AddAttachment("./article.go")
+	ua2, err = fs.UpdateArticle(art.ID, ua2)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	fmt.Print(ua2.Attachments)
+
+	ua3 := &Article{}
+	ua3.AddAttachment("./any.go", []byte("any.go"))
+	ua3, err = fs.UpdateArticle(art.ID, ua3)
+	if err != nil {
+		t.Fatalf("ERROR: %v", err)
+	}
+
+	ga, err := fs.GetArticle(art.ID)
+	if err != nil {
+		t.Fatalf("ERROR: %v", err)
+	}
+	fmt.Print(ga.Attachments)
 
 	// no article attachment delete method
-	// for _, at := range ua.Attachments {
-	// 	err = fs.DeleteArticleAttachment(ua.ID, at.ID)
+	// for _, at := range ga.Attachments {
+	// 	err = fs.DeleteArticleAttachment(ga.ID, at.ID)
 	// 	if err != nil {
 	// 		t.Fatalf("ERROR: %v", err)
 	// 	}

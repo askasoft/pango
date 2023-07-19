@@ -1,6 +1,9 @@
 package freshservice
 
-import "github.com/askasoft/pango/num"
+import (
+	"github.com/askasoft/pango/num"
+	"github.com/askasoft/pango/str"
+)
 
 type ConversationSource int
 
@@ -36,20 +39,20 @@ func (cs ConversationSource) String() string {
 }
 
 func ParseConversationSource(s string) ConversationSource {
-	switch s {
-	case "Email":
+	switch str.ToLower(s) {
+	case "email":
 		return ConversationSourceEmail
-	case "Form":
+	case "form":
 		return ConversationSourceForm
-	case "Note":
+	case "note":
 		return ConversationSourceNote
-	case "Status":
+	case "status":
 		return ConversationSourceStatus
-	case "Meta":
+	case "meta":
 		return ConversationSourceMeta
-	case "Feedback":
+	case "feedback":
 		return ConversationSourceFeedback
-	case "ForwardedEmail":
+	case "forwardedemail":
 		return ConversationSourceForwardedEmail
 	default:
 		return -1

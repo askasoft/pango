@@ -1,6 +1,9 @@
 package freshdesk
 
-import "github.com/askasoft/pango/num"
+import (
+	"github.com/askasoft/pango/num"
+	"github.com/askasoft/pango/str"
+)
 
 type ConversationSource int
 
@@ -39,22 +42,22 @@ func (cs ConversationSource) String() string {
 }
 
 func ParseConversationSource(s string) ConversationSource {
-	switch s {
-	case "Reply":
+	switch str.ToLower(s) {
+	case "reply":
 		return ConversationSourceReply
-	case "Note":
+	case "note":
 		return ConversationSourceNote
-	case "Tweets":
+	case "tweets":
 		return ConversationSourceTweets
-	case "Survey":
+	case "survey":
 		return ConversationSourceSurvey
-	case "Facebook":
+	case "facebook":
 		return ConversationSourceFacebook
-	case "Forwarded":
+	case "forwarded":
 		return ConversationSourceForwarded
-	case "Phone":
+	case "phone":
 		return ConversationSourcePhone
-	case "ECommerce":
+	case "ecommerce":
 		return ConversationSourceECommerce
 	default:
 		return -1

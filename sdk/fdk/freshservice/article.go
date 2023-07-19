@@ -1,6 +1,9 @@
 package freshservice
 
-import "github.com/askasoft/pango/num"
+import (
+	"github.com/askasoft/pango/num"
+	"github.com/askasoft/pango/str"
+)
 
 type ArticleType int
 type ArticleStatus int
@@ -25,10 +28,10 @@ func (at ArticleType) String() string {
 }
 
 func ParseArticleType(s string) ArticleType {
-	switch s {
-	case "Permanent":
+	switch str.ToLower(s) {
+	case "permanent":
 		return ArticleTypePermanent
-	case "Workaround":
+	case "workaround":
 		return ArticleTypeWorkaround
 	default:
 		return 0

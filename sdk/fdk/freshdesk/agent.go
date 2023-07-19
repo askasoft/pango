@@ -1,6 +1,9 @@
 package freshdesk
 
-import "github.com/askasoft/pango/num"
+import (
+	"github.com/askasoft/pango/num"
+	"github.com/askasoft/pango/str"
+)
 
 type AgentTicketScope int
 
@@ -24,12 +27,12 @@ func (ats AgentTicketScope) String() string {
 }
 
 func ParseAgentTicketScope(s string) AgentTicketScope {
-	switch s {
-	case "Global":
+	switch str.ToLower(s) {
+	case "global":
 		return AgentTicketScopeGlobal
-	case "Group":
+	case "group":
 		return AgentTicketScopeGroup
-	case "Restricted":
+	case "restricted":
 		return AgentTicketScopeRestricted
 	default:
 		return 0

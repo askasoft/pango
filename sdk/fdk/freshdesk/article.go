@@ -1,6 +1,9 @@
 package freshdesk
 
-import "github.com/askasoft/pango/num"
+import (
+	"github.com/askasoft/pango/num"
+	"github.com/askasoft/pango/str"
+)
 
 type ArticleStatus int
 
@@ -21,10 +24,10 @@ func (as ArticleStatus) String() string {
 }
 
 func ParseArticleStatus(s string) ArticleStatus {
-	switch s {
-	case "Draft":
+	switch str.ToLower(s) {
+	case "draft":
 		return ArticleStatusDraft
-	case "Published":
+	case "published":
 		return ArticleStatusPublished
 	default:
 		return 0

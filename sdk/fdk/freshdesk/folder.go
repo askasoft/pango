@@ -1,6 +1,9 @@
 package freshdesk
 
-import "github.com/askasoft/pango/num"
+import (
+	"github.com/askasoft/pango/num"
+	"github.com/askasoft/pango/str"
+)
 
 type FolderVisibility int
 
@@ -36,20 +39,20 @@ func (fv FolderVisibility) String() string {
 }
 
 func ParseFolderVisibility(s string) FolderVisibility {
-	switch s {
-	case "AllUsers":
+	switch str.ToLower(s) {
+	case "allusers":
 		return FolderVisibilityAllUsers
-	case "LoggedInUsers":
+	case "loggedinusers":
 		return FolderVisibilityLoggedInUsers
-	case "Agents":
+	case "agents":
 		return FolderVisibilityAgents
-	case "SelectedCompanies":
+	case "selectedcompanies":
 		return FolderVisibilitySelectedCompanies
-	case "Bots":
+	case "bots":
 		return FolderVisibilityBots
-	case "SelectedContactSegments":
+	case "selectedcontactsegments":
 		return FolderVisibilitySelectedContactSegments
-	case "SelectedCompanySegments":
+	case "selectedcompanysegments":
 		return FolderVisibilitySelectedCompanySegments
 	default:
 		return 0

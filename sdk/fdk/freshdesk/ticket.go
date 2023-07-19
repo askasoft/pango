@@ -1,6 +1,9 @@
 package freshdesk
 
-import "github.com/askasoft/pango/num"
+import (
+	"github.com/askasoft/pango/num"
+	"github.com/askasoft/pango/str"
+)
 
 type TicketSource int
 type TicketStatus int
@@ -51,18 +54,18 @@ func (ts TicketSource) String() string {
 }
 
 func ParseTicketSource(s string) TicketSource {
-	switch s {
-	case "Email":
+	switch str.ToLower(s) {
+	case "email":
 		return TicketSourceEmail
-	case "Portal":
+	case "portal":
 		return TicketSourcePortal
-	case "Phone":
+	case "phone":
 		return TicketSourcePhone
-	case "Chat":
+	case "chat":
 		return TicketSourceChat
-	case "FeedbackWidget":
+	case "feedbackwidget":
 		return TicketSourceFeedbackWidget
-	case "OutboundEmail":
+	case "outboundemail":
 		return TicketSourceOutboundEmail
 	default:
 		return 0
@@ -85,14 +88,14 @@ func (ts TicketStatus) String() string {
 }
 
 func ParseTicketStatus(s string) TicketStatus {
-	switch s {
-	case "Open":
+	switch str.ToLower(s) {
+	case "open":
 		return TicketStatusOpen
-	case "Pending":
+	case "pending":
 		return TicketStatusPending
-	case "Resolved":
+	case "resolved":
 		return TicketStatusResolved
-	case "Closed":
+	case "closed":
 		return TicketStatusClosed
 	default:
 		return 0
@@ -115,14 +118,14 @@ func (tp TicketPriority) String() string {
 }
 
 func ParseTicketPriority(s string) TicketPriority {
-	switch s {
-	case "Low":
+	switch str.ToLower(s) {
+	case "low":
 		return TicketPriorityLow
-	case "Medium":
+	case "medium":
 		return TicketPriorityMedium
-	case "High":
+	case "high":
 		return TicketPriorityHigh
-	case "Urgent":
+	case "urgent":
 		return TicketPriorityUrgent
 	default:
 		return 0

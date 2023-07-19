@@ -1,6 +1,9 @@
 package freshservice
 
-import "github.com/askasoft/pango/num"
+import (
+	"github.com/askasoft/pango/num"
+	"github.com/askasoft/pango/str"
+)
 
 type FolderVisibility int
 
@@ -33,18 +36,18 @@ func (fv FolderVisibility) String() string {
 }
 
 func ParseFolderVisibility(s string) FolderVisibility {
-	switch s {
-	case "AllUsers":
+	switch str.ToLower(s) {
+	case "allusers":
 		return FolderVisibilityAllUsers
-	case "LoggedInUsers":
+	case "loggedinusers":
 		return FolderVisibilityLoggedInUsers
-	case "AgentsOnly":
+	case "agentsonly":
 		return FolderVisibilityAgentsOnly
-	case "Departments":
+	case "departments":
 		return FolderVisibilityDepartments
-	case "AgentGroups":
+	case "agentgroups":
 		return FolderVisibilityAgentGroups
-	case "ContactGroups":
+	case "contactgroups":
 		return FolderVisibilityContactGroups
 	default:
 		return 0

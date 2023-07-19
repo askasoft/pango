@@ -27,7 +27,7 @@ func TestTicketAPIs(t *testing.T) {
 		Phone:       "09012345678",
 		Subject:     "test " + time.Now().String(),
 		Description: "description " + time.Now().String(),
-		Status:      TicketStatusOpen,
+		Status:      TicketStatusClosed,
 		Priority:    TicketPriorityMedium,
 	}
 
@@ -54,8 +54,31 @@ func TestTicketAPIs(t *testing.T) {
 		t.Fatalf("ERROR: %v", err)
 	}
 
+	// find contact
+	cs, _, err := fd.ListContacts(&ListContactsOption{
+		Phone: "09012345678",
+	})
+	if err != nil {
+		t.Fatalf("ERROR: %v", err)
+	}
+	if len(cs) == 0 {
+		t.Fatalf("ERROR: %v", "missing contact")
+	}
+
+	// public note
+	nuc := &Note{
+		Body:   "public user note " + time.Now().String(),
+		UserID: cs[0].ID,
+	}
+	cnu, err := fd.CreateNote(ct.ID, nuc)
+	if err != nil {
+		t.Fatalf("ERROR: %v", err)
+	}
+	fd.Logger.Debug(cnu)
+
+	// private note
 	nc := &Note{
-		Body:    "create note " + time.Now().String(),
+		Body:    "private agent note " + time.Now().String(),
 		Private: true,
 	}
 	cn, err := fd.CreateNote(ct.ID, nc)
@@ -65,7 +88,7 @@ func TestTicketAPIs(t *testing.T) {
 	fd.Logger.Debug(cn)
 
 	cu := &Conversation{
-		Body: "update note " + time.Now().String(),
+		Body: "private agent update note " + time.Now().String(),
 	}
 	cu.AddAttachment("./any.go")
 	uc, err := fd.UpdateConversation(cn.ID, cu)

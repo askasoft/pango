@@ -180,10 +180,40 @@ func tryToSetValue(prefix string, value reflect.Value, field reflect.StructField
 	return setter.TrySet(value, field, key, setOpts)
 }
 
+func alterFormKey(key string) string {
+	dot := strings.IndexByte(key, '.')
+	if dot < 0 {
+		return ""
+	}
+
+	sb := strings.Builder{}
+	sb.WriteString(key[:dot])
+	sb.WriteByte('[')
+	key = key[dot+1:]
+	for key != "" {
+		dot = strings.IndexByte(key, '.')
+		if dot < 0 {
+			sb.WriteString(key)
+			break
+		}
+		sb.WriteString(key[:dot])
+		sb.WriteString("][")
+		key = key[dot+1:]
+	}
+	sb.WriteByte(']')
+	return sb.String()
+}
+
 func setByForm(value reflect.Value, field reflect.StructField, form map[string][]string, key string, opt setOptions) (isSet bool, be *FieldBindError) {
 	vs, ok := form[key]
-	if !ok && !opt.isDefaultExists {
-		return
+	if !ok {
+		akey := alterFormKey(key)
+		if akey != "" {
+			vs, ok = form[akey]
+		}
+		if !ok && !opt.isDefaultExists {
+			return
+		}
 	}
 
 	var err error

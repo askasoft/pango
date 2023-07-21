@@ -304,21 +304,37 @@ func TestMappingIgnoredCircularRef(t *testing.T) {
 }
 
 func TestMappingNest(t *testing.T) {
+	type s2 struct {
+		Int2   int
+		Slice2 []int
+		Array2 [1]int
+	}
 	type s struct {
 		Int   int
 		Slice []int
 		Array [1]int
+		S2    *s2
 	}
 	var p struct {
 		S *s
 	}
 
-	err := mappingByPtr(&p, formSource{"S.Int": {"1"}, "S.Slice": {"2"}, "S.Array": {"3"}}, "form")
+	err := mappingByPtr(&p, formSource{
+		"S.Int":         {"1"},
+		"S[Slice]":      {"2"},
+		"S.Array":       {"3"},
+		"S.S2.Int2":     {"21"},
+		"S[S2][Slice2]": {"22"},
+		"S.S2.Array2":   {"23"},
+	}, "form")
 	assert.NoError(t, err)
 
 	assert.Equal(t, 1, p.S.Int)
 	assert.Equal(t, []int{2}, p.S.Slice)
 	assert.Equal(t, [1]int{3}, p.S.Array)
+	assert.Equal(t, 21, p.S.S2.Int2)
+	assert.Equal(t, []int{22}, p.S.S2.Slice2)
+	assert.Equal(t, [1]int{23}, p.S.S2.Array2)
 }
 
 func TestMappingErrors(t *testing.T) {

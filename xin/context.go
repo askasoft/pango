@@ -531,16 +531,16 @@ func (c *Context) GetPostFormMap(key string) (map[string]string, bool) {
 // get is an internal method and returns a map which satisfy conditions.
 func (c *Context) get(m map[string][]string, key string) (map[string]string, bool) {
 	dicts := make(map[string]string)
-	exist := false
 	for k, v := range m {
-		if i := strings.IndexByte(k, '['); i >= 1 && k[0:i] == key {
+		if i := strings.IndexByte(k, '.'); i >= 1 && k[0:i] == key {
+			dicts[k[i+1:]] = v[0]
+		} else if i := strings.IndexByte(k, '['); i >= 1 && k[0:i] == key {
 			if j := strings.IndexByte(k[i+1:], ']'); j >= 1 {
-				exist = true
 				dicts[k[i+1:][:j]] = v[0]
 			}
 		}
 	}
-	return dicts, exist
+	return dicts, len(dicts) > 0
 }
 
 // FormFile returns the first file for the provided form key.

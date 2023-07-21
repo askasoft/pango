@@ -99,7 +99,7 @@ func exePath() (path string, err error) {
 	return
 }
 
-func installService(name, dispName, description string) error {
+func installService(name, display, description string) error {
 	exepath, err := exePath()
 	if err != nil {
 		return err
@@ -118,7 +118,7 @@ func installService(name, dispName, description string) error {
 	}
 
 	cfg := mgr.Config{
-		DisplayName: dispName,
+		DisplayName: display,
 		Description: description,
 		StartType:   mgr.StartAutomatic,
 	}

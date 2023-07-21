@@ -11,8 +11,8 @@ type App interface {
 	// Name app/service name
 	Name() string
 
-	// DispName app/service display name
-	DispName() string
+	// DisplayName app/service display name
+	DisplayName() string
 
 	// Description app/service description
 	Description() string

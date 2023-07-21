@@ -57,7 +57,7 @@ func Main(app App) {
 	case "version":
 		fmt.Printf("%s.%s (%s)\n", app.Version(), app.Revision(), app.BuildTime().Local())
 	case "install":
-		err = installService(*svcname, app.DispName(), app.Description())
+		err = installService(*svcname, app.DisplayName(), app.Description())
 		if err == nil {
 			fmt.Printf("service %q installed\n", *svcname)
 		} else {

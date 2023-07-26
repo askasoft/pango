@@ -22,6 +22,28 @@ func SubstrAfter(s string, b string) string {
 	return s[i+len(b):]
 }
 
+// SubstrAfterAny Gets the substring after the first occurrence of any char in separator b.
+// The separator b is not returned.
+// If nothing is found, the empty string is returned.
+// SubstrAfterAny("", *)        = ""
+// SubstrAfterAny("abc", "az")   = "bc"
+// SubstrAfterAny("abcba", "b") = "cba"
+// SubstrAfterAny("abc", "c")   = ""
+// SubstrAfterAny("abc", "d")   = ""
+func SubstrAfterAny(s string, b string) string {
+	if s == "" {
+		return s
+	}
+
+	i := IndexAny(s, b)
+	if i < 0 {
+		return ""
+	}
+
+	_, z := utf8.DecodeRuneInString(s[i:])
+	return s[i+z:]
+}
+
 // SubstrAfterByte Gets the substring after the first occurrence of a separator b.
 // The separator b is not returned.
 // If nothing is found, the empty string is returned.
@@ -78,10 +100,34 @@ func SubstrAfterLast(s string, b string) string {
 	}
 
 	i := LastIndex(s, b)
-	if i < 0 || i == len(s)-len(b) {
+	if i < 0 {
 		return ""
 	}
 	return s[i+len(b):]
+}
+
+// SubstrAfterLastAny Gets the substring after the last occurrence of any char in separator b.
+// The separator b is not returned.
+// If nothing is found, the empty string is returned.
+//
+// SubstrAfterLastAny("", *)        = ""
+// SubstrAfterLastAny("abc", "az")   = "bc"
+// SubstrAfterLastAny("abcba", "b") = "a"
+// SubstrAfterLastAny("abc", "c")   = ""
+// SubstrAfterLastAny("a", "a")     = ""
+// SubstrAfterLastAny("a", "z")     = ""
+func SubstrAfterLastAny(s string, b string) string {
+	if s == "" {
+		return s
+	}
+
+	i := LastIndexAny(s, b)
+	if i < 0 {
+		return ""
+	}
+
+	_, z := utf8.DecodeRuneInString(s[i:])
+	return s[i+z:]
 }
 
 // SubstrAfterLastByte Gets the substring after the last occurrence of a separator b.
@@ -100,7 +146,7 @@ func SubstrAfterLastByte(s string, b byte) string {
 	}
 
 	i := LastIndexByte(s, b)
-	if i < 0 || i == len(s)-1 {
+	if i < 0 {
 		return ""
 	}
 	return s[i+1:]
@@ -122,7 +168,7 @@ func SubstrAfterLastRune(s string, r rune) string {
 	}
 
 	i := LastIndexRune(s, r)
-	if i < 0 || i == len(s)-1 {
+	if i < 0 {
 		return ""
 	}
 	return s[i+utf8.RuneLen(r):]
@@ -142,6 +188,26 @@ func SubstrBefore(s string, b string) string {
 	}
 
 	i := Index(s, b)
+	if i < 0 {
+		return s
+	}
+	return s[:i]
+}
+
+// SubstrBeforeAny Gets the substring before the first occurrence of any chat in separator b.
+// The separator b is not returned.
+// If nothing is found, the input string is returned.
+// SubstrBeforeAny("", *)        = ""
+// SubstrBeforeAny("abc", "a")   = ""
+// SubstrBeforeAny("abcba", "cb") = "a"
+// SubstrBeforeAny("abc", "zc")   = "ab"
+// SubstrBeforeAny("abc", "d")   = "abc"
+func SubstrBeforeAny(s string, b string) string {
+	if s == "" {
+		return s
+	}
+
+	i := IndexAny(s, b)
 	if i < 0 {
 		return s
 	}
@@ -205,6 +271,29 @@ func SubstrBeforeLast(s string, b string) string {
 	}
 
 	i := LastIndex(s, b)
+	if i < 0 {
+		return s
+	}
+	return s[:i]
+}
+
+// SubstrBeforeLastAny Gets the substring before the last occurrence of any char in separator b.
+// The separator b is not returned.
+// If nothing is found, the input string is returned.
+//
+// SubstrBeforeLastAny("", *)        = ""
+// SubstrBeforeLastAny("abc", "a")   = ""
+// SubstrBeforeLastAny("abcba", "bc") = "a"
+// SubstrBeforeLastAny("abc", "zc")   = "ab"
+// SubstrBeforeLastAny("a", "a")     = ""
+// SubstrBeforeLastAny("a", "z")     = "a"
+// SubstrBeforeLastAny("a", "")      = "a"
+func SubstrBeforeLastAny(s string, b string) string {
+	if s == "" {
+		return s
+	}
+
+	i := LastIndexAny(s, b)
 	if i < 0 {
 		return s
 	}

@@ -27,6 +27,29 @@ func TestSubstrAfter(t *testing.T) {
 	}
 }
 
+func TestSubstrAfterAny(t *testing.T) {
+	cs := []struct {
+		w string
+		s string
+		b string
+	}{
+		{"", "", "c"},
+		{"", "abc", "zc"},
+		{"", "abc", "zd"},
+		{"ot", "foot", "zo"},
+		{"bc", "abc", "za"},
+		{"cba", "abcba", "zb"},
+		{"界ba世界", "abc世界ba世界", "世界"},
+	}
+
+	for i, c := range cs {
+		a := SubstrAfterAny(c.s, c.b)
+		if a != c.w {
+			t.Errorf("[%d] SubstrAfterAny(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+		}
+	}
+}
+
 func TestSubstrAfterByte(t *testing.T) {
 	cs := []struct {
 		w string
@@ -93,6 +116,32 @@ func TestSubstrAfterLast(t *testing.T) {
 		a := SubstrAfterLast(c.s, c.b)
 		if a != c.w {
 			t.Errorf("[%d] SubstrAfterLast(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+		}
+	}
+}
+
+func TestSubstrAfterLastAny(t *testing.T) {
+	cs := []struct {
+		w string
+		s string
+		b string
+	}{
+		{"", "", ""},
+		{"", "", "a"},
+		{"", "foo", "b"},
+		{"", "abc", "zc"},
+		{"", "abc", ""},
+		{"t", "foot", "zo"},
+		{"bc", "abc", "za"},
+		{"a", "abcba", "zb"},
+		{"baz", "fooXXbarXXbaz", "XX"},
+		{"ef", "ab世界cd世界ef", "世界"},
+	}
+
+	for i, c := range cs {
+		a := SubstrAfterLastAny(c.s, c.b)
+		if a != c.w {
+			t.Errorf("[%d] SubstrAfterLastAny(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
 		}
 	}
 }
@@ -167,6 +216,29 @@ func TestSubstrBefore(t *testing.T) {
 	}
 }
 
+func TestSubstrBeforeAny(t *testing.T) {
+	cs := []struct {
+		w string
+		s string
+		b string
+	}{
+		{"", "", "a"},
+		{"", "abc", "az"},
+		{"f", "foot", "zo"},
+		{"a", "abcba", "zb"},
+		{"ab", "abc", "zc"},
+		{"abc", "abc", "zd"},
+		{"abc", "abc世界efg世界xyz", "世界"},
+	}
+
+	for i, c := range cs {
+		a := SubstrBeforeAny(c.s, c.b)
+		if a != c.w {
+			t.Errorf("[%d] SubstrBeforeAny(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+		}
+	}
+}
+
 func TestSubstrBeforeByte(t *testing.T) {
 	cs := []struct {
 		w string
@@ -222,7 +294,6 @@ func TestSubstrBeforeLast(t *testing.T) {
 		{"", "abc", "a"},
 		{"abc", "abcba", "b"},
 		{"ab", "abc", "c"},
-		{"", "", "d"},
 		{"abc", "abc", ""},
 		{"abc", "abc", "d"},
 		{"fooXXbar", "fooXXbarXXbaz", "XX"},
@@ -233,6 +304,33 @@ func TestSubstrBeforeLast(t *testing.T) {
 		a := SubstrBeforeLast(c.s, c.b)
 		if a != c.w {
 			t.Errorf("[%d] SubstrBeforeLast(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+		}
+	}
+}
+
+func TestSubstrBeforeLastAny(t *testing.T) {
+	cs := []struct {
+		w string
+		s string
+		b string
+	}{
+		{"", "", ""},
+		{"", "", "a"},
+		{"foo", "foo", "zb"},
+		{"fo", "foot", "zo"},
+		{"", "abc", "az"},
+		{"abc", "abcba", "zb"},
+		{"ab", "abc", "zc"},
+		{"abc", "abc", ""},
+		{"abc", "abc", "zd"},
+		{"fooXXbarX", "fooXXbarXXbaz", "XX"},
+		{"abc世界efg世", "abc世界efg世界xyz", "世界"},
+	}
+
+	for i, c := range cs {
+		a := SubstrBeforeLastAny(c.s, c.b)
+		if a != c.w {
+			t.Errorf("[%d] SubstrBeforeLastAny(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
 		}
 	}
 }

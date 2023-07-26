@@ -4,12 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"math/rand"
 	"net/http"
-	"net/http/httputil"
 	"net/url"
 	"strconv"
-	"time"
 
 	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/fsu"
@@ -20,33 +17,14 @@ import (
 
 const (
 	contentTypeJSON = `application/json; charset="utf-8"`
-	logTimeFormat   = "2006-01-02T15:04:05.000"
 )
-
-func LogRequest(log log.Logger, req *http.Request) (rid uint64) {
-	if log != nil && log.IsTraceEnabled() {
-		rid = rand.Uint64() //nolint: gosec
-		bs, _ := httputil.DumpRequestOut(req, true)
-		log.Tracef(">>>>>>>> %s %016x >>>>>>>>", time.Now().Format(logTimeFormat), rid)
-		log.Trace(bye.UnsafeString(bs))
-	}
-	return
-}
-
-func LogResponse(log log.Logger, res *http.Response, rid uint64) {
-	if log != nil && log.IsTraceEnabled() {
-		bs, _ := httputil.DumpResponse(res, true)
-		log.Tracef("<<<<<<<< %s %016x <<<<<<<<", time.Now().Format(logTimeFormat), rid)
-		log.Trace(bye.UnsafeString(bs))
-	}
-}
 
 func ToString(o any) string {
 	bs, err := json.MarshalIndent(o, "", "  ")
 	if err != nil {
 		return err.Error()
 	}
-	return string(bs)
+	return bye.UnsafeString(bs)
 }
 
 func addMultipartValues(mw *httpx.MultipartWriter, vs Values) error {
@@ -112,16 +90,16 @@ func buildJsonRequest(a any) (io.Reader, string, error) {
 	return buf, contentTypeJSON, nil
 }
 
-func Call(client *http.Client, req *http.Request, log log.Logger) (res *http.Response, err error) {
-	if log != nil {
-		log.Infof("%s %s", req.Method, req.URL)
+func Call(client *http.Client, req *http.Request, logger log.Logger) (res *http.Response, err error) {
+	if logger != nil {
+		logger.Infof("%s %s", req.Method, req.URL)
 	}
 
-	rid := LogRequest(log, req)
+	rid := log.TraceHttpRequest(logger, req)
 
 	res, err = client.Do(req)
 	if err == nil {
-		LogResponse(log, res, rid)
+		log.TraceHttpResponse(logger, res, rid)
 
 		if res.StatusCode == http.StatusTooManyRequests {
 			s := res.Header.Get("Retry-After")
@@ -175,31 +153,4 @@ func SaveResponse(res *http.Response, path string) error {
 	}
 
 	return fsu.WriteReader(path, res.Body, fsu.FileMode(0660))
-}
-
-// SleepForRateLimited if err is RateLimitedError, sleep Retry-After and return true
-func SleepForRateLimited(err error, log log.Logger) bool {
-	if err != nil {
-		if rle, ok := err.(*RateLimitedError); ok { //nolint: errorlint
-			if log != nil {
-				log.Warnf("Sleep %d seconds for API Rate Limited", rle.RetryAfter)
-			}
-			time.Sleep(time.Duration(rle.RetryAfter) * time.Second)
-			return true
-		}
-	}
-	return false
-}
-
-func RetryForRateLimited(api func() error, maxRetry int, log log.Logger) (err error) {
-	for i := 0; ; i++ {
-		err = api()
-		if i >= maxRetry {
-			break
-		}
-		if !SleepForRateLimited(err, log) {
-			break
-		}
-	}
-	return err
 }

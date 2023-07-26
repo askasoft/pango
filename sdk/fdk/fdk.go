@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/sdk"
 )
 
 type FDK struct {
@@ -28,11 +29,11 @@ func (fdk *FDK) Endpoint(format string, a ...any) string {
 
 // SleepForRateLimited if err is RateLimitedError, sleep Retry-After and return true
 func (fdk *FDK) SleepForRateLimited(err error) bool {
-	return SleepForRateLimited(err, fdk.Logger)
+	return sdk.SleepForRateLimited(err, fdk.Logger)
 }
 
 func (fdk *FDK) RetryForRateLimited(api func() error) (err error) {
-	return RetryForRateLimited(api, fdk.RetryOnRateLimited, fdk.Logger)
+	return sdk.RetryForRateLimited(api, fdk.RetryOnRateLimited, fdk.Logger)
 }
 
 func (fdk *FDK) authenticate(req *http.Request) {

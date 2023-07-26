@@ -3,16 +3,11 @@ package fdk
 import (
 	"fmt"
 	"strings"
+
+	"github.com/askasoft/pango/sdk"
 )
 
-type RateLimitedError struct {
-	StatusCode int // http status code
-	RetryAfter int // retry after seconds
-}
-
-func (e *RateLimitedError) Error() string {
-	return fmt.Sprintf("%d Retry After %d seconds", e.StatusCode, e.RetryAfter)
-}
+type RateLimitedError = sdk.RateLimitedError
 
 type Error struct {
 	Code    string `json:"code,omitempty"`

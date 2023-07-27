@@ -95,7 +95,6 @@ func (le *Event) caller(depth int, trace bool) {
 	}
 }
 
-// newEvent get a log event from pool
 func newEvent(logger Logger, lvl Level, msg string) *Event {
 	le := &Event{}
 	le.logger = logger

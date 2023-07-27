@@ -54,10 +54,10 @@ func NewLogFormatter(format string) Formatter {
 // %l{format}: log level string
 // %x{key}: logger property
 // %X{=| }: logger properties (operator|separator)
-// %S: caller source file name (!!SLOW!!)
-// %L: caller source line number (!!SLOW!!)
-// %F: caller function name (!!SLOW!!)
-// %T: caller stack trace (!!SLOW!!)
+// %S: caller source file name
+// %L: caller source line number
+// %F: caller function name
+// %T: caller stack trace
 // %m: message
 // %n: EOL(Windows: "\r\n", Other: "\n")
 func NewTextFormatter(format string) *TextFormatter {
@@ -87,10 +87,10 @@ func newTextFormatter(format string) *TextFormatter {
 // %l{format}: log level string
 // %x{key}: logger property
 // %X: logger properties (json format)
-// %S: caller source file name (!!SLOW!!)
-// %L: caller source line number (!!SLOW!!)
-// %F: caller function name (!!SLOW!!)
-// %T: caller stack trace (!!SLOW!!)
+// %S: caller source file name
+// %L: caller source line number
+// %F: caller function name
+// %T: caller stack trace
 // %m: message
 // %n: EOL(Windows: "\r\n", Other: "\n")
 func NewJSONFormatter(format string) *JSONFormatter {

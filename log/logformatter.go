@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/iox"
 )
 
@@ -406,13 +407,13 @@ func propsfmtc(f string) fmtfunc {
 func jpropfmtc(key string) fmtfunc {
 	return func(le *Event) string {
 		b, _ := json.Marshal(le.Logger().GetProp(key))
-		return string(b)
+		return bye.UnsafeString(b)
 	}
 }
 
 func jpropsfmt(le *Event) string {
 	b, _ := json.Marshal(le.Logger().GetProps())
-	return string(b)
+	return bye.UnsafeString(b)
 }
 
 func funcfmt(le *Event) string {

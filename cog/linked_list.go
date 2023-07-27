@@ -9,6 +9,7 @@ import (
 	"sort"
 
 	"github.com/askasoft/pango/ars"
+	"github.com/askasoft/pango/bye"
 )
 
 // NewLinkedList returns an initialized list.
@@ -435,7 +436,7 @@ func (ll *LinkedList[T]) PushTailAll(ac Collection[T]) {
 // String print list to string
 func (ll *LinkedList[T]) String() string {
 	bs, _ := json.Marshal(ll)
-	return string(bs)
+	return bye.UnsafeString(bs)
 }
 
 // -----------------------------------------------------------

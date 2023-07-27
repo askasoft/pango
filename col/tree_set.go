@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/askasoft/pango/ars"
+	"github.com/askasoft/pango/bye"
 )
 
 // NewTreeSet creates a new TreeSet.
@@ -315,7 +316,7 @@ func (ts *TreeSet) Ceiling(v T) T {
 // String print set to string
 func (ts *TreeSet) String() string {
 	bs, _ := json.Marshal(ts)
-	return string(bs)
+	return bye.UnsafeString(bs)
 }
 
 // Graph return the set's graph

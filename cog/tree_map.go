@@ -5,6 +5,8 @@ package cog
 
 import (
 	"encoding/json"
+
+	"github.com/askasoft/pango/bye"
 )
 
 // NewTreeMap creates a new TreeMap.
@@ -256,7 +258,7 @@ func (tm *TreeMap[K, V]) Items() []*TreeMapNode[K, V] {
 // String print map to string
 func (tm *TreeMap[K, V]) String() string {
 	bs, _ := json.Marshal(tm)
-	return string(bs)
+	return bye.UnsafeString(bs)
 }
 
 // Graph return the map's graph

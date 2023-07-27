@@ -5,6 +5,7 @@ import (
 	"crypto/cipher"
 	"encoding/base64"
 
+	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/str"
 )
 
@@ -51,7 +52,7 @@ func (ac *AesCFB) DecryptString(src string) (string, error) {
 		return "", err
 	}
 
-	return string(des), nil
+	return bye.UnsafeString(des), nil
 }
 
 func (ac *AesCFB) EncryptData(src []byte) ([]byte, error) {

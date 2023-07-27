@@ -2,6 +2,8 @@ package col
 
 import (
 	"encoding/json"
+
+	"github.com/askasoft/pango/bye"
 )
 
 // NewLinkedHashMap creates a new LinkedHashMap.
@@ -226,7 +228,7 @@ func (lm *LinkedHashMap) Items() []*LinkedMapNode {
 // String print map to string
 func (lm *LinkedHashMap) String() string {
 	bs, _ := json.Marshal(lm)
-	return string(bs)
+	return bye.UnsafeString(bs)
 }
 
 //-----------------------------------------------------

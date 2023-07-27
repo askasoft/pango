@@ -2,6 +2,8 @@ package fdk
 
 import (
 	"time"
+
+	"github.com/askasoft/pango/bye"
 )
 
 const (
@@ -25,7 +27,7 @@ func (d *Date) MarshalJSON() ([]byte, error) {
 
 func (d *Date) UnmarshalJSON(data []byte) (err error) {
 	// Ignore null, like in the main JSON package.
-	str := string(data)
+	str := bye.UnsafeString(data)
 	if str == "null" {
 		return
 	}
@@ -48,7 +50,7 @@ func (t *Time) MarshalJSON() ([]byte, error) {
 
 func (t *Time) UnmarshalJSON(data []byte) (err error) {
 	// Ignore null, like in the main JSON package.
-	str := string(data)
+	str := bye.UnsafeString(data)
 	if str == "null" {
 		return
 	}

@@ -2,6 +2,8 @@ package col
 
 import (
 	"encoding/json"
+
+	"github.com/askasoft/pango/bye"
 )
 
 // NewHashMap creates a new HashMap.
@@ -167,7 +169,7 @@ func (hm *HashMap) HashMap() map[K]V {
 // String print map to string
 func (hm *HashMap) String() string {
 	bs, _ := json.Marshal(hm)
-	return string(bs)
+	return bye.UnsafeString(bs)
 }
 
 //-----------------------------------------------------------

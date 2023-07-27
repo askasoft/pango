@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
+	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/str"
 )
 
@@ -52,7 +53,7 @@ func (ac *AesCBC) DecryptString(src string) (string, error) {
 		return "", err
 	}
 
-	return string(des), nil
+	return bye.UnsafeString(des), nil
 }
 
 func (ac *AesCBC) EncryptData(src []byte) (des []byte, err error) {

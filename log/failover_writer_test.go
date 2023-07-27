@@ -19,7 +19,7 @@ func (tfw *testFailoverWriter) Write(le *Event) error {
 	if tfw.count%tfw.error == 0 {
 		return fmt.Errorf("testFailoverWriter: %d", tfw.count)
 	}
-	tfw.msgs = append(tfw.msgs, le.msg)
+	tfw.msgs = append(tfw.msgs, le.Msg)
 	return nil
 }
 

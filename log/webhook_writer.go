@@ -105,7 +105,7 @@ func (ww *WebhookWriter) initClient() {
 func (ww *WebhookWriter) format(le *Event) {
 	lf := ww.Logfmt
 	if lf == nil {
-		lf = le.Logger().GetFormatter()
+		lf = le.Logger.GetFormatter()
 		if lf == nil {
 			lf = JSONFmtDefault
 		}

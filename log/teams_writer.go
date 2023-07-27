@@ -102,7 +102,7 @@ func (tw *TeamsWriter) format(le *Event) (sub, msg string) {
 
 	lf := tw.Logfmt
 	if lf == nil {
-		lf = le.Logger().GetFormatter()
+		lf = le.Logger.GetFormatter()
 		if lf == nil {
 			lf = TextFmtDefault
 		}

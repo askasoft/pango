@@ -115,7 +115,7 @@ func (sw *SMTPWriter) format(le *Event) (sub, msg string) {
 
 	lf := sw.Logfmt
 	if lf == nil {
-		lf = le.Logger().GetFormatter()
+		lf = le.Logger.GetFormatter()
 		if lf == nil {
 			lf = TextFmtDefault
 		}

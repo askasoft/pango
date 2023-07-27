@@ -39,7 +39,7 @@ func (sw *StreamWriter) Write(le *Event) (err error) {
 
 	lf := sw.Logfmt
 	if lf == nil {
-		lf = le.Logger().GetFormatter()
+		lf = le.Logger.GetFormatter()
 		if lf == nil {
 			lf = TextFmtDefault
 		}
@@ -48,7 +48,7 @@ func (sw *StreamWriter) Write(le *Event) (err error) {
 	sw.bb.Reset()
 	lf.Write(&sw.bb, le)
 	if sw.Color {
-		_, err = sw.Output.Write(colors[le.Level()])
+		_, err = sw.Output.Write(colors[le.Level])
 		if err != nil {
 			return
 		}

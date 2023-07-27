@@ -66,7 +66,7 @@ func (sw *SlackWriter) Write(le *Event) (err error) {
 	sub, msg := sw.format(le)
 
 	sm := &slack.Message{}
-	sm.IconEmoji = sw.getIconEmoji(le.Level())
+	sm.IconEmoji = sw.getIconEmoji(le.Level)
 	sm.Text = sub
 
 	sa := &slack.Attachment{Text: msg}
@@ -91,7 +91,7 @@ func (sw *SlackWriter) format(le *Event) (sub, msg string) {
 
 	lf := sw.Logfmt
 	if lf == nil {
-		lf = le.Logger().GetFormatter()
+		lf = le.Logger.GetFormatter()
 		if lf == nil {
 			lf = TextFmtDefault
 		}

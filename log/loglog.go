@@ -105,8 +105,8 @@ func (log *Log) Close() {
 	log.writer.Close()
 }
 
-// write write a log event
-func (log *Log) write(le *Event) {
+// Write write a log event
+func (log *Log) Write(le *Event) {
 	log.writer.Write(le) //nolint: errcheck
 }
 

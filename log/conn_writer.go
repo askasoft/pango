@@ -49,7 +49,7 @@ func (cw *ConnWriter) Write(le *Event) (err error) {
 
 	lf := cw.Logfmt
 	if lf == nil {
-		lf = le.Logger().GetFormatter()
+		lf = le.Logger.GetFormatter()
 		if lf == nil {
 			lf = TextFmtDefault
 		}

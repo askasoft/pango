@@ -44,7 +44,7 @@ func (tw *testConcurrentDetectWriter) do() {
 func (tw *testConcurrentDetectWriter) Write(le *Event) error {
 	tw.do()
 
-	ss := str.Split(le.msg, " ")
+	ss := str.Split(le.Msg, " ")
 	k, _ := strconv.Atoi(ss[0])
 	c, _ := strconv.ParseInt(ss[1], 10, 64)
 	c0 := tw.counts[k]
@@ -59,7 +59,7 @@ func (tw *testConcurrentDetectWriter) Write(le *Event) error {
 
 	t := time.Now()
 	if t.After(tw.last.Add(time.Second)) {
-		fmt.Println(le.when, k, c, tw.count2)
+		fmt.Println(le.When, k, c, tw.count2)
 		tw.last = t
 	}
 

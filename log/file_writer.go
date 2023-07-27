@@ -68,7 +68,7 @@ func (fw *FileWriter) Write(le *Event) error {
 
 	lf := fw.Logfmt
 	if lf == nil {
-		lf = le.Logger().GetFormatter()
+		lf = le.Logger.GetFormatter()
 		if lf == nil {
 			lf = TextFmtDefault
 		}
@@ -80,7 +80,7 @@ func (fw *FileWriter) Write(le *Event) error {
 	}
 
 	if fw.fileSize > 0 && fw.needRotate(le) {
-		fw.rotate(le.When())
+		fw.rotate(le.When)
 
 		err := fw.init()
 		if err != nil {
@@ -99,7 +99,7 @@ func (fw *FileWriter) Write(le *Event) error {
 		return fmt.Errorf("FileWriter(%q) - Write(): %w", fw.Path, err)
 	}
 
-	if le.Level() <= fw.SyncLevel {
+	if le.Level <= fw.SyncLevel {
 		fw.sync()
 	}
 
@@ -193,8 +193,8 @@ func (fw *FileWriter) init() error {
 
 func (fw *FileWriter) needRotate(le *Event) bool {
 	return (fw.MaxSize > 0 && fw.fileSize >= fw.MaxSize) ||
-		(fw.MaxHours > 0 && fw.openHour != le.When().Hour()) ||
-		(fw.MaxDays > 0 && fw.openDay != le.When().Day())
+		(fw.MaxHours > 0 && fw.openHour != le.When.Hour()) ||
+		(fw.MaxDays > 0 && fw.openDay != le.When.Day())
 }
 
 // DoRotate means it need to write file in new file.

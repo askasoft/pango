@@ -2,6 +2,7 @@ package tbs
 
 import (
 	"embed"
+	"os"
 	"strings"
 	"testing"
 
@@ -43,6 +44,10 @@ func TestNewLoadFS(t *testing.T) {
 		return tbs.Format(locale, format, args...)
 	})
 
+	testReplace(t, func(locale, format string, args ...any) string {
+		return tbs.Replace(locale, format, args...)
+	})
+
 	testGetBundle(t, tbs)
 }
 
@@ -54,11 +59,11 @@ func testFormat(t *testing.T, fmt func(locale, format string, args ...any) strin
 		want string
 	}{
 		{"en", "title", nil, "hello world"},
-		{"en", "label.welcome", []any{"home"}, "welcome home"},
-		{"en", "label.new.hello", []any{"home"}, "hello home"},
+		{"en", "format.welcome", []any{"home"}, "welcome home"},
+		{"en", "format.new.hello", []any{"home"}, "hello home"},
 		{"ja-JP", "title", nil, "こんにちは世界"},
-		{"ja-JP", "label.welcome", []any{"ダーリン"}, "ようこそ ダーリン"},
-		{"ja-JP", "label.new.hello", []any{"ダーリン"}, "ハロー ダーリン"},
+		{"ja-JP", "format.welcome", []any{"ダーリン"}, "ようこそ ダーリン"},
+		{"ja-JP", "format.new.hello", []any{"ダーリン"}, "ハロー ダーリン"},
 	}
 
 	for i, c := range cs {
@@ -69,9 +74,34 @@ func testFormat(t *testing.T, fmt func(locale, format string, args ...any) strin
 	}
 }
 
+func testReplace(t *testing.T, rep func(locale, format string, args ...any) string) {
+	cs := []struct {
+		lang string
+		name string
+		args []any
+		want string
+	}{
+		{"en", "title", nil, "hello world"},
+		{"en", "replace.welcome", []any{"{name}", "home"}, "welcome home"},
+		{"en", "replace.new.hello", []any{"{name}", "home"}, "hello home"},
+		{"ja-JP", "title2", []any{"こんにちは世界2"}, "こんにちは世界2"},
+		{"ja-JP", "replace.welcome", []any{"{name}", "ダーリン"}, "ようこそ ダーリン"},
+		{"ja-JP", "replace.new.hello", []any{"{name}", "ダーリン"}, "ハロー ダーリン"},
+	}
+
+	for i, c := range cs {
+		a := rep(c.lang, c.name, c.args...)
+		if a != c.want {
+			t.Errorf("%d Replace(%q, %q, %v) = %q, want %q", i, c.lang, c.name, c.args, a, c.want)
+		}
+	}
+}
+
 func testGetBundle(t *testing.T, tbs *TextBundles) {
-	fexp := "testdata/bundles.ini"
+	fexp := "testdata/bundles.exp"
 	fout := "testdata/bundles.out"
+
+	os.Remove(fout)
 
 	b := tbs.GetBundle("ja-JP")
 	b.EOL = iox.CRLF

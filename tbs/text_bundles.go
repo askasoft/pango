@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/askasoft/pango/ars"
@@ -117,8 +118,8 @@ func (tbs *TextBundles) GetBundle(locale string) *ini.Ini {
 	return b
 }
 
-// Get target locale string
-func (tbs *TextBundles) Get(locale, section, name string) (string, bool) {
+// get get the target locale string
+func (tbs *TextBundles) get(locale, section, name string) (string, bool) {
 	for locale != "" {
 		if bundle, ok := tbs.bundles[locale]; ok {
 			if sec := bundle.GetSection(section); sec != nil {
@@ -146,21 +147,48 @@ func (tbs *TextBundles) Get(locale, section, name string) (string, bool) {
 	return "", false
 }
 
-// Format translate content to target language.
-func (tbs *TextBundles) Format(locale, format string, args ...any) string {
+// GetText get the locale text by key.
+func (tbs *TextBundles) GetText(locale, key string, defs ...string) string {
 	section := ""
+	name := key
 
-	dot := str.LastIndexByte(format, '.')
+	dot := str.IndexByte(name, '.')
 	if dot >= 0 {
-		section = format[:dot]
-		format = format[dot+1:]
+		section = name[:dot]
+		name = name[dot+1:]
 	}
 
-	if value, ok := tbs.Get(locale, section, format); ok {
-		format = value
+	if value, ok := tbs.get(locale, section, name); ok {
+		return value
 	}
 
-	if len(args) == 0 {
+	if len(defs) > 0 {
+		return defs[0]
+	}
+
+	return ""
+}
+
+func (tbs *TextBundles) getTextWithPairedArgs(locale, format string, args ...any) (string, []any) {
+	var defs []string
+
+	if len(args)&1 != 0 {
+		if s, ok := args[0].(string); ok {
+			defs = append(defs, s)
+			args = args[1:]
+		} else {
+			panic("tbs: invalid arguments")
+		}
+	}
+
+	return tbs.GetText(locale, format, defs...), args
+}
+
+// Format use fmt.Sprrintf to translate content to the locale language.
+func (tbs *TextBundles) Format(locale, format string, args ...any) string {
+	format = tbs.GetText(locale, format)
+
+	if format == "" || len(args) == 0 {
 		return format
 	}
 
@@ -178,4 +206,21 @@ func (tbs *TextBundles) Format(locale, format string, args ...any) string {
 		}
 	}
 	return fmt.Sprintf(format, params...)
+}
+
+// Replace use strings.Replacer to translate content to the locale language.
+func (tbs *TextBundles) Replace(locale, format string, args ...any) string {
+	format, args = tbs.getTextWithPairedArgs(locale, format, args...)
+
+	if format == "" || len(args) == 0 {
+		return format
+	}
+
+	sargs := make([]string, len(args))
+	for i, a := range args {
+		sargs[i] = fmt.Sprint(a)
+	}
+	repl := strings.NewReplacer(sargs...)
+
+	return repl.Replace(format)
 }

@@ -2,11 +2,13 @@
 base = Base
 title = こんにちは世界
 
-[label]
+[format]
 welcome = ようこそ %s
+new.hello = ハロー %s
 
-[label.new]
-hello = ハロー %s
+[replace]
+welcome = ようこそ {name}
+new.hello = ハロー {name}
 
 [common]
 c1 = m1

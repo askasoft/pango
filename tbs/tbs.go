@@ -38,12 +38,17 @@ func GetBundle(locale string) *ini.Ini {
 	return _tbs.GetBundle(locale)
 }
 
-// Get target locale string
-func Get(locale, section, name string) (string, bool) {
-	return _tbs.Get(locale, section, name)
+// GetText get the locale text by key.
+func GetText(locale, key string, defs ...string) string {
+	return _tbs.GetText(locale, key, defs...)
 }
 
 // Format translate content to target language.
 func Format(locale, format string, args ...any) string {
 	return _tbs.Format(locale, format, args...)
+}
+
+// Replace use strings.Replacer to translate content to the locale language.
+func Replace(locale, format string, args ...any) string {
+	return _tbs.Replace(locale, format, args...)
 }

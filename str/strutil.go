@@ -40,10 +40,16 @@ func Capitalize(s string) string {
 	}
 
 	if s[0] < utf8.RuneSelf {
+		if unicode.IsUpper(rune(s[0])) {
+			return s
+		}
 		return ToUpper(s[:1]) + s[1:]
 	}
 
 	r, size := utf8.DecodeRuneInString(s)
+	if unicode.IsUpper(r) {
+		return s
+	}
 	return string(unicode.ToUpper(r)) + s[size:]
 }
 

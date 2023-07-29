@@ -1,10 +1,6 @@
 package log
 
 import (
-	"fmt"
-	"reflect"
-	"strings"
-
 	"github.com/askasoft/pango/ref"
 )
 
@@ -46,45 +42,5 @@ func ConfigWriter(w Writer, c map[string]any) error {
 }
 
 func setWriterProp(w Writer, k string, v any) (err error) {
-	defer func() {
-		if er := recover(); er != nil {
-			err = fmt.Errorf("Panic for set %v: %v", k, er)
-		}
-	}()
-
-	p := strings.Title(k)
-	r := reflect.ValueOf(w)
-
-	m := r.MethodByName("Set" + p)
-	if m.IsValid() && m.Type().NumIn() == 1 {
-		t := m.Type().In(0)
-
-		i, err := ref.Convert(v, t)
-		if err != nil {
-			return err
-		}
-
-		rs := m.Call([]reflect.Value{reflect.ValueOf(i)})
-		for _, r := range rs {
-			if err, ok := r.Interface().(error); ok {
-				return err
-			}
-		}
-		return nil
-	}
-
-	f := r.Elem().FieldByName(p)
-	if f.IsValid() && f.CanSet() {
-		t := f.Type()
-
-		i, err := ref.Convert(v, t)
-		if err != nil {
-			return err
-		}
-
-		f.Set(reflect.ValueOf(i))
-		return nil
-	}
-
-	return fmt.Errorf("Missing property %q of %v", k, r.Type())
+	return ref.SetProperty(w, k, v)
 }

@@ -28,19 +28,16 @@ func (gl *GormLogger) LogMode(level logger.LogLevel) logger.Interface {
 // Info print info
 func (gl *GormLogger) Info(ctx context.Context, msg string, data ...interface{}) {
 	gl.printf(log.LevelInfo, msg, data...)
-	// gl.Logger.Infof(msg, data...)
 }
 
 // Warn print warn messages
 func (gl *GormLogger) Warn(ctx context.Context, msg string, data ...interface{}) {
 	gl.printf(log.LevelWarn, msg, data...)
-	// gl.Logger.Warnf(msg, data...)
 }
 
 // Error print error messages
 func (gl *GormLogger) Error(ctx context.Context, msg string, data ...interface{}) {
 	gl.printf(log.LevelError, msg, data...)
-	// gl.Logger.Errorf(msg, data...)
 }
 
 func (gl *GormLogger) printf(lvl log.Level, msg string, data ...any) {

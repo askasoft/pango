@@ -92,7 +92,7 @@ func buildJsonRequest(a any) (io.Reader, string, error) {
 
 func Call(client *http.Client, req *http.Request, logger log.Logger) (res *http.Response, err error) {
 	if logger != nil {
-		logger.Infof("%s %s", req.Method, req.URL)
+		logger.Debugf("%s %s", req.Method, req.URL)
 	}
 
 	rid := log.TraceHttpRequest(logger, req)

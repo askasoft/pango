@@ -368,7 +368,7 @@ func (fw *FileWatcher) delayCallbacks() {
 func (fw *FileWatcher) execCallbacks(fe *fileevent) {
 	log := fw.Logger
 	if log != nil {
-		log.Infof("fswatch: execute callback %q [%v]", fe.Name, fe.Op)
+		log.Debugf("fswatch: execute callback %q [%v]", fe.Name, fe.Op)
 	}
 
 	for _, cb := range fe.Callbacks {

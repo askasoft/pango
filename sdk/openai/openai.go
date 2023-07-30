@@ -49,7 +49,7 @@ func (oai *OpenAI) call(req *http.Request) (res *http.Response, err error) {
 	}
 
 	if oai.Logger != nil {
-		oai.Logger.Infof("%s %s", req.Method, req.URL)
+		oai.Logger.Debugf("%s %s", req.Method, req.URL)
 	}
 
 	rid := log.TraceHttpRequest(oai.Logger, req)

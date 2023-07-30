@@ -1,7 +1,6 @@
 package log
 
 import (
-	"bytes"
 	"crypto/tls"
 	"fmt"
 	"time"
@@ -13,6 +12,10 @@ import (
 
 // SMTPWriter implements log Writer Interface and send log message.
 type SMTPWriter struct {
+	LogFilter
+	LogFormatter
+	SubFormatter
+
 	Host     string
 	Port     int
 	Username string
@@ -21,30 +24,9 @@ type SMTPWriter struct {
 	Tos      []string
 	Ccs      []string
 	Timeout  time.Duration
-	Subfmt   Formatter // subject formatter
-	Logfmt   Formatter // log formatter
-	Logfil   Filter    // log filter
 
 	email  *email.Email      // email
 	sender *email.SMTPSender // email sender
-
-	sb bytes.Buffer // subject buffer
-	mb bytes.Buffer // message buffer
-}
-
-// SetSubject set the subject formatter
-func (sw *SMTPWriter) SetSubject(format string) {
-	sw.Subfmt = NewLogFormatter(format)
-}
-
-// SetFormat set the log formatter
-func (sw *SMTPWriter) SetFormat(format string) {
-	sw.Logfmt = NewLogFormatter(format)
-}
-
-// SetFilter set the log filter
-func (sw *SMTPWriter) SetFilter(filter string) {
-	sw.Logfil = NewLogFilter(filter)
 }
 
 // SetTo set To recipients
@@ -69,7 +51,7 @@ func (sw *SMTPWriter) SetTimeout(timeout string) error {
 
 // Write send log message to smtp server.
 func (sw *SMTPWriter) Write(le *Event) (err error) {
-	if sw.Logfil != nil && sw.Logfil.Reject(le) {
+	if sw.Reject(le) {
 		return
 	}
 
@@ -108,26 +90,11 @@ func (sw *SMTPWriter) Write(le *Event) (err error) {
 
 // format format log event to (subject, message)
 func (sw *SMTPWriter) format(le *Event) (sub, msg string) {
-	sf := sw.Subfmt
-	if sf == nil {
-		sf = TextFmtSubject
-	}
+	sbs := sw.SubFormat(le)
+	sub = bye.UnsafeString(sbs)
 
-	lf := sw.Logfmt
-	if lf == nil {
-		lf = le.Logger.GetFormatter()
-		if lf == nil {
-			lf = TextFmtDefault
-		}
-	}
-
-	sw.sb.Reset()
-	sf.Write(&sw.sb, le)
-	sub = bye.UnsafeString(sw.sb.Bytes())
-
-	sw.mb.Reset()
-	lf.Write(&sw.mb, le)
-	msg = bye.UnsafeString(sw.mb.Bytes())
+	mbs := sw.Format(le)
+	msg = bye.UnsafeString(mbs)
 
 	return
 }

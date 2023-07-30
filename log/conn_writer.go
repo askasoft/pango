@@ -1,7 +1,6 @@
 package log
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"net"
@@ -11,24 +10,14 @@ import (
 // ConnWriter implements Writer.
 // it writes messages in keep-live tcp connection.
 type ConnWriter struct {
+	LogFilter
+	LogFormatter
+
 	Net     string
 	Addr    string
 	Timeout time.Duration
-	Logfmt  Formatter // log formatter
-	Logfil  Filter    // log filter
 
 	conn io.WriteCloser
-	bb   bytes.Buffer
-}
-
-// SetFormat set the log formatter
-func (cw *ConnWriter) SetFormat(format string) {
-	cw.Logfmt = NewLogFormatter(format)
-}
-
-// SetFilter set the log filter
-func (cw *ConnWriter) SetFilter(filter string) {
-	cw.Logfil = NewLogFilter(filter)
 }
 
 // SetTimeout set timeout
@@ -43,16 +32,8 @@ func (cw *ConnWriter) SetTimeout(timeout string) error {
 
 // Write write logger message to connection.
 func (cw *ConnWriter) Write(le *Event) (err error) {
-	if cw.Logfil != nil && cw.Logfil.Reject(le) {
+	if cw.Reject(le) {
 		return
-	}
-
-	lf := cw.Logfmt
-	if lf == nil {
-		lf = le.Logger.GetFormatter()
-		if lf == nil {
-			lf = TextFmtDefault
-		}
 	}
 
 	err = cw.dial()
@@ -61,11 +42,10 @@ func (cw *ConnWriter) Write(le *Event) (err error) {
 	}
 
 	// format msg
-	cw.bb.Reset()
-	lf.Write(&cw.bb, le)
+	bs := cw.Format(le)
 
 	// write log
-	_, err = cw.conn.Write(cw.bb.Bytes())
+	_, err = cw.conn.Write(bs)
 	if err != nil {
 		// This is probably due to a timeout, so reconnect and try again.
 		cw.Close()

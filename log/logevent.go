@@ -12,7 +12,7 @@ import (
 
 // Event log event
 type Event struct {
-	Logger Logger
+	Logger Logger `json:"-"`
 	Level  Level
 	Msg    string
 	When   time.Time

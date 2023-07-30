@@ -1,7 +1,6 @@
 package log
 
 import (
-	"bytes"
 	"fmt"
 	"net/url"
 	"time"
@@ -12,14 +11,12 @@ import (
 
 // SlackWriter implements log Writer Interface and send log message to slack.
 type SlackWriter struct {
+	LogFilter
+	LogFormatter
+	SubFormatter
+
 	Webhook string
 	Timeout time.Duration
-	Subfmt  Formatter // subject formatter
-	Logfmt  Formatter // log formatter
-	Logfil  Filter    // log filter
-
-	sb bytes.Buffer // subject buffer
-	mb bytes.Buffer // message buffer
 }
 
 // SetWebhook set the webhook URL
@@ -30,21 +27,6 @@ func (sw *SlackWriter) SetWebhook(webhook string) error {
 	}
 	sw.Webhook = webhook
 	return nil
-}
-
-// SetSubject set the subject formatter
-func (sw *SlackWriter) SetSubject(format string) {
-	sw.Subfmt = NewLogFormatter(format)
-}
-
-// SetFormat set the log formatter
-func (sw *SlackWriter) SetFormat(format string) {
-	sw.Logfmt = NewLogFormatter(format)
-}
-
-// SetFilter set the log filter
-func (sw *SlackWriter) SetFilter(filter string) {
-	sw.Logfil = NewLogFilter(filter)
 }
 
 // SetTimeout set timeout
@@ -59,7 +41,7 @@ func (sw *SlackWriter) SetTimeout(timeout string) error {
 
 // Write send log message to slack
 func (sw *SlackWriter) Write(le *Event) (err error) {
-	if sw.Logfil != nil && sw.Logfil.Reject(le) {
+	if sw.Reject(le) {
 		return
 	}
 
@@ -84,27 +66,12 @@ func (sw *SlackWriter) Write(le *Event) (err error) {
 
 // format format log event to (subject, message)
 func (sw *SlackWriter) format(le *Event) (sub, msg string) {
-	sf := sw.Subfmt
-	if sf == nil {
-		sf = TextFmtSubject
-	}
-
-	lf := sw.Logfmt
-	if lf == nil {
-		lf = le.Logger.GetFormatter()
-		if lf == nil {
-			lf = TextFmtDefault
-		}
-	}
-
-	sw.sb.Reset()
-	sf.Write(&sw.sb, le)
-	sub = bye.UnsafeString(sw.sb.Bytes())
+	sbs := sw.SubFormat(le)
+	sub = bye.UnsafeString(sbs)
 	sub = slack.EscapeString(sub)
 
-	sw.mb.Reset()
-	lf.Write(&sw.mb, le)
-	msg = bye.UnsafeString(sw.mb.Bytes())
+	mbs := sw.Format(le)
+	msg = bye.UnsafeString(mbs)
 
 	return
 }

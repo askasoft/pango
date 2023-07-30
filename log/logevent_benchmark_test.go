@@ -1,8 +1,10 @@
 package log
 
 import (
+	"strings"
 	"sync"
 	"testing"
+	"time"
 )
 
 const benchmarkTestEventCount = 10000
@@ -54,6 +56,43 @@ func BenchmarkLogEventNewWithPool(b *testing.B) {
 			le := testEventPool.Get().(*Event)
 			le.Msg = ""
 			le.CallerDepth(5, false)
+			testEventPool.Put(le)
 		}
 	}
+}
+
+func BenchmarkLogEventNewWithPoolParallel(b *testing.B) {
+	// eventPool log event pool
+	var eventPool = &sync.Pool{
+		New: func() any {
+			return &Event{}
+		},
+	}
+
+	b.RunParallel(func(pb *testing.PB) {
+		sb := &strings.Builder{}
+		for pb.Next() {
+			le := eventPool.Get().(*Event)
+			le.Logger = &logger{}
+			le.Level = LevelInfo
+			le.Msg = "simple"
+			le.When = time.Now()
+			TextFmtSimple.Write(sb, le)
+			eventPool.Put(le)
+		}
+	})
+}
+
+func BenchmarkLogEventNewWithoutPoolParallel(b *testing.B) {
+	b.RunParallel(func(pb *testing.PB) {
+		sb := &strings.Builder{}
+		for pb.Next() {
+			le := &Event{}
+			le.Logger = &logger{}
+			le.Level = LevelInfo
+			le.Msg = "simple"
+			le.When = time.Now()
+			TextFmtSimple.Write(sb, le)
+		}
+	})
 }

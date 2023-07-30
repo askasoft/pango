@@ -15,7 +15,8 @@ import (
 
 func TestAsyncWriteConsole(t *testing.T) {
 	log := NewLog()
-	sw := &StreamWriter{Color: true, Logfmt: NewTextFormatter("%t{2006-01-02T15:04:05.000} [%c] %l - %m%n")}
+	sw := &StreamWriter{Color: true}
+	sw.Formatter = NewTextFormatter("%t{2006-01-02T15:04:05.000} [%c] %l - %m%n")
 	aw := NewAsyncWriter(sw, 100)
 	log.SetWriter(aw)
 

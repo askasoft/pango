@@ -1,7 +1,6 @@
 package log
 
 import (
-	"bytes"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -12,15 +11,15 @@ import (
 
 // WebhookWriter implements log Writer Interface and send log message to webhook.
 type WebhookWriter struct {
+	LogFilter
+	LogFormatter
+
 	Webhook     string // webhook URL
 	Method      string // http method
 	ContentType string
 	Timeout     time.Duration
-	Logfmt      Formatter // log formatter
-	Logfil      Filter    // log filter
 
 	hc *http.Client
-	bb bytes.Buffer // message buffer
 }
 
 // SetWebhook set the webhook URL
@@ -31,16 +30,6 @@ func (ww *WebhookWriter) SetWebhook(webhook string) error {
 	}
 	ww.Webhook = webhook
 	return nil
-}
-
-// SetFormat set the log formatter
-func (ww *WebhookWriter) SetFormat(format string) {
-	ww.Logfmt = NewJSONFormatter(format)
-}
-
-// SetFilter set the log filter
-func (ww *WebhookWriter) SetFilter(filter string) {
-	ww.Logfil = NewLogFilter(filter)
 }
 
 // SetTimeout set timeout
@@ -55,7 +44,7 @@ func (ww *WebhookWriter) SetTimeout(timeout string) error {
 
 // Write send log message to webhook
 func (ww *WebhookWriter) Write(le *Event) error {
-	if ww.Logfil != nil && ww.Logfil.Reject(le) {
+	if ww.Reject(le) {
 		return nil
 	}
 
@@ -103,12 +92,9 @@ func (ww *WebhookWriter) initClient() {
 }
 
 func (ww *WebhookWriter) format(le *Event) {
-	lf := ww.Logfmt
+	lf := ww.Formatter
 	if lf == nil {
-		lf = le.Logger.GetFormatter()
-		if lf == nil {
-			lf = JSONFmtDefault
-		}
+		lf = JSONFmtDefault
 	}
 
 	ww.bb.Reset()

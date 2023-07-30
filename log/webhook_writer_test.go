@@ -19,13 +19,15 @@ func TestWebhook_ESLog(t *testing.T) {
 	log.SetLevel(LevelTrace)
 	log.SetFormatter(NewJSONFormatter(
 		`{"when": %t{2006-01-02T15:04:05.000Z07:00}, "level": %l, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`))
+
+	ww := &WebhookWriter{
+		Webhook:     url,
+		ContentType: "application/json",
+		Timeout:     time.Millisecond * 300,
+	}
+	ww.Filter = NewLevelFilter(LevelDebug)
 	log.SetWriter(NewMultiWriter(
-		&WebhookWriter{
-			Webhook:     url,
-			ContentType: "application/json",
-			Logfil:      NewLevelFilter(LevelDebug),
-			Timeout:     time.Millisecond * 300,
-		},
+		ww,
 		&StreamWriter{Color: true},
 	))
 

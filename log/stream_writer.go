@@ -1,7 +1,6 @@
 package log
 
 import (
-	"bytes"
 	"io"
 	"os"
 
@@ -10,26 +9,16 @@ import (
 
 // StreamWriter implements log Writer Interface and writes messages to terminal.
 type StreamWriter struct {
-	Color  bool         //this filed is useful only when system's terminal supports color
-	Output io.Writer    // log output
-	Logfmt Formatter    // log formatter
-	Logfil Filter       // log filter
-	bb     bytes.Buffer // log buffer
-}
+	LogFilter
+	LogFormatter
 
-// SetFormat set the log formatter
-func (sw *StreamWriter) SetFormat(format string) {
-	sw.Logfmt = NewLogFormatter(format)
-}
-
-// SetFilter set the log filter
-func (sw *StreamWriter) SetFilter(filter string) {
-	sw.Logfil = NewLogFilter(filter)
+	Color  bool      //this filed is useful only when system's terminal supports color
+	Output io.Writer // log output
 }
 
 // Write write message in console.
 func (sw *StreamWriter) Write(le *Event) (err error) {
-	if sw.Logfil != nil && sw.Logfil.Reject(le) {
+	if sw.Reject(le) {
 		return
 	}
 
@@ -37,28 +26,19 @@ func (sw *StreamWriter) Write(le *Event) (err error) {
 		sw.Output = os.Stdout
 	}
 
-	lf := sw.Logfmt
-	if lf == nil {
-		lf = le.Logger.GetFormatter()
-		if lf == nil {
-			lf = TextFmtDefault
-		}
-	}
-
-	sw.bb.Reset()
-	lf.Write(&sw.bb, le)
+	bs := sw.Format(le)
 	if sw.Color {
 		_, err = sw.Output.Write(colors[le.Level])
 		if err != nil {
 			return
 		}
-		_, err = sw.Output.Write(sw.bb.Bytes())
+		_, err = sw.Output.Write(bs)
 		if err != nil {
 			return
 		}
 		_, err = sw.Output.Write(colors[0])
 	} else {
-		_, err = sw.Output.Write(sw.bb.Bytes())
+		_, err = sw.Output.Write(bs)
 	}
 	return
 }

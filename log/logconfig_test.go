@@ -71,7 +71,7 @@ func assertLogConfig(t *testing.T, log *Log) {
 		}
 		assertLogEqual(t, `w.Color`, false, w.Color)
 
-		f, ok := w.Logfil.(*MultiFilter)
+		f, ok := w.Filter.(*MultiFilter)
 		if !ok {
 			t.Fatalf("Not MultiFilter")
 		}
@@ -113,7 +113,7 @@ func assertLogConfig(t *testing.T, log *Log) {
 		assertLogEqual(t, `w.Addr`, "localhost:9999", w.Addr)
 		assertLogEqual(t, `w.Timeout`, time.Second*5, w.Timeout)
 
-		f, ok := w.Logfil.(*LevelFilter)
+		f, ok := w.Filter.(*LevelFilter)
 		if !ok {
 			t.Fatalf("Not LevelFilter")
 		}
@@ -136,7 +136,7 @@ func assertLogConfig(t *testing.T, log *Log) {
 		assertLogEqual(t, `w.MaxSize`, int64(num.MB*4), w.MaxSize)
 		assertLogEqual(t, `w.SyncLevel`, LevelError, w.SyncLevel)
 
-		f, ok := w.Logfil.(*LevelFilter)
+		f, ok := w.Filter.(*LevelFilter)
 		if !ok {
 			t.Fatalf("Not LevelFilter")
 		}
@@ -157,7 +157,7 @@ func assertLogConfig(t *testing.T, log *Log) {
 		assertLogEqual(t, `w.Webhook`, "https://hooks.slack.com/services/...", w.Webhook)
 		assertLogEqual(t, `w.Timeout`, time.Second*5, w.Timeout)
 
-		f, ok := w.Logfil.(*LevelFilter)
+		f, ok := w.Filter.(*LevelFilter)
 		if !ok {
 			t.Fatalf("Not LevelFilter")
 		}
@@ -189,7 +189,7 @@ func assertLogConfig(t *testing.T, log *Log) {
 		assertLogEqual(t, `w.Ccs`, "cc1@test.com cc2@test.com", strings.Join(w.Ccs, " "))
 		assertLogEqual(t, `w.Timeout`, time.Second*5, w.Timeout)
 
-		f, ok := w.Logfil.(*LevelFilter)
+		f, ok := w.Filter.(*LevelFilter)
 		if !ok {
 			t.Fatalf("Not LevelFilter")
 		}
@@ -210,7 +210,7 @@ func assertLogConfig(t *testing.T, log *Log) {
 		assertLogEqual(t, `w.Webhook`, "https://xxx.webhook.office.com/webhookb2/...", w.Webhook)
 		assertLogEqual(t, `w.Timeout`, time.Second*3, w.Timeout)
 
-		f, ok := w.Logfil.(*LevelFilter)
+		f, ok := w.Filter.(*LevelFilter)
 		if !ok {
 			t.Fatalf("Not LevelFilter")
 		}
@@ -232,12 +232,12 @@ func assertLogConfig(t *testing.T, log *Log) {
 		assertLogEqual(t, `w.ContentType`, "application/json", w.ContentType)
 		assertLogEqual(t, `w.Timeout`, time.Second*5, w.Timeout)
 
-		jf, ok := w.Logfmt.(*JSONFormatter)
+		jf, ok := w.Formatter.(*JSONFormatter)
 		if jf == nil || !ok {
 			t.Fatalf("Not JSONFormatter")
 		}
 
-		f, ok := w.Logfil.(*LevelFilter)
+		f, ok := w.Filter.(*LevelFilter)
 		if !ok {
 			t.Fatalf("Not LevelFilter")
 		}

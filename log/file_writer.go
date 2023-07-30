@@ -1,7 +1,6 @@
 package log
 
 import (
-	"bytes"
 	"compress/gzip"
 	"fmt"
 	"io"
@@ -16,17 +15,18 @@ import (
 // FileWriter implements Writer.
 // It writes messages and rotate by file size limit, daily, hourly.
 type FileWriter struct {
-	Path      string    // Log file path name
-	DirPerm   uint32    // Log dir permission
-	FilePerm  uint32    // Log file permission
-	MaxSplit  int       // Max split files
-	MaxSize   int64     // Rotate at size
-	MaxDays   int       // Max daily files
-	MaxHours  int       // Max hourly files
-	Gzip      bool      // Compress rotated log files
-	SyncLevel Level     // Call File.Sync() if level <= SyncLevel
-	Logfmt    Formatter // log formatter
-	Logfil    Filter    // log filter
+	LogFilter
+	LogFormatter
+
+	Path      string // Log file path name
+	DirPerm   uint32 // Log dir permission
+	FilePerm  uint32 // Log file permission
+	MaxSplit  int    // Max split files
+	MaxSize   int64  // Rotate at size
+	MaxDays   int    // Max daily files
+	MaxHours  int    // Max hourly files
+	Gzip      bool   // Compress rotated log files
+	SyncLevel Level  // Call File.Sync() if level <= SyncLevel
 
 	dir      string
 	prefix   string
@@ -37,22 +37,11 @@ type FileWriter struct {
 	openTime time.Time
 	openDay  int
 	openHour int
-	bb       bytes.Buffer
 }
 
 // SetSyncLevel set the sync level
 func (fw *FileWriter) SetSyncLevel(lvl string) {
 	fw.SyncLevel = ParseLevel(lvl)
-}
-
-// SetFormat set the log formatter
-func (fw *FileWriter) SetFormat(format string) {
-	fw.Logfmt = NewLogFormatter(format)
-}
-
-// SetFilter set the log filter
-func (fw *FileWriter) SetFilter(filter string) {
-	fw.Logfil = NewLogFilter(filter)
 }
 
 // SetMaxSize set the MaxSize
@@ -62,16 +51,8 @@ func (fw *FileWriter) SetMaxSize(maxSize string) {
 
 // Write write logger message into file.
 func (fw *FileWriter) Write(le *Event) error {
-	if fw.Logfil != nil && fw.Logfil.Reject(le) {
+	if fw.Reject(le) {
 		return nil
-	}
-
-	lf := fw.Logfmt
-	if lf == nil {
-		lf = le.Logger.GetFormatter()
-		if lf == nil {
-			lf = TextFmtDefault
-		}
 	}
 
 	err := fw.init()
@@ -89,11 +70,10 @@ func (fw *FileWriter) Write(le *Event) error {
 	}
 
 	// format msg
-	fw.bb.Reset()
-	lf.Write(&fw.bb, le)
+	bs := fw.Format(le)
 
 	// write log
-	n, err := fw.file.Write(fw.bb.Bytes())
+	n, err := fw.file.Write(bs)
 	fw.fileSize += int64(n)
 	if err != nil {
 		return fmt.Errorf("FileWriter(%q) - Write(): %w", fw.Path, err)

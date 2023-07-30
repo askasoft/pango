@@ -1,8 +1,8 @@
 package log
 
 import (
-	"strings"
-	"sync"
+	"encoding/json"
+	"fmt"
 	"testing"
 	"time"
 )
@@ -23,38 +23,11 @@ func TestEventCaller(t *testing.T) {
 	}
 }
 
-func BenchmarkEventPool(b *testing.B) {
-	// eventPool log event pool
-	var eventPool = &sync.Pool{
-		New: func() any {
-			return &Event{}
-		},
-	}
+func TestEventJsonMarshall(t *testing.T) {
+	le := newEvent(&logger{}, LevelInfo, "caller")
+	le.When = time.Now()
+	le.CallerDepth(2, false)
 
-	b.RunParallel(func(pb *testing.PB) {
-		sb := &strings.Builder{}
-		for pb.Next() {
-			le := eventPool.Get().(*Event)
-			le.Logger = &logger{}
-			le.Level = LevelInfo
-			le.Msg = "simple"
-			le.When = time.Now()
-			TextFmtSimple.Write(sb, le)
-			eventPool.Put(le)
-		}
-	})
-}
-
-func BenchmarkEventNew(b *testing.B) {
-	b.RunParallel(func(pb *testing.PB) {
-		sb := &strings.Builder{}
-		for pb.Next() {
-			le := &Event{}
-			le.Logger = &logger{}
-			le.Level = LevelInfo
-			le.Msg = "simple"
-			le.When = time.Now()
-			TextFmtSimple.Write(sb, le)
-		}
-	})
+	bs, _ := json.Marshal(le)
+	fmt.Println(string(bs))
 }

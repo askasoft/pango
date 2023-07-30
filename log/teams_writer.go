@@ -1,10 +1,8 @@
 package log
 
 import (
-	"bytes"
 	"fmt"
 	"net/url"
-	"strconv"
 	"time"
 
 	"github.com/askasoft/pango/bye"
@@ -13,15 +11,12 @@ import (
 
 // TeamsWriter implements log Writer Interface and send log message to teams.
 type TeamsWriter struct {
+	LogFilter
+	LogFormatter
+	SubFormatter
+
 	Webhook string
 	Timeout time.Duration
-	Subfmt  Formatter // subject formatter
-	Logfmt  Formatter // log formatter
-	Logfil  Filter    // log filter
-
-	sb bytes.Buffer // subject buffer
-	mb bytes.Buffer // message buffer
-	eb *EventBuffer // event buffer
 }
 
 // SetWebhook set the webhook URL
@@ -34,21 +29,6 @@ func (tw *TeamsWriter) SetWebhook(webhook string) error {
 	return nil
 }
 
-// SetSubject set the subject formatter
-func (tw *TeamsWriter) SetSubject(format string) {
-	tw.Subfmt = NewLogFormatter(format)
-}
-
-// SetFormat set the log formatter
-func (tw *TeamsWriter) SetFormat(format string) {
-	tw.Logfmt = NewLogFormatter(format)
-}
-
-// SetFilter set the log filter
-func (tw *TeamsWriter) SetFilter(filter string) {
-	tw.Logfil = NewLogFilter(filter)
-}
-
 // SetTimeout set timeout
 func (tw *TeamsWriter) SetTimeout(timeout string) error {
 	tmo, err := time.ParseDuration(timeout)
@@ -59,21 +39,9 @@ func (tw *TeamsWriter) SetTimeout(timeout string) error {
 	return nil
 }
 
-// SetBuffer set the event buffer size
-func (tw *TeamsWriter) SetBuffer(buffer string) error {
-	bsz, err := strconv.Atoi(buffer)
-	if err != nil {
-		return fmt.Errorf("TeamsWriter - Invalid buffer: %w", err)
-	}
-	if bsz > 0 {
-		tw.eb = &EventBuffer{BufSize: bsz}
-	}
-	return nil
-}
-
 // Write send log message to teams
 func (tw *TeamsWriter) Write(le *Event) (err error) {
-	if tw.Logfil != nil && tw.Logfil.Reject(le) {
+	if tw.Reject(le) {
 		return
 	}
 
@@ -95,26 +63,11 @@ func (tw *TeamsWriter) Write(le *Event) (err error) {
 
 // format format log event to (message)
 func (tw *TeamsWriter) format(le *Event) (sub, msg string) {
-	sf := tw.Subfmt
-	if sf == nil {
-		sf = TextFmtSubject
-	}
+	sbs := tw.SubFormat(le)
+	sub = bye.UnsafeString(sbs)
 
-	lf := tw.Logfmt
-	if lf == nil {
-		lf = le.Logger.GetFormatter()
-		if lf == nil {
-			lf = TextFmtDefault
-		}
-	}
-
-	tw.sb.Reset()
-	sf.Write(&tw.sb, le)
-	sub = bye.UnsafeString(tw.sb.Bytes())
-
-	tw.mb.Reset()
-	lf.Write(&tw.mb, le)
-	msg = bye.UnsafeString(tw.mb.Bytes())
+	mbs := tw.Format(le)
+	msg = bye.UnsafeString(mbs)
 
 	return
 }

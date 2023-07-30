@@ -65,8 +65,8 @@ func TestSmtpWriter(t *testing.T) {
 		Password: pass,
 		From:     sf,
 		Tos:      sts,
-		Subfmt:   newTextFormatter("%t [%l] %m"),
 	}
+	sw.SetSubject("%t [%l] %m")
 	log.SetWriter(sw)
 
 	sw.initSender()

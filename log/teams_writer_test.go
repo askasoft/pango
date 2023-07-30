@@ -15,7 +15,8 @@ func TestTeamsLog(t *testing.T) {
 
 	log := NewLog()
 	log.SetLevel(LevelTrace)
-	sw := &TeamsWriter{Webhook: wh, Logfil: NewLevelFilter(LevelInfo)}
+	sw := &TeamsWriter{Webhook: wh}
+	sw.Filter = NewLevelFilter(LevelInfo)
 	log.SetWriter(sw)
 
 	log.Debug("This is a teams debug log")

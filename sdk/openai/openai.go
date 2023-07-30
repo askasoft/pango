@@ -60,7 +60,7 @@ func (oai *OpenAI) call(req *http.Request) (res *http.Response, err error) {
 
 		if res.StatusCode == http.StatusTooManyRequests {
 			iox.DrainAndClose(res.Body)
-			return res, &RateLimitedError{StatusCode: res.StatusCode, RetryAfter: 20}
+			return res, &RateLimitedError{StatusCode: res.StatusCode, RetryAfter: 20 * time.Second}
 		}
 	}
 

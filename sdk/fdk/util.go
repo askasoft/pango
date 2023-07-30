@@ -6,13 +6,14 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"strconv"
+	"time"
 
 	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/fsu"
 	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/net/httpx"
+	"github.com/askasoft/pango/num"
 )
 
 const (
@@ -103,12 +104,12 @@ func Call(client *http.Client, req *http.Request, logger log.Logger) (res *http.
 
 		if res.StatusCode == http.StatusTooManyRequests {
 			s := res.Header.Get("Retry-After")
-			n, _ := strconv.Atoi(s)
+			n := num.Atoi(s)
 			if n <= 0 {
 				n = 30 // invalid number, default to 30s
 			}
 			iox.DrainAndClose(res.Body)
-			return res, &RateLimitedError{StatusCode: res.StatusCode, RetryAfter: n}
+			return res, &RateLimitedError{StatusCode: res.StatusCode, RetryAfter: time.Second * time.Duration(n)}
 		}
 	}
 

@@ -413,8 +413,6 @@ func TestFileRotateDaily(t *testing.T) {
 		le.When = tm
 		fw.Write(le)
 		fw.openTime = tm
-		fw.openDay = tm.Day()
-		fw.openHour = tm.Hour()
 		tm = tm.Add(time.Hour * 24)
 	}
 	time.Sleep(time.Millisecond * 100)
@@ -463,8 +461,6 @@ func TestFileRotateDailyOutdated(t *testing.T) {
 		le.When = tm
 		fw.Write(le)
 		fw.openTime = tm
-		fw.openDay = tm.Day()
-		fw.openHour = tm.Hour()
 		if i > 1 && i < 10 {
 			tm0 := tm.Add(time.Hour * -24)
 			sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%s.log", tm0.Format("20060102")))
@@ -531,8 +527,6 @@ func TestFileRotateHourly(t *testing.T) {
 		le.When = tm
 		fw.Write(le)
 		fw.openTime = tm
-		fw.openDay = tm.Day()
-		fw.openHour = tm.Hour()
 		tm = tm.Add(time.Hour)
 	}
 	time.Sleep(time.Millisecond * 100)
@@ -581,8 +575,6 @@ func TestFileRotateHourlyOutdated(t *testing.T) {
 		le.When = tm
 		fw.Write(le)
 		fw.openTime = tm
-		fw.openDay = tm.Day()
-		fw.openHour = tm.Hour()
 		if i > 1 && i < 10 {
 			tm0 := tm.Add(time.Hour * -1)
 			sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%s.log", tm0.Format("2006010215")))

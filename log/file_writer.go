@@ -35,8 +35,6 @@ type FileWriter struct {
 	fileSize int64
 	fileNum  int
 	openTime time.Time
-	openDay  int
-	openHour int
 }
 
 // SetSyncLevel set the sync level
@@ -55,16 +53,14 @@ func (fw *FileWriter) Write(le *Event) error {
 		return nil
 	}
 
-	err := fw.init()
-	if err != nil {
+	if err := fw.init(); err != nil {
 		return err
 	}
 
 	if fw.fileSize > 0 && fw.needRotate(le) {
 		fw.rotate(le.When)
 
-		err := fw.init()
-		if err != nil {
+		if err := fw.init(); err != nil {
 			return err
 		}
 	}
@@ -153,28 +149,27 @@ func (fw *FileWriter) init() error {
 	// Make sure file perm is user set perm cause of `os.OpenFile` will obey umask
 	err = os.Chmod(fw.Path, os.FileMode(fw.FilePerm))
 	if err != nil {
+		file.Close()
 		return fmt.Errorf("FileWriter(%q) - Chmod(): %w", fw.Path, err)
 	}
 
 	fi, err := file.Stat()
 	if err != nil {
+		file.Close()
 		return fmt.Errorf("FileWriter(%q) - Stat(): %w", fw.Path, err)
 	}
 
-	// init file info
 	fw.fileSize = fi.Size()
-	fw.openTime = fi.ModTime()
-	fw.openDay = fw.openTime.Day()
-	fw.openHour = fw.openTime.Hour()
-
+	fw.openTime = time.Now()
 	fw.file = file
+
 	return nil
 }
 
 func (fw *FileWriter) needRotate(le *Event) bool {
 	return (fw.MaxSize > 0 && fw.fileSize >= fw.MaxSize) ||
-		(fw.MaxHours > 0 && fw.openHour != le.When.Hour()) ||
-		(fw.MaxDays > 0 && fw.openDay != le.When.Day())
+		(fw.MaxHours > 0 && fw.openTime.Hour() != le.When.Hour()) ||
+		(fw.MaxDays > 0 && fw.openTime.Day() != le.When.Day())
 }
 
 // DoRotate means it need to write file in new file.
@@ -185,12 +180,12 @@ func (fw *FileWriter) rotate(tm time.Time) {
 	date := ""
 	if fw.MaxHours > 0 {
 		date = fw.openTime.Format("-2006010215")
-		if fw.openHour != tm.Hour() {
+		if fw.openTime.Hour() != tm.Hour() {
 			fw.fileNum = 0
 		}
 	} else if fw.MaxDays > 0 {
 		date = fw.openTime.Format("-20060102")
-		if fw.openDay != tm.Day() {
+		if fw.openTime.Day() != tm.Day() {
 			fw.fileNum = 0
 		}
 	}
@@ -201,8 +196,7 @@ func (fw *FileWriter) rotate(tm time.Time) {
 		path = fw.nextFile(pre)
 	} else {
 		path = pre + fw.suffix
-		_, err := os.Stat(path)
-		if err == nil {
+		if _, err := os.Stat(path); err == nil {
 			// timely rotate file exists (normally impossible)
 			// find next split file name
 			path = fw.nextFile(pre)
@@ -210,8 +204,7 @@ func (fw *FileWriter) rotate(tm time.Time) {
 	}
 
 	// close file before rename
-	err := fw.file.Close()
-	if err != nil {
+	if err := fw.file.Close(); err != nil {
 		perrorf("FileWriter(%q) - Close(): %v", fw.Path, err)
 		return
 	}
@@ -219,8 +212,7 @@ func (fw *FileWriter) rotate(tm time.Time) {
 
 	// Rename the file to its new found name
 	// even if occurs error, we MUST guarantee to restart new logger
-	err = os.Rename(fw.Path, path)
-	if err != nil {
+	if err := os.Rename(fw.Path, path); err != nil {
 		perrorf("FileWriter(%q) - Rename(->%q): %v", fw.Path, path, err)
 		return
 	}

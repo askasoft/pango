@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/log"
-	"github.com/askasoft/pango/num"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -53,17 +52,6 @@ func (gl *GormLogger) printf(lvl log.Level, msg string, data ...any) {
 	}
 }
 
-func getSqlAndRows(fc func() (string, int64)) (sql, rows string) {
-	rows = "-"
-
-	var n int64
-	sql, n = fc()
-	if n >= 0 {
-		rows = num.Ltoa(n)
-	}
-	return
-}
-
 // Trace print sql message
 func (gl *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (string, int64), err error) {
 	if !gl.Logger.IsErrorEnabled() {
@@ -73,15 +61,14 @@ func (gl *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (str
 	elapsed := time.Since(begin)
 	switch {
 	case err != nil && (!errors.Is(err, gorm.ErrRecordNotFound) || gl.TraceRecordNotFoundError):
-		sql, rows := getSqlAndRows(fc)
-		gl.printf(log.LevelError, "%s [%.3fms] [rows:%v] %s", err, float64(elapsed.Nanoseconds())/1e6, rows, sql)
+		sql, rows := fc()
+		gl.printf(log.LevelError, "%s [%d: %v] %s", err, rows, elapsed, sql)
 	case gl.SlowThreshold != 0 && elapsed > gl.SlowThreshold && gl.Logger.IsWarnEnabled():
-		sql, rows := getSqlAndRows(fc)
-		slowLog := fmt.Sprintf("SLOW SQL >= %v", gl.SlowThreshold)
-		gl.printf(log.LevelWarn, "%s [%.3fms] [rows:%v] %s", slowLog, float64(elapsed.Nanoseconds())/1e6, rows, sql)
+		sql, rows := fc()
+		gl.printf(log.LevelWarn, "SLOW >= %v [%d: %v] %s", gl.SlowThreshold, rows, elapsed, sql)
 	case gl.Logger.IsInfoEnabled():
-		sql, rows := getSqlAndRows(fc)
-		gl.printf(log.LevelInfo, "[%.3fms] [rows:%v] %s", float64(elapsed.Nanoseconds())/1e6, rows, sql)
+		sql, rows := fc()
+		gl.printf(log.LevelInfo, "[%d: %v] %s", rows, elapsed, sql)
 	}
 }
 

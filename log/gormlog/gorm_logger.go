@@ -8,7 +8,6 @@ import (
 
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/num"
-	"github.com/askasoft/pango/str"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -55,9 +54,13 @@ func (gl *GormLogger) printf(lvl log.Level, msg string, data ...any) {
 }
 
 func getSqlAndRows(fc func() (string, int64)) (sql, rows string) {
+	rows = "-"
+
 	var n int64
 	sql, n = fc()
-	rows = str.If(n == -1, "-", num.Ltoa(n))
+	if n >= 0 {
+		rows = num.Ltoa(n)
+	}
 	return
 }
 

@@ -5,10 +5,10 @@ package ini
 
 import (
 	"bufio"
-	"strconv"
 	"strings"
 	"time"
 
+	"github.com/askasoft/pango/bol"
 	"github.com/askasoft/pango/col"
 	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/num"
@@ -154,64 +154,28 @@ func (sec *Section) GetString(key string, defs ...string) string {
 	return ""
 }
 
+// GetBool get a bool value of the key from the section
+// if not found or convert error, returns the default defs[0] bool value
+func (sec *Section) GetBool(key string, defs ...bool) bool {
+	return bol.Atob(sec.GetString(key), defs...)
+}
+
 // GetInt get a int value of the key from the section
 // if not found or convert error, returns the default defs[0] int value
 func (sec *Section) GetInt(key string, defs ...int) int {
-	e := sec.GetEntry(key)
-	if e != nil && e.Value != "" {
-		if i, err := strconv.ParseInt(e.Value, 0, strconv.IntSize); err == nil {
-			return int(i)
-		}
-	}
-	if len(defs) > 0 {
-		return defs[0]
-	}
-	return 0
+	return num.Atoi(sec.GetString(key), defs...)
 }
 
 // GetInt64 get a int64 value of the key from the section
 // if not found or convert error, returns the default defs[0] int64 value
 func (sec *Section) GetInt64(key string, defs ...int64) int64 {
-	e := sec.GetEntry(key)
-	if e != nil && e.Value != "" {
-		if i, err := strconv.ParseInt(e.Value, 0, 64); err == nil {
-			return i
-		}
-	}
-	if len(defs) > 0 {
-		return defs[0]
-	}
-	return 0
+	return num.Atol(sec.GetString(key), defs...)
 }
 
 // GetFloat get a float value of the key from the section
 // if not found or convert error, returns the default defs[0] float value
 func (sec *Section) GetFloat(key string, defs ...float64) float64 {
-	e := sec.GetEntry(key)
-	if e != nil && e.Value != "" {
-		if f, err := strconv.ParseFloat(e.Value, 64); err == nil {
-			return f
-		}
-	}
-	if len(defs) > 0 {
-		return defs[0]
-	}
-	return 0
-}
-
-// GetBool get a bool value of the key from the section
-// if not found or convert error, returns the default defs[0] bool value
-func (sec *Section) GetBool(key string, defs ...bool) bool {
-	e := sec.GetEntry(key)
-	if e != nil && e.Value != "" {
-		if b, err := strconv.ParseBool(e.Value); err == nil {
-			return b
-		}
-	}
-	if len(defs) > 0 {
-		return defs[0]
-	}
-	return false
+	return num.Atof(sec.GetString(key), defs...)
 }
 
 // GetSize get a int64 size value of the key from the section

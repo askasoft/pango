@@ -26,13 +26,6 @@ func NewRequestLimiter(maxBodySize int64) *RequestLimiter {
 	return &RequestLimiter{MaxBodySize: maxBodySize}
 }
 
-// Handler returns the xin.HandlerFunc
-func (rl *RequestLimiter) Handler() xin.HandlerFunc {
-	return func(c *xin.Context) {
-		rl.handle(c)
-	}
-}
-
 func MaxBytesReader(c *xin.Context, r io.ReadCloser, n int64) io.ReadCloser {
 	if n <= 0 {
 		return r
@@ -40,8 +33,13 @@ func MaxBytesReader(c *xin.Context, r io.ReadCloser, n int64) io.ReadCloser {
 	return &maxBytesReader{c: c, r: r, i: n, n: n}
 }
 
-// handle process xin request
-func (rl *RequestLimiter) handle(c *xin.Context) {
+// Handler returns the xin.HandlerFunc
+func (rl *RequestLimiter) Handler() xin.HandlerFunc {
+	return rl.Handle
+}
+
+// Handle process xin request
+func (rl *RequestLimiter) Handle(c *xin.Context) {
 	if rl.MaxBodySize > 0 {
 		c.Request.Body = MaxBytesReader(c, c.Request.Body, rl.MaxBodySize)
 	}

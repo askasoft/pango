@@ -76,13 +76,11 @@ func (al *AccessLogger) Disable(disabled bool) {
 
 // Handler returns the HandlerFunc
 func (al *AccessLogger) Handler() xin.HandlerFunc {
-	return func(c *xin.Context) {
-		al.handle(c)
-	}
+	return al.Handle
 }
 
-// handle process xin request
-func (al *AccessLogger) handle(c *xin.Context) {
+// Handle process xin request
+func (al *AccessLogger) Handle(c *xin.Context) {
 	w := al.outputer
 	if w == nil || al.disabled {
 		c.Next()

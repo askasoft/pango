@@ -62,13 +62,11 @@ func (tp *TokenProtector) SetMethods(ms ...string) {
 
 // Handler returns the xin.HandlerFunc
 func (tp *TokenProtector) Handler() xin.HandlerFunc {
-	return func(c *xin.Context) {
-		tp.handle(c)
-	}
+	return tp.Handle
 }
 
-// handle process xin request
-func (tp *TokenProtector) handle(c *xin.Context) {
+// Handle process xin request
+func (tp *TokenProtector) Handle(c *xin.Context) {
 	ms := tp.methods
 	if ms != nil && ms.Contains(c.Request.Method) {
 		if !tp.validate(c) {

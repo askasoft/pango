@@ -16,13 +16,11 @@ func NewResponseHeader(header map[string]string) *ResponseHeader {
 
 // Handler returns the xin.HandlerFunc
 func (rh *ResponseHeader) Handler() xin.HandlerFunc {
-	return func(c *xin.Context) {
-		rh.handle(c)
-	}
+	return rh.Handle
 }
 
-// handle process xin request
-func (rh *ResponseHeader) handle(c *xin.Context) {
+// Handle process xin request
+func (rh *ResponseHeader) Handle(c *xin.Context) {
 	for k, v := range rh.Header {
 		c.Header(k, v)
 	}

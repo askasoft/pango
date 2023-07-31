@@ -223,13 +223,11 @@ func (z *HTTPGziper) Disable(disabled bool) {
 
 // Handler returns the xin.HandlerFunc
 func (z *HTTPGziper) Handler() xin.HandlerFunc {
-	return func(c *xin.Context) {
-		z.handle(c)
-	}
+	return z.Handle
 }
 
-// handle process xin request
-func (z *HTTPGziper) handle(c *xin.Context) {
+// Handle process xin request
+func (z *HTTPGziper) Handle(c *xin.Context) {
 	if !z.shouldCompress(c.Request) {
 		c.Next()
 		return

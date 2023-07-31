@@ -2,54 +2,38 @@ package num
 
 import (
 	"strconv"
-	"strings"
 )
 
-func stripTrailingZeros(s string) string {
-	offset := len(s) - 1
-	for offset > 0 {
-		if s[offset] == '.' {
-			offset--
-			break
-		}
-		if s[offset] != '0' {
-			break
-		}
-		offset--
-	}
-	return s[:offset+1]
-}
-
-func stripTrailingDigits(s string, digits int) string {
-	if i := strings.Index(s, "."); i >= 0 {
-		if digits <= 0 {
-			return s[:i]
-		}
-		i++
-		if i+digits >= len(s) {
-			return s
-		}
-		return s[:i+digits]
-	}
-	return s
-}
-
-// Atoi use strconv.Atoi(s) to parse string 's' to int, return n[0] if error.
+// Atoi use strconv.ParseInt(s, 0, strconv.IntSize) to parse string 's' to int, return n[0] if error.
 func Atoi(s string, n ...int) int {
-	i, err := strconv.Atoi(s)
+	if s == "" {
+		if len(n) > 0 {
+			return n[0]
+		}
+		return 0
+	}
+
+	i, err := strconv.ParseInt(s, 0, strconv.IntSize)
 	if err != nil && len(n) > 0 {
 		return n[0]
 	}
-	return i
+	return int(i)
 }
 
 func Itoa(i int) string {
 	return strconv.Itoa(i)
 }
 
-// Atol use strconv.ParseInt(s, 10, 64) to parse string 's' to int64, return n[0] if error.
+// Atol use strconv.ParseInt(s, 0, 64) to parse string 's' to int64, return n[0] if error.
 func Atol(s string, n ...int64) int64 {
-	i, err := strconv.ParseInt(s, 10, 64)
+	if s == "" {
+		if len(n) > 0 {
+			return n[0]
+		}
+		return 0
+	}
+
+	i, err := strconv.ParseInt(s, 0, 64)
 	if err != nil && len(n) > 0 {
 		return n[0]
 	}
@@ -62,6 +46,13 @@ func Ltoa(i int64) string {
 
 // Atol use strconv.ParseFloat(s, 64) to parse string 's' to float64, return n[0] if error.
 func Atof(s string, n ...float64) float64 {
+	if s == "" {
+		if len(n) > 0 {
+			return n[0]
+		}
+		return 0
+	}
+
 	f, err := strconv.ParseFloat(s, 64)
 	if err != nil && len(n) > 0 {
 		return n[0]

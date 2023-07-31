@@ -21,7 +21,7 @@ func BenchmarkFtoaRegexTrailing(b *testing.B) {
 	}
 }
 
-func BenchmarkFtoaFunc(b *testing.B) {
+func BenchmarkStripTrailingZeros(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		stripTrailingZeros("2.00000")
 		stripTrailingZeros("2.0000")

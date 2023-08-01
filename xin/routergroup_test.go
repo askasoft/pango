@@ -72,11 +72,11 @@ func performRequestInGroup(t *testing.T, method string) {
 		panic("unknown method")
 	}
 
-	w := PerformRequest(router, method, "/v1/login/test")
+	w := performRequest(router, method, "/v1/login/test")
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 	assert.Equal(t, "the method was "+method+" and index 3", w.Body.String())
 
-	w = PerformRequest(router, method, "/v1/test")
+	w = performRequest(router, method, "/v1/test")
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 	assert.Equal(t, "the method was "+method+" and index 1", w.Body.String())
 }

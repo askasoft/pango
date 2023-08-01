@@ -21,7 +21,7 @@ func TestPanicWithAbort(t *testing.T) {
 		panic(e)
 	})
 
-	w := PerformRequest(router, "GET", "/recovery")
+	w := performRequest(router, "GET", "/recovery")
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 	assert.Equal(t, "", w.Body.String())
 }
@@ -48,7 +48,7 @@ func TestPanicWithBrokenPipe(t *testing.T) {
 				panic(e)
 			})
 
-			w := PerformRequest(router, "GET", "/recovery")
+			w := performRequest(router, "GET", "/recovery")
 			assert.Equal(t, expectCode, w.Code)
 			//assert.Equal(t, expectMsg, w.Body.String())
 		})
@@ -68,7 +68,7 @@ func TestPanicCustomRecovery(t *testing.T) {
 		panic(e)
 	})
 
-	w := PerformRequest(router, "GET", "/recovery")
+	w := performRequest(router, "GET", "/recovery")
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 	assert.Equal(t, e, w.Body.String())
 }
@@ -87,7 +87,7 @@ func TestPanicInCustomRecovery(t *testing.T) {
 		panic(e)
 	})
 
-	w := PerformRequest(router, "GET", "/recovery")
+	w := performRequest(router, "GET", "/recovery")
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 	assert.Equal(t, e, w.Body.String())
 }

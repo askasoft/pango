@@ -37,11 +37,11 @@ func TestWrap(t *testing.T) {
 		fmt.Fprint(w, "hola!")
 	}))
 
-	w := PerformRequest(router, "POST", "/path")
+	w := performRequest(router, "POST", "/path")
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	assert.Equal(t, "hello", w.Body.String())
 
-	w = PerformRequest(router, "GET", "/path2")
+	w = performRequest(router, "GET", "/path2")
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 	assert.Equal(t, "hola!", w.Body.String())
 }
@@ -111,13 +111,13 @@ func TestMustBindMiddleware(t *testing.T) {
 		called = true
 		value = c.MustGet(BindKey).(*bindTestStruct)
 	})
-	PerformRequest(router, "GET", "/?foo=hola&bar=10")
+	performRequest(router, "GET", "/?foo=hola&bar=10")
 	assert.True(t, called)
 	assert.Equal(t, "hola", value.Foo)
 	assert.Equal(t, 10, value.Bar)
 
 	called = false
-	PerformRequest(router, "GET", "/?foo=hola&bar=1")
+	performRequest(router, "GET", "/?foo=hola&bar=1")
 	assert.False(t, called)
 
 	assert.Panics(t, func() {

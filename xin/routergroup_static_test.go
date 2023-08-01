@@ -19,11 +19,11 @@ func TestRouterStaticFSNotFound(t *testing.T) {
 		c.String(404, "non existent")
 	})
 
-	w := PerformRequest(router, http.MethodGet, "/nonexistent")
+	w := performRequest(router, http.MethodGet, "/nonexistent")
 	assert.Equal(t, 404, w.Result().StatusCode)
 	// assert.Equal(t, "non existent", w.Body.String())
 
-	w = PerformRequest(router, http.MethodHead, "/nonexistent")
+	w = performRequest(router, http.MethodHead, "/nonexistent")
 	assert.Equal(t, 404, w.Result().StatusCode)
 	// assert.Equal(t, "non existent", w.Body.String())
 }
@@ -34,7 +34,7 @@ func TestRouterStaticFSFileNotFound(t *testing.T) {
 	router.StaticFS("/", "", http.Dir("."))
 
 	assert.NotPanics(t, func() {
-		PerformRequest(router, http.MethodGet, "/nonexistent")
+		performRequest(router, http.MethodGet, "/nonexistent")
 	})
 }
 
@@ -51,11 +51,11 @@ func TestMiddlewareCalledOnceByRouterStaticFSNotFound(t *testing.T) {
 	router.StaticFS("/", "", http.Dir("/thisreallydoesntexist/"))
 
 	// First access
-	PerformRequest(router, http.MethodGet, "/nonexistent")
+	performRequest(router, http.MethodGet, "/nonexistent")
 	assert.Equal(t, 1, middlewareCalledNum)
 
 	// Second access
-	PerformRequest(router, http.MethodHead, "/nonexistent")
+	performRequest(router, http.MethodHead, "/nonexistent")
 	assert.Equal(t, 2, middlewareCalledNum)
 }
 
@@ -79,16 +79,16 @@ func TestRouteStaticFile(t *testing.T) {
 	router.Static("/using_static", dir)
 	router.StaticFile("/result", f.Name())
 
-	w := PerformRequest(router, http.MethodGet, "/using_static/"+filename)
-	w2 := PerformRequest(router, http.MethodGet, "/result")
+	w := performRequest(router, http.MethodGet, "/using_static/"+filename)
+	w2 := performRequest(router, http.MethodGet, "/result")
 
 	assert.Equal(t, w, w2)
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, "Xin Web Framework", w.Body.String())
 	assert.Equal(t, "text/plain; charset=utf-8", w.Header().Get("Content-Type"))
 
-	w3 := PerformRequest(router, http.MethodHead, "/using_static/"+filename)
-	w4 := PerformRequest(router, http.MethodHead, "/result")
+	w3 := performRequest(router, http.MethodHead, "/using_static/"+filename)
+	w4 := performRequest(router, http.MethodHead, "/result")
 
 	assert.Equal(t, w3, w4)
 	assert.Equal(t, http.StatusOK, w3.Code)
@@ -99,7 +99,7 @@ func TestRouteStaticListingDir(t *testing.T) {
 	router := New()
 	router.StaticFS("/", "", http.Dir("./"))
 
-	w := PerformRequest(router, http.MethodGet, "/")
+	w := performRequest(router, http.MethodGet, "/")
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Contains(t, w.Body.String(), "xin.go")
@@ -111,7 +111,7 @@ func TestRouteStaticListingDir(t *testing.T) {
 // 	router := New()
 // 	router.Static("/", "./")
 
-// 	w := PerformRequest(router, http.MethodGet, "/")
+// 	w := performRequest(router, http.MethodGet, "/")
 
 // 	assert.Equal(t, http.StatusNotFound, w.Code)
 // 	assert.NotContains(t, w.Body.String(), "xin.go")
@@ -126,7 +126,7 @@ func TestRouterMiddlewareAndStatic(t *testing.T) {
 	})
 	static.Static("/", "./")
 
-	w := PerformRequest(router, http.MethodGet, "/xin.go")
+	w := performRequest(router, http.MethodGet, "/xin.go")
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Contains(t, w.Body.String(), "package xin")

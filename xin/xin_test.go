@@ -466,7 +466,7 @@ func TestEngineHandleContext(t *testing.T) {
 	}
 
 	assert.NotPanics(t, func() {
-		w := PerformRequest(r, "GET", "/")
+		w := performRequest(r, "GET", "/")
 		assert.Equal(t, 301, w.Code)
 	})
 }
@@ -499,7 +499,7 @@ func TestEngineHandleContextManyReEntries(t *testing.T) {
 	})
 
 	assert.NotPanics(t, func() {
-		w := PerformRequest(r, "GET", "/"+strconv.Itoa(expectValue-1)) // include 0 value
+		w := performRequest(r, "GET", "/"+strconv.Itoa(expectValue-1)) // include 0 value
 		assert.Equal(t, 200, w.Code)
 		assert.Equal(t, expectValue, w.Body.Len())
 	})

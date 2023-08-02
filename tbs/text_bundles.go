@@ -178,7 +178,7 @@ func (tbs *TextBundles) GetText(locale, key string, defs ...string) string {
 	section := ""
 	name := key
 
-	dot := str.IndexByte(name, '.')
+	dot := str.LastIndexByte(name, '.')
 	if dot >= 0 {
 		section = name[:dot]
 		name = name[dot+1:]

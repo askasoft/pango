@@ -72,6 +72,11 @@ func SetFormatter(lf Formatter) {
 	_log.SetFormatter(lf)
 }
 
+// SetFormat set logger format
+func SetFormat(format string) {
+	_log.SetFormat(format)
+}
+
 // GetWriter get the writer
 func GetWriter() Writer {
 	return _log.GetWriter()

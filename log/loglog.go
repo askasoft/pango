@@ -218,6 +218,11 @@ func (log *Log) SetFormatter(lf Formatter) {
 	log.logfmt = lf
 }
 
+// SetFormat set logger format
+func (log *Log) SetFormat(format string) {
+	log.logfmt = NewLogFormatter(format)
+}
+
 // IsLevelEnabled is specified level enabled
 func (log *Log) IsLevelEnabled(lvl Level) bool {
 	return log.level > lvl

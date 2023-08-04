@@ -1,5 +1,24 @@
 package ref
 
+import (
+	"reflect"
+	"time"
+)
+
+var (
+	TypeString   = reflect.TypeOf("")
+	TypeBool     = reflect.TypeOf(false)
+	TypeByte     = reflect.TypeOf(byte(0))
+	TypeRune     = reflect.TypeOf(rune(0))
+	TypeInt      = reflect.TypeOf(int(0))
+	TypeInt32    = reflect.TypeOf(int32(0))
+	TypeInt64    = reflect.TypeOf(int64(0))
+	TypeFloat32  = reflect.TypeOf(float32(0))
+	TypeFloat64  = reflect.TypeOf(float64(0))
+	TypeDuration = reflect.TypeOf(time.Duration(0))
+	TypeTime     = reflect.TypeOf(time.Time{})
+)
+
 // IsIntType return true if v is an integer
 func IsIntType(v any) bool {
 	switch v.(type) {
@@ -29,4 +48,14 @@ func IsComplexType(v any) bool {
 	}
 
 	return false
+}
+
+// IsArrayType return true if v is a map
+func IsArrayType(v any) bool {
+	return reflect.TypeOf(v).Kind() == reflect.Array
+}
+
+// IsMapType return true if v is a map
+func IsMapType(v any) bool {
+	return reflect.TypeOf(v).Kind() == reflect.Map
 }

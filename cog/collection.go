@@ -101,11 +101,6 @@ type List[T any] interface {
 	Swap(i, j int)
 }
 
-// S string type constraint
-type S interface {
-	~string
-}
-
 // P key/value pair
 type P[K any, V any] struct {
 	Key   K

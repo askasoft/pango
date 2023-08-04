@@ -10,17 +10,12 @@ import (
 
 var errNotSupport = errors.New("not support")
 
-var (
-	duraType = reflect.TypeOf(time.Duration(0))
-	timeType = reflect.TypeOf(time.Time{})
-)
-
 // Convert convert the value v to the specified Type t
 func Convert(v any, t reflect.Type) (cv any, err error) {
 	switch t {
-	case duraType:
+	case TypeDuration:
 		return toDuration(v)
-	case timeType:
+	case TypeTime:
 		return toTime(v)
 	}
 

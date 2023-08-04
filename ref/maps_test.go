@@ -1,8 +1,7 @@
-package funcs
+package ref
 
 import "testing"
 
-// M is Map shortcut
 type M map[string]any
 
 func TestMapGet(t *testing.T) {

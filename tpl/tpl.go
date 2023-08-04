@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/askasoft/pango/ref"
 	"github.com/askasoft/pango/tpl/funcs"
 )
 
@@ -103,9 +104,11 @@ func Functions() FuncMap {
 		"Divide":   funcs.Divide,
 
 		// Collection
-		"Array":  funcs.Array,
-		"Map":    funcs.Map,
-		"MapGet": funcs.MapGet,
-		"MapSet": funcs.MapSet,
+		"Array":    ref.Array,
+		"ArrayGet": ref.ArrayGet,
+		"ArraySet": ref.ArraySet,
+		"Map":      ref.Map,
+		"MapGet":   ref.MapGet,
+		"MapSet":   ref.MapSet,
 	}
 }

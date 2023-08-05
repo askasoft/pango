@@ -19,6 +19,12 @@ func (a Attrs) Set(name string, value string) {
 	a[name] = value
 }
 
+func (a Attrs) SetIfNotEmpty(name string, value string) {
+	if value != "" {
+		a[name] = value
+	}
+}
+
 func (a Attrs) Add(name string, value string) {
 	if value == "" {
 		return
@@ -37,7 +43,11 @@ func (a Attrs) Data(name string, value string) {
 }
 
 func (a Attrs) ID(s string) {
-	a.Set("id", s)
+	a.SetIfNotEmpty("id", s)
+}
+
+func (a Attrs) Name(s string) {
+	a.SetIfNotEmpty("name", s)
 }
 
 func (a Attrs) Class(s string) {

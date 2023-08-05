@@ -12,7 +12,7 @@ import (
 )
 
 type TagRenderer interface {
-	Name() string
+	TagName() string
 	Render(sb *strings.Builder, args ...any) error
 }
 
@@ -24,24 +24,28 @@ func TagRender(tr TagRenderer, args ...any) (any, error) {
 
 func TagSetAttrs(tr TagRenderer, attrs Attrs, args []any) error {
 	if len(args)&1 != 0 {
-		return errors.New(tr.Name() + ": invalid arguments")
+		return errors.New(tr.TagName() + ": invalid arguments")
 	}
 
 	for i := 0; i < len(args); i += 2 {
 		key, ok := args[i].(string)
 		if !ok || key == "" {
-			return errors.New(tr.Name() + ": key must be non-empty string")
+			return errors.New(tr.TagName() + ": key must be non-empty string")
+		}
+
+		val := args[i+1]
+		if val == nil {
+			continue
 		}
 
 		if unicode.IsUpper(rune(key[0])) {
-			err := ref.SetProperty(tr, key, args[i+1])
+			err := ref.SetProperty(tr, key, val)
 			if err != nil {
 				return err
 			}
 			continue
 		}
 
-		val := args[i+1]
 		if sv, ok := val.(string); ok {
 			attrs.Set(key, sv)
 		} else {
@@ -51,28 +55,36 @@ func TagSetAttrs(tr TagRenderer, attrs Attrs, args []any) error {
 	return nil
 }
 
-func TagStart(t *strings.Builder, name string, ass ...Attrs) {
+func TagStart(t *strings.Builder, name string, as ...Attrs) {
 	t.WriteByte('<')
 	t.WriteString(name)
-	for _, as := range ass {
-		for k, v := range as {
-			if k != "" {
-				t.WriteByte(' ')
-				t.WriteString(k)
-				if v != "" {
-					t.WriteByte('=')
-					t.WriteByte('"')
-					t.WriteString(html.EscapeString(v))
-					t.WriteByte('"')
-				}
-			}
-		}
+	for _, a := range as {
+		TagWriteAttrs(t, a)
 	}
 	t.WriteByte('>')
 }
 
-func TagStartClose(t *strings.Builder, name string, ass ...Attrs) {
-	TagStart(t, name, ass...)
+func TagWriteAttrs(t *strings.Builder, a Attrs) {
+	for k, v := range a {
+		if k != "" {
+			t.WriteByte(' ')
+			t.WriteString(k)
+			if v != "" {
+				t.WriteByte('=')
+				t.WriteByte('"')
+				t.WriteString(html.EscapeString(v))
+				t.WriteByte('"')
+			}
+		}
+	}
+}
+
+func TagStartClose(t *strings.Builder, name string, as ...Attrs) {
+	t.WriteByte('<')
+	t.WriteString(name)
+	for _, a := range as {
+		TagWriteAttrs(t, a)
+	}
 	t.WriteString("/>")
 }
 

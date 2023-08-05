@@ -12,12 +12,12 @@ func ChecksRender(args ...any) (any, error) {
 }
 
 type ChecksRenderer struct {
-	Locale string
-	Value  []string
-	List   Iterator
+	Name  string
+	List  Iterator
+	Value []string
 }
 
-func (sr *ChecksRenderer) Name() string {
+func (sr *ChecksRenderer) TagName() string {
 	return "Checks"
 }
 
@@ -47,9 +47,12 @@ func (sr *ChecksRenderer) Render(sb *strings.Builder, args ...any) error {
 func (sr *ChecksRenderer) writeCheckbox(sb *strings.Builder, key, text string, checked bool) {
 	TagStart(sb, "label")
 
-	a := Attrs{}
-	a.Set("type", "checkbox")
-	a.Set("value", key)
+	a := Attrs{
+		"type":  "checkbox",
+		"name":  sr.Name,
+		"value": key,
+	}
+
 	if checked {
 		a.Set("checked", "")
 	}

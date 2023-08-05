@@ -10,12 +10,12 @@ func RadiosRender(args ...any) (any, error) {
 }
 
 type RadiosRenderer struct {
-	Locale string
-	Value  string
-	List   Iterator
+	Name  string
+	List  Iterator
+	Value string
 }
 
-func (rr *RadiosRenderer) Name() string {
+func (rr *RadiosRenderer) TagName() string {
 	return "Radios"
 }
 
@@ -45,13 +45,16 @@ func (rr *RadiosRenderer) Render(sb *strings.Builder, args ...any) error {
 func (rr *RadiosRenderer) writeRadio(sb *strings.Builder, key, text string, checked bool) {
 	TagStart(sb, "label")
 
-	a := Attrs{}
-	a.Set("type", "radio")
-	a.Set("value", key)
+	a := Attrs{
+		"type":  "radio",
+		"name":  rr.Name,
+		"value": key,
+	}
+
 	if checked {
 		a.Set("checked", "")
 	}
-	TagStartClose(sb, "radio", a)
+	TagStartClose(sb, "input", a)
 
 	sb.WriteString(html.EscapeString(text))
 	TagClose(sb, "label")

@@ -10,12 +10,12 @@ func SelectRender(args ...any) (any, error) {
 }
 
 type SelectRenderer struct {
-	Locale string
-	Value  string
-	List   Iterator
+	Name  string
+	List  Iterator
+	Value string
 }
 
-func (sr *SelectRenderer) Name() string {
+func (sr *SelectRenderer) TagName() string {
 	return "Select"
 }
 
@@ -25,6 +25,7 @@ func (sr *SelectRenderer) Render(sb *strings.Builder, args ...any) error {
 	if err := TagSetAttrs(sr, a, args); err != nil {
 		return err
 	}
+	a.Name(sr.Name)
 
 	TagStart(sb, "select", a)
 

@@ -45,7 +45,7 @@ type PageRenderer struct {
 	Style string
 }
 
-func (pr *PageRenderer) Name() string {
+func (pr *PageRenderer) TagName() string {
 	return "Pager"
 }
 

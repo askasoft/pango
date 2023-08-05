@@ -6,11 +6,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 
+	"github.com/askasoft/pango/cas"
 	"github.com/askasoft/pango/ini"
-	"github.com/askasoft/pango/ref"
 	"github.com/askasoft/pango/str"
 )
 
@@ -128,11 +127,11 @@ func (log *Log) configINI(filename string) (err error) {
 func (log *Log) configGetIntValue(m map[string]any, k string) (int, error) {
 	if v, ok := m[k]; ok {
 		if v != nil {
-			n, err := ref.Convert(v, reflect.TypeOf(int(0)))
+			n, err := cas.ToInt(v)
 			if err != nil {
 				return 0, fmt.Errorf("Invalid %s value %v: %w", k, v, err)
 			}
-			return n.(int), nil
+			return n, nil
 		}
 	}
 	return 0, nil

@@ -38,13 +38,12 @@ func SetProperty(o any, k string, v any) (err error) {
 	f := r.Elem().FieldByName(p)
 	if f.IsValid() && f.CanSet() {
 		t := f.Type()
-
-		i, err := Convert(v, t)
+		cv, err := Convert(v, t)
 		if err != nil {
 			return err
 		}
 
-		f.Set(reflect.ValueOf(i))
+		f.Set(reflect.ValueOf(cv))
 		return nil
 	}
 

@@ -23,6 +23,10 @@ func TestStringCompare(t *testing.T) {
 	}
 }
 
+func utcMilli(msec int64) time.Time {
+	return time.Unix(msec/1e3, (msec%1e3)*1e6).UTC()
+}
+
 func TestConvert(t *testing.T) {
 	cs := []struct {
 		w any

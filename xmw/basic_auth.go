@@ -3,6 +3,7 @@ package xmw
 import (
 	"net/http"
 
+	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/xin"
 )
 
@@ -30,13 +31,11 @@ func NewBasicAuth(up UserProvider) *BasicAuth {
 
 // Handler returns the xin.HandlerFunc
 func (ba *BasicAuth) Handler() xin.HandlerFunc {
-	return func(c *xin.Context) {
-		ba.handle(c)
-	}
+	return ba.Handle
 }
 
-// handle process xin request
-func (ba *BasicAuth) handle(c *xin.Context) {
+// Handle process xin request
+func (ba *BasicAuth) Handle(c *xin.Context) {
 	username, password, ok := c.Request.BasicAuth()
 	if ok {
 		if user := ba.UserProvider.FindUser(username); user != nil {
@@ -48,6 +47,6 @@ func (ba *BasicAuth) handle(c *xin.Context) {
 		}
 	}
 
-	c.Header("WWW-Authenticate", "Basic "+ba.Realm)
+	c.Header("WWW-Authenticate", "Basic "+str.IfEmpty(ba.Realm, "Authorization Required"))
 	c.AbortWithStatus(http.StatusUnauthorized)
 }

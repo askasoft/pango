@@ -35,13 +35,11 @@ func NewDigestAuth(up UserProvider) *DigestAuth {
 
 // Handler returns the xin.HandlerFunc
 func (da *DigestAuth) Handler() xin.HandlerFunc {
-	return func(c *xin.Context) {
-		da.handle(c)
-	}
+	return da.Handle
 }
 
-// handle process xin request
-func (da *DigestAuth) handle(c *xin.Context) {
+// Handle process xin request
+func (da *DigestAuth) Handle(c *xin.Context) {
 	auth := c.Request.Header.Get("Authorization")
 	if auth != "" {
 		dap := DigestAuthParams(auth)

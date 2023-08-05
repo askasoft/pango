@@ -9,12 +9,6 @@ func SelectRender(args ...any) (any, error) {
 	return TagRender(&SelectRenderer{}, args...)
 }
 
-type Iterator interface {
-	Key() string
-	Value() string
-	Next() bool
-}
-
 type SelectRenderer struct {
 	Locale string
 	Value  string
@@ -35,8 +29,9 @@ func (sr *SelectRenderer) Render(sb *strings.Builder, args ...any) error {
 	TagStart(sb, "select", a)
 
 	if sr.List != nil {
-		for sr.List.Next() {
-			sr.writeOption(sb, sr.List.Key(), sr.List.Value(), sr.List.Key() == sr.Value)
+		it := sr.List
+		for it.Next() {
+			sr.writeOption(sb, it.Key(), it.Value(), it.Key() == sr.Value)
 		}
 	}
 

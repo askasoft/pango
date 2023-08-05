@@ -74,7 +74,7 @@ func (pr *PageRenderer) Render(sb *strings.Builder, args ...any) error {
 		pr.LinkSize = num.Atoi(tbs.GetText(pr.Locale, "pager.link-size", "5"))
 	}
 
-	attrs.Class("ui-pager clearfix")
+	attrs.Class("ui-pager")
 	attrs.Data("page", num.Itoa(pr.Page))
 	attrs.Data("limit", num.Itoa(pr.Limit))
 	attrs.Data("total", num.Itoa(pr.Total))
@@ -350,8 +350,8 @@ func (pr *PageRenderer) writePagerLimit(sb *strings.Builder) error {
 	}
 
 	sr := &SelectRenderer{
-		Value: num.Itoa(pr.Limit),
 		List:  olist.Iterator(),
+		Value: num.Itoa(pr.Limit),
 	}
 
 	err := sr.Render(sb,

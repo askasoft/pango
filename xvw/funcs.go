@@ -15,7 +15,9 @@ func Functions() tpl.FuncMap {
 		"TR": tbs.Replace,
 
 		// Tags
-		"Pager":  tags.PagerRender,
+		"Checks": tags.ChecksRender,
+		"Radios": tags.RadiosRender,
 		"Select": tags.SelectRender,
+		"Pager":  tags.PagerRender,
 	}
 }

@@ -56,7 +56,7 @@ func (tw *TeamsWriter) Write(le *Event) (err error) {
 	}
 
 	if err = teams.Post(tw.Webhook, tw.Timeout, tm); err != nil {
-		err = fmt.Errorf("TeamsWriter(%q) - Post(): %w", tw.Webhook, err)
+		err = fmt.Errorf("TeamsWriter(%s) - Post(): %w", tw.Webhook, err)
 	}
 	return
 }

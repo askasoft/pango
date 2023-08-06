@@ -56,7 +56,7 @@ func (cw *ConnWriter) Write(le *Event) (err error) {
 
 		_, err = cw.conn.Write(cw.bb.Bytes())
 		if err != nil {
-			err = fmt.Errorf("ConnWriter(%q) - Write(%s): %w", cw.Addr, cw.bb.Bytes(), err)
+			err = fmt.Errorf("ConnWriter(%s:%s) - Write([%d]): %w", cw.Net, cw.Addr, len(cw.bb.Bytes()), err)
 			cw.Close()
 		}
 	}
@@ -72,7 +72,7 @@ func (cw *ConnWriter) Close() {
 	if cw.conn != nil {
 		err := cw.conn.Close()
 		if err != nil {
-			perrorf("ConnWriter(%q) - Close(): %v", cw.Addr, err)
+			perrorf("ConnWriter(%s:%s) - Close(): %v", cw.Net, cw.Addr, err)
 		}
 		cw.conn = nil
 	}
@@ -93,13 +93,13 @@ func (cw *ConnWriter) dial() error {
 
 	conn, err := net.DialTimeout(cw.Net, cw.Addr, cw.Timeout)
 	if err != nil {
-		return fmt.Errorf("ConnWriter(%q) - Dial(%q): %w", cw.Addr, cw.Net, err)
+		return fmt.Errorf("ConnWriter(%s:%s) - Dial(): %w", cw.Net, cw.Addr, err)
 	}
 
 	if tcpConn, ok := conn.(*net.TCPConn); ok {
 		err = tcpConn.SetKeepAlive(true)
 		if err != nil {
-			return fmt.Errorf("ConnWriter(%q) - SetKeepAlive(%q): %w", cw.Addr, cw.Net, err)
+			return fmt.Errorf("ConnWriter(%s:%s) - SetKeepAlive(): %w", cw.Net, cw.Addr, err)
 		}
 	}
 

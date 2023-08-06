@@ -59,7 +59,7 @@ func (sw *SlackWriter) Write(le *Event) (err error) {
 	}
 
 	if err = slack.Post(sw.Webhook, sw.Timeout, sm); err != nil {
-		err = fmt.Errorf("SlackWriter(%q) - Post(): %w", sw.Webhook, err)
+		err = fmt.Errorf("SlackWriter(%s) - Post(): %w", sw.Webhook, err)
 	}
 	return
 }

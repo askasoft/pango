@@ -55,7 +55,7 @@ func TestTextFormatProp(t *testing.T) {
 	le := newEvent(lg, LevelInfo, "prop")
 	le.When = time.Time{}
 
-	assertFormatEvent(t, tf, le, `av <nil>`)
+	assertFormatEvent(t, tf, le, `av `)
 }
 
 func TestTextFormatProps1(t *testing.T) {
@@ -69,7 +69,7 @@ func TestTextFormatProps1(t *testing.T) {
 	le := newEvent(lg, LevelInfo, "props")
 	le.When = time.Time{}
 
-	w := `a=av b=bv c=cv n=11 x=<nil>`
+	w := `a=av b=bv c=cv n=11 x=`
 	as := strings.Split(testFormatEvent(tf, le), " ")
 	sort.Strings(as)
 	a := strings.Join(as, " ")
@@ -89,7 +89,7 @@ func TestTextFormatProps2(t *testing.T) {
 	le := newEvent(lg, LevelInfo, "props")
 	le.When = time.Time{}
 
-	w := `a=av,b=bv,c=cv,n=11,x=<nil>`
+	w := `a=av,b=bv,c=cv,n=11,x=`
 	as := strings.Split(testFormatEvent(tf, le), ",")
 	sort.Strings(as)
 	a := strings.Join(as, ",")

@@ -379,7 +379,11 @@ func lvlsfmtc(f string) fmtfunc {
 
 func propfmtc(key string) fmtfunc {
 	return func(le *Event) string {
-		return fmt.Sprint(le.Logger.GetProp(key))
+		v := le.Logger.GetProp(key)
+		if v == nil {
+			return ""
+		}
+		return fmt.Sprint(v)
 	}
 }
 
@@ -398,6 +402,9 @@ func propsfmtc(f string) fmtfunc {
 
 		a := make([]string, 0, len(m))
 		for k, v := range m {
+			if v == nil {
+				v = ""
+			}
 			a = append(a, fmt.Sprintf("%s%s%v", k, d, v))
 		}
 		return strings.Join(a, j)

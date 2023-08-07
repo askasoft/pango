@@ -8,54 +8,56 @@ import (
 
 type Attrs map[string]string
 
-func (a Attrs) Get(name string) string {
-	if v, ok := a[name]; ok {
+func (a Attrs) Get(k string) string {
+	if v, ok := a[k]; ok {
 		return v
 	}
 	return ""
 }
 
-func (a Attrs) Set(name string, value string) {
-	a[name] = value
+func (a Attrs) Set(k string, v string) {
+	a[k] = v
 }
 
-func (a Attrs) SetIfNotEmpty(name string, value string) {
-	if value != "" {
-		a[name] = value
+func (a Attrs) SetIfNotEmpty(k string, v string) {
+	if v != "" {
+		a[k] = v
 	}
 }
 
-func (a Attrs) Add(name string, value string) {
-	if value == "" {
+func (a Attrs) Add(k string, v string) {
+	if v == "" {
 		return
 	}
 
-	if v, ok := a[name]; ok {
-		a[name] = fmt.Sprintf("%v %v", v, value)
+	if ov, ok := a[k]; ok {
+		a[k] = fmt.Sprintf("%v %v", ov, v)
 	} else {
-		a[name] = value
+		a[k] = v
 	}
 }
 
-func (a Attrs) Data(name string, value string) {
-	name = "data-" + str.SnakeCase(name, '-')
-	a.Set(name, value)
+func (a Attrs) Data(k string, v string) {
+	if v != "" {
+		k = "data-" + str.SnakeCase(k, '-')
+		a.Set(k, v)
+	}
 }
 
-func (a Attrs) ID(s string) {
-	a.SetIfNotEmpty("id", s)
+func (a Attrs) ID(v string) {
+	a.SetIfNotEmpty("id", v)
 }
 
-func (a Attrs) Name(s string) {
-	a.SetIfNotEmpty("name", s)
+func (a Attrs) Name(v string) {
+	a.SetIfNotEmpty("name", v)
 }
 
-func (a Attrs) Class(s string) {
-	a.Add("class", s)
+func (a Attrs) Class(v string) {
+	a.Add("class", v)
 }
 
-func (a Attrs) Style(s string) {
-	a.Add("style", s)
+func (a Attrs) Style(v string) {
+	a.Add("style", v)
 }
 
 func (a Attrs) Classes(cs ...string) {

@@ -55,41 +55,41 @@ func TagSetAttrs(tr TagRenderer, attrs Attrs, args []any) error {
 	return nil
 }
 
-func TagStart(t *strings.Builder, name string, as ...Attrs) {
-	t.WriteByte('<')
-	t.WriteString(name)
+func TagStart(sb *strings.Builder, name string, as ...Attrs) {
+	sb.WriteByte('<')
+	sb.WriteString(name)
 	for _, a := range as {
-		TagWriteAttrs(t, a)
+		TagWriteAttrs(sb, a)
 	}
-	t.WriteByte('>')
+	sb.WriteByte('>')
 }
 
-func TagWriteAttrs(t *strings.Builder, a Attrs) {
+func TagWriteAttrs(sb *strings.Builder, a Attrs) {
 	for k, v := range a {
 		if k != "" {
-			t.WriteByte(' ')
-			t.WriteString(k)
+			sb.WriteByte(' ')
+			sb.WriteString(k)
 			if v != "" {
-				t.WriteByte('=')
-				t.WriteByte('"')
-				t.WriteString(html.EscapeString(v))
-				t.WriteByte('"')
+				sb.WriteByte('=')
+				sb.WriteByte('"')
+				sb.WriteString(html.EscapeString(v))
+				sb.WriteByte('"')
 			}
 		}
 	}
 }
 
-func TagStartClose(t *strings.Builder, name string, as ...Attrs) {
-	t.WriteByte('<')
-	t.WriteString(name)
+func TagStartClose(sb *strings.Builder, name string, as ...Attrs) {
+	sb.WriteByte('<')
+	sb.WriteString(name)
 	for _, a := range as {
-		TagWriteAttrs(t, a)
+		TagWriteAttrs(sb, a)
 	}
-	t.WriteString("/>")
+	sb.WriteString("/>")
 }
 
-func TagClose(t *strings.Builder, name string) {
-	t.WriteString("</")
-	t.WriteString(name)
-	t.WriteByte('>')
+func TagClose(sb *strings.Builder, name string) {
+	sb.WriteString("</")
+	sb.WriteString(name)
+	sb.WriteByte('>')
 }

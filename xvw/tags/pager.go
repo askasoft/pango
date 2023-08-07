@@ -38,7 +38,6 @@ type PageRenderer struct {
 	//  1: #1 first page (depends on '#')
 	//  #: page number links
 	//  x: #x last page (depends on '#')
-	//  .: ellipsis
 	//  >: </ul>
 	//  i: pager info text
 	//  s: limit size select
@@ -50,8 +49,6 @@ func (pr *PageRenderer) TagName() string {
 }
 
 func (pr *PageRenderer) Render(sb *strings.Builder, args ...any) error {
-	attrs := Attrs{}
-
 	if len(args) > 0 {
 		if p, ok := args[0].(*Pager); ok {
 			pr.Pager = *p
@@ -62,7 +59,9 @@ func (pr *PageRenderer) Render(sb *strings.Builder, args ...any) error {
 		}
 	}
 
-	err := TagSetAttrs(pr, attrs, args)
+	a := Attrs{}
+
+	err := TagSetAttrs(pr, a, args)
 	if err != nil {
 		return err
 	}
@@ -74,14 +73,14 @@ func (pr *PageRenderer) Render(sb *strings.Builder, args ...any) error {
 		pr.LinkSize = num.Atoi(tbs.GetText(pr.Locale, "pager.link-size", "5"))
 	}
 
-	attrs.Class("ui-pager")
-	attrs.Data("page", num.Itoa(pr.Page))
-	attrs.Data("limit", num.Itoa(pr.Limit))
-	attrs.Data("total", num.Itoa(pr.Total))
-	attrs.Data("style", pr.Style)
-	attrs.Data("spy", "pager")
+	a.Class("ui-pager")
+	a.Data("page", num.Itoa(pr.Page))
+	a.Data("limit", num.Itoa(pr.Limit))
+	a.Data("total", num.Itoa(pr.Total))
+	a.Data("style", pr.Style)
+	a.Data("spy", "pager")
 
-	TagStart(sb, "div", attrs)
+	TagStart(sb, "div", a)
 
 	if pr.Style != "" {
 		for _, r := range pr.Style {

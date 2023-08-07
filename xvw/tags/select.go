@@ -26,7 +26,7 @@ func (sr *SelectRenderer) Render(sb *strings.Builder, args ...any) error {
 		return err
 	}
 
-	a.Class("ui-select")
+	a.Class("form-control ui-select")
 	a.Name(sr.Name)
 
 	TagStart(sb, "select", a)

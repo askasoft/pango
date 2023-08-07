@@ -145,7 +145,7 @@ func (pr *PageRenderer) getLinkHref(pn int) string {
 }
 
 func (pr *PageRenderer) writePagerEmptyInfo(sb *strings.Builder) {
-	pr.writePagerInfo(sb, tbs.GetText(pr.Locale, "pager.label-empty"))
+	pr.writePagerInfo(sb, tbs.GetText(pr.Locale, "pager.infos.empty"))
 }
 
 func (pr *PageRenderer) writePagerTextInfo(sb *strings.Builder) {
@@ -173,12 +173,9 @@ func (pr *PageRenderer) writePagerLinkFirst(sb *strings.Builder, hidden bool) {
 	}
 	sb.WriteString("\"><a href=\"")
 	sb.WriteString(pr.getLinkHref(1))
-	sb.WriteByte('"')
-	sb.WriteString(" pageno=\"1")
-	sb.WriteString("\" title=\"")
+	sb.WriteString("\" pageno=\"1\" title=\"")
 	sb.WriteString(tbs.GetText(pr.Locale, "pager.tooltip.first"))
-	sb.WriteByte('"')
-	sb.WriteByte('>')
+	sb.WriteString("\">")
 	sb.WriteString(tbs.GetText(pr.Locale, "pager.label.first", "&lt;&lt;"))
 	sb.WriteString("</a></li>")
 }
@@ -199,8 +196,7 @@ func (pr *PageRenderer) writePagerLinkPrev(sb *strings.Builder, hidden bool) {
 	sb.WriteString(num.Itoa(p))
 	sb.WriteString("\" title=\"")
 	sb.WriteString(tbs.GetText(pr.Locale, "pager.tooltip.prev"))
-	sb.WriteByte('"')
-	sb.WriteByte('>')
+	sb.WriteString("\">")
 	sb.WriteString(tbs.GetText(pr.Locale, "pager.label.prev", "&lt;"))
 	sb.WriteString("</a></li>")
 }
@@ -218,8 +214,7 @@ func (pr *PageRenderer) writePagerLinkNext(sb *strings.Builder, hidden bool) {
 	sb.WriteString(num.Itoa(p))
 	sb.WriteString("\" title=\"")
 	sb.WriteString(tbs.GetText(pr.Locale, "pager.tooltip.next"))
-	sb.WriteByte('"')
-	sb.WriteByte('>')
+	sb.WriteString("\">")
 	sb.WriteString(tbs.GetText(pr.Locale, "pager.label.next", "&gt;"))
 	sb.WriteString("</a></li>")
 }
@@ -235,8 +230,7 @@ func (pr *PageRenderer) writePagerLinkLast(sb *strings.Builder, hidden bool) {
 	sb.WriteString(num.Itoa(pr.Pages()))
 	sb.WriteString("\" title=\"")
 	sb.WriteString(tbs.GetText(pr.Locale, "pager.tooltip.last"))
-	sb.WriteByte('"')
-	sb.WriteByte('>')
+	sb.WriteString("\">")
 	sb.WriteString(tbs.GetText(pr.Locale, "pager.label.last", "&gt;&gt;"))
 	sb.WriteString("</a></li>")
 }
@@ -354,8 +348,7 @@ func (pr *PageRenderer) writePagerLimit(sb *strings.Builder) error {
 	}
 
 	err := sr.Render(sb,
-		"class", "select form-control",
-		"title", tbs.GetText(pr.Locale, "pager.tooltip-limits"),
+		"title", tbs.GetText(pr.Locale, "pager.limits.tooltip"),
 	)
 	if err != nil {
 		return err

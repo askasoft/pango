@@ -443,6 +443,75 @@ func TestFileRotateDaily(t *testing.T) {
 	}
 }
 
+func TestFileRotateDailyInit(t *testing.T) {
+	testdir := "TestFileRotateDailyInit-" + strconv.Itoa(rand.Int())
+	path := testdir + "/filetest.log"
+
+	os.RemoveAll(testdir)
+	defer os.RemoveAll(testdir)
+
+	// create yesterday file
+	os.MkdirAll(testdir, os.FileMode(0777))
+	os.WriteFile(path, []byte("init"), os.FileMode(0666))
+	yes := time.Now().Add(time.Hour * -24)
+	os.Chtimes(path, yes, yes)
+
+	fw := &FileWriter{Path: path, MaxDays: 100}
+	lg := NewLog()
+	lg.SetFormatter(TextFmtSimple)
+
+	now := time.Now()
+	tm := now
+	for i := 1; i < 10; i++ {
+		le := newEvent(lg, LevelInfo, "hello test "+strconv.Itoa(i))
+		le.When = tm
+		fw.Write(le)
+		fw.openTime = tm
+		tm = tm.Add(time.Hour * 24)
+	}
+	time.Sleep(time.Millisecond * 100)
+	fw.Close()
+
+	// check init rotated files
+	tm = yes
+	for {
+		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%s.log", tm.Format("20060102")))
+		bs, _ := os.ReadFile(sp)
+
+		e := "init"
+		a := string(bs)
+		if a != e {
+			t.Errorf("TestFileRotateDailyInit\n expect: %q, actual: %q", e, a)
+		}
+
+		break
+	}
+
+	// check rotated files
+	tm = now
+	for i := 1; i < 9; i++ {
+		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%s.log", tm.Format("20060102")))
+		bs, _ := os.ReadFile(sp)
+
+		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
+		a := string(bs)
+		if a != e {
+			t.Errorf("TestFileRotateDailyInit\n expect: %q, actual: %q", e, a)
+		}
+
+		tm = tm.Add(time.Hour * 24)
+	}
+
+	// check lastest file
+	bs, _ := os.ReadFile(path)
+
+	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
+	a := string(bs)
+	if a != e {
+		t.Errorf("TestFileRotateDaily\n expect: %q, actual: %q", e, a)
+	}
+}
+
 func TestFileRotateDailyOutdated(t *testing.T) {
 	testdir := "TestFileRotateDailyOutdated-" + strconv.Itoa(rand.Int())
 	path := testdir + "/filetest.log"

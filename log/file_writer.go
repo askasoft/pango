@@ -146,6 +146,12 @@ func (fw *FileWriter) init() error {
 		return fmt.Errorf("FileWriter(%s) - MkdirAll(%q): %w", fw.Path, fw.dir, err)
 	}
 
+	// check file exists
+	fi0, err := os.Stat(fw.Path)
+	if err != nil {
+		fi0 = nil
+	}
+
 	// Open the log file
 	file, err := os.OpenFile(fw.Path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, os.FileMode(fw.FilePerm))
 	if err != nil {
@@ -166,7 +172,14 @@ func (fw *FileWriter) init() error {
 	}
 
 	fw.fileSize = fi.Size()
-	fw.openTime = time.Now()
+
+	// set openTime to modTime if the file already exists
+	if fi0 != nil {
+		fw.openTime = fi0.ModTime()
+	} else {
+		fw.openTime = time.Now()
+	}
+
 	fw.file = file
 
 	return nil

@@ -60,8 +60,8 @@ func (vs Values) SetString(name string, value string) {
 }
 
 func (vs Values) SetStrings(name string, value []string) {
-	name += "[]"
 	if len(value) > 0 {
+		name += "[]"
 		for _, s := range value {
 			(url.Values)(vs).Add(name, s)
 		}
@@ -69,8 +69,8 @@ func (vs Values) SetStrings(name string, value []string) {
 }
 
 func (vs Values) SetInts(name string, value []int) {
-	name += "[]"
 	if len(value) > 0 {
+		name += "[]"
 		for _, n := range value {
 			(url.Values)(vs).Add(name, num.Itoa(n))
 		}
@@ -78,8 +78,8 @@ func (vs Values) SetInts(name string, value []int) {
 }
 
 func (vs Values) SetInt64s(name string, value []int64) {
-	name += "[]"
 	if len(value) > 0 {
+		name += "[]"
 		for _, n := range value {
 			(url.Values)(vs).Add(name, num.Ltoa(n))
 		}

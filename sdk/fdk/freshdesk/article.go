@@ -70,6 +70,9 @@ type Article struct {
 	// Tags that have been associated with the solution article
 	Tags []string `json:"tags,omitempty"`
 
+	// Omnichannel: available for chat platforms ("web", "ios", "android")
+	Platforms []string `json:"platforms,omitempty"`
+
 	// Number of down votes for the solution article
 	ThumbsDown int `json:"thumbs_down,omitempty"`
 
@@ -100,6 +103,7 @@ func (a *Article) Values() Values {
 	vs.SetString("description", a.Description)
 	vs.SetInt("status", (int)(a.Status))
 	vs.SetStrings("tags", a.Tags)
+	vs.SetStrings("platforms", a.Platforms)
 	vs.SetMap("seo_data", a.SeoData)
 	return vs
 }

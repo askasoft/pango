@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/net/httpx"
 	"github.com/askasoft/pango/net/httpx/sse"
-	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/xin/binding"
 	"github.com/askasoft/pango/xin/render"
 )
@@ -977,14 +977,15 @@ func (c *Context) FileFromFS(filepath string, fs http.FileSystem) {
 	http.FileServer(fs).ServeHTTP(c.Writer, c.Request)
 }
 
+// SetAttachmentHeader set response header Content-Disposition: attachment; filename=...
+func (c *Context) SetAttachmentHeader(filename string) {
+	httpx.SetAttachmentHeader(c.Writer.Header(), filename)
+}
+
 // FileAttachment writes the specified file into the body stream in an efficient way
 // On the client side, the file will typically be downloaded with the given filename
 func (c *Context) FileAttachment(filepath, filename string) {
-	if str.IsASCII(filename) {
-		c.Writer.Header().Set("Content-Disposition", `attachment; filename="`+filename+`"`)
-	} else {
-		c.Writer.Header().Set("Content-Disposition", `attachment; filename*=UTF-8''`+url.QueryEscape(filename))
-	}
+	c.SetAttachmentHeader(filename)
 	http.ServeFile(c.Writer, c.Request, filepath)
 }
 

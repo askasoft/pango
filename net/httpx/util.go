@@ -2,6 +2,9 @@ package httpx
 
 import (
 	"net/http"
+	"net/url"
+
+	"github.com/askasoft/pango/str"
 )
 
 // NewHeaderAppender create a http.ResponseWriter to append on WriteHeader(statusCode int).
@@ -28,4 +31,17 @@ func (hw *headerWriter) WriteHeader(statusCode int) {
 		}
 	}
 	hw.ResponseWriter.WriteHeader(statusCode)
+}
+
+// SetAttachmentHeader set header Content-Disposition: attachment; filename=...
+func SetAttachmentHeader(header http.Header, filename string) {
+	var v string
+
+	if str.IsASCII(filename) {
+		v = `attachment; filename="` + filename + `"`
+	} else {
+		v = `attachment; filename*=UTF-8''` + url.QueryEscape(filename)
+	}
+
+	header.Set("Content-Disposition", v)
 }

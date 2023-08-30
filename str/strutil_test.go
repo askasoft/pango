@@ -254,6 +254,26 @@ func TestRemoveAnyByte(t *testing.T) {
 	}
 }
 
+func TestRemoveFunc(t *testing.T) {
+	cs := []struct {
+		w string
+		s string
+		f func(r rune) bool
+	}{
+		{"", "", func(r rune) bool { return r == 'a' || r == 'b' }},
+		{"qee", "queued", func(r rune) bool { return r == 'u' || r == 'd' }},
+		{"queued", "queued", func(r rune) bool { return r == 'z' }},
+		{"ありとういます。", "ありがとうございます。", func(r rune) bool { return r == 'が' || r == 'ご' || r == 'ざ' }},
+	}
+
+	for i, c := range cs {
+		a := RemoveFunc(c.s, c.f)
+		if a != c.w {
+			t.Errorf("[%d] RemoveFunc(%q) = %q, want %q", i, c.s, a, c.w)
+		}
+	}
+}
+
 func TestTrimSpaces(t *testing.T) {
 	cs := []struct {
 		s []string
@@ -276,6 +296,7 @@ func TestRemoveEmptys(t *testing.T) {
 		w []string
 	}{
 		{[]string{"a", ""}, []string{"a"}},
+		{[]string{"a", "", "b", "", "c"}, []string{"a", "b", "c"}},
 	}
 
 	for i, c := range cs {

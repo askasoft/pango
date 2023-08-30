@@ -255,25 +255,25 @@ func RemoveByte(s string, b byte) string {
 }
 
 // RemoveAny Removes all occurrences of characters from within the source string.
-func RemoveAny(str string, rcs string) string {
-	if str == "" || rcs == "" {
-		return str
+func RemoveAny(s string, r string) string {
+	if s == "" || r == "" {
+		return s
 	}
 
-	bb := bytes.Buffer{}
-	bb.Grow(len(str))
+	sb := Builder{}
+	sb.Grow(len(r))
 
-	for _, c := range str {
-		if strings.ContainsRune(rcs, c) {
+	for _, c := range s {
+		if strings.ContainsRune(r, c) {
 			continue
 		}
-		bb.WriteRune(c)
+		sb.WriteRune(c)
 	}
-	return bb.String()
+	return sb.String()
 }
 
 // RemoveAnyByte Removes all occurrences of bytes from within the source string.
-func RemoveAnyByte(s string, rbs string) string {
+func RemoveAnyByte(s string, r string) string {
 	if s == "" {
 		return s
 	}
@@ -282,12 +282,30 @@ func RemoveAnyByte(s string, rbs string) string {
 	bs := make([]byte, l)
 	p := 0
 	for i := 0; i < l; i++ {
-		if !ContainsByte(rbs, s[i]) {
+		if !ContainsByte(r, s[i]) {
 			bs[p] = s[i]
 			p++
 		}
 	}
-	return string(bs[0:p])
+	return string(bs[:p])
+}
+
+// RemoveFunc Removes all occurrences of characters from within the source string which satisfy f(c).
+func RemoveFunc(s string, f func(r rune) bool) string {
+	if s == "" {
+		return s
+	}
+
+	sb := Builder{}
+	sb.Grow(len(s))
+
+	for _, c := range s {
+		if f(c) {
+			continue
+		}
+		sb.WriteRune(c)
+	}
+	return sb.String()
 }
 
 // TrimSpaces trim every string in the string array.
@@ -298,15 +316,17 @@ func TrimSpaces(ss []string) []string {
 	return ss
 }
 
-// RemoveEmptys remove empty string in the string array ss, and returns the new string array
+// RemoveEmptys remove empty string in the string array 'ss', and returns the string array 'ss'
 func RemoveEmptys(ss []string) []string {
-	ds := make([]string, 0, len(ss))
+	n := 0
 	for _, s := range ss {
 		if s != "" {
-			ds = append(ds, s)
+			ss[n] = s
+			n++
 		}
 	}
-	return ds
+
+	return ss[:n]
 }
 
 // JoinInts concatenates the elements of its first argument to create a single string. The separator

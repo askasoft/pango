@@ -142,7 +142,7 @@ func (ini *Ini) RemoveSection(name string) (sec *Section) {
 		return
 	}
 
-	sec, _ = ini.sections.Delete(name)
+	sec, _ = ini.sections.Remove(name)
 	return
 }
 

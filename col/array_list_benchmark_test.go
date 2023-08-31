@@ -21,7 +21,7 @@ func benchmarkArrayListAdd(b *testing.B, list *ArrayList, size int) {
 func benchmarkArrayListDelete(b *testing.B, list *ArrayList, size int) {
 	for i := 0; i < b.N; i++ {
 		for n := 0; n < size; n++ {
-			list.Delete(n)
+			list.Remove(n)
 		}
 	}
 }

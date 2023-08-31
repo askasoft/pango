@@ -9,7 +9,7 @@ func ExampleHashMap() {
 	_, _ = m.Get(3)   // nil, false
 	_ = m.Values()    // []interface {}{"b", "a"} (random order)
 	_ = m.Keys()      // []interface {}{1, 2} (random order)
-	m.Delete(1)       // 2->b
+	m.Remove(1)       // 2->b
 	m.Clear()         // empty
 	m.IsEmpty()       // true
 	m.Len()           // 0

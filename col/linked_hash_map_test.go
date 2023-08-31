@@ -167,11 +167,11 @@ func TestLinkedHashMapBasicFeatures(t *testing.T) {
 	for j := 0; j < n/2; j++ {
 		i = 2*j + 1
 		assertLenEqual("TestLinkedHashMapBasicFeatures", t, lm, n-j)
-		lm.Delete(i)
+		lm.Remove(i)
 		assertLenEqual("TestLinkedHashMapBasicFeatures", t, lm, n-j-1)
 
 		// deleting again shouldn't change anything
-		lm.Delete(i)
+		lm.Removes(i)
 		assertLenEqual("TestLinkedHashMapBasicFeatures", t, lm, n-j-1)
 	}
 
@@ -243,7 +243,7 @@ func TestLinkedHashMapDeletingAndReinsertingChangesPairsOrder(t *testing.T) {
 	lm.Set("bar", "baz")
 
 	// delete a item
-	lm.Delete(78)
+	lm.Remove(78)
 
 	// re-insert the same item
 	lm.Set(78, 100)
@@ -264,7 +264,7 @@ func TestLinkedHashMapEmptyMapOperations(t *testing.T) {
 		t.Errorf("lm.Get(foo) = %v, want %v", ok, false)
 	}
 
-	lm.Delete("bar")
+	lm.Remove("bar")
 	assertLenEqual("TestLinkedHashMapEmptyMapOperations", t, lm, 0)
 
 	fn := lm.Head()
@@ -501,11 +501,9 @@ func TestLinkedHashMapRemove(t *testing.T) {
 	m.Set(2, "b")
 	m.Set(1, "a") //overwrite
 
-	m.Delete(5)
-	m.Delete(6)
-	m.Delete(7)
-	m.Delete(8)
-	m.Delete(5)
+	m.Remove(5)
+	m.Removes(6, 7, 8)
+	m.Remove(5)
 
 	if av, ev := m.Keys(), []any{3, 4, 1, 2}; !testLinkedHashMapSame(av, ev) {
 		t.Errorf("Got %v expected %v", av, ev)
@@ -536,12 +534,9 @@ func TestLinkedHashMapRemove(t *testing.T) {
 		}
 	}
 
-	m.Delete(1)
-	m.Delete(4)
-	m.Delete(2)
-	m.Delete(3)
-	m.Delete(2)
-	m.Delete(2)
+	m.Remove(1)
+	m.Removes(4, 2, 3, 2)
+	m.Remove(2)
 
 	if av, ev := fmt.Sprintf("%s", m.Keys()), "[]"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
@@ -721,7 +716,7 @@ func assertLinkedHashMapIteratorRemove(t *testing.T, i int, it Iterator2, w *Lin
 	it.Remove()
 
 	k := it.Key()
-	w.Delete(k)
+	w.Remove(k)
 
 	it.SetValue(9999)
 
@@ -751,7 +746,7 @@ func TestLinkedHashMapIteratorRemove(t *testing.T) {
 
 		// remove nothing
 		it.Remove()
-		w.Delete(it.Key())
+		w.Remove(it.Key())
 		it.SetValue(9999)
 		if m.Len() != i {
 			t.Fatalf("[%d] m.Len() == %v, want %v", i, m.Len(), i)
@@ -859,7 +854,7 @@ func TestLinkedHashMapUnmarshalFromInvalid(t *testing.T) {
 		t.Fatal("Unmarshal LinkedHashMap: expecting error:", b, err)
 	}
 	// fmt.Println(lm, b, err)
-	lm.Delete("m")
+	lm.Remove("m")
 
 	err = json.Unmarshal([]byte("[]"), lm)
 	if err == nil {
@@ -977,7 +972,7 @@ func TestLinkedHashMapUnmarshal(t *testing.T) {
 	if !ok {
 		t.Fatalf("org should exist")
 	}
-	lm.Delete("org")
+	lm.Remove("org")
 	lm.Set("org", val)
 
 	b, err = json.MarshalIndent(lm, "", "  ")

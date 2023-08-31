@@ -79,7 +79,7 @@ func (it *ringBufferIterator[T]) Remove() {
 		return
 	}
 
-	it.rb.Remove(it.index)
+	it.rb.RemoveAt(it.index)
 	it.start = it.index
 	it.index = -1
 }

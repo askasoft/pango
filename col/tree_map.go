@@ -2,6 +2,8 @@ package col
 
 import (
 	"encoding/json"
+
+	"github.com/askasoft/pango/bye"
 )
 
 // NewTreeMap creates a new TreeMap.
@@ -66,6 +68,17 @@ func (tm *TreeMap) Values() []V {
 		vs[i] = n.value
 	}
 	return vs
+}
+
+// Contain Test to see if the list contains the key k
+func (tm *TreeMap) Contain(k K) bool {
+	if tm.IsEmpty() {
+		return false
+	}
+	if _, ok := tm.Get(k); ok {
+		return true
+	}
+	return false
 }
 
 // Contains looks for the given key, and returns true if the key exists in the map.
@@ -136,16 +149,6 @@ func (tm *TreeMap) Set(key K, value V) (ov V, ok bool) {
 	return
 }
 
-// SetPairs set items from key-value items array, override the existing items
-func (tm *TreeMap) SetPairs(pairs ...P) {
-	setMapPairs(tm, pairs...)
-}
-
-// SetAll add items from another map am, override the existing items
-func (tm *TreeMap) SetAll(am Map) {
-	setMapAll(tm, am)
-}
-
 // SetIfAbsent sets the key-value item if the key does not exists in the map,
 // and returns true if the tree is changed.
 func (tm *TreeMap) SetIfAbsent(key K, value V) (ov V, ok bool) {
@@ -156,18 +159,34 @@ func (tm *TreeMap) SetIfAbsent(key K, value V) (ov V, ok bool) {
 	return tm.Set(key, value)
 }
 
-// Delete delete all items with key of ks,
+// SetPairs set items from key-value items array, override the existing items
+func (tm *TreeMap) SetPairs(pairs ...P) {
+	setMapPairs(tm, pairs...)
+}
+
+// Copy copy items from another map am, override the existing items
+func (tm *TreeMap) Copy(am Map) {
+	CopyMap(tm, am)
+}
+
+// Remove remove the item with key k,
 // and returns what `Get` would have returned
-// on that key prior to the call to `Delete`.
-func (tm *TreeMap) Delete(ks ...K) (ov V, ok bool) {
+// on that key prior to the call to `Set`.
+func (tm *TreeMap) Remove(k K) (ov V, ok bool) {
 	if tm.IsEmpty() {
 		return
 	}
 
-	for _, k := range ks {
-		ov, ok = tm.delete(k)
+	return tm.delete(k)
+}
+
+// Removes remove all items with key of ks.
+func (tm *TreeMap) Removes(ks ...K) {
+	if !tm.IsEmpty() {
+		for _, k := range ks {
+			tm.delete(k)
+		}
 	}
-	return
 }
 
 // Each call f for each item in the map
@@ -251,7 +270,7 @@ func (tm *TreeMap) Items() []*TreeMapNode {
 // String print map to string
 func (tm *TreeMap) String() string {
 	bs, _ := json.Marshal(tm)
-	return string(bs)
+	return bye.UnsafeString(bs)
 }
 
 // Graph return the map's graph

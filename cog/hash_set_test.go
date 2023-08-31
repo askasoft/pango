@@ -44,8 +44,8 @@ func TestHashSetLazyInit(t *testing.T) {
 		if hs.Len() != 0 {
 			t.Error("hs.Len() != 0")
 		}
-		if !hs.ContainsAll(&HashSet[int]{}) {
-			t.Error("&HashSet{}.ContainsAll(&HashSet{}) = true, want false")
+		if !hs.ContainCol(&HashSet[int]{}) {
+			t.Error("&HashSet{}.ContainCol(&HashSet{}) = true, want false")
 		}
 	}
 	{
@@ -57,14 +57,14 @@ func TestHashSetLazyInit(t *testing.T) {
 	}
 	{
 		hs := &HashSet[int]{}
-		hs.AddAll(NewHashSet(1))
+		hs.AddCol(NewHashSet(1))
 		if hs.Len() != 1 {
 			t.Errorf("hs.Len() = %v, want 1", hs.Len())
 		}
 	}
 	{
 		hs := &HashSet[int]{}
-		hs.Delete(1)
+		hs.Remove(1)
 		if hs.Len() != 0 {
 			t.Error("hs.Len() != 0")
 		}
@@ -100,7 +100,7 @@ func TestHashSetSimple(t *testing.T) {
 		t.Errorf("Membership test failed")
 	}
 
-	s.Delete(5)
+	s.Remove(5)
 	if s.Len() != 0 {
 		t.Errorf("Length should be 0")
 	}
@@ -128,11 +128,11 @@ func TestHashSetNewHashSet(t *testing.T) {
 
 func TestHashSetAdd(t *testing.T) {
 	set := NewHashSet[int]()
-	set.Add()
+	set.Adds()
 	set.Add(1)
 	set.Add(2)
-	set.Add(2, 3)
-	set.Add()
+	set.Adds(2, 3)
+	set.Adds()
 	if av := set.IsEmpty(); av != false {
 		t.Errorf("Got %v expected %v", av, false)
 	}
@@ -161,16 +161,16 @@ func TestHashSetContains(t *testing.T) {
 		if list.Contains(a...) {
 			t.Errorf("%d Contains(...) should return false", i)
 		}
-		if !list.ContainsAll(AsArrayList(a[0 : i+1])) {
-			t.Errorf("%d ContainsAll(...) should return true", i)
+		if !list.ContainCol(AsArrayList(a[0 : i+1])) {
+			t.Errorf("%d ContainCol(...) should return true", i)
 		}
-		if list.ContainsAll(AsArrayList(a)) {
-			t.Errorf("%d ContainsAll(...) should return false", i)
+		if list.ContainCol(AsArrayList(a)) {
+			t.Errorf("%d ContainCol(...) should return false", i)
 		}
 	}
 
 	list.Clear()
-	if av := list.Contains(0); av != false {
+	if av := list.Contain(0); av != false {
 		t.Errorf("Got %v expected %v", av, false)
 	}
 	if av := list.Contains(0, 1, 2); av != false {
@@ -188,20 +188,20 @@ func TestHashSetRetain(t *testing.T) {
 			}
 			list.Add(i)
 
-			list.Retain(a...)
+			list.Retains(a...)
 			vs := list.Values()
 			sort.Sort(inta(vs))
 			if !reflect.DeepEqual(vs, a) {
-				t.Fatalf("%d Retain() = %v, want %v", i, vs, a)
+				t.Fatalf("%d Retains() = %v, want %v", i, vs, a)
 			}
 		}
 
 		{
 			a = []int{}
-			list.Retain()
+			list.Retains()
 			vs := list.Values()
 			if len(vs) > 0 {
-				t.Fatalf("%d Retain() = %v, want %v", n, vs, a)
+				t.Fatalf("%d Retains() = %v, want %v", n, vs, a)
 			}
 		}
 
@@ -213,20 +213,20 @@ func TestHashSetRetain(t *testing.T) {
 			}
 			list.Add(i)
 
-			list.RetainAll(AsArrayList(a))
+			list.RetainCol(AsArrayList(a))
 			vs := list.Values()
 			sort.Sort(inta(vs))
 			if !reflect.DeepEqual(vs, a) {
-				t.Fatalf("%d RetainAll() = %v, want %v", i, vs, a)
+				t.Fatalf("%d RetainCol() = %v, want %v", i, vs, a)
 			}
 		}
 
 		{
 			a = []int{}
-			list.RetainAll(AsArrayList(a))
+			list.RetainCol(AsArrayList(a))
 			vs := list.Values()
 			if len(vs) > 0 {
-				t.Fatalf("%d Retain() = %v, want %v", n, vs, a)
+				t.Fatalf("%d Retains() = %v, want %v", n, vs, a)
 			}
 		}
 	}
@@ -234,20 +234,20 @@ func TestHashSetRetain(t *testing.T) {
 
 func TestHashSetDelete(t *testing.T) {
 	set := NewHashSet[int]()
-	set.Add(3, 1, 2)
-	set.Delete()
+	set.Adds(3, 1, 2)
+	set.Removes()
 	if av := set.Len(); av != 3 {
 		t.Errorf("Got %v expected %v", av, 3)
 	}
-	set.DeleteIf(func(d int) bool {
+	set.RemoveIf(func(d int) bool {
 		return d == 1
 	})
 	if av := set.Len(); av != 2 {
 		t.Errorf("Got %v expected %v", av, 2)
 	}
-	set.Delete(3, 3)
-	set.Delete()
-	set.DeleteAll(NewArrayList(2, 2))
+	set.Removes(3, 3)
+	set.Removes()
+	set.RemoveCol(NewArrayList(2, 2))
 	if av := set.Len(); av != 0 {
 		t.Errorf("Got %v expected %v", av, 0)
 	}
@@ -257,31 +257,31 @@ func TestHashSetContainsAll(t *testing.T) {
 	s1 := NewHashSet[int]()
 	s2 := NewHashSet[int]()
 
-	if !s1.ContainsAll(s1) {
+	if !s1.ContainCol(s1) {
 		t.Errorf("set should be a subset of itself")
 	}
 
-	if !s1.ContainsAll(s2) {
+	if !s1.ContainCol(s2) {
 		t.Errorf("empty set should contains another empty set")
 	}
 
 	s1.Add(1)
-	if !s1.ContainsAll(s2) {
+	if !s1.ContainCol(s2) {
 		t.Errorf("set should contains another empty set")
 	}
 
 	s2.Add(1)
-	if !s1.ContainsAll(s2) {
+	if !s1.ContainCol(s2) {
 		t.Errorf("set should contains another same set")
 	}
 
 	s1.Add(2)
-	if !s1.ContainsAll(s2) {
+	if !s1.ContainCol(s2) {
 		t.Errorf("set should contains another small set")
 	}
 
 	s2.Add(3)
-	if s1.ContainsAll(s2) {
+	if s1.ContainCol(s2) {
 		t.Errorf("set should not contains another different set")
 	}
 }
@@ -320,7 +320,7 @@ func TestHashSetAddSet(t *testing.T) {
 	// AddSet
 	s1 := NewHashSet(4, 5, 6)
 	s2 := NewHashSet(7, 8, 9)
-	s1.AddAll(s2)
+	s1.AddCol(s2)
 
 	if s1.Len() != 6 {
 		t.Errorf("Length should be 6 after union")

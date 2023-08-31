@@ -24,7 +24,7 @@ func benchmarkLinkedHashSetAdd(b *testing.B, lset *LinkedHashSet[int], size int)
 func benchmarkLinkedHashSetDel(b *testing.B, lset *LinkedHashSet[int], size int) {
 	for i := 0; i < b.N; i++ {
 		for n := 0; n < size; n++ {
-			lset.Delete(n)
+			lset.Remove(n)
 		}
 	}
 }

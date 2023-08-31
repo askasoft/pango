@@ -94,11 +94,9 @@ func TestHashMapRemove(t *testing.T) {
 	m.Set(2, "b")
 	m.Set(1, "a") //overwrite
 
-	m.Delete(5)
-	m.Delete(6)
-	m.Delete(7)
-	m.Delete(8)
-	m.Delete(5)
+	m.Remove(5)
+	m.Removes(6, 7, 8)
+	m.Remove(5)
 
 	if av, ev := m.Keys(), []int{1, 2, 3, 4}; !testHashMapSame(av, ev) {
 		t.Errorf("Got %v expected %v", av, ev)
@@ -133,12 +131,9 @@ func TestHashMapRemove(t *testing.T) {
 		}
 	}
 
-	m.Delete(1)
-	m.Delete(4)
-	m.Delete(2)
-	m.Delete(3)
-	m.Delete(2)
-	m.Delete(2)
+	m.Remove(1)
+	m.Removes(4, 2, 3, 2)
+	m.Remove(2)
 
 	if av, ev := fmt.Sprintf("%v", m.Keys()), "[]"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)

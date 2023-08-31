@@ -9,13 +9,14 @@ import (
 	"sort"
 
 	"github.com/askasoft/pango/ars"
+	"github.com/askasoft/pango/bye"
 )
 
 // NewLinkedHashSet returns an initialized set.
 // Example: NewLinkedHashSet(1, 2, 3)
 func NewLinkedHashSet[T comparable](vs ...T) *LinkedHashSet[T] {
 	ls := &LinkedHashSet[T]{}
-	ls.Add(vs...)
+	ls.Adds(vs...)
 	return ls
 }
 
@@ -55,33 +56,44 @@ func (ls *LinkedHashSet[T]) Clear() {
 	ls.tail = nil
 }
 
-// Add adds all items of vs and returns the last added item.
+// Add add the item v.
 // Note: existing item's order will not change.
-func (ls *LinkedHashSet[T]) Add(vs ...T) {
-	ls.Insert(ls.Len(), vs...)
+func (ls *LinkedHashSet[T]) Add(v T) {
+	ls.Insert(ls.Len(), v)
 }
 
-// AddAll adds all items of another collection
+// Adds adds all items of vs.
 // Note: existing item's order will not change.
-func (ls *LinkedHashSet[T]) AddAll(ac Collection[T]) {
-	ls.InsertAll(ls.Len(), ac)
+func (ls *LinkedHashSet[T]) Adds(vs ...T) {
+	ls.Inserts(ls.Len(), vs...)
 }
 
-// Delete delete all items with associated value v of vs
-func (ls *LinkedHashSet[T]) Delete(vs ...T) {
+// AddCol adds all items of another collection
+// Note: existing item's order will not change.
+func (ls *LinkedHashSet[T]) AddCol(ac Collection[T]) {
+	ls.InsertCol(ls.Len(), ac)
+}
+
+// Remove remove all items with associated value v
+func (ls *LinkedHashSet[T]) Remove(v T) {
+	if ln, ok := ls.hash[v]; ok {
+		ls.deleteNode(ln)
+	}
+}
+
+// Removes remove all items with associated value v of vs
+func (ls *LinkedHashSet[T]) Removes(vs ...T) {
 	if ls.IsEmpty() {
 		return
 	}
 
 	for _, v := range vs {
-		if ln, ok := ls.hash[v]; ok {
-			ls.deleteNode(ln)
-		}
+		ls.Remove(v)
 	}
 }
 
-// DeleteIf delete all items that function f returns true
-func (ls *LinkedHashSet[T]) DeleteIf(f func(T) bool) {
+// RemoveIf remove all items that function f returns true
+func (ls *LinkedHashSet[T]) RemoveIf(f func(T) bool) {
 	if ls.IsEmpty() {
 		return
 	}
@@ -93,8 +105,8 @@ func (ls *LinkedHashSet[T]) DeleteIf(f func(T) bool) {
 	}
 }
 
-// DeleteAll delete all of this collection's elements that are also contained in the specified collection
-func (ls *LinkedHashSet[T]) DeleteAll(ac Collection[T]) {
+// RemoveCol remove all of this collection's elements that are also contained in the specified collection
+func (ls *LinkedHashSet[T]) RemoveCol(ac Collection[T]) {
 	if ls.IsEmpty() || ac.IsEmpty() {
 		return
 	}
@@ -107,14 +119,23 @@ func (ls *LinkedHashSet[T]) DeleteAll(ac Collection[T]) {
 	if ic, ok := ac.(Iterable[T]); ok {
 		it := ic.Iterator()
 		for it.Next() {
-			if ln, ok := ls.hash[it.Value()]; ok {
-				ls.deleteNode(ln)
-			}
+			ls.Remove(it.Value())
 		}
 		return
 	}
 
-	ls.Delete(ac.Values()...)
+	ls.Removes(ac.Values()...)
+}
+
+// Contain Test to see if the list contains the value v
+func (ls *LinkedHashSet[T]) Contain(v T) bool {
+	if ls.IsEmpty() {
+		return false
+	}
+	if _, ok := ls.hash[v]; ok {
+		return true
+	}
+	return false
 }
 
 // Contains Test to see if the collection contains all items of vs
@@ -135,8 +156,8 @@ func (ls *LinkedHashSet[T]) Contains(vs ...T) bool {
 	return true
 }
 
-// ContainsAll Test to see if the collection contains all items of another collection
-func (ls *LinkedHashSet[T]) ContainsAll(ac Collection[T]) bool {
+// ContainCol Test to see if the collection contains all items of another collection
+func (ls *LinkedHashSet[T]) ContainCol(ac Collection[T]) bool {
 	if ac.IsEmpty() || ls == ac {
 		return true
 	}
@@ -158,8 +179,8 @@ func (ls *LinkedHashSet[T]) ContainsAll(ac Collection[T]) bool {
 	return ls.Contains(ac.Values()...)
 }
 
-// Retain Retains only the elements in this collection that are contained in the argument array vs.
-func (ls *LinkedHashSet[T]) Retain(vs ...T) {
+// Retains Retains only the elements in this collection that are contained in the argument array vs.
+func (ls *LinkedHashSet[T]) Retains(vs ...T) {
 	if ls.IsEmpty() {
 		return
 	}
@@ -176,8 +197,8 @@ func (ls *LinkedHashSet[T]) Retain(vs ...T) {
 	}
 }
 
-// RetainAll Retains only the elements in this collection that are contained in the specified collection.
-func (ls *LinkedHashSet[T]) RetainAll(ac Collection[T]) {
+// RetainCol Retains only the elements in this collection that are contained in the specified collection.
+func (ls *LinkedHashSet[T]) RetainCol(ac Collection[T]) {
 	if ls.IsEmpty() || ls == ac {
 		return
 	}
@@ -264,11 +285,50 @@ func (ls *LinkedHashSet[T]) setValue(ln *linkedSetNode[T], v T) {
 	ls.hash[v] = ln
 }
 
+// Insert insert value v at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
+// Panic if position is bigger than set's size
+// Note: position equal to set's size is valid, i.e. append.
+// Note: existing item's order will not change.
+func (ls *LinkedHashSet[T]) Insert(index int, v T) {
+	index = ls.checkSizeIndex(index)
+
+	if ls.hash == nil {
+		ls.hash = make(map[T]*linkedSetNode[T])
+	}
+
+	var prev, next *linkedSetNode[T]
+	if index == ls.Len() {
+		next = nil
+		prev = ls.tail
+	} else {
+		next = ls.node(index)
+		prev = next.prev
+	}
+
+	if _, ok := ls.hash[v]; !ok {
+		nn := &linkedSetNode[T]{prev: prev, value: v, next: nil}
+		if prev == nil {
+			ls.head = nn
+		} else {
+			prev.next = nn
+		}
+		prev = nn
+		ls.hash[v] = nn
+	}
+
+	if next == nil {
+		ls.tail = prev
+	} else if prev != nil {
+		prev.next = next
+		next.prev = prev
+	}
+}
+
 // Insert inserts values at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
 // Panic if position is bigger than set's size
 // Note: position equal to set's size is valid, i.e. append.
 // Note: existing item's order will not change.
-func (ls *LinkedHashSet[T]) Insert(index int, vs ...T) {
+func (ls *LinkedHashSet[T]) Inserts(index int, vs ...T) {
 	index = ls.checkSizeIndex(index)
 
 	n := len(vs)
@@ -312,11 +372,11 @@ func (ls *LinkedHashSet[T]) Insert(index int, vs ...T) {
 	}
 }
 
-// InsertAll inserts values of another collection ac at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
+// InsertCol inserts values of another collection ac at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
 // Panic if position is bigger than list's size
 // Note: position equal to list's size is valid, i.e. append.
 // Note: existing item's order will not change.
-func (ls *LinkedHashSet[T]) InsertAll(index int, ac Collection[T]) {
+func (ls *LinkedHashSet[T]) InsertCol(index int, ac Collection[T]) {
 	index = ls.checkSizeIndex(index)
 
 	if ac.IsEmpty() || ls == ac {
@@ -363,7 +423,7 @@ func (ls *LinkedHashSet[T]) InsertAll(index int, ac Collection[T]) {
 		return
 	}
 
-	ls.Insert(index, ac.Values()...)
+	ls.Inserts(index, ac.Values()...)
 }
 
 // Index returns the index of the specified v in this set, or -1 if this set does not contain v.
@@ -377,8 +437,8 @@ func (ls *LinkedHashSet[T]) Index(v T) int {
 	return -1
 }
 
-// Remove removes the element at the specified position in this set.
-func (ls *LinkedHashSet[T]) Remove(index int) {
+// RemoveAt removes the element at the specified position in this set.
+func (ls *LinkedHashSet[T]) RemoveAt(index int) {
 	index = ls.checkItemIndex(index)
 
 	ln := ls.node(index)
@@ -429,9 +489,14 @@ func (ls *LinkedHashSet[T]) Poll() (T, bool) {
 	return ls.PollHead()
 }
 
-// Push inserts all items of vs at the tail of set al.
-func (ls *LinkedHashSet[T]) Push(vs ...T) {
-	ls.Insert(ls.Len(), vs...)
+// Push insert the item v at the tail of set al.
+func (ls *LinkedHashSet[T]) Push(v T) {
+	ls.Insert(ls.Len(), v)
+}
+
+// Pushs inserts all items of vs at the tail of set al.
+func (ls *LinkedHashSet[T]) Pushs(vs ...T) {
+	ls.Inserts(ls.Len(), vs...)
 }
 
 //--------------------------------------------------------------------
@@ -471,32 +536,42 @@ func (ls *LinkedHashSet[T]) PollTail() (v T, ok bool) {
 	return
 }
 
-// PushHead inserts all items of vs at the head of set ls.
-func (ls *LinkedHashSet[T]) PushHead(vs ...T) {
-	ls.Insert(0, vs...)
+// PushHead insert the item v at the head of set ls.
+func (ls *LinkedHashSet[T]) PushHead(v T) {
+	ls.Insert(0, v)
 }
 
-// PushHeadAll inserts a copy of another collection at the head of set ls.
+// PushHeads inserts all items of vs at the head of set ls.
+func (ls *LinkedHashSet[T]) PushHeads(vs ...T) {
+	ls.Inserts(0, vs...)
+}
+
+// PushHeadCol inserts a copy of another collection at the head of set ls.
 // The ls and ac may be the same. They must not be nil.
-func (ls *LinkedHashSet[T]) PushHeadAll(ac Collection[T]) {
-	ls.InsertAll(0, ac)
+func (ls *LinkedHashSet[T]) PushHeadCol(ac Collection[T]) {
+	ls.InsertCol(0, ac)
 }
 
-// PushTail inserts all items of vs at the tail of set ls.
-func (ls *LinkedHashSet[T]) PushTail(vs ...T) {
-	ls.Insert(ls.Len(), vs...)
+// PushTail insert the item v at the tail of set ls.
+func (ls *LinkedHashSet[T]) PushTail(v T) {
+	ls.Insert(ls.Len(), v)
 }
 
-// PushTailAll inserts a copy of another collection at the tail of set ls.
+// PushTails inserts all items of vs at the tail of set ls.
+func (ls *LinkedHashSet[T]) PushTails(vs ...T) {
+	ls.Inserts(ls.Len(), vs...)
+}
+
+// PushTailCol inserts a copy of another collection at the tail of set ls.
 // The ls and ac may be the same. They must not be nil.
-func (ls *LinkedHashSet[T]) PushTailAll(ac Collection[T]) {
-	ls.InsertAll(ls.Len(), ac)
+func (ls *LinkedHashSet[T]) PushTailCol(ac Collection[T]) {
+	ls.InsertCol(ls.Len(), ac)
 }
 
 // String print list to string
 func (ls *LinkedHashSet[T]) String() string {
 	bs, _ := json.Marshal(ls)
-	return string(bs)
+	return bye.UnsafeString(bs)
 }
 
 // -----------------------------------------------------------

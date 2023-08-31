@@ -64,49 +64,57 @@ func (al *ArrayList[T]) Clear() {
 	}
 }
 
-// Add adds all items of vs and returns the last added item.
-func (al *ArrayList[T]) Add(vs ...T) {
-	al.PushTail(vs...)
+// Add add the item v
+func (al *ArrayList[T]) Add(v T) {
+	al.Insert(al.Len(), v)
 }
 
-// AddAll adds all items of another collection
-func (al *ArrayList[T]) AddAll(ac Collection[T]) {
-	al.PushTailAll(ac)
+// Adds adds all items of vs
+func (al *ArrayList[T]) Adds(vs ...T) {
+	al.Inserts(al.Len(), vs...)
 }
 
-// Delete delete all items with associated value v of vs
-func (al *ArrayList[T]) Delete(vs ...T) {
-	if len(vs) == 0 {
-		return
+// AddCol adds all items of another collection
+func (al *ArrayList[T]) AddCol(ac Collection[T]) {
+	al.InsertCol(al.Len(), ac)
+}
+
+// Remove remove all items with associated value v of vs
+func (al *ArrayList[T]) Remove(v T) {
+	for i := al.Len() - 1; i >= 0; i-- {
+		if any(al.data[i]) == any(v) {
+			al.RemoveAt(i)
+		}
 	}
+}
 
-	if len(vs) == 1 {
+// Removes remove all items with associated value v of vs
+func (al *ArrayList[T]) Removes(vs ...T) {
+	switch len(vs) {
+	case 0:
+		return
+	case 1:
+		al.Remove(vs[0])
+	default:
 		for i := al.Len() - 1; i >= 0; i-- {
-			if any(al.data[i]) == any(vs[0]) {
-				al.Remove(i)
+			if ars.ContainsOf(vs, al.data[i]) {
+				al.RemoveAt(i)
 			}
 		}
-		return
-	}
-
-	for i := al.Len() - 1; i >= 0; i-- {
-		if ars.ContainsOf(vs, al.data[i]) {
-			al.Remove(i)
-		}
 	}
 }
 
-// DeleteIf delete all items that function f returns true
-func (al *ArrayList[T]) DeleteIf(f func(T) bool) {
+// RemoveIf remove all items that function f returns true
+func (al *ArrayList[T]) RemoveIf(f func(T) bool) {
 	for i := al.Len() - 1; i >= 0; i-- {
 		if f(al.data[i]) {
-			al.Remove(i)
+			al.RemoveAt(i)
 		}
 	}
 }
 
-// DeleteAll delete all of this collection's elements that are also contained in the specified collection
-func (al *ArrayList[T]) DeleteAll(ac Collection[T]) {
+// RemoveCol remove all of this collection's elements that are also contained in the specified collection
+func (al *ArrayList[T]) RemoveCol(ac Collection[T]) {
 	if ac.IsEmpty() {
 		return
 	}
@@ -118,12 +126,17 @@ func (al *ArrayList[T]) DeleteAll(ac Collection[T]) {
 
 	for i := al.Len() - 1; i >= 0; i-- {
 		if ac.Contains(al.data[i]) {
-			al.Remove(i)
+			al.RemoveAt(i)
 		}
 	}
 }
 
-// Contains Test to see if the list contains the value v
+// Contain Test to see if the list contains the value v
+func (al *ArrayList[T]) Contain(v T) bool {
+	return al.Index(v) >= 0
+}
+
+// Contains Test to see if the collection contains all items of vs
 func (al *ArrayList[T]) Contains(vs ...T) bool {
 	if len(vs) == 0 {
 		return true
@@ -141,8 +154,8 @@ func (al *ArrayList[T]) Contains(vs ...T) bool {
 	return true
 }
 
-// ContainsAll Test to see if the collection contains all items of another collection
-func (al *ArrayList[T]) ContainsAll(ac Collection[T]) bool {
+// ContainCol Test to see if the collection contains all items of another collection
+func (al *ArrayList[T]) ContainCol(ac Collection[T]) bool {
 	if ac.IsEmpty() || al == ac {
 		return true
 	}
@@ -164,8 +177,8 @@ func (al *ArrayList[T]) ContainsAll(ac Collection[T]) bool {
 	return al.Contains(ac.Values()...)
 }
 
-// Retain Retains only the elements in this collection that are contained in the argument array vs.
-func (al *ArrayList[T]) Retain(vs ...T) {
+// Retains Retains only the elements in this collection that are contained in the argument array vs.
+func (al *ArrayList[T]) Retains(vs ...T) {
 	if al.IsEmpty() {
 		return
 	}
@@ -177,13 +190,13 @@ func (al *ArrayList[T]) Retain(vs ...T) {
 
 	for i := al.Len() - 1; i >= 0; i-- {
 		if !ars.ContainsOf(vs, al.data[i]) {
-			al.Remove(i)
+			al.RemoveAt(i)
 		}
 	}
 }
 
-// RetainAll Retains only the elements in this collection that are contained in the specified collection.
-func (al *ArrayList[T]) RetainAll(ac Collection[T]) {
+// RetainCol Retains only the elements in this collection that are contained in the specified collection.
+func (al *ArrayList[T]) RetainCol(ac Collection[T]) {
 	if al.IsEmpty() || al == ac {
 		return
 	}
@@ -195,7 +208,7 @@ func (al *ArrayList[T]) RetainAll(ac Collection[T]) {
 
 	for i := al.Len() - 1; i >= 0; i-- {
 		if !ac.Contains(al.data[i]) {
-			al.Remove(i)
+			al.RemoveAt(i)
 		}
 	}
 }
@@ -245,10 +258,25 @@ func (al *ArrayList[T]) Set(index int, v T) (ov T) {
 	return
 }
 
+// Insert insert the item v at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
+// Panic if position is bigger than list's size
+// Note: position equal to list's size is valid, i.e. append.
+func (al *ArrayList[T]) Insert(index int, v T) {
+	index = al.checkSizeIndex(index)
+
+	z := al.Len()
+
+	al.expand(1)
+	if index < z {
+		copy(al.data[index+1:], al.data[index:z-index])
+	}
+	al.data[index] = v
+}
+
 // Insert inserts values at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
 // Panic if position is bigger than list's size
 // Note: position equal to list's size is valid, i.e. append.
-func (al *ArrayList[T]) Insert(index int, vs ...T) {
+func (al *ArrayList[T]) Inserts(index int, vs ...T) {
 	index = al.checkSizeIndex(index)
 
 	n := len(vs)
@@ -265,11 +293,11 @@ func (al *ArrayList[T]) Insert(index int, vs ...T) {
 	copy(al.data[index:], vs)
 }
 
-// InsertAll inserts values of another collection ac at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
+// InsertCol inserts values of another collection ac at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
 // Panic if position is bigger than list's size
 // Note: position equal to list's size is valid, i.e. append.
-func (al *ArrayList[T]) InsertAll(index int, ac Collection[T]) {
-	al.Insert(index, ac.Values()...)
+func (al *ArrayList[T]) InsertCol(index int, ac Collection[T]) {
+	al.Inserts(index, ac.Values()...)
 }
 
 // Index returns the index of the first occurrence of the specified v in this list, or -1 if this list does not contain v.
@@ -292,8 +320,8 @@ func (al *ArrayList[T]) IndexIf(f func(T) bool) int {
 	return -1
 }
 
-// Remove removes the item at the specified position in this list.
-func (al *ArrayList[T]) Remove(index int) {
+// RemoveAt remove the item at the specified position in this list.
+func (al *ArrayList[T]) RemoveAt(index int) {
 	index = al.checkItemIndex(index)
 
 	var v T
@@ -345,9 +373,14 @@ func (al *ArrayList[T]) Poll() (T, bool) {
 	return al.PollHead()
 }
 
+// Push insert item v at the tail of list al.
+func (al *ArrayList[T]) Push(v T) {
+	al.Insert(al.Len(), v)
+}
+
 // Push inserts all items of vs at the tail of list al.
-func (al *ArrayList[T]) Push(vs ...T) {
-	al.Insert(al.Len(), vs...)
+func (al *ArrayList[T]) Pushs(vs ...T) {
+	al.Inserts(al.Len(), vs...)
 }
 
 //--------------------------------------------------------------------
@@ -377,7 +410,7 @@ func (al *ArrayList[T]) PeekTail() (v T, ok bool) {
 func (al *ArrayList[T]) PollHead() (v T, ok bool) {
 	v, ok = al.PeekHead()
 	if ok {
-		al.Remove(0)
+		al.RemoveAt(0)
 	}
 	return
 }
@@ -391,26 +424,36 @@ func (al *ArrayList[T]) PollTail() (v T, ok bool) {
 	return
 }
 
-// PushHead inserts all items of vs at the head of list al.
-func (al *ArrayList[T]) PushHead(vs ...T) {
-	al.Insert(0, vs...)
+// PushHead inserts the item v at the head of list al.
+func (al *ArrayList[T]) PushHead(v T) {
+	al.Insert(0, v)
 }
 
-// PushHeadAll inserts a copy of another collection at the head of list al.
+// PushHeads inserts all items of vs at the head of list al.
+func (al *ArrayList[T]) PushHeads(vs ...T) {
+	al.Inserts(0, vs...)
+}
+
+// PushHeadCol inserts a copy of another collection at the head of list al.
 // The al and ac may be the same. They must not be nil.
-func (al *ArrayList[T]) PushHeadAll(ac Collection[T]) {
-	al.InsertAll(0, ac)
+func (al *ArrayList[T]) PushHeadCol(ac Collection[T]) {
+	al.InsertCol(0, ac)
 }
 
-// PushTail inserts all items of vs at the tail of list al.
-func (al *ArrayList[T]) PushTail(vs ...T) {
-	al.Insert(al.Len(), vs...)
+// PushTail inserts the item v at the tail of list al.
+func (al *ArrayList[T]) PushTail(v T) {
+	al.Insert(al.Len(), v)
 }
 
-// PushTailAll inserts a copy of another collection at the tail of list al.
+// PushTails inserts all items of vs at the tail of list al.
+func (al *ArrayList[T]) PushTails(vs ...T) {
+	al.Inserts(al.Len(), vs...)
+}
+
+// PushTailCol inserts a copy of another collection at the tail of list al.
 // The al and ac may be the same. They must not be nil.
-func (al *ArrayList[T]) PushTailAll(ac Collection[T]) {
-	al.InsertAll(al.Len(), ac)
+func (al *ArrayList[T]) PushTailCol(ac Collection[T]) {
+	al.InsertCol(al.Len(), ac)
 }
 
 //------------------------------------------------------------

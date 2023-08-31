@@ -30,7 +30,8 @@ func setMapPairs(m Map, ps ...P) {
 	}
 }
 
-func setMapAll(dst, src Map) {
+// CopyMap copy map 'src' to map 'des'
+func CopyMap(dst, src Map) {
 	if dst == src {
 		return
 	}

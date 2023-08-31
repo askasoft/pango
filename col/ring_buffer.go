@@ -25,7 +25,7 @@ func NewRingBuffer(vs ...T) *RingBuffer {
 		data: make([]T, size),
 	}
 
-	rb.Push(vs...)
+	rb.Pushs(vs...)
 	return rb
 }
 
@@ -53,25 +53,41 @@ func (rb *RingBuffer) Clear() {
 	rb.shrink()
 }
 
-// Add adds all items of vs and returns the last added item.
-func (rb *RingBuffer) Add(vs ...T) {
-	rb.PushTail(vs...)
+// Add add item v.
+func (rb *RingBuffer) Add(v T) {
+	rb.Insert(rb.len, v)
 }
 
-// AddAll adds all items of another collection
-func (rb *RingBuffer) AddAll(ac Collection) {
-	rb.PushTailAll(ac)
+// Adds adds all items of vs.
+func (rb *RingBuffer) Adds(vs ...T) {
+	rb.Inserts(rb.len, vs...)
 }
 
-// Delete delete all items with associated value v of vs
-func (rb *RingBuffer) Delete(vs ...T) {
-	for _, v := range vs {
-		rb.deleteAll(v)
+// AddCol adds all items of another collection
+func (rb *RingBuffer) AddCol(ac Collection) {
+	rb.InsertCol(rb.len, ac)
+}
+
+// Remove remove all items with associated value v of vs
+func (rb *RingBuffer) Remove(v T) {
+	for i := rb.Index(v); i >= 0; i = rb.Index(v) {
+		rb.RemoveAt(i)
 	}
 }
 
-// DeleteIf delete all items that function f returns true
-func (rb *RingBuffer) DeleteIf(f func(T) bool) {
+// Removes remove all items with associated value v of vs
+func (rb *RingBuffer) Removes(vs ...T) {
+	if rb.IsEmpty() {
+		return
+	}
+
+	for _, v := range vs {
+		rb.Remove(v)
+	}
+}
+
+// RemoveIf remove all items that function f returns true
+func (rb *RingBuffer) RemoveIf(f func(T) bool) {
 	if rb.IsEmpty() {
 		return
 	}
@@ -84,14 +100,8 @@ func (rb *RingBuffer) DeleteIf(f func(T) bool) {
 	}
 }
 
-func (rb *RingBuffer) deleteAll(v T) {
-	for i := rb.Index(v); i >= 0; i = rb.Index(v) {
-		rb.Remove(i)
-	}
-}
-
-// DeleteAll delete all of this collection's elements that are also contained in the specified collection
-func (rb *RingBuffer) DeleteAll(ac Collection) {
+// RemoveCol remove all of this collection's elements that are also contained in the specified collection
+func (rb *RingBuffer) RemoveCol(ac Collection) {
 	if rb.IsEmpty() || ac.IsEmpty() {
 		return
 	}
@@ -104,12 +114,17 @@ func (rb *RingBuffer) DeleteAll(ac Collection) {
 	if ic, ok := ac.(Iterable); ok {
 		it := ic.Iterator()
 		for it.Next() {
-			rb.deleteAll(it.Value())
+			rb.Remove(it.Value())
 		}
 		return
 	}
 
-	rb.Delete(ac.Values()...)
+	rb.Removes(ac.Values()...)
+}
+
+// Contain Test to see if the list contains the value v
+func (rb *RingBuffer) Contain(v T) bool {
+	return rb.Index(v) >= 0
 }
 
 // Contains Test to see if the RingBuffer contains the value v
@@ -130,8 +145,8 @@ func (rb *RingBuffer) Contains(vs ...T) bool {
 	return true
 }
 
-// ContainsAll Test to see if the collection contains all items of another collection
-func (rb *RingBuffer) ContainsAll(ac Collection) bool {
+// ContainCol Test to see if the collection contains all items of another collection
+func (rb *RingBuffer) ContainCol(ac Collection) bool {
 	if ac.IsEmpty() || rb == ac {
 		return true
 	}
@@ -153,8 +168,8 @@ func (rb *RingBuffer) ContainsAll(ac Collection) bool {
 	return rb.Contains(ac.Values()...)
 }
 
-// Retain Retains only the elements in this collection that are contained in the argument array vs.
-func (rb *RingBuffer) Retain(vs ...T) {
+// Retains Retains only the elements in this collection that are contained in the argument array vs.
+func (rb *RingBuffer) Retains(vs ...T) {
 	if rb.IsEmpty() {
 		return
 	}
@@ -172,8 +187,8 @@ func (rb *RingBuffer) Retain(vs ...T) {
 	}
 }
 
-// RetainAll Retains only the elements in this collection that are contained in the specified collection.
-func (rb *RingBuffer) RetainAll(ac Collection) {
+// RetainCol Retains only the elements in this collection that are contained in the specified collection.
+func (rb *RingBuffer) RetainCol(ac Collection) {
 	if rb.IsEmpty() || rb == ac {
 		return
 	}
@@ -267,10 +282,67 @@ func (rb *RingBuffer) Set(index int, v T) (ov T) {
 	return
 }
 
-// Insert inserts values at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
+// Insert insert value v at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
 // Panic if position is bigger than RingBuffer's size
 // Note: position equal to RingBuffer's size is valid, i.e. append.
-func (rb *RingBuffer) Insert(index int, vs ...T) {
+func (rb *RingBuffer) Insert(index int, v T) {
+	idx := rb.checkSizeIndex(index)
+
+	if rb.expand(1) {
+		index = rb.checkSizeIndex(index)
+	} else {
+		index = idx
+	}
+
+	if rb.len == 0 {
+		rb.data[0] = v
+		rb.tail = 0
+	} else if index == rb.tail+1 {
+		l := len(rb.data)
+		rb.tail++
+		if rb.tail >= l {
+			rb.tail -= l
+		}
+		rb.data[rb.tail] = v
+	} else if index == rb.head {
+		l := len(rb.data)
+		rb.head--
+		if rb.head < 0 {
+			rb.head += l
+		}
+		rb.data[rb.head] = v
+	} else if index > rb.head {
+		head, tail := rb.head-1, rb.tail
+		if head < 0 {
+			tail -= head
+			head = 0
+		}
+		if head != rb.head {
+			copy(rb.data[head:rb.head], rb.data[rb.head:rb.head+rb.head-head])
+		}
+		if tail != rb.tail {
+			x := tail - rb.tail
+			for i, j := rb.tail, 0; j < x; i, j = i-1, j+1 {
+				rb.data[i+x] = rb.data[i]
+			}
+		}
+		rb.data[head] = v
+		rb.head, rb.tail = head, tail
+	} else {
+		// 0 < index < tail < head
+		for i, x := rb.tail, rb.tail-index+1; i >= index; i-- {
+			rb.data[i+x] = rb.data[i]
+		}
+		rb.data[index] = v
+	}
+
+	rb.len++
+}
+
+// Inserts inserts values at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
+// Panic if position is bigger than RingBuffer's size
+// Note: position equal to RingBuffer's size is valid, i.e. append.
+func (rb *RingBuffer) Inserts(index int, vs ...T) {
 	idx := rb.checkSizeIndex(index)
 
 	n := len(vs)
@@ -335,17 +407,17 @@ func (rb *RingBuffer) Insert(index int, vs ...T) {
 	rb.len += n
 }
 
-// InsertAll inserts values of another collection ac at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
+// InsertCol inserts values of another collection ac at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
 // Panic if position is bigger than RingBuffer's size
 // Note: position equal to RingBuffer's size is valid, i.e. append.
-func (rb *RingBuffer) InsertAll(index int, ac Collection) {
-	rb.Insert(index, ac.Values()...)
+func (rb *RingBuffer) InsertCol(index int, ac Collection) {
+	rb.Inserts(index, ac.Values()...)
 }
 
 // Index returns the index of the first occurrence of the specified v in this RingBuffer, or -1 if this RingBuffer does not contain v.
 func (rb *RingBuffer) Index(v T) int {
 	return rb.IndexIf(func(d T) bool {
-		return any(d) == any(v)
+		return d == v
 	})
 }
 
@@ -377,14 +449,14 @@ func (rb *RingBuffer) IndexIf(f func(T) bool) int {
 	return -1
 }
 
-// Remove removes the item at the specified position in this RingBuffer.
-func (rb *RingBuffer) Remove(index int) {
+// RemoveAt remove the item at the specified position in this RingBuffer.
+func (rb *RingBuffer) RemoveAt(index int) {
 	index = rb.checkItemIndex(index)
-	rb.remove(index)
+	rb.removeAt(index)
 	rb.shrink()
 }
 
-func (rb *RingBuffer) remove(index int) {
+func (rb *RingBuffer) removeAt(index int) {
 	rb.data[index] = nil
 	rb.len--
 
@@ -468,9 +540,14 @@ func (rb *RingBuffer) Poll() (T, bool) {
 	return rb.PollHead()
 }
 
-// Push inserts all items of vs at the tail of RingBuffer rb.
-func (rb *RingBuffer) Push(vs ...T) {
-	rb.PushTail(vs...)
+// Push insert item v at the tail of RingBuffer rb.
+func (rb *RingBuffer) Push(v T) {
+	rb.Insert(rb.len, v)
+}
+
+// Pushs inserts all items of vs at the tail of RingBuffer rb.
+func (rb *RingBuffer) Pushs(vs ...T) {
+	rb.Inserts(rb.len, vs...)
 }
 
 // MustPeek Retrieves, but does not remove, the head of this queue, panic if this queue is empty.
@@ -518,7 +595,7 @@ func (rb *RingBuffer) PeekTail() (v T, ok bool) {
 func (rb *RingBuffer) PollHead() (v T, ok bool) {
 	v, ok = rb.PeekHead()
 	if ok {
-		rb.remove(rb.head)
+		rb.removeAt(rb.head)
 		rb.shrink()
 	}
 
@@ -529,32 +606,42 @@ func (rb *RingBuffer) PollHead() (v T, ok bool) {
 func (rb *RingBuffer) PollTail() (v T, ok bool) {
 	v, ok = rb.PeekTail()
 	if ok {
-		rb.remove(rb.tail)
+		rb.removeAt(rb.tail)
 		rb.shrink()
 	}
 	return
 }
 
-// PushHead inserts all items of vs at the head of RingBuffer rb.
-func (rb *RingBuffer) PushHead(vs ...T) {
-	rb.Insert(0, vs...)
+// PushHead insert item v at the head of RingBuffer rb.
+func (rb *RingBuffer) PushHead(v T) {
+	rb.Insert(0, v)
 }
 
-// PushHeadAll inserts a copy of another collection at the head of RingBuffer rb.
+// PushHeads inserts all items of vs at the head of RingBuffer rb.
+func (rb *RingBuffer) PushHeads(vs ...T) {
+	rb.Inserts(0, vs...)
+}
+
+// PushHeadCol inserts a copy of another collection at the head of RingBuffer rb.
 // The rb and ac may be the same. They must not be nil.
-func (rb *RingBuffer) PushHeadAll(ac Collection) {
-	rb.InsertAll(0, ac)
+func (rb *RingBuffer) PushHeadCol(ac Collection) {
+	rb.InsertCol(0, ac)
 }
 
-// PushTail inserts all items of vs at the tail of RingBuffer rb.
-func (rb *RingBuffer) PushTail(vs ...T) {
-	rb.Insert(rb.len, vs...)
+// PushTail insert item v at the tail of RingBuffer rb.
+func (rb *RingBuffer) PushTail(v T) {
+	rb.Insert(rb.len, v)
 }
 
-// PushTailAll inserts a copy of another collection at the tail of RingBuffer rb.
+// PushTails inserts all items of vs at the tail of RingBuffer rb.
+func (rb *RingBuffer) PushTails(vs ...T) {
+	rb.Inserts(rb.len, vs...)
+}
+
+// PushTailCol inserts a copy of another collection at the tail of RingBuffer rb.
 // The rb and ac may be the same. They must not be nil.
-func (rb *RingBuffer) PushTailAll(ac Collection) {
-	rb.InsertAll(rb.len, ac)
+func (rb *RingBuffer) PushTailCol(ac Collection) {
+	rb.InsertCol(rb.len, ac)
 }
 
 //-----------------------------------------------------------

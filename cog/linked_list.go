@@ -16,7 +16,7 @@ import (
 // Example: NewLinkedList(1, 2, 3)
 func NewLinkedList[T any](vs ...T) *LinkedList[T] {
 	ll := &LinkedList[T]{}
-	ll.Add(vs...)
+	ll.Adds(vs...)
 	return ll
 }
 
@@ -54,25 +54,43 @@ func (ll *LinkedList[T]) Clear() {
 	ll.len = 0
 }
 
-// Add adds all items of vs and returns the last added item.
-func (ll *LinkedList[T]) Add(vs ...T) {
-	ll.Insert(ll.len, vs...)
+// Add add the item v.
+func (ll *LinkedList[T]) Add(v T) {
+	ll.Insert(ll.len, v)
 }
 
-// AddAll adds all items of another collection
-func (ll *LinkedList[T]) AddAll(ac Collection[T]) {
-	ll.InsertAll(ll.len, ac)
+// Adds adds all items of vs.
+func (ll *LinkedList[T]) Adds(vs ...T) {
+	ll.Inserts(ll.len, vs...)
 }
 
-// Delete delete all items with associated value v of vs
-func (ll *LinkedList[T]) Delete(vs ...T) {
-	for _, v := range vs {
-		ll.deleteAll(v)
+// AddCol adds all items of another collection
+func (ll *LinkedList[T]) AddCol(ac Collection[T]) {
+	ll.InsertCol(ll.len, ac)
+}
+
+// Remove remove all items with associated value v of vs
+func (ll *LinkedList[T]) Remove(v T) {
+	for ln := ll.head; ln != nil; ln = ln.next {
+		if any(ln.value) == any(v) {
+			ll.deleteNode(ln)
+		}
 	}
 }
 
-// DeleteIf delete all items that function f returns true
-func (ll *LinkedList[T]) DeleteIf(f func(T) bool) {
+// Removes remove all items with associated value v of vs
+func (ll *LinkedList[T]) Removes(vs ...T) {
+	if ll.IsEmpty() {
+		return
+	}
+
+	for _, v := range vs {
+		ll.Remove(v)
+	}
+}
+
+// RemoveIf remove all items that function f returns true
+func (ll *LinkedList[T]) RemoveIf(f func(T) bool) {
 	if ll.IsEmpty() {
 		return
 	}
@@ -84,8 +102,8 @@ func (ll *LinkedList[T]) DeleteIf(f func(T) bool) {
 	}
 }
 
-// DeleteAll delete all of this collection's elements that are also contained in the specified collection
-func (ll *LinkedList[T]) DeleteAll(ac Collection[T]) {
+// RemoveCol remove all of this collection's elements that are also contained in the specified collection
+func (ll *LinkedList[T]) RemoveCol(ac Collection[T]) {
 	if ll.IsEmpty() || ac.IsEmpty() {
 		return
 	}
@@ -98,12 +116,17 @@ func (ll *LinkedList[T]) DeleteAll(ac Collection[T]) {
 	if ic, ok := ac.(Iterable[T]); ok {
 		it := ic.Iterator()
 		for it.Next() {
-			ll.deleteAll(it.Value())
+			ll.Remove(it.Value())
 		}
 		return
 	}
 
-	ll.Delete(ac.Values()...)
+	ll.Removes(ac.Values()...)
+}
+
+// Contain Test to see if the list contains the value v
+func (ll *LinkedList[T]) Contain(v T) bool {
+	return ll.Index(v) >= 0
 }
 
 // Contains Test to see if the collection contains all items of vs
@@ -124,8 +147,8 @@ func (ll *LinkedList[T]) Contains(vs ...T) bool {
 	return true
 }
 
-// ContainsAll Test to see if the collection contains all items of another collection
-func (ll *LinkedList[T]) ContainsAll(ac Collection[T]) bool {
+// ContainCol Test to see if the collection contains all items of another collection
+func (ll *LinkedList[T]) ContainCol(ac Collection[T]) bool {
 	if ac.IsEmpty() || ll == ac {
 		return true
 	}
@@ -147,8 +170,8 @@ func (ll *LinkedList[T]) ContainsAll(ac Collection[T]) bool {
 	return ll.Contains(ac.Values()...)
 }
 
-// Retain Retains only the elements in this collection that are contained in the argument array vs.
-func (ll *LinkedList[T]) Retain(vs ...T) {
+// Retains Retains only the elements in this collection that are contained in the argument array vs.
+func (ll *LinkedList[T]) Retains(vs ...T) {
 	if ll.IsEmpty() {
 		return
 	}
@@ -165,8 +188,8 @@ func (ll *LinkedList[T]) Retain(vs ...T) {
 	}
 }
 
-// RetainAll Retains only the elements in this collection that are contained in the specified collection.
-func (ll *LinkedList[T]) RetainAll(ac Collection[T]) {
+// RetainCol Retains only the elements in this collection that are contained in the specified collection.
+func (ll *LinkedList[T]) RetainCol(ac Collection[T]) {
 	if ll.IsEmpty() || ll == ac {
 		return
 	}
@@ -232,10 +255,43 @@ func (ll *LinkedList[T]) Set(index int, v T) (ov T) {
 	return
 }
 
-// Insert inserts values at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
+// Insert insert value v at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
 // Panic if position is bigger than list's size
 // Note: position equal to list's size is valid, i.e. append.
-func (ll *LinkedList[T]) Insert(index int, vs ...T) {
+func (ll *LinkedList[T]) Insert(index int, v T) {
+	index = ll.checkSizeIndex(index)
+
+	var prev, next *linkedListNode[T]
+	if index == ll.len {
+		next = nil
+		prev = ll.tail
+	} else {
+		next = ll.node(index)
+		prev = next.prev
+	}
+
+	nn := &linkedListNode[T]{prev: prev, value: v, next: nil}
+	if prev == nil {
+		ll.head = nn
+	} else {
+		prev.next = nn
+	}
+	prev = nn
+
+	if next == nil {
+		ll.tail = prev
+	} else {
+		prev.next = next
+		next.prev = prev
+	}
+
+	ll.len++
+}
+
+// Inserts inserts values at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
+// Panic if position is bigger than list's size
+// Note: position equal to list's size is valid, i.e. append.
+func (ll *LinkedList[T]) Inserts(index int, vs ...T) {
 	index = ll.checkSizeIndex(index)
 
 	if len(vs) == 0 {
@@ -271,17 +327,17 @@ func (ll *LinkedList[T]) Insert(index int, vs ...T) {
 	ll.len += len(vs)
 }
 
-// InsertAll inserts values of another collection ac at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
+// InsertCol inserts values of another collection ac at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
 // Panic if position is bigger than list's size
 // Note: position equal to list's size is valid, i.e. append.
-func (ll *LinkedList[T]) InsertAll(index int, ac Collection[T]) {
+func (ll *LinkedList[T]) InsertCol(index int, ac Collection[T]) {
 	index = ll.checkSizeIndex(index)
 
 	if ac.IsEmpty() {
 		return
 	}
 
-	ll.Insert(index, ac.Values()...)
+	ll.Inserts(index, ac.Values()...)
 }
 
 // Index returns the index of the first occurrence of the specified v in this list, or -1 if this list does not contain v.
@@ -317,8 +373,8 @@ func (ll *LinkedList[T]) LastIndex(v T) int {
 	return -1
 }
 
-// Remove removes the element at the specified position in this list.
-func (ll *LinkedList[T]) Remove(index int) {
+// RemoveAt remove the element at the specified position in this list.
+func (ll *LinkedList[T]) RemoveAt(index int) {
 	index = ll.checkItemIndex(index)
 
 	ln := ll.node(index)
@@ -369,9 +425,14 @@ func (ll *LinkedList[T]) Poll() (T, bool) {
 	return ll.PollHead()
 }
 
-// Push inserts all items of vs at the tail of list al.
-func (ll *LinkedList[T]) Push(vs ...T) {
-	ll.Insert(ll.Len(), vs...)
+// Push insert the item v at the tail of list al.
+func (ll *LinkedList[T]) Push(v T) {
+	ll.Insert(ll.Len(), v)
+}
+
+// Pushs inserts all items of vs at the tail of list al.
+func (ll *LinkedList[T]) Pushs(vs ...T) {
+	ll.Inserts(ll.Len(), vs...)
 }
 
 //--------------------------------------------------------------------
@@ -411,26 +472,36 @@ func (ll *LinkedList[T]) PollTail() (v T, ok bool) {
 	return
 }
 
-// PushHead inserts all items of vs at the head of list ll.
-func (ll *LinkedList[T]) PushHead(vs ...T) {
-	ll.Insert(0, vs...)
+// PushHead insert the item v at the head of list ll.
+func (ll *LinkedList[T]) PushHead(v T) {
+	ll.Insert(0, v)
 }
 
-// PushHeadAll inserts a copy of another collection at the head of list ll.
+// PushHeads inserts all items of vs at the head of list ll.
+func (ll *LinkedList[T]) PushHeads(vs ...T) {
+	ll.Inserts(0, vs...)
+}
+
+// PushHeadCol inserts a copy of another collection at the head of list ll.
 // The ll and ac may be the same. They must not be nil.
-func (ll *LinkedList[T]) PushHeadAll(ac Collection[T]) {
-	ll.InsertAll(0, ac)
+func (ll *LinkedList[T]) PushHeadCol(ac Collection[T]) {
+	ll.InsertCol(0, ac)
 }
 
-// PushTail inserts all items of vs at the tail of list ll.
-func (ll *LinkedList[T]) PushTail(vs ...T) {
-	ll.Insert(ll.len, vs...)
+// PushTail insert the item v at the tail of list ll.
+func (ll *LinkedList[T]) PushTail(v T) {
+	ll.Insert(ll.len, v)
 }
 
-// PushTailAll inserts a copy of another collection at the tail of list ll.
+// PushTails inserts all items of vs at the tail of list ll.
+func (ll *LinkedList[T]) PushTails(vs ...T) {
+	ll.Inserts(ll.len, vs...)
+}
+
+// PushTailCol inserts a copy of another collection at the tail of list ll.
 // The ll and ac may be the same. They must not be nil.
-func (ll *LinkedList[T]) PushTailAll(ac Collection[T]) {
-	ll.InsertAll(ll.len, ac)
+func (ll *LinkedList[T]) PushTailCol(ac Collection[T]) {
+	ll.InsertCol(ll.len, ac)
 }
 
 // String print list to string
@@ -440,14 +511,6 @@ func (ll *LinkedList[T]) String() string {
 }
 
 // -----------------------------------------------------------
-func (ll *LinkedList[T]) deleteAll(v T) {
-	for ln := ll.head; ln != nil; ln = ln.next {
-		if any(ln.value) == any(v) {
-			ll.deleteNode(ln)
-		}
-	}
-}
-
 func (ll *LinkedList[T]) deleteNode(ln *linkedListNode[T]) {
 	if ln.prev == nil {
 		ll.head = ln.next

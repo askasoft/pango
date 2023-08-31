@@ -74,16 +74,6 @@ func (lm *LinkedHashMap) Set(key K, value V) (ov V, ok bool) {
 	return
 }
 
-// SetPairs set items from key-value items array, override the existing items
-func (lm *LinkedHashMap) SetPairs(pairs ...P) {
-	setMapPairs(lm, pairs...)
-}
-
-// SetAll set items from another map am, override the existing items
-func (lm *LinkedHashMap) SetAll(am Map) {
-	setMapAll(lm, am)
-}
-
 // SetIfAbsent sets the key-value item if the key does not exists in the map,
 // and returns what `Get` would have returned
 // on that key prior to the call to `Set`.
@@ -100,23 +90,53 @@ func (lm *LinkedHashMap) SetIfAbsent(key K, value V) (ov V, ok bool) {
 	return
 }
 
-// Delete delete all items with key of ks,
+// SetPairs set items from key-value items array, override the existing items
+func (lm *LinkedHashMap) SetPairs(pairs ...P) {
+	setMapPairs(lm, pairs...)
+}
+
+// Copy copy items from another map am, override the existing items
+func (lm *LinkedHashMap) Copy(am Map) {
+	CopyMap(lm, am)
+}
+
+// Remove remove the item with key k,
 // and returns what `Get` would have returned
 // on that key prior to the call to `Set`.
-func (lm *LinkedHashMap) Delete(ks ...K) (ov V, ok bool) {
+func (lm *LinkedHashMap) Remove(k K) (ov V, ok bool) {
 	if lm.IsEmpty() {
 		return
 	}
 
 	var ln *LinkedMapNode
-	for _, k := range ks {
-		if ln, ok = lm.hash[k]; ok {
-			lm.deleteNode(ln)
-		} else {
-			ov = nil
-		}
+	ln, ok = lm.hash[k]
+	if ok {
+		ov = ln.value
+		lm.deleteNode(ln)
 	}
 	return
+}
+
+// Remove remove all items with key of ks.
+func (lm *LinkedHashMap) Removes(ks ...K) {
+	if !lm.IsEmpty() {
+		for _, k := range ks {
+			if ln, ok := lm.hash[k]; ok {
+				lm.deleteNode(ln)
+			}
+		}
+	}
+}
+
+// Contain Test to see if the list contains the key k
+func (lm *LinkedHashMap) Contain(k K) bool {
+	if lm.IsEmpty() {
+		return false
+	}
+	if _, ok := lm.hash[k]; ok {
+		return true
+	}
+	return false
 }
 
 // Contains looks for the given key, and returns true if the key exists in the map.

@@ -11,7 +11,7 @@ import (
 // Example: NewTreeSet(CompareString, "v1", "v2")
 func NewTreeSet(compare Compare, vs ...T) *TreeSet {
 	ts := &TreeSet{compare: compare}
-	ts.Add(vs...)
+	ts.Adds(vs...)
 	return ts
 }
 
@@ -50,15 +50,20 @@ func (ts *TreeSet) Clear() {
 	ts.root = nil
 }
 
-// Add adds all items of vs and returns the last added item.
-func (ts *TreeSet) Add(vs ...T) {
+// Add add item v.
+func (ts *TreeSet) Add(v T) {
+	ts.add(v)
+}
+
+// Adds adds all items of vs.
+func (ts *TreeSet) Adds(vs ...T) {
 	for _, v := range vs {
 		ts.add(v)
 	}
 }
 
-// AddAll adds all items of another collection
-func (ts *TreeSet) AddAll(ac Collection) {
+// AddCol adds all items of another collection
+func (ts *TreeSet) AddCol(ac Collection) {
 	if ac.IsEmpty() || ts == ac {
 		return
 	}
@@ -71,24 +76,29 @@ func (ts *TreeSet) AddAll(ac Collection) {
 		return
 	}
 
-	ts.Add(ac.Values()...)
+	ts.Adds(ac.Values()...)
 }
 
-// Delete delete all items with associated value v of vs
-func (ts *TreeSet) Delete(vs ...T) {
+// Remove remove all items with associated value v of vs
+func (ts *TreeSet) Remove(v T) {
+	if tn := ts.lookup(v); tn != nil {
+		ts.deleteNode(tn)
+	}
+}
+
+// Removes remove all items with associated value v of vs
+func (ts *TreeSet) Removes(vs ...T) {
 	if ts.IsEmpty() {
 		return
 	}
 
 	for _, v := range vs {
-		if tn := ts.lookup(v); tn != nil {
-			ts.deleteNode(tn)
-		}
+		ts.Remove(v)
 	}
 }
 
-// DeleteIf delete all items that function f returns true
-func (ts *TreeSet) DeleteIf(f func(T) bool) {
+// RemoveIf remove all items that function f returns true
+func (ts *TreeSet) RemoveIf(f func(T) bool) {
 	if ts.IsEmpty() {
 		return
 	}
@@ -100,8 +110,8 @@ func (ts *TreeSet) DeleteIf(f func(T) bool) {
 	}
 }
 
-// DeleteAll delete all of this collection's elements that are also contained in the specified collection
-func (ts *TreeSet) DeleteAll(ac Collection) {
+// RemoveCol remove all of this collection's elements that are also contained in the specified collection
+func (ts *TreeSet) RemoveCol(ac Collection) {
 	if ts.IsEmpty() || ac.IsEmpty() {
 		return
 	}
@@ -114,14 +124,17 @@ func (ts *TreeSet) DeleteAll(ac Collection) {
 	if ic, ok := ac.(Iterable); ok {
 		it := ic.Iterator()
 		for it.Next() {
-			if tn := ts.lookup(it.Value()); tn != nil {
-				ts.deleteNode(tn)
-			}
+			ts.Remove(it.Value())
 		}
 		return
 	}
 
-	ts.Delete(ac.Values()...)
+	ts.Removes(ac.Values()...)
+}
+
+// Contain Test to see if the list contains the value v
+func (ts *TreeSet) Contain(v T) bool {
+	return ts.lookup(v) != nil
 }
 
 // Contains Test to see if the collection contains all items of vs
@@ -142,8 +155,8 @@ func (ts *TreeSet) Contains(vs ...T) bool {
 	return true
 }
 
-// ContainsAll Test to see if the collection contains all items of another collection
-func (ts *TreeSet) ContainsAll(ac Collection) bool {
+// ContainCol Test to see if the collection contains all items of another collection
+func (ts *TreeSet) ContainCol(ac Collection) bool {
 	if ac.IsEmpty() || ts == ac {
 		return true
 	}
@@ -165,8 +178,8 @@ func (ts *TreeSet) ContainsAll(ac Collection) bool {
 	return ts.Contains(ac.Values()...)
 }
 
-// Retain Retains only the elements in this collection that are contained in the argument array vs.
-func (ts *TreeSet) Retain(vs ...T) {
+// Retains Retains only the elements in this collection that are contained in the argument array vs.
+func (ts *TreeSet) Retains(vs ...T) {
 	if ts.IsEmpty() {
 		return
 	}
@@ -183,8 +196,8 @@ func (ts *TreeSet) Retain(vs ...T) {
 	}
 }
 
-// RetainAll Retains only the elements in this collection that are contained in the specified collection.
-func (ts *TreeSet) RetainAll(ac Collection) {
+// RetainCol Retains only the elements in this collection that are contained in the specified collection.
+func (ts *TreeSet) RetainCol(ac Collection) {
 	if ts.IsEmpty() || ts == ac {
 		return
 	}
@@ -295,6 +308,7 @@ func (ts *TreeSet) Floor(v T) T {
 	if tn != nil {
 		return tn.value
 	}
+
 	return nil
 }
 

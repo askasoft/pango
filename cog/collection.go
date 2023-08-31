@@ -25,32 +25,41 @@ type Container interface {
 type Collection[T any] interface {
 	Container
 
-	// Add adds items of vs to the collection
-	Add(vs ...T)
+	// Add adds item v to the collection
+	Add(v T)
 
-	// AddAll adds all items of another collection
-	AddAll(ac Collection[T])
+	// Adds adds items of vs to the collection
+	Adds(vs ...T)
 
-	// Delete delete all items of vs
-	Delete(vs ...T)
+	// AddCol adds all items of another collection
+	AddCol(ac Collection[T])
 
-	// DeleteIf delete all items that function f returns true
-	DeleteIf(f func(T) bool)
+	// Remove remove all items with associated value v
+	Remove(v T)
 
-	// DeleteAll delete all of this collection's elements that are also contained in the specified collection
-	DeleteAll(ac Collection[T])
+	// Removes remove all items with associated value v of vs
+	Removes(vs ...T)
+
+	// RemoveIf remove all items that function f returns true
+	RemoveIf(f func(T) bool)
+
+	// RemoveCol remove all of this collection's elements that are also contained in the specified collection
+	RemoveCol(ac Collection[T])
+
+	// Contain Test to see if the collection contains item v
+	Contain(v T) bool
 
 	// Contains Test to see if the collection contains all items of vs
 	Contains(vs ...T) bool
 
-	// ContainsAll Test to see if the collection contains all items of another collection
-	ContainsAll(ac Collection[T]) bool
+	// ContainCol Test to see if the collection contains all items of another collection
+	ContainCol(ac Collection[T]) bool
 
-	// Retain Retains only the elements in this collection that are contained in the argument array vs.
-	Retain(vs ...T)
+	// Retains Retains only the elements in this collection that are contained in the argument array vs.
+	Retains(vs ...T)
 
-	// RetainAll Retains only the elements in this collection that are contained in the specified collection.
-	RetainAll(ac Collection[T])
+	// RetainCol Retains only the elements in this collection that are contained in the specified collection.
+	RetainCol(ac Collection[T])
 
 	// Values returns a slice contains all the items of the collection
 	Values() []T
@@ -78,15 +87,20 @@ type List[T any] interface {
 	// Set set the v at the specified index in this list and returns the old value.
 	Set(index int, v T) T
 
+	// Insert insert item v at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
+	// Does not do anything if position is bigger than list's size
+	// Note: position equal to list's size is valid, i.e. append.
+	Insert(index int, v T)
+
 	// Insert inserts values at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
 	// Does not do anything if position is bigger than list's size
 	// Note: position equal to list's size is valid, i.e. append.
-	Insert(index int, vs ...T)
+	Inserts(index int, vs ...T)
 
-	// InsertAll inserts values of another collection ac at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
+	// InsertCol inserts values of another collection ac at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
 	// Does not do anything if position is bigger than list's size
 	// Note: position equal to list's size is valid, i.e. append.
-	InsertAll(index int, ac Collection[T])
+	InsertCol(index int, ac Collection[T])
 
 	// Index returns the index of the first occurrence of the specified v in this list, or -1 if this list does not contain v.
 	Index(v T) int
@@ -94,8 +108,8 @@ type List[T any] interface {
 	// IndexIf returns the index of the first true returned by function f in this list, or -1 if this list does not contain v.
 	IndexIf(f func(T) bool) int
 
-	// Remove delete the item at the specified position in this list
-	Remove(index int)
+	// RemoveAt remove the item at the specified position in this list
+	RemoveAt(index int)
 
 	// Swap swaps values of two items at the given index.
 	Swap(i, j int)
@@ -120,21 +134,27 @@ type Map[K any, V any] interface {
 	// Example: lm.Set("k1", "v1", "k2", "v2")
 	Set(key K, value V) (ov V, ok bool)
 
-	// SetPairs set items from key-value items array, override the existing items
-	SetPairs(pairs ...P[K, V])
-
-	// SetAll set items from another map am, override the existing items
-	SetAll(am Map[K, V])
-
 	// SetIfAbsent sets the key-value item if the key does not exists in the map,
 	// and returns what `Get` would have returned
 	// on that key prior to the call to `Set`.
 	SetIfAbsent(key K, value V) (ov V, ok bool)
 
-	// Delete delete all items with key of ks,
+	// SetPairs set items from key-value items array, override the existing items
+	SetPairs(pairs ...P[K, V])
+
+	// Copy copy items from another map am, override the existing items
+	Copy(am Map[K, V])
+
+	// Remove remove the item with key k,
 	// and returns what `Get` would have returned
 	// on that key prior to the call to `Set`.
-	Delete(ks ...K) (ov V, ok bool)
+	Remove(k K) (ov V, ok bool)
+
+	// Removes remove all items with key of ks.
+	Removes(ks ...K)
+
+	// Contain looks for the given key, and returns true if the key exists in the map.
+	Contain(k K) bool
 
 	// Contains looks for the given key, and returns true if the key exists in the map.
 	Contains(ks ...K) bool
@@ -165,8 +185,11 @@ type Queue[T any] interface {
 	// Poll Retrieves and removes the head of this queue, or returns (nil, false) if this queue is empty.
 	Poll() (T, bool)
 
-	// Push adds items of vs to the tail of queue
-	Push(vs ...T)
+	// Push add item v to the tail of queue
+	Push(v T)
+
+	// Pushs adds items of vs to the tail of queue
+	Pushs(vs ...T)
 }
 
 // Deque A linear collection that supports element insertion and removal at both ends.
@@ -177,8 +200,11 @@ type Deque[T any] interface {
 	// PollHead Retrieves and removes the head of this queue, or returns (nil, false) if this queue is empty.
 	PollHead() (T, bool)
 
-	// PushHead adds items of vs to the head of queue
-	PushHead(vs ...T)
+	// PushHead add item v to the head of queue
+	PushHead(v T)
+
+	// PushHeads adds items of vs to the head of queue
+	PushHeads(vs ...T)
 
 	// PeekTail Retrieves, but does not remove, the tail of this queue, or returns (nil, false) if this queue is empty.
 	PeekTail() (T, bool)
@@ -186,6 +212,9 @@ type Deque[T any] interface {
 	// PollTail Retrieves and removes the tail of this queue, or returns (nil, false) if this queue is empty.
 	PollTail() (T, bool)
 
-	// PushTail adds items of vs to the tail of queue
-	PushTail(vs ...T)
+	// PushTail add item v to the tail of queue
+	PushTail(v T)
+
+	// PushTails adds items of vs to the tail of queue
+	PushTails(vs ...T)
 }

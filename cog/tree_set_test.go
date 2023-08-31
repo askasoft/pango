@@ -51,7 +51,7 @@ func TestTreeSetDebug(t *testing.T) {
 func TestTreeSetAdd(t *testing.T) {
 	tset := NewTreeSet(CompareString)
 	tset.Add("a")
-	tset.Add("b", "c")
+	tset.Adds("b", "c")
 	if av := tset.IsEmpty(); av != false {
 		t.Errorf("Got %v expected %v", av, false)
 	}
@@ -65,8 +65,8 @@ func TestTreeSetAdd(t *testing.T) {
 
 func TestTreeSetClear(t *testing.T) {
 	tset := NewTreeSet(CompareString)
-	tset.Add("e", "f", "g", "a", "b", "c", "d")
-	tset.Add("e", "f", "g", "a", "b", "c", "d")
+	tset.Adds("e", "f", "g", "a", "b", "c", "d")
+	tset.Adds("e", "f", "g", "a", "b", "c", "d")
 	tset.Clear()
 	if av := tset.IsEmpty(); av != true {
 		t.Errorf("Got %v expected %v", av, true)
@@ -96,16 +96,16 @@ func TestTreeSetContains(t *testing.T) {
 		if list.Contains(a...) {
 			t.Errorf("%d Contains(...) should return false", i)
 		}
-		if !list.ContainsAll(AsArrayList(a[0 : i+1])) {
-			t.Errorf("%d ContainsAll(...) should return true", i)
+		if !list.ContainCol(AsArrayList(a[0 : i+1])) {
+			t.Errorf("%d ContainCol(...) should return true", i)
 		}
-		if list.ContainsAll(AsArrayList(a)) {
-			t.Errorf("%d ContainsAll(...) should return false", i)
+		if list.ContainCol(AsArrayList(a)) {
+			t.Errorf("%d ContainCol(...) should return false", i)
 		}
 	}
 
 	list.Clear()
-	if av := list.Contains(0); av != false {
+	if av := list.Contain(0); av != false {
 		t.Errorf("Got %v expected %v", av, false)
 	}
 	if av := list.Contains(0, 1, 2); av != false {
@@ -123,19 +123,19 @@ func TestTreeSetRetain(t *testing.T) {
 			}
 			list.Add(i)
 
-			list.Retain(a...)
+			list.Retains(a...)
 			vs := list.Values()
 			if !reflect.DeepEqual(vs, a) {
-				t.Fatalf("%d Retain() = %v, want %v", i, vs, a)
+				t.Fatalf("%d Retains() = %v, want %v", i, vs, a)
 			}
 		}
 
 		{
 			a = []int{}
-			list.Retain()
+			list.Retains()
 			vs := list.Values()
 			if len(vs) > 0 {
-				t.Fatalf("%d Retain() = %v, want %v", n, vs, a)
+				t.Fatalf("%d Retains() = %v, want %v", n, vs, a)
 			}
 		}
 
@@ -147,19 +147,19 @@ func TestTreeSetRetain(t *testing.T) {
 			}
 			list.Add(i)
 
-			list.RetainAll(AsArrayList(a))
+			list.RetainCol(AsArrayList(a))
 			vs := list.Values()
 			if !reflect.DeepEqual(vs, a) {
-				t.Fatalf("%d RetainAll() = %v, want %v", i, vs, a)
+				t.Fatalf("%d RetainCol() = %v, want %v", i, vs, a)
 			}
 		}
 
 		{
 			a = []int{}
-			list.RetainAll(AsArrayList(a))
+			list.RetainCol(AsArrayList(a))
 			vs := list.Values()
 			if len(vs) > 0 {
-				t.Fatalf("%d Retain() = %v, want %v", n, vs, a)
+				t.Fatalf("%d Retains() = %v, want %v", n, vs, a)
 			}
 		}
 	}
@@ -167,8 +167,8 @@ func TestTreeSetRetain(t *testing.T) {
 
 func TestTreeSetValues(t *testing.T) {
 	tset := NewTreeSet(CompareString)
-	tset.Add("a", "a")
-	tset.Add("b", "c", "b", "c")
+	tset.Adds("a", "a")
+	tset.Adds("b", "c", "b", "c")
 	if av, ev := fmt.Sprintf("%v", tset.Values()), "[a b c]"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
@@ -176,8 +176,8 @@ func TestTreeSetValues(t *testing.T) {
 
 func TestTreeSetEach(t *testing.T) {
 	tset := NewTreeSet(CompareString)
-	tset.Add("a", "b", "c")
-	tset.Add("a", "b", "c")
+	tset.Adds("a", "b", "c")
+	tset.Adds("a", "b", "c")
 	index := 0
 	tset.Each(func(value string) {
 		switch index {
@@ -210,8 +210,8 @@ func TestTreeSetIteratorNextOnEmpty(t *testing.T) {
 
 func TestTreeSetIteratorNext(t *testing.T) {
 	tset := NewTreeSet(CompareString)
-	tset.Add("a", "b", "c")
-	tset.Add("a", "b", "c")
+	tset.Adds("a", "b", "c")
+	tset.Adds("a", "b", "c")
 	it := tset.Iterator()
 	count := 0
 	index := 0
@@ -251,8 +251,8 @@ func TestTreeSetIteratorPrevOnEmpty(t *testing.T) {
 
 func TestTreeSetIteratorPrev(t *testing.T) {
 	tset := NewTreeSet(CompareString)
-	tset.Add("a", "b", "c")
-	tset.Add("a", "b", "c")
+	tset.Adds("a", "b", "c")
+	tset.Adds("a", "b", "c")
 	it := tset.Iterator()
 	count := 0
 	index := tset.Len()
@@ -285,8 +285,8 @@ func TestTreeSetIteratorPrev(t *testing.T) {
 func TestTreeSetIteratorReset(t *testing.T) {
 	tset := NewTreeSet(CompareString)
 	it := tset.Iterator()
-	tset.Add("a", "b", "c")
-	tset.Add("a", "b", "c")
+	tset.Adds("a", "b", "c")
+	tset.Adds("a", "b", "c")
 	for it.Next() {
 	}
 	it.Reset()
@@ -306,7 +306,7 @@ func assertTreeSetIteratorRemove(t *testing.T, i int, it Iterator[int], w *TreeS
 	it.Remove()
 
 	v := it.Value()
-	w.Delete(v)
+	w.Remove(v)
 
 	it.SetValue(9999)
 
@@ -450,16 +450,17 @@ func TestTreeSetDelete(t *testing.T) {
 		tset.Add(i)
 	}
 
-	tset.DeleteIf(func(d int) bool {
+	tset.RemoveIf(func(d int) bool {
 		return d == 101
 	})
 	if tset.Len() != 100 {
-		t.Error("TreeSet.Delete(101) should do nothing")
+		t.Error("TreeSet.Remove(101) should do nothing")
 	}
 	for i := 1; i <= 100; i++ {
-		tset.Delete(i, i)
+		tset.Remove(i)
+		tset.Removes(i, i)
 		if tset.Len() != 100-i {
-			t.Errorf("TreeSet.Delete(%v) failed, tset.Len() = %v, want %v", i, tset.Len(), 100-i)
+			t.Errorf("TreeSet.Remove(%v) failed, tset.Len() = %v, want %v", i, tset.Len(), 100-i)
 		}
 	}
 
@@ -479,21 +480,21 @@ func TestTreeSetDelete2(t *testing.T) {
 	}
 
 	n := tset.Len()
-	tset.Delete(100)
+	tset.Remove(100)
 	if tset.Len() != n {
-		t.Errorf("TreeSet.Delete(100).Len() = %v, want %v", tset.Len(), n)
+		t.Errorf("TreeSet.Remove(100).Len() = %v, want %v", tset.Len(), n)
 	}
 
 	for i := 0; i < 100; i++ {
 		n = tset.Len()
-		tset.Delete(i)
+		tset.Remove(i)
 		z := i % 10
 		if z > 1 {
 			z = 1
 		}
 		a := n - tset.Len()
 		if a != z {
-			t.Errorf("TreeSet.Delete(%v) = %v, want %v", i, a, z)
+			t.Errorf("TreeSet.Remove(%v) = %v, want %v", i, a, z)
 		}
 	}
 
@@ -513,21 +514,21 @@ func TestTreeSetDeleteAll(t *testing.T) {
 	}
 
 	n := tset.Len()
-	tset.Delete(100)
+	tset.Remove(100)
 	if tset.Len() != n {
-		t.Errorf("TreeSet.Delete(100).Len() = %v, want %v", tset.Len(), n)
+		t.Errorf("TreeSet.Remove(100).Len() = %v, want %v", tset.Len(), n)
 	}
 
 	for i := 0; i < 100; i++ {
 		n = tset.Len()
-		tset.DeleteAll(NewArrayList(i, i))
+		tset.RemoveCol(NewArrayList(i, i))
 		z := i % 10
 		if z > 1 {
 			z = 1
 		}
 		a := n - tset.Len()
 		if a != z {
-			t.Errorf("TreeSet.Delete(%v) = %v, want %v", i, a, z)
+			t.Errorf("TreeSet.Remove(%v) = %v, want %v", i, a, z)
 		}
 	}
 

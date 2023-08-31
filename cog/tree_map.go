@@ -73,6 +73,17 @@ func (tm *TreeMap[K, V]) Values() []V {
 	return vs
 }
 
+// Contain Test to see if the list contains the key k
+func (tm *TreeMap[K, V]) Contain(k K) bool {
+	if tm.IsEmpty() {
+		return false
+	}
+	if _, ok := tm.Get(k); ok {
+		return true
+	}
+	return false
+}
+
 // Contains looks for the given key, and returns true if the key exists in the map.
 func (tm *TreeMap[K, V]) Contains(ks ...K) bool {
 	if len(ks) == 0 {
@@ -143,16 +154,6 @@ func (tm *TreeMap[K, V]) Set(key K, value V) (ov V, ok bool) {
 	return
 }
 
-// SetPairs set items from key-value items array, override the existing items
-func (tm *TreeMap[K, V]) SetPairs(pairs ...P[K, V]) {
-	setMapPairs[K, V](tm, pairs...)
-}
-
-// SetAll add items from another map am, override the existing items
-func (tm *TreeMap[K, V]) SetAll(am Map[K, V]) {
-	setMapAll[K, V](tm, am)
-}
-
 // SetIfAbsent sets the key-value item if the key does not exists in the map,
 // and returns true if the tree is changed.
 func (tm *TreeMap[K, V]) SetIfAbsent(key K, value V) (ov V, ok bool) {
@@ -163,18 +164,34 @@ func (tm *TreeMap[K, V]) SetIfAbsent(key K, value V) (ov V, ok bool) {
 	return tm.Set(key, value)
 }
 
-// Delete delete all items with key of ks,
+// SetPairs set items from key-value items array, override the existing items
+func (tm *TreeMap[K, V]) SetPairs(pairs ...P[K, V]) {
+	setMapPairs[K, V](tm, pairs...)
+}
+
+// Copy copy items from another map am, override the existing items
+func (tm *TreeMap[K, V]) Copy(am Map[K, V]) {
+	CopyMap[K, V](tm, am)
+}
+
+// Remove remove the item with key k,
 // and returns what `Get` would have returned
-// on that key prior to the call to `Delete`.
-func (tm *TreeMap[K, V]) Delete(ks ...K) (ov V, ok bool) {
+// on that key prior to the call to `Set`.
+func (tm *TreeMap[K, V]) Remove(k K) (ov V, ok bool) {
 	if tm.IsEmpty() {
 		return
 	}
 
-	for _, k := range ks {
-		ov, ok = tm.delete(k)
+	return tm.delete(k)
+}
+
+// Removes remove all items with key of ks.
+func (tm *TreeMap[K, V]) Removes(ks ...K) {
+	if !tm.IsEmpty() {
+		for _, k := range ks {
+			tm.delete(k)
+		}
 	}
-	return
 }
 
 // Each call f for each item in the map

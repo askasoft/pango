@@ -114,7 +114,7 @@ func (sec *Section) Set(key string, value string, comments ...string) *Entry {
 
 // Delete delete entries with key form the section
 func (sec *Section) Delete(key string) {
-	sec.entries.Delete(key)
+	sec.entries.Remove(key)
 }
 
 // Remove remove a key/value entry from the section
@@ -252,7 +252,7 @@ func (sec *Section) Copy(src *Section) {
 	if len(src.comments) > 0 {
 		sec.comments = src.comments
 	}
-	sec.entries.SetAll(&src.entries)
+	sec.entries.Copy(&src.entries)
 }
 
 // Merge merge entries from src section, existing entries will be merged
@@ -260,7 +260,7 @@ func (sec *Section) Merge(src *Section) {
 	sec.comments = append(sec.comments, src.comments...)
 	for it := src.entries.Iterator(); it.Next(); {
 		if es, ok := sec.entries.Get(it.Key()); ok {
-			es.AddAll(it.Value())
+			es.AddCol(it.Value())
 		} else {
 			sec.entries.Set(it.Key(), it.Value())
 		}

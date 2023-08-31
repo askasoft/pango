@@ -21,7 +21,7 @@ func benchmarkLinkedHashMapSet(b *testing.B, m *LinkedHashMap, size int) {
 func benchmarkLinkedHashMapDel(b *testing.B, m *LinkedHashMap, size int) {
 	for i := 0; i < b.N; i++ {
 		for n := 0; n < size; n++ {
-			m.Delete(n)
+			m.Remove(n)
 		}
 	}
 }

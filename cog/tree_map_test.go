@@ -72,11 +72,10 @@ func TestTreeMapDelete(t *testing.T) {
 	tree.Set(2, "b")
 	tree.Set(1, "a") //overwrite
 
-	tree.Delete(5)
-	tree.Delete(6)
-	tree.Delete(7)
-	tree.Delete(8)
-	tree.Delete(5)
+	tree.Remove(5)
+	tree.Removes(6, 7)
+	tree.Remove(8)
+	tree.Remove(5)
 
 	if av, ev := fmt.Sprintf("%v", tree.Keys()), "[1 2 3 4]"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
@@ -109,12 +108,9 @@ func TestTreeMapDelete(t *testing.T) {
 		}
 	}
 
-	tree.Delete(1)
-	tree.Delete(4)
-	tree.Delete(2)
-	tree.Delete(3)
-	tree.Delete(2)
-	tree.Delete(2)
+	tree.Remove(1)
+	tree.Removes(4, 2, 3, 2)
+	tree.Remove(2)
 
 	if av, ev := fmt.Sprintf("%v", tree.Keys()), "[]"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
@@ -163,7 +159,7 @@ func TestTreeMapDelete2(t *testing.T) {
 			}
 		}
 
-		tm.Delete(i)
+		tm.Remove(i)
 
 		avs := make([]string, 0)
 		for _, k := range tm.Keys() {
@@ -171,7 +167,7 @@ func TestTreeMapDelete2(t *testing.T) {
 		}
 
 		if !reflect.DeepEqual(bvs, avs) {
-			t.Errorf("tm.Delete(%v) failed\nBefore: %v\nAfter : %v", i, bvs, avs)
+			t.Errorf("tm.Remove(%v) failed\nBefore: %v\nAfter : %v", i, bvs, avs)
 		}
 	}
 }
@@ -471,7 +467,7 @@ func assertTreeMapIteratorRemove(t *testing.T, i int, it Iterator2[int, int], w 
 	//fmt.Printf("[%v] Remove(%v): %p\n%s\n", i, it.Key(), it.(*treeMapIterator).node, w.debug())
 	//fmt.Printf("Remove %v\n%s\n", it.Key(), w.debug())
 
-	w.Delete(k)
+	w.Remove(k)
 
 	it.Remove()
 

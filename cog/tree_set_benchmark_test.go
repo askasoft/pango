@@ -26,7 +26,7 @@ func benchmarkTreeSetAdd(b *testing.B, set *TreeSet[int], size int) {
 func benchmarkTreeSetDelete(b *testing.B, set *TreeSet[int], size int) {
 	for i := 0; i < b.N; i++ {
 		for n := 0; n < size; n++ {
-			set.Delete(n)
+			set.Remove(n)
 		}
 	}
 }

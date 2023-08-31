@@ -21,7 +21,7 @@ func benchmarkLinkedListAdd(b *testing.B, list *LinkedList, size int) {
 func benchmarkLinkedListDelete(b *testing.B, list *LinkedList, size int) {
 	for i := 0; i < b.N; i++ {
 		for n := 0; n < size; n++ {
-			list.Delete(n)
+			list.Remove(n)
 		}
 	}
 }

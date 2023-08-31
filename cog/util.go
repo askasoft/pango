@@ -33,7 +33,8 @@ func setMapPairs[K any, V any](m Map[K, V], ps ...P[K, V]) {
 	}
 }
 
-func setMapAll[K any, V any](dst, src Map[K, V]) {
+// CopyMap copy map 'src' to map 'des'
+func CopyMap[K any, V any](dst, src Map[K, V]) {
 	if dst == src {
 		return
 	}

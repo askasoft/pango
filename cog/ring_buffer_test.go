@@ -116,6 +116,26 @@ func TestRingBufferWrapping(t *testing.T) {
 	}
 }
 
+func TestRingBufferWrappings(t *testing.T) {
+	rb := NewRingBuffer[int]()
+
+	for i := 0; i < minArrayCap; i++ {
+		rb.Pushs(i)
+	}
+	for i := 0; i < 3; i++ {
+		rb.Poll()
+		rb.Pushs(minArrayCap + i)
+	}
+
+	for i := 0; i < minArrayCap; i++ {
+		v, _ := rb.Peek()
+		if v != i+3 {
+			t.Error("peek", i, "had value", v)
+		}
+		rb.Poll()
+	}
+}
+
 func TestRingBufferLength(t *testing.T) {
 	rb := NewRingBuffer[int]()
 
@@ -140,7 +160,7 @@ func TestRingBufferLength(t *testing.T) {
 func TestRingBufferAdd(t *testing.T) {
 	list := NewRingBuffer[string]()
 	list.Add("a")
-	list.Add("b", "c")
+	list.Adds("b", "c")
 	if av := list.IsEmpty(); av != false {
 		t.Errorf("Got %v expected %v", av, false)
 	}
@@ -192,7 +212,7 @@ func TestRingBufferIndex(t *testing.T) {
 	}
 
 	list.Add("a")
-	list.Add("b", "c")
+	list.Adds("b", "c")
 
 	expectedIndex = 0
 	if index := list.Index("a"); index != expectedIndex {
@@ -219,16 +239,17 @@ func TestRingBufferDelete(t *testing.T) {
 		l.Add(i)
 	}
 
-	l.DeleteIf(func(d int) bool {
+	l.RemoveIf(func(d int) bool {
 		return d == 101
 	})
 	if l.Len() != 100 {
-		t.Error("RingBuffer.Delete(101) should do nothing")
+		t.Error("RingBuffer.Remove(101) should do nothing")
 	}
 	for i := 1; i <= 100; i++ {
-		l.Delete(i, i)
+		l.Remove(i)
+		l.Removes(i, i)
 		if l.Len() != 100-i {
-			t.Errorf("RingBuffer.Delete(%v) failed, l.Len() = %v, want %v", i, l.Len(), 100-i)
+			t.Errorf("RingBuffer.Remove(%v) failed, l.Len() = %v, want %v", i, l.Len(), 100-i)
 		}
 	}
 
@@ -248,17 +269,17 @@ func TestRingBufferDelete2(t *testing.T) {
 	}
 
 	n := l.Len()
-	l.Delete(100)
+	l.Remove(100)
 	if l.Len() != n {
-		t.Errorf("RingBuffer.Delete(100).Len() = %v, want %v", l.Len(), n)
+		t.Errorf("RingBuffer.Remove(100).Len() = %v, want %v", l.Len(), n)
 	}
 	for i := 0; i < 100; i++ {
 		n = l.Len()
 		z := i % 10
-		l.Delete(i)
+		l.Remove(i)
 		a := n - l.Len()
 		if a != z {
-			t.Errorf("RingBuffer.Delete(%v) = %v, want %v", i, a, z)
+			t.Errorf("RingBuffer.Remove(%v) = %v, want %v", i, a, z)
 		}
 	}
 
@@ -278,17 +299,17 @@ func TestRingBufferDeleteAll(t *testing.T) {
 	}
 
 	n := l.Len()
-	l.Delete(100)
+	l.Remove(100)
 	if l.Len() != n {
-		t.Errorf("RingBuffer.Delete(100).Len() = %v, want %v", l.Len(), n)
+		t.Errorf("RingBuffer.Remove(100).Len() = %v, want %v", l.Len(), n)
 	}
 	for i := 0; i < 100; i++ {
 		n = l.Len()
 		z := i % 10
-		l.DeleteAll(NewRingBuffer(i, i))
+		l.RemoveCol(NewRingBuffer(i, i))
 		a := n - l.Len()
 		if a != z {
-			t.Errorf("RingBuffer.Delete(%v) = %v, want %v", i, a, z)
+			t.Errorf("RingBuffer.Remove(%v) = %v, want %v", i, a, z)
 		}
 	}
 
@@ -297,13 +318,13 @@ func TestRingBufferDeleteAll(t *testing.T) {
 	}
 }
 
-func TestRingBufferRemove(t *testing.T) {
+func TestRingBufferRemoveAt(t *testing.T) {
 	list := NewRingBuffer[string]()
 	list.Add("a")
-	list.Add("b", "c")
-	list.Remove(2)
-	list.Remove(1)
-	list.Remove(0)
+	list.Adds("b", "c")
+	list.RemoveAt(2)
+	list.RemoveAt(1)
+	list.RemoveAt(0)
 	if av := list.IsEmpty(); av != true {
 		t.Errorf("Got %v expected %v", av, true)
 	}
@@ -312,7 +333,7 @@ func TestRingBufferRemove(t *testing.T) {
 	}
 }
 
-func TestRingBufferRemovePanic(t *testing.T) {
+func TestRingBufferRemoveAtPanic(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {
 			t.Error("want out of bounds panic")
@@ -320,13 +341,13 @@ func TestRingBufferRemovePanic(t *testing.T) {
 	}()
 
 	list := NewRingBuffer("a")
-	list.Remove(1)
+	list.RemoveAt(1)
 }
 
 func TestRingBufferGet(t *testing.T) {
 	list := NewRingBuffer[string]()
 	list.Add("a")
-	list.Add("b", "c")
+	list.Adds("b", "c")
 	if av := list.Get(0); av != "a" {
 		t.Errorf("Got %v expected %v", av, "a")
 	}
@@ -336,7 +357,7 @@ func TestRingBufferGet(t *testing.T) {
 	if av := list.Get(2); av != "c" {
 		t.Errorf("Got %v expected %v", av, "c")
 	}
-	list.Remove(0)
+	list.RemoveAt(0)
 	if av := list.Get(0); av != "b" {
 		t.Errorf("Got %v expected %v", av, "b")
 	}
@@ -372,7 +393,7 @@ func TestRingBufferGetNegative(t *testing.T) {
 func TestRingBufferGetOutOfRangePanics(t *testing.T) {
 	rb := NewRingBuffer[int]()
 
-	rb.Push(1, 2, 3)
+	rb.Pushs(1, 2, 3)
 
 	assertPanics(t, "should panic when negative index", func() {
 		rb.Get(-4)
@@ -397,7 +418,7 @@ func TestRingBufferGetPanic(t *testing.T) {
 func TestRingBufferSwap(t *testing.T) {
 	list := NewRingBuffer[string]()
 	list.Add("a")
-	list.Add("b", "c")
+	list.Adds("b", "c")
 	list.Swap(0, 1)
 	if av := list.Get(0); av != "b" {
 		t.Errorf("Got %v expected %v", av, "b")
@@ -406,7 +427,7 @@ func TestRingBufferSwap(t *testing.T) {
 
 func TestRingBufferClear(t *testing.T) {
 	list := NewRingBuffer[string]()
-	list.Add("e", "f", "g", "a", "b", "c", "d")
+	list.Adds("e", "f", "g", "a", "b", "c", "d")
 	list.Clear()
 	if av := list.IsEmpty(); av != true {
 		t.Errorf("Got %v expected %v", av, true)
@@ -436,11 +457,11 @@ func TestRingBufferContains(t *testing.T) {
 		if list.Contains(a...) {
 			t.Errorf("%d Contains(...) should return false", i)
 		}
-		if !list.ContainsAll(AsArrayList(a[0 : i+1])) {
-			t.Errorf("%d ContainsAll(...) should return true", i)
+		if !list.ContainCol(AsArrayList(a[0 : i+1])) {
+			t.Errorf("%d ContainCol(...) should return true", i)
 		}
-		if list.ContainsAll(AsArrayList(a)) {
-			t.Errorf("%d ContainsAll(...) should return false", i)
+		if list.ContainCol(AsArrayList(a)) {
+			t.Errorf("%d ContainCol(...) should return false", i)
 		}
 	}
 
@@ -463,19 +484,19 @@ func TestRingBufferRetain(t *testing.T) {
 			}
 			list.Add(i)
 
-			list.Retain(a...)
+			list.Retains(a...)
 			vs := list.Values()
 			if !reflect.DeepEqual(vs, a) {
-				t.Fatalf("%d Retain() = %v, want %v", i, vs, a)
+				t.Fatalf("%d Retains() = %v, want %v", i, vs, a)
 			}
 		}
 
 		{
 			a = []int{}
-			list.Retain()
+			list.Retains()
 			vs := list.Values()
 			if len(vs) > 0 {
-				t.Fatalf("%d Retain() = %v, want %v", n, vs, a)
+				t.Fatalf("%d Retains() = %v, want %v", n, vs, a)
 			}
 		}
 
@@ -487,19 +508,19 @@ func TestRingBufferRetain(t *testing.T) {
 			}
 			list.Add(i)
 
-			list.RetainAll(AsArrayList(a))
+			list.RetainCol(AsArrayList(a))
 			vs := list.Values()
 			if !reflect.DeepEqual(vs, a) {
-				t.Fatalf("%d RetainAll() = %v, want %v", i, vs, a)
+				t.Fatalf("%d RetainCol() = %v, want %v", i, vs, a)
 			}
 		}
 
 		{
 			a = []int{}
-			list.RetainAll(AsArrayList(a))
+			list.RetainCol(AsArrayList(a))
 			vs := list.Values()
 			if len(vs) > 0 {
-				t.Fatalf("%d Retain() = %v, want %v", n, vs, a)
+				t.Fatalf("%d Retains() = %v, want %v", n, vs, a)
 			}
 		}
 	}
@@ -512,7 +533,7 @@ func TestRingBufferValues(t *testing.T) {
 	}
 
 	list.Add("a")
-	list.Add("b", "c")
+	list.Adds("b", "c")
 	if av, ev := fmt.Sprintf("%v", list.Values()), "[a b c]"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
@@ -520,7 +541,7 @@ func TestRingBufferValues(t *testing.T) {
 
 func TestRingBufferInsert(t *testing.T) {
 	list := NewRingBuffer[string]()
-	list.Insert(0, "b", "c")
+	list.Inserts(0, "b", "c")
 	list.Insert(0, "a")
 	if av := list.Len(); av != 3 {
 		t.Errorf("Got %v expected %v", av, 3)
@@ -579,7 +600,7 @@ func TestRingBufferSetPanic(t *testing.T) {
 
 func TestRingBufferEach(t *testing.T) {
 	list := NewRingBuffer[string]()
-	list.Add("a", "b", "c")
+	list.Adds("a", "b", "c")
 	index := 0
 	list.Each(func(value string) {
 		switch index {
@@ -620,7 +641,7 @@ func TestRingBufferIteratorNextOnEmpty(t *testing.T) {
 
 func TestRingBufferIteratorPrev(t *testing.T) {
 	list := NewRingBuffer[string]()
-	list.Add("a", "b", "c")
+	list.Adds("a", "b", "c")
 	it := list.Iterator()
 	count := 0
 	index := list.Len()
@@ -652,7 +673,7 @@ func TestRingBufferIteratorPrev(t *testing.T) {
 
 func TestRingBufferIteratorNext(t *testing.T) {
 	list := NewRingBuffer[string]()
-	list.Add("a", "b", "c")
+	list.Adds("a", "b", "c")
 	it := list.Iterator()
 	count := 0
 	for index := 0; it.Next(); index++ {
@@ -684,7 +705,7 @@ func TestRingBufferIteratorReset(t *testing.T) {
 	list := NewRingBuffer[string]()
 
 	it := list.Iterator()
-	list.Add("a", "b", "c")
+	list.Adds("a", "b", "c")
 
 	for it.Next() {
 	}
@@ -708,7 +729,7 @@ func assertRingBufferIteratorRemove(t *testing.T, i int, it Iterator[int], w *Ri
 
 	it.Remove()
 
-	w.Delete(v)
+	w.Remove(v)
 
 	it.SetValue(9999)
 
@@ -876,50 +897,50 @@ func TestRingBufferExtending(t *testing.T) {
 	l2.Add(5)
 
 	l3 := NewRingBuffer[int]()
-	l3.AddAll(l1)
+	l3.AddCol(l1)
 	checkRingBuffer(t, l3, []int{1, 2, 3})
-	l3.AddAll(l2)
+	l3.AddCol(l2)
 	checkRingBuffer(t, l3, []int{1, 2, 3, 4, 5})
 
 	l3 = NewRingBuffer[int]()
-	l3.PushHeadAll(l2)
+	l3.PushHeadCol(l2)
 	checkRingBuffer(t, l3, []int{4, 5})
-	l3.PushHeadAll(l1)
+	l3.PushHeadCol(l1)
 	checkRingBuffer(t, l3, []int{1, 2, 3, 4, 5})
 
 	checkRingBuffer(t, l1, []int{1, 2, 3})
 	checkRingBuffer(t, l2, []int{4, 5})
 
 	l3 = NewRingBuffer[int]()
-	l3.PushTailAll(l1)
+	l3.PushTailCol(l1)
 	checkRingBuffer(t, l3, []int{1, 2, 3})
-	l3.PushTailAll(l3)
+	l3.PushTailCol(l3)
 	checkRingBuffer(t, l3, []int{1, 2, 3, 1, 2, 3})
 
 	l3 = NewRingBuffer[int]()
-	l3.PushHeadAll(l1)
+	l3.PushHeadCol(l1)
 	checkRingBuffer(t, l3, []int{1, 2, 3})
-	l3.PushHeadAll(l3)
+	l3.PushHeadCol(l3)
 	checkRingBuffer(t, l3, []int{1, 2, 3, 1, 2, 3})
 
 	l3 = NewRingBuffer[int]()
-	l1.PushTailAll(l3)
+	l1.PushTailCol(l3)
 	checkRingBuffer(t, l1, []int{1, 2, 3})
-	l1.PushHeadAll(l3)
+	l1.PushHeadCol(l3)
 	checkRingBuffer(t, l1, []int{1, 2, 3})
 
 	l1.Clear()
 	l2.Clear()
 	l3.Clear()
-	l1.PushTail(1, 2, 3)
+	l1.PushTails(1, 2, 3)
 	checkRingBuffer(t, l1, []int{1, 2, 3})
-	l2.PushTail(4, 5)
+	l2.PushTails(4, 5)
 	checkRingBuffer(t, l2, []int{4, 5})
-	l3.PushTailAll(l1)
+	l3.PushTailCol(l1)
 	checkRingBuffer(t, l3, []int{1, 2, 3})
-	l3.PushTail(4, 5)
+	l3.PushTails(4, 5)
 	checkRingBuffer(t, l3, []int{1, 2, 3, 4, 5})
-	l3.PushHead(4, 5)
+	l3.PushHeads(4, 5)
 	checkRingBuffer(t, l3, []int{4, 5, 1, 2, 3, 4, 5})
 }
 

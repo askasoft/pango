@@ -78,16 +78,6 @@ func (lm *LinkedHashMap[K, V]) Set(key K, value V) (ov V, ok bool) {
 	return
 }
 
-// SetPairs set items from key-value items array, override the existing items
-func (lm *LinkedHashMap[K, V]) SetPairs(pairs ...P[K, V]) {
-	setMapPairs[K, V](lm, pairs...)
-}
-
-// SetAll set items from another map am, override the existing items
-func (lm *LinkedHashMap[K, V]) SetAll(am Map[K, V]) {
-	setMapAll[K, V](lm, am)
-}
-
 // SetIfAbsent sets the key-value item if the key does not exists in the map,
 // and returns what `Get` would have returned
 // on that key prior to the call to `Set`.
@@ -104,21 +94,53 @@ func (lm *LinkedHashMap[K, V]) SetIfAbsent(key K, value V) (ov V, ok bool) {
 	return
 }
 
-// Delete delete all items with key of ks,
+// SetPairs set items from key-value items array, override the existing items
+func (lm *LinkedHashMap[K, V]) SetPairs(pairs ...P[K, V]) {
+	setMapPairs[K, V](lm, pairs...)
+}
+
+// Copy copy items from another map am, override the existing items
+func (lm *LinkedHashMap[K, V]) Copy(am Map[K, V]) {
+	CopyMap[K, V](lm, am)
+}
+
+// Remove remove the item with key k,
 // and returns what `Get` would have returned
 // on that key prior to the call to `Set`.
-func (lm *LinkedHashMap[K, V]) Delete(ks ...K) (ov V, ok bool) {
+func (lm *LinkedHashMap[K, V]) Remove(k K) (ov V, ok bool) {
 	if lm.IsEmpty() {
 		return
 	}
 
 	var ln *LinkedMapNode[K, V]
-	for _, k := range ks {
-		if ln, ok = lm.hash[k]; ok {
-			lm.deleteNode(ln)
-		}
+	ln, ok = lm.hash[k]
+	if ok {
+		ov = ln.value
+		lm.deleteNode(ln)
 	}
 	return
+}
+
+// Remove remove all items with key of ks.
+func (lm *LinkedHashMap[K, V]) Removes(ks ...K) {
+	if !lm.IsEmpty() {
+		for _, k := range ks {
+			if ln, ok := lm.hash[k]; ok {
+				lm.deleteNode(ln)
+			}
+		}
+	}
+}
+
+// Contain Test to see if the list contains the key k
+func (lm *LinkedHashMap[K, V]) Contain(k K) bool {
+	if lm.IsEmpty() {
+		return false
+	}
+	if _, ok := lm.hash[k]; ok {
+		return true
+	}
+	return false
 }
 
 // Contains looks for the given key, and returns true if the key exists in the map.

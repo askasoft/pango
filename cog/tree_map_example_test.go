@@ -12,7 +12,7 @@ func ExampleTreeMap() {
 	_, _ = m.Get(3)                          // nil, false
 	_ = m.Values()                           // []interface {}{"a", "b"} (in order)
 	_ = m.Keys()                             // []interface {}{1, 2} (in order)
-	m.Delete(1)                              // 2->b
+	m.Remove(1)                              // 2->b
 	m.Clear()                                // empty
 	m.IsEmpty()                              // true
 	m.Len()                                  // 0

@@ -51,35 +51,44 @@ Extends [Container](#container) interface.
 type Collection interface {
 	Container
 
-	// Add adds items of vs
-	Add(vs ...any)
+	// Add adds item v to the collection
+	Add(v T)
 
-	// AddAll adds all items of another collection
-	AddAll(ac Collection)
+	// Adds adds items of vs to the collection
+	Adds(vs ...T)
 
-	// Delete delete all items of vs
-	Delete(vs ...any)
+	// AddCol adds all items of another collection
+	AddCol(ac Collection)
 
-	// DeleteIf delete all items that function f returns true
-	DeleteIf(f func(any) bool)
+	// Remove remove all items with associated value v
+	Remove(v T)
 
-	// DeleteAll delete all of this collection's elements that are also contained in the specified collection
-	DeleteAll(ac Collection)
+	// Removes remove all items with associated value v of vs
+	Removes(vs ...T)
+
+	// RemoveIf remove all items that function f returns true
+	RemoveIf(f func(T) bool)
+
+	// RemoveCol remove all of this collection's elements that are also contained in the specified collection
+	RemoveCol(ac Collection)
+
+	// Contain Test to see if the collection contains item v
+	Contain(v T) bool
 
 	// Contains Test to see if the collection contains all items of vs
-	Contains(vs ...any) bool
+	Contains(vs ...T) bool
 
-	// ContainsAll Test to see if the collection contains all items of another collection
-	ContainsAll(ac Collection) bool
+	// ContainCol Test to see if the collection contains all items of another collection
+	ContainCol(ac Collection) bool
 
-	// Retain Retains only the elements in this collection that are contained in the argument array vs.
-	Retain(vs ...any)
+	// Retains Retains only the elements in this collection that are contained in the argument array vs.
+	Retains(vs ...T)
 
-	// RetainAll Retains only the elements in this collection that are contained in the specified collection.
-	RetainAll(ac Collection)
+	// RetainCol Retains only the elements in this collection that are contained in the specified collection.
+	RetainCol(ac Collection)
 
 	// Values returns a slice contains all the items of the collection
-	Values() []any
+	Values() []T
 
 	Eachable
 }
@@ -100,30 +109,38 @@ type List interface {
 
 	Iterable
 
-	// Get returns the value at the specified index in this list
-	Get(index int) any
+	// Get returns the value at the specified index in this list. If the index is
+	// invalid, the call will panic. This method accepts both positive and
+	// negative index values. Index 0 refers to the first element, and
+	// index -1 refers to the last.
+	Get(index int) T
 
 	// Set set the v at the specified index in this list and returns the old value.
-	Set(index int, v any) any
+	Set(index int, v T) T
+
+	// Insert insert item v at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
+	// Does not do anything if position is bigger than list's size
+	// Note: position equal to list's size is valid, i.e. append.
+	Insert(index int, v T)
 
 	// Insert inserts values at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
 	// Does not do anything if position is bigger than list's size
 	// Note: position equal to list's size is valid, i.e. append.
-	Insert(index int, vs ...any)
+	Inserts(index int, vs ...T)
 
-	// InsertAll inserts values of another collection ac at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
+	// InsertCol inserts values of another collection ac at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
 	// Does not do anything if position is bigger than list's size
 	// Note: position equal to list's size is valid, i.e. append.
-	InsertAll(index int, ac Collection)
+	InsertCol(index int, ac Collection)
 
 	// Index returns the index of the first occurrence of the specified v in this list, or -1 if this list does not contain v.
-	Index(v any) int
+	Index(v T) int
 
 	// IndexIf returns the index of the first true returned by function f in this list, or -1 if this list does not contain v.
-	IndexIf(f func(any) bool) int
+	IndexIf(f func(T) bool) int
 
-	// Remove delete the item at the specified position in this list
-	Remove(index int)
+	// RemoveAt remove the item at the specified position in this list
+	RemoveAt(index int)
 
 	// Swap swaps values of two items at the given index.
 	Swap(i, j int)
@@ -146,7 +163,7 @@ import (
 func main() {
 	list := col.NewArrayList()
 	list.Add("a")                         // ["a"]
-	list.Add("c", "b")                    // ["a","c","b"]
+	list.Adds("c", "b")                   // ["a","c","b"]
 	list.Sort(col.LessString)             // ["a","b","c"]
 	_ = list.Get(0)                       // "a"
 	_ = list.Get(100)                     // panic
@@ -156,7 +173,6 @@ func main() {
 	list.Remove(2)                        // ["b","a"]
 	list.Remove(1)                        // ["b"]
 	list.Remove(0)                        // []
-	list.Remove(0)                        // [] (ignored)
 	_ = list.IsEmpty()                    // true
 	_ = list.Len()                        // 0
 	list.Add("a")                         // ["a"]
@@ -182,7 +198,7 @@ import (
 func main() {
 	list := col.NewLinkedList()
 	list.Add("a")                         // ["a"]
-	list.Add("c", "b")                    // ["a","c","b"]
+	list.Adds("c", "b")                   // ["a","c","b"]
 	list.Sort(col.LessString)             // ["a","b","c"]
 	_ = list.Get(0)                       // "a"
 	_ = list.Get(100)                     // panic
@@ -192,7 +208,6 @@ func main() {
 	list.Remove(2)                        // ["b","a"]
 	list.Remove(1)                        // ["b"]
 	list.Remove(0)                        // []
-	list.Remove(0)                        // [] (ignored)
 	_ = list.IsEmpty()                    // true
 	_ = list.Len()                        // 0
 	list.Add("a")                         // ["a"]
@@ -228,10 +243,10 @@ import (
 func main() {
 	set := col.NewHashSet()    // empty
 	set.Add(1)             // 1
-	set.Add(2, 2, 3, 4, 5) // 3, 1, 2, 4, 5 (random order, duplicates ignored)
-	set.Delete(4)          // 5, 3, 2, 1 (random order)
-	set.Delete(2, 3)       // 1, 5 (random order)
-	set.Contains(1)        // true
+	set.Adds(2, 2, 3, 4, 5) // 3, 1, 2, 4, 5 (random order, duplicates ignored)
+	set.Remove(4)          // 5, 3, 2, 1 (random order)
+	set.Removes(2, 3)      // 1, 5 (random order)
+	set.Contain(1)         // true
 	set.Contains(1, 5)     // true
 	set.Contains(1, 6)     // false
 	_ = set.Values()       // []int{5,1} (random order)
@@ -258,10 +273,10 @@ import (
 func main() {
 	set := col.NewLinkedHashSet() // empty
 	set.Add(5)                 // 5
-	set.Add(4, 4, 3, 2, 1)     // 5, 4, 3, 2, 1 (in insertion-order, duplicates ignored)
+	set.Adds(4, 4, 3, 2, 1)    // 5, 4, 3, 2, 1 (in insertion-order, duplicates ignored)
 	set.Add(4)                 // 5, 4, 3, 2, 1 (duplicates ignored, insertion-order unchanged)
-	set.Delete(4)              // 5, 3, 2, 1 (in insertion-order)
-	set.Delete(2, 3)           // 5, 1 (in insertion-order)
+	set.Remove(4)              // 5, 3, 2, 1 (in insertion-order)
+	set.Removes(2, 3)           // 5, 1 (in insertion-order)
 	set.Contains(1)            // true
 	set.Contains(1, 5)         // true
 	set.Contains(1, 6)         // false
@@ -288,9 +303,9 @@ import (
 func main() {
 	set := col.NewTreeSet(col.CompareInt) // empty (keys are of type int)
 	set.Add(1)                            // 1
-	set.Add(2, 2, 3, 4, 5)                // 1, 2, 3, 4, 5 (in order, duplicates ignored)
-	set.Delete(4)                         // 1, 2, 3, 5 (in order)
-	set.Delete(2, 3)                      // 1, 5 (in order)
+	set.Adds(2, 2, 3, 4, 5)               // 1, 2, 3, 4, 5 (in order, duplicates ignored)
+	set.Remove(4)                         // 1, 2, 3, 5 (in order)
+	set.Remove(2, 3)                      // 1, 5 (in order)
 	set.Contains(1)                       // true
 	set.Contains(1, 5)                    // true
 	set.Contains(1, 6)                    // false
@@ -314,35 +329,43 @@ type Map interface {
 
 	// Get looks for the given key, and returns the value associated with it,
 	// or nil if not found. The boolean it returns says whether the key is ok in the map.
-	Get(key any) (any, bool)
+	Get(key K) (V, bool)
 
 	// Set sets the paired key-value items, and returns what `Get` would have returned
 	// on that key prior to the call to `Set`.
 	// Example: lm.Set("k1", "v1", "k2", "v2")
-	Set(kvs ...any) (ov any, ok bool)
-
-	// SetAll set items from another map am, override the existing items
-	SetAll(am Map)
+	Set(key K, value V) (ov V, ok bool)
 
 	// SetIfAbsent sets the key-value item if the key does not exists in the map,
 	// and returns what `Get` would have returned
 	// on that key prior to the call to `Set`.
-	// Example: lm.SetIfAbsent("k1", "v1", "k2", "v2")
-	SetIfAbsent(kvs ...any) (ov any, ok bool)
+	SetIfAbsent(key K, value V) (ov V, ok bool)
 
-	// Delete delete all items with key of ks,
+	// SetPairs set items from key-value items array, override the existing items
+	SetPairs(pairs ...P)
+
+	// Copy copy items from another map am, override the existing items
+	Copy(am Map)
+
+	// Remove remove the item with key k,
 	// and returns what `Get` would have returned
 	// on that key prior to the call to `Set`.
-	Delete(ks ...any) (ov any, ok bool)
+	Remove(k K) (ov V, ok bool)
+
+	// Removes remove all items with key of ks.
+	Removes(ks ...K)
+
+	// Contain looks for the given key, and returns true if the key exists in the map.
+	Contain(k K) bool
 
 	// Contains looks for the given key, and returns true if the key exists in the map.
-	Contains(ks ...any) bool
+	Contains(ks ...K) bool
 
 	// Keys returns the key slice
-	Keys() []any
+	Keys() []K
 
 	// Values returns a slice contains all the items of the collection
-	Values() []any
+	Values() []V
 
 	Eachable2
 }
@@ -370,7 +393,7 @@ func main() {
 	_, _ = m.Get(3)    // nil, false
 	_ = m.Values()     // []interface {}{"b", "a"} (random order)
 	_ = m.Keys()       // []interface {}{1, 2} (random order)
-	m.Delete(1)        // 2->b
+	m.Remove(1)        // 2->b
 	m.Clear()          // empty
 	m.IsEmpty()        // true
 	m.Len()            // 0
@@ -399,7 +422,7 @@ func main() {
 	_, _ = m.Get(3)          // nil, false
 	_ = m.Values()           // []interface {}{"b", "a"} (insertion-order)
 	_ = m.Keys()             // []interface {}{2, 1} (insertion-order)
-	m.Delete(1)              // 2->b
+	m.Remove(1)              // 2->b
 	m.Clear()                // empty
 	m.IsEmpty()              // true
 	m.Len()                  // 0
@@ -428,7 +451,7 @@ func main() {
 	_, _ = m.Get(3)                 // nil, false
 	_ = m.Values()                  // []interface {}{"a", "b"} (in order)
 	_ = m.Keys()                    // []interface {}{1, 2} (in order)
-	m.Delete(1)                     // 2->b
+	m.Remove(1)                     // 2->b
 	m.Clear()                       // empty
 	m.IsEmpty()                     // true
 	m.Len()                         // 0

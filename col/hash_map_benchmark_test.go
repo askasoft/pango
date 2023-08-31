@@ -21,7 +21,7 @@ func benchmarkHashMapSet(b *testing.B, m *HashMap, size int) {
 func benchmarkHashMapRemove(b *testing.B, m *HashMap, size int) {
 	for i := 0; i < b.N; i++ {
 		for n := 0; n < size; n++ {
-			m.Delete(n)
+			m.Remove(n)
 		}
 	}
 }

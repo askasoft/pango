@@ -77,16 +77,6 @@ func (hm *HashMap) Set(key K, value V) (ov V, ok bool) {
 	return
 }
 
-// SetPairs set items from key-value items array, override the existing items
-func (hm *HashMap) SetPairs(pairs ...P) {
-	setMapPairs(hm, pairs...)
-}
-
-// SetAll set items from another map am, override the existing items
-func (hm *HashMap) SetAll(am Map) {
-	setMapAll(hm, am)
-}
-
 // SetIfAbsent sets the key-value item if the key does not exists in the map,
 // and returns what `Get` would have returned
 // on that key prior to the call to `Set`.
@@ -99,19 +89,49 @@ func (hm *HashMap) SetIfAbsent(key K, value V) (ov V, ok bool) {
 	return
 }
 
-// Delete delete all items with key of ks,
+// SetPairs set items from key-value items array, override the existing items
+func (hm *HashMap) SetPairs(pairs ...P) {
+	setMapPairs(hm, pairs...)
+}
+
+// Copy copy items from another map am, override the existing items
+func (hm *HashMap) Copy(am Map) {
+	CopyMap(hm, am)
+}
+
+// Remove remove the item with key k,
 // and returns what `Get` would have returned
 // on that key prior to the call to `Set`.
-func (hm *HashMap) Delete(ks ...K) (ov V, ok bool) {
+func (hm *HashMap) Remove(k K) (ov V, ok bool) {
 	if hm.IsEmpty() {
 		return
 	}
 
-	for _, k := range ks {
-		ov, ok = hm.hash[k]
+	ov, ok = hm.hash[k]
+	if ok {
 		delete(hm.hash, k)
 	}
 	return
+}
+
+// Removes remove all items with key of ks.
+func (hm *HashMap) Removes(ks ...K) {
+	if !hm.IsEmpty() {
+		for _, k := range ks {
+			delete(hm.hash, k)
+		}
+	}
+}
+
+// Contain Test to see if the list contains the key k
+func (hm *HashMap) Contain(k K) bool {
+	if hm.IsEmpty() {
+		return false
+	}
+	if _, ok := hm.hash[k]; ok {
+		return true
+	}
+	return false
 }
 
 // Contains looks for the given key, and returns true if the key exists in the map.

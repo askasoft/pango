@@ -5,6 +5,8 @@ package cog
 
 import (
 	"encoding/json"
+
+	"github.com/askasoft/pango/bye"
 )
 
 // NewHashMap creates a new HashMap.
@@ -78,32 +80,6 @@ func (hm *HashMap[K, V]) Set(key K, value V) (ov V, ok bool) {
 	return
 }
 
-// SetPairs set items from key-value items array, override the existing items
-func (hm *HashMap[K, V]) SetPairs(pairs ...P[K, V]) {
-	for _, p := range pairs {
-		hm.Set(p.Key, p.Value)
-	}
-}
-
-// SetAll set items from another map am, override the existing items
-func (hm *HashMap[K, V]) SetAll(am Map[K, V]) {
-	if hm == am {
-		return
-	}
-
-	if im, ok := am.(Iterable2[K, V]); ok {
-		it := im.Iterator()
-		for it.Next() {
-			hm.Set(it.Key(), it.Value())
-		}
-		return
-	}
-
-	am.Each(func(k K, v V) {
-		hm.Set(k, v)
-	})
-}
-
 // SetIfAbsent sets the key-value item if the key does not exists in the map,
 // and returns what `Get` would have returned
 // on that key prior to the call to `Set`.
@@ -116,19 +92,49 @@ func (hm *HashMap[K, V]) SetIfAbsent(key K, value V) (ov V, ok bool) {
 	return
 }
 
-// Delete delete all items with key of ks,
+// SetPairs set items from key-value items array, override the existing items
+func (hm *HashMap[K, V]) SetPairs(pairs ...P[K, V]) {
+	setMapPairs[K, V](hm, pairs...)
+}
+
+// Copy copy items from another map am, override the existing items
+func (hm *HashMap[K, V]) Copy(am Map[K, V]) {
+	CopyMap[K, V](hm, am)
+}
+
+// Remove remove the item with key k,
 // and returns what `Get` would have returned
 // on that key prior to the call to `Set`.
-func (hm *HashMap[K, V]) Delete(ks ...K) (ov V, ok bool) {
+func (hm *HashMap[K, V]) Remove(k K) (ov V, ok bool) {
 	if hm.IsEmpty() {
 		return
 	}
 
-	for _, k := range ks {
-		ov, ok = hm.hash[k]
+	ov, ok = hm.hash[k]
+	if ok {
 		delete(hm.hash, k)
 	}
 	return
+}
+
+// Removes remove all items with key of ks.
+func (hm *HashMap[K, V]) Removes(ks ...K) {
+	if !hm.IsEmpty() {
+		for _, k := range ks {
+			delete(hm.hash, k)
+		}
+	}
+}
+
+// Contain Test to see if the list contains the key k
+func (hm *HashMap[K, V]) Contain(k K) bool {
+	if hm.IsEmpty() {
+		return false
+	}
+	if _, ok := hm.hash[k]; ok {
+		return true
+	}
+	return false
 }
 
 // Contains looks for the given key, and returns true if the key exists in the map.
@@ -186,7 +192,7 @@ func (hm *HashMap[K, V]) HashMap() map[K]V {
 // String print map to string
 func (hm *HashMap[K, V]) String() string {
 	bs, _ := json.Marshal(hm)
-	return string(bs)
+	return bye.UnsafeString(bs)
 }
 
 //-----------------------------------------------------------

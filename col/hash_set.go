@@ -9,7 +9,7 @@ import (
 // NewHashSet Create a new hash set
 func NewHashSet(vs ...T) *HashSet {
 	hs := &HashSet{}
-	hs.Add(vs...)
+	hs.Adds(vs...)
 	return hs
 }
 
@@ -57,8 +57,14 @@ func (hs *HashSet) Clear() {
 	hs.hash = nil
 }
 
-// Add Adds all items of vs to the set
-func (hs *HashSet) Add(vs ...T) {
+// Add Add the item v to the set
+func (hs *HashSet) Add(v T) {
+	hs.lazyInit()
+	hs.hash[v] = true
+}
+
+// Adds Adds all items of vs to the set
+func (hs *HashSet) Adds(vs ...T) {
 	if len(vs) == 0 {
 		return
 	}
@@ -69,8 +75,8 @@ func (hs *HashSet) Add(vs ...T) {
 	}
 }
 
-// AddAll adds all items of another collection
-func (hs *HashSet) AddAll(ac Collection) {
+// AddCol adds all items of another collection
+func (hs *HashSet) AddCol(ac Collection) {
 	if ac.IsEmpty() || hs == ac {
 		return
 	}
@@ -84,12 +90,17 @@ func (hs *HashSet) AddAll(ac Collection) {
 		return
 	}
 
-	hs.Add(ac.Values()...)
+	hs.Adds(ac.Values()...)
 }
 
-// Delete delete items of vs
-func (hs *HashSet) Delete(vs ...T) {
-	if len(hs.hash) == 0 {
+// Remove remove all items with associated value v of vs
+func (hs *HashSet) Remove(v T) {
+	delete(hs.hash, v)
+}
+
+// Removes delete items of vs
+func (hs *HashSet) Removes(vs ...T) {
+	if hs.IsEmpty() {
 		return
 	}
 
@@ -98,8 +109,12 @@ func (hs *HashSet) Delete(vs ...T) {
 	}
 }
 
-// DeleteIf delete all items that function f returns true
-func (hs *HashSet) DeleteIf(f func(T) bool) {
+// RemoveIf remove all items that function f returns true
+func (hs *HashSet) RemoveIf(f func(T) bool) {
+	if hs.IsEmpty() {
+		return
+	}
+
 	for k := range hs.hash {
 		if f(k) {
 			delete(hs.hash, k)
@@ -107,8 +122,8 @@ func (hs *HashSet) DeleteIf(f func(T) bool) {
 	}
 }
 
-// DeleteAll delete all of this collection's elements that are also contained in the specified collection
-func (hs *HashSet) DeleteAll(ac Collection) {
+// RemoveCol remove all of this collection's elements that are also contained in the specified collection
+func (hs *HashSet) RemoveCol(ac Collection) {
 	if hs == ac {
 		hs.Clear()
 		return
@@ -122,7 +137,18 @@ func (hs *HashSet) DeleteAll(ac Collection) {
 		return
 	}
 
-	hs.Delete(ac.Values()...)
+	hs.Removes(ac.Values()...)
+}
+
+// Contain Test to see if the list contains the value v
+func (hs *HashSet) Contain(v T) bool {
+	if hs.IsEmpty() {
+		return false
+	}
+	if _, ok := hs.hash[v]; ok {
+		return true
+	}
+	return false
 }
 
 // Contains Test to see if the collection contains all items of vs
@@ -143,8 +169,8 @@ func (hs *HashSet) Contains(vs ...T) bool {
 	return true
 }
 
-// ContainsAll Test to see if the collection contains all items of another collection
-func (hs *HashSet) ContainsAll(ac Collection) bool {
+// ContainCol Test to see if the collection contains all items of another collection
+func (hs *HashSet) ContainCol(ac Collection) bool {
 	if ac.IsEmpty() || hs == ac {
 		return true
 	}
@@ -166,8 +192,8 @@ func (hs *HashSet) ContainsAll(ac Collection) bool {
 	return hs.Contains(ac.Values()...)
 }
 
-// Retain Retains only the elements in this collection that are contained in the argument array vs.
-func (hs *HashSet) Retain(vs ...T) {
+// Retains Retains only the elements in this collection that are contained in the argument array vs.
+func (hs *HashSet) Retains(vs ...T) {
 	if hs.IsEmpty() {
 		return
 	}
@@ -184,8 +210,8 @@ func (hs *HashSet) Retain(vs ...T) {
 	}
 }
 
-// RetainAll Retains only the elements in this collection that are contained in the specified collection.
-func (hs *HashSet) RetainAll(ac Collection) {
+// RetainCol Retains only the elements in this collection that are contained in the specified collection.
+func (hs *HashSet) RetainCol(ac Collection) {
 	if hs.IsEmpty() || hs == ac {
 		return
 	}

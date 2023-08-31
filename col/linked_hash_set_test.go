@@ -45,7 +45,7 @@ func TestLinkedHashSetNew(t *testing.T) {
 func TestLinkedHashSetAdd(t *testing.T) {
 	lset := NewLinkedHashSet()
 	lset.Add("a")
-	lset.Add("b", "c")
+	lset.Adds("b", "c")
 	if av := lset.IsEmpty(); av != false {
 		t.Errorf("Got %v expected %v", av, false)
 	}
@@ -60,10 +60,10 @@ func TestLinkedHashSetAdd(t *testing.T) {
 func TestLinkedHashSetRemove(t *testing.T) {
 	lset := NewLinkedHashSet()
 	lset.Add("a")
-	lset.Add("b", "c")
-	lset.Remove(2)
-	lset.Remove(1)
-	lset.Remove(0)
+	lset.Adds("b", "c")
+	lset.RemoveAt(2)
+	lset.RemoveAt(1)
+	lset.RemoveAt(0)
 	if av := lset.IsEmpty(); av != true {
 		t.Errorf("Got %v expected %v", av, true)
 	}
@@ -80,13 +80,13 @@ func TestLinkedHashSetRemovePanic(t *testing.T) {
 	}()
 
 	list := NewLinkedHashSet("a")
-	list.Remove(1)
+	list.RemoveAt(1)
 }
 
 func TestLinkedHashSetGet(t *testing.T) {
 	lset := NewLinkedHashSet()
-	lset.Add("a", "a")
-	lset.Add("b", "c", "b", "c")
+	lset.Adds("a", "a")
+	lset.Adds("b", "c", "b", "c")
 	if av := lset.Get(0); av != "a" {
 		t.Errorf("Got %v expected %v", av, "a")
 	}
@@ -96,7 +96,7 @@ func TestLinkedHashSetGet(t *testing.T) {
 	if av := lset.Get(2); av != "c" {
 		t.Errorf("Got %v expected %v", av, "c")
 	}
-	lset.Remove(0)
+	lset.RemoveAt(0)
 	if av := lset.Get(0); av != "b" {
 		t.Errorf("Got %v expected %v", av, "b")
 	}
@@ -115,8 +115,8 @@ func TestLinkedHashSetGetPanic(t *testing.T) {
 
 func TestLinkedHashSetSwap(t *testing.T) {
 	lset := NewLinkedHashSet()
-	lset.Add("a", "a")
-	lset.Add("b", "c", "b", "c")
+	lset.Adds("a", "a")
+	lset.Adds("b", "c", "b", "c")
 	lset.Swap(0, 1)
 	if av := lset.Get(0); av != "b" {
 		t.Errorf("Got %v expected %v", av, "c")
@@ -125,8 +125,8 @@ func TestLinkedHashSetSwap(t *testing.T) {
 
 func TestLinkedHashSetClear(t *testing.T) {
 	lset := NewLinkedHashSet()
-	lset.Add("e", "f", "g", "a", "b", "c", "d")
-	lset.Add("e", "f", "g", "a", "b", "c", "d")
+	lset.Adds("e", "f", "g", "a", "b", "c", "d")
+	lset.Adds("e", "f", "g", "a", "b", "c", "d")
 	lset.Clear()
 	if av := lset.IsEmpty(); av != true {
 		t.Errorf("Got %v expected %v", av, true)
@@ -156,11 +156,11 @@ func TestLinkedHashSetContains(t *testing.T) {
 		if list.Contains(a...) {
 			t.Errorf("%d Contains(...) should return false", i)
 		}
-		if !list.ContainsAll(AsArrayList(a[0 : i+1])) {
-			t.Errorf("%d ContainsAll(...) should return true", i)
+		if !list.ContainCol(AsArrayList(a[0 : i+1])) {
+			t.Errorf("%d ContainCol(...) should return true", i)
 		}
-		if list.ContainsAll(AsArrayList(a)) {
-			t.Errorf("%d ContainsAll(...) should return false", i)
+		if list.ContainCol(AsArrayList(a)) {
+			t.Errorf("%d ContainCol(...) should return false", i)
 		}
 	}
 
@@ -183,19 +183,19 @@ func TestLinkedHashSetRetain(t *testing.T) {
 			}
 			list.Add(i)
 
-			list.Retain(a...)
+			list.Retains(a...)
 			vs := list.Values()
 			if !reflect.DeepEqual(vs, a) {
-				t.Fatalf("%d Retain() = %v, want %v", i, vs, a)
+				t.Fatalf("%d Retains() = %v, want %v", i, vs, a)
 			}
 		}
 
 		{
 			a = []T{}
-			list.Retain()
+			list.Retains()
 			vs := list.Values()
 			if len(vs) > 0 {
-				t.Fatalf("%d Retain() = %v, want %v", n, vs, a)
+				t.Fatalf("%d Retains() = %v, want %v", n, vs, a)
 			}
 		}
 
@@ -207,19 +207,19 @@ func TestLinkedHashSetRetain(t *testing.T) {
 			}
 			list.Add(i)
 
-			list.RetainAll(AsArrayList(a))
+			list.RetainCol(AsArrayList(a))
 			vs := list.Values()
 			if !reflect.DeepEqual(vs, a) {
-				t.Fatalf("%d RetainAll() = %v, want %v", i, vs, a)
+				t.Fatalf("%d RetainCol() = %v, want %v", i, vs, a)
 			}
 		}
 
 		{
 			a = []T{}
-			list.RetainAll(AsArrayList(a))
+			list.RetainCol(AsArrayList(a))
 			vs := list.Values()
 			if len(vs) > 0 {
-				t.Fatalf("%d Retain() = %v, want %v", n, vs, a)
+				t.Fatalf("%d Retains() = %v, want %v", n, vs, a)
 			}
 		}
 	}
@@ -227,8 +227,8 @@ func TestLinkedHashSetRetain(t *testing.T) {
 
 func TestLinkedHashSetValues(t *testing.T) {
 	lset := NewLinkedHashSet()
-	lset.Add("a", "a")
-	lset.Add("b", "c", "b", "c")
+	lset.Adds("a", "a")
+	lset.Adds("b", "c", "b", "c")
 	if av, ev := fmt.Sprintf("%s%s%s", lset.Values()...), "abc"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
@@ -236,8 +236,8 @@ func TestLinkedHashSetValues(t *testing.T) {
 
 func TestLinkedHashSetInsert(t *testing.T) {
 	lset := NewLinkedHashSet()
-	lset.Insert(0, "b", "c", "b", "c")
-	lset.Insert(0, "a", "a")
+	lset.Inserts(0, "b", "c", "b", "c")
+	lset.Inserts(0, "a", "a")
 	if av := lset.Len(); av != 3 {
 		t.Errorf("Got %v expected %v", av, 3)
 	}
@@ -300,8 +300,8 @@ func TestLinkedHashSetSetPanic(t *testing.T) {
 
 func TestLinkedHashSetEach(t *testing.T) {
 	lset := NewLinkedHashSet()
-	lset.Add("a", "b", "c")
-	lset.Add("a", "b", "c")
+	lset.Adds("a", "b", "c")
+	lset.Adds("a", "b", "c")
 	index := 0
 	lset.Each(func(value T) {
 		switch index {
@@ -334,8 +334,8 @@ func TestLinkedHashSetIteratorNextOnEmpty(t *testing.T) {
 
 func TestLinkedHashSetIteratorNext(t *testing.T) {
 	lset := NewLinkedHashSet()
-	lset.Add("a", "b", "c")
-	lset.Add("a", "b", "c")
+	lset.Adds("a", "b", "c")
+	lset.Adds("a", "b", "c")
 	it := lset.Iterator()
 	count := 0
 	index := 0
@@ -375,8 +375,8 @@ func TestLinkedHashSetIteratorPrevOnEmpty(t *testing.T) {
 
 func TestLinkedHashSetIteratorPrev(t *testing.T) {
 	lset := NewLinkedHashSet()
-	lset.Add("a", "b", "c")
-	lset.Add("a", "b", "c")
+	lset.Adds("a", "b", "c")
+	lset.Adds("a", "b", "c")
 	it := lset.Iterator()
 	count := 0
 	index := lset.Len()
@@ -409,8 +409,8 @@ func TestLinkedHashSetIteratorPrev(t *testing.T) {
 func TestLinkedHashSetIteratorReset(t *testing.T) {
 	lset := NewLinkedHashSet()
 	it := lset.Iterator()
-	lset.Add("a", "b", "c")
-	lset.Add("a", "b", "c")
+	lset.Adds("a", "b", "c")
+	lset.Adds("a", "b", "c")
 	for it.Next() {
 	}
 	it.Reset()
@@ -430,7 +430,7 @@ func assertLinkedHashSetIteratorRemove(t *testing.T, i int, it Iterator, w *Link
 	it.Remove()
 
 	v := it.Value()
-	w.Delete(v)
+	w.Remove(v)
 
 	it.SetValue(9999)
 
@@ -602,50 +602,50 @@ func TestLinkedHashSetExtending(t *testing.T) {
 	l2.PushTail(5)
 
 	l3 := NewLinkedHashSet()
-	l3.PushTailAll(l1)
+	l3.PushTailCol(l1)
 	checkLinkedHashSet(t, l3, []T{1, 2, 3})
-	l3.PushTailAll(l2)
+	l3.PushTailCol(l2)
 	checkLinkedHashSet(t, l3, []T{1, 2, 3, 4, 5})
 
 	l3 = NewLinkedHashSet()
-	l3.PushHeadAll(l2)
+	l3.PushHeadCol(l2)
 	checkLinkedHashSet(t, l3, []T{4, 5})
-	l3.PushHeadAll(l1)
+	l3.PushHeadCol(l1)
 	checkLinkedHashSet(t, l3, []T{1, 2, 3, 4, 5})
 
 	checkLinkedHashSet(t, l1, []T{1, 2, 3})
 	checkLinkedHashSet(t, l2, []T{4, 5})
 
 	l3 = NewLinkedHashSet()
-	l3.PushTailAll(l1)
+	l3.PushTailCol(l1)
 	checkLinkedHashSet(t, l3, []T{1, 2, 3})
-	l3.PushTailAll(l3)
-	checkLinkedHashSet(t, l3, []T{1, 2, 3})
-
-	l3 = NewLinkedHashSet()
-	l3.PushHeadAll(l1)
-	checkLinkedHashSet(t, l3, []T{1, 2, 3})
-	l3.PushHeadAll(l3)
+	l3.PushTailCol(l3)
 	checkLinkedHashSet(t, l3, []T{1, 2, 3})
 
 	l3 = NewLinkedHashSet()
-	l1.PushTailAll(l3)
+	l3.PushHeadCol(l1)
+	checkLinkedHashSet(t, l3, []T{1, 2, 3})
+	l3.PushHeadCol(l3)
+	checkLinkedHashSet(t, l3, []T{1, 2, 3})
+
+	l3 = NewLinkedHashSet()
+	l1.PushTailCol(l3)
 	checkLinkedHashSet(t, l1, []T{1, 2, 3})
-	l1.PushHeadAll(l3)
+	l1.PushHeadCol(l3)
 	checkLinkedHashSet(t, l1, []T{1, 2, 3})
 
 	l1.Clear()
 	l2.Clear()
 	l3.Clear()
-	l1.PushTail(1, 2, 3)
+	l1.PushTails(1, 2, 3)
 	checkLinkedHashSet(t, l1, []T{1, 2, 3})
-	l2.PushTail(4, 5)
+	l2.PushTails(4, 5)
 	checkLinkedHashSet(t, l2, []T{4, 5})
-	l3.PushTailAll(l1)
+	l3.PushTailCol(l1)
 	checkLinkedHashSet(t, l3, []T{1, 2, 3})
-	l3.PushTail(4, 5)
+	l3.PushTails(4, 5)
 	checkLinkedHashSet(t, l3, []T{1, 2, 3, 4, 5})
-	l3.PushHead(4, 5)
+	l3.PushHeads(4, 5)
 	checkLinkedHashSet(t, l3, []T{1, 2, 3, 4, 5})
 }
 
@@ -682,16 +682,17 @@ func TestLinkedHashSetDelete(t *testing.T) {
 		lset.PushTail(i)
 	}
 
-	lset.DeleteIf(func(d any) bool {
+	lset.RemoveIf(func(d any) bool {
 		return d == 101
 	})
 	if lset.Len() != 100 {
 		t.Error("LinkedHashSet.Delete(101) should do nothing")
 	}
 	for i := 1; i <= 100; i++ {
-		lset.Delete(i, i)
+		lset.Remove(i)
+		lset.Removes(i, i)
 		if lset.Len() != 100-i {
-			t.Errorf("LinkedHashSet.Delete(%v) failed, lset.Len() = %v, want %v", i, lset.Len(), 100-i)
+			t.Errorf("LinkedHashSet.Remove(%v) failed, lset.Len() = %v, want %v", i, lset.Len(), 100-i)
 		}
 	}
 
@@ -711,21 +712,21 @@ func TestLinkedHashSetDelete2(t *testing.T) {
 	}
 
 	n := lset.Len()
-	lset.Delete(100)
+	lset.Remove(100)
 	if lset.Len() != n {
 		t.Errorf("LinkedHashSet.Delete(100).Len() = %v, want %v", lset.Len(), n)
 	}
 
 	for i := 0; i < 100; i++ {
 		n = lset.Len()
-		lset.Delete(i)
+		lset.Remove(i)
 		z := i % 10
 		if z > 1 {
 			z = 1
 		}
 		a := n - lset.Len()
 		if a != z {
-			t.Errorf("LinkedHashSet.Delete(%v) = %v, want %v", i, a, z)
+			t.Errorf("LinkedHashSet.Remove(%v) = %v, want %v", i, a, z)
 		}
 	}
 
@@ -745,21 +746,21 @@ func TestLinkedHashSetDeleteAll(t *testing.T) {
 	}
 
 	n := lset.Len()
-	lset.Delete(100)
+	lset.Remove(100)
 	if lset.Len() != n {
-		t.Errorf("LinkedHashSet.Delete(100).Len() = %v, want %v", lset.Len(), n)
+		t.Errorf("LinkedHashSet.Remove(100).Len() = %v, want %v", lset.Len(), n)
 	}
 
 	for i := 0; i < 100; i++ {
 		n = lset.Len()
-		lset.DeleteAll(NewArrayList(i, i))
+		lset.RemoveCol(NewArrayList(i, i))
 		z := i % 10
 		if z > 1 {
 			z = 1
 		}
 		a := n - lset.Len()
 		if a != z {
-			t.Errorf("LinkedHashSet.Delete(%v) = %v, want %v", i, a, z)
+			t.Errorf("LinkedHashSet.Remove(%v) = %v, want %v", i, a, z)
 		}
 	}
 

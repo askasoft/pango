@@ -26,7 +26,7 @@ func benchmarkTreeMapSet(b *testing.B, tree *TreeMap[int, any], size int) {
 func benchmarkTreeMapDel(b *testing.B, tree *TreeMap[int, any], size int) {
 	for i := 0; i < b.N; i++ {
 		for n := 0; n < size; n++ {
-			tree.Delete(n)
+			tree.Remove(n)
 		}
 	}
 }

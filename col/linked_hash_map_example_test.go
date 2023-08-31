@@ -14,7 +14,7 @@ func ExampleLinkedHashMap() {
 	_, _ = m.Get(3)         // nil, false
 	_ = m.Values()          // []interface {}{"b", "a"} (insertion-order)
 	_ = m.Keys()            // []interface {}{2, 1} (insertion-order)
-	m.Delete(1)             // 2->b
+	m.Remove(1)             // 2->b
 	m.Clear()               // empty
 	m.IsEmpty()             // true
 	m.Len()                 // 0

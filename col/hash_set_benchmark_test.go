@@ -21,7 +21,7 @@ func benchmarkHashSetAdd(b *testing.B, set *HashSet, size int) {
 func benchmarkHashSetDel(b *testing.B, set *HashSet, size int) {
 	for i := 0; i < b.N; i++ {
 		for n := 0; n < size; n++ {
-			set.Delete(n)
+			set.Remove(n)
 		}
 	}
 }

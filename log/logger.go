@@ -40,7 +40,7 @@ type Logger interface {
 	IsTraceEnabled() bool
 	Trace(v ...any)
 	Tracef(f string, v ...any)
-	Write(le *Event)
+	Write(le Event)
 }
 
 // logger logger interface implement
@@ -275,15 +275,18 @@ func (l *logger) Tracef(f string, v ...any) {
 }
 
 // Write write a log event
-func (l *logger) Write(le *Event) {
-	l.log.Write(le)
+func (l *logger) Write(le Event) {
+	if l.IsLevelEnabled(le.Level) {
+		le.Logger = l
+		l.log.write(&le)
+	}
 }
 
 func (l *logger) _log(lvl Level, v ...any) {
 	if l.IsLevelEnabled(lvl) {
 		s := l._printv(v...)
 		le := newEvent(l, lvl, s)
-		l.Write(le)
+		l.log.write(le)
 	}
 }
 
@@ -291,7 +294,7 @@ func (l *logger) _logf(lvl Level, f string, v ...any) {
 	if l.IsLevelEnabled(lvl) {
 		s := l._printf(f, v...)
 		le := newEvent(l, lvl, s)
-		l.Write(le)
+		l.log.write(le)
 	}
 }
 

@@ -105,8 +105,7 @@ func (log *Log) Close() {
 	log.writer.Close()
 }
 
-// Write write a log event
-func (log *Log) Write(le *Event) {
+func (log *Log) write(le *Event) {
 	log.writer.Write(le) //nolint: errcheck
 }
 
@@ -326,4 +325,9 @@ func (log *Log) Trace(v ...any) {
 // Tracef format and log a message at trace level.
 func (log *Log) Tracef(f string, v ...any) {
 	log.logger._logf(LevelTrace, f, v...)
+}
+
+// Write write a log event
+func (log *Log) Write(le Event) {
+	log.logger.Write(le)
 }

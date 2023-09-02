@@ -40,7 +40,7 @@ func (gl *GormLogger) Error(ctx context.Context, msg string, data ...interface{}
 
 func (gl *GormLogger) printf(lvl log.Level, msg string, data ...any) {
 	if gl.Logger.IsLevelEnabled(lvl) {
-		le := &log.Event{
+		le := log.Event{
 			Logger: gl.Logger,
 			Level:  lvl,
 			Msg:    fmt.Sprintf(msg, data...),

@@ -9,15 +9,23 @@ import (
 
 var ErrJobAborted = errors.New("Aborted")
 
-func NewJobRunner(run func(*JobRunner)) *JobRunner {
+func NewJobRunner(run func(*JobRunner), logger ...log.Logger) *JobRunner {
 	jr := &JobRunner{
 		run: run,
 		Log: log.NewLog(),
 	}
 
-	jr.Log.SetLevel(log.LevelInfo)
-	jr.Log.SetWriter(&jr.outputs)
-	jr.Log.SetFormatter(log.NewTextFormatter("%t{2006-01-02 15:04:05} [%p] - %m%n%T"))
+	jr.outputs.SetFilter("level:DEBUG")
+	jr.outputs.SetFormat("%t{2006-01-02 15:04:05} [%p] - %m%n%T")
+
+	if len(logger) > 0 {
+		bw := log.NewBridgeWriter(logger[0])
+		mw := log.NewMultiWriter(&jr.outputs, bw)
+		jr.Log.SetWriter(mw)
+	} else {
+		jr.Log.SetWriter(&jr.outputs)
+	}
+
 	return jr
 }
 

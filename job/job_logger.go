@@ -1,8 +1,6 @@
 package job
 
 import (
-	"bytes"
-
 	"github.com/askasoft/pango/log"
 )
 
@@ -13,22 +11,23 @@ type JobMessage struct {
 
 // JobLogWriter implements log Writer Interface and writes messages to terminal.
 type JobLogWriter struct {
+	log.LogFilter
+	log.LogFormatter
+
 	Output []JobMessage // log output
-	bb     bytes.Buffer
 }
 
 // Write write message in console.
 func (jlw *JobLogWriter) Write(le *log.Event) (err error) {
-	lf := le.Logger.GetFormatter()
-	if lf == nil {
-		lf = log.TextFmtDefault
+	if jlw.Reject(le) {
+		return
 	}
 
-	jlw.bb.Reset()
-	lf.Write(&jlw.bb, le)
+	bs := jlw.Format(le)
+
 	jlw.Output = append(jlw.Output, JobMessage{
 		Lvl: le.Level.Prefix(),
-		Msg: jlw.bb.String(),
+		Msg: string(bs),
 	})
 	return
 }

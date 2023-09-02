@@ -9,9 +9,9 @@ import (
 	"github.com/askasoft/pango/xin"
 )
 
-func Example() {
+func ExampleAccessLogger() {
 	router := xin.New()
-	router.Use(NewAccessLogger(os.Stdout, DefaultTextLogFormat).Handler())
+	router.Use(NewAccessLogger(os.Stdout, AccessLogTextFormat).Handler())
 
 	router.Any("/example", func(c *xin.Context) {
 		c.String(http.StatusOK, c.Request.URL.String())

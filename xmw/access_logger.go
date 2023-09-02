@@ -15,15 +15,15 @@ import (
 	"github.com/askasoft/pango/xin"
 )
 
-// DefaultLogTimeFormat default log time format
-const DefaultLogTimeFormat = "2006-01-02T15:04:05.000"
+// AccessLogTimeFormat default log time format
+const AccessLogTimeFormat = "2006-01-02T15:04:05.000"
 
-// DefaultTextLogFormat default log format
+// AccessLogTextFormat default log format
 // TIME STATUS LATENCY LENGTH CLIENT_IP REMOTE_ADDR LISTEN METHOD HOST URL
-const DefaultTextLogFormat = "text:%t\t%S\t%T\t%L\t%c\t%r\t%A\t%m\t%h\t%u%n"
+const AccessLogTextFormat = "text:%t\t%S\t%T\t%L\t%c\t%r\t%A\t%m\t%h\t%u%n"
 
-// DefaultJSONLogFormat default log format
-const DefaultJSONLogFormat = `json:{"when": %t, "status": %S, "latency": %T, "length": %L, "clientIP": %c, "remoteAddr": %r, "listen": %A, "method": %m, "host": %h, "url": %u}%n`
+// AccessLogJSONFormat default log format
+const AccessLogJSONFormat = `json:{"when": %t, "status": %S, "latency": %T, "length": %L, "clientIP": %c, "remoteAddr": %r, "listen": %A, "method": %m, "host": %h, "url": %u}%n`
 
 // AccessLogger access loger for XIN
 type AccessLogger struct {
@@ -41,9 +41,9 @@ type logevt struct {
 type fmtfunc func(p *logevt) string
 
 // DefaultAccessLogger create a log middleware for xin access logger
-// Equals: NewAccessLogger(xin.Logger.Outputer("XINA", log.LevelTrace), xmw.DefaultTextLogFormat)
+// Equals: NewAccessLogger(xin.Logger.Outputer("XINA", log.LevelTrace), xmw.AccessLogTextFormat)
 func DefaultAccessLogger(xin *xin.Engine) *AccessLogger {
-	return NewAccessLogger(xin.Logger.GetOutputer("XINA", log.LevelTrace), DefaultTextLogFormat)
+	return NewAccessLogger(xin.Logger.GetOutputer("XINA", log.LevelTrace), AccessLogTextFormat)
 }
 
 // NewAccessLogger create a log middleware for xin access logger
@@ -172,7 +172,7 @@ func parseTextFormat(format string) []fmtfunc {
 		case 't':
 			p := getFormatOption(format, &i)
 			if p == "" {
-				p = DefaultLogTimeFormat
+				p = AccessLogTimeFormat
 			}
 			fmt = timefmtc(p)
 		case 'A':
@@ -252,7 +252,7 @@ func parseJSONFormat(format string) []fmtfunc {
 		case 't':
 			p := getFormatOption(format, &i)
 			if p == "" {
-				p = DefaultLogTimeFormat
+				p = AccessLogTimeFormat
 			}
 			fmt = quotefmtc(timefmtc(p))
 		case 'A':

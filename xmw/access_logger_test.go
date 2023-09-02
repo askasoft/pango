@@ -33,7 +33,7 @@ func TestTextLog(t *testing.T) {
 
 	buffer := new(bytes.Buffer)
 	writer := io.MultiWriter(buffer, os.Stdout)
-	router.Use(NewAccessLogger(writer, DefaultTextLogFormat).Handler())
+	router.Use(NewAccessLogger(writer, AccessLogTextFormat).Handler())
 
 	router.Any("/example", func(c *xin.Context) {})
 
@@ -88,7 +88,7 @@ func TestJSONLog(t *testing.T) {
 	router := xin.New()
 
 	writer := io.MultiWriter(buffer, os.Stdout)
-	router.Use(NewAccessLogger(writer, DefaultJSONLogFormat).Handler())
+	router.Use(NewAccessLogger(writer, AccessLogJSONFormat).Handler())
 
 	router.Any("/example", func(c *xin.Context) {})
 

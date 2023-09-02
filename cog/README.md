@@ -43,7 +43,7 @@ Extends [Container](#container) interface.
 
 ```go
 // Collection the base collection interface
-type Collection interface {
+type Collection[T any] interface {
 	Container
 
 	// Add adds item v to the collection
@@ -53,7 +53,7 @@ type Collection interface {
 	Adds(vs ...T)
 
 	// AddCol adds all items of another collection
-	AddCol(ac Collection)
+	AddCol(ac Collection[T])
 
 	// Remove remove all items with associated value v
 	Remove(v T)
@@ -65,7 +65,7 @@ type Collection interface {
 	RemoveIf(f func(T) bool)
 
 	// RemoveCol remove all of this collection's elements that are also contained in the specified collection
-	RemoveCol(ac Collection)
+	RemoveCol(ac Collection[T])
 
 	// Contain Test to see if the collection contains item v
 	Contain(v T) bool
@@ -74,18 +74,18 @@ type Collection interface {
 	Contains(vs ...T) bool
 
 	// ContainCol Test to see if the collection contains all items of another collection
-	ContainCol(ac Collection) bool
+	ContainCol(ac Collection[T]) bool
 
 	// Retains Retains only the elements in this collection that are contained in the argument array vs.
 	Retains(vs ...T)
 
 	// RetainCol Retains only the elements in this collection that are contained in the specified collection.
-	RetainCol(ac Collection)
+	RetainCol(ac Collection[T])
 
 	// Values returns a slice contains all the items of the collection
 	Values() []T
 
-	Eachable
+	Eachable[T]
 }
 ```
 
@@ -97,12 +97,12 @@ Extends [Collection](#collection) interface.
 
 ```go
 // List a doubly linked list interface
-type List interface {
-	Collection
+type List[T any] interface {
+	Collection[T]
 
-	ReverseEachable
+	ReverseEachable[T]
 
-	Iterable
+	Iterable[T]
 
 	// Get returns the value at the specified index in this list. If the index is
 	// invalid, the call will panic. This method accepts both positive and
@@ -126,7 +126,7 @@ type List interface {
 	// InsertCol inserts values of another collection ac at specified index position shifting the value at that position (if any) and any subsequent elements to the right.
 	// Does not do anything if position is bigger than list's size
 	// Note: position equal to list's size is valid, i.e. append.
-	InsertCol(index int, ac Collection)
+	InsertCol(index int, ac Collection[T])
 
 	// Index returns the index of the first occurrence of the specified v in this list, or -1 if this list does not contain v.
 	Index(v T) int
@@ -152,14 +152,14 @@ Implements [List](#list), [Iterator](#iterator) interfaces.
 package main
 
 import (
-	"github.com/askasoft/pango/col"
+	"github.com/askasoft/pango/cog"
 )
 
 func main() {
-	list := col.NewArrayList()
+	list := cog.NewArrayList[string]()
 	list.Add("a")                         // ["a"]
 	list.Adds("c", "b")                   // ["a","c","b"]
-	list.Sort(col.LessString)             // ["a","b","c"]
+	list.Sort(cog.LessString)             // ["a","b","c"]
 	_ = list.Get(0)                       // "a"
 	_ = list.Get(100)                     // panic
 	_ = list.Contains("a", "b", "c")      // true
@@ -187,14 +187,14 @@ Implements [List](#list), [Iterator](#iterator) interfaces.
 package main
 
 import (
-	"github.com/askasoft/pango/col"
+	"github.com/askasoft/pango/cog"
 )
 
 func main() {
-	list := col.NewLinkedList()
+	list := cog.NewLinkedList[string]()
 	list.Add("a")                         // ["a"]
 	list.Adds("c", "b")                   // ["a","c","b"]
-	list.Sort(col.LessString)             // ["a","b","c"]
+	list.Sort(cog.LessString)             // ["a","b","c"]
 	_ = list.Get(0)                       // "a"
 	_ = list.Get(100)                     // panic
 	_ = list.Contains("a", "b", "c")      // true
@@ -232,7 +232,7 @@ Implements [Set](#set) interfaces.
 package main
 
 import (
-	"github.com/askasoft/pango/col"
+	"github.com/askasoft/pango/cog"
 )
 
 func main() {
@@ -261,11 +261,11 @@ Implements [Set](#set), [Iterator](#iterator) interfaces.
 package main
 
 import (
-	"github.com/askasoft/pango/col"
+	"github.com/askasoft/pango/cog"
 )
 
 func main() {
-	set := col.NewLinkedHashSet()
+	set := cog.NewLinkedHashSet[int]()
 	set.Add(5)              // 5
 	set.Adds(4, 4, 3, 2, 1) // 5, 4, 3, 2, 1 (in insertion-order, duplicates ignored)
 	set.Add(4)              // 5, 4, 3, 2, 1 (duplicates ignored, insertion-order unchanged)
@@ -291,11 +291,11 @@ Implements [Set](#set), [Iterator](#iterator) interfaces.
 package main
 
 import (
-	"github.com/askasoft/pango/col"
+	"github.com/askasoft/pango/cog"
 )
 
 func main() {
-	set := col.NewTreeSet(col.CompareInt)
+	set := cog.NewTreeSet(cog.CompareInt)
 	set.Add(1)              // 1
 	set.Adds(2, 2, 3, 4, 5) // 1, 2, 3, 4, 5 (in order, duplicates ignored)
 	set.Remove(4)           // 1, 2, 3, 5 (in order)
@@ -318,7 +318,7 @@ Extends [Container](#container) interface.
 
 ```go
 // Map map interface
-type Map interface {
+type Map[K any, V any] interface {
 	Container
 
 	// Get looks for the given key, and returns the value associated with it,
@@ -336,10 +336,10 @@ type Map interface {
 	SetIfAbsent(key K, value V) (ov V, ok bool)
 
 	// SetPairs set items from key-value items array, override the existing items
-	SetPairs(pairs ...P)
+	SetPairs(pairs ...P[K, V])
 
 	// Copy copy items from another map am, override the existing items
-	Copy(am Map)
+	Copy(am Map[K, V])
 
 	// Remove remove the item with key k,
 	// and returns what `Get` would have returned
@@ -361,7 +361,7 @@ type Map interface {
 	// Values returns a slice contains all the items of the collection
 	Values() []V
 
-	Eachable2
+	Eachable2[K, V]
 }
 ```
 
@@ -375,11 +375,11 @@ Implements [Map](#map) interfaces.
 package main
 
 import (
-	"github.com/askasoft/pango/col"
+	"github.com/askasoft/pango/cog"
 )
 
 func main() {
-	m := col.NewHashMap()
+	m := cog.NewHashMap[int, string]()
 	m.Set(1, "x")   // 1->x
 	m.Set(2, "b")   // 2->b, 1->x (random order)
 	m.Set(1, "a")   // 2->b, 1->a (random order)
@@ -404,11 +404,11 @@ Implements [Map](#map), [Iterator](#iterator) interfaces.
 package main
 
 import (
-	"github.com/askasoft/pango/col"
+	"github.com/askasoft/pango/cog"
 )
 
 func main() {
-	m := col.NewLinkedHashMap()
+	m := cog.NewLinkedHashMap[int, string]()
 	m.Set(2, "b")   // 2->b
 	m.Set(1, "x")   // 2->b, 1->x (insertion-order)
 	m.Set(1, "a")   // 2->b, 1->a (insertion-order)
@@ -433,11 +433,11 @@ Implements [Map](#map), [Iterator2](#iterator2) interfaces.
 package main
 
 import (
-	"github.com/askasoft/pango/col"
+	"github.com/askasoft/pango/cog"
 )
 
 func main() {
-	m := col.NewTreeMap(col.CompareInt)
+	m := cog.NewTreeMap[int, string](cog.CompareInt)
 	m.Set(1, "x")   // 1->x
 	m.Set(2, "b")   // 1->x, 2->b (in order)
 	m.Set(1, "a")   // 1->a, 2->b (in order)
@@ -520,27 +520,27 @@ Comparator is defined as:
 Comparator signature:
 
 ```go
-type Compare func(a, b any) int
+type Compare[T any] func(a, b T) int
 ```
 
 All common comparators for builtin types are included in the package:
 
 ```go
-func CompareString(a, b any) int
-func CompareInt(a, b any) int
-func CompareInt8(a, b any) int
-func CompareInt16(a, b any) int
-func CompareInt32(a, b any) int
-func CompareInt64(a, b any) int
-func CompareUInt(a, b any) int
-func CompareUInt8(a, b any) int
-func CompareUInt16(a, b any) int
-func CompareUInt32(a, b any) int
-func CompareUInt64(a, b any) int
-func CompareFloat32(a, b any) int
-func CompareFloat64(a, b any) int
-func CompareByte(a, b any) int
-func CompareRune(a, b any) int
+func CompareString(a, b string) int
+func CompareInt(a, b int) int
+func CompareInt8(a, b int8) int
+func CompareInt16(a, b int16) int
+func CompareInt32(a, b int32) int
+func CompareInt64(a, b int64) int
+func CompareUInt(a, b uint) int
+func CompareUInt8(a, b uint8) int
+func CompareUInt16(a, b uint16) int
+func CompareUInt32(a, b uint32) int
+func CompareUInt64(a, b uint64) int
+func CompareFloat32(a, b float32) int
+func CompareFloat64(a, b float64) int
+func CompareByte(a, b byte) int
+func CompareRune(a, b rune) int
 ```
 
 Writing custom comparators is easy:
@@ -550,7 +550,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/askasoft/pango/col"
+	"github.com/askasoft/pango/cog"
 )
 
 type User struct {
@@ -576,7 +576,7 @@ func byID(a, b any) int {
 }
 
 func main() {
-	set := col.NewTreeSet(byID)
+	set := cog.NewTreeSet(byID)
 
 	set.Add(User{2, "Second"})
 	set.Add(User{3, "Third"})
@@ -602,27 +602,27 @@ Less comparator is defined as:
 Comparator signature:
 
 ```go
-type Less func(a, b any) bool
+type Less[T any] func(a, b T) bool
 ```
 
 All common comparators for builtin types are included in the package:
 
 ```go
-func LessString(a, b any) bool
-func LessByte(a, b any) bool
-func LessRune(a, b any) bool
-func LessInt(a, b any) bool
-func LessInt8(a, b any) bool
-func LessInt16(a, b any) bool
-func LessInt32(a, b any) bool
-func LessInt64(a, b any) bool
-func LessUint(a, b any) bool
-func LessUint8(a, b any) bool
-func LessUint16(a, b any) bool
-func LessUint32(a, b any) bool
-func LessUint64(a, b any) bool
-func LessFloat32(a, b any) bool
-func LessFloat64(a, b any) bool
+func LessString(a, b string) bool
+func LessByte(a, b byte) bool
+func LessRune(a, b rune) bool
+func LessInt(a, b int) bool
+func LessInt8(a, b int8) bool
+func LessInt16(a, b int16) bool
+func LessInt32(a, b int32) bool
+func LessInt64(a, b int64) bool
+func LessUint(a, b uint) bool
+func LessUint8(a, b uint8) bool
+func LessUint16(a, b uint16) bool
+func LessUint32(a, b uint32) bool
+func LessUint64(a, b uint64) bool
+func LessFloat32(a, b float32) bool
+func LessFloat64(a, b float64) bool
 ```
 
 

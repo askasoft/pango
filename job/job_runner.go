@@ -58,10 +58,16 @@ func (jr *JobRunner) Run() {
 
 	atomic.StoreInt32(&jr.aborted, 0)
 	atomic.StoreInt32(&jr.running, 1)
-	jr.outputs.Clear()
+
+	jr.ClearOutput()
 
 	jr.run(jr)
 }
+
+func (jr *JobRunner) ClearOutput() {
+	jr.outputs.Clear()
+}
+
 func (jr *JobRunner) GetOutputs(skip int) []JobMessage {
 	if skip > len(jr.outputs.Output) {
 		return nil

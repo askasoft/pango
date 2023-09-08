@@ -9,9 +9,8 @@ import (
 
 var ErrJobAborted = errors.New("Aborted")
 
-func NewJobRunner(run func(*JobRunner), logger ...log.Logger) *JobRunner {
+func NewJobRunner(logger ...log.Logger) *JobRunner {
 	jr := &JobRunner{
-		run: run,
 		Log: log.NewLog(),
 	}
 
@@ -31,7 +30,7 @@ func NewJobRunner(run func(*JobRunner), logger ...log.Logger) *JobRunner {
 
 type JobRunner struct {
 	Log     *log.Log
-	run     func(*JobRunner)
+	Run     func()
 	aborted int32
 	running int32
 	outputs JobLogWriter
@@ -50,10 +49,10 @@ func (jr *JobRunner) Abort() {
 }
 
 func (jr *JobRunner) Start() {
-	go jr.Run()
+	go jr.run()
 }
 
-func (jr *JobRunner) Run() {
+func (jr *JobRunner) run() {
 	defer atomic.StoreInt32(&jr.running, 0)
 
 	atomic.StoreInt32(&jr.aborted, 0)
@@ -61,7 +60,7 @@ func (jr *JobRunner) Run() {
 
 	jr.ClearOutput()
 
-	jr.run(jr)
+	jr.Run()
 }
 
 func (jr *JobRunner) ClearOutput() {

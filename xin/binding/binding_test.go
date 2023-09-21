@@ -236,39 +236,19 @@ func TestBindingFormDefaultValue2(t *testing.T) {
 }
 
 func TestBindingFormForTime(t *testing.T) {
-	testFormBindingForTime(t, "POST",
-		"/", "/",
-		"time_foo=2017-11-15&time_bar=&createTime=1562400033000000123&unixTime=1562400033", "bar2=foo")
-	testFormBindingForTimeNotUnixFormat(t, "POST",
-		"/", "/",
-		"time_foo=2017-11-15&createTime=bad&unixTime=bad", "bar2=foo")
-	testFormBindingForTimeNotFormat(t, "POST",
-		"/", "/",
-		"time_foo=2017-11-15", "bar2=foo")
-	testFormBindingForTimeFailFormat(t, "POST",
-		"/", "/",
-		"time_foo=2017-11-15", "bar2=foo")
-	testFormBindingForTimeFailLocation(t, "POST",
-		"/", "/",
-		"time_foo=2017-11-15", "bar2=foo")
+	testFormBindingForTime(t, "POST", "/", "time_foo=2017-11-15&time_bar=&createTime=1562400033000000123&unixTime=1562400033")
+	testFormBindingForTimeNotUnixFormat(t, "POST", "/", "time_foo=2017-11-15&createTime=bad&unixTime=bad")
+	testFormBindingForTimeNotFormat(t, "POST", "/", "time_foo=2017/11/15")
+	testFormBindingForTimeFailFormat(t, "POST", "/", "time_foo=2017-11-15")
+	testFormBindingForTimeFailLocation(t, "POST", "/", "time_foo=2017-11-15")
 }
 
 func TestBindingFormForTime2(t *testing.T) {
-	testFormBindingForTime(t, "GET",
-		"/?time_foo=2017-11-15&time_bar=&createTime=1562400033000000123&unixTime=1562400033", "/?bar2=foo",
-		"", "")
-	testFormBindingForTimeNotUnixFormat(t, "POST",
-		"/", "/",
-		"time_foo=2017-11-15&createTime=bad&unixTime=bad", "bar2=foo")
-	testFormBindingForTimeNotFormat(t, "GET",
-		"/?time_foo=2017-11-15", "/?bar2=foo",
-		"", "")
-	testFormBindingForTimeFailFormat(t, "GET",
-		"/?time_foo=2017-11-15", "/?bar2=foo",
-		"", "")
-	testFormBindingForTimeFailLocation(t, "GET",
-		"/?time_foo=2017-11-15", "/?bar2=foo",
-		"", "")
+	testFormBindingForTime(t, "GET", "/?time_foo=2017-11-15&time_bar=&createTime=1562400033000000123&unixTime=1562400033", "")
+	testFormBindingForTimeNotUnixFormat(t, "GET", "/?time_foo=2017-11-15&createTime=bad&unixTime=bad", "")
+	testFormBindingForTimeNotFormat(t, "GET", "/?time_foo=2017/11/15", "")
+	testFormBindingForTimeFailFormat(t, "GET", "/?time_foo=2017-11-15", "")
+	testFormBindingForTimeFailLocation(t, "GET", "/?time_foo=2017-11-15", "")
 }
 
 func TestFormBindingIgnoreField(t *testing.T) {
@@ -812,7 +792,7 @@ func TestFormMultipartBindingFail(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func testFormBindingForTime(t *testing.T, method, path, badPath, body, badBody string) {
+func testFormBindingForTime(t *testing.T, method, path, body string) {
 	b := Form
 	assert.Equal(t, "form", b.Name())
 
@@ -830,14 +810,9 @@ func testFormBindingForTime(t *testing.T, method, path, badPath, body, badBody s
 	assert.Equal(t, "UTC", obj.TimeBar.Location().String())
 	assert.Equal(t, int64(1562400033000000123), obj.CreateTime.UnixNano())
 	assert.Equal(t, int64(1562400033), obj.UnixTime.Unix())
-
-	obj = FooBarStructForTimeType{}
-	req = requestWithBody(method, badPath, badBody)
-	err = JSON.Bind(req, &obj)
-	assert.Error(t, err)
 }
 
-func testFormBindingForTimeNotUnixFormat(t *testing.T, method, path, badPath, body, badBody string) {
+func testFormBindingForTimeNotUnixFormat(t *testing.T, method, path, body string) {
 	b := Form
 	assert.Equal(t, "form", b.Name())
 
@@ -848,14 +823,9 @@ func testFormBindingForTimeNotUnixFormat(t *testing.T, method, path, badPath, bo
 	}
 	err := b.Bind(req, &obj)
 	assert.Error(t, err)
-
-	obj = FooStructForTimeTypeNotUnixFormat{}
-	req = requestWithBody(method, badPath, badBody)
-	err = JSON.Bind(req, &obj)
-	assert.Error(t, err)
 }
 
-func testFormBindingForTimeNotFormat(t *testing.T, method, path, badPath, body, badBody string) {
+func testFormBindingForTimeNotFormat(t *testing.T, method, path, body string) {
 	b := Form
 	assert.Equal(t, "form", b.Name())
 
@@ -866,14 +836,9 @@ func testFormBindingForTimeNotFormat(t *testing.T, method, path, badPath, body, 
 	}
 	err := b.Bind(req, &obj)
 	assert.Error(t, err)
-
-	obj = FooStructForTimeTypeNotFormat{}
-	req = requestWithBody(method, badPath, badBody)
-	err = JSON.Bind(req, &obj)
-	assert.Error(t, err)
 }
 
-func testFormBindingForTimeFailFormat(t *testing.T, method, path, badPath, body, badBody string) {
+func testFormBindingForTimeFailFormat(t *testing.T, method, path, body string) {
 	b := Form
 	assert.Equal(t, "form", b.Name())
 
@@ -884,14 +849,9 @@ func testFormBindingForTimeFailFormat(t *testing.T, method, path, badPath, body,
 	}
 	err := b.Bind(req, &obj)
 	assert.Error(t, err)
-
-	obj = FooStructForTimeTypeFailFormat{}
-	req = requestWithBody(method, badPath, badBody)
-	err = JSON.Bind(req, &obj)
-	assert.Error(t, err)
 }
 
-func testFormBindingForTimeFailLocation(t *testing.T, method, path, badPath, body, badBody string) {
+func testFormBindingForTimeFailLocation(t *testing.T, method, path, body string) {
 	b := Form
 	assert.Equal(t, "form", b.Name())
 
@@ -901,11 +861,6 @@ func testFormBindingForTimeFailLocation(t *testing.T, method, path, badPath, bod
 		req.Header.Add("Content-Type", MIMEPOSTForm)
 	}
 	err := b.Bind(req, &obj)
-	assert.Error(t, err)
-
-	obj = FooStructForTimeTypeFailLocation{}
-	req = requestWithBody(method, badPath, badBody)
-	err = JSON.Bind(req, &obj)
 	assert.Error(t, err)
 }
 

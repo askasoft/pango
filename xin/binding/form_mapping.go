@@ -346,11 +346,15 @@ func setFloatField(val string, bitSize int, field reflect.Value) error {
 	return err
 }
 
+var timeFormats = []string{time.RFC3339, "2006-01-02 15:04:05", "2006-01-02", "15:04:05"}
+
 func setTimeField(val string, structField reflect.StructField, value reflect.Value) error {
-	timeFormat := structField.Tag.Get("time_format")
-	if timeFormat == "" {
-		timeFormat = time.RFC3339
+	if val == "" {
+		value.Set(reflect.ValueOf(time.Time{}))
+		return nil
 	}
+
+	timeFormat := structField.Tag.Get("time_format")
 
 	switch tf := strings.ToLower(timeFormat); tf {
 	case "unix", "unixnano":
@@ -369,11 +373,6 @@ func setTimeField(val string, structField reflect.StructField, value reflect.Val
 		return nil
 	}
 
-	if val == "" {
-		value.Set(reflect.ValueOf(time.Time{}))
-		return nil
-	}
-
 	l := time.Local
 	if isUTC, _ := strconv.ParseBool(structField.Tag.Get("time_utc")); isUTC {
 		l = time.UTC
@@ -385,6 +384,16 @@ func setTimeField(val string, structField reflect.StructField, value reflect.Val
 			return err
 		}
 		l = loc
+	}
+
+	if timeFormat == "" {
+		timeFormat = timeFormats[0]
+		for _, tf := range timeFormats {
+			if len(tf) == len(val) {
+				timeFormat = tf
+				break
+			}
+		}
 	}
 
 	t, err := time.ParseInLocation(timeFormat, val, l)

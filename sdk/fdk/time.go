@@ -41,11 +41,11 @@ type Time struct {
 }
 
 func (t *Time) String() string {
-	return t.Time.Format(TimeFormat)
+	return t.Time.UTC().Format(TimeFormat)
 }
 
 func (t *Time) MarshalJSON() ([]byte, error) {
-	return []byte(t.Time.Format(jsonTimeFormat)), nil
+	return []byte(t.Time.UTC().Format(jsonTimeFormat)), nil
 }
 
 func (t *Time) UnmarshalJSON(data []byte) (err error) {
@@ -55,6 +55,6 @@ func (t *Time) UnmarshalJSON(data []byte) (err error) {
 		return
 	}
 
-	t.Time, err = time.Parse(jsonTimeFormat, str)
+	t.Time, err = time.ParseInLocation(jsonTimeFormat, str, time.UTC)
 	return
 }

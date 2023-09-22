@@ -46,8 +46,8 @@ func addMultipartFiles(mw *httpx.MultipartWriter, fs Files) (err error) {
 	return
 }
 
-// BuildRequest build a fdk request, returns buffer, contentType, error
-func BuildRequest(a any) (io.Reader, string, error) {
+// buildRequest build a fdk request, returns buffer, contentType, error
+func buildRequest(a any) (io.Reader, string, error) {
 	if a == nil {
 		return nil, "", nil
 	}
@@ -91,7 +91,7 @@ func buildJsonRequest(a any) (io.Reader, string, error) {
 	return buf, contentTypeJSON, nil
 }
 
-func Call(client *http.Client, req *http.Request, logger log.Logger) (res *http.Response, err error) {
+func call(client *http.Client, req *http.Request, logger log.Logger) (res *http.Response, err error) {
 	if logger != nil {
 		logger.Debugf("%s %s", req.Method, req.URL)
 	}
@@ -116,7 +116,7 @@ func Call(client *http.Client, req *http.Request, logger log.Logger) (res *http.
 	return res, err
 }
 
-func DecodeResponse(res *http.Response, obj any) error {
+func decodeResponse(res *http.Response, obj any) error {
 	defer iox.DrainAndClose(res.Body)
 
 	decoder := json.NewDecoder(res.Body)
@@ -134,7 +134,7 @@ func DecodeResponse(res *http.Response, obj any) error {
 	return er
 }
 
-func CopyResponse(res *http.Response) ([]byte, error) {
+func copyResponse(res *http.Response) ([]byte, error) {
 	defer iox.DrainAndClose(res.Body)
 
 	if res.StatusCode != http.StatusOK {
@@ -146,7 +146,7 @@ func CopyResponse(res *http.Response) ([]byte, error) {
 	return buf.Bytes(), err
 }
 
-func SaveResponse(res *http.Response, path string) error {
+func saveResponse(res *http.Response, path string) error {
 	defer iox.DrainAndClose(res.Body)
 
 	if res.StatusCode != http.StatusOK {

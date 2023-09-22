@@ -32,7 +32,7 @@ func (oai *OpenAI) endpoint(format string, a ...any) string {
 	return "https://" + oai.Domain + "/v1" + fmt.Sprintf(format, a...)
 }
 
-func buildJsonRequest(a any) (io.Reader, string, error) {
+func (oai *OpenAI) buildJsonRequest(a any) (io.Reader, string, error) {
 	body, err := json.Marshal(a)
 	if err != nil {
 		return nil, "", err
@@ -40,6 +40,24 @@ func buildJsonRequest(a any) (io.Reader, string, error) {
 
 	buf := bytes.NewReader(body)
 	return buf, contentTypeJSON, nil
+}
+
+func (oai *OpenAI) decodeResponse(res *http.Response, obj any) error {
+	defer iox.DrainAndClose(res.Body)
+
+	decoder := json.NewDecoder(res.Body)
+	if res.StatusCode == http.StatusOK {
+		if obj != nil {
+			return decoder.Decode(obj)
+		}
+		return nil
+	}
+
+	er := &ErrorResult{StatusCode: res.StatusCode, Status: res.Status}
+	if res.StatusCode != http.StatusNotFound {
+		_ = decoder.Decode(er)
+	}
+	return er
 }
 
 func (oai *OpenAI) call(req *http.Request) (res *http.Response, err error) {
@@ -86,7 +104,7 @@ func (oai *OpenAI) doCall(req *http.Request, result any) error {
 		return err
 	}
 
-	return decodeResponse(res, result)
+	return oai.decodeResponse(res, result)
 }
 
 func (oai *OpenAI) doPostWithRetry(url string, source, result any) error {
@@ -96,7 +114,7 @@ func (oai *OpenAI) doPostWithRetry(url string, source, result any) error {
 }
 
 func (oai *OpenAI) doPost(url string, source, result any) error {
-	buf, ct, err := buildJsonRequest(source)
+	buf, ct, err := oai.buildJsonRequest(source)
 	if err != nil {
 		return err
 	}

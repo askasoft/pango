@@ -3,7 +3,11 @@ package openai
 import (
 	"fmt"
 	"strings"
+
+	"github.com/askasoft/pango/sdk"
 )
+
+type RateLimitedError = sdk.RateLimitedError
 
 type ErrorResult struct {
 	StatusCode int    `json:"-"` // http status code

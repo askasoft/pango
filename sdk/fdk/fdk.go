@@ -54,7 +54,7 @@ func (fdk *FDK) call(req *http.Request) (res *http.Response, err error) {
 		Timeout:   fdk.Timeout,
 	}
 
-	return Call(client, req, fdk.Logger)
+	return call(client, req, fdk.Logger)
 }
 
 func (fdk *FDK) authAndCall(req *http.Request) (res *http.Response, err error) {
@@ -68,7 +68,7 @@ func (fdk *FDK) doCall(req *http.Request, result any) error {
 		return err
 	}
 
-	return DecodeResponse(res, result)
+	return decodeResponse(res, result)
 }
 
 func (fdk *FDK) DoGet(url string, result any) error {
@@ -110,7 +110,7 @@ func (fdk *FDK) doList(url string, lo ListOption, result any) (bool, error) {
 		return false, err
 	}
 
-	err = DecodeResponse(res, result)
+	err = decodeResponse(res, result)
 	if err != nil {
 		return false, err
 	}
@@ -126,7 +126,7 @@ func (fdk *FDK) DoPost(url string, source, result any) error {
 }
 
 func (fdk *FDK) doPost(url string, source, result any) error {
-	buf, ct, err := BuildRequest(source)
+	buf, ct, err := buildRequest(source)
 	if err != nil {
 		return err
 	}
@@ -149,7 +149,7 @@ func (fdk *FDK) DoPut(url string, source, result any) error {
 }
 
 func (fdk *FDK) doPut(url string, source, result any) error {
-	buf, ct, err := BuildRequest(source)
+	buf, ct, err := buildRequest(source)
 	if err != nil {
 		return err
 	}
@@ -199,7 +199,7 @@ func (fdk *FDK) doDownload(url string) ([]byte, error) {
 		return nil, err
 	}
 
-	return CopyResponse(res)
+	return copyResponse(res)
 }
 
 func (fdk *FDK) DoSaveFile(url string, path string) error {
@@ -219,7 +219,7 @@ func (fdk *FDK) doSaveFile(url string, path string) error {
 		return err
 	}
 
-	return SaveResponse(res, path)
+	return saveResponse(res, path)
 }
 
 func (fdk *FDK) DoDownloadNoAuth(url string) (buf []byte, err error) {
@@ -241,7 +241,7 @@ func (fdk *FDK) doDownloadNoAuth(url string) ([]byte, error) {
 		return nil, err
 	}
 
-	return CopyResponse(res)
+	return copyResponse(res)
 }
 
 func (fdk *FDK) DoSaveFileNoAuth(url string, path string) error {
@@ -261,5 +261,5 @@ func (fdk *FDK) doSaveFileNoAuth(url string, path string) error {
 		return err
 	}
 
-	return SaveResponse(res, path)
+	return saveResponse(res, path)
 }

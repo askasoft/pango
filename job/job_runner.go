@@ -14,15 +14,15 @@ func NewJobRunner(logger ...log.Logger) *JobRunner {
 		Log: log.NewLog(),
 	}
 
-	jr.outputs.SetFilter("level:DEBUG")
-	jr.outputs.SetFormat("%t{2006-01-02 15:04:05} [%p] - %m%n%T")
+	jr.Out.SetFilter("level:DEBUG")
+	jr.Out.SetFormat("%t{2006-01-02 15:04:05} [%p] - %m%n")
 
 	if len(logger) > 0 {
 		bw := log.NewBridgeWriter(logger[0])
-		mw := log.NewMultiWriter(&jr.outputs, bw)
+		mw := log.NewMultiWriter(&jr.Out, bw)
 		jr.Log.SetWriter(mw)
 	} else {
-		jr.Log.SetWriter(&jr.outputs)
+		jr.Log.SetWriter(&jr.Out)
 	}
 
 	return jr
@@ -31,9 +31,9 @@ func NewJobRunner(logger ...log.Logger) *JobRunner {
 type JobRunner struct {
 	Log     *log.Log
 	Run     func()
+	Out     JobLogWriter
 	aborted int32
 	running int32
-	outputs JobLogWriter
 }
 
 func (jr *JobRunner) IsRunning() bool {
@@ -58,19 +58,7 @@ func (jr *JobRunner) run() {
 	atomic.StoreInt32(&jr.aborted, 0)
 	atomic.StoreInt32(&jr.running, 1)
 
-	jr.ClearOutput()
+	jr.Out.Clear()
 
 	jr.Run()
-}
-
-func (jr *JobRunner) ClearOutput() {
-	jr.outputs.Clear()
-}
-
-func (jr *JobRunner) GetOutputs(skip int) []JobMessage {
-	if skip > len(jr.outputs.Output) {
-		return nil
-	}
-
-	return jr.outputs.Output[skip:]
 }

@@ -3,7 +3,6 @@ package xmw
 import (
 	"compress/gzip"
 	"io"
-	"net/http"
 	"regexp"
 	"sync"
 
@@ -228,7 +227,7 @@ func (z *HTTPGziper) Handler() xin.HandlerFunc {
 
 // Handle process xin request
 func (z *HTTPGziper) Handle(c *xin.Context) {
-	if !z.shouldCompress(c.Request) {
+	if !z.shouldCompress(c) {
 		c.Next()
 		return
 	}
@@ -246,13 +245,26 @@ func (z *HTTPGziper) Handle(c *xin.Context) {
 	c.Next()
 }
 
-func (z *HTTPGziper) shouldCompress(req *http.Request) bool {
-	if z.disabled ||
-		!req.ProtoAtLeast(z.protoMajor, z.protoMinor) ||
-		!str.ContainsFold(req.Header.Get("Accept-Encoding"), "gzip") ||
-		str.ContainsFold(req.Header.Get("Connection"), "Upgrade") ||
-		str.ContainsFold(req.Header.Get("Content-Type"), "text/event-stream") {
+func (z *HTTPGziper) shouldCompress(c *xin.Context) bool {
+	req := c.Request
 
+	if z.disabled {
+		return false
+	}
+
+	if !req.ProtoAtLeast(z.protoMajor, z.protoMinor) {
+		return false
+	}
+
+	if !str.ContainsFold(req.Header.Get("Accept-Encoding"), "gzip") {
+		return false
+	}
+
+	if str.ContainsFold(req.Header.Get("Connection"), "Upgrade") {
+		return false
+	}
+
+	if str.ContainsFold(req.Header.Get("Content-Type"), "text/event-stream") {
 		return false
 	}
 

@@ -52,9 +52,9 @@ func (hd *HTTPDumper) Handle(c *xin.Context) {
 	}
 
 	// dump request
-	id := dumpRequest(w, c.Request)
+	id := hd.dumpRequest(w, c.Request)
 
-	dw := &dumpWriter{c.Writer, &http.Response{
+	dw := &httpDumpWriter{c.Writer, &http.Response{
 		Proto:      c.Request.Proto,
 		ProtoMajor: c.Request.ProtoMajor,
 		ProtoMinor: c.Request.ProtoMinor,
@@ -65,7 +65,7 @@ func (hd *HTTPDumper) Handle(c *xin.Context) {
 	c.Next()
 
 	// dump response
-	dumpResponse(w, id, dw)
+	hd.dumpResponse(w, id, dw)
 }
 
 // SetOutput set the access log output writer
@@ -75,7 +75,7 @@ func (hd *HTTPDumper) SetOutput(w io.Writer) {
 
 const eol = "\r\n"
 
-func dumpRequest(w io.Writer, req *http.Request) string {
+func (hd *HTTPDumper) dumpRequest(w io.Writer, req *http.Request) string {
 	bs, _ := httputil.DumpRequest(req, true)
 
 	id := fmt.Sprintf("%x", md5.Sum(bs)) //nolint: gosec
@@ -95,7 +95,7 @@ func dumpRequest(w io.Writer, req *http.Request) string {
 	return id
 }
 
-func dumpResponse(w io.Writer, id string, dw *dumpWriter) {
+func (hd *HTTPDumper) dumpResponse(w io.Writer, id string, dw *httpDumpWriter) {
 	bb := &bytes.Buffer{}
 
 	bb.WriteString(fmt.Sprintf("<<<<<<<< %s %s <<<<<<<<", time.Now().Format(dumpTimeFormat), id))
@@ -111,13 +111,13 @@ func dumpResponse(w io.Writer, id string, dw *dumpWriter) {
 	w.Write(bb.Bytes()) //nolint: errcheck
 }
 
-type dumpWriter struct {
+type httpDumpWriter struct {
 	xin.ResponseWriter
 	res *http.Response
 	bb  *bytes.Buffer
 }
 
-func (dw *dumpWriter) Write(data []byte) (int, error) {
+func (dw *httpDumpWriter) Write(data []byte) (int, error) {
 	dw.bb.Write(data)
 	return dw.ResponseWriter.Write(data)
 }

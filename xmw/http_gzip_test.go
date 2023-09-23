@@ -57,7 +57,7 @@ func assertGzipEnable(t *testing.T, rr *httptest.ResponseRecorder, body string) 
 
 func TestGzip(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
-	req.Header.Add("Accept-Encoding", "gzip")
+	req.Header.Add("Accept-Encoding", "gzip, deflate")
 
 	w := httptest.NewRecorder()
 	body := strings.Repeat("This is a Test!\n", 1000)

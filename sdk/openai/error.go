@@ -9,29 +9,54 @@ import (
 
 type RateLimitedError = sdk.RateLimitedError
 
+type ErrorDetail struct {
+	Type    string `json:"type,omitempty"`
+	Code    string `json:"code,omitempty"`
+	Message string `json:"message,omitempty"`
+	Param   any    `json:"param,omitempty"`
+}
+
+func (ed *ErrorDetail) String() string {
+	var sb strings.Builder
+	if ed.Type != "" {
+		sb.WriteString(ed.Type)
+	}
+	if ed.Code != "" {
+		if sb.Len() > 0 {
+			sb.WriteString(": ")
+		}
+		sb.WriteString(ed.Code)
+	}
+	if ed.Message != "" {
+		if sb.Len() > 0 {
+			sb.WriteString(": ")
+		}
+		sb.WriteString(ed.Message)
+	}
+	if ed.Param != nil {
+		if sb.Len() > 0 {
+			sb.WriteString(": ")
+		}
+		sb.WriteString(fmt.Sprint(ed.Param))
+	}
+	return sb.String()
+}
+
 type ErrorResult struct {
-	StatusCode int    `json:"-"` // http status code
-	Status     string `json:"-"` // http status
-	Code       string `json:"code,omitempty"`
-	Message    string `json:"message,omitempty"`
-	Type       string `json:"type,omitempty"`
-	Param      any    `json:"param,omitempty"`
+	StatusCode int          `json:"-"` // http status code
+	Status     string       `json:"-"` // http status
+	Detail     *ErrorDetail `json:"error,omitempty"`
 }
 
 func (er *ErrorResult) Error() string {
-	var sb strings.Builder
-	sb.WriteString(er.Status)
-	if er.Code != "" {
-		sb.WriteString(": ")
-		sb.WriteString(er.Code)
+	detail := ""
+	if er.Detail != nil {
+		detail = er.Detail.String()
 	}
-	if er.Message != "" {
-		sb.WriteString(": ")
-		sb.WriteString(er.Message)
+
+	if detail != "" {
+		return er.Status + " - " + detail
 	}
-	if er.Param != nil {
-		sb.WriteString(": ")
-		sb.WriteString(fmt.Sprint(er.Param))
-	}
-	return sb.String()
+
+	return er.Status
 }

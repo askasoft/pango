@@ -26,6 +26,7 @@ type OpenAI struct {
 	Logger    log.Logger
 
 	RetryOnRateLimited int
+	ShouldAbortOnRetry func() bool
 }
 
 func (oai *OpenAI) endpoint(format string, a ...any) string {
@@ -123,9 +124,9 @@ func (oai *OpenAI) doCall(req *http.Request, result any) error {
 }
 
 func (oai *OpenAI) doPostWithRetry(url string, source, result any) error {
-	return oai.RetryForRateLimited(func() error {
+	return sdk.RetryForRateLimited(func() error {
 		return oai.doPost(url, source, result)
-	})
+	}, oai.RetryOnRateLimited, oai.ShouldAbortOnRetry, oai.Logger)
 }
 
 func (oai *OpenAI) doPost(url string, source, result any) error {
@@ -143,10 +144,6 @@ func (oai *OpenAI) doPost(url string, source, result any) error {
 	}
 
 	return oai.doCall(req, result)
-}
-
-func (oai *OpenAI) RetryForRateLimited(api func() error) (err error) {
-	return sdk.RetryForRateLimited(api, oai.RetryOnRateLimited, oai.Logger)
 }
 
 // https://platform.openai.com/docs/api-reference/chat/create

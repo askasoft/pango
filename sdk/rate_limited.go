@@ -28,13 +28,13 @@ func (rle *RateLimitedError) Error() string {
 	return s
 }
 
-func RetryForRateLimited(api func() error, maxRetry int, logger log.Logger) (err error) {
+func RetryForRateLimited(api func() error, maxRetry int, abort func() bool, logger log.Logger) (err error) {
 	for i := 0; ; i++ {
 		err = api()
 		if i >= maxRetry {
 			break
 		}
-		if !SleepForRateLimited(err, logger) {
+		if !SleepForRateLimited(err, abort, logger) {
 			break
 		}
 	}
@@ -42,7 +42,8 @@ func RetryForRateLimited(api func() error, maxRetry int, logger log.Logger) (err
 }
 
 // SleepForRateLimited if err is RateLimitedError, sleep Retry-After and return true
-func SleepForRateLimited(err error, logger log.Logger) bool {
+// return false if err is not ReteLimitedError or abort() returns true
+func SleepForRateLimited(err error, abort func() bool, logger log.Logger) bool {
 	if err != nil {
 		if rle, ok := err.(*RateLimitedError); ok { //nolint: errorlint
 			ra := rle.RetryAfter
@@ -54,7 +55,13 @@ func SleepForRateLimited(err error, logger log.Logger) bool {
 				logger.Warnf("Sleep %s for API Rate Limited", ra)
 			}
 
-			time.Sleep(ra)
+			for te := time.Now().Add(ra); te.After(time.Now()); {
+				if abort != nil && abort() {
+					return false
+				}
+				time.Sleep(time.Second)
+			}
+
 			return true
 		}
 	}

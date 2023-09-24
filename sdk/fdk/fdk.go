@@ -20,6 +20,7 @@ type FDK struct {
 	Logger    log.Logger
 
 	RetryOnRateLimited int
+	ShouldAbortOnRetry func() bool
 }
 
 // Endpoint formats endpoint url
@@ -29,11 +30,11 @@ func (fdk *FDK) Endpoint(format string, a ...any) string {
 
 // SleepForRateLimited if err is RateLimitedError, sleep Retry-After and return true
 func (fdk *FDK) SleepForRateLimited(err error) bool {
-	return sdk.SleepForRateLimited(err, fdk.Logger)
+	return sdk.SleepForRateLimited(err, fdk.ShouldAbortOnRetry, fdk.Logger)
 }
 
 func (fdk *FDK) RetryForRateLimited(api func() error) (err error) {
-	return sdk.RetryForRateLimited(api, fdk.RetryOnRateLimited, fdk.Logger)
+	return sdk.RetryForRateLimited(api, fdk.RetryOnRateLimited, fdk.ShouldAbortOnRetry, fdk.Logger)
 }
 
 func (fdk *FDK) authenticate(req *http.Request) {

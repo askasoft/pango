@@ -6,10 +6,14 @@ import (
 )
 
 type ArticleStatus int
+type ArticleHierarchyType string
 
 const (
 	ArticleStatusDraft     ArticleStatus = 1
 	ArticleStatusPublished ArticleStatus = 2
+
+	ArticleHierarchyTypeCategory ArticleHierarchyType = "category"
+	ArticleHierarchyTypeFolder   ArticleHierarchyType = "folder"
 )
 
 func (as ArticleStatus) String() string {
@@ -34,6 +38,18 @@ func ParseArticleStatus(s string) ArticleStatus {
 	}
 }
 
+type ArticleHierarchyData struct {
+	ID       int64  `json:"id,omitempty"`
+	Language string `json:"language,omitempty"`
+	Name     string `json:"name,omitempty"`
+}
+
+type ArticleHierarchyItem struct {
+	Data  *ArticleHierarchyData `json:"data,omitempty"`
+	Level int                   `json:"level,omitempty"`
+	Type  ArticleHierarchyType  `json:"type,omitempty"`
+}
+
 type Article struct {
 	ID int64 `json:"id,omitempty"`
 
@@ -56,7 +72,7 @@ type Article struct {
 	FolderID int64 `json:"folder_id,omitempty"`
 
 	// Parent category and folders in which the article is placed
-	Hierarchy []map[string]any `json:"hierarchy,omitempty"`
+	Hierarchy []*ArticleHierarchyItem `json:"hierarchy,omitempty"`
 
 	// Number of views for the solution article
 	Hits int64 `json:"hits,omitempty"`

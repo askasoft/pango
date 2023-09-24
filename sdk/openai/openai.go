@@ -53,10 +53,12 @@ func (oai *OpenAI) decodeResponse(res *http.Response, obj any) error {
 		return nil
 	}
 
-	er := &ErrorResult{StatusCode: res.StatusCode, Status: res.Status}
-	if res.StatusCode != http.StatusNotFound {
-		_ = decoder.Decode(er)
+	er := &ErrorResult{
+		Status:     res.Status,
+		StatusCode: res.StatusCode,
 	}
+	_ = decoder.Decode(er)
+
 	return er
 }
 
@@ -77,8 +79,21 @@ func (oai *OpenAI) call(req *http.Request) (res *http.Response, err error) {
 		log.TraceHttpResponse(oai.Logger, res, rid)
 
 		if res.StatusCode == http.StatusTooManyRequests {
+			rle := &RateLimitedError{
+				Status:     res.Status,
+				StatusCode: res.StatusCode,
+			}
+
+			er := &ErrorResult{}
+			decoder := json.NewDecoder(res.Body)
+			_ = decoder.Decode(er)
+
+			if er.Detail != nil {
+				rle.Message = er.Detail.String()
+			}
+
 			iox.DrainAndClose(res.Body)
-			return res, &RateLimitedError{StatusCode: res.StatusCode, RetryAfter: 20 * time.Second}
+			return res, rle
 		}
 	}
 

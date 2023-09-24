@@ -103,13 +103,19 @@ func call(client *http.Client, req *http.Request, logger log.Logger) (res *http.
 		log.TraceHttpResponse(logger, res, rid)
 
 		if res.StatusCode == http.StatusTooManyRequests {
+			rle := &RateLimitedError{
+				Status:     res.Status,
+				StatusCode: res.StatusCode,
+			}
+
 			s := res.Header.Get("Retry-After")
 			n := num.Atoi(s)
-			if n <= 0 {
-				n = 30 // invalid number, default to 30s
+			if n > 0 {
+				rle.RetryAfter = time.Second * time.Duration(n)
 			}
+
 			iox.DrainAndClose(res.Body)
-			return res, &RateLimitedError{StatusCode: res.StatusCode, RetryAfter: time.Second * time.Duration(n)}
+			return res, err
 		}
 	}
 

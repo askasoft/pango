@@ -8,12 +8,24 @@ import (
 )
 
 type RateLimitedError struct {
+	Status     string        // http status
 	StatusCode int           // http status code
 	RetryAfter time.Duration // retry after time
+	Message    string        // detail error message
 }
 
-func (e *RateLimitedError) Error() string {
-	return fmt.Sprintf("%d Retry After %v", e.StatusCode, e.RetryAfter)
+func (rle *RateLimitedError) Error() string {
+	s := rle.Status
+
+	if rle.RetryAfter > 0 {
+		s = fmt.Sprintf("%s (Retry After %s)", s, rle.RetryAfter)
+	}
+
+	if rle.Message != "" {
+		s = fmt.Sprintf("%s: %s", s, rle.Message)
+	}
+
+	return s
 }
 
 func RetryForRateLimited(api func() error, maxRetry int, logger log.Logger) (err error) {
@@ -33,10 +45,16 @@ func RetryForRateLimited(api func() error, maxRetry int, logger log.Logger) (err
 func SleepForRateLimited(err error, logger log.Logger) bool {
 	if err != nil {
 		if rle, ok := err.(*RateLimitedError); ok { //nolint: errorlint
-			if logger != nil {
-				logger.Warnf("Sleep %v for API Rate Limited", rle.RetryAfter)
+			ra := rle.RetryAfter
+			if ra <= 0 {
+				ra = time.Second * 30 // default to 30s
 			}
-			time.Sleep(rle.RetryAfter)
+
+			if logger != nil {
+				logger.Warnf("Sleep %s for API Rate Limited", ra)
+			}
+
+			time.Sleep(ra)
 			return true
 		}
 	}

@@ -38,6 +38,12 @@ func ParseArticleStatus(s string) ArticleStatus {
 	}
 }
 
+type ArticleSeoData struct {
+	MetaTitle       string `json:"meta_title,omitempty"`
+	MetaKeywords    string `json:"meta_keywords,omitempty"`
+	MetaDescription string `json:"meta_description,omitempty"`
+}
+
 type ArticleHierarchyData struct {
 	ID       int64  `json:"id,omitempty"`
 	Language string `json:"language,omitempty"`
@@ -81,7 +87,7 @@ type Article struct {
 	Status ArticleStatus `json:"status,omitempty"`
 
 	// Meta data for search engine optimization. Allows meta_title, meta_description and meta_keywords
-	SeoData map[string]any `json:"seo_data,omitempty"`
+	SeoData *ArticleSeoData `json:"seo_data,omitempty"`
 
 	// Tags that have been associated with the solution article
 	Tags []string `json:"tags,omitempty"`
@@ -120,7 +126,11 @@ func (a *Article) Values() Values {
 	vs.SetInt("status", (int)(a.Status))
 	vs.SetStrings("tags", a.Tags)
 	vs.SetStrings("platforms", a.Platforms)
-	vs.SetMap("seo_data", a.SeoData)
+	if a.SeoData != nil {
+		vs.SetString("seo_data[meta_title]", a.SeoData.MetaTitle)
+		vs.SetString("seo_data[meta_keywords]", a.SeoData.MetaKeywords)
+		vs.SetString("seo_data[meta_description]", a.SeoData.MetaDescription)
+	}
 	return vs
 }
 

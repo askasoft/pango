@@ -86,6 +86,14 @@ func (vs Values) SetInt64s(name string, value []int64) {
 	}
 }
 
+func (vs Values) SetStringMap(name string, value map[string]string) {
+	if len(value) > 0 {
+		for k, v := range value {
+			(url.Values)(vs).Add(fmt.Sprintf("%s[%s]", name, k), v)
+		}
+	}
+}
+
 func (vs Values) SetMap(name string, value map[string]any) {
 	if len(value) > 0 {
 		for k, v := range value {

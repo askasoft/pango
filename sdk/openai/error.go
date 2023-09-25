@@ -11,9 +11,9 @@ type RateLimitedError = sdk.RateLimitedError
 
 type ErrorDetail struct {
 	Type    string `json:"type,omitempty"`
-	Code    string `json:"code,omitempty"`
-	Message string `json:"message,omitempty"`
+	Code    any    `json:"code,omitempty"`
 	Param   any    `json:"param,omitempty"`
+	Message string `json:"message,omitempty"`
 }
 
 func (ed *ErrorDetail) String() string {
@@ -21,23 +21,29 @@ func (ed *ErrorDetail) String() string {
 	if ed.Type != "" {
 		sb.WriteString(ed.Type)
 	}
-	if ed.Code != "" {
-		if sb.Len() > 0 {
-			sb.WriteString(": ")
+	if ed.Code != nil {
+		s := fmt.Sprint(ed.Code)
+		if s != "" {
+			if sb.Len() > 0 {
+				sb.WriteByte('/')
+			}
+			sb.WriteString(s)
 		}
-		sb.WriteString(ed.Code)
+	}
+	if ed.Param != nil {
+		s := fmt.Sprint(ed.Param)
+		if s != "" {
+			if sb.Len() > 0 {
+				sb.WriteByte('/')
+			}
+			sb.WriteString(s)
+		}
 	}
 	if ed.Message != "" {
 		if sb.Len() > 0 {
 			sb.WriteString(": ")
 		}
 		sb.WriteString(ed.Message)
-	}
-	if ed.Param != nil {
-		if sb.Len() > 0 {
-			sb.WriteString(": ")
-		}
-		sb.WriteString(fmt.Sprint(ed.Param))
 	}
 	return sb.String()
 }

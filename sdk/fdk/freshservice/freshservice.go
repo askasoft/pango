@@ -44,7 +44,15 @@ func NewAttachment(file string, data ...[]byte) *Attachment {
 }
 
 func toString(o any) string {
-	return fdk.ToString(o)
+	return fdk.ToJSONIndent(o)
+}
+
+func ToJSON(o any) string {
+	return fdk.ToJSON(o)
+}
+
+func ToJSONIndent(o any) string {
+	return fdk.ToJSONIndent(o)
 }
 
 type Freshservice fdk.FDK
@@ -87,6 +95,11 @@ func (fs *Freshservice) DownloadNoAuth(url string) ([]byte, error) {
 
 func (fs *Freshservice) SaveFileNoAuth(url string, path string) error {
 	return (*fdk.FDK)(fs).DoSaveFileNoAuth(url, path)
+}
+
+// GetSolutionArticleURL return a permlink for solution article URL
+func (fs *Freshservice) GetSolutionArticleURL(aid int64) string {
+	return fmt.Sprintf("https://%s/support/solutions/articles/%d", fs.Domain, aid)
 }
 
 // GetHelpdeskAttachmentURL return a permlink for helpdesk attachment/avator URL

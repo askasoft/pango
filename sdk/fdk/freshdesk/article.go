@@ -40,8 +40,12 @@ func ParseArticleStatus(s string) ArticleStatus {
 
 type ArticleSeoData struct {
 	MetaTitle       string `json:"meta_title,omitempty"`
-	MetaKeywords    string `json:"meta_keywords,omitempty"`
+	MetaKeywords    string `json:"meta_keywords,omitempty"` // deprecated
 	MetaDescription string `json:"meta_description,omitempty"`
+}
+
+func (asd *ArticleSeoData) String() string {
+	return toString(asd)
 }
 
 type ArticleHierarchyData struct {
@@ -50,10 +54,18 @@ type ArticleHierarchyData struct {
 	Name     string `json:"name,omitempty"`
 }
 
+func (ahd *ArticleHierarchyData) String() string {
+	return toString(ahd)
+}
+
 type ArticleHierarchyItem struct {
 	Data  *ArticleHierarchyData `json:"data,omitempty"`
 	Level int                   `json:"level,omitempty"`
 	Type  ArticleHierarchyType  `json:"type,omitempty"`
+}
+
+func (ahi *ArticleHierarchyItem) String() string {
+	return toString(ahi)
 }
 
 type Article struct {

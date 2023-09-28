@@ -20,8 +20,24 @@ const (
 	contentTypeJSON = `application/json; charset="utf-8"`
 )
 
-func ToString(o any) string {
+func ToJSONIndent(o any) string {
+	if o == nil {
+		return ""
+	}
+
 	bs, err := json.MarshalIndent(o, "", "  ")
+	if err != nil {
+		return err.Error()
+	}
+	return bye.UnsafeString(bs)
+}
+
+func ToJSON(o any) string {
+	if o == nil {
+		return ""
+	}
+
+	bs, err := json.Marshal(o)
 	if err != nil {
 		return err.Error()
 	}

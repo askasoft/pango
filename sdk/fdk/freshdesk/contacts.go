@@ -87,7 +87,7 @@ func (fd *Freshdesk) ListContacts(lco *ListContactsOption) ([]*Contact, bool, er
 	return contacts, next, err
 }
 
-func (fd *Freshdesk) IterContacts(lco *ListContactsOption, itf func(*Contact) error) error {
+func (fd *Freshdesk) IterContacts(lco *ListContactsOption, icf func(*Contact) error) error {
 	if lco == nil {
 		lco = &ListContactsOption{}
 	}
@@ -104,7 +104,7 @@ func (fd *Freshdesk) IterContacts(lco *ListContactsOption, itf func(*Contact) er
 			return err
 		}
 		for _, c := range contacts {
-			if err = itf(c); err != nil {
+			if err = icf(c); err != nil {
 				return err
 			}
 		}

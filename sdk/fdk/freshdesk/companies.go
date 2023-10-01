@@ -30,7 +30,7 @@ func (fd *Freshdesk) ListCompanies(lco *ListCompaniesOption) ([]*Company, bool, 
 	return result, next, err
 }
 
-func (fd *Freshdesk) IterCompanies(lco *ListCompaniesOption, itf func(*Company) error) error {
+func (fd *Freshdesk) IterCompanies(lco *ListCompaniesOption, icf func(*Company) error) error {
 	if lco == nil {
 		lco = &ListCompaniesOption{}
 	}
@@ -47,7 +47,7 @@ func (fd *Freshdesk) IterCompanies(lco *ListCompaniesOption, itf func(*Company) 
 			return err
 		}
 		for _, c := range companies {
-			if err = itf(c); err != nil {
+			if err = icf(c); err != nil {
 				return err
 			}
 		}

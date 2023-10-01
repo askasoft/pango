@@ -7,7 +7,8 @@ import (
 // ---------------------------------------------------
 // Requester
 
-type ListMembersOption = PageOption
+type ListRequesterGroupsOption = PageOption
+type ListRequesterGroupMembersOption = PageOption
 
 type ListRequestersOption struct {
 	FirstName         string
@@ -69,11 +70,40 @@ func (fs *Freshservice) GetRequesterGroup(id int64) (*RequesterGroup, error) {
 	return result.RequesterGroup, err
 }
 
-func (fs *Freshservice) ListRequesterGroups() ([]*RequesterGroup, error) {
+func (fs *Freshservice) ListRequesterGroups(lrgo *ListRequesterGroupsOption) ([]*RequesterGroup, bool, error) {
 	url := fs.endpoint("/requester_groups")
 	result := &requesterGroupResult{}
-	err := fs.doGet(url, result)
-	return result.RequesterGroups, err
+	next, err := fs.doList(url, lrgo, result)
+	return result.RequesterGroups, next, err
+}
+
+func (fs *Freshservice) IterRequesterGroups(lrgo *ListRequesterGroupsOption, irgf func(*RequesterGroup) error) error {
+	if lrgo == nil {
+		lrgo = &ListRequesterGroupsOption{}
+	}
+	if lrgo.Page < 1 {
+		lrgo.Page = 1
+	}
+	if lrgo.PerPage < 1 {
+		lrgo.PerPage = 100
+	}
+
+	for {
+		rgs, next, err := fs.ListRequesterGroups(lrgo)
+		if err != nil {
+			return err
+		}
+		for _, rg := range rgs {
+			if err = irgf(rg); err != nil {
+				return err
+			}
+		}
+		if !next {
+			break
+		}
+		lrgo.Page++
+	}
+	return nil
 }
 
 // Note:
@@ -112,11 +142,40 @@ func (fs *Freshservice) DeleteRequesterFromRequesterGroup(rgid, rid int64) error
 	return fs.doDelete(url)
 }
 
-func (fs *Freshservice) ListRequesterGroupMembers(rgid int64, lmo *ListMembersOption) ([]*Requester, bool, error) {
+func (fs *Freshservice) ListRequesterGroupMembers(rgid int64, lrgmo *ListRequesterGroupMembersOption) ([]*Requester, bool, error) {
 	url := fs.endpoint("/requester_groups/%d/members", rgid)
 	result := &requesterResult{}
-	next, err := fs.doList(url, lmo, result)
+	next, err := fs.doList(url, lrgmo, result)
 	return result.Requesters, next, err
+}
+
+func (fs *Freshservice) IterRequesterGroupMembers(rgid int64, lrgmo *ListRequesterGroupMembersOption, irgmf func(*Requester) error) error {
+	if lrgmo == nil {
+		lrgmo = &ListAgentRolesOption{}
+	}
+	if lrgmo.Page < 1 {
+		lrgmo.Page = 1
+	}
+	if lrgmo.PerPage < 1 {
+		lrgmo.PerPage = 100
+	}
+
+	for {
+		rs, next, err := fs.ListRequesterGroupMembers(rgid, lrgmo)
+		if err != nil {
+			return err
+		}
+		for _, r := range rs {
+			if err = irgmf(r); err != nil {
+				return err
+			}
+		}
+		if !next {
+			break
+		}
+		lrgmo.Page++
+	}
+	return nil
 }
 
 func (fs *Freshservice) CreateRequester(requester *Requester) (*Requester, error) {
@@ -160,6 +219,35 @@ func (fs *Freshservice) ListRequesters(lro *ListRequestersOption) ([]*Requester,
 	result := &requesterResult{}
 	next, err := fs.doList(url, lro, result)
 	return result.Requesters, next, err
+}
+
+func (fs *Freshservice) IterRequester(lro *ListRequestersOption, irf func(*Requester) error) error {
+	if lro == nil {
+		lro = &ListRequestersOption{}
+	}
+	if lro.Page < 1 {
+		lro.Page = 1
+	}
+	if lro.PerPage < 1 {
+		lro.PerPage = 100
+	}
+
+	for {
+		rs, next, err := fs.ListRequesters(lro)
+		if err != nil {
+			return err
+		}
+		for _, r := range rs {
+			if err = irf(r); err != nil {
+				return err
+			}
+		}
+		if !next {
+			break
+		}
+		lro.Page++
+	}
+	return nil
 }
 
 func (fs *Freshservice) GetRequesterFields() ([]*RequesterField, error) {

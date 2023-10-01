@@ -3,11 +3,42 @@ package freshdesk
 // ---------------------------------------------------
 // Automation
 
-func (fd *Freshdesk) ListAutomationRules(aType AutomationType) ([]*AutomationRule, error) {
+type ListAutomationRulesOption = PageOption
+
+func (fd *Freshdesk) ListAutomationRules(aType AutomationType, laro *ListAutomationRulesOption) ([]*AutomationRule, bool, error) {
 	url := fd.endpoint("/automations/%d/rules", aType)
 	rules := []*AutomationRule{}
-	_, err := fd.doList(url, nil, &rules)
-	return rules, err
+	next, err := fd.doList(url, laro, &rules)
+	return rules, next, err
+}
+
+func (fd *Freshdesk) IterAutomationRules(aType AutomationType, laro *ListAutomationRulesOption, iarf func(*AutomationRule) error) error {
+	if laro == nil {
+		laro = &ListAutomationRulesOption{}
+	}
+	if laro.Page < 1 {
+		laro.Page = 1
+	}
+	if laro.PerPage < 1 {
+		laro.PerPage = 100
+	}
+
+	for {
+		ars, next, err := fd.ListAutomationRules(aType, laro)
+		if err != nil {
+			return err
+		}
+		for _, ar := range ars {
+			if err = iarf(ar); err != nil {
+				return err
+			}
+		}
+		if !next {
+			break
+		}
+		laro.Page++
+	}
+	return nil
 }
 
 func (fd *Freshdesk) GetAutomationRule(aType AutomationType, rid int64) (*AutomationRule, error) {

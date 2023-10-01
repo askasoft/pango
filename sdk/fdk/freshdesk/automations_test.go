@@ -10,7 +10,7 @@ func TestAutomationAPIs(t *testing.T) {
 		return
 	}
 
-	rules, err := fd.ListAutomationRules(AutomationTypeTicketCreation)
+	rules, _, err := fd.ListAutomationRules(AutomationTypeTicketCreation, nil)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}

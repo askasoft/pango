@@ -10,6 +10,9 @@ const (
 	AgentStateOccasional AgentState = "occasional"
 )
 
+type ListAgentRolesOption = PageOption
+type ListAgentGroupsOption = PageOption
+
 type ListAgentsOption struct {
 	FirstName          string
 	LastName           string
@@ -65,11 +68,40 @@ func (fs *Freshservice) GetAgentRole(id int64) (*AgentRole, error) {
 	return result.Role, err
 }
 
-func (fs *Freshservice) ListAgentRoles() ([]*AgentRole, error) {
+func (fs *Freshservice) ListAgentRoles(laro *ListAgentRolesOption) ([]*AgentRole, bool, error) {
 	url := fs.endpoint("/roles")
 	result := &agentRoleResult{}
-	err := fs.doGet(url, result)
-	return result.Roles, err
+	next, err := fs.doList(url, laro, result)
+	return result.Roles, next, err
+}
+
+func (fs *Freshservice) IterAgentRoles(laro *ListAgentRolesOption, iarf func(*AgentRole) error) error {
+	if laro == nil {
+		laro = &ListAgentRolesOption{}
+	}
+	if laro.Page < 1 {
+		laro.Page = 1
+	}
+	if laro.PerPage < 1 {
+		laro.PerPage = 100
+	}
+
+	for {
+		ars, next, err := fs.ListAgentRoles(laro)
+		if err != nil {
+			return err
+		}
+		for _, ar := range ars {
+			if err = iarf(ar); err != nil {
+				return err
+			}
+		}
+		if !next {
+			break
+		}
+		laro.Page++
+	}
+	return nil
 }
 
 func (fs *Freshservice) CreateAgentGroup(ag *AgentGroup) (*AgentGroup, error) {
@@ -86,11 +118,40 @@ func (fs *Freshservice) GetAgentGroup(id int64) (*AgentGroup, error) {
 	return result.Group, err
 }
 
-func (fs *Freshservice) ListAgentGroups() ([]*AgentGroup, error) {
+func (fs *Freshservice) ListAgentGroups(lago *ListAgentGroupsOption) ([]*AgentGroup, bool, error) {
 	url := fs.endpoint("/groups")
 	result := &agentGroupResult{}
-	err := fs.doGet(url, result)
-	return result.Groups, err
+	next, err := fs.doList(url, lago, result)
+	return result.Groups, next, err
+}
+
+func (fs *Freshservice) IterAgentGroups(lago *ListAgentGroupsOption, iagf func(*AgentGroup) error) error {
+	if lago == nil {
+		lago = &ListAgentRolesOption{}
+	}
+	if lago.Page < 1 {
+		lago.Page = 1
+	}
+	if lago.PerPage < 1 {
+		lago.PerPage = 100
+	}
+
+	for {
+		ags, next, err := fs.ListAgentGroups(lago)
+		if err != nil {
+			return err
+		}
+		for _, ag := range ags {
+			if err = iagf(ag); err != nil {
+				return err
+			}
+		}
+		if !next {
+			break
+		}
+		lago.Page++
+	}
+	return nil
 }
 
 func (fs *Freshservice) UpdateAgentGroup(id int64, ag *AgentGroup) (*AgentGroup, error) {
@@ -134,11 +195,40 @@ func (fs *Freshservice) GetAgent(id int64) (*Agent, error) {
 // 10. To filter for fields with no values assigned, use the null keyword.
 // 11. The "~" query operator can be used for "starts with" text searches. "Starts with" search is supported for one or more of the following attributes: first_name, last_name, name, email, mobile_phone_number, work_phone_number. The query format is https://domain.freshservice.com/api/v2/agents?query="~[attribute_1|attribute_2]:'somestring'". The query needs to be URL encoded. This would return a list of users for whom attribute_1 OR attribute_2 starts with "somestring". Refer to examples 11, 12, and 13.
 // 12. Please note that any update made to an agent either in Freshservice application or through API may take a few minutes to get indexed, after which the updated results will be available through API.
-func (fs *Freshservice) ListAgents(lro *ListAgentsOption) ([]*Agent, bool, error) {
+func (fs *Freshservice) ListAgents(lao *ListAgentsOption) ([]*Agent, bool, error) {
 	url := fs.endpoint("/agents")
 	result := &agentResult{}
-	next, err := fs.doList(url, lro, result)
+	next, err := fs.doList(url, lao, result)
 	return result.Agents, next, err
+}
+
+func (fs *Freshservice) IterAgents(lao *ListAgentsOption, iaf func(*Agent) error) error {
+	if lao == nil {
+		lao = &ListAgentsOption{}
+	}
+	if lao.Page < 1 {
+		lao.Page = 1
+	}
+	if lao.PerPage < 1 {
+		lao.PerPage = 100
+	}
+
+	for {
+		agents, next, err := fs.ListAgents(lao)
+		if err != nil {
+			return err
+		}
+		for _, c := range agents {
+			if err = iaf(c); err != nil {
+				return err
+			}
+		}
+		if !next {
+			break
+		}
+		lao.Page++
+	}
+	return nil
 }
 
 // Update an Agent

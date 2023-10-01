@@ -122,18 +122,10 @@ func (tt *TextTemplates) loadFile(fsys fs.FS, root, path string) error {
 
 	tpl := tt.template.New(path)
 	_, err = tpl.Parse(text)
-	if err != nil {
-		return fmt.Errorf("TextTemplates parse template %q error: %w", path, err)
-	}
-	return nil
+	return err
 }
 
 // Render render template with io.Writer
 func (tt *TextTemplates) Render(w io.Writer, name string, data any) error {
-	err := tt.template.ExecuteTemplate(w, name, data)
-	if err != nil {
-		return fmt.Errorf("TextTemplates execute template %q error: %w", name, err)
-	}
-
-	return nil
+	return tt.template.ExecuteTemplate(w, name, data)
 }

@@ -123,18 +123,10 @@ func (ht *HTMLTemplates) loadFile(fsys fs.FS, root, path string) error {
 
 	tpl := ht.template.New(path)
 	_, err = tpl.Parse(text)
-	if err != nil {
-		return fmt.Errorf("HTMLTemplates parse template %q error: %w", path, err)
-	}
-	return nil
+	return err
 }
 
 // Render render template with io.Writer
 func (ht *HTMLTemplates) Render(w io.Writer, name string, data any) error {
-	err := ht.template.ExecuteTemplate(w, name, data)
-	if err != nil {
-		return fmt.Errorf("HTMLTemplates execute template %q error: %w", name, err)
-	}
-
-	return nil
+	return ht.template.ExecuteTemplate(w, name, data)
 }

@@ -68,7 +68,7 @@ func ParseTicketSource(s string) TicketSource {
 	case "outboundemail":
 		return TicketSourceOutboundEmail
 	default:
-		return 0
+		return TicketSource(num.Atoi(s))
 	}
 }
 
@@ -98,7 +98,7 @@ func ParseTicketStatus(s string) TicketStatus {
 	case "closed":
 		return TicketStatusClosed
 	default:
-		return 0
+		return TicketStatus(num.Atoi(s))
 	}
 }
 
@@ -128,7 +128,7 @@ func ParseTicketPriority(s string) TicketPriority {
 	case "urgent":
 		return TicketPriorityUrgent
 	default:
-		return 0
+		return TicketPriority(num.Atoi(s))
 	}
 }
 

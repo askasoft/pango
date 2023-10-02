@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/askasoft/pango/sdk"
+	"github.com/askasoft/pango/str"
 )
 
 type RateLimitedError = sdk.RateLimitedError
@@ -16,7 +17,7 @@ type Error struct {
 }
 
 func (e *Error) Error() string {
-	return fmt.Sprintf("%s: %s: %s", e.Code, e.Field, e.Message)
+	return fmt.Sprintf("(%s: %s: %s)", e.Code, e.Field, e.Message)
 }
 
 type ErrorResult struct {
@@ -28,24 +29,38 @@ type ErrorResult struct {
 	Errors      []*Error `json:"errors,omitempty"`
 }
 
-func (er *ErrorResult) Error() string {
+func (er *ErrorResult) Detail() string {
 	var sb strings.Builder
-	sb.WriteString(er.Status)
+
 	if er.Code != "" {
-		sb.WriteString(": ")
 		sb.WriteString(er.Code)
 	}
 	if er.Message != "" {
-		sb.WriteString(": ")
+		if sb.Len() > 0 {
+			sb.WriteByte('/')
+		}
 		sb.WriteString(er.Message)
 	}
 	if er.Description != "" {
-		sb.WriteString(": ")
+		if sb.Len() > 0 {
+			sb.WriteByte('/')
+		}
 		sb.WriteString(er.Description)
 	}
-	for _, e := range er.Errors {
-		sb.WriteRune('\n')
+	for i, e := range er.Errors {
+		sb.WriteString(str.If(i == 0, ": ", ", "))
 		sb.WriteString(e.Error())
 	}
+
 	return sb.String()
+}
+
+func (er *ErrorResult) Error() string {
+	detail := er.Detail()
+
+	if detail != "" {
+		return er.Status + " - " + detail
+	}
+
+	return er.Status
 }

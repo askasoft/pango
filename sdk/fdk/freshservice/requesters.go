@@ -221,7 +221,7 @@ func (fs *Freshservice) ListRequesters(lro *ListRequestersOption) ([]*Requester,
 	return result.Requesters, next, err
 }
 
-func (fs *Freshservice) IterRequester(lro *ListRequestersOption, irf func(*Requester) error) error {
+func (fs *Freshservice) IterRequesters(lro *ListRequestersOption, irf func(*Requester) error) error {
 	if lro == nil {
 		lro = &ListRequestersOption{}
 	}

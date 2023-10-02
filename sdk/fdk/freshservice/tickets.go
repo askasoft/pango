@@ -143,6 +143,35 @@ func (fs *Freshservice) FilterTickets(fto *FilterTicketsOption) ([]*Ticket, bool
 	return result.Tickets, next, err
 }
 
+func (fs *Freshservice) IterFilterTickets(fto *FilterTicketsOption, itf func(*Ticket) error) error {
+	if fto == nil {
+		fto = &FilterTicketsOption{}
+	}
+	if fto.Page < 1 {
+		fto.Page = 1
+	}
+	if fto.PerPage < 1 {
+		fto.PerPage = 100
+	}
+
+	for {
+		tickets, next, err := fs.FilterTickets(fto)
+		if err != nil {
+			return err
+		}
+		for _, t := range tickets {
+			if err = itf(t); err != nil {
+				return err
+			}
+		}
+		if !next {
+			break
+		}
+		fto.Page++
+	}
+	return nil
+}
+
 // List of Tickets
 // Use filters to view only specific tickets (those which match the criteria that you choose). By default only tickets that have not been deleted or marked as spam will be returned, unless you use the 'deleted' filter.
 // Note:

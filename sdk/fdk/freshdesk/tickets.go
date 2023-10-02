@@ -153,6 +153,35 @@ func (fd *Freshdesk) FilterTickets(fto *FilterTicketsOption) ([]*Ticket, bool, e
 	return tickets, next, err
 }
 
+func (fd *Freshdesk) IterFilterTickets(fto *FilterTicketsOption, itf func(*Ticket) error) error {
+	if fto == nil {
+		fto = &FilterTicketsOption{}
+	}
+	if fto.Page < 1 {
+		fto.Page = 1
+	}
+	if fto.PerPage < 1 {
+		fto.PerPage = 100
+	}
+
+	for {
+		tickets, next, err := fd.FilterTickets(fto)
+		if err != nil {
+			return err
+		}
+		for _, t := range tickets {
+			if err = itf(t); err != nil {
+				return err
+			}
+		}
+		if !next {
+			break
+		}
+		fto.Page++
+	}
+	return nil
+}
+
 func (fd *Freshdesk) UpdateTicket(tid int64, ticket *Ticket) (*Ticket, error) {
 	url := fd.endpoint("/tickets/%d", tid)
 	result := &Ticket{}

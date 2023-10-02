@@ -1,5 +1,59 @@
 package freshservice
 
+import (
+	"github.com/askasoft/pango/num"
+	"github.com/askasoft/pango/str"
+)
+
+type AgentScoreboardLevel int
+
+const (
+	AgentScoreboardLevelBeginner     AgentScoreboardLevel = 1
+	AgentScoreboardLevelIntermediate AgentScoreboardLevel = 2
+	AgentScoreboardLevelProfessional AgentScoreboardLevel = 3
+	AgentScoreboardLevelExpert       AgentScoreboardLevel = 4
+	AgentScoreboardLevelMaster       AgentScoreboardLevel = 5
+	AgentScoreboardLevelGuru         AgentScoreboardLevel = 6
+)
+
+func (asl AgentScoreboardLevel) String() string {
+	switch asl {
+	case AgentScoreboardLevelBeginner:
+		return "Beginner"
+	case AgentScoreboardLevelIntermediate:
+		return "Intermediate"
+	case AgentScoreboardLevelProfessional:
+		return "Professional"
+	case AgentScoreboardLevelExpert:
+		return "Expert"
+	case AgentScoreboardLevelMaster:
+		return "Master"
+	case AgentScoreboardLevelGuru:
+		return "Guru"
+	default:
+		return num.Itoa(int(asl))
+	}
+}
+
+func ParseAgentScoreboardLevel(s string) AgentScoreboardLevel {
+	switch str.ToLower(s) {
+	case "beginner":
+		return AgentScoreboardLevelBeginner
+	case "intermediate":
+		return AgentScoreboardLevelIntermediate
+	case "professional":
+		return AgentScoreboardLevelProfessional
+	case "expert":
+		return AgentScoreboardLevelExpert
+	case "master":
+		return AgentScoreboardLevelMaster
+	case "guru":
+		return AgentScoreboardLevelGuru
+	default:
+		return AgentScoreboardLevel(num.Atoi(s))
+	}
+}
+
 type AssignRole struct {
 	// Unique ID of the role assigned
 	RoleID int64 `json:"role_id,omitempty"`
@@ -35,10 +89,7 @@ type Agent struct {
 	JobTitle string `json:"job_title,omitempty"`
 
 	// Email address of the agent.
-	Email string `json:"primary_email,omitempty"`
-
-	// Additional/secondary emails associated with the agent.
-	SecondaryEmails []string `json:"secondary_emails,omitempty"`
+	Email string `json:"email,omitempty"`
 
 	// Work phone number of the agent.
 	WorkPhoneNumber string `json:"work_phone_number,omitempty"`
@@ -73,14 +124,8 @@ type Agent struct {
 	// Background information of the requester.
 	BackgroundInformation string `json:"background_information,omitempty"`
 
-	// Unique ID of the level of the agent in the Arcade. Possible values:
-	// 1 (Beginner)
-	// 2 (Intermediate)
-	// 3 (Professional)
-	// 4 (Expert)
-	// 5 (Master)
-	// 6 (Guru)
-	ScoreboardLevelID int `json:"scoreboard_level_id,omitempty"`
+	// Unique ID of the level of the agent in the Arcade.
+	ScoreboardLevelID AgentScoreboardLevel `json:"scoreboard_level_id,omitempty"`
 
 	// Unique IDs of the groups that the agent is a member of.
 	// The input value for this field should also include the IDs of approval-enabled restricted groups for which the agent’s member access is pending approval by a group leader.

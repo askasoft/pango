@@ -14,9 +14,9 @@ import (
 const testRoutines = 10
 
 type testConcurrentDetectWriter struct {
-	count1 uint64
-	count2 uint64
-	count3 uint64
+	countStack  uint64
+	countAtomic uint64
+	countClosed uint64
 
 	starts [testRoutines]int64
 	counts [testRoutines]int64
@@ -34,10 +34,10 @@ func newTestConcurrentDetectWriter() *testConcurrentDetectWriter {
 
 func (tw *testConcurrentDetectWriter) do() {
 	if tw.closed {
-		atomic.AddUint64(&tw.count3, 1)
+		atomic.AddUint64(&tw.countClosed, 1)
 	} else {
-		tw.count1++
-		atomic.AddUint64(&tw.count2, 1)
+		tw.countStack++
+		atomic.AddUint64(&tw.countAtomic, 1)
 	}
 }
 
@@ -59,7 +59,7 @@ func (tw *testConcurrentDetectWriter) Write(le *Event) error {
 
 	t := time.Now()
 	if t.After(tw.last.Add(time.Second)) {
-		fmt.Println(le.When, k, c, tw.count2)
+		fmt.Println(le.When, k, c, tw.countAtomic)
 		tw.last = t
 	}
 
@@ -88,10 +88,10 @@ func testLogRoutine(log *Log, wg *sync.WaitGroup, n int, p *int64) {
 }
 
 func testCheckConcurrentDetectWriter(t *testing.T, c string, tw1 *testConcurrentDetectWriter, tw2 *testConcurrentDetectWriter, cs []int64) {
-	fmt.Println("tw1: ", tw1.closed, tw1.count1, tw1.count2, tw1.count3, tw1.error)
+	fmt.Println("tw1: ", tw1.closed, tw1.countStack, tw1.countAtomic, tw1.countClosed, tw1.error)
 	fmt.Println("tw1: ", tw1.starts)
 	fmt.Println("tw1: ", tw1.counts)
-	fmt.Println("tw2: ", tw2.closed, tw2.count1, tw2.count2, tw2.count3, tw2.error)
+	fmt.Println("tw2: ", tw2.closed, tw2.countStack, tw2.countAtomic, tw2.countClosed, tw2.error)
 	fmt.Println("tw2: ", tw2.starts)
 	fmt.Println("tw2: ", tw2.counts)
 
@@ -101,11 +101,11 @@ func testCheckConcurrentDetectWriter(t *testing.T, c string, tw1 *testConcurrent
 	if !tw1.closed {
 		t.Errorf("%s(%s) expect: %v, actual: %v", c, "tw1.closed", true, tw1.closed)
 	}
-	if tw1.count1 != tw1.count2 {
-		t.Errorf("%s(%s) expect: %v, actual: %v", c, "tw1.count1/2", tw1.count1, tw1.count2)
+	if tw1.countStack != tw1.countAtomic {
+		t.Errorf("%s(%s) expect: %v, actual: %v", c, "tw1.count(stack != atomic)", tw1.countStack, tw1.countAtomic)
 	}
-	if tw1.count3 != 0 {
-		t.Errorf("%s(%s) expect: %v, actual: %v", c, "tw1.count3", 0, tw1.count3)
+	if tw1.countClosed != 0 {
+		t.Errorf("%s(%s) expect: %v, actual: %v", c, "tw1.countClosed", 0, tw1.countClosed)
 	}
 
 	if tw2.error != "" {
@@ -114,11 +114,11 @@ func testCheckConcurrentDetectWriter(t *testing.T, c string, tw1 *testConcurrent
 	if !tw2.closed {
 		t.Errorf("%s(%s) expect: %v, actual: %v", c, "tw2.closed", true, tw2.closed)
 	}
-	if tw2.count1 != tw2.count2 {
-		t.Errorf("%s(%s) expect: %v, actual: %v", c, "tw2.count1/2", tw2.count1, tw2.count2)
+	if tw2.countStack != tw2.countAtomic {
+		t.Errorf("%s(%s) expect: %v, actual: %v", c, "tw2.count(stack != atomic)", tw2.countStack, tw2.countAtomic)
 	}
-	if tw2.count3 != 0 {
-		t.Errorf("%s(%s) expect: %v, actual: %v", c, "tw2.count3", 0, tw2.count3)
+	if tw2.countClosed != 0 {
+		t.Errorf("%s(%s) expect: %v, actual: %v", c, "tw2.countClosed", 0, tw2.countClosed)
 	}
 
 	for i := 0; i < len(cs); i++ {

@@ -7,25 +7,16 @@ import (
 )
 
 type RateLimitedError = fdk.RateLimitedError
-
 type Date = fdk.Date
-
 type Time = fdk.Time
-
+type TimeSpent = fdk.TimeSpent
 type Attachment = fdk.Attachment
-
 type Attachments = fdk.Attachments
-
 type ListOption = fdk.ListOption
-
 type PageOption = fdk.PageOption
-
 type File = fdk.File
-
 type Files = fdk.Files
-
 type WithFiles = fdk.WithFiles
-
 type Values = fdk.Values
 
 type OrderType string
@@ -34,6 +25,18 @@ const (
 	OrderAsc  OrderType = "asc"
 	OrderDesc OrderType = "desc"
 )
+
+func ParseDate(s string) (*Date, error) {
+	return fdk.ParseDate(s)
+}
+
+func ParseTime(s string) (*Time, error) {
+	return fdk.ParseTime(s)
+}
+
+func ParseTimeSpent(s string) (TimeSpent, error) {
+	return fdk.ParseTimeSpent(s)
+}
 
 func NewAttachment(file string, data ...[]byte) *Attachment {
 	return fdk.NewAttachment(file, data...)

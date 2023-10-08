@@ -25,7 +25,8 @@ type OpenAI struct {
 	Timeout   time.Duration
 	Logger    log.Logger
 
-	RetryOnRateLimited int
+	MaxRetryCount      int
+	MaxRetryAfter      time.Duration
 	ShouldAbortOnRetry func() bool
 }
 
@@ -124,9 +125,9 @@ func (oai *OpenAI) doCall(req *http.Request, result any) error {
 }
 
 func (oai *OpenAI) doPostWithRetry(url string, source, result any) error {
-	return sdk.RetryForRateLimited(func() error {
+	return sdk.RetryForError(func() error {
 		return oai.doPost(url, source, result)
-	}, oai.RetryOnRateLimited, oai.ShouldAbortOnRetry, oai.Logger)
+	}, oai.MaxRetryCount, oai.MaxRetryAfter, oai.ShouldAbortOnRetry, oai.Logger)
 }
 
 func (oai *OpenAI) doPost(url string, source, result any) error {

@@ -19,7 +19,8 @@ type FDK struct {
 	Timeout   time.Duration
 	Logger    log.Logger
 
-	RetryOnRateLimited int
+	MaxRetryCount      int
+	MaxRetryAfter      time.Duration
 	ShouldAbortOnRetry func() bool
 }
 
@@ -28,13 +29,8 @@ func (fdk *FDK) Endpoint(format string, a ...any) string {
 	return "https://" + fdk.Domain + "/api/v2" + fmt.Sprintf(format, a...)
 }
 
-// SleepForRateLimited if err is RateLimitedError, sleep Retry-After and return true
-func (fdk *FDK) SleepForRateLimited(err error) bool {
-	return sdk.SleepForRateLimited(err, fdk.ShouldAbortOnRetry, fdk.Logger)
-}
-
-func (fdk *FDK) RetryForRateLimited(api func() error) (err error) {
-	return sdk.RetryForRateLimited(api, fdk.RetryOnRateLimited, fdk.ShouldAbortOnRetry, fdk.Logger)
+func (fdk *FDK) RetryForError(api func() error) (err error) {
+	return sdk.RetryForError(api, fdk.MaxRetryCount, fdk.MaxRetryAfter, fdk.ShouldAbortOnRetry, fdk.Logger)
 }
 
 func (fdk *FDK) authenticate(req *http.Request) {
@@ -73,7 +69,7 @@ func (fdk *FDK) doCall(req *http.Request, result any) error {
 }
 
 func (fdk *FDK) DoGet(url string, result any) error {
-	return fdk.RetryForRateLimited(func() error {
+	return fdk.RetryForError(func() error {
 		return fdk.doGet(url, result)
 	})
 }
@@ -88,7 +84,7 @@ func (fdk *FDK) doGet(url string, result any) error {
 }
 
 func (fdk *FDK) DoList(url string, lo ListOption, ap any) (next bool, err error) {
-	err = fdk.RetryForRateLimited(func() error {
+	err = fdk.RetryForError(func() error {
 		next, err = fdk.doList(url, lo, ap)
 		return err
 	})
@@ -121,7 +117,7 @@ func (fdk *FDK) doList(url string, lo ListOption, result any) (bool, error) {
 }
 
 func (fdk *FDK) DoPost(url string, source, result any) error {
-	return fdk.RetryForRateLimited(func() error {
+	return fdk.RetryForError(func() error {
 		return fdk.doPost(url, source, result)
 	})
 }
@@ -144,7 +140,7 @@ func (fdk *FDK) doPost(url string, source, result any) error {
 }
 
 func (fdk *FDK) DoPut(url string, source, result any) error {
-	return fdk.RetryForRateLimited(func() error {
+	return fdk.RetryForError(func() error {
 		return fdk.doPut(url, source, result)
 	})
 }
@@ -167,7 +163,7 @@ func (fdk *FDK) doPut(url string, source, result any) error {
 }
 
 func (fdk *FDK) DoDelete(url string) error {
-	return fdk.RetryForRateLimited(func() error {
+	return fdk.RetryForError(func() error {
 		return fdk.doDelete(url)
 	})
 }
@@ -182,7 +178,7 @@ func (fdk *FDK) doDelete(url string) error {
 }
 
 func (fdk *FDK) DoDownload(url string) (buf []byte, err error) {
-	err = fdk.RetryForRateLimited(func() error {
+	err = fdk.RetryForError(func() error {
 		buf, err = fdk.doDownload(url)
 		return err
 	})
@@ -204,7 +200,7 @@ func (fdk *FDK) doDownload(url string) ([]byte, error) {
 }
 
 func (fdk *FDK) DoSaveFile(url string, path string) error {
-	return fdk.RetryForRateLimited(func() error {
+	return fdk.RetryForError(func() error {
 		return fdk.doSaveFile(url, path)
 	})
 }
@@ -224,7 +220,7 @@ func (fdk *FDK) doSaveFile(url string, path string) error {
 }
 
 func (fdk *FDK) DoDownloadNoAuth(url string) (buf []byte, err error) {
-	err = fdk.RetryForRateLimited(func() error {
+	err = fdk.RetryForError(func() error {
 		buf, err = fdk.doDownloadNoAuth(url)
 		return err
 	})
@@ -246,7 +242,7 @@ func (fdk *FDK) doDownloadNoAuth(url string) ([]byte, error) {
 }
 
 func (fdk *FDK) DoSaveFileNoAuth(url string, path string) error {
-	return fdk.RetryForRateLimited(func() error {
+	return fdk.RetryForError(func() error {
 		return fdk.doSaveFileNoAuth(url, path)
 	})
 }

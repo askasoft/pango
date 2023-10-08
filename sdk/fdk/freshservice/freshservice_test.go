@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/askasoft/pango/log"
 )
@@ -35,10 +36,11 @@ func testNewFreshservice(t *testing.T) *Freshservice {
 	logs := log.NewLog()
 	//logs.SetLevel(log.LevelDebug)
 	fd := &Freshservice{
-		Domain:             domain,
-		Apikey:             apikey,
-		Logger:             logs.GetLogger("FSV"),
-		RetryOnRateLimited: 1,
+		Domain:        domain,
+		Apikey:        apikey,
+		Logger:        logs.GetLogger("FSV"),
+		MaxRetryCount: 1,
+		MaxRetryAfter: time.Second * 3,
 	}
 
 	return fd

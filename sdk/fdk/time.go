@@ -79,35 +79,30 @@ func (t *Time) UnmarshalJSON(data []byte) (err error) {
 	return
 }
 
-type TimeSpent int64
+type TimeSpent int
 
-func ParseTimeSpent(s string) (ts TimeSpent, err error) {
-	var min int64
-	var sec int64
-
+func ParseTimeSpent(s string) (TimeSpent, error) {
 	s1, s2, ok := str.Cut(s, ":")
 	if ok {
-		min, err = strconv.ParseInt(s1, 0, 64)
+		min, err := strconv.Atoi(s1)
 		if err == nil {
-			sec, err = strconv.ParseInt(s2, 0, 64)
+			sec, err := strconv.Atoi(s2)
 			if err == nil {
-				ts = TimeSpent(min*60 + sec)
-				return //nolint: nilerr
+				return TimeSpent(min*60 + sec), nil
 			}
 		}
 	} else {
-		sec, err = strconv.ParseInt(s1, 0, 64)
+		sec, err := strconv.Atoi(s1)
 		if err == nil {
-			ts = TimeSpent(sec)
-			return //nolint: nilerr
+			return TimeSpent(sec), nil
 		}
 	}
 
 	return 0, fmt.Errorf(`ParseTimeSpent: "%s" is not a HH:MM string`, s)
 }
 
-func (ts TimeSpent) TimeSpent() int64 {
-	return int64(ts)
+func (ts TimeSpent) Seconds() int {
+	return int(ts)
 }
 
 func (ts TimeSpent) String() string {

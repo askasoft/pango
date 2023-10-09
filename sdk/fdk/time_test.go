@@ -7,16 +7,7 @@ import (
 	"time"
 )
 
-func TestTimeString(t *testing.T) {
-	jst, _ := time.LoadLocation("Asia/Tokyo")
-
-	tm := Time{time.Date(2020, 10, 1, 13, 14, 15, 0, jst)}
-
-	fmt.Println(tm.String())
-	fmt.Println(tm.Time)
-}
-
-func TestTimeParse(t *testing.T) {
+func TestParseTime(t *testing.T) {
 	tml, _ := time.Parse(TimeFormat, "2020-01-02T03:04:05Z")
 	fmt.Println(tml.String())
 
@@ -24,44 +15,66 @@ func TestTimeParse(t *testing.T) {
 	fmt.Println(tmu.String())
 }
 
-func TestTimeSpentJSONUnmarshall(t *testing.T) {
+func TestParseTimeSpent(t *testing.T) {
+	cs := []struct {
+		s string
+		w TimeSpent
+	}{
+		{"09:00", 540},
+		{"08:00", 480},
+		{"360", 360},
+	}
+
+	for i, c := range cs {
+		a, err := ParseTimeSpent(c.s)
+		if err != nil || a != c.w {
+			t.Errorf("[%d] ParseTimeSpent(%q) = (%d, %v), want %d", i, c.s, a, err, c.w)
+		}
+	}
+}
+
+func TestTimeSpentUnmarshallJSON(t *testing.T) {
+	cs := []struct {
+		js string
+		ts TimeSpent
+	}{
+		{`{ "s": "09:00" }`, 540},
+		{`{ "s": "10:20" }`, 620},
+		{`{ "s": "360" }`, 360},
+	}
+
 	o := struct {
 		S TimeSpent `json:"s"`
 	}{}
 
-	s := `{ "s": "10:20" }`
-
-	err := json.Unmarshal([]byte(s), &o)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if o.S.String() != "10:20" {
-		t.Errorf("want 10:20, but %s", o.S.String())
+	for i, c := range cs {
+		err := json.Unmarshal([]byte(c.js), &o)
+		if err != nil || o.S != c.ts {
+			t.Errorf("[%d] TimeSpentUnmarshallJSON(%s) = (%d, %v), want %d", i, c.js, o.S, err, c.ts)
+		}
 	}
 }
 
-func TestTimeSpentJSONMarshall(t *testing.T) {
+func TestTimeSpentMarshallJSON(t *testing.T) {
+	cs := []struct {
+		ts TimeSpent
+		js string
+	}{
+		{540, `{"s":"09:00"}`},
+		{620, `{"s":"10:20"}`},
+		{360, `{"s":"06:00"}`},
+	}
+
 	o := struct {
 		S TimeSpent `json:"s,omitempty"`
 	}{}
 
-	bs, err := json.Marshal(&o)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if string(bs) != "{}" {
-		t.Errorf("want {}, but %s", string(bs))
-	}
-
-	o.S = 361
-	bs, err = json.Marshal(&o)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	w := `{"s":"06:01"}`
-	if string(bs) != w {
-		t.Errorf("want %s, but %s", w, string(bs))
+	for i, c := range cs {
+		o.S = c.ts
+		bs, err := json.Marshal(&o)
+		js := string(bs)
+		if err != nil || c.js != js {
+			t.Errorf("[%d] TimeSpentMarshallJSON(%d) = (%s, %v), want %q", i, c.ts, js, err, c.js)
+		}
 	}
 }

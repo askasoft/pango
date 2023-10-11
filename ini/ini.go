@@ -271,20 +271,30 @@ func (ini *Ini) LoadData(r io.Reader, multiple ...bool) (err error) {
 	if len(multiple) > 0 {
 		multi = multiple[0]
 	}
+
 	lineContinue := false         // line continue flag
 	section := ini.GetSection("") // last section
-	var comments []string         // last comments
-	var key string                // last key
-	var val bytes.Buffer          // last value
+
+	var (
+		line     []byte       // line bytes
+		key      string       // last key
+		val      bytes.Buffer // last value
+		comments []string     // last comments
+	)
 
 	scanner := bufio.NewScanner(r)
-	for scanner.Scan() {
-		bs := bytes.TrimSpace(scanner.Bytes())
+	for {
+		eof := !scanner.Scan()
+		if eof {
+			line = nil
+		} else {
+			line = bytes.TrimSpace(scanner.Bytes())
+		}
 
 		// line continuation
 		if lineContinue {
-			if bye.EndsWithByte(bs, '\\') {
-				if len(bs) == 1 {
+			if bye.EndsWithByte(line, '\\') {
+				if len(line) == 1 {
 					// a single '\\' line means EOL
 					if bye.StartsWithByte(val.Bytes(), '"') {
 						qs := quote(ini.EOL)
@@ -293,10 +303,10 @@ func (ini *Ini) LoadData(r io.Reader, multiple ...bool) (err error) {
 						val.WriteString(ini.EOL)
 					}
 				} else {
-					val.Write(bs[:len(bs)-1])
+					val.Write(line[:len(line)-1])
 				}
 			} else {
-				val.Write(bs)
+				val.Write(line)
 
 				s, err := unquote(val.String())
 				if err != nil {
@@ -313,8 +323,12 @@ func (ini *Ini) LoadData(r io.Reader, multiple ...bool) (err error) {
 			continue
 		}
 
+		if eof {
+			break
+		}
+
 		// empty line
-		if len(bs) == 0 {
+		if len(line) == 0 {
 			if len(comments) > 0 {
 				if ini.IsEmpty() {
 					global := ini.GetSection("") // global section / no name section
@@ -333,21 +347,21 @@ func (ini *Ini) LoadData(r io.Reader, multiple ...bool) (err error) {
 		}
 
 		// first char
-		c := bs[0]
+		c := line[0]
 
 		// comment
 		if c == ';' || c == '#' {
-			comments = append(comments, string(bs))
+			comments = append(comments, string(line))
 			continue
 		}
 
 		// section
 		if c == '[' {
-			if bs[len(bs)-1] != ']' {
-				return fmt.Errorf("Invalid section: %s", string(bs))
+			if line[len(line)-1] != ']' {
+				return fmt.Errorf("Invalid section: %s", string(line))
 			}
 
-			sn := string(bs[1 : len(bs)-1])
+			sn := string(line[1 : len(line)-1])
 			section = ini.GetSection(sn)
 			if section == nil {
 				section = ini.NewSection(sn, comments...)
@@ -357,19 +371,19 @@ func (ini *Ini) LoadData(r io.Reader, multiple ...bool) (err error) {
 		}
 
 		// entry
-		d := bytes.IndexByte(bs, '=')
+		d := bytes.IndexByte(line, '=')
 		if d < 1 {
-			return fmt.Errorf("Invalid entry: %s", string(bs))
+			return fmt.Errorf("Invalid entry: %s", string(line))
 		}
 
 		// entry key
-		k := string(bytes.TrimSpace(bs[:d]))
+		k := string(bytes.TrimSpace(line[:d]))
 		if k == "" {
-			return fmt.Errorf("Invalid entry: %s", string(bs))
+			return fmt.Errorf("Invalid entry: %s", string(line))
 		}
 
 		// entry value
-		v := bytes.TrimSpace(bs[d+1:])
+		v := bytes.TrimSpace(line[d+1:])
 
 		if bye.EndsWithByte(v, '\\') { // line continuation
 			val.Write(v[:len(v)-1])

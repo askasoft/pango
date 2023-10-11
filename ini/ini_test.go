@@ -141,8 +141,8 @@ func testLoadFile(t *testing.T, fsrc, fexp, fout string) {
 }
 
 func TestIniCopy(t *testing.T) {
-	f1 := "testdata/t1.ini"
-	f2 := "testdata/t2.ini"
+	f1 := "testdata/cm1.ini"
+	f2 := "testdata/cm2.ini"
 	fexp := "testdata/copy-expect.ini"
 	fout := "testdata/copy-output.ini"
 
@@ -177,8 +177,8 @@ func TestIniCopy(t *testing.T) {
 }
 
 func TestIniMerge(t *testing.T) {
-	f1 := "testdata/t1.ini"
-	f2 := "testdata/t2.ini"
+	f1 := "testdata/cm1.ini"
+	f2 := "testdata/cm2.ini"
 	fexp := "testdata/merge-expect.ini"
 	fout := "testdata/merge-output.ini"
 

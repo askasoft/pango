@@ -215,6 +215,28 @@ func TestRemoveByte(t *testing.T) {
 	}
 }
 
+func TestRemoveRune(t *testing.T) {
+	cs := []struct {
+		w string
+		s string
+		r rune
+	}{
+		{"", "", 'a'},
+		{"ueued", "queued", 'q'},
+		{"queue", "queued", 'd'},
+		{"qeed", "queued", 'u'},
+		{"queued", "queued", 'z'},
+		{"ありとうございます。", "ありがとうございます。", 'が'},
+	}
+
+	for i, c := range cs {
+		a := RemoveRune(c.s, c.r)
+		if a != c.w {
+			t.Errorf("[%d] RemoveRune(%q, %v) = %q, want %q", i, c.s, c.r, a, c.w)
+		}
+	}
+}
+
 func TestRemoveAny(t *testing.T) {
 	cs := []struct {
 		w string
@@ -235,25 +257,6 @@ func TestRemoveAny(t *testing.T) {
 	}
 }
 
-func TestRemoveAnyByte(t *testing.T) {
-	cs := []struct {
-		w string
-		s string
-		b string
-	}{
-		{"", "", "ab"},
-		{"qee", "queued", "ud"},
-		{"queued", "queued", "z"},
-	}
-
-	for i, c := range cs {
-		a := RemoveAnyByte(c.s, c.b)
-		if a != c.w {
-			t.Errorf("[%d] RemoveAnyByte(%q, %q) = %q, want %q", i, c.s, c.b, a, c.w)
-		}
-	}
-}
-
 func TestRemoveFunc(t *testing.T) {
 	cs := []struct {
 		w string
@@ -270,6 +273,26 @@ func TestRemoveFunc(t *testing.T) {
 		a := RemoveFunc(c.s, c.f)
 		if a != c.w {
 			t.Errorf("[%d] RemoveFunc(%q) = %q, want %q", i, c.s, a, c.w)
+		}
+	}
+}
+
+func TestRemove(t *testing.T) {
+	cs := []struct {
+		w string
+		s string
+		b string
+	}{
+		{"", "", "ab"},
+		{"qd", "queued", "ue"},
+		{"queued", "queued", "z"},
+		{"ありございます。", "ありがとうございます。", "がとう"},
+	}
+
+	for i, c := range cs {
+		a := Remove(c.s, c.b)
+		if a != c.w {
+			t.Errorf("[%d] Remove(%q, %q) = %q, want %q", i, c.s, c.b, a, c.w)
 		}
 	}
 }

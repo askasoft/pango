@@ -236,58 +236,74 @@ func RuneEqualFold(sr, tr rune) bool {
 	return r == tr
 }
 
-// RemoveByte Removes all occurrences of the byte b from the source string str.
+// RemoveByte Removes all occurrences of the byte b from the source string s.
 func RemoveByte(s string, b byte) string {
-	if s == "" || strings.IndexByte(s, b) < 0 {
+	if s == "" {
 		return s
 	}
 
-	l := len(s)
-	bs := make([]byte, l)
-	p := 0
-	for i := 0; i < l; i++ {
-		if s[i] != b {
-			bs[p] = s[i]
-			p++
+	sb := Builder{}
+	for {
+		i := strings.IndexByte(s, b)
+		if i < 0 {
+			if sb.Len() == 0 {
+				return s
+			}
+			sb.WriteString(s)
+			return sb.String()
 		}
+
+		sb.WriteString(s[:i])
+		s = s[i+1:]
 	}
-	return string(bs[0:p])
 }
 
-// RemoveAny Removes all occurrences of characters from within the source string.
+// RemoveRune Removes all occurrences of the rune r from the source string s.
+func RemoveRune(s string, r rune) string {
+	if s == "" {
+		return s
+	}
+
+	n := utf8.RuneLen(r)
+
+	sb := Builder{}
+	for {
+		i := strings.IndexRune(s, r)
+		if i < 0 {
+			if sb.Len() == 0 {
+				return s
+			}
+			sb.WriteString(s)
+			return sb.String()
+		}
+
+		sb.WriteString(s[:i])
+		s = s[i+n:]
+	}
+}
+
+// RemoveAny Removes all occurrences of characters from within the source string s.
 func RemoveAny(s string, r string) string {
 	if s == "" || r == "" {
 		return s
 	}
 
 	sb := Builder{}
-	sb.Grow(len(r))
-
-	for _, c := range s {
-		if strings.ContainsRune(r, c) {
-			continue
+	for {
+		i := strings.IndexAny(s, r)
+		if i < 0 {
+			if sb.Len() == 0 {
+				return s
+			}
+			sb.WriteString(s)
+			return sb.String()
 		}
-		sb.WriteRune(c)
-	}
-	return sb.String()
-}
 
-// RemoveAnyByte Removes all occurrences of bytes from within the source string.
-func RemoveAnyByte(s string, r string) string {
-	if s == "" {
-		return s
-	}
+		sb.WriteString(s[:i])
 
-	l := len(s)
-	bs := make([]byte, l)
-	p := 0
-	for i := 0; i < l; i++ {
-		if !ContainsByte(r, s[i]) {
-			bs[p] = s[i]
-			p++
-		}
+		_, n := utf8.DecodeRuneInString(s[i:])
+		s = s[i+n:]
 	}
-	return string(bs[:p])
 }
 
 // RemoveFunc Removes all occurrences of characters from within the source string which satisfy f(c).
@@ -297,15 +313,44 @@ func RemoveFunc(s string, f func(r rune) bool) string {
 	}
 
 	sb := Builder{}
-	sb.Grow(len(s))
-
-	for _, c := range s {
-		if f(c) {
-			continue
+	for {
+		i := strings.IndexFunc(s, f)
+		if i < 0 {
+			if sb.Len() == 0 {
+				return s
+			}
+			sb.WriteString(s)
+			return sb.String()
 		}
-		sb.WriteRune(c)
+
+		sb.WriteString(s[:i])
+
+		_, n := utf8.DecodeRuneInString(s[i:])
+		s = s[i+n:]
 	}
-	return sb.String()
+}
+
+// Remove Removes all substring r from within the source string s.
+func Remove(s string, r string) string {
+	if s == "" || r == "" {
+		return s
+	}
+
+	n := len(r)
+	sb := Builder{}
+	for {
+		i := strings.Index(s, r)
+		if i < 0 {
+			if sb.Len() == 0 {
+				return s
+			}
+			sb.WriteString(s)
+			return sb.String()
+		}
+
+		sb.WriteString(s[:i])
+		s = s[i+n:]
+	}
 }
 
 // TrimSpaces trim every string in the string array.

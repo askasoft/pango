@@ -131,7 +131,7 @@ func call(client *http.Client, req *http.Request, logger log.Logger) (res *http.
 			}
 
 			iox.DrainAndClose(res.Body)
-			return res, err
+			return res, rle
 		}
 	}
 

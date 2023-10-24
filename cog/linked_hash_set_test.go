@@ -552,7 +552,7 @@ func TestLinkedHashSetSort(t *testing.T) {
 		for n := i; n < 20; n++ {
 			v := rand.Intn(1000)
 			if !ars.ContainsOf(a, v) {
-				a = append(a)
+				a = append(a, v)
 			}
 		}
 

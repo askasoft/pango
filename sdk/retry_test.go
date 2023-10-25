@@ -1,6 +1,7 @@
 package sdk
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
 	"time"
@@ -8,14 +9,33 @@ import (
 	"github.com/askasoft/pango/log"
 )
 
-func TestRetryForError(t *testing.T) {
-	w := "429 Too Many Requests (Retry After 2s): You exceeded your current quota, please check your plan and billing details."
+type retryTestError struct {
+	status     string        // http status
+	statusCode int           // http status code
+	retryAfter time.Duration // retry after time
+}
 
-	rte := &RateLimitedError{
-		Status:     "429 Too Many Requests",
-		StatusCode: http.StatusTooManyRequests,
-		RetryAfter: 2 * time.Second,
-		Message:    "You exceeded your current quota, please check your plan and billing details.",
+func (rte *retryTestError) RetryAfter() time.Duration {
+	return rte.retryAfter
+}
+
+func (rte *retryTestError) Error() string {
+	s := rte.status
+
+	if rte.retryAfter > 0 {
+		s = fmt.Sprintf("%s (Retry After %s)", s, rte.retryAfter)
+	}
+
+	return s
+}
+
+func TestRetryForError(t *testing.T) {
+	w := "429 Too Many Requests (Retry After 2s)"
+
+	rte := &retryTestError{
+		status:     "429 Too Many Requests",
+		statusCode: http.StatusTooManyRequests,
+		retryAfter: 2 * time.Second,
 	}
 
 	called, aborted := 0, 0

@@ -3,12 +3,10 @@ package fdk
 import (
 	"fmt"
 	"strings"
+	"time"
 
-	"github.com/askasoft/pango/sdk"
 	"github.com/askasoft/pango/str"
 )
-
-type RateLimitedError = sdk.RateLimitedError
 
 type Error struct {
 	Code    string `json:"code,omitempty"`
@@ -27,6 +25,11 @@ type ErrorResult struct {
 	Message     string   `json:"message,omitempty"`
 	Description string   `json:"description,omitempty"`
 	Errors      []*Error `json:"errors,omitempty"`
+	retryAfter  time.Duration
+}
+
+func (er *ErrorResult) RetryAfter() time.Duration {
+	return er.retryAfter
 }
 
 func (er *ErrorResult) Detail() string {
@@ -56,11 +59,16 @@ func (er *ErrorResult) Detail() string {
 }
 
 func (er *ErrorResult) Error() string {
-	detail := er.Detail()
+	es := er.Status
 
-	if detail != "" {
-		return er.Status + " - " + detail
+	if er.retryAfter > 0 {
+		es = fmt.Sprintf("%s (Retry After %s)", es, er.retryAfter)
 	}
 
-	return er.Status
+	detail := er.Detail()
+	if detail != "" {
+		es = es + " - " + detail
+	}
+
+	return es
 }

@@ -61,6 +61,10 @@ func (oai *OpenAI) decodeResponse(res *http.Response, obj any) error {
 	}
 	_ = decoder.Decode(er)
 
+	if res.StatusCode == http.StatusTooManyRequests || res.StatusCode == http.StatusBadGateway {
+		er.retryAfter = time.Second * 20
+	}
+
 	return er
 }
 
@@ -79,24 +83,6 @@ func (oai *OpenAI) call(req *http.Request) (res *http.Response, err error) {
 	res, err = client.Do(req)
 	if err == nil {
 		log.TraceHttpResponse(oai.Logger, res, rid)
-
-		if res.StatusCode == http.StatusTooManyRequests {
-			rle := &RateLimitedError{
-				Status:     res.Status,
-				StatusCode: res.StatusCode,
-			}
-
-			er := &ErrorResult{}
-			decoder := json.NewDecoder(res.Body)
-			_ = decoder.Decode(er)
-
-			if er.Detail != nil {
-				rle.Message = er.Detail.String()
-			}
-
-			iox.DrainAndClose(res.Body)
-			return res, rle
-		}
 	}
 
 	return res, err

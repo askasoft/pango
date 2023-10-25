@@ -3,11 +3,8 @@ package openai
 import (
 	"fmt"
 	"strings"
-
-	"github.com/askasoft/pango/sdk"
+	"time"
 )
-
-type RateLimitedError = sdk.RateLimitedError
 
 type ErrorDetail struct {
 	Type    string `json:"type,omitempty"`
@@ -52,17 +49,23 @@ type ErrorResult struct {
 	StatusCode int          `json:"-"` // http status code
 	Status     string       `json:"-"` // http status
 	Detail     *ErrorDetail `json:"error,omitempty"`
+	retryAfter time.Duration
+}
+
+func (er *ErrorResult) RetryAfter() time.Duration {
+	return er.retryAfter
 }
 
 func (er *ErrorResult) Error() string {
-	detail := ""
+	es := er.Status
+
+	if er.retryAfter > 0 {
+		es = fmt.Sprintf("%s (Retry After %s)", es, er.retryAfter)
+	}
+
 	if er.Detail != nil {
-		detail = er.Detail.String()
+		es = es + " - " + er.Detail.String()
 	}
 
-	if detail != "" {
-		return er.Status + " - " + detail
-	}
-
-	return er.Status
+	return es
 }

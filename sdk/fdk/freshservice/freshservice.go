@@ -6,7 +6,6 @@ import (
 	"github.com/askasoft/pango/sdk/fdk"
 )
 
-type RateLimitedError = fdk.RateLimitedError
 type Date = fdk.Date
 type Time = fdk.Time
 type TimeSpent = fdk.TimeSpent

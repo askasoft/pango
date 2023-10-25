@@ -117,22 +117,6 @@ func call(client *http.Client, req *http.Request, logger log.Logger) (res *http.
 	res, err = client.Do(req)
 	if err == nil {
 		log.TraceHttpResponse(logger, res, rid)
-
-		if res.StatusCode == http.StatusTooManyRequests {
-			rle := &RateLimitedError{
-				Status:     res.Status,
-				StatusCode: res.StatusCode,
-			}
-
-			s := res.Header.Get("Retry-After")
-			n := num.Atoi(s)
-			if n > 0 {
-				rle.RetryAfter = time.Second * time.Duration(n)
-			}
-
-			iox.DrainAndClose(res.Body)
-			return res, rle
-		}
 	}
 
 	return res, err
@@ -153,6 +137,15 @@ func decodeResponse(res *http.Response, obj any) error {
 	if res.StatusCode != http.StatusNotFound {
 		_ = decoder.Decode(er)
 	}
+
+	if res.StatusCode == http.StatusTooManyRequests {
+		s := res.Header.Get("Retry-After")
+		n := num.Atoi(s)
+		if n > 0 {
+			er.retryAfter = time.Second * time.Duration(n)
+		}
+	}
+
 	return er
 }
 

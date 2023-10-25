@@ -8,6 +8,10 @@ import (
 	"github.com/askasoft/pango/log"
 )
 
+type RetryableError interface {
+	RetryAfter() time.Duration
+}
+
 func RetryForError(api func() error, maxRetryCount int, maxRetryAfter time.Duration, abort func() bool, logger log.Logger) (err error) {
 	for i := 0; ; i++ {
 		err = api()
@@ -43,9 +47,12 @@ func sleepForRetry(ra time.Duration, abort func() bool, logger log.Logger) bool 
 }
 
 func getRetryAfter(err error, maxRetryAfter time.Duration) time.Duration {
-	if rle, ok := err.(*RateLimitedError); ok { //nolint: errorlint
-		ra := rle.RetryAfter
-		if ra <= 0 || ra > maxRetryAfter {
+	if re, ok := err.(RetryableError); ok { //nolint: errorlint
+		ra := re.RetryAfter()
+		if ra <= 0 {
+			return 0
+		}
+		if ra > maxRetryAfter {
 			ra = maxRetryAfter
 		}
 		return ra

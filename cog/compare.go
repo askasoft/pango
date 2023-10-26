@@ -17,9 +17,14 @@ import (
 //	positive , if a > b
 type Compare[T any] func(a, b T) int
 
-// CompareString provides a fast comparison on strings
+// CompareString provides a basic comparison on string
 func CompareString(a, b string) int {
 	return str.Compare(a, b)
+}
+
+// CompareStringFold provides a basic case-insensitive comparison on string
+func CompareStringFold(a, b string) int {
+	return str.CompareFold(a, b)
 }
 
 // CompareInt provides a basic comparison on int

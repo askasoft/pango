@@ -25,6 +25,36 @@ func TestCompare(t *testing.T) {
 	}
 }
 
+func TestCompareFold(t *testing.T) {
+	tcs := []struct {
+		s, t string
+		out  int
+	}{
+		{"abc", "abc", 0},
+		{"ABcd", "ABcd", 0},
+		{"123abc", "123ABC", 0},
+		{"abc", "xyz", -1},
+		{"abc", "XYZ", -1},
+		{"αβδ", "ΑΒΔ", 0},
+		{"abcdefghijk", "abcdefghijX", -1},
+		{"abcdefghijk", "abcdefghij\u212A", 0},
+		{"abcdefghijK", "abcdefghij\u212A", 0},
+		{"abcdefghijkz", "abcdefghij\u212Ay", 1},
+		{"abcdefghijKz", "abcdefghij\u212Ay", 1},
+		{"1", "2", -1},
+		{"utf-8", "US-ASCII", 1},
+	}
+
+	for _, tt := range tcs {
+		if out := CompareFold(tt.s, tt.t); out != tt.out {
+			t.Errorf("CompareFold(%#q, %#q) = %v, want %v", tt.s, tt.t, out, tt.out)
+		}
+		if out := CompareFold(tt.t, tt.s); out != -tt.out {
+			t.Errorf("CompareFold(%#q, %#q) = %v, want %v", tt.t, tt.s, out, -tt.out)
+		}
+	}
+}
+
 const space = "\t\v\r\f\n\u0085\u00a0\u2000\u3000"
 
 type StringTest struct {

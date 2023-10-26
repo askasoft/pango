@@ -32,6 +32,112 @@ func Compare(a, b string) int {
 	return bytes.Compare(UnsafeBytes(a), UnsafeBytes(b))
 }
 
+// CompareFold returns an integer comparing two strings case-insensitive.
+// The result will be 0 if a==b, -1 if a < b, and +1 if a > b.
+func CompareFold(s, t string) int {
+	// ASCII fast path
+	i := 0
+	for ; i < len(s) && i < len(t); i++ {
+		sr := s[i]
+		tr := t[i]
+		if sr|tr >= utf8.RuneSelf {
+			goto hasUnicode
+		}
+
+		if tr == sr {
+			continue
+		}
+
+		// ASCII only, sr/tr must be upper/lower case
+		if 'A' <= sr && sr <= 'Z' {
+			sr += ('a' - 'A')
+		}
+		if 'A' <= tr && tr <= 'Z' {
+			tr += ('a' - 'A')
+		}
+
+		switch {
+		case sr < tr:
+			return -1
+		case sr > tr:
+			return 1
+		}
+	}
+
+	// Check if we've exhausted both strings.
+	{
+		r := len(s) - len(t)
+		switch {
+		case r < 0:
+			return -1
+		case r > 0:
+			return 1
+		default:
+			return 0
+		}
+	}
+
+hasUnicode:
+	s = s[i:]
+	t = t[i:]
+	for _, sr := range s {
+		// If t is exhausted the strings are not equal.
+		if len(t) == 0 {
+			return 1
+		}
+
+		// Extract first rune from second string.
+		var tr rune
+		if t[0] < utf8.RuneSelf {
+			tr, t = rune(t[0]), t[1:]
+		} else {
+			r, size := utf8.DecodeRuneInString(t)
+			tr, t = r, t[size:]
+		}
+
+		// If they match, keep going;
+		if tr == sr {
+			continue
+		}
+
+		// Fast check for ASCII.
+		if sr < utf8.RuneSelf && tr < utf8.RuneSelf {
+			// ASCII only, sr/tr must be upper/lower case
+			if 'A' <= sr && sr <= 'Z' {
+				sr += ('a' - 'A')
+			}
+			if 'A' <= tr && tr <= 'Z' {
+				tr += ('a' - 'A')
+			}
+
+			switch {
+			case sr < tr:
+				return -1
+			case sr > tr:
+				return 1
+			default:
+				continue
+			}
+		}
+
+		sr = unicode.ToLower(sr)
+		tr = unicode.ToLower(tr)
+		switch {
+		case sr < tr:
+			return -1
+		case sr > tr:
+			return 1
+		}
+	}
+
+	// First string is empty, so check if the second one is also empty.
+	if len(t) == 0 {
+		return 0
+	}
+
+	return -1
+}
+
 // Capitalize returns a copy of the string s that the start letter
 // mapped to their Unicode upper case.
 func Capitalize(s string) string {

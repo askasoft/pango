@@ -3,6 +3,8 @@
 
 package cog
 
+import "github.com/askasoft/pango/str"
+
 // Less will make type assertion (see LessString(a,b) for example),
 // which will panic if a or b are not of the asserted type.
 //
@@ -15,6 +17,11 @@ type Less[T any] func(a, b T) bool
 // LessString string less function
 func LessString(a, b string) bool {
 	return a < b
+}
+
+// LessStringFold string case-insensitive less function
+func LessStringFold(a, b string) bool {
+	return str.CompareFold(a, b) < 0
 }
 
 // LessByte byte less function

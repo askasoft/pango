@@ -160,7 +160,7 @@ func New() *Engine {
 		Validator:              validate.NewStructValidator(),
 		Logger:                 log.GetLogger("XIN"),
 		trees:                  make(methodTrees, 0, 9),
-		secureJSONPrefix:       "while(1);",
+		secureJSONPrefix:       ")]}',\n",
 	}
 	engine.RouterGroup.engine = engine
 	engine.pool.New = func() any {
@@ -185,6 +185,10 @@ func (engine *Engine) allocateContext(maxParams uint16) *Context {
 }
 
 // SecureJSONPrefix sets the secureJSONPrefix used in Context.SecureJSON.
+// Prefixing the JSON string in this manner is used to help prevent JSON Hijacking.
+// The prefix renders the string syntactically invalid as a script so that it cannot be hijacked.
+// This prefix should be stripped before parsing the string as JSON.
+// The default prefix is ")]}',\n".
 func (engine *Engine) SecureJSONPrefix(prefix string) *Engine {
 	engine.secureJSONPrefix = prefix
 	return engine

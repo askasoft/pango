@@ -61,10 +61,6 @@ func (oai *OpenAI) decodeResponse(res *http.Response, obj any) error {
 	}
 	_ = decoder.Decode(er)
 
-	if res.StatusCode == http.StatusTooManyRequests || res.StatusCode == http.StatusBadGateway {
-		er.retryAfter = time.Second * 20
-	}
-
 	return er
 }
 

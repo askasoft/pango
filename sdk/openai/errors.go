@@ -2,6 +2,7 @@ package openai
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 )
@@ -49,19 +50,19 @@ type ErrorResult struct {
 	StatusCode int          `json:"-"` // http status code
 	Status     string       `json:"-"` // http status
 	Detail     *ErrorDetail `json:"error,omitempty"`
-	retryAfter time.Duration
 }
 
 func (er *ErrorResult) RetryAfter() time.Duration {
-	return er.retryAfter
+	switch er.StatusCode {
+	case http.StatusTooManyRequests, http.StatusBadGateway, http.StatusServiceUnavailable:
+		return time.Second * 20
+	default:
+		return 0
+	}
 }
 
 func (er *ErrorResult) Error() string {
 	es := er.Status
-
-	if er.retryAfter > 0 {
-		es = fmt.Sprintf("%s (Retry After %s)", es, er.retryAfter)
-	}
 
 	if er.Detail != nil {
 		es = es + " - " + er.Detail.String()

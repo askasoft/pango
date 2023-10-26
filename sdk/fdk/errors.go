@@ -2,6 +2,7 @@ package fdk
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
@@ -29,7 +30,14 @@ type ErrorResult struct {
 }
 
 func (er *ErrorResult) RetryAfter() time.Duration {
-	return er.retryAfter
+	switch er.StatusCode {
+	case http.StatusTooManyRequests:
+		return er.retryAfter
+	case http.StatusBadGateway, http.StatusServiceUnavailable:
+		return time.Second * 20
+	default:
+		return 0
+	}
 }
 
 func (er *ErrorResult) Detail() string {

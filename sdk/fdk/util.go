@@ -141,9 +141,10 @@ func decodeResponse(res *http.Response, obj any) error {
 	if res.StatusCode == http.StatusTooManyRequests {
 		s := res.Header.Get("Retry-After")
 		n := num.Atoi(s)
-		if n > 0 {
-			er.retryAfter = time.Second * time.Duration(n)
+		if n <= 0 {
+			n = 20
 		}
+		er.retryAfter = time.Second * time.Duration(n)
 	}
 
 	return er

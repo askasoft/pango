@@ -13,9 +13,9 @@ type RetryableError interface {
 }
 
 func RetryForError(api func() error, maxRetryCount int, maxRetryAfter time.Duration, abort func() bool, logger log.Logger) (err error) {
-	for i := 0; ; i++ {
+	for i := 1; ; i++ {
 		err = api()
-		if err == nil || i >= maxRetryCount {
+		if err == nil || i > maxRetryCount {
 			break
 		}
 
@@ -25,7 +25,7 @@ func RetryForError(api func() error, maxRetryCount int, maxRetryAfter time.Durat
 		}
 
 		if logger != nil {
-			logger.Warnf("Sleep %s for %s", ra, err.Error())
+			logger.Warnf("Sleep %s for retry [%d] %s", ra, i, err.Error())
 		}
 
 		if !sleepForRetry(ra, abort, logger) {

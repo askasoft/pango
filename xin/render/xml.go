@@ -10,7 +10,7 @@ type XML struct {
 	Data any
 }
 
-var xmlContentType = []string{"application/xml; charset=utf-8"}
+var xmlContentType = "application/xml; charset=utf-8"
 
 // Render (XML) encodes the given interface object and writes data with custom ContentType.
 func (r XML) Render(w http.ResponseWriter) error {

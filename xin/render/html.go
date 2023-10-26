@@ -53,5 +53,5 @@ func (r htmlRender) Render(w http.ResponseWriter) error {
 
 // WriteContentType write html content type
 func (r htmlRender) WriteContentType(w http.ResponseWriter) {
-	writeContentType(w, []string{"text/html; charset=utf-8"})
+	writeContentType(w, "text/html; charset=utf-8")
 }

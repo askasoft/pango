@@ -73,6 +73,9 @@ func (r *Requester) String() string {
 }
 
 type requesterResult struct {
-	Requester  *Requester   `json:"requester,omitempty"`
+	Requester *Requester `json:"requester,omitempty"`
+}
+
+type requestersResult struct {
 	Requesters []*Requester `json:"requesters,omitempty"`
 }

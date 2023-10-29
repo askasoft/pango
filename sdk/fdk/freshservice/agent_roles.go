@@ -12,7 +12,7 @@ func (fs *Freshservice) GetAgentRole(id int64) (*AgentRole, error) {
 
 func (fs *Freshservice) ListAgentRoles(laro *ListAgentRolesOption) ([]*AgentRole, bool, error) {
 	url := fs.endpoint("/roles")
-	result := &agentRoleResult{}
+	result := &agentRolesResult{}
 	next, err := fs.doList(url, laro, result)
 	return result.Roles, next, err
 }

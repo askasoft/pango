@@ -42,7 +42,6 @@ func (af *AgentField) String() string {
 	return toString(af)
 }
 
-type agentFieldResult struct {
-	AgentField  *AgentField   `json:"agent_field,omitempty"`
+type agentFieldsResult struct {
 	AgentFields []*AgentField `json:"agent_fields,omitempty"`
 }

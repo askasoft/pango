@@ -78,7 +78,7 @@ func (fs *Freshservice) GetAgent(id int64) (*Agent, error) {
 
 func (fs *Freshservice) ListAgents(lao *ListAgentsOption) ([]*Agent, bool, error) {
 	url := fs.endpoint("/agents")
-	result := &agentResult{}
+	result := &agentsResult{}
 	next, err := fs.doList(url, lao, result)
 	return result.Agents, next, err
 }
@@ -145,7 +145,7 @@ func (fs *Freshservice) IterAgents(lao *ListAgentsOption, iaf func(*Agent) error
 // updated_at	date	Date (YYYY-MM-DD) when the agent is updated.
 func (fs *Freshservice) FilterAgents(fao *FilterAgentsOption) ([]*Agent, bool, error) {
 	url := fs.endpoint("/agents")
-	result := &agentResult{}
+	result := &agentsResult{}
 	next, err := fs.doList(url, fao, result)
 	return result.Agents, next, err
 }
@@ -223,7 +223,7 @@ func (fs *Freshservice) ConvertAgentToRequester(id int64) (*Agent, error) {
 
 func (fs *Freshservice) GetAgentFields() ([]*AgentField, error) {
 	url := fs.endpoint("/agent_fields")
-	result := &agentFieldResult{}
+	result := &agentFieldsResult{}
 	err := fs.doGet(url, result)
 	return result.AgentFields, err
 }

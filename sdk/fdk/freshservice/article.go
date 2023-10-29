@@ -111,6 +111,12 @@ type Article struct {
 	// Article from external url link.
 	URL string `json:"url,omitempty"`
 
+	ModifiedBy int64 `json:"modified_by,omitempty"`
+
+	ModifiedAt *Time `json:"modified_at,omitempty"`
+
+	InsertedIntoTickets int `json:"inserted_into_tickets,omitempty"`
+
 	// Date in future when this article would need to be reviewed again.
 	ReviewDate *Time `json:"review_date,omitempty"`
 
@@ -147,6 +153,36 @@ func (a *Article) String() string {
 }
 
 type articleResult struct {
-	Article  *Article   `json:"article,omitempty"`
-	Articles []*Article `json:"articles,omitempty"`
+	Article *Article `json:"article,omitempty"`
+}
+
+type ArticleInfo struct {
+	Article
+
+	// Attachments associated with the article. The total size of all of a article's attachments cannot exceed 25MB.
+	Attachments []string `json:"attachments,omitempty"`
+
+	GroupFolderGroupIDs          []int64 `json:"group_folder_group_ids,omitempty"`
+	FolderDepartmentIDs          []int64 `json:"folder_department_ids,omitempty"`
+	GroupFolderRequesterGroupIDs []int64 `json:"group_folder_requester_group_ids,omitempty"`
+	GroupFolderDepartmentIDs     []int64 `json:"group_folder_department_ids,omitempty"`
+
+	FolderVisibility FolderVisibility `json:"folder_visibility,omitempty"`
+}
+
+func (ai *ArticleInfo) normalize() {
+	if len(ai.Attachments) > 0 {
+		ai.Article.Attachments = make([]*Attachment, len(ai.Attachments))
+		for i, s := range ai.Attachments {
+			ai.Article.Attachments[i] = &Attachment{Name: s}
+		}
+	}
+}
+
+func (ai *ArticleInfo) String() string {
+	return toString(ai)
+}
+
+type articlesResult struct {
+	Articles []*ArticleInfo `json:"articles,omitempty"`
 }

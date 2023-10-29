@@ -172,6 +172,9 @@ func (a *Agent) String() string {
 }
 
 type agentResult struct {
-	Agent  *Agent   `json:"agent,omitempty"`
+	Agent *Agent `json:"agent,omitempty"`
+}
+
+type agentsResult struct {
 	Agents []*Agent `json:"agents,omitempty"`
 }

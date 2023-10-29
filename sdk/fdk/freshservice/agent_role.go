@@ -22,6 +22,9 @@ func (ar *AgentRole) String() string {
 }
 
 type agentRoleResult struct {
-	Role  *AgentRole   `json:"role,omitempty"`
+	Role *AgentRole `json:"role,omitempty"`
+}
+
+type agentRolesResult struct {
 	Roles []*AgentRole `json:"roles,omitempty"`
 }

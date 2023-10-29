@@ -96,6 +96,9 @@ func (f *Folder) String() string {
 }
 
 type folderResult struct {
-	Foler   *Folder   `json:"folder,omitempty"`
+	Foler *Folder `json:"folder,omitempty"`
+}
+
+type foldersResult struct {
 	Folders []*Folder `json:"folders,omitempty"`
 }

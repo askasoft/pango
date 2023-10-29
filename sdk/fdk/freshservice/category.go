@@ -26,6 +26,9 @@ func (c *Category) String() string {
 }
 
 type categoryResult struct {
-	Category   *Category   `json:"category,omitempty"`
+	Category *Category `json:"category,omitempty"`
+}
+
+type categoriesResult struct {
 	Categories []*Category `json:"categories,omitempty"`
 }

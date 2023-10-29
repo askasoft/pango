@@ -90,6 +90,9 @@ func (ag *AgentGroup) String() string {
 }
 
 type agentGroupResult struct {
-	Group  *AgentGroup   `json:"group,omitempty"`
+	Group *AgentGroup `json:"group,omitempty"`
+}
+
+type agentGroupsResult struct {
 	Groups []*AgentGroup `json:"groups,omitempty"`
 }

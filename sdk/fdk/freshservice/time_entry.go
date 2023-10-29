@@ -52,6 +52,9 @@ func (te *TimeEntry) String() string {
 }
 
 type timeEntryResult struct {
-	TimeEntry   *TimeEntry   `json:"time_entry,omitempty"`
+	TimeEntry *TimeEntry `json:"time_entry,omitempty"`
+}
+
+type timeEntriesResult struct {
 	TimeEntries []*TimeEntry `json:"time_entries,omitempty"`
 }

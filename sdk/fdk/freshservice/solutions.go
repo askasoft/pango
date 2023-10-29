@@ -87,7 +87,7 @@ func (fs *Freshservice) GetCategory(cid int64) (*Category, error) {
 
 func (fs *Freshservice) ListCategories(lco *ListCategoriesOption) ([]*Category, bool, error) {
 	url := fs.endpoint("/solutions/categories")
-	result := &categoryResult{}
+	result := &categoriesResult{}
 	next, err := fs.doList(url, lco, result)
 	return result.Categories, next, err
 }
@@ -154,7 +154,7 @@ func (fs *Freshservice) ListCategoryFolders(cid int64, lfo *ListFoldersOption) (
 	lfo.categoryID = cid
 
 	url := fs.endpoint("/solutions/folders")
-	result := &folderResult{}
+	result := &foldersResult{}
 	next, err := fs.doList(url, lfo, result)
 	return result.Folders, next, err
 }
@@ -221,19 +221,22 @@ func (fs *Freshservice) GetArticle(aid int64) (*Article, error) {
 	return result.Article, err
 }
 
-func (fs *Freshservice) ListFolderArticles(fid int64, lao *ListArticlesOption) ([]*Article, bool, error) {
+func (fs *Freshservice) ListFolderArticles(fid int64, lao *ListArticlesOption) ([]*ArticleInfo, bool, error) {
 	if lao == nil {
 		lao = &ListArticlesOption{}
 	}
 	lao.folderID = fid
 
 	url := fs.endpoint("/solutions/articles")
-	result := &articleResult{}
+	result := &articlesResult{}
 	next, err := fs.doList(url, lao, result)
+	for _, ai := range result.Articles {
+		ai.normalize()
+	}
 	return result.Articles, next, err
 }
 
-func (fs *Freshservice) IterFolderArticles(fid int64, lao *ListArticlesOption, iaf func(*Article) error) error {
+func (fs *Freshservice) IterFolderArticles(fid int64, lao *ListArticlesOption, iaf func(*ArticleInfo) error) error {
 	if lao == nil {
 		lao = &ListArticlesOption{}
 	}
@@ -267,10 +270,13 @@ func (fs *Freshservice) DeleteArticle(aid int64) error {
 	return fs.doDelete(url)
 }
 
-func (fs *Freshservice) SearchArticles(sao *SearchArticlesOption) ([]*Article, bool, error) {
+func (fs *Freshservice) SearchArticles(sao *SearchArticlesOption) ([]*ArticleInfo, bool, error) {
 	url := fs.endpoint("/solutions/articles/search")
-	result := &articleResult{}
+	result := &articlesResult{}
 	next, err := fs.doList(url, sao, result)
+	for _, ai := range result.Articles {
+		ai.normalize()
+	}
 	return result.Articles, next, err
 }
 

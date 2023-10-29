@@ -128,6 +128,14 @@ func TestSolutionAPIs(t *testing.T) {
 		t.Fatalf("ERROR: categories=%d", len(cats))
 	}
 
+	fols, _, err := fs.ListCategoryFolders(cat.ID, nil)
+	if err != nil {
+		t.Fatalf("ERROR: %v", err)
+	}
+	if len(fols) != 1 {
+		t.Fatalf("ERROR: folders=%d", len(fols))
+	}
+
 	arts, _, err := fs.ListFolderArticles(fol.ID, nil)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
@@ -136,12 +144,12 @@ func TestSolutionAPIs(t *testing.T) {
 		t.Fatalf("ERROR: articles=%d", len(arts))
 	}
 
-	fols, _, err := fs.ListCategoryFolders(cat.ID, nil)
+	err = fs.IterFolderArticles(fol.ID, nil, func(ai *ArticleInfo) error {
+		fs.Logger.Debug(ai.String())
+		return nil
+	})
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
-	}
-	if len(fols) != 1 {
-		t.Fatalf("ERROR: folders=%d", len(fols))
 	}
 }
 
@@ -291,7 +299,7 @@ func TestSolutionManyArticles(t *testing.T) {
 	}
 
 	aids := make([]int64, 0, 101)
-	err = fs.IterFolderArticles(fol.ID, nil, func(a *Article) error {
+	err = fs.IterFolderArticles(fol.ID, nil, func(a *ArticleInfo) error {
 		aids = append(aids, a.ID)
 		return nil
 	})

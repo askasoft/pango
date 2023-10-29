@@ -25,6 +25,9 @@ func (rg *RequesterGroup) String() string {
 }
 
 type requesterGroupResult struct {
-	RequesterGroup  *RequesterGroup   `json:"requester_group,omitempty"`
+	RequesterGroup *RequesterGroup `json:"requester_group,omitempty"`
+}
+
+type requesterGroupsResult struct {
 	RequesterGroups []*RequesterGroup `json:"requester_groups,omitempty"`
 }

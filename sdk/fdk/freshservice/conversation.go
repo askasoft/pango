@@ -134,6 +134,5 @@ func (c *Conversation) String() string {
 }
 
 type conversationResult struct {
-	Conversation  *Conversation   `json:"conversation,omitempty"`
-	Conversations []*Conversation `json:"conversations,omitempty"`
+	Conversation *Conversation `json:"conversation,omitempty"`
 }

@@ -16,7 +16,6 @@ func (ta *TicketActivity) String() string {
 	return toString(ta)
 }
 
-type ticketActivityResult struct {
-	TicketActivity  *TicketActivity   `json:"ticket_activity,omitempty"`
-	TicketActivitys []*TicketActivity `json:"ticket_activities,omitempty"`
+type ticketActivitiesResult struct {
+	TicketActivities []*TicketActivity `json:"ticket_activities,omitempty"`
 }

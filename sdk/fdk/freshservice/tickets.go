@@ -268,9 +268,9 @@ func (fs *Freshservice) GetTicketFields() ([]*TicketField, error) {
 
 func (fs *Freshservice) GetTicketActivities(tid int64) ([]*TicketActivity, error) {
 	url := fs.endpoint("/tickets/%d/activities", tid)
-	result := &ticketActivityResult{}
+	result := &ticketActivitiesResult{}
 	err := fs.doGet(url, result)
-	return result.TicketActivitys, err
+	return result.TicketActivities, err
 }
 
 // ---------------------------------------------------

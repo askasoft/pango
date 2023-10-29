@@ -19,7 +19,7 @@ func (fs *Freshservice) GetAgentGroup(id int64) (*AgentGroup, error) {
 
 func (fs *Freshservice) ListAgentGroups(lago *ListAgentGroupsOption) ([]*AgentGroup, bool, error) {
 	url := fs.endpoint("/groups")
-	result := &agentGroupResult{}
+	result := &agentGroupsResult{}
 	next, err := fs.doList(url, lago, result)
 	return result.Groups, next, err
 }

@@ -72,7 +72,7 @@ func (fs *Freshservice) GetRequesterGroup(id int64) (*RequesterGroup, error) {
 
 func (fs *Freshservice) ListRequesterGroups(lrgo *ListRequesterGroupsOption) ([]*RequesterGroup, bool, error) {
 	url := fs.endpoint("/requester_groups")
-	result := &requesterGroupResult{}
+	result := &requesterGroupsResult{}
 	next, err := fs.doList(url, lrgo, result)
 	return result.RequesterGroups, next, err
 }
@@ -144,7 +144,7 @@ func (fs *Freshservice) DeleteRequesterFromRequesterGroup(rgid, rid int64) error
 
 func (fs *Freshservice) ListRequesterGroupMembers(rgid int64, lrgmo *ListRequesterGroupMembersOption) ([]*Requester, bool, error) {
 	url := fs.endpoint("/requester_groups/%d/members", rgid)
-	result := &requesterResult{}
+	result := &requestersResult{}
 	next, err := fs.doList(url, lrgmo, result)
 	return result.Requesters, next, err
 }
@@ -216,7 +216,7 @@ func (fs *Freshservice) GetRequester(id int64) (*Requester, error) {
 // Phone number	string
 func (fs *Freshservice) ListRequesters(lro *ListRequestersOption) ([]*Requester, bool, error) {
 	url := fs.endpoint("/requesters")
-	result := &requesterResult{}
+	result := &requestersResult{}
 	next, err := fs.doList(url, lro, result)
 	return result.Requesters, next, err
 }
@@ -252,7 +252,7 @@ func (fs *Freshservice) IterRequesters(lro *ListRequestersOption, irf func(*Requ
 
 func (fs *Freshservice) GetRequesterFields() ([]*RequesterField, error) {
 	url := fs.endpoint("/requester_fields")
-	result := &requesterFieldResult{}
+	result := &requesterFieldsResult{}
 	err := fs.doGet(url, result)
 	return result.RequesterFields, err
 }

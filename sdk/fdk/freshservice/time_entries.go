@@ -34,7 +34,7 @@ func (fs *Freshservice) GetTimeEntry(tid, teid int64) (*TimeEntry, error) {
 // GET  /api/v2/tickets/[ticket_id]/time_entries
 func (fs *Freshservice) ListTicketTimeEntries(tid int64, lteo *ListTimeEntriesOption) ([]*TimeEntry, bool, error) {
 	url := fs.endpoint("/tickets/%d/time_entries", tid)
-	result := &timeEntryResult{}
+	result := &timeEntriesResult{}
 	next, err := fs.doList(url, lteo, result)
 	return result.TimeEntries, next, err
 }

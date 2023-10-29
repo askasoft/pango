@@ -45,7 +45,6 @@ func (rf *RequesterField) String() string {
 	return toString(rf)
 }
 
-type requesterFieldResult struct {
-	RequesterField  *RequesterField   `json:"requester_field,omitempty"`
+type requesterFieldsResult struct {
 	RequesterFields []*RequesterField `json:"requester_fields,omitempty"`
 }

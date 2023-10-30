@@ -53,7 +53,12 @@ func (jr *JobRunner) Start() {
 }
 
 func (jr *JobRunner) run() {
-	defer atomic.StoreInt32(&jr.running, 0)
+	defer func() {
+		if err := recover(); err != nil {
+			jr.Log.Errorf("Panic: %v", err)
+		}
+		atomic.StoreInt32(&jr.running, 0)
+	}()
 
 	atomic.StoreInt32(&jr.aborted, 0)
 	atomic.StoreInt32(&jr.running, 1)

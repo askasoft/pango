@@ -77,11 +77,12 @@ func (oai *OpenAI) call(req *http.Request) (res *http.Response, err error) {
 	rid := log.TraceHttpRequest(oai.Logger, req)
 
 	res, err = client.Do(req)
-	if err == nil {
-		log.TraceHttpResponse(oai.Logger, res, rid)
+	if err != nil {
+		return res, sdk.NewNetError(err, oai.MaxRetryAfter)
 	}
 
-	return res, err
+	log.TraceHttpResponse(oai.Logger, res, rid)
+	return res, nil
 }
 
 func (oai *OpenAI) authAndCall(req *http.Request) (res *http.Response, err error) {
@@ -109,7 +110,7 @@ func (oai *OpenAI) doCall(req *http.Request, result any) error {
 func (oai *OpenAI) doPostWithRetry(url string, source, result any) error {
 	return sdk.RetryForError(func() error {
 		return oai.doPost(url, source, result)
-	}, oai.MaxRetryCount, oai.MaxRetryAfter, oai.ShouldAbortOnRetry, oai.Logger)
+	}, oai.MaxRetryCount, oai.ShouldAbortOnRetry, oai.Logger)
 }
 
 func (oai *OpenAI) doPost(url string, source, result any) error {

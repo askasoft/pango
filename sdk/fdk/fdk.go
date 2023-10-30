@@ -1,11 +1,14 @@
 package fdk
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/num"
 	"github.com/askasoft/pango/sdk"
 )
 
@@ -30,7 +33,7 @@ func (fdk *FDK) Endpoint(format string, a ...any) string {
 }
 
 func (fdk *FDK) RetryForError(api func() error) (err error) {
-	return sdk.RetryForError(api, fdk.MaxRetryCount, fdk.MaxRetryAfter, fdk.ShouldAbortOnRetry, fdk.Logger)
+	return sdk.RetryForError(api, fdk.MaxRetryCount, fdk.ShouldAbortOnRetry, fdk.Logger)
 }
 
 func (fdk *FDK) authenticate(req *http.Request) {
@@ -51,7 +54,19 @@ func (fdk *FDK) call(req *http.Request) (res *http.Response, err error) {
 		Timeout:   fdk.Timeout,
 	}
 
-	return call(client, req, fdk.Logger)
+	if fdk.Logger != nil {
+		fdk.Logger.Debugf("%s %s", req.Method, req.URL)
+	}
+
+	rid := log.TraceHttpRequest(fdk.Logger, req)
+
+	res, err = client.Do(req)
+	if err != nil {
+		return res, sdk.NewNetError(err, fdk.MaxRetryAfter)
+	}
+
+	log.TraceHttpResponse(fdk.Logger, res, rid)
+	return res, nil
 }
 
 func (fdk *FDK) authAndCall(req *http.Request) (res *http.Response, err error) {
@@ -65,7 +80,39 @@ func (fdk *FDK) doCall(req *http.Request, result any) error {
 		return err
 	}
 
-	return decodeResponse(res, result)
+	return fdk.decodeResponse(res, result)
+}
+
+func (fdk *FDK) decodeResponse(res *http.Response, obj any) error {
+	defer iox.DrainAndClose(res.Body)
+
+	decoder := json.NewDecoder(res.Body)
+	if res.StatusCode == http.StatusOK || res.StatusCode == http.StatusCreated || res.StatusCode == http.StatusNoContent {
+		if obj != nil {
+			return decoder.Decode(obj)
+		}
+		return nil
+	}
+
+	er := &ErrorResult{StatusCode: res.StatusCode, Status: res.Status}
+	if res.StatusCode != http.StatusNotFound {
+		_ = decoder.Decode(er)
+	}
+
+	if res.StatusCode == http.StatusTooManyRequests {
+		s := res.Header.Get("Retry-After")
+		n := num.Atoi(s)
+		if n <= 0 {
+			n = 20
+		}
+
+		er.retryAfter = time.Second * time.Duration(n)
+		if er.retryAfter > fdk.MaxRetryAfter {
+			er.retryAfter = fdk.MaxRetryAfter
+		}
+	}
+
+	return er
 }
 
 func (fdk *FDK) DoGet(url string, result any) error {
@@ -107,7 +154,7 @@ func (fdk *FDK) doList(url string, lo ListOption, result any) (bool, error) {
 		return false, err
 	}
 
-	err = decodeResponse(res, result)
+	err = fdk.decodeResponse(res, result)
 	if err != nil {
 		return false, err
 	}

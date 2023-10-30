@@ -54,7 +54,7 @@ type ErrorResult struct {
 
 func (er *ErrorResult) RetryAfter() time.Duration {
 	switch er.StatusCode {
-	case http.StatusTooManyRequests, http.StatusBadGateway, http.StatusServiceUnavailable:
+	case http.StatusTooManyRequests, http.StatusInternalServerError, http.StatusBadGateway, http.StatusServiceUnavailable, http.StatusGatewayTimeout:
 		return time.Second * 20
 	default:
 		return 0

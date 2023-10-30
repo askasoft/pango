@@ -10,13 +10,10 @@ import (
 )
 
 type retryTestError struct {
-	status     string        // http status
-	statusCode int           // http status code
-	retryAfter time.Duration // retry after time
-}
+	NetError
 
-func (rte *retryTestError) RetryAfter() time.Duration {
-	return rte.retryAfter
+	status     string // http status
+	statusCode int    // http status code
 }
 
 func (rte *retryTestError) Error() string {
@@ -30,19 +27,19 @@ func (rte *retryTestError) Error() string {
 }
 
 func TestRetryForError(t *testing.T) {
-	w := "429 Too Many Requests (Retry After 2s)"
+	w := "429 Too Many Requests (Retry After 1s)"
 
 	rte := &retryTestError{
 		status:     "429 Too Many Requests",
 		statusCode: http.StatusTooManyRequests,
-		retryAfter: 2 * time.Second,
 	}
+	rte.retryAfter = time.Second
 
 	called, aborted := 0, 0
 	err := RetryForError(func() error {
 		called++
 		return rte
-	}, 2, time.Millisecond*1500, func() bool {
+	}, 2, func() bool {
 		aborted++
 		return false
 	}, log.NewLog())
@@ -53,7 +50,7 @@ func TestRetryForError(t *testing.T) {
 	if called != 3 {
 		t.Errorf("called = %d, want %d", called, 3)
 	}
-	if aborted != 12 {
-		t.Errorf("aborted = %d, want %d", aborted, 12)
+	if aborted != 8 {
+		t.Errorf("aborted = %d, want %d", aborted, 8)
 	}
 }

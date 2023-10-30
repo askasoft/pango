@@ -33,7 +33,7 @@ func (er *ErrorResult) RetryAfter() time.Duration {
 	switch er.StatusCode {
 	case http.StatusTooManyRequests:
 		return er.retryAfter
-	case http.StatusBadGateway, http.StatusServiceUnavailable:
+	case http.StatusInternalServerError, http.StatusBadGateway, http.StatusServiceUnavailable, http.StatusGatewayTimeout:
 		return time.Second * 20
 	default:
 		return 0

@@ -6,14 +6,11 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/fsu"
 	"github.com/askasoft/pango/iox"
-	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/net/httpx"
-	"github.com/askasoft/pango/num"
 )
 
 const (
@@ -105,49 +102,6 @@ func buildJsonRequest(a any) (io.Reader, string, error) {
 
 	buf := bytes.NewReader(body)
 	return buf, contentTypeJSON, nil
-}
-
-func call(client *http.Client, req *http.Request, logger log.Logger) (res *http.Response, err error) {
-	if logger != nil {
-		logger.Debugf("%s %s", req.Method, req.URL)
-	}
-
-	rid := log.TraceHttpRequest(logger, req)
-
-	res, err = client.Do(req)
-	if err == nil {
-		log.TraceHttpResponse(logger, res, rid)
-	}
-
-	return res, err
-}
-
-func decodeResponse(res *http.Response, obj any) error {
-	defer iox.DrainAndClose(res.Body)
-
-	decoder := json.NewDecoder(res.Body)
-	if res.StatusCode == http.StatusOK || res.StatusCode == http.StatusCreated || res.StatusCode == http.StatusNoContent {
-		if obj != nil {
-			return decoder.Decode(obj)
-		}
-		return nil
-	}
-
-	er := &ErrorResult{StatusCode: res.StatusCode, Status: res.Status}
-	if res.StatusCode != http.StatusNotFound {
-		_ = decoder.Decode(er)
-	}
-
-	if res.StatusCode == http.StatusTooManyRequests {
-		s := res.Header.Get("Retry-After")
-		n := num.Atoi(s)
-		if n <= 0 {
-			n = 20
-		}
-		er.retryAfter = time.Second * time.Duration(n)
-	}
-
-	return er
 }
 
 func copyResponse(res *http.Response) ([]byte, error) {

@@ -50,10 +50,10 @@ func (as ArticleStatus) String() string {
 }
 
 func ParseArticleStatus(s string) ArticleStatus {
-	switch s {
-	case "Draft":
+	switch str.ToLower(s) {
+	case "draft":
 		return ArticleStatusDraft
-	case "Published":
+	case "published":
 		return ArticleStatusPublished
 	default:
 		return 0

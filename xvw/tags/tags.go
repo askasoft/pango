@@ -9,6 +9,7 @@ import (
 	"unicode"
 
 	"github.com/askasoft/pango/ref"
+	"github.com/askasoft/pango/str"
 )
 
 type TagRenderer interface {
@@ -32,6 +33,8 @@ func TagSetAttrs(tr TagRenderer, attrs Attrs, args []any) error {
 		if !ok || key == "" {
 			return errors.New(tr.TagName() + ": key must be non-empty string")
 		}
+
+		key = str.TrimSuffix(key, "=")
 
 		val := args[i+1]
 		if val == nil {

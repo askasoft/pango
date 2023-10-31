@@ -6,11 +6,6 @@ import (
 	"reflect"
 )
 
-// Array returns a []any{args[0], args[1], ...}
-func Array(args ...any) []any {
-	return args
-}
-
 // ArrayGet getting value from array or slice by index
 // usage:
 //

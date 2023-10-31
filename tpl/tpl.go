@@ -110,10 +110,11 @@ func Functions() FuncMap {
 		"Atof": num.Atof,
 
 		// Collection
-		"Array":    ref.Array,
+		"Strings":  funcs.Strings,
+		"Array":    funcs.Array,
 		"ArrayGet": ref.ArrayGet,
 		"ArraySet": ref.ArraySet,
-		"Map":      ref.Map,
+		"Map":      funcs.Map,
 		"MapGet":   ref.MapGet,
 		"MapSet":   ref.MapSet,
 	}

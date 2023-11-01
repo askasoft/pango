@@ -79,35 +79,36 @@ func (t *Time) UnmarshalJSON(data []byte) (err error) {
 	return
 }
 
+// TimeSpent HH:MM (Minutes)
 type TimeSpent int
 
 func ParseTimeSpent(s string) (TimeSpent, error) {
 	s1, s2, ok := str.Cut(s, ":")
 	if ok {
-		min, err := strconv.Atoi(s1)
+		hour, err := strconv.Atoi(s1)
 		if err == nil {
-			sec, err := strconv.Atoi(s2)
+			min, err := strconv.Atoi(s2)
 			if err == nil {
-				return TimeSpent(min*60 + sec), nil
+				return TimeSpent(hour*60 + min), nil
 			}
 		}
-	} else {
-		sec, err := strconv.Atoi(s1)
-		if err == nil {
-			return TimeSpent(sec), nil
-		}
+		return 0, fmt.Errorf(`ParseTimeSpent: "%s" is not a HH:MM string`, s)
 	}
 
-	return 0, fmt.Errorf(`ParseTimeSpent: "%s" is not a HH:MM string`, s)
+	min, err := strconv.Atoi(s1)
+	if err == nil {
+		return TimeSpent(min), nil
+	}
+	return 0, fmt.Errorf(`ParseTimeSpent: "%s" is not a numeric string`, s)
 }
 
-func (ts TimeSpent) Seconds() int {
+func (ts TimeSpent) Minutes() int {
 	return int(ts)
 }
 
 func (ts TimeSpent) String() string {
-	min, sec := ts/60, ts%60
-	return fmt.Sprintf("%02d:%02d", min, sec)
+	hour, min := ts/60, ts%60
+	return fmt.Sprintf("%02d:%02d", hour, min)
 }
 
 func (ts TimeSpent) MarshalJSON() ([]byte, error) {

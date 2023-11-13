@@ -38,9 +38,11 @@ type PageRenderer struct {
 	//  1: #1 first page (depends on '#')
 	//  #: page number links
 	//  x: #x last page (depends on '#')
-	//  >: </ul>
-	//  i: pager info text
+	//  i: pager info label
 	//  s: limit size select
+	//  >: </ul>
+	//  I: pager info text   (float left)
+	//  S: limit size select (float right)
 	Style string
 }
 
@@ -67,7 +69,7 @@ func (pr *PageRenderer) Render(sb *strings.Builder, args ...any) error {
 	}
 
 	if pr.Style == "" {
-		pr.Style = tbs.GetText(pr.Locale, "pager.style", "is<FP#NL>")
+		pr.Style = tbs.GetText(pr.Locale, "pager.style", "IS<FP#NL>")
 	}
 	if pr.LinkSize == 0 {
 		pr.LinkSize = num.Atoi(tbs.GetText(pr.Locale, "pager.link-size", "5"))
@@ -107,17 +109,30 @@ func (pr *PageRenderer) Render(sb *strings.Builder, args ...any) error {
 				pr.writePagerLinkLast(sb, true)
 			case 'L':
 				pr.writePagerLinkLast(sb, false)
-			case '>':
-				sb.WriteString("</ul>")
 			case 'i':
 				if pr.Total > 0 {
-					pr.writePagerTextInfo(sb)
+					pr.writePagerInfoLabel(sb)
 				} else {
-					pr.writePagerEmptyInfo(sb)
+					pr.writePagerInfoEmpty(sb)
 				}
 			case 's':
 				if pr.Total > 0 {
-					err := pr.writePagerLimit(sb)
+					err := pr.writePagerLimits(sb)
+					if err != nil {
+						return err
+					}
+				}
+			case '>':
+				sb.WriteString("</ul>")
+			case 'I':
+				if pr.Total > 0 {
+					pr.writeOuterInfosLabel(sb)
+				} else {
+					pr.writeOuterInfosEmpty(sb)
+				}
+			case 'S':
+				if pr.Total > 0 {
+					err := pr.writeOuterLimits(sb)
 					if err != nil {
 						return err
 					}
@@ -144,23 +159,42 @@ func (pr *PageRenderer) getLinkHref(pn int) string {
 	return sr.Replace(pr.LinkHref)
 }
 
-func (pr *PageRenderer) writePagerEmptyInfo(sb *strings.Builder) {
-	pr.writePagerInfo(sb, tbs.GetText(pr.Locale, "pager.infos.empty"))
-}
-
-func (pr *PageRenderer) writePagerTextInfo(sb *strings.Builder) {
-	info := tbs.Replace(
-		pr.Locale, "pager.infos.label", "{page} / {pages}",
+func (pr *PageRenderer) buildPagerTextInfo(name, defv string) string {
+	return tbs.Replace(
+		pr.Locale, name, defv,
 		"{page}", num.Comma(pr.Page),
 		"{pages}", num.Comma(pr.Pages()),
 		"{begin}", num.Comma(pr.Begin()),
 		"{end}", num.Comma(pr.End()),
 		"{total}", num.Comma(pr.Total),
 	)
-	pr.writePagerInfo(sb, info)
 }
 
 func (pr *PageRenderer) writePagerInfo(sb *strings.Builder, info string) {
+	sb.WriteString("<li class=\"info\">")
+	sb.WriteString(info)
+	sb.WriteString("</li>")
+}
+
+func (pr *PageRenderer) writePagerInfoEmpty(sb *strings.Builder) {
+	pr.writePagerInfo(sb, tbs.GetText(pr.Locale, "pager.label.empty"))
+}
+
+func (pr *PageRenderer) writePagerInfoLabel(sb *strings.Builder) {
+	info := pr.buildPagerTextInfo("pager.label.info", "{page} / {pages}")
+	pr.writePagerInfo(sb, info)
+}
+
+func (pr *PageRenderer) writeOuterInfosEmpty(sb *strings.Builder) {
+	pr.writeOuterInfos(sb, tbs.GetText(pr.Locale, "pager.infos.empty"))
+}
+
+func (pr *PageRenderer) writeOuterInfosLabel(sb *strings.Builder) {
+	info := pr.buildPagerTextInfo("pager.infos.label", "{page} / {pages}")
+	pr.writeOuterInfos(sb, info)
+}
+
+func (pr *PageRenderer) writeOuterInfos(sb *strings.Builder, info string) {
 	sb.WriteString("<div class=\"infos\">")
 	sb.WriteString(info)
 	sb.WriteString("</div>")
@@ -329,9 +363,7 @@ func (pr *PageRenderer) linkp(sb *strings.Builder, p int) {
 	sb.WriteString("</a></li>")
 }
 
-func (pr *PageRenderer) writePagerLimit(sb *strings.Builder) error {
-	sb.WriteString("<div class=\"limits\">")
-
+func (pr *PageRenderer) writeLimitsSelect(sb *strings.Builder) error {
 	sb.WriteString(tbs.GetText(pr.Locale, "pager.limits.label"))
 
 	tlist := tbs.GetText(pr.Locale, "pager.limits.text", `%s Items`)
@@ -347,13 +379,19 @@ func (pr *PageRenderer) writePagerLimit(sb *strings.Builder) error {
 		Value: num.Itoa(pr.Limit),
 	}
 
-	err := sr.Render(sb,
-		"title", tbs.GetText(pr.Locale, "pager.limits.tooltip"),
-	)
-	if err != nil {
-		return err
-	}
+	return sr.Render(sb, "title", tbs.GetText(pr.Locale, "pager.limits.tooltip"))
+}
 
+func (pr *PageRenderer) writePagerLimits(sb *strings.Builder) error {
+	sb.WriteString("<li class=\"limits\">")
+	err := pr.writeLimitsSelect(sb)
+	sb.WriteString("</li>")
+	return err
+}
+
+func (pr *PageRenderer) writeOuterLimits(sb *strings.Builder) error {
+	sb.WriteString("<div class=\"limits\">")
+	err := pr.writeLimitsSelect(sb)
 	sb.WriteString("</div>")
-	return nil
+	return err
 }

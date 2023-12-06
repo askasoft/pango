@@ -35,7 +35,7 @@ func TestMultipartWriteFile(t *testing.T) {
 	}
 	mw.Close()
 
-	url := "https://panda-demo.azurewebsites.net/files/uploads"
+	url := "https://xdemo.aska-soft.com/files/uploads"
 	res, err := http.Post(url, ct, buf)
 	if err != nil {
 		t.Fatalf("Failed to post file to %s - %v", url, err)
@@ -78,7 +78,7 @@ func TestMultipartWriteFilePipe(t *testing.T) {
 		}
 	}()
 
-	url := "https://panda-demo.azurewebsites.net/files/uploads"
+	url := "https://xdemo.aska-soft.com/files/uploads"
 	res, err := http.Post(url, ct, pr)
 	if err != nil {
 		t.Fatalf("Failed to post file to %s - %v", url, err)

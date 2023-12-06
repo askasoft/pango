@@ -14,10 +14,10 @@ import (
 
 // These constants are copied from the gzip package.
 const (
-	BestCompression    = gzip.BestCompression
-	BestSpeed          = gzip.BestSpeed
-	DefaultCompression = gzip.DefaultCompression
-	NoCompression      = gzip.NoCompression
+	GzipBestCompression    = gzip.BestCompression
+	GzipBestSpeed          = gzip.BestSpeed
+	GzipDefaultCompression = gzip.DefaultCompression
+	GzipNoCompression      = gzip.NoCompression
 )
 
 // HTTPGziper Compresses responses using the “gzip” method
@@ -67,7 +67,7 @@ type HTTPGziper struct {
 // DefaultHTTPGziper create a default zipper
 // = NewHTTPGziper(DefaultCompression, 1024)
 func DefaultHTTPGziper() *HTTPGziper {
-	return NewHTTPGziper(DefaultCompression, 1024)
+	return NewHTTPGziper(GzipDefaultCompression, 1024)
 }
 
 // NewHTTPGziper create a zipper

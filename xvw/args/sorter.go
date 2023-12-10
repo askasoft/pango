@@ -10,8 +10,19 @@ type Sorter struct {
 	Dir string `form:"d"`
 }
 
+// String return Col + " " + Dir
 func (s *Sorter) String() string {
 	return s.Col + " " + s.Dir
+}
+
+// Order return the sql order by string (quote + Col + quote + " " + Dir)
+// the default quote string is "`"
+func (s *Sorter) Order(quote ...string) string {
+	q := "`"
+	if len(quote) > 0 {
+		q = quote[0]
+	}
+	return q + s.Col + q + " " + s.Dir
 }
 
 func (s *Sorter) Normalize(columns ...string) {

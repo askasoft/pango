@@ -7,7 +7,20 @@ import (
 	"github.com/askasoft/pango/str/rabinkarp"
 )
 
-// CountRune counts the number of non-overlapping instances of rune c in s.
+// CountByte counts the number of b in s.
+func CountByte(s string, b byte) int {
+	n := 0
+	for {
+		i := IndexByte(s, b)
+		if i == -1 {
+			return n
+		}
+		n++
+		s = s[i+1:]
+	}
+}
+
+// CountRune counts the number of c in s.
 func CountRune(s string, c rune) int {
 	n := 0
 	for _, r := range s {

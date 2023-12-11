@@ -41,3 +41,16 @@ func EndsWithByte(s []byte, b byte) bool {
 	a := s[len(s)-1]
 	return a == b
 }
+
+// CountByte counts the number of b in a.
+func CountByte(a []byte, b byte) int {
+	n := 0
+	for {
+		i := IndexByte(a, b)
+		if i == -1 {
+			return n
+		}
+		n++
+		a = a[i+1:]
+	}
+}

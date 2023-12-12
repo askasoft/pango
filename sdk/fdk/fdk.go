@@ -22,9 +22,9 @@ type FDK struct {
 	Timeout   time.Duration
 	Logger    log.Logger
 
-	MaxRetryCount      int
-	MaxRetryAfter      time.Duration
-	ShouldAbortOnRetry func() bool
+	MaxRetryCount int
+	MaxRetryAfter time.Duration
+	AbortOnRetry  func() bool
 }
 
 // Endpoint formats endpoint url
@@ -33,7 +33,7 @@ func (fdk *FDK) Endpoint(format string, a ...any) string {
 }
 
 func (fdk *FDK) RetryForError(api func() error) (err error) {
-	return sdk.RetryForError(api, fdk.MaxRetryCount, fdk.ShouldAbortOnRetry, fdk.Logger)
+	return sdk.RetryForError(api, fdk.MaxRetryCount, fdk.AbortOnRetry, fdk.Logger)
 }
 
 func (fdk *FDK) authenticate(req *http.Request) {

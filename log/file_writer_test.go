@@ -228,8 +228,10 @@ func TestFileRotateMaxSizeGzip(t *testing.T) {
 	for i := 1; i < 10; i++ {
 		log.Info("hello test ", i)
 	}
-	time.Sleep(time.Millisecond * 10)
 	log.Close()
+
+	// sleep for gzip compress
+	time.Sleep(time.Second * 3)
 
 	// check existing files
 	for i := 1; i < 9; i++ {
@@ -238,7 +240,12 @@ func TestFileRotateMaxSizeGzip(t *testing.T) {
 		if err != nil {
 			t.Fatalf("TestFileRotateMaxSizeGzip\n failed to read file %q, %v", sp, err)
 		}
-		gr, _ := gzip.NewReader(bytes.NewReader(bs))
+
+		gr, err := gzip.NewReader(bytes.NewReader(bs))
+		if err != nil {
+			t.Fatalf("TestFileRotateMaxSizeGzip\n failed to read gzip %q, %v", sp, err)
+		}
+
 		bs, err = io.ReadAll(gr)
 		if err != nil {
 			t.Fatalf("TestFileRotateMaxSizeGzip\n failed to read gzip %q, %v", sp, err)

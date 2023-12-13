@@ -47,6 +47,10 @@ func createMultipartRequest() *http.Request {
 	must(mw.WriteField("time_location", "31/12/2016 14:55"))
 	must(mw.WriteField("names[a]", "thinkerou"))
 	must(mw.WriteField("names[b]", "tianou"))
+	must(mw.WriteField("name2.a", "a1"))
+	must(mw.WriteField("name2.a", "a2"))
+	must(mw.WriteField("name2.b", "b1"))
+	must(mw.WriteField("name2.b", "b2"))
 	req, err := http.NewRequest("POST", "/", body)
 	must(err)
 	req.Header.Set("Content-Type", MIMEMultipartPOSTForm+"; boundary="+boundary)
@@ -275,10 +279,10 @@ func TestContextGetDuration(t *testing.T) {
 	assert.Equal(t, time.Second, c.GetDuration("duration"))
 }
 
-func TestContextGetStringSlice(t *testing.T) {
+func TestContextGetStrings(t *testing.T) {
 	c, _ := CreateTestContext(httptest.NewRecorder())
 	c.Set("slice", []string{"foo"})
-	assert.Equal(t, []string{"foo"}, c.GetStringSlice("slice"))
+	assert.Equal(t, []string{"foo"}, c.GetStrings("slice"))
 }
 
 func TestContextGetStringMap(t *testing.T) {
@@ -301,14 +305,14 @@ func TestContextGetStringMapString(t *testing.T) {
 	assert.Equal(t, "bar", c.GetStringMapString("map")["foo"])
 }
 
-func TestContextGetStringMapStringSlice(t *testing.T) {
+func TestContextGetStringMapStrings(t *testing.T) {
 	c, _ := CreateTestContext(httptest.NewRecorder())
 	m := make(map[string][]string)
 	m["foo"] = []string{"foo"}
 	c.Set("map", m)
 
-	assert.Equal(t, m, c.GetStringMapStringSlice("map"))
-	assert.Equal(t, []string{"foo"}, c.GetStringMapStringSlice("map")["foo"])
+	assert.Equal(t, m, c.GetStringMapStrings("map"))
+	assert.Equal(t, []string{"foo"}, c.GetStringMapStrings("map")["foo"])
 }
 
 func TestContextCopy(t *testing.T) {
@@ -420,8 +424,12 @@ func TestContextDefaultQueryOnEmptyRequest(t *testing.T) {
 func TestContextQueryAndPostForm(t *testing.T) {
 	c, _ := CreateTestContext(httptest.NewRecorder())
 	body := bytes.NewBufferString("foo=bar&page=11&both=&foo=second")
-	c.Request, _ = http.NewRequest("POST",
-		"/?both=GET&id=main&id=omit&array[]=first&array[]=second&ids[a]=hi&ids[b]=3.14", body)
+	c.Request, _ = http.NewRequest("POST", "/?both=GET"+
+		"&id=main&id=omit"+
+		"&array[]=first&array[]=second"+
+		"&ids[a]=hi&ids[b]=3.14"+
+		"&nms.a=a1&nms.a=a2"+
+		"&nms.b=b1&nms.b=b2", body)
 	c.Request.Header.Add("Content-Type", MIMEPOSTForm)
 
 	assert.Equal(t, "bar", c.PostForm("foo", "none"))
@@ -490,28 +498,35 @@ func TestContextQueryAndPostForm(t *testing.T) {
 	assert.Equal(t, 1, len(values))
 	assert.Equal(t, "GET", values[0])
 
-	dicts, ok := c.GetQueryMap("ids")
+	dict, ok := c.GetQueryMap("ids")
 	assert.True(t, ok)
-	assert.Equal(t, "hi", dicts["a"])
-	assert.Equal(t, "3.14", dicts["b"])
+	assert.Equal(t, "hi", dict["a"])
+	assert.Equal(t, "3.14", dict["b"])
 
-	dicts, ok = c.GetQueryMap("nokey")
+	dict, ok = c.GetQueryMap("nokey")
 	assert.False(t, ok)
-	assert.Equal(t, 0, len(dicts))
+	assert.Equal(t, 0, len(dict))
 
-	dicts, ok = c.GetQueryMap("both")
+	dict, ok = c.GetQueryMap("both")
 	assert.False(t, ok)
-	assert.Equal(t, 0, len(dicts))
+	assert.Equal(t, 0, len(dict))
 
-	dicts, ok = c.GetQueryMap("array")
+	dict, ok = c.GetQueryMap("array")
 	assert.False(t, ok)
-	assert.Equal(t, 0, len(dicts))
+	assert.Equal(t, 0, len(dict))
 
-	dicts = c.QueryMap("ids")
-	assert.Equal(t, "hi", dicts["a"])
-	assert.Equal(t, "3.14", dicts["b"])
+	dict = c.QueryMap("ids")
+	assert.Equal(t, "hi", dict["a"])
+	assert.Equal(t, "3.14", dict["b"])
 
-	dicts = c.QueryMap("nokey")
+	dict = c.QueryMap("nokey")
+	assert.Equal(t, 0, len(dict))
+
+	dicts := c.QueryMapArray("nms")
+	assert.Equal(t, []string{"a1", "a2"}, dicts["a"])
+	assert.Equal(t, []string{"b1", "b2"}, dicts["b"])
+
+	dicts = c.QueryMapArray("nokey")
 	assert.Equal(t, 0, len(dicts))
 }
 
@@ -590,20 +605,27 @@ func TestContextPostFormMultipart(t *testing.T) {
 	assert.Equal(t, 1, len(values))
 	assert.Equal(t, "bar", values[0])
 
-	dicts, ok := c.GetPostFormMap("names")
+	dict, ok := c.GetPostFormMap("names")
 	assert.True(t, ok)
-	assert.Equal(t, "thinkerou", dicts["a"])
-	assert.Equal(t, "tianou", dicts["b"])
+	assert.Equal(t, "thinkerou", dict["a"])
+	assert.Equal(t, "tianou", dict["b"])
 
-	dicts, ok = c.GetPostFormMap("nokey")
+	dict, ok = c.GetPostFormMap("nokey")
 	assert.False(t, ok)
-	assert.Equal(t, 0, len(dicts))
+	assert.Equal(t, 0, len(dict))
 
-	dicts = c.PostFormMap("names")
-	assert.Equal(t, "thinkerou", dicts["a"])
-	assert.Equal(t, "tianou", dicts["b"])
+	dict = c.PostFormMap("names")
+	assert.Equal(t, "thinkerou", dict["a"])
+	assert.Equal(t, "tianou", dict["b"])
 
-	dicts = c.PostFormMap("nokey")
+	dict = c.PostFormMap("nokey")
+	assert.Equal(t, 0, len(dict))
+
+	dicts := c.PostFormMapArray("name2")
+	assert.Equal(t, []string{"a1", "a2"}, dicts["a"])
+	assert.Equal(t, []string{"b1", "b2"}, dicts["b"])
+
+	dicts = c.PostFormMapArray("nokey")
 	assert.Equal(t, 0, len(dicts))
 }
 

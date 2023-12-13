@@ -331,8 +331,8 @@ func (c *Context) GetDuration(key string) (d time.Duration) {
 	return
 }
 
-// GetStringSlice returns the value associated with the key as a slice of strings.
-func (c *Context) GetStringSlice(key string) (ss []string) {
+// GetStrings returns the value associated with the key as a slice of strings.
+func (c *Context) GetStrings(key string) (ss []string) {
 	if val, ok := c.Get(key); ok && val != nil {
 		ss, _ = val.([]string)
 	}
@@ -355,8 +355,8 @@ func (c *Context) GetStringMapString(key string) (sms map[string]string) {
 	return
 }
 
-// GetStringMapStringSlice returns the value associated with the key as a map to a slice of strings.
-func (c *Context) GetStringMapStringSlice(key string) (smss map[string][]string) {
+// GetStringMapStrings returns the value associated with the key as a map to a slice of strings.
+func (c *Context) GetStringMapStrings(key string) (smss map[string][]string) {
 	if val, ok := c.Get(key); ok && val != nil {
 		smss, _ = val.(map[string][]string)
 	}
@@ -366,6 +366,66 @@ func (c *Context) GetStringMapStringSlice(key string) (smss map[string][]string)
 /************************************/
 /************ INPUT DATA ************/
 /************************************/
+func (c *Context) initQueryCache() {
+	if c.queryCache == nil {
+		if c.Request != nil {
+			c.queryCache = c.Request.URL.Query()
+		} else {
+			c.queryCache = url.Values{}
+		}
+	}
+}
+
+func (c *Context) initFormCache() {
+	if c.formCache == nil {
+		req := c.Request
+		if err := req.ParseMultipartForm(c.engine.MaxMultipartMemory); err != nil {
+			if !errors.Is(err, http.ErrNotMultipart) {
+				c.Logger.Warnf("parse multipart form error: %v", err)
+			}
+		}
+
+		c.formCache = req.PostForm
+		if c.formCache == nil {
+			c.formCache = make(url.Values)
+		}
+	}
+}
+
+// getStringMapFromCache is an internal method and returns a map which satisfy conditions.
+func getStringMapFromCache(cache map[string][]string, key string) (map[string]string, bool) {
+	dict := make(map[string]string)
+	for n, v := range cache {
+		if i := strings.IndexByte(n, '.'); i >= 1 && n[0:i] == key {
+			dict[n[i+1:]] = v[0]
+		} else if i := strings.IndexByte(n, '['); i >= 1 && n[0:i] == key {
+			if j := strings.IndexByte(n[i+1:], ']'); j >= 1 {
+				dict[n[i+1:][:j]] = v[0]
+			}
+		}
+	}
+	return dict, len(dict) > 0
+}
+
+// getStringsMapFromCache is an internal method and returns a map which satisfy conditions.
+func getStringsMapFromCache(cache map[string][]string, key string) (map[string][]string, bool) {
+	dict := make(map[string][]string)
+	for n, v := range cache {
+		k := ""
+		if i := strings.IndexByte(n, '.'); i >= 1 && n[0:i] == key {
+			k = n[i+1:]
+		} else if i := strings.IndexByte(n, '['); i >= 1 && n[0:i] == key {
+			if j := strings.IndexByte(n[i+1:], ']'); j >= 1 {
+				k = n[i+1:][:j]
+			}
+		}
+
+		if k != "" {
+			dict[k] = append(dict[k], v...)
+		}
+	}
+	return dict, len(dict) > 0
+}
 
 // Param returns the value of the URL param.
 // It is a shortcut for c.Params.ByName(key)
@@ -385,6 +445,12 @@ func (c *Context) Param(key string) string {
 // Result: "/user/1"
 func (c *Context) AddParam(key, value string) {
 	c.Params = append(c.Params, Param{Key: key, Value: value})
+}
+
+// Querys returns the url query map
+func (c *Context) Querys() map[string][]string {
+	c.initQueryCache()
+	return c.queryCache
 }
 
 // Query returns the keyed url query value if it exists,
@@ -429,16 +495,6 @@ func (c *Context) QueryArray(key string) (values []string) {
 	return
 }
 
-func (c *Context) initQueryCache() {
-	if c.queryCache == nil {
-		if c.Request != nil {
-			c.queryCache = c.Request.URL.Query()
-		} else {
-			c.queryCache = url.Values{}
-		}
-	}
-}
-
 // GetQueryArray returns a slice of strings for a given query key, plus
 // a boolean value whether at least one value exists for the given key.
 func (c *Context) GetQueryArray(key string) (values []string, ok bool) {
@@ -448,8 +504,8 @@ func (c *Context) GetQueryArray(key string) (values []string, ok bool) {
 }
 
 // QueryMap returns a map for a given query key.
-func (c *Context) QueryMap(key string) (dicts map[string]string) {
-	dicts, _ = c.GetQueryMap(key)
+func (c *Context) QueryMap(key string) (dict map[string]string) {
+	dict, _ = c.GetQueryMap(key)
 	return
 }
 
@@ -457,7 +513,26 @@ func (c *Context) QueryMap(key string) (dicts map[string]string) {
 // whether at least one value exists for the given key.
 func (c *Context) GetQueryMap(key string) (map[string]string, bool) {
 	c.initQueryCache()
-	return c.get(c.queryCache, key)
+	return getStringMapFromCache(c.queryCache, key)
+}
+
+// QueryMapArray returns a map for a given query key.
+func (c *Context) QueryMapArray(key string) (dict map[string][]string) {
+	dict, _ = c.GetQueryMapArray(key)
+	return
+}
+
+// GetQueryMapArray returns a map for a given query key, plus a boolean value
+// whether at least one value exists for the given key.
+func (c *Context) GetQueryMapArray(key string) (map[string][]string, bool) {
+	c.initQueryCache()
+	return getStringsMapFromCache(c.queryCache, key)
+}
+
+// PostForms returns the POST urlencoded form or multipart form value map
+func (c *Context) PostForms() map[string][]string {
+	c.initFormCache()
+	return c.formCache
 }
 
 // PostForm returns the specified key from a POST urlencoded form or multipart form
@@ -477,9 +552,9 @@ func (c *Context) PostForm(key string, defs ...string) string {
 // otherwise it returns ("", false).
 // For example, during a PATCH request to update the user's email:
 //
-//	    email=mail@example.com  -->  ("mail@example.com", true) := GetPostForm("email") // set email to "mail@example.com"
-//		   email=                  -->  ("", true) := GetPostForm("email") // set email to ""
-//	                            -->  ("", false) := GetPostForm("email") // do nothing with email
+// email=mail@example.com  -->  ("mail@example.com", true) := GetPostForm("email")
+// email=                  -->  ("", true) := GetPostForm("email")
+// =                       -->  ("", false) := GetPostForm("email")
 func (c *Context) GetPostForm(key string) (string, bool) {
 	if values, ok := c.GetPostFormArray(key); ok {
 		return values[0], ok
@@ -494,19 +569,6 @@ func (c *Context) PostFormArray(key string) (values []string) {
 	return
 }
 
-func (c *Context) initFormCache() {
-	if c.formCache == nil {
-		c.formCache = make(url.Values)
-		req := c.Request
-		if err := req.ParseMultipartForm(c.engine.MaxMultipartMemory); err != nil {
-			if !errors.Is(err, http.ErrNotMultipart) {
-				c.Logger.Warnf("error on parse multipart form array: %v", err)
-			}
-		}
-		c.formCache = req.PostForm
-	}
-}
-
 // GetPostFormArray returns a slice of strings for a given form key, plus
 // a boolean value whether at least one value exists for the given key.
 func (c *Context) GetPostFormArray(key string) (values []string, ok bool) {
@@ -516,8 +578,8 @@ func (c *Context) GetPostFormArray(key string) (values []string, ok bool) {
 }
 
 // PostFormMap returns a map for a given form key.
-func (c *Context) PostFormMap(key string) (dicts map[string]string) {
-	dicts, _ = c.GetPostFormMap(key)
+func (c *Context) PostFormMap(key string) (dict map[string]string) {
+	dict, _ = c.GetPostFormMap(key)
 	return
 }
 
@@ -525,22 +587,20 @@ func (c *Context) PostFormMap(key string) (dicts map[string]string) {
 // whether at least one value exists for the given key.
 func (c *Context) GetPostFormMap(key string) (map[string]string, bool) {
 	c.initFormCache()
-	return c.get(c.formCache, key)
+	return getStringMapFromCache(c.formCache, key)
 }
 
-// get is an internal method and returns a map which satisfy conditions.
-func (c *Context) get(m map[string][]string, key string) (map[string]string, bool) {
-	dicts := make(map[string]string)
-	for k, v := range m {
-		if i := strings.IndexByte(k, '.'); i >= 1 && k[0:i] == key {
-			dicts[k[i+1:]] = v[0]
-		} else if i := strings.IndexByte(k, '['); i >= 1 && k[0:i] == key {
-			if j := strings.IndexByte(k[i+1:], ']'); j >= 1 {
-				dicts[k[i+1:][:j]] = v[0]
-			}
-		}
-	}
-	return dicts, len(dicts) > 0
+// PostFormMapArray returns a map for a given form key.
+func (c *Context) PostFormMapArray(key string) (dict map[string][]string) {
+	dict, _ = c.GetPostFormMapArray(key)
+	return
+}
+
+// GetPostFormMapArray returns a map for a given form key, plus a boolean value
+// whether at least one value exists for the given key.
+func (c *Context) GetPostFormMapArray(key string) (map[string][]string, bool) {
+	c.initFormCache()
+	return getStringsMapFromCache(c.formCache, key)
 }
 
 // FormFile returns the first file for the provided form key.

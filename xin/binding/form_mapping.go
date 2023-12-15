@@ -145,8 +145,8 @@ func getStructFieldPrefix(prefix string, field reflect.StructField, tag string) 
 }
 
 type setOptions struct {
-	isDefaultExists bool
-	defaultValue    string
+	stripValue   bool
+	defaultValue string
 }
 
 func tryToSetValue(prefix string, value reflect.Value, field reflect.StructField, setter setter, tag string) (isSet bool, err *FieldBindError) {
@@ -167,9 +167,12 @@ func tryToSetValue(prefix string, value reflect.Value, field reflect.StructField
 	var opt string
 	for len(opts) > 0 {
 		opt, opts = head(opts, ",")
-		if k, v := head(opt, "="); k == "default" {
-			setOpts.isDefaultExists = true
+		k, v := head(opt, "=")
+		switch k {
+		case "default":
 			setOpts.defaultValue = v
+		case "strip":
+			setOpts.stripValue = true
 		}
 	}
 
@@ -211,9 +214,15 @@ func setByForm(value reflect.Value, field reflect.StructField, form map[string][
 		if akey != "" {
 			vs, ok = form[akey]
 		}
-		if !ok && !opt.isDefaultExists {
-			return
-		}
+	}
+
+	if ok && opt.stripValue {
+		vs = str.RemoveEmptys(str.Strips(vs))
+		ok = (len(vs) > 0)
+	}
+
+	if !ok && opt.defaultValue == "" {
+		return
 	}
 
 	var err error
@@ -287,7 +296,7 @@ func setWithProperType(val string, value reflect.Value, field reflect.StructFiel
 	case reflect.Float64:
 		return setFloatField(val, 64, value)
 	case reflect.String:
-		value.SetString(val)
+		return setStringField(val, field, value)
 	case reflect.Struct:
 		switch value.Interface().(type) {
 		case time.Time:
@@ -299,7 +308,6 @@ func setWithProperType(val string, value reflect.Value, field reflect.StructFiel
 	default:
 		return errUnknownType
 	}
-	return nil
 }
 
 func setIntField(val string, bitSize int, field reflect.Value) error {
@@ -344,6 +352,11 @@ func setFloatField(val string, bitSize int, field reflect.Value) error {
 		field.SetFloat(floatVal)
 	}
 	return err
+}
+
+func setStringField(val string, structField reflect.StructField, field reflect.Value) error {
+	field.SetString(val)
+	return nil
 }
 
 var timeFormats = []string{time.RFC3339, "2006-01-02 15:04:05", "2006-01-02", "15:04:05"}

@@ -27,37 +27,37 @@ type QueryTest struct {
 }
 
 type FooStruct struct {
-	Foo string `msgpack:"foo" json:"foo" form:"foo" xml:"foo" binding:"required,max=32"`
+	Foo string `msgpack:"foo" json:"foo" form:"foo" xml:"foo" validate:"required,max=32"`
 }
 
 type FooBarStruct struct {
 	FooStruct
-	Bar string `msgpack:"bar" json:"bar" form:"bar" xml:"bar" binding:"required"`
+	Bar string `msgpack:"bar" json:"bar" form:"bar" xml:"bar" validate:"required"`
 }
 
 type FooBarFileStruct struct {
 	FooBarStruct
-	File *multipart.FileHeader `form:"file" binding:"required"`
+	File *multipart.FileHeader `form:"file" validate:"required"`
 }
 
 type FooBarFileFailStruct struct {
 	FooBarStruct
-	File *multipart.FileHeader `invalid_name:"file" binding:"required"`
+	File *multipart.FileHeader `invalid_name:"file" validate:"required"`
 	// for unexport test
-	data *multipart.FileHeader `form:"data" binding:"required"`
+	data *multipart.FileHeader `form:"data" validate:"required"`
 }
 
 type FooDefaultBarStruct struct {
 	FooStruct
-	Bar string `msgpack:"bar" json:"bar" form:"bar,default=hello" xml:"bar" binding:"required"`
+	Bar string `msgpack:"bar" json:"bar" form:"bar,default=hello" xml:"bar" validate:"required"`
 }
 
 type FooStructUseNumber struct {
-	Foo any `json:"foo" binding:"required"`
+	Foo any `json:"foo" validate:"required"`
 }
 
 type FooStructDisallowUnknownFields struct {
-	Foo any `json:"foo" binding:"required"`
+	Foo any `json:"foo" validate:"required"`
 }
 
 type FooBarStructForTimeType struct {
@@ -131,7 +131,7 @@ type FooStructForBoolType struct {
 
 type FooStructForStringPtrType struct {
 	PtrStr *string `form:"ptr_str"`
-	PtrNum *int    `form:"ptr_num" binding:"required"`
+	PtrNum *int    `form:"ptr_num" validate:"required"`
 }
 
 type FooStructForMapPtrType struct {

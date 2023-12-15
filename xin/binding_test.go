@@ -16,7 +16,7 @@ func requestWithBody(method, path, body string) (req *http.Request) {
 }
 
 type FooStruct struct {
-	Foo string `msgpack:"foo" json:"foo" form:"foo" xml:"foo" binding:"required,max=32"`
+	Foo string `msgpack:"foo" json:"foo" form:"foo" xml:"foo" validate:"required,max=32"`
 }
 
 var vd = validate.NewStructValidator()
@@ -32,7 +32,7 @@ func TestValidationFails(t *testing.T) {
 
 func TestRequiredSucceeds(t *testing.T) {
 	type HogeStruct struct {
-		Hoge *int `json:"hoge" binding:"required"`
+		Hoge *int `json:"hoge" validate:"required"`
 	}
 
 	var obj HogeStruct
@@ -45,7 +45,7 @@ func TestRequiredSucceeds(t *testing.T) {
 
 func TestRequiredFails(t *testing.T) {
 	type HogeStruct struct {
-		Hoge *int `json:"foo" binding:"required"`
+		Hoge *int `json:"foo" validate:"required"`
 	}
 
 	var obj HogeStruct

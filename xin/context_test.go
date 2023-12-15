@@ -1667,10 +1667,10 @@ func TestContextBadAutoBind(t *testing.T) {
 
 func TestContextBindBodyWith(t *testing.T) {
 	type typeA struct {
-		Foo string `json:"foo" xml:"foo" binding:"required"`
+		Foo string `json:"foo" xml:"foo" validate:"required"`
 	}
 	type typeB struct {
-		Bar string `json:"bar" xml:"bar" binding:"required"`
+		Bar string `json:"bar" xml:"bar" validate:"required"`
 	}
 	for _, tt := range []struct {
 		name               string

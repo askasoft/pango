@@ -99,8 +99,8 @@ func TestJoinPaths(t *testing.T) {
 }
 
 type bindTestStruct struct {
-	Foo string `form:"foo" binding:"required"`
-	Bar int    `form:"bar" binding:"min=4"`
+	Foo string `form:"foo" validate:"required"`
+	Bar int    `form:"bar" validate:"min=4"`
 }
 
 func TestMustBindMiddleware(t *testing.T) {

@@ -26,8 +26,8 @@ type StructValidator interface {
 
 // NewStructValidator is the default validator which implements the StructValidator interface.
 func NewStructValidator() StructValidator {
-	v := &defaultValidator{}
-	v.engine = vad.New()
-	v.engine.SetTagName("binding")
+	v := &defaultValidator{
+		engine: vad.New(),
+	}
 	return v
 }

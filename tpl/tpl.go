@@ -10,6 +10,7 @@ import (
 
 	"github.com/askasoft/pango/num"
 	"github.com/askasoft/pango/ref"
+	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/tpl/funcs"
 )
 
@@ -98,18 +99,26 @@ func Functions() FuncMap {
 		"Comma":     funcs.Comma,
 		"HumanSize": funcs.HumanSize,
 
-		// Math
+		// math
 		"Add":      funcs.Add,
 		"Subtract": funcs.Subtract,
 		"Multiply": funcs.Multiply,
 		"Divide":   funcs.Divide,
 
-		// Convert
+		// string
+		"StartsWith": str.StartsWith,
+		"EndsWith":   str.EndsWith,
+		"Contains":   str.Contains,
+		"Split":      str.Split,
+		"Fields":     str.Fields,
+		"FieldsAny":  str.FieldsAny,
+
+		// convert
 		"Atoi": num.Atoi,
 		"Atol": num.Atol,
 		"Atof": num.Atof,
 
-		// Collection
+		// collection
 		"Strings":  funcs.Strings,
 		"Array":    funcs.Array,
 		"ArrayGet": ref.ArrayGet,

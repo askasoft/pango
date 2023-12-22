@@ -1,9 +1,10 @@
 package openai
 
-import (
-	"encoding/json"
-
-	"github.com/askasoft/pango/bye"
+const (
+	RoleUser      = "user"
+	RoleSystem    = "system"
+	RoleFunction  = "function"
+	RoleAssistant = "assistant"
 )
 
 type ChatMessage struct {
@@ -88,29 +89,31 @@ type ChatCompeletionRequest struct {
 }
 
 func (cc *ChatCompeletionRequest) String() string {
-	bs, err := json.MarshalIndent(cc, "", "  ")
-	if err != nil {
-		return err.Error()
-	}
-	return bye.UnsafeString(bs)
+	return toJSONIndent(cc)
 }
 
 type ChatChoice struct {
-	Index        int         `json:"index,omitempty"`
-	Message      ChatMessage `json:"message,omitempty"`
-	FinishReason string      `json:"finish_reason,omitempty"`
+	Index        int         `json:"index"`
+	Message      ChatMessage `json:"message"`
+	FinishReason string      `json:"finish_reason"`
 }
 
 type ChatUsage struct {
-	PromtTokens      int `json:"prompt_tokens,omitempty"`
-	CompletionTokens int `json:"completion_tokens,omitempty"`
-	TotalTokens      int `json:"total_tokens,omitempty"`
+	PromptTokens     int `json:"prompt_tokens"`
+	CompletionTokens int `json:"completion_tokens"`
+	TotalTokens      int `json:"total_tokens"`
 }
 
 type ChatCompeletionResponse struct {
-	ID      string       `json:"id,omitempty"`
-	Object  string       `json:"object,omitempty"`
-	Created int64        `json:"created,omitempty"`
-	Choices []ChatChoice `json:"choices,omitempty"`
-	Usage   *ChatUsage   `json:"usage,omitempty"`
+	ID                string       `json:"id,omitempty"`
+	Object            string       `json:"object,omitempty"`
+	Created           int64        `json:"created,omitempty"`
+	Model             string       `json:"model,omitempty"`
+	SystemFingerprint string       `json:"system_fingerprint,omitempty"`
+	Choices           []ChatChoice `json:"choices,omitempty"`
+	Usage             ChatUsage    `json:"usage,omitempty"`
+}
+
+func (cc *ChatCompeletionResponse) String() string {
+	return toJSONIndent(cc)
 }

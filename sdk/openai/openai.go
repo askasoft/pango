@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/sdk"
@@ -16,6 +17,18 @@ import (
 const (
 	contentTypeJSON = `application/json; charset="utf-8"`
 )
+
+func toJSONIndent(o any) string {
+	if o == nil {
+		return ""
+	}
+
+	bs, err := json.MarshalIndent(o, "", "  ")
+	if err != nil {
+		return err.Error()
+	}
+	return bye.UnsafeString(bs)
+}
 
 type OpenAI struct {
 	Domain string
@@ -135,6 +148,15 @@ func (oai *OpenAI) CreateChatCompletion(req *ChatCompeletionRequest) (*ChatCompe
 	url := oai.endpoint("/chat/completions")
 
 	res := &ChatCompeletionResponse{}
+	err := oai.doPostWithRetry(url, req, res)
+	return res, err
+}
+
+// https://platform.openai.com/docs/api-reference/embeddings/create
+func (oai *OpenAI) CreateTextEmbeddings(req *TextEmbeddingsRequest) (*TextEmbeddingsResponse, error) {
+	url := oai.endpoint("/embeddings")
+
+	res := &TextEmbeddingsResponse{}
 	err := oai.doPostWithRetry(url, req, res)
 	return res, err
 }

@@ -18,12 +18,12 @@ import (
 // AccessLogTimeFormat default log time format
 const AccessLogTimeFormat = "2006-01-02T15:04:05.000"
 
-// AccessLogTextFormat default log format
-// TIME STATUS LATENCY LENGTH CLIENT_IP REMOTE_ADDR LISTEN METHOD HOST URL
-const AccessLogTextFormat = "text:%t\t%S\t%T\t%L\t%c\t%r\t%A\t%m\t%h\t%u%n"
+// AccessLogTextFormat default text log format
+// TIME STATUS LATENCY SIZE CLIENT_IP REMOTE_ADDR METHOD HOST URL HEADER(User-Agent)
+const AccessLogTextFormat = "text:%t\t%S\t%T\t%B\t%c\t%r\t%m\t%h\t%u\t%h{User-Agent}%n"
 
-// AccessLogJSONFormat default log format
-const AccessLogJSONFormat = `json:{"when": %t, "status": %S, "latency": %T, "length": %L, "clientIP": %c, "remoteAddr": %r, "listen": %A, "method": %m, "host": %h, "url": %u}%n`
+// AccessLogJSONFormat default json log format
+const AccessLogJSONFormat = `json:{"when": %t, "status": %S, "latency": %T, "size": %B, "client_ip": %c, "remote_addr": %r, "method": %m, "host": %h, "url": %u, "user_agent": %h{User-Agent}}%n`
 
 // AccessLogger access loger for XIN
 type AccessLogger struct {
@@ -52,7 +52,7 @@ func DefaultAccessLogger(xin *xin.Engine) *AccessLogger {
 //
 //	%t{format} - Request start time, if {format} is omitted, '2006-01-02T15:04:05.000' is used.
 //	%c - Client IP ([X-Forwarded-For, X-Real-Ip] or RemoteIP())
-//	%r - Remote IP:Port
+//	%r - Remote IP:Port (%a)
 //	%u - Request URL
 //	%p - Request protocol
 //	%m - Request method (GET, POST, etc.)
@@ -62,7 +62,7 @@ func DefaultAccessLogger(xin *xin.Engine) *AccessLogger {
 //	%A - Server listen address
 //	%T - Time taken to process the request, in milliseconds
 //	%S - HTTP status code of the response
-//	%L - Response body length
+//	%B - Response body length (%L)
 //	%H{name} - Response header
 //	%n: EOL(Windows: "\r\n", Other: "\n")
 func NewAccessLogger(outputer io.Writer, format string) *AccessLogger {
@@ -152,7 +152,7 @@ func parseTextFormat(format string) []fmtfunc {
 		switch format[i] {
 		case 'c':
 			fmt = clientIP
-		case 'r':
+		case 'r', 'a':
 			fmt = remoteAddr
 		case 'u':
 			fmt = requestURL
@@ -181,7 +181,7 @@ func parseTextFormat(format string) []fmtfunc {
 			fmt = statusCode
 		case 'T':
 			fmt = latency
-		case 'L':
+		case 'B', 'L':
 			fmt = responseBodyLen
 		case 'H':
 			p := getFormatOption(format, &i)
@@ -231,7 +231,7 @@ func parseJSONFormat(format string) []fmtfunc {
 		switch format[i] {
 		case 'c':
 			fmt = quotefmtc(clientIP)
-		case 'r':
+		case 'r', 'a':
 			fmt = quotefmtc(remoteAddr)
 		case 'u':
 			fmt = quotefmtc(requestURL)
@@ -261,7 +261,7 @@ func parseJSONFormat(format string) []fmtfunc {
 			fmt = statusCode
 		case 'T':
 			fmt = latency
-		case 'L':
+		case 'B', 'L':
 			fmt = responseBodyLen
 		case 'H':
 			p := getFormatOption(format, &i)

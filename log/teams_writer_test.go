@@ -5,8 +5,7 @@ import (
 	"testing"
 )
 
-// Test teams log
-func TestTeamsLog(t *testing.T) {
+func TestTeamsWriter(t *testing.T) {
 	wh := os.Getenv("TEAMS_WEBHOOK")
 	if wh == "" {
 		skipTest(t, "TEAMS_WEBHOOK not set")

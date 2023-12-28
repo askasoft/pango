@@ -62,7 +62,7 @@ func (ll *LogFilter) Reject(le *Event) bool {
 
 type LogFormatter struct {
 	Formatter Formatter    // log formatter
-	bb        bytes.Buffer // log buffer
+	Buffer    bytes.Buffer // log buffer
 }
 
 // SetFormat set the log formatter
@@ -71,23 +71,38 @@ func (lf *LogFormatter) SetFormat(format string) {
 }
 
 // Format format the log event
-func (lf *LogFormatter) Format(le *Event) []byte {
+func (lf *LogFormatter) GetFormatter(le *Event, df ...Formatter) Formatter {
 	f := lf.Formatter
 	if f == nil {
 		f = le.Logger.GetFormatter()
 		if f == nil {
-			f = TextFmtDefault
+			if len(df) > 0 {
+				f = df[0]
+			} else {
+				f = TextFmtDefault
+			}
 		}
 	}
+	return f
+}
 
-	lf.bb.Reset()
-	f.Write(&lf.bb, le)
-	return lf.bb.Bytes()
+// Format format the log event
+func (lf *LogFormatter) Format(le *Event, df ...Formatter) []byte {
+	f := lf.GetFormatter(le, df...)
+	lf.Buffer.Reset()
+	f.Write(&lf.Buffer, le)
+	return lf.Buffer.Bytes()
+}
+
+// Append format the log event and append to buffer
+func (lf *LogFormatter) Append(le *Event, df ...Formatter) {
+	f := lf.GetFormatter(le, df...)
+	f.Write(&lf.Buffer, le)
 }
 
 type SubFormatter struct {
 	Subjecter Formatter    // log formatter
-	sbb       bytes.Buffer // log buffer
+	SubBuffer bytes.Buffer // log buffer
 }
 
 // SetSubject set the subject formatter
@@ -102,7 +117,7 @@ func (sf *SubFormatter) SubFormat(le *Event) []byte {
 		f = TextFmtDefault
 	}
 
-	sf.sbb.Reset()
-	f.Write(&sf.sbb, le)
-	return sf.sbb.Bytes()
+	sf.SubBuffer.Reset()
+	f.Write(&sf.SubBuffer, le)
+	return sf.SubBuffer.Bytes()
 }

@@ -61,7 +61,7 @@ func assertLogConfig(t *testing.T, log *Log) {
 		t.Fatalf("Not MultiWriter")
 	}
 
-	assertLogEqual(t, `len(mw.Writers)`, 8, len(mw.Writers))
+	assertLogEqual(t, `len(mw.Writers)`, 9, len(mw.Writers))
 
 	i := 0
 	{
@@ -219,9 +219,9 @@ func assertLogConfig(t *testing.T, log *Log) {
 
 	i++
 	{
-		aw, ok := mw.Writers[i].(*AsyncWriter)
+		aw, ok := mw.Writers[i].(*FailoverWriter)
 		if !ok {
-			t.Fatalf("Not AsyncWriter")
+			t.Fatalf("Not FailoverWriter")
 		}
 
 		w, ok := aw.writer.(*WebhookWriter)
@@ -242,6 +242,38 @@ func assertLogConfig(t *testing.T, log *Log) {
 			t.Fatalf("Not LevelFilter")
 		}
 		assertLogEqual(t, `f.Level`, LevelFatal, f.Level)
+	}
+
+	i++
+	{
+		aw, ok := mw.Writers[i].(*AsyncWriter)
+		if !ok {
+			t.Fatalf("Not AsyncWriter")
+		}
+
+		w, ok := aw.writer.(*WebhookBatchWriter)
+		if !ok {
+			t.Fatalf("Not WebhookBatchWriter")
+		}
+		assertLogEqual(t, `w.Webhook`, "http://localhost:9200/pango/blogs", w.Webhook)
+		assertLogEqual(t, `w.ContentType`, "application/json", w.ContentType)
+		assertLogEqual(t, `w.Timeout`, time.Second*5, w.Timeout)
+
+		jf, ok := w.Formatter.(*JSONFormatter)
+		if jf == nil || !ok {
+			t.Fatalf("Not JSONFormatter")
+		}
+
+		f, ok := w.Filter.(*LevelFilter)
+		if !ok {
+			t.Fatalf("Not LevelFilter")
+		}
+		assertLogEqual(t, `f.Level`, LevelDebug, f.Level)
+
+		assertLogEqual(t, `w.BatchCount`, 5, w.BatchCount)
+		assertLogEqual(t, `w.CacheCount`, 10, w.CacheCount)
+		assertLogEqual(t, `w.FlushLevel`, LevelError, w.FlushLevel)
+		assertLogEqual(t, `w.FlushDelta`, time.Second*60, w.FlushDelta)
 	}
 }
 

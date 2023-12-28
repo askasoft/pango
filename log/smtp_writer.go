@@ -41,11 +41,11 @@ func (sw *SMTPWriter) SetCc(s string) {
 
 // SetTimeout set timeout
 func (sw *SMTPWriter) SetTimeout(timeout string) error {
-	tmo, err := time.ParseDuration(timeout)
+	td, err := time.ParseDuration(timeout)
 	if err != nil {
-		return fmt.Errorf("SMTPWriter - Invalid timeout: %w", err)
+		return fmt.Errorf("SMTPWriter - Invalid timeout '%s': %w", timeout, err)
 	}
-	sw.Timeout = tmo
+	sw.Timeout = td
 	return nil
 }
 

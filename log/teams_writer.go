@@ -23,7 +23,7 @@ type TeamsWriter struct {
 func (tw *TeamsWriter) SetWebhook(webhook string) error {
 	_, err := url.ParseRequestURI(webhook)
 	if err != nil {
-		return fmt.Errorf("TeamsWriter - Invalid webhook: %w", err)
+		return fmt.Errorf("TeamsWriter - Invalid webhook '%s': %w", webhook, err)
 	}
 	tw.Webhook = webhook
 	return nil
@@ -31,11 +31,11 @@ func (tw *TeamsWriter) SetWebhook(webhook string) error {
 
 // SetTimeout set timeout
 func (tw *TeamsWriter) SetTimeout(timeout string) error {
-	tmo, err := time.ParseDuration(timeout)
+	td, err := time.ParseDuration(timeout)
 	if err != nil {
-		return fmt.Errorf("TeamsWriter - Invalid timeout: %w", err)
+		return fmt.Errorf("TeamsWriter - Invalid timeout '%s': %w", timeout, err)
 	}
-	tw.Timeout = tmo
+	tw.Timeout = td
 	return nil
 }
 

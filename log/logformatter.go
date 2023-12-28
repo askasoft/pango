@@ -76,7 +76,7 @@ func NewTextFormatter(format string) *TextFormatter {
 
 func newTextFormatter(format string) *TextFormatter {
 	tf := &TextFormatter{}
-	tf.Init(format)
+	tf.SetFormat(format)
 	return tf
 }
 
@@ -105,7 +105,7 @@ func NewJSONFormatter(format string) *JSONFormatter {
 
 func newJSONFormatter(format string) *JSONFormatter {
 	jf := &JSONFormatter{}
-	jf.Init(format)
+	jf.SetFormat(format)
 	return jf
 }
 
@@ -119,8 +119,8 @@ func (tf *TextFormatter) Write(w io.Writer, le *Event) {
 	write(w, le, tf.fmts)
 }
 
-// Init initialize the text formatter
-func (tf *TextFormatter) Init(format string) {
+// SetFormat initialize the text formatter
+func (tf *TextFormatter) SetFormat(format string) {
 	fmts := make([]fmtfunc, 0, 10)
 
 	s := 0
@@ -221,8 +221,8 @@ func (jf *JSONFormatter) Write(w io.Writer, le *Event) {
 	write(w, le, jf.fmts)
 }
 
-// Init initialize the json formatter
-func (jf *JSONFormatter) Init(format string) {
+// SetFormat initialize the json formatter
+func (jf *JSONFormatter) SetFormat(format string) {
 	fmts := make([]fmtfunc, 0, 10)
 
 	s := 0

@@ -5,8 +5,7 @@ import (
 	"testing"
 )
 
-// Test slack log
-func TestSlackLog(t *testing.T) {
+func TestSlackWriter(t *testing.T) {
 	wh := os.Getenv("SLACK_WEBHOOK")
 	if wh == "" {
 		skipTest(t, "SLACK_WEBHOOK not set")

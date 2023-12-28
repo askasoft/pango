@@ -54,9 +54,9 @@ func (cw *ConnWriter) Write(le *Event) (err error) {
 			return
 		}
 
-		_, err = cw.conn.Write(cw.bb.Bytes())
+		_, err = cw.conn.Write(cw.Buffer.Bytes())
 		if err != nil {
-			err = fmt.Errorf("ConnWriter(%s:%s) - Write([%d]): %w", cw.Net, cw.Addr, len(cw.bb.Bytes()), err)
+			err = fmt.Errorf("ConnWriter(%s:%s) - Write([%d]): %w", cw.Net, cw.Addr, cw.Buffer.Len(), err)
 			cw.Close()
 		}
 	}

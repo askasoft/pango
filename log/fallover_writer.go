@@ -3,11 +3,12 @@ package log
 // NewFailoverWriter create a failover writer
 func NewFailoverWriter(w Writer, bufSize int) *FailoverWriter {
 	fw := &FailoverWriter{writer: w}
-	fw.evtbuf = &EventBuffer{BufSize: bufSize}
+	fw.evtbuf = NewEventBuffer(bufSize)
 	return fw
 }
 
-// FailoverWriter implements log Writer Interface and send log message to webhook.
+// FailoverWriter wraps a log writer, cache log event if underlying log writer write failed.
+// Resend the cached log events to the underlying log writer when the next log event come.
 type FailoverWriter struct {
 	writer Writer
 	evtbuf *EventBuffer
@@ -32,7 +33,7 @@ func (fw *FailoverWriter) Write(le *Event) error {
 
 // flush flush buffered event
 func (fw *FailoverWriter) flush() error {
-	for le := fw.evtbuf.Peek(); le != nil; le = fw.evtbuf.Peek() {
+	for le, ok := fw.evtbuf.Peek(); ok; le, ok = fw.evtbuf.Peek() {
 		if err := fw.writer.Write(le); err != nil {
 			perror(err)
 			return err

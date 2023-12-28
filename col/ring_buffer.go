@@ -209,17 +209,21 @@ func (rb *RingBuffer) RetainCol(ac Collection) {
 // Values returns a slice contains all the items of the RingBuffer rb
 func (rb *RingBuffer) Values() []T {
 	if rb.len == 0 {
-		return []T{}
+		return rb.data[:0]
 	}
 
 	if rb.head <= rb.tail {
 		return rb.data[rb.head : rb.tail+1]
 	}
 
-	a := make([]T, rb.len)
-	copy(a, rb.data[rb.head:])
-	copy(a[rb.len-rb.tail-1:], rb.data[0:rb.tail+1])
-	return a
+	data := make([]T, len(rb.data))
+	copy(data, rb.data[rb.head:])
+	copy(data[rb.len-rb.tail-1:], rb.data[0:rb.tail+1])
+
+	rb.head = 0
+	rb.tail = rb.len - 1
+	rb.data = data
+	return rb.data[0:rb.len]
 }
 
 // Each call f for each item in the RingBuffer

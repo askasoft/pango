@@ -604,24 +604,39 @@ func (c *Context) GetPostFormMapArray(key string) (map[string][]string, bool) {
 }
 
 // FormFile returns the first file for the provided form key.
-func (c *Context) FormFile(name string) (*multipart.FileHeader, error) {
+func (c *Context) FormFile(key string) (*multipart.FileHeader, error) {
+	mf, err := c.MultipartForm()
+	if err != nil {
+		return nil, err
+	}
+
+	if fs := mf.File[key]; len(fs) > 0 {
+		return fs[0], nil
+	}
+	return nil, http.ErrMissingFile
+}
+
+// FormFiles returns the files for the provided form key.
+func (c *Context) FormFiles(key string) ([]*multipart.FileHeader, error) {
+	mf, err := c.MultipartForm()
+	if err != nil {
+		return nil, err
+	}
+
+	if fs := mf.File[key]; len(fs) > 0 {
+		return fs, nil
+	}
+	return nil, http.ErrMissingFile
+}
+
+// MultipartForm is the parsed multipart form, including file uploads.
+func (c *Context) MultipartForm() (*multipart.Form, error) {
 	if c.Request.MultipartForm == nil {
 		if err := c.Request.ParseMultipartForm(c.engine.MaxMultipartMemory); err != nil {
 			return nil, err
 		}
 	}
-	f, fh, err := c.Request.FormFile(name)
-	if err != nil {
-		return nil, err
-	}
-	f.Close()
-	return fh, err
-}
-
-// MultipartForm is the parsed multipart form, including file uploads.
-func (c *Context) MultipartForm() (*multipart.Form, error) {
-	err := c.Request.ParseMultipartForm(c.engine.MaxMultipartMemory)
-	return c.Request.MultipartForm, err
+	return c.Request.MultipartForm, nil
 }
 
 // SaveUploadedFile uploads the form file to specific dst.

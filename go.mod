@@ -5,6 +5,7 @@ go 1.20
 require github.com/stretchr/testify v1.8.4
 
 require (
+	github.com/google/uuid v1.5.0
 	golang.org/x/sys v0.15.0
 	gorm.io/driver/postgres v1.5.4
 	gorm.io/gorm v1.25.5

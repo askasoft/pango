@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/ars"
-	"github.com/askasoft/pango/fsu"
+	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/iox"
 )
 
@@ -23,6 +23,11 @@ func TestLoadFileBom(t *testing.T) {
 	fexp := "testdata/expect.ini"
 	fout := "testdata/output-bom.ini"
 	testLoadFile(t, fsrc, fexp, fout)
+}
+
+func testReadString(filename string) string {
+	bs, _ := os.ReadFile(filename)
+	return bye.UnsafeString(bs)
 }
 
 func testLoadFile(t *testing.T, fsrc, fexp, fout string) {
@@ -81,7 +86,7 @@ func testLoadFile(t *testing.T, fsrc, fexp, fout string) {
 	}
 
 	// expected file
-	sexp, _ := fsu.ReadString(fexp)
+	sexp := testReadString(fexp)
 
 	// write data
 	{
@@ -102,7 +107,7 @@ func testLoadFile(t *testing.T, fsrc, fexp, fout string) {
 			t.Errorf(`ini.WriteFile(fout) = %v`, werr)
 		}
 
-		sout, _ := fsu.ReadString(fout)
+		sout := testReadString(fout)
 		if sexp != sout {
 			t.Errorf(`ini.WriteFile(fout)\n actual: %v\n   want: %v`, fout, sexp)
 		}
@@ -161,7 +166,7 @@ func TestIniCopy(t *testing.T) {
 	i1.Copy(i2)
 
 	// expected file
-	sexp, _ := fsu.ReadString(fexp)
+	sexp := testReadString(fexp)
 
 	// write data
 	{
@@ -197,7 +202,7 @@ func TestIniMerge(t *testing.T) {
 	i1.Merge(i2)
 
 	// expected file
-	sexp, _ := fsu.ReadString(fexp)
+	sexp := testReadString(fexp)
 
 	// write data
 	{

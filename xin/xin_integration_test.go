@@ -91,7 +91,7 @@ func TestRunTLS(t *testing.T) {
 
 func TestPusher(t *testing.T) {
 	router := New()
-	router.Static("./assets", "./assets")
+	Static(router, "./assets", "./assets")
 
 	go func() {
 		router.GET("/pusher", func(c *Context) {

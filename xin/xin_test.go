@@ -7,7 +7,6 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"reflect"
 	"strconv"
 	"sync/atomic"
@@ -55,52 +54,6 @@ func testRunTLS(engine *Engine, address, certFile, keyFile string) (err error) {
 	err = server.ListenAndServeTLS(certFile, keyFile)
 	if err != nil {
 		engine.Logger.Errorf("Listen and serve HTTPs on %s failed: %v", address, err)
-	}
-	return
-}
-
-// testRunUnix attaches the router to a http.Server and starts listening and serving HTTP requests
-// through the specified unix socket (i.e. a file).
-// Note: this method will block the calling goroutine indefinitely unless an error happens.
-func testRunUnix(engine *Engine, file string) (err error) {
-	engine.Logger.Infof("Listening and serving HTTP on unix:/%s", file)
-
-	var listener net.Listener
-	listener, err = net.Listen("unix", file)
-	if err != nil {
-		engine.Logger.Errorf("Listen on unix:/%s failed: %v", file, err)
-		return
-	}
-	defer listener.Close()
-	defer os.Remove(file)
-
-	server := testNewHttpServer(engine)
-	err = server.Serve(listener)
-	if err != nil {
-		engine.Logger.Errorf("Serve on unix:/%s failed: %v", file, err)
-	}
-	return
-}
-
-// testRunFd attaches the router to a http.Server and starts listening and serving HTTP requests
-// through the specified file descriptor.
-// Note: this method will block the calling goroutine indefinitely unless an error happens.
-func testRunFd(engine *Engine, fd int) (err error) {
-	engine.Logger.Infof("Listening and serving HTTP on fd@%d", fd)
-
-	var listener net.Listener
-
-	f := os.NewFile(uintptr(fd), fmt.Sprintf("fd@%d", fd))
-	listener, err = net.FileListener(f)
-	if err != nil {
-		engine.Logger.Errorf("Listen on fd@%d failed: %v", fd, err)
-		return
-	}
-	defer listener.Close()
-
-	err = testRunListener(engine, listener)
-	if err != nil {
-		engine.Logger.Errorf("Listen on fd@%d failed: %v", fd, err)
 	}
 	return
 }
@@ -422,7 +375,7 @@ func TestListOfRoutes(t *testing.T) {
 		group.GET("/:id", handlerTest1)
 		group.POST("/:id", handlerTest2)
 	}
-	router.Static("/static", ".")
+	Static(router, "/static", ".")
 
 	list := router.Routes()
 

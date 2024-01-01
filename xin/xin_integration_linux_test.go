@@ -13,6 +13,29 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// testRunUnix attaches the router to a http.Server and starts listening and serving HTTP requests
+// through the specified unix socket (i.e. a file).
+// Note: this method will block the calling goroutine indefinitely unless an error happens.
+func testRunUnix(engine *Engine, file string) (err error) {
+	engine.Logger.Infof("Listening and serving HTTP on unix:/%s", file)
+
+	var listener net.Listener
+	listener, err = net.Listen("unix", file)
+	if err != nil {
+		engine.Logger.Errorf("Listen on unix:/%s failed: %v", file, err)
+		return
+	}
+	defer listener.Close()
+	defer os.Remove(file)
+
+	server := testNewHttpServer(engine)
+	err = server.Serve(listener)
+	if err != nil {
+		engine.Logger.Errorf("Serve on unix:/%s failed: %v", file, err)
+	}
+	return
+}
+
 func TestUnixSocket(t *testing.T) {
 	router := New()
 
@@ -44,6 +67,29 @@ func TestUnixSocket(t *testing.T) {
 func TestBadUnixSocket(t *testing.T) {
 	router := New()
 	assert.Error(t, testRunUnix(router, "#/tmp/unix_unit_test"))
+}
+
+// testRunFd attaches the router to a http.Server and starts listening and serving HTTP requests
+// through the specified file descriptor.
+// Note: this method will block the calling goroutine indefinitely unless an error happens.
+func testRunFd(engine *Engine, fd int) (err error) {
+	engine.Logger.Infof("Listening and serving HTTP on fd@%d", fd)
+
+	var listener net.Listener
+
+	f := os.NewFile(uintptr(fd), fmt.Sprintf("fd@%d", fd))
+	listener, err = net.FileListener(f)
+	if err != nil {
+		engine.Logger.Errorf("Listen on fd@%d failed: %v", fd, err)
+		return
+	}
+	defer listener.Close()
+
+	err = testRunListener(engine, listener)
+	if err != nil {
+		engine.Logger.Errorf("Listen on fd@%d failed: %v", fd, err)
+	}
+	return
 }
 
 func TestFileDescriptor(t *testing.T) {

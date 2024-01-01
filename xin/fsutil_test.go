@@ -12,9 +12,31 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestRouterInvalidStatic(t *testing.T) {
+	router := New()
+	assert.Panics(t, func() {
+		Static(router, "/path/:param", "/")
+	})
+
+	assert.Panics(t, func() {
+		Static(router, "/path/*param", "/")
+	})
+}
+
+func TestRouterInvalidStaticFile(t *testing.T) {
+	router := New()
+	assert.Panics(t, func() {
+		StaticFile(router, "/path/:param", "favicon.ico")
+	})
+
+	assert.Panics(t, func() {
+		StaticFile(router, "/path/*param", "favicon.ico")
+	})
+}
+
 func TestRouterStaticFSNotFound(t *testing.T) {
 	router := New()
-	router.StaticFS("/", "", http.Dir("/thisreallydoesntexist/"))
+	StaticFS(router, "/", http.Dir("/thisreallydoesntexist/"), "")
 	router.NoRoute(func(c *Context) {
 		c.String(404, "non existent")
 	})
@@ -31,7 +53,7 @@ func TestRouterStaticFSNotFound(t *testing.T) {
 func TestRouterStaticFSFileNotFound(t *testing.T) {
 	router := New()
 
-	router.StaticFS("/", "", http.Dir("."))
+	StaticFS(router, "/", http.Dir("."), "")
 
 	assert.NotPanics(t, func() {
 		performRequest(router, http.MethodGet, "/nonexistent")
@@ -48,7 +70,7 @@ func TestMiddlewareCalledOnceByRouterStaticFSNotFound(t *testing.T) {
 		middlewareCalledNum++
 	})
 
-	router.StaticFS("/", "", http.Dir("/thisreallydoesntexist/"))
+	StaticFS(router, "/", http.Dir("/thisreallydoesntexist/"), "")
 
 	// First access
 	performRequest(router, http.MethodGet, "/nonexistent")
@@ -76,8 +98,8 @@ func TestRouteStaticFile(t *testing.T) {
 
 	// SETUP xin
 	router := New()
-	router.Static("/using_static", dir)
-	router.StaticFile("/result", f.Name())
+	Static(router, "/using_static", dir)
+	StaticFile(router, "/result", f.Name())
 
 	w := performRequest(router, http.MethodGet, "/using_static/"+filename)
 	w2 := performRequest(router, http.MethodGet, "/result")
@@ -97,7 +119,8 @@ func TestRouteStaticFile(t *testing.T) {
 // TestHandleStaticDir - ensure the root/sub dir handles properly
 func TestRouteStaticListingDir(t *testing.T) {
 	router := New()
-	router.StaticFS("/", "", http.Dir("./"))
+
+	StaticFS(router, "/", http.Dir("./"), "")
 
 	w := performRequest(router, http.MethodGet, "/")
 
@@ -124,7 +147,8 @@ func TestRouterMiddlewareAndStatic(t *testing.T) {
 		c.Writer.Header().Add("Expires", "Mon, 02 Jan 2006 15:04:05 MST")
 		c.Writer.Header().Add("X-XIN", "Xin Framework")
 	})
-	static.Static("/", "./")
+
+	Static(static, "/", "./")
 
 	w := performRequest(router, http.MethodGet, "/xin.go")
 
@@ -162,27 +186,27 @@ func testGetFile(t *testing.T, r *Engine, path string, cache string) {
 
 func TestRouterStatic(t *testing.T) {
 	r := Default()
-	r.Static("/", "testdata", "private")
+	Static(r, "/", "testdata", NewCacheControlSetter("private").WrapWriter)
 	testGetFile(t, r, "/root1.txt", "private")
 	testGetFile(t, r, "/files/file1.txt", "private")
 }
 
 func TestRouterStaticFile(t *testing.T) {
 	r := Default()
-	r.StaticFile("/root1.txt", "testdata/root1.txt", "public")
+	StaticFile(r, "/root1.txt", "testdata/root1.txt", NewCacheControlSetter("public").WrapWriter)
 	testGetFile(t, r, "/root1.txt", "public")
 }
 
 func TestRouterStaticFS_AppendPrefix(t *testing.T) {
 	r := Default()
-	r.StaticFS("", "/testdata", FS(testdata), "private")
+	StaticFS(r, "", FS(testdata), "/testdata", NewCacheControlSetter("private").WrapWriter)
 	testGetFile(t, r, "/root1.txt", "private")
 	testGetFile(t, r, "/files/file1.txt", "private")
 }
 
 func TestRouterStaticFS_AppendPrefix2(t *testing.T) {
 	r := Default()
-	r.StaticFS("/", "/testdata", FS(testdata), "private")
+	StaticFS(r, "/", FS(testdata), "/testdata", NewCacheControlSetter("private").WrapWriter)
 	testGetFile(t, r, "/root1.txt", "private")
 	testGetFile(t, r, "/files/file1.txt", "private")
 }
@@ -191,14 +215,14 @@ func TestRouterStaticFS_StripPrefix(t *testing.T) {
 	r := Default()
 	g := r.Group("/web")
 
-	g.StaticFS("/", "", FS(testdata), "private")
+	StaticFS(g, "/", FS(testdata), "", NewCacheControlSetter("private").WrapWriter)
 	testGetFile(t, r, "/web/testdata/root1.txt", "private")
 	testGetFile(t, r, "/web/testdata/files/file1.txt", "private")
 }
 
 func TestRouterStaticFS_URLReplace(t *testing.T) {
-	r := Default()
-	r.StaticFS("/data", "/testdata", FS(testdata), "private")
+	r := New()
+	StaticFS(r, "/data", FS(testdata), "/testdata", NewCacheControlSetter("private").WrapWriter)
 	testGetFile(t, r, "/data/root1.txt", "private")
 	testGetFile(t, r, "/data/files/file1.txt", "private")
 }
@@ -206,19 +230,19 @@ func TestRouterStaticFS_URLReplace(t *testing.T) {
 func TestRouterStaticFS_URLReplace2(t *testing.T) {
 	r := Default()
 	g := r.Group("web")
-	g.StaticFS("/", "/testdata", FS(testdata), "private")
+	StaticFS(g, "/", FS(testdata), "/testdata", NewCacheControlSetter("private").WrapWriter)
 	testGetFile(t, r, "/web/root1.txt", "private")
 	testGetFile(t, r, "/web/files/file1.txt", "private")
 }
 
 func TestRouterStaticFSFile(t *testing.T) {
 	r := Default()
-	r.StaticFSFile("/root1.txt", "testdata/root1.txt", FS(testdata), "public")
+	StaticFSFile(r, "/root1.txt", FS(testdata), "testdata/root1.txt", NewCacheControlSetter("public").WrapWriter)
 	testGetFile(t, r, "/root1.txt", "public")
 }
 
 func TestRouterStaticContent(t *testing.T) {
 	r := Default()
-	r.StaticContent("/files/file1.txt", file1, time.Now(), "no-store")
+	StaticContent(r, "/files/file1.txt", file1, time.Now(), NewCacheControlSetter("no-store").WrapWriter)
 	testGetFile(t, r, "/files/file1.txt", "no-store")
 }

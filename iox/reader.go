@@ -1,6 +1,8 @@
 package iox
 
-import "os"
+import (
+	"os"
+)
 
 // FileReader a file reader
 type FileReader struct {

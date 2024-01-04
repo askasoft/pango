@@ -1,36 +1,27 @@
 package xmw
 
 import (
-	"io"
+	"net/http"
 
+	"github.com/askasoft/pango/iox"
+	"github.com/askasoft/pango/net/httpx"
 	"github.com/askasoft/pango/xin"
 )
 
-// MaxBytesError is returned by MaxBytesReader when its read limit is exceeded.
-type MaxBytesError struct {
-	Limit int64
-}
-
-func (e *MaxBytesError) Error() string {
-	// Due to Hyrum's law, this text cannot be changed.
-	return "http: request body too large"
-}
-
 // RequestLimiter http request limit middleware
 type RequestLimiter struct {
-	MaxBodySize int64
+	MaxBodySize  int64
+	DrainBody    bool // drain request body if we are under apache, otherwise the apache will return 502 Bad Gateway
+	BodyTooLarge func(c *xin.Context, maxBodySize int64)
 }
 
-// NewRequestLimiter create a default RequestLimiter
-func NewRequestLimiter(maxBodySize int64) *RequestLimiter {
-	return &RequestLimiter{MaxBodySize: maxBodySize}
-}
-
-func MaxBytesReader(c *xin.Context, r io.ReadCloser, n int64) io.ReadCloser {
-	if n <= 0 {
-		return r
+// NewRequestLimiter create a default RequestLimiter middleware
+func NewRequestLimiter(maxBodySize int64, bodyTooLarge ...func(c *xin.Context, maxBodySize int64)) *RequestLimiter {
+	rl := &RequestLimiter{MaxBodySize: maxBodySize}
+	if len(bodyTooLarge) > 0 {
+		rl.BodyTooLarge = bodyTooLarge[0]
 	}
-	return &maxBytesReader{c: c, r: r, i: n, n: n}
+	return rl
 }
 
 // Handler returns the xin.HandlerFunc
@@ -40,49 +31,38 @@ func (rl *RequestLimiter) Handler() xin.HandlerFunc {
 
 // Handle process xin request
 func (rl *RequestLimiter) Handle(c *xin.Context) {
-	if rl.MaxBodySize > 0 {
-		c.Request.Body = MaxBytesReader(c, c.Request.Body, rl.MaxBodySize)
-	}
-	c.Next()
-}
-
-type maxBytesReader struct {
-	c   *xin.Context
-	r   io.ReadCloser // underlying reader
-	i   int64         // max bytes initially, for MaxBytesError
-	n   int64         // max bytes remaining
-	err error         // sticky error
-}
-
-func (l *maxBytesReader) Read(p []byte) (n int, err error) {
-	if l.err != nil {
-		return 0, l.err
-	}
-	if len(p) == 0 {
-		return 0, nil
-	}
-	// If they asked for a 32KB byte read but only 5 bytes are
-	// remaining, no need to read 32KB. 6 bytes will answer the
-	// question of the whether we hit the limit or go past it.
-	if int64(len(p)) > l.n+1 {
-		p = p[:l.n+1]
-	}
-	n, err = l.r.Read(p)
-
-	if int64(n) <= l.n {
-		l.n -= int64(n)
-		l.err = err
-		return n, err
+	if rl.MaxBodySize <= 0 {
+		c.Next()
+		return
 	}
 
-	n = int(l.n)
-	l.n = 0
+	var err error
 
-	l.err = &MaxBytesError{l.i}
-	l.c.AddError(l.err)
-	return n, l.err
-}
+	if c.Request.ContentLength > rl.MaxBodySize {
+		err = &httpx.MaxBytesError{Limit: rl.MaxBodySize}
+	} else {
+		crb := c.Request.Body
+		mbr := httpx.NewMaxBytesReader(crb, rl.MaxBodySize)
+		c.Request.Body = mbr
+		c.Next()
+		c.Request.Body = crb
 
-func (l *maxBytesReader) Close() error {
-	return l.r.Close()
+		err = mbr.Error()
+	}
+
+	if err != nil {
+		if mbe, ok := err.(*httpx.MaxBytesError); ok { //nolint: errorlint
+			if rl.DrainBody {
+				iox.Drain(c.Request.Body)
+			}
+
+			btl := rl.BodyTooLarge
+			if btl != nil {
+				btl(c, rl.MaxBodySize)
+			} else {
+				c.String(http.StatusBadRequest, mbe.Error())
+				c.Abort()
+			}
+		}
+	}
 }

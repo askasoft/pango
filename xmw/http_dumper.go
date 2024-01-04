@@ -51,7 +51,6 @@ func (hd *HTTPDumper) Handle(c *xin.Context) {
 		return
 	}
 
-	// dump request
 	id := hd.dumpRequest(w, c.Request)
 
 	dw := &httpDumpWriter{c.Writer, &http.Response{
@@ -59,12 +58,11 @@ func (hd *HTTPDumper) Handle(c *xin.Context) {
 		ProtoMajor: c.Request.ProtoMajor,
 		ProtoMinor: c.Request.ProtoMinor,
 	}, &bytes.Buffer{}}
+
 	c.Writer = dw
 
-	// process request
 	c.Next()
 
-	// dump response
 	hd.dumpResponse(w, id, dw)
 }
 

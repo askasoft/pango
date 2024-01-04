@@ -44,7 +44,6 @@ func (al *AccessLogger) Handle(c *xin.Context) {
 
 	alc := &AccessLogCtx{Start: time.Now(), Ctx: c}
 
-	// process request
 	c.Next()
 
 	alc.End = time.Now()

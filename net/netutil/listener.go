@@ -5,6 +5,8 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
+	"time"
 )
 
 // ListenerDumper a listener dump utility
@@ -17,8 +19,7 @@ type ListenerDumper struct {
 	SendSuffix string
 	Timestamp  bool
 
-	disabled bool   // disable the dumper
-	sequence uint32 // accepted conn sequence
+	disabled bool // disable the dumper
 }
 
 // DumpListener wrap a net.conn for dump
@@ -51,15 +52,14 @@ func (ld *ListenerDumper) Accept() (conn net.Conn, err error) {
 }
 
 func (ld *ListenerDumper) dump(conn net.Conn) net.Conn {
-	ld.sequence++
-
 	err := os.MkdirAll(ld.Path, os.FileMode(0770))
 	if err != nil {
 		// ignore the dump error
 		return conn
 	}
 
-	fn := filepath.Join(ld.Path, fmt.Sprintf("%08d.log", ld.sequence))
+	fn := fmt.Sprintf("%s_%s.log", time.Now().Format("20060102150405.999999999"), strings.ReplaceAll(conn.RemoteAddr().String(), ":", "_"))
+	fn = filepath.Join(ld.Path, fn)
 	file, err := os.OpenFile(fn, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(0660))
 	if err != nil {
 		// ignore the dump error

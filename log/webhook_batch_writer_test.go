@@ -60,10 +60,12 @@ func TestWebhookBatchWriter(t *testing.T) {
 		Username:    "admin",
 		Password:    "admin",
 		Timeout:     time.Millisecond * 300,
-		CacheCount:  6,
-		BatchCount:  3,
-		FlushLevel:  LevelWarn,
-		FlushDelta:  time.Second,
+		BatchWriter: BatchWriter{
+			CacheCount: 6,
+			BatchCount: 3,
+			FlushLevel: LevelWarn,
+			FlushDelta: time.Second,
+		},
 	}
 
 	ww.Filter = NewLevelFilter(LevelDebug)

@@ -1,6 +1,3 @@
-//go:build go1.18
-// +build go1.18
-
 package log
 
 import (
@@ -18,6 +15,7 @@ import (
 type WebhookBatchWriter struct {
 	LogFilter
 	LogFormatter
+	BatchWriter
 
 	Webhook     string // webhook URL
 	Method      string // http method
@@ -26,13 +24,8 @@ type WebhookBatchWriter struct {
 	Password    string // basic auth password
 	ContentType string
 	Timeout     time.Duration
-	CacheCount  int           // max cacheable event count
-	BatchCount  int           // messages send batch count
-	FlushLevel  Level         // flush events if event <= FlushLevel
-	FlushDelta  time.Duration // flush events if [current log event time] - [first log event time] >= FlushDelta
 
-	evtbuf *EventBuffer
-	hc     *http.Client
+	hc *http.Client
 }
 
 // SetWebhook set the webhook URL
@@ -55,51 +48,16 @@ func (wbw *WebhookBatchWriter) SetTimeout(timeout string) error {
 	return nil
 }
 
-// SetFlushLevel set the flush level
-func (wbw *WebhookBatchWriter) SetFlushLevel(lvl string) {
-	wbw.FlushLevel = ParseLevel(lvl)
-}
-
-func (wbw *WebhookBatchWriter) init() {
-	if wbw.BatchCount < 1 {
-		wbw.BatchCount = 10
-	}
-	if wbw.CacheCount < wbw.BatchCount {
-		wbw.CacheCount = wbw.BatchCount * 2
-	}
-
-	if wbw.evtbuf == nil {
-		wbw.evtbuf = NewEventBuffer(wbw.CacheCount)
-	}
-}
-
-func (wbw *WebhookBatchWriter) shouldFlush(le *Event) bool {
-	if wbw.evtbuf.Len() >= wbw.BatchCount {
-		return true
-	}
-	if le.Level <= wbw.FlushLevel {
-		return true
-	}
-	if wbw.FlushDelta > 0 && wbw.evtbuf.Len() > 1 {
-		if fle, ok := wbw.evtbuf.Peek(); ok {
-			if le.When.Sub(fle.When) >= wbw.FlushDelta {
-				return true
-			}
-		}
-	}
-	return false
-}
-
 // Write cache log message, flush if needed
 func (wbw *WebhookBatchWriter) Write(le *Event) error {
 	if wbw.Reject(le) {
 		return nil
 	}
 
-	wbw.init()
-	wbw.evtbuf.Push(le)
+	wbw.InitBuffer()
+	wbw.EventBuffer.Push(le)
 
-	if wbw.shouldFlush(le) {
+	if wbw.ShouldFlush(le) {
 		wbw.Flush()
 	}
 
@@ -108,12 +66,12 @@ func (wbw *WebhookBatchWriter) Write(le *Event) error {
 
 // Flush flush cached events
 func (wbw *WebhookBatchWriter) Flush() {
-	if wbw.evtbuf.IsEmpty() {
+	if wbw.EventBuffer.IsEmpty() {
 		return
 	}
 
 	if err := wbw.flush(); err == nil {
-		wbw.evtbuf.Clear()
+		wbw.EventBuffer.Clear()
 	} else {
 		perror(err)
 	}
@@ -137,7 +95,8 @@ func (wbw *WebhookBatchWriter) flush() error {
 	}
 
 	wbw.Buffer.Reset()
-	for _, le := range wbw.evtbuf.Values() {
+	for it := wbw.EventBuffer.Iterator(); it.Next(); {
+		le := it.Value()
 		lf := wbw.GetFormatter(le, JSONFmtDefault)
 		lf.Write(&wbw.Buffer, le)
 	}

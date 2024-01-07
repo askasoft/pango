@@ -1,4 +1,4 @@
-package xwm
+package xfu
 
 import (
 	"mime"

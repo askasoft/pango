@@ -49,16 +49,18 @@ func SaveUploadedFile(c *xin.Context, dir string, file *multipart.FileHeader) (*
 }
 
 func CleanOutdatedFiles(log log.Logger, dir string, due time.Time) {
+	log.Debugf("CleanOutdatedFiles('%s', '%v')", dir, due)
+
 	f, err := os.Open(dir)
 	if err != nil {
-		log.Errorf("Open(%s) failed: %v", dir, err)
+		log.Errorf("Open('%s') failed: %v", dir, err)
 		return
 	}
 	defer f.Close()
 
 	des, err := f.ReadDir(-1)
 	if err != nil {
-		log.Error("ReadDir(%s) failed: %v", dir, err)
+		log.Error("ReadDir('%s') failed: %v", dir, err)
 		return
 	}
 
@@ -68,25 +70,25 @@ func CleanOutdatedFiles(log log.Logger, dir string, due time.Time) {
 		if de.IsDir() {
 			CleanOutdatedFiles(log, path, due)
 			if err := fsu.DirIsEmpty(path); err != nil {
-				log.Errorf("DirIsEmpty(%s) failed: %v", path, err)
+				log.Errorf("DirIsEmpty('%s') failed: %v", path, err)
 			} else {
 				if err := os.Remove(path); err != nil {
-					log.Errorf("Remove(%s) failed: %v", path, err)
+					log.Errorf("Remove('%s') failed: %v", path, err)
 				} else {
-					log.Debugf("Remove(%s) OK", path)
+					log.Debugf("Remove('%s') OK", path)
 				}
 			}
 			continue
 		}
 
 		if fi, err := de.Info(); err != nil {
-			log.Errorf("DirEntry(%s).Info() failed: %v", path, err)
+			log.Errorf("DirEntry('%s').Info() failed: %v", path, err)
 		} else {
 			if fi.ModTime().Before(due) {
 				if err := os.Remove(path); err != nil {
-					log.Errorf("Remove(%s) failed: %v", path, err)
+					log.Errorf("Remove('%s') failed: %v", path, err)
 				} else {
-					log.Debugf("Remove(%s) OK", path)
+					log.Debugf("Remove('%s') OK", path)
 				}
 			}
 		}

@@ -11,12 +11,27 @@ func Default() *Scheduler {
 	return _sch
 }
 
-// Schedule schedule a task
-func Schedule(trigger Trigger, callback func()) {
-	_sch.Schedule(trigger, callback)
+// Schedule schedule a task and start it
+func Schedule(name string, trigger Trigger, callback func()) {
+	_sch.Schedule(name, trigger, callback)
 }
 
-// Shutdown stop all task
-func Shutdown() {
-	_sch.Shutdown()
+// Start start all task
+func Start() {
+	_sch.Start()
+}
+
+// Stop stop all task
+func Stop() {
+	_sch.Stop()
+}
+
+// GetTask get task by task name
+func GetTask(name string) (*Task, bool) {
+	return _sch.GetTask(name)
+}
+
+// AddTask add a task
+func AddTask(task *Task) {
+	_sch.AddTask(task)
 }

@@ -31,6 +31,18 @@ type CronSequencer struct {
 	months      [13]bool
 }
 
+func NewCronSequencer(cron string) *CronSequencer {
+	cs := &CronSequencer{}
+	if err := cs.Parse(cron); err != nil {
+		panic(err)
+	}
+	return cs
+}
+
+func (cs *CronSequencer) Cron() string {
+	return cs.expression
+}
+
 // Parse parse the cron exception
 // ┌───────────── second (0 - 59)
 // │ ┌───────────── minute (0 - 59)

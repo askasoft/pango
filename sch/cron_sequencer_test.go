@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-const testTimeFormat = "2006-01-02T15:04:05"
+const cronTimeFormat = "2006-01-02T15:04:05"
 
 func testCronSequencer(t *testing.T, cron string, sdt string, ns []string) {
 	cs := &CronSequencer{}
@@ -14,11 +14,11 @@ func testCronSequencer(t *testing.T, cron string, sdt string, ns []string) {
 		t.Fatal(err)
 	}
 
-	d, _ := time.Parse(testTimeFormat, sdt)
+	d, _ := time.Parse(cronTimeFormat, sdt)
 
 	for i, sw := range ns {
 		d = cs.Next(d)
-		sa := d.Format(testTimeFormat)
+		sa := d.Format(cronTimeFormat)
 		if sw != sa {
 			t.Errorf("[%d] Got %v, want %v", i, sa, sw)
 		}

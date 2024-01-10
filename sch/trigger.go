@@ -6,6 +6,15 @@ type Trigger interface {
 	NextExecutionTime(task *Task) time.Time
 }
 
+var ZeroTrigger = &zeroTrigger{}
+
+type zeroTrigger struct {
+}
+
+func (zt *zeroTrigger) NextExecutionTime(task *Task) (zero time.Time) {
+	return
+}
+
 type DelayedTrigger struct {
 	Delay time.Duration
 }
@@ -31,10 +40,19 @@ func (pt *PeriodicTrigger) NextExecutionTime(task *Task) time.Time {
 	}
 
 	if pt.FixedRate {
-		return task.ScheduledTime.Add(pt.Period)
+		for {
+			st := task.ScheduledTime.Add(pt.Period)
+			if st.After(task.CompletionTime) {
+				return st
+			}
+		}
 	}
 
-	return task.CompletionTime.Add(pt.Period)
+	date := task.CompletionTime
+	if date.IsZero() {
+		date = time.Now()
+	}
+	return date.Add(pt.Period)
 }
 
 type CronTrigger struct {
@@ -59,8 +77,7 @@ func (ct *CronTrigger) NextExecutionTime(task *Task) time.Time {
 
 func NewCronTrigger(cron string) *CronTrigger {
 	ct := &CronTrigger{}
-	err := ct.Parse(cron)
-	if err != nil {
+	if err := ct.Parse(cron); err != nil {
 		panic(err)
 	}
 	return ct

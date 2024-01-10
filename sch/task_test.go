@@ -8,34 +8,103 @@ import (
 	"github.com/askasoft/pango/log"
 )
 
-func testPeriodicTriggerTask(t *testing.T, logger log.Logger) {
+const testTimeFormat = "2006-01-02T15:04:05.000"
+
+func TestPeriodicTriggerTask(t *testing.T) {
 	cnt := 0
 	task := Task{
-		Logger:  logger,
-		Trigger: &PeriodicTrigger{Period: time.Second},
+		Logger:  log.NewLog().GetLogger("TASK"),
+		Trigger: &PeriodicTrigger{Period: time.Millisecond * 500},
 		Callback: func() {
 			cnt++
 			fmt.Printf("[%d] call %s\n", cnt, time.Now().Format(testTimeFormat))
 			if cnt > 1 {
-				panic("panic for stop task")
+				panic("panic test")
 			}
 		},
 	}
 	task.Start()
 
-	time.Sleep(time.Second * 3)
+	time.Sleep(time.Millisecond * 600)
 	if cnt != 2 {
 		t.Errorf("task execute count = %d, want 2", cnt)
 	}
-	if task.Stop() {
-		t.Error("task timer still active")
+	task.Stop()
+}
+
+func TestPeriodicTriggerTaskStop(t *testing.T) {
+	cnt := 0
+	task := Task{
+		Logger:  log.NewLog().GetLogger("TASK"),
+		Trigger: &PeriodicTrigger{Period: time.Millisecond * 500},
+		Callback: func() {
+			cnt++
+			fmt.Printf("[%d] call %s\n", cnt, time.Now().Format(testTimeFormat))
+			time.Sleep(time.Second)
+		},
+	}
+	task.Start()
+
+	time.Sleep(time.Millisecond * 1100)
+	fmt.Println("stop timer")
+	task.Stop()
+
+	time.Sleep(time.Millisecond * 1500)
+	if cnt != 1 {
+		t.Errorf("task execute count = %d, want 1", cnt)
 	}
 }
 
-func TestPeriodicTriggerTask(t *testing.T) {
-	testPeriodicTriggerTask(t, nil)
+func TestPeriodicTriggerTaskStopStart(t *testing.T) {
+	cnt := 0
+	task := Task{
+		Logger:  log.NewLog().GetLogger("TASK"),
+		Trigger: &PeriodicTrigger{Period: time.Millisecond * 300},
+		Callback: func() {
+			cnt++
+			fmt.Printf("[%d] begin %s\n", cnt, time.Now().Format(testTimeFormat))
+			time.Sleep(time.Millisecond * 900)
+			fmt.Printf("[%d]  end  %s\n", cnt, time.Now().Format(testTimeFormat))
+			time.Sleep(time.Millisecond * 100)
+		},
+	}
+	task.Start()
+
+	time.Sleep(time.Millisecond * 100)
+	fmt.Println("stop timer")
+	task.Stop()
+
+	fmt.Println("start timer")
+	task.Start()
+
+	time.Sleep(time.Millisecond * 1000)
+	if cnt != 1 {
+		t.Errorf("task execute count = %d, want 1", cnt)
+	}
+
+	task.Stop()
+	time.Sleep(time.Millisecond * 1000)
 }
 
-func TestPeriodicTriggerTaskWithLog(t *testing.T) {
-	testPeriodicTriggerTask(t, log.NewLog().GetLogger("TASK"))
+func TestFixedRatePeriodicTriggerTask(t *testing.T) {
+	cnt := 0
+	task := Task{
+		Logger:  log.NewLog().GetLogger("TASK"),
+		Trigger: &PeriodicTrigger{Period: time.Millisecond * 400, FixedRate: true},
+		Callback: func() {
+			cnt++
+			fmt.Printf("[%d] call %s\n", cnt, time.Now().Format(testTimeFormat))
+			time.Sleep(time.Second)
+		},
+	}
+	task.Start()
+
+	time.Sleep(time.Millisecond * 1100)
+	fmt.Println("stop timer")
+	task.Stop()
+
+	time.Sleep(time.Millisecond * 1500)
+	if cnt != 1 {
+		t.Errorf("task execute count = %d, want 1", cnt)
+	}
 }

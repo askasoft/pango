@@ -3,25 +3,37 @@ package sch
 import (
 	"sync"
 
+	"github.com/askasoft/pango/cog"
 	"github.com/askasoft/pango/log"
 )
 
 // Scheduler task scheduler
 type Scheduler struct {
-	Logger log.Logger // Error logger
-	tasks  []*Task
+	Logger log.Logger
+	tasks  *cog.TreeMap[string, *Task]
 	mutex  sync.Mutex
 }
 
-func (s *Scheduler) addTask(task *Task) {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-	s.tasks = append(s.tasks, task)
+// GetTask get task by task name
+func (s *Scheduler) GetTask(name string) (*Task, bool) {
+	return s.tasks.Get(name)
 }
 
-// Schedule schedule a task
-func (s *Scheduler) Schedule(trigger Trigger, callback func()) {
+// AddTask add a task
+func (s *Scheduler) AddTask(task *Task) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	if s.tasks == nil {
+		s.tasks = cog.NewTreeMap[string, *Task](cog.CompareString)
+	}
+	s.tasks.Set(task.Name, task)
+}
+
+// Schedule schedule a task and start it
+func (s *Scheduler) Schedule(name string, trigger Trigger, callback func()) {
 	task := &Task{
+		Name:     name,
 		Logger:   s.Logger,
 		Trigger:  trigger,
 		Callback: callback,
@@ -29,15 +41,25 @@ func (s *Scheduler) Schedule(trigger Trigger, callback func()) {
 
 	task.Start()
 
-	s.addTask(task)
+	s.AddTask(task)
 }
 
-// Shutdown stop all task
-func (s *Scheduler) Shutdown() {
+// Start start all tasks
+func (s *Scheduler) Start() {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	for _, t := range s.tasks {
-		t.Stop()
+	for it := s.tasks.Iterator(); it.Next(); {
+		it.Value().Start()
+	}
+}
+
+// Stop stop all tasks
+func (s *Scheduler) Stop() {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	for it := s.tasks.Iterator(); it.Next(); {
+		it.Value().Stop()
 	}
 }

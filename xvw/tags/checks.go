@@ -12,9 +12,10 @@ func ChecksRender(args ...any) (any, error) {
 }
 
 type ChecksRenderer struct {
-	Name  string
-	List  Iterator
-	Value []string
+	Name     string
+	List     Iterator
+	Value    []string
+	Disabled bool
 }
 
 func (sr *ChecksRenderer) TagName() string {
@@ -56,6 +57,10 @@ func (sr *ChecksRenderer) writeCheckbox(sb *strings.Builder, key, text string, c
 	if checked {
 		a.Set("checked", "")
 	}
+	if sr.Disabled {
+		a.Set("disabled", "")
+	}
+
 	TagStartClose(sb, "input", a)
 
 	sb.WriteString(html.EscapeString(text))

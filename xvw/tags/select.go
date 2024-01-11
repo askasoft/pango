@@ -10,9 +10,10 @@ func SelectRender(args ...any) (any, error) {
 }
 
 type SelectRenderer struct {
-	Name  string
-	List  Iterator
-	Value string
+	Name     string
+	List     Iterator
+	Value    string
+	Disabled bool
 }
 
 func (sr *SelectRenderer) TagName() string {
@@ -28,6 +29,9 @@ func (sr *SelectRenderer) Render(sb *strings.Builder, args ...any) error {
 
 	a.Class("form-control ui-select")
 	a.Name(sr.Name)
+	if sr.Disabled {
+		a.Set("disabled", "")
+	}
 
 	TagStart(sb, "select", a)
 

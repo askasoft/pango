@@ -10,9 +10,10 @@ func RadiosRender(args ...any) (any, error) {
 }
 
 type RadiosRenderer struct {
-	Name  string
-	List  Iterator
-	Value string
+	Name     string
+	List     Iterator
+	Value    string
+	Disabled bool
 }
 
 func (rr *RadiosRenderer) TagName() string {
@@ -54,6 +55,10 @@ func (rr *RadiosRenderer) writeRadio(sb *strings.Builder, key, text string, chec
 	if checked {
 		a.Set("checked", "")
 	}
+	if rr.Disabled {
+		a.Set("disabled", "")
+	}
+
 	TagStartClose(sb, "input", a)
 
 	sb.WriteString(html.EscapeString(text))

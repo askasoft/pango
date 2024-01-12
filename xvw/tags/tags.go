@@ -24,28 +24,36 @@ func TagRender(tr TagRenderer, args ...any) (any, error) {
 }
 
 func TagSetAttrs(tr TagRenderer, attrs Attrs, args []any) error {
-	if len(args)&1 != 0 {
-		return errors.New(tr.TagName() + ": invalid arguments")
-	}
-
-	for i := 0; i < len(args); i += 2 {
+	for i := 0; i < len(args); i++ {
 		key, ok := args[i].(string)
 		if !ok || key == "" {
 			return errors.New(tr.TagName() + ": key must be non-empty string")
 		}
 
-		key = str.TrimSuffix(key, "=")
+		var val any
+		if str.EndsWithByte(key, '=') {
+			key = key[:len(key)-1]
+			if key == "" {
+				return errors.New(tr.TagName() + ": key must be non-empty string")
+			}
 
-		val := args[i+1]
-		if val == nil {
-			continue
+			i++
+			if i < len(args) {
+				val = args[i]
+			}
 		}
 
 		if unicode.IsUpper(rune(key[0])) {
-			err := ref.SetProperty(tr, key, val)
-			if err != nil {
-				return err
+			if val != nil {
+				if err := ref.SetProperty(tr, key, val); err != nil {
+					return err
+				}
 			}
+			continue
+		}
+
+		if val == nil {
+			attrs.Set(key, "")
 			continue
 		}
 

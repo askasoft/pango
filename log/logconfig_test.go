@@ -224,11 +224,11 @@ func assertLogConfig(t *testing.T, log *Log) {
 			t.Fatalf("Not FailoverWriter")
 		}
 
-		w, ok := aw.writer.(*WebhookWriter)
+		w, ok := aw.writer.(*HTTPWriter)
 		if !ok {
-			t.Fatalf("Not WebhookWriter")
+			t.Fatalf("Not HTTPWriter")
 		}
-		assertLogEqual(t, `w.Webhook`, "http://localhost:9200/pango/logs", w.Webhook)
+		assertLogEqual(t, `w.Webhook`, "http://localhost:9200/pango_logs/_doc", w.URL)
 		assertLogEqual(t, `w.ContentType`, "application/json", w.ContentType)
 		assertLogEqual(t, `w.Timeout`, time.Second*5, w.Timeout)
 
@@ -251,11 +251,11 @@ func assertLogConfig(t *testing.T, log *Log) {
 			t.Fatalf("Not AsyncWriter")
 		}
 
-		w, ok := aw.writer.(*WebhookBatchWriter)
+		w, ok := aw.writer.(*HTTPWriter)
 		if !ok {
-			t.Fatalf("Not WebhookBatchWriter")
+			t.Fatalf("Not HTTPWriter")
 		}
-		assertLogEqual(t, `w.Webhook`, "http://localhost:9200/pango/blogs", w.Webhook)
+		assertLogEqual(t, `w.URL`, "http://localhost:9200/pango_logs/_bulk", w.URL)
 		assertLogEqual(t, `w.ContentType`, "application/json", w.ContentType)
 		assertLogEqual(t, `w.Timeout`, time.Second*5, w.Timeout)
 

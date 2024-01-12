@@ -103,17 +103,43 @@ Configure like this:
 	log.Error("error")
 ```
 
-#### Webhook writer
+#### HTTP writer
 
 Configure like this:
 
 ```golang
 	log := log.NewLog()
-	log.SetWriter(log.NewSyncWriter(&log.WebhookWriter{
-		Webhook: "http://localhost:9200/pango/logs",
+	hw := &log.HTTPWriter{
+		URL: "http://localhost:9200/pango_logs/_doc",
 		ContentType: "application/json",
 		Timeout: time.Second*5,
-	}))
+	}
+	hw.SetFormat(`json:{"when": %t{2006-01-02T15:04:05.000Z07:00}, "level": %l, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
+
+	log.SetWriter(log.NewSyncWriter(hw))
+	log.Fatal("fatal error!")
+```
+
+#### HTTP batch writer
+
+Configure like this:
+
+```golang
+	log := log.NewLog()
+	hw := &log.HTTPWriter{
+		URL: "http://localhost:9200/pango_logs/_bulk",
+		ContentType: "application/json",
+		Timeout: time.Second*5,
+		BatchWriter: BatchWriter{
+			CacheCount: 6,
+			BatchCount: 3,
+			FlushLevel: LevelWarn,
+			FlushDelta: time.Second,
+		},
+	}
+	hw.SetFormat(`json:{"create": {}}%n{"when": %t{2006-01-02T15:04:05.000Z07:00}, "level": %l, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
+
+	log.SetWriter(log.NewSyncWriter(hw))
 	log.Fatal("fatal error!")
 ```
 
@@ -124,12 +150,12 @@ Configure like this:
 ```golang
 	log := log.NewLog()
 	fw := &log.FileWriter{Path:"test.log"}
-	ww := &log.WebhookWriter{
-		Webhook: "http://localhost:9200/pango/logs",
+	hw := &log.HTTPWriter{
+		URL: "http://localhost:9200/pango_logs/_doc",
 		ContentType: "application/json",
 		Timeout: time.Second*5,
 	}
-	log.SetWriter(log.NewSyncWriter(log.NewMultiWriter(fw, ww)))
+	log.SetWriter(log.NewSyncWriter(log.NewMultiWriter(fw, hw)))
 	log.Fatal("fatal error!")
 ```
 
@@ -140,12 +166,12 @@ Configure like this:
 
 ```golang
 	log := log.NewLog()
-	ww := &log.WebhookWriter{
-		Webhook: "http://localhost:9200/pango/logs",
+	hw := &log.HTTPWriter{
+		URL: "http://localhost:9200/pango_logs/_doc",
 		ContentType: "application/json",
 		Timeout: time.Second*5,
 	}
-	log.SetWriter(log.NewAsyncWriter(ww, 1000))
+	log.SetWriter(log.NewAsyncWriter(hw, 1000))
 	log.Fatal("fatal error!")
 ```
 
@@ -237,12 +263,17 @@ timeout = 5s
 format = %l - %m%n%T
 filter = level:error
 
-### webhook writer ###
-[writer.webhook]
+### opensearch writer ###
+[writer.opensearch]
+_ = http
 _async = 1000
-webhook = http://localhost:9200/pango/logs
+url = http://localhost:9200/pango_logs/_bulk
 contentType = application/json
 timeout = 5s
-format = json:{"when":%t{2006-01-02T15:04:05.000Z07:00}, "level":%l, "file":%S, "line":%L, "func":%F, "msg": %m, "stack": %T}%n
-filter = level:error
+batchCount = 10
+cacheCount = 20
+flushLevel = ERROR
+flushDelta = 5s
+format = json:{"create": {}}%n{"when": %t{2006-01-02T15:04:05.000Z07:00}, "level": %l, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n
+filter = level:debug
 ```

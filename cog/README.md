@@ -335,8 +335,8 @@ type Map[K any, V any] interface {
 	// on that key prior to the call to `Set`.
 	SetIfAbsent(key K, value V) (ov V, ok bool)
 
-	// SetPairs set items from key-value items array, override the existing items
-	SetPairs(pairs ...P[K, V])
+	// SetEntries set items from key-value items array, override the existing items
+	SetEntries(pairs ...P[K, V])
 
 	// Copy copy items from another map am, override the existing items
 	Copy(am Map[K, V])
@@ -360,6 +360,9 @@ type Map[K any, V any] interface {
 
 	// Values returns a slice contains all the items of the collection
 	Values() []V
+
+	// Entries returns the key-value pair slice
+	Entries() []P[K, V]
 
 	Eachable2[K, V]
 }

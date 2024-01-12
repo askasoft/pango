@@ -9,7 +9,7 @@ import (
 // NewHashMap creates a new HashMap.
 func NewHashMap(kvs ...P) *HashMap {
 	hm := &HashMap{}
-	hm.SetPairs(kvs...)
+	hm.SetEntries(kvs...)
 	return hm
 }
 
@@ -89,8 +89,8 @@ func (hm *HashMap) SetIfAbsent(key K, value V) (ov V, ok bool) {
 	return
 }
 
-// SetPairs set items from key-value items array, override the existing items
-func (hm *HashMap) SetPairs(pairs ...P) {
+// SetEntries set items from key-value items array, override the existing items
+func (hm *HashMap) SetEntries(pairs ...P) {
 	setMapPairs(hm, pairs...)
 }
 
@@ -172,6 +172,17 @@ func (hm *HashMap) Values() []V {
 		i++
 	}
 	return vs
+}
+
+// Entries returns the key-value pair slice
+func (hm *HashMap) Entries() []P {
+	ps := make([]P, hm.Len())
+	i := 0
+	for k, v := range hm.hash {
+		ps[i] = P{k, v}
+		i++
+	}
+	return ps
 }
 
 // Each call f for each item(k,v) in the map

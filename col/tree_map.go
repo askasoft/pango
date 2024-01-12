@@ -10,7 +10,7 @@ import (
 // Example: NewTreeMap(CompareString, []P{{"k1", "v1"}, {"k2", "v2"}}...)
 func NewTreeMap(compare Compare, kvs ...P) *TreeMap {
 	tm := &TreeMap{compare: compare}
-	tm.SetPairs(kvs...)
+	tm.SetEntries(kvs...)
 	return tm
 }
 
@@ -68,6 +68,15 @@ func (tm *TreeMap) Values() []V {
 		vs[i] = n.value
 	}
 	return vs
+}
+
+// Entries returns the key-value pair slice
+func (tm *TreeMap) Entries() []P {
+	ps := make([]P, tm.Len())
+	for i, n := 0, tm.head(); n != nil; i, n = i+1, n.next() {
+		ps[i] = P{n.key, n.value}
+	}
+	return ps
 }
 
 // Contain Test to see if the list contains the key k
@@ -159,8 +168,8 @@ func (tm *TreeMap) SetIfAbsent(key K, value V) (ov V, ok bool) {
 	return tm.Set(key, value)
 }
 
-// SetPairs set items from key-value items array, override the existing items
-func (tm *TreeMap) SetPairs(pairs ...P) {
+// SetEntries set items from key-value items array, override the existing items
+func (tm *TreeMap) SetEntries(pairs ...P) {
 	setMapPairs(tm, pairs...)
 }
 

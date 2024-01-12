@@ -47,10 +47,13 @@ func TestHashMapSet(t *testing.T) {
 	if av := m.Len(); av != 7 {
 		t.Errorf("Got %v expected %v", av, 7)
 	}
-	if av, ev := m.Keys(), []any{1, 2, 3, 4, 5, 6, 7}; !testHashMapSame(av, ev) {
+	if av, ev := m.Keys(), []any{1, 2, 3, 4, 5, 6, 7}; !testHashMapSameValues(av, ev) {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
-	if av, ev := m.Values(), []any{"a", "b", "c", "d", "e", "f", "g"}; !testHashMapSame(av, ev) {
+	if av, ev := m.Values(), []any{"a", "b", "c", "d", "e", "f", "g"}; !testHashMapSameValues(av, ev) {
+		t.Errorf("Got %v expected %v", av, ev)
+	}
+	if av, ev := m.Entries(), []P{{1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}, {5, "e"}, {6, "f"}, {7, "g"}}; !testHashMapSameEntries(av, ev) {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
 
@@ -90,11 +93,14 @@ func TestHashMapRemove(t *testing.T) {
 	m.Removes(6, 7, 8)
 	m.Remove(5)
 
-	if av, ev := m.Keys(), []any{1, 2, 3, 4}; !testHashMapSame(av, ev) {
+	if av, ev := m.Keys(), []any{1, 2, 3, 4}; !testHashMapSameValues(av, ev) {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
 
-	if av, ev := m.Values(), []any{"a", "b", "c", "d"}; !testHashMapSame(av, ev) {
+	if av, ev := m.Values(), []any{"a", "b", "c", "d"}; !testHashMapSameValues(av, ev) {
+		t.Errorf("Got %v expected %v", av, ev)
+	}
+	if av, ev := m.Entries(), []P{{1, "a"}, {2, "b"}, {3, "c"}, {4, "d"}}; !testHashMapSameEntries(av, ev) {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
 	if av := m.Len(); av != 4 {
@@ -152,10 +158,10 @@ func TestHashMapJSON(t *testing.T) {
 		if err != nil {
 			t.Errorf("[%d] json.Unmarshal(%q) = %v", i, c.s, err)
 		}
-		if !testHashMapSame(a.Values(), c.w.Values()) {
+		if !testHashMapSameValues(a.Values(), c.w.Values()) {
 			t.Errorf("[%d] json.Unmarshal(%q) = %v, want %v", i, c.s, a.Values(), c.w.Values())
 		}
-		if !testHashMapSame(a.Keys(), c.w.Keys()) {
+		if !testHashMapSameValues(a.Keys(), c.w.Keys()) {
 			t.Errorf("[%d] json.Unmarshal(%q) = %v, want %v", i, c.s, a.Keys(), c.w.Keys())
 		}
 
@@ -177,13 +183,13 @@ func TestHashMapJSON(t *testing.T) {
 			vs = append(vs, v)
 		}
 
-		if !testHashMapSame(ks, a.Keys()) || !testHashMapSame(vs, a.Values()) {
+		if !testHashMapSameValues(ks, a.Keys()) || !testHashMapSameValues(vs, a.Values()) {
 			t.Errorf("[%d] json.Marshal(%q) = %q, want %q", i, a.String(), string(bs), c.s)
 		}
 	}
 }
 
-func testHashMapSame(a []any, b []any) bool {
+func testHashMapSameValues(a []any, b []any) bool {
 	if len(a) != len(b) {
 		return false
 	}
@@ -191,6 +197,25 @@ func testHashMapSame(a []any, b []any) bool {
 		found := false
 		for _, bv := range b {
 			if av == bv {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
+}
+
+func testHashMapSameEntries(a []P, b []P) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for _, ap := range a {
+		found := false
+		for _, bp := range b {
+			if ap.Key == ap.Key && ap.Value == bp.Value {
 				found = true
 				break
 			}

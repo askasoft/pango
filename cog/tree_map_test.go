@@ -31,6 +31,9 @@ func TestTreeMapSet(t *testing.T) {
 	if av, ev := fmt.Sprintf("%v", tree.Values()), "[a b c d e f g]"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
+	if av, ev := fmt.Sprintf("%v", tree.Entries()), "[{1 a} {2 b} {3 c} {4 d} {5 e} {6 f} {7 g}]"; av != ev {
+		t.Errorf("Got %v expected %v", av, ev)
+	}
 
 	tests1 := [][]any{
 		{1, "a", true},
@@ -116,6 +119,9 @@ func TestTreeMapDelete(t *testing.T) {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
 	if av, ev := fmt.Sprintf("%v", tree.Values()), "[]"; av != ev {
+		t.Errorf("Got %v expected %v", av, ev)
+	}
+	if av, ev := fmt.Sprintf("%v", tree.Entries()), "[]"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
 	if empty, size := tree.IsEmpty(), tree.Len(); empty != true || size != -0 {

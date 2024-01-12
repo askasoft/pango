@@ -12,7 +12,7 @@ import (
 // NewHashMap creates a new HashMap.
 func NewHashMap[K comparable, V any](kvs ...P[K, V]) *HashMap[K, V] {
 	hm := &HashMap[K, V]{}
-	hm.SetPairs(kvs...)
+	hm.SetEntries(kvs...)
 	return hm
 }
 
@@ -92,8 +92,8 @@ func (hm *HashMap[K, V]) SetIfAbsent(key K, value V) (ov V, ok bool) {
 	return
 }
 
-// SetPairs set items from key-value items array, override the existing items
-func (hm *HashMap[K, V]) SetPairs(pairs ...P[K, V]) {
+// SetEntries set items from key-value items array, override the existing items
+func (hm *HashMap[K, V]) SetEntries(pairs ...P[K, V]) {
 	setMapPairs[K, V](hm, pairs...)
 }
 
@@ -175,6 +175,17 @@ func (hm *HashMap[K, V]) Values() []V {
 		i++
 	}
 	return vs
+}
+
+// Entries returns the key-value pair slice
+func (hm *HashMap[K, V]) Entries() []P[K, V] {
+	ps := make([]P[K, V], hm.Len())
+	i := 0
+	for k, v := range hm.hash {
+		ps[i] = P[K, V]{k, v}
+		i++
+	}
+	return ps
 }
 
 // Each call f for each item(k,v) in the map

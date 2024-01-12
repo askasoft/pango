@@ -82,15 +82,6 @@ func TestLinkedHashMapBasicFeatures(t *testing.T) {
 		}
 	}
 
-	// keys
-	ks := make([]any, n)
-	for i := 0; i < n; i++ {
-		ks[i] = i
-	}
-	if !reflect.DeepEqual(ks, lm.Keys()) {
-		t.Errorf("lm.Keys() = %v, want %v", lm.Keys(), ks)
-	}
-
 	// items
 	mis := lm.Items()
 	if n != len(mis) {
@@ -105,6 +96,15 @@ func TestLinkedHashMapBasicFeatures(t *testing.T) {
 		}
 	}
 
+	// keys
+	ks := make([]any, n)
+	for i := 0; i < n; i++ {
+		ks[i] = i
+	}
+	if !reflect.DeepEqual(ks, lm.Keys()) {
+		t.Errorf("lm.Keys() = %v, want %v", lm.Keys(), ks)
+	}
+
 	// values
 	vs := make([]any, n)
 	for i := 0; i < n; i++ {
@@ -112,6 +112,15 @@ func TestLinkedHashMapBasicFeatures(t *testing.T) {
 	}
 	if !reflect.DeepEqual(vs, lm.Values()) {
 		t.Errorf("lm.Values() = %v, want %v", lm.Values(), vs)
+	}
+
+	// entries
+	ps := make([]P, n)
+	for i := 0; i < n; i++ {
+		ps[i] = P{i, i * 2}
+	}
+	if !reflect.DeepEqual(ps, lm.Entries()) {
+		t.Errorf("lm.Entries() = %v, want %v", lm.Entries(), vs)
 	}
 
 	// forward iteration
@@ -462,10 +471,13 @@ func TestLinkedHashMapPut(t *testing.T) {
 	if av := m.Len(); av != 7 {
 		t.Errorf("Got %v expected %v", av, 7)
 	}
-	if av, ev := m.Keys(), []any{5, 6, 7, 3, 4, 1, 2}; !testLinkedHashMapSame(av, ev) {
+	if av, ev := m.Keys(), []any{5, 6, 7, 3, 4, 1, 2}; !testLinkedHashMapSameValues(av, ev) {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
-	if av, ev := m.Values(), []any{"e", "f", "g", "c", "d", "a", "b"}; !testLinkedHashMapSame(av, ev) {
+	if av, ev := m.Values(), []any{"e", "f", "g", "c", "d", "a", "b"}; !testLinkedHashMapSameValues(av, ev) {
+		t.Errorf("Got %v expected %v", av, ev)
+	}
+	if av, ev := m.Entries(), []P{{5, "e"}, {6, "f"}, {7, "g"}, {3, "c"}, {4, "d"}, {1, "a"}, {2, "b"}}; !testLinkedHashMapSameEntries(av, ev) {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
 
@@ -505,11 +517,10 @@ func TestLinkedHashMapRemove(t *testing.T) {
 	m.Removes(6, 7, 8)
 	m.Remove(5)
 
-	if av, ev := m.Keys(), []any{3, 4, 1, 2}; !testLinkedHashMapSame(av, ev) {
+	if av, ev := m.Keys(), []any{3, 4, 1, 2}; !testLinkedHashMapSameValues(av, ev) {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
-
-	if av, ev := m.Values(), []any{"c", "d", "a", "b"}; !testLinkedHashMapSame(av, ev) {
+	if av, ev := m.Values(), []any{"c", "d", "a", "b"}; !testLinkedHashMapSameValues(av, ev) {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
 	if av := m.Len(); av != 4 {
@@ -552,7 +563,7 @@ func TestLinkedHashMapRemove(t *testing.T) {
 	}
 }
 
-func testLinkedHashMapSame(a []any, b []any) bool {
+func testLinkedHashMapSameValues(a []any, b []any) bool {
 	// If one is nil, the other must also be nil.
 	if (a == nil) != (b == nil) {
 		return false
@@ -564,6 +575,25 @@ func testLinkedHashMapSame(a []any, b []any) bool {
 
 	for i := range a {
 		if a[i] != b[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
+func testLinkedHashMapSameEntries(a []P, b []P) bool {
+	// If one is nil, the other must also be nil.
+	if (a == nil) != (b == nil) {
+		return false
+	}
+
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i := range a {
+		if a[i].Key != b[i].Key && a[i].Value != b[i].Value {
 			return false
 		}
 	}

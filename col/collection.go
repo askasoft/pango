@@ -1,5 +1,7 @@
 package col
 
+import "fmt"
+
 // T element type
 type T = any
 
@@ -127,6 +129,10 @@ type P struct {
 	Value V
 }
 
+func (p *P) String() string {
+	return fmt.Sprintf("%v = %v", p.Key, p.Value)
+}
+
 // Map map interface
 type Map interface {
 	Container
@@ -145,8 +151,8 @@ type Map interface {
 	// on that key prior to the call to `Set`.
 	SetIfAbsent(key K, value V) (ov V, ok bool)
 
-	// SetPairs set items from key-value items array, override the existing items
-	SetPairs(pairs ...P)
+	// SetEntries set items from key-value items array, override the existing items
+	SetEntries(pairs ...P)
 
 	// Copy copy items from another map am, override the existing items
 	Copy(am Map)
@@ -170,6 +176,9 @@ type Map interface {
 
 	// Values returns a slice contains all the items of the collection
 	Values() []V
+
+	// Entries returns the key-value pair slice
+	Entries() []P
 
 	Eachable2
 }

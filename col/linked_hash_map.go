@@ -9,7 +9,7 @@ import (
 // NewLinkedHashMap creates a new LinkedHashMap.
 func NewLinkedHashMap(kvs ...P) *LinkedHashMap {
 	lm := &LinkedHashMap{}
-	lm.SetPairs(kvs...)
+	lm.SetEntries(kvs...)
 	return lm
 }
 
@@ -90,8 +90,8 @@ func (lm *LinkedHashMap) SetIfAbsent(key K, value V) (ov V, ok bool) {
 	return
 }
 
-// SetPairs set items from key-value items array, override the existing items
-func (lm *LinkedHashMap) SetPairs(pairs ...P) {
+// SetEntries set items from key-value items array, override the existing items
+func (lm *LinkedHashMap) SetEntries(pairs ...P) {
 	setMapPairs(lm, pairs...)
 }
 
@@ -173,6 +173,15 @@ func (lm *LinkedHashMap) Values() []V {
 		vs[i] = ln.value
 	}
 	return vs
+}
+
+// Entries returns the key-value pair slice
+func (lm *LinkedHashMap) Entries() []P {
+	ps := make([]P, lm.Len())
+	for i, ln := 0, lm.head; ln != nil; i, ln = i+1, ln.next {
+		ps[i] = P{ln.key, ln.value}
+	}
+	return ps
 }
 
 // Each call f for each item in the map

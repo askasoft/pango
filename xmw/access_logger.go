@@ -14,9 +14,9 @@ type AccessLogger struct {
 }
 
 // DefaultAccessLogger create a access logger middleware for XIN
-// Equals: NewAccessLogger(NewAccessLogTextWriter(xin.Logger.GetOutputer("XINA", log.LevelTrace), AccessLogTextFormat))
+// Equals: NewAccessLogger(NewAccessLogTextWriter(xin.Logger.GetOutputer("XAL", log.LevelTrace), AccessLogTextFormat))
 func DefaultAccessLogger(xin *xin.Engine) *AccessLogger {
-	return NewAccessLogger(NewAccessLogTextWriter(xin.Logger.GetOutputer("XINA", log.LevelTrace), AccessLogTextFormat))
+	return NewAccessLogger(NewAccessLogTextWriter(xin.Logger.GetOutputer("XAL", log.LevelTrace), AccessLogTextFormat))
 }
 
 // NewAccessLogger create a log middleware for xin access logger

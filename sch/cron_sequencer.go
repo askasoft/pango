@@ -65,7 +65,7 @@ func (cs *CronSequencer) Parse(expression string) (err error) {
 
 	fields := str.Fields(expression)
 	if len(fields) != 6 {
-		err = fmt.Errorf("Cron expression must consist of 6 fields (found %d in \"%s\")", len(fields), expression)
+		err = fmt.Errorf("cron expression must consist of 6 fields (found %d in %q)", len(fields), expression)
 		return
 	}
 
@@ -163,7 +163,7 @@ func (cs *CronSequencer) setNumberHits(bits []bool, value string, min, max int) 
 		} else {
 			split := str.FieldsRune(field, '/')
 			if len(split) != 2 {
-				return fmt.Errorf("Incrementer has more than two fields: '%s' in expression \"%s\"", field, cs.expression)
+				return fmt.Errorf("invalid format of field %q in expression %q", field, cs.expression)
 			}
 
 			start, end, err := cs.getRange(split[0], min, max)
@@ -177,7 +177,7 @@ func (cs *CronSequencer) setNumberHits(bits []bool, value string, min, max int) 
 
 			delta, err := strconv.Atoi(split[1])
 			if err != nil {
-				return fmt.Errorf("Incrementer has invalid number: '%s' in expression \"%s\"", field, cs.expression)
+				return fmt.Errorf("invalid number of field %q in expression %q", field, cs.expression)
 			}
 			for i := start; i <= end; i += delta {
 				bits[i] = true
@@ -197,36 +197,36 @@ func (cs *CronSequencer) getRange(field string, min, max int) (start, end int, e
 	if !str.ContainsByte(field, '-') {
 		start, err = strconv.Atoi(field)
 		if err != nil {
-			err = fmt.Errorf("Range has invalid number: '%s' in expression \"%s\"", field, cs.expression)
+			err = fmt.Errorf("invalid range number of field %q in expression %q", field, cs.expression)
 			return
 		}
 		end = start
 	} else {
 		split := str.FieldsRune(field, '-')
 		if len(split) > 2 {
-			err = fmt.Errorf("Range has more than two fields: '%s' in expression \"%s\"", field, cs.expression)
+			err = fmt.Errorf("invalid range format of field %q in expression %q", field, cs.expression)
 			return
 		}
 
 		start, err = strconv.Atoi(split[0])
 		if err != nil {
-			err = fmt.Errorf("Range has invalid number: '%s' in expression \"%s\"", field, cs.expression)
+			err = fmt.Errorf("invalid range number of field %q in expression %q", field, cs.expression)
 			return
 		}
 		end, err = strconv.Atoi(split[1])
 		if err != nil {
-			err = fmt.Errorf("Range has invalid number: '%s' in expression \"%s\"", field, cs.expression)
+			err = fmt.Errorf("invalid range number of field %q in expression %q", field, cs.expression)
 			return
 		}
 	}
 
 	if start > max || end > max {
-		err = fmt.Errorf("Range exceeds maximum (%d): '%s' in expression \"%s\"", max, field, cs.expression)
+		err = fmt.Errorf("exceeded maximum range (%d) of field %q in expression %q", max, field, cs.expression)
 		return
 	}
 
 	if start < min || end < min {
-		err = fmt.Errorf("Range less than minimum (%d): '%s' in expression \"%s\"", min, field, cs.expression)
+		err = fmt.Errorf("exceeded minimum range (%d) of field %q in expression %q", min, field, cs.expression)
 		return
 	}
 

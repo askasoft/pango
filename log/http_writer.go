@@ -32,7 +32,7 @@ type HTTPWriter struct {
 func (hw *HTTPWriter) SetUrl(u string) error {
 	_, err := url.ParseRequestURI(u)
 	if err != nil {
-		return fmt.Errorf("HTTPWriter - Invalid URL '%s': %w", u, err)
+		return fmt.Errorf("HTTPWriter: invalid URL %q: %w", u, err)
 	}
 	hw.URL = u
 	return nil
@@ -42,7 +42,7 @@ func (hw *HTTPWriter) SetUrl(u string) error {
 func (hw *HTTPWriter) SetTimeout(timeout string) error {
 	td, err := time.ParseDuration(timeout)
 	if err != nil {
-		return fmt.Errorf("HTTPWriter - Invalid timeout '%s': %w", timeout, err)
+		return fmt.Errorf("HTTPWriter: invalid timeout %q: %w", timeout, err)
 	}
 	hw.Timeout = td
 	return nil
@@ -114,7 +114,7 @@ func (hw *HTTPWriter) initClient() {
 func (hw *HTTPWriter) send() error {
 	req, err := http.NewRequest(hw.Method, hw.URL, &hw.Buffer)
 	if err != nil {
-		err = fmt.Errorf("HTTPWriter(%q) - NewRequest(%v): %w", hw.URL, hw.Method, err)
+		err = fmt.Errorf("HTTPWriter(%q): NewRequest(%v): %w", hw.URL, hw.Method, err)
 		return err
 	}
 	if hw.ContentType != "" {
@@ -126,13 +126,13 @@ func (hw *HTTPWriter) send() error {
 
 	res, err := hw.client.Do(req)
 	if err != nil {
-		err = fmt.Errorf("HTTPWriter(%q) - Send(): %w", hw.URL, err)
+		err = fmt.Errorf("HTTPWriter(%q): Send(): %w", hw.URL, err)
 		return err
 	}
 
 	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusCreated {
 		buf, _ := iox.ReadAll(res.Body)
-		err = fmt.Errorf("HTTPWriter(%q) - %s: %s", hw.URL, res.Status, bye.UnsafeString(buf))
+		err = fmt.Errorf("HTTPWriter(%q): Send(): %s: %s", hw.URL, res.Status, bye.UnsafeString(buf))
 	}
 
 	iox.DrainAndClose(res.Body)

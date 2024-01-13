@@ -86,7 +86,7 @@ func FindJob(db *gorm.DB, name string, details ...bool) (*xwm.Job, error) {
 		return nil, nil
 	}
 	if r.Error != nil {
-		log.Errorf("Failed to find job '%s': %v", name, r.Error)
+		log.Errorf("Failed to find job %q: %v", name, r.Error)
 	}
 	return job, r.Error
 }

@@ -134,15 +134,15 @@ func (da *DigestAuth) checkNonce(c *xin.Context, nonce string) bool {
 	}
 	bs, err := base64.RawURLEncoding.DecodeString(t.Secret())
 	if err != nil {
-		c.Logger.Debugf("Digest auth nonce '%s' contains invalid secret", t.String())
+		c.Logger.Debugf("Digest auth nonce %q contains invalid secret", t.String())
 		return false
 	}
 	if bye.UnsafeString(bs) != c.ClientIP() {
-		c.Logger.Debugf("Digest auth '%s' does not match request client IP %s", t.String(), c.ClientIP())
+		c.Logger.Debugf("Digest auth %q does not match request client IP %s", t.String(), c.ClientIP())
 		return false
 	}
 	if da.NonceExpires.Seconds() > 0 && t.Timestamp().Add(da.NonceExpires).Before(time.Now()) {
-		c.Logger.Debugf("Digest auth nonce '%s' is expired", t.String())
+		c.Logger.Debugf("Digest auth nonce %q is expired", t.String())
 		return false
 	}
 	return true

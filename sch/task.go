@@ -30,13 +30,13 @@ func (t *Task) callback() {
 		if err := recover(); err != nil {
 			t.Error = err
 			if log := t.Logger; log != nil {
-				log.Errorf("Task '%s' %s() run error: %v", t.Name, nameOfCallback(t.Callback), err)
+				log.Errorf("Task %q %s() run error: %v", t.Name, nameOfCallback(t.Callback), err)
 			}
 		}
 	}()
 
 	if log := t.Logger; log != nil {
-		log.Debugf("Task '%s' %s() start at %v", t.Name, nameOfCallback(t.Callback), t.ExecutionTime)
+		log.Debugf("Task %q %s() start at %v", t.Name, nameOfCallback(t.Callback), t.ExecutionTime)
 	}
 
 	t.Callback()
@@ -47,7 +47,7 @@ func (t *Task) run() {
 	if cnt > 1 {
 		atomic.AddInt32(&t.count, -1)
 		if log := t.Logger; log != nil {
-			log.Warnf("Task '%s' %s() is count at %v, SKIP!", t.Name, nameOfCallback(t.Callback), t.ExecutionTime)
+			log.Warnf("Task %q %s() is running at %v, SKIP!", t.Name, nameOfCallback(t.Callback), t.ExecutionTime)
 		}
 		return
 	}
@@ -73,7 +73,7 @@ func (t *Task) schedule() {
 	timer := t.timer
 	if timer != nil && !t.ScheduledTime.IsZero() {
 		if log := t.Logger; log != nil {
-			log.Infof("Schedule task '%s' %s() at %v", t.Name, nameOfCallback(t.Callback), t.ScheduledTime)
+			log.Infof("Schedule task %q %s() at %v", t.Name, nameOfCallback(t.Callback), t.ScheduledTime)
 		}
 
 		d := time.Until(t.ScheduledTime)
@@ -97,7 +97,7 @@ func (t *Task) Stop() bool {
 	timer := t.timer
 	if timer != nil {
 		if log := t.Logger; log != nil {
-			log.Infof("Stop task '%s' %s() at %v", t.Name, nameOfCallback(t.Callback), t.ScheduledTime)
+			log.Infof("Stop task %q %s() at %v", t.Name, nameOfCallback(t.Callback), t.ScheduledTime)
 		}
 		t.timer = nil
 		return timer.Stop()

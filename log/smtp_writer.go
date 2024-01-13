@@ -43,7 +43,7 @@ func (sw *SMTPWriter) SetCc(s string) {
 func (sw *SMTPWriter) SetTimeout(timeout string) error {
 	td, err := time.ParseDuration(timeout)
 	if err != nil {
-		return fmt.Errorf("SMTPWriter - Invalid timeout '%s': %w", timeout, err)
+		return fmt.Errorf("SMTPWriter: invalid timeout %q: %w", timeout, err)
 	}
 	sw.Timeout = td
 	return nil
@@ -67,12 +67,12 @@ func (sw *SMTPWriter) Write(le *Event) (err error) {
 
 	if !sw.sender.IsDialed() {
 		if err = sw.sender.Dial(); err != nil {
-			err = fmt.Errorf("SMTPWriter(%s:%d) - Dial(): %w", sw.Host, sw.Port, err)
+			err = fmt.Errorf("SMTPWriter(%s:%d): Dial(): %w", sw.Host, sw.Port, err)
 			return
 		}
 
 		if err = sw.sender.Login(); err != nil {
-			err = fmt.Errorf("SMTPWriter(%s:%d) - Login(%s, %s): %w", sw.Host, sw.Port, sw.Username, sw.Password, err)
+			err = fmt.Errorf("SMTPWriter(%s:%d): Login(%s, %s): %w", sw.Host, sw.Port, sw.Username, sw.Password, err)
 			sw.sender.Close()
 			return
 		}
@@ -83,7 +83,7 @@ func (sw *SMTPWriter) Write(le *Event) (err error) {
 	sw.email.Message = msg
 
 	if err = sw.sender.Send(sw.email); err != nil {
-		err = fmt.Errorf("SMTPWriter(%s:%d) - Send(): %w", sw.Host, sw.Port, err)
+		err = fmt.Errorf("SMTPWriter(%s:%d): Send(): %w", sw.Host, sw.Port, err)
 	}
 	return
 }
@@ -119,20 +119,20 @@ func (sw *SMTPWriter) initEmail() (err error) {
 	m := &email.Email{}
 
 	if err = m.SetFrom(sw.From); err != nil {
-		err = fmt.Errorf("SMTPWriter(%s:%d) - SetFrom(): %w", sw.Host, sw.Port, err)
+		err = fmt.Errorf("SMTPWriter(%s:%d): SetFrom(): %w", sw.Host, sw.Port, err)
 		return
 	}
 
 	for _, a := range sw.Tos {
 		if err = m.AddTo(a); err != nil {
-			err = fmt.Errorf("SMTPWriter(%s:%d) - AddTo(): %w", sw.Host, sw.Port, err)
+			err = fmt.Errorf("SMTPWriter(%s:%d): AddTo(): %w", sw.Host, sw.Port, err)
 			return
 		}
 	}
 
 	for _, a := range sw.Ccs {
 		if err = m.AddCc(a); err != nil {
-			err = fmt.Errorf("SMTPWriter(%s:%d) - AddCc(): %w", sw.Host, sw.Port, err)
+			err = fmt.Errorf("SMTPWriter(%s:%d): AddCc(): %w", sw.Host, sw.Port, err)
 			return
 		}
 	}
@@ -149,7 +149,7 @@ func (sw *SMTPWriter) Flush() {
 func (sw *SMTPWriter) Close() {
 	if sw.sender != nil {
 		if err := sw.sender.Close(); err != nil {
-			perrorf("SMTPWriter(%s:%d) - Close(): %v", sw.Host, sw.Port, err)
+			perrorf("SMTPWriter(%s:%d): Close(): %v", sw.Host, sw.Port, err)
 		}
 		sw.sender = nil
 	}

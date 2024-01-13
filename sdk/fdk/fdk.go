@@ -54,8 +54,8 @@ func (fdk *FDK) call(req *http.Request) (res *http.Response, err error) {
 		Timeout:   fdk.Timeout,
 	}
 
-	if fdk.Logger != nil {
-		fdk.Logger.Debugf("%s %s", req.Method, req.URL)
+	if log := fdk.Logger; log != nil {
+		log.Debugf("%s %s", req.Method, req.URL)
 	}
 
 	rid := log.TraceHttpRequest(fdk.Logger, req)

@@ -83,8 +83,8 @@ func (oai *OpenAI) call(req *http.Request) (res *http.Response, err error) {
 		Timeout:   oai.Timeout,
 	}
 
-	if oai.Logger != nil {
-		oai.Logger.Debugf("%s %s", req.Method, req.URL)
+	if log := oai.Logger; log != nil {
+		log.Debugf("%s %s", req.Method, req.URL)
 	}
 
 	rid := log.TraceHttpRequest(oai.Logger, req)

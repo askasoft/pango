@@ -162,6 +162,7 @@ func main() {
 	list.Sort(cog.LessString)             // ["a","b","c"]
 	_ = list.Get(0)                       // "a"
 	_ = list.Get(100)                     // panic
+	_ = list.Contain("a")                 // true
 	_ = list.Contains("a", "b", "c")      // true
 	_ = list.Contains("a", "b", "c", "d") // false
 	list.Swap(0, 1)                       // ["b","a",c"]
@@ -197,6 +198,7 @@ func main() {
 	list.Sort(cog.LessString)             // ["a","b","c"]
 	_ = list.Get(0)                       // "a"
 	_ = list.Get(100)                     // panic
+	_ = list.Contain("a")                 // true
 	_ = list.Contains("a", "b", "c")      // true
 	_ = list.Contains("a", "b", "c", "d") // false
 	list.Swap(0, 1)                       // ["b","a",c"]
@@ -270,8 +272,8 @@ func main() {
 	set.Adds(4, 4, 3, 2, 1) // 5, 4, 3, 2, 1 (in insertion-order, duplicates ignored)
 	set.Add(4)              // 5, 4, 3, 2, 1 (duplicates ignored, insertion-order unchanged)
 	set.Remove(4)           // 5, 3, 2, 1 (in insertion-order)
-	set.Removes(2, 3)        // 5, 1 (in insertion-order)
-	set.Contains(1)         // true
+	set.Removes(2, 3)       // 5, 1 (in insertion-order)
+	set.Contain(1)          // true
 	set.Contains(1, 5)      // true
 	set.Contains(1, 6)      // false
 	_ = set.Values()        // []int{5, 1} (in insertion-order)

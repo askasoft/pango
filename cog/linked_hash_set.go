@@ -209,7 +209,7 @@ func (ls *LinkedHashSet[T]) RetainCol(ac Collection[T]) {
 	}
 
 	for ln := ls.head; ln != nil; ln = ln.next {
-		if !ac.Contains(ln.value) {
+		if !ac.Contain(ln.value) {
 			ls.deleteNode(ln)
 		}
 	}

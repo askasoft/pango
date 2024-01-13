@@ -211,7 +211,7 @@ func (ts *TreeSet[T]) RetainCol(ac Collection[T]) {
 	}
 
 	for tn := ts.head(); tn != nil; tn = tn.next() {
-		if !ac.Contains(tn.value) {
+		if !ac.Contain(tn.value) {
 			ts.deleteNode(tn)
 		}
 	}

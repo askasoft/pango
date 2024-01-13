@@ -9,6 +9,7 @@ func ExampleArrayList() {
 	list.Adds("c", "b")                   // ["a","c","b"]
 	list.Sort(LessString)                 // ["a","b","c"]
 	_ = list.Get(0)                       // "a"  //_ = list.Get(100)  --> panic
+	_ = list.Contain("a")                 // true
 	_ = list.Contains("a", "b", "c")      // true
 	_ = list.Contains("a", "b", "c", "d") // false
 	list.Swap(0, 1)                       // ["b","a",c"]

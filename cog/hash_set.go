@@ -213,7 +213,7 @@ func (hs *HashSet[T]) RetainCol(ac Collection[T]) {
 	}
 
 	for k := range hs.hash {
-		if !ac.Contains(k) {
+		if !ac.Contain(k) {
 			delete(hs.hash, k)
 		}
 	}

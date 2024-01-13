@@ -122,7 +122,7 @@ func (al *ArrayList) RemoveCol(ac Collection) {
 	}
 
 	for i := al.Len() - 1; i >= 0; i-- {
-		if ac.Contains(al.data[i]) {
+		if ac.Contain(al.data[i]) {
 			al.RemoveAt(i)
 		}
 	}
@@ -204,7 +204,7 @@ func (al *ArrayList) RetainCol(ac Collection) {
 	}
 
 	for i := al.Len() - 1; i >= 0; i-- {
-		if !ac.Contains(al.data[i]) {
+		if !ac.Contain(al.data[i]) {
 			al.RemoveAt(i)
 		}
 	}

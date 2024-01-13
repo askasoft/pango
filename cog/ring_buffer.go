@@ -203,7 +203,7 @@ func (rb *RingBuffer[T]) RetainCol(ac Collection[T]) {
 
 	it := rb.Iterator()
 	for it.Next() {
-		if !ac.Contains(it.Value()) {
+		if !ac.Contain(it.Value()) {
 			it.Remove()
 		}
 	}

@@ -197,7 +197,7 @@ func (ll *LinkedList) RetainCol(ac Collection) {
 	}
 
 	for ln := ll.head; ln != nil; ln = ln.next {
-		if !ac.Contains(ln.value) {
+		if !ac.Contain(ln.value) {
 			ll.deleteNode(ln)
 		}
 	}

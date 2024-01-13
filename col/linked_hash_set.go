@@ -293,6 +293,10 @@ func (ls *LinkedHashSet) Insert(index int, v T) {
 		ls.hash = make(map[T]*linkedSetNode)
 	}
 
+	if _, ok := ls.hash[v]; ok {
+		return
+	}
+
 	var prev, next *linkedSetNode
 	if index == ls.Len() {
 		next = nil
@@ -302,20 +306,18 @@ func (ls *LinkedHashSet) Insert(index int, v T) {
 		prev = next.prev
 	}
 
-	if _, ok := ls.hash[v]; !ok {
-		nn := &linkedSetNode{prev: prev, value: v, next: nil}
-		if prev == nil {
-			ls.head = nn
-		} else {
-			prev.next = nn
-		}
-		prev = nn
-		ls.hash[v] = nn
+	nn := &linkedSetNode{prev: prev, value: v, next: nil}
+	if prev == nil {
+		ls.head = nn
+	} else {
+		prev.next = nn
 	}
+	prev = nn
+	ls.hash[v] = nn
 
 	if next == nil {
 		ls.tail = prev
-	} else if prev != nil {
+	} else {
 		prev.next = next
 		next.prev = prev
 	}

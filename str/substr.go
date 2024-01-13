@@ -2,6 +2,15 @@ package str
 
 import "unicode/utf8"
 
+// BOM "\uFEFF"
+const BOM = "\uFEFF"
+
+// SkipBOM Returns a string without BOM.
+// internal call TrimPrefix(s, "\uFEFF")
+func SkipBOM(s string) string {
+	return TrimPrefix(s, BOM)
+}
+
 // SubstrAfter Gets the substring after the first occurrence of a separator b.
 // The separator b is not returned.
 // If nothing is found, the empty string is returned.

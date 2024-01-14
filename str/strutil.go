@@ -469,15 +469,23 @@ func TrimSpaces(ss []string) []string {
 
 // RemoveEmptys remove empty string in the string array 'ss', and returns the string array 'ss'
 func RemoveEmptys(ss []string) []string {
-	n := 0
-	for _, s := range ss {
-		if s != "" {
-			ss[n] = s
-			n++
+	return Removes(ss, "")
+}
+
+// RemoveEmptys remove string 'v' in the string array 'ss', and returns the string array 'ss'
+func Removes(ss []string, v string) []string {
+	for i, s := range ss {
+		if s == v {
+			for j := i + 1; j < len(ss); j++ {
+				if s := ss[j]; s != v {
+					ss[i] = s
+					i++
+				}
+			}
+			return ss[:i]
 		}
 	}
-
-	return ss[:n]
+	return ss
 }
 
 // JoinInts concatenates the elements of its first argument to create a single string. The separator

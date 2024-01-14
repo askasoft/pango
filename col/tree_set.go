@@ -3,7 +3,6 @@ package col
 import (
 	"encoding/json"
 
-	"github.com/askasoft/pango/ars"
 	"github.com/askasoft/pango/bye"
 )
 
@@ -190,7 +189,7 @@ func (ts *TreeSet) Retains(vs ...T) {
 	}
 
 	for tn := ts.head(); tn != nil; tn = tn.next() {
-		if !ars.Contains(vs, tn.value) {
+		if !contains(vs, tn.value) {
 			ts.deleteNode(tn)
 		}
 	}

@@ -24,6 +24,19 @@ func roundup(n, r int) int {
 	return (n + r) & (^r)
 }
 
+func contains(a []any, v any) bool {
+	return index(a, v) >= 0
+}
+
+func index(a []any, v any) int {
+	for i, e := range a {
+		if e == v {
+			return i
+		}
+	}
+	return -1
+}
+
 func setMapPairs(m Map, ps ...P) {
 	for _, p := range ps {
 		m.Set(p.Key, p.Value)

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/askasoft/pango/ars"
 	"github.com/askasoft/pango/bye"
 )
 
@@ -179,7 +178,7 @@ func (ll *LinkedList) Retains(vs ...T) {
 	}
 
 	for ln := ll.head; ln != nil; ln = ln.next {
-		if !ars.Contains(vs, ln.value) {
+		if !contains(vs, ln.value) {
 			ll.deleteNode(ln)
 		}
 	}

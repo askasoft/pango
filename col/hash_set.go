@@ -2,8 +2,6 @@ package col
 
 import (
 	"fmt"
-
-	"github.com/askasoft/pango/ars"
 )
 
 // NewHashSet Create a new hash set
@@ -204,7 +202,7 @@ func (hs *HashSet) Retains(vs ...T) {
 	}
 
 	for k := range hs.hash {
-		if !ars.Contains(vs, k) {
+		if !contains(vs, k) {
 			delete(hs.hash, k)
 		}
 	}

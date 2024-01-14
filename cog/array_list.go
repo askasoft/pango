@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/askasoft/pango/ars"
 	"github.com/askasoft/pango/bye"
 )
 
@@ -81,31 +80,38 @@ func (al *ArrayList[T]) AddCol(ac Collection[T]) {
 
 // Remove remove all items with associated value v of vs
 func (al *ArrayList[T]) Remove(v T) {
-	for i := al.Len() - 1; i >= 0; i-- {
-		if any(al.data[i]) == any(v) {
-			al.RemoveAt(i)
+	i := al.Index(v)
+	if i < 0 {
+		return
+	}
+
+	// Don't start copying elements until we find one to delete.
+	a := al.data
+	for j := i + 1; j < len(a); j++ {
+		if e := a[j]; any(e) != any(v) {
+			a[i] = e
+			i++
 		}
 	}
+	al.data = a[:i]
 }
 
 // Removes remove all items with associated value v of vs
 func (al *ArrayList[T]) Removes(vs ...T) {
-	switch len(vs) {
-	case 0:
+	if al.IsEmpty() {
 		return
-	case 1:
-		al.Remove(vs[0])
-	default:
-		for i := al.Len() - 1; i >= 0; i-- {
-			if ars.ContainsOf(vs, al.data[i]) {
-				al.RemoveAt(i)
-			}
-		}
+	}
+	for _, v := range vs {
+		al.Remove(v)
 	}
 }
 
 // RemoveIf remove all items that function f returns true
 func (al *ArrayList[T]) RemoveIf(f func(T) bool) {
+	if al.IsEmpty() {
+		return
+	}
+
 	for i := al.Len() - 1; i >= 0; i-- {
 		if f(al.data[i]) {
 			al.RemoveAt(i)
@@ -189,7 +195,7 @@ func (al *ArrayList[T]) Retains(vs ...T) {
 	}
 
 	for i := al.Len() - 1; i >= 0; i-- {
-		if !ars.ContainsOf(vs, al.data[i]) {
+		if !contains(vs, al.data[i]) {
 			al.RemoveAt(i)
 		}
 	}
@@ -302,12 +308,7 @@ func (al *ArrayList[T]) InsertCol(index int, ac Collection[T]) {
 
 // Index returns the index of the first occurrence of the specified v in this list, or -1 if this list does not contain v.
 func (al *ArrayList[T]) Index(v T) int {
-	for i, d := range al.data {
-		if any(d) == any(v) {
-			return i
-		}
-	}
-	return -1
+	return index(al.data, v)
 }
 
 // IndexIf returns the index of the first true returned by function f in this list, or -1 if this list does not contain v.

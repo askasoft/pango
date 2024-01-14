@@ -119,10 +119,12 @@ func (hm *HashMap[K, V]) Remove(k K) (ov V, ok bool) {
 
 // Removes remove all items with key of ks.
 func (hm *HashMap[K, V]) Removes(ks ...K) {
-	if !hm.IsEmpty() {
-		for _, k := range ks {
-			delete(hm.hash, k)
-		}
+	if hm.IsEmpty() {
+		return
+	}
+
+	for _, k := range ks {
+		delete(hm.hash, k)
 	}
 }
 
@@ -131,6 +133,7 @@ func (hm *HashMap[K, V]) Contain(k K) bool {
 	if hm.IsEmpty() {
 		return false
 	}
+
 	if _, ok := hm.hash[k]; ok {
 		return true
 	}

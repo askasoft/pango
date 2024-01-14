@@ -123,11 +123,13 @@ func (lm *LinkedHashMap[K, V]) Remove(k K) (ov V, ok bool) {
 
 // Remove remove all items with key of ks.
 func (lm *LinkedHashMap[K, V]) Removes(ks ...K) {
-	if !lm.IsEmpty() {
-		for _, k := range ks {
-			if ln, ok := lm.hash[k]; ok {
-				lm.deleteNode(ln)
-			}
+	if lm.IsEmpty() {
+		return
+	}
+
+	for _, k := range ks {
+		if ln, ok := lm.hash[k]; ok {
+			lm.deleteNode(ln)
 		}
 	}
 }
@@ -137,6 +139,7 @@ func (lm *LinkedHashMap[K, V]) Contain(k K) bool {
 	if lm.IsEmpty() {
 		return false
 	}
+
 	if _, ok := lm.hash[k]; ok {
 		return true
 	}

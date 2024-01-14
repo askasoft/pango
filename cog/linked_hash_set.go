@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/askasoft/pango/ars"
+	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/bye"
 )
 
@@ -191,7 +191,7 @@ func (ls *LinkedHashSet[T]) Retains(vs ...T) {
 	}
 
 	for ln := ls.head; ln != nil; ln = ln.next {
-		if !ars.ContainsOf(vs, ln.value) {
+		if !asg.Contains(vs, ln.value) {
 			ls.deleteNode(ln)
 		}
 	}

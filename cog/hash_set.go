@@ -6,7 +6,7 @@ package cog
 import (
 	"fmt"
 
-	"github.com/askasoft/pango/ars"
+	"github.com/askasoft/pango/asg"
 )
 
 // NewHashSet Create a new hash set
@@ -195,7 +195,7 @@ func (hs *HashSet[T]) Retains(vs ...T) {
 	}
 
 	for k := range hs.hash {
-		if !ars.ContainsOf(vs, k) {
+		if !asg.Contains(vs, k) {
 			delete(hs.hash, k)
 		}
 	}

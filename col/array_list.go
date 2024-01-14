@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/askasoft/pango/ars"
 	"github.com/askasoft/pango/bye"
 )
 
@@ -87,22 +86,21 @@ func (al *ArrayList) Remove(v T) {
 
 // Removes remove all items with associated value v of vs
 func (al *ArrayList) Removes(vs ...T) {
-	switch len(vs) {
-	case 0:
+	if al.IsEmpty() {
 		return
-	case 1:
-		al.Remove(vs[0])
-	default:
-		for i := al.Len() - 1; i >= 0; i-- {
-			if ars.Contains(vs, al.data[i]) {
-				al.RemoveAt(i)
-			}
-		}
+	}
+
+	for _, v := range vs {
+		al.Remove(v)
 	}
 }
 
 // RemoveIf remove all items that function f returns true
 func (al *ArrayList) RemoveIf(f func(T) bool) {
+	if al.IsEmpty() {
+		return
+	}
+
 	for i := al.Len() - 1; i >= 0; i-- {
 		if f(al.data[i]) {
 			al.RemoveAt(i)
@@ -186,7 +184,7 @@ func (al *ArrayList) Retains(vs ...T) {
 	}
 
 	for i := al.Len() - 1; i >= 0; i-- {
-		if !ars.Contains(vs, al.data[i]) {
+		if !contains(vs, al.data[i]) {
 			al.RemoveAt(i)
 		}
 	}
@@ -299,12 +297,7 @@ func (al *ArrayList) InsertCol(index int, ac Collection) {
 
 // Index returns the index of the first occurrence of the specified v in this list, or -1 if this list does not contain v.
 func (al *ArrayList) Index(v T) int {
-	for i, d := range al.data {
-		if d == v {
-			return i
-		}
-	}
-	return -1
+	return index(al.data, v)
 }
 
 // IndexIf returns the index of the first true returned by function f in this list, or -1 if this list does not contain v.

@@ -196,10 +196,12 @@ func (tm *TreeMap[K, V]) Remove(k K) (ov V, ok bool) {
 
 // Removes remove all items with key of ks.
 func (tm *TreeMap[K, V]) Removes(ks ...K) {
-	if !tm.IsEmpty() {
-		for _, k := range ks {
-			tm.delete(k)
-		}
+	if tm.IsEmpty() {
+		return
+	}
+
+	for _, k := range ks {
+		tm.delete(k)
 	}
 }
 

@@ -11,7 +11,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/askasoft/pango/ars"
+	"github.com/askasoft/pango/asg"
 )
 
 func TestTreeSetInterface(t *testing.T) {
@@ -426,7 +426,7 @@ func TestTreeSetSort(t *testing.T) {
 		a := make([]int, 0, 20)
 		for n := i; n < 20; n++ {
 			v := rand.Intn(1000)
-			if !ars.ContainsOf(a, v) {
+			if !asg.Contains(a, v) {
 				a = append(a, v)
 			}
 		}

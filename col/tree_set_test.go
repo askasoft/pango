@@ -7,8 +7,6 @@ import (
 	"reflect"
 	"sort"
 	"testing"
-
-	"github.com/askasoft/pango/ars"
 )
 
 func TestTreeSetInterface(t *testing.T) {
@@ -423,7 +421,7 @@ func TestTreeSetSort(t *testing.T) {
 		a := make([]any, 0, 20)
 		for n := i; n < 20; n++ {
 			v := rand.Intn(1000)
-			if !ars.Contains(a, v) {
+			if !contains(a, v) {
 				a = append(a, v)
 			}
 		}

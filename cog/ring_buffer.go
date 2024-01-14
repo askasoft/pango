@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/askasoft/pango/ars"
 	"github.com/askasoft/pango/bye"
 )
 
@@ -184,7 +183,7 @@ func (rb *RingBuffer[T]) Retains(vs ...T) {
 
 	it := rb.Iterator()
 	for it.Next() {
-		if !ars.ContainsOf(vs, it.Value()) {
+		if !contains(vs, it.Value()) {
 			it.Remove()
 		}
 	}

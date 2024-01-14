@@ -1,4 +1,4 @@
-package d2t
+package ooxml
 
 import (
 	"archive/zip"
@@ -6,6 +6,8 @@ import (
 	"errors"
 	"io"
 	"strings"
+
+	"github.com/askasoft/pango/iox"
 )
 
 // xl/sharedStrings.xml
@@ -64,26 +66,33 @@ import (
 // </sst>
 // ```
 
-func ExtractTextFromXlsxFile(name string, w io.StringWriter) error {
+func ExtractTextFromXlsxFile(name string) (string, error) {
+	sb := &strings.Builder{}
+	lw := iox.LineWriter(sb)
+	err := ExtractStringFromXlsxFile(name, lw)
+	return sb.String(), err
+}
+
+func ExtractStringFromXlsxFile(name string, w io.Writer) error {
 	zr, err := zip.OpenReader(name)
 	if err != nil {
 		return err
 	}
 	defer zr.Close()
 
-	return extractTextFromXlsx(&zr.Reader, w)
+	return extractStringFromXlsx(&zr.Reader, w)
 }
 
-func ExtractTextFromXlsxReader(r io.ReaderAt, size int64, w io.StringWriter) error {
+func ExtractStringFromXlsxReader(r io.ReaderAt, size int64, w io.Writer) error {
 	zr, err := zip.NewReader(r, size)
 	if err != nil {
 		return err
 	}
 
-	return extractTextFromXlsx(zr, w)
+	return extractStringFromXlsx(zr, w)
 }
 
-func extractTextFromXlsx(zr *zip.Reader, w io.StringWriter) error {
+func extractStringFromXlsx(zr *zip.Reader, w io.Writer) error {
 	for _, zf := range zr.File {
 		if zf.Name == "xl/sharedStrings.xml" {
 			fr, err := zf.Open()
@@ -98,7 +107,7 @@ func extractTextFromXlsx(zr *zip.Reader, w io.StringWriter) error {
 	return nil
 }
 
-func extractTextFromXlSharedStrings(r io.Reader, w io.StringWriter) error {
+func extractTextFromXlSharedStrings(r io.Reader, w io.Writer) error {
 	xd := xml.NewDecoder(r)
 
 	sb := strings.Builder{}
@@ -123,7 +132,7 @@ func extractTextFromXlSharedStrings(r io.Reader, w io.StringWriter) error {
 		case xml.EndElement:
 			switch ty.Name.Local {
 			case "si":
-				if _, err := w.WriteString(sb.String()); err != nil {
+				if _, err := io.WriteString(w, sb.String()); err != nil {
 					return err
 				}
 				sb.Reset()

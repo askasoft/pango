@@ -1,4 +1,4 @@
-package d2t
+package ooxml
 
 import (
 	"archive/zip"
@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/askasoft/pango/cog"
+	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/str"
 )
 
@@ -50,26 +51,33 @@ import (
 // </p:sld>
 // ```
 
-func ExtractTextFromPptxFile(name string, w io.StringWriter) error {
+func ExtractTextFromPptxFile(name string) (string, error) {
+	sb := &strings.Builder{}
+	lw := iox.LineWriter(sb)
+	err := ExtractStringFromPptxFile(name, lw)
+	return sb.String(), err
+}
+
+func ExtractStringFromPptxFile(name string, w io.Writer) error {
 	zr, err := zip.OpenReader(name)
 	if err != nil {
 		return err
 	}
 	defer zr.Close()
 
-	return extractTextFromPptx(&zr.Reader, w)
+	return extractStringFromPptx(&zr.Reader, w)
 }
 
-func ExtractTextFromPptxReader(r io.ReaderAt, size int64, w io.StringWriter) error {
+func ExtractStringFromPptxReader(r io.ReaderAt, size int64, w io.Writer) error {
 	zr, err := zip.NewReader(r, size)
 	if err != nil {
 		return err
 	}
 
-	return extractTextFromPptx(zr, w)
+	return extractStringFromPptx(zr, w)
 }
 
-func extractTextFromPptx(zr *zip.Reader, w io.StringWriter) error {
+func extractStringFromPptx(zr *zip.Reader, w io.Writer) error {
 	zfm := cog.NewTreeMap[string, *zip.File](cog.CompareString)
 	for _, zf := range zr.File {
 		if str.StartsWith(zf.Name, "ppt/slides/slide") && str.EndsWith(zf.Name, ".xml") {
@@ -91,7 +99,7 @@ func extractTextFromPptx(zr *zip.Reader, w io.StringWriter) error {
 	return nil
 }
 
-func extractTextFromPptxSlide(r io.Reader, w io.StringWriter) error {
+func extractTextFromPptxSlide(r io.Reader, w io.Writer) error {
 	xd := xml.NewDecoder(r)
 
 	sb := &strings.Builder{}
@@ -114,7 +122,7 @@ func extractTextFromPptxSlide(r io.Reader, w io.StringWriter) error {
 		case xml.EndElement:
 			switch ty.Name.Local {
 			case "p":
-				if _, err := w.WriteString(sb.String()); err != nil {
+				if _, err := io.WriteString(w, sb.String()); err != nil {
 					return err
 				}
 				sb.Reset()

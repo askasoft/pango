@@ -1,0 +1,9 @@
+Hello world!
+JA:
+今日はお元気ですか？
+EN:
+How do you do?
+ 
+犬
+ZH:
+今天	好吗？

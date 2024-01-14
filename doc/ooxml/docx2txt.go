@@ -1,4 +1,4 @@
-package d2t
+package ooxml
 
 import (
 	"archive/zip"
@@ -6,6 +6,8 @@ import (
 	"errors"
 	"io"
 	"strings"
+
+	"github.com/askasoft/pango/iox"
 )
 
 // word/document.xml
@@ -95,26 +97,33 @@ import (
 // </w:p>
 // ```
 
-func ExtractTextFromDocxFile(name string, w io.StringWriter) error {
+func ExtractTextFromDocxFile(name string) (string, error) {
+	sb := &strings.Builder{}
+	lw := iox.LineWriter(sb)
+	err := ExtractStringFromDocxFile(name, lw)
+	return sb.String(), err
+}
+
+func ExtractStringFromDocxFile(name string, w io.Writer) error {
 	zr, err := zip.OpenReader(name)
 	if err != nil {
 		return err
 	}
 	defer zr.Close()
 
-	return extractTextFromDocx(&zr.Reader, w)
+	return extractStringFromDocx(&zr.Reader, w)
 }
 
-func ExtractTextFromDocxReader(r io.ReaderAt, size int64, w io.StringWriter) error {
+func ExtractStringFromDocxReader(r io.ReaderAt, size int64, w io.Writer) error {
 	zr, err := zip.NewReader(r, size)
 	if err != nil {
 		return err
 	}
 
-	return extractTextFromDocx(zr, w)
+	return extractStringFromDocx(zr, w)
 }
 
-func extractTextFromDocx(zr *zip.Reader, w io.StringWriter) error {
+func extractStringFromDocx(zr *zip.Reader, w io.Writer) error {
 	for _, zf := range zr.File {
 		if zf.Name == "word/document.xml" {
 			fr, err := zf.Open()
@@ -129,7 +138,7 @@ func extractTextFromDocx(zr *zip.Reader, w io.StringWriter) error {
 	return nil
 }
 
-func extractTextFromWordDocument(r io.Reader, w io.StringWriter) error {
+func extractTextFromWordDocument(r io.Reader, w io.Writer) error {
 	xd := xml.NewDecoder(r)
 
 	sb := &strings.Builder{}
@@ -154,7 +163,7 @@ func extractTextFromWordDocument(r io.Reader, w io.StringWriter) error {
 		case xml.EndElement:
 			switch ty.Name.Local {
 			case "p":
-				if _, err := w.WriteString(sb.String()); err != nil {
+				if _, err := io.WriteString(w, sb.String()); err != nil {
 					return err
 				}
 				sb.Reset()

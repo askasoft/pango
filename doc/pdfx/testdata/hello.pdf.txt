@@ -1,0 +1,7 @@
+                      Hello world!
+1.   EN:
+     How do you do?
+2.   JA:
+     今日はお元気ですか？
+3.   ZH:
+     今天         好吗？

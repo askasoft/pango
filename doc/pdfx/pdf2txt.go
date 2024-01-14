@@ -1,6 +1,7 @@
-package d2t
+package pdfx
 
 import (
+	"bytes"
 	"context"
 	"io"
 	"os/exec"
@@ -8,7 +9,13 @@ import (
 
 // sudo apt install poppler-utils
 
-func ExtractTextFromPdfFile(name string, w io.Writer) error {
+func ExtractTextFromPdfFile(name string) (string, error) {
+	bw := &bytes.Buffer{}
+	err := ExtractStringFromPdfFile(name, bw)
+	return bw.String(), err
+}
+
+func ExtractStringFromPdfFile(name string, w io.Writer) error {
 	// See "man pdftotext" for more options.
 	args := []string{
 		"-layout",  // Maintain (as best as possible) the original physical layout of the text
@@ -24,7 +31,7 @@ func ExtractTextFromPdfFile(name string, w io.Writer) error {
 	return cmd.Run()
 }
 
-func ExtractTextFromPdfReader(r io.Reader, w io.Writer) error {
+func ExtractStringFromPdfReader(r io.Reader, w io.Writer) error {
 	// See "man pdftotext" for more options.
 	args := []string{
 		"-layout",  // Maintain (as best as possible) the original physical layout of the text

@@ -8,6 +8,20 @@ import (
 	"testing"
 )
 
+func TestEqual(t *testing.T) {
+	a := make(map[int]int)
+	b := make(map[int]int)
+
+	for i := 0; i < 100; i++ {
+		a[i] = i * 100
+		b[99-i] = (99 - i) * 100
+	}
+
+	if !Equal(a, b) {
+		t.Errorf("a = %v\nb = %v", a, b)
+	}
+}
+
 func TestMerge(t *testing.T) {
 	cs := []struct {
 		s []map[int]int

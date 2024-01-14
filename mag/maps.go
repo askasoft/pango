@@ -3,6 +3,20 @@
 
 package mag
 
+func Equal[K comparable, V comparable](a map[K]V, b map[K]V) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for k, v := range a {
+		if w, ok := b[k]; !ok || w != v {
+			return false
+		}
+	}
+
+	return true
+}
+
 func Merge[K comparable, V any](ms ...map[K]V) map[K]V {
 	sz := 0
 	for _, m := range ms {

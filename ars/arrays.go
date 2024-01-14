@@ -616,86 +616,100 @@ func IndexString(a []string, c string) int {
 	return -1
 }
 
-// RemoveByte remove the element at index i of array a.
-func RemoveByte(a []byte, i int) []byte {
-	copy(a[i:], a[i+1:])
-	return a[:len(a)-1]
+// DeleteBytes removes the elements a[i:j] from a.
+func DeleteBytes(a []byte, i, j int) []byte {
+	_ = a[i:j] // bounds check
+	copy(a[i:], a[j:])
+	return a[:len(a)+i-j]
 }
 
-// RemoveInt remove the element at index i of array a.
-func RemoveInt(a []int, i int) []int {
-	copy(a[i:], a[i+1:])
-	return a[:len(a)-1]
+// DeleteInts removes the elements a[i:j] from a.
+func DeleteInts(a []int, i, j int) []int {
+	_ = a[i:j] // bounds check
+	copy(a[i:], a[j:])
+	return a[:len(a)+i-j]
 }
 
-// RemoveInt8 remove the element at index i of array a.
-func RemoveInt8(a []int8, i int) []int8 {
-	copy(a[i:], a[i+1:])
-	return a[:len(a)-1]
+// DeleteInt8s removes the elements a[i:j] from a.
+func DeleteInt8s(a []int8, i, j int) []int8 {
+	_ = a[i:j] // bounds check
+	copy(a[i:], a[j:])
+	return a[:len(a)+i-j]
 }
 
-// RemoveInt16 remove the element at index i of array a.
-func RemoveInt16(a []int16, i int) []int16 {
-	copy(a[i:], a[i+1:])
-	return a[:len(a)-1]
+// DeleteInt16s removes the elements a[i:j] from a.
+func DeleteInt16s(a []int16, i, j int) []int16 {
+	_ = a[i:j] // bounds check
+	copy(a[i:], a[j:])
+	return a[:len(a)+i-j]
 }
 
-// RemoveInt32 remove the element at index i of array a.
-func RemoveInt32(a []int32, i int) []int32 {
-	copy(a[i:], a[i+1:])
-	return a[:len(a)-1]
+// DeleteInt32s removes the elements a[i:j] from a.
+func DeleteInt32s(a []int32, i, j int) []int32 {
+	_ = a[i:j] // bounds check
+	copy(a[i:], a[j:])
+	return a[:len(a)+i-j]
 }
 
-// RemoveInt64 remove the element at index i of array a.
-func RemoveInt64(a []int64, i int) []int64 {
-	copy(a[i:], a[i+1:])
-	return a[:len(a)-1]
+// DeleteInt64s removes the elements a[i:j] from a.
+func DeleteInt64s(a []int64, i, j int) []int64 {
+	_ = a[i:j] // bounds check
+	copy(a[i:], a[j:])
+	return a[:len(a)+i-j]
 }
 
-// RemoveUint remove the element at index i of array a.
-func RemoveUint(a []uint, i int) []uint {
-	copy(a[i:], a[i+1:])
-	return a[:len(a)-1]
+// DeleteUints removes the elements a[i:j] from a.
+func DeleteUints(a []uint, i, j int) []uint {
+	_ = a[i:j] // bounds check
+	copy(a[i:], a[j:])
+	return a[:len(a)+i-j]
 }
 
-// RemoveUint8 remove the element at index i of array a.
-func RemoveUint8(a []uint8, i int) []uint8 {
-	copy(a[i:], a[i+1:])
-	return a[:len(a)-1]
+// DeleteUint8s removes the elements a[i:j] from a.
+func DeleteUint8s(a []uint8, i, j int) []uint8 {
+	_ = a[i:j] // bounds check
+	copy(a[i:], a[j:])
+	return a[:len(a)+i-j]
 }
 
-// RemoveUint16 remove the element at index i of array a.
-func RemoveUint16(a []uint16, i int) []uint16 {
-	copy(a[i:], a[i+1:])
-	return a[:len(a)-1]
+// DeleteUint16s removes the elements a[i:j] from a.
+func DeleteUint16s(a []uint16, i, j int) []uint16 {
+	_ = a[i:j] // bounds check
+	copy(a[i:], a[j:])
+	return a[:len(a)+i-j]
 }
 
-// RemoveUint64 remove the element at index i of array a.
-func RemoveUint64(a []uint64, i int) []uint64 {
-	copy(a[i:], a[i+1:])
-	return a[:len(a)-1]
+// DeleteUint64s removes the elements a[i:j] from a.
+func DeleteUint64s(a []uint64, i, j int) []uint64 {
+	_ = a[i:j] // bounds check
+	copy(a[i:], a[j:])
+	return a[:len(a)+i-j]
 }
 
-// RemoveFloat32 remove the element at index i of array a.
-func RemoveFloat32(a []float32, i int) []float32 {
-	copy(a[i:], a[i+1:])
-	return a[:len(a)-1]
+// DeleteFloat32s removes the elements a[i:j] from a.
+func DeleteFloat32s(a []float32, i, j int) []float32 {
+	_ = a[i:j] // bounds check
+	copy(a[i:], a[j:])
+	return a[:len(a)+i-j]
 }
 
-// RemoveFloat64 remove the element at index i of array a.
-func RemoveFloat64(a []float64, i int) []float64 {
-	copy(a[i:], a[i+1:])
-	return a[:len(a)-1]
+// DeleteFloat64s removes the elements a[i:j] from a.
+func DeleteFloat64s(a []float64, i, j int) []float64 {
+	_ = a[i:j] // bounds check
+	copy(a[i:], a[j:])
+	return a[:len(a)+i-j]
 }
 
-// RemoveRune remove the element at index i of array a.
-func RemoveRune(a []rune, i int) []rune {
-	copy(a[i:], a[i+1:])
-	return a[:len(a)-1]
+// DeleteRunes removes the elements a[i:j] from a.
+func DeleteRunes(a []rune, i, j int) []rune {
+	_ = a[i:j] // bounds check
+	copy(a[i:], a[j:])
+	return a[:len(a)+i-j]
 }
 
-// RemoveString remove the element at index i of array a.
-func RemoveString(a []string, i int) []string {
-	copy(a[i:], a[i+1:])
-	return a[:len(a)-1]
+// DeleteStrings removes the elements a[i:j] from a.
+func DeleteStrings(a []string, i, j int) []string {
+	_ = a[i:j] // bounds check
+	copy(a[i:], a[j:])
+	return a[:len(a)+i-j]
 }

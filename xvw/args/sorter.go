@@ -15,10 +15,18 @@ func (s *Sorter) String() string {
 	return s.Col + " " + s.Dir
 }
 
+func (s *Sorter) IsAsc() bool {
+	return s.Dir == "asc"
+}
+
+func (s *Sorter) IsDesc() bool {
+	return s.Dir == "desc"
+}
+
 // Order return the sql order by string (quote + Col + quote + " " + Dir)
-// the default quote string is "`"
+// the default quote string is ""
 func (s *Sorter) Order(quote ...string) string {
-	q := "`"
+	q := ""
 	if len(quote) > 0 {
 		q = quote[0]
 	}

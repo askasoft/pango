@@ -58,11 +58,14 @@ type Collection[T any] interface {
 	// Remove remove all items with associated value v
 	Remove(v T)
 
-	// Removes remove all items with associated value v of vs
+	// Removes remove all items in the array vs
 	Removes(vs ...T)
 
 	// RemoveCol remove all of this collection's elements that are also contained in the specified collection
 	RemoveCol(ac Collection[T])
+
+	// RemoveIter remove all items in the iterator it
+	RemoveIter(it Iterator[T])
 
 	// RemoveFunc remove all items that function f returns true
 	RemoveFunc(f func(T) bool)

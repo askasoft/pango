@@ -77,14 +77,23 @@ func (al *ArrayList) AddCol(ac Collection) {
 
 // Remove remove all items with associated value v of vs
 func (al *ArrayList) Remove(v T) {
-	for i := al.Len() - 1; i >= 0; i-- {
-		if al.data[i] == v {
-			al.DeleteAt(i)
+	i := al.Index(v)
+	if i < 0 {
+		return
+	}
+
+	// Don't start copying elements until we find one to delete.
+	a := al.data
+	for j := i + 1; j < len(a); j++ {
+		if e := a[j]; e != v {
+			a[i] = e
+			i++
 		}
 	}
+	al.data = a[:i]
 }
 
-// Removes remove all items with associated value v of vs
+// Removes remove all items in the array vs
 func (al *ArrayList) Removes(vs ...T) {
 	if al.IsEmpty() {
 		return
@@ -92,19 +101,6 @@ func (al *ArrayList) Removes(vs ...T) {
 
 	for _, v := range vs {
 		al.Remove(v)
-	}
-}
-
-// RemoveFunc remove all items that function f returns true
-func (al *ArrayList) RemoveFunc(f func(T) bool) {
-	if al.IsEmpty() {
-		return
-	}
-
-	for i := al.Len() - 1; i >= 0; i-- {
-		if f(al.data[i]) {
-			al.DeleteAt(i)
-		}
 	}
 }
 
@@ -119,8 +115,29 @@ func (al *ArrayList) RemoveCol(ac Collection) {
 		return
 	}
 
+	if ic, ok := ac.(Iterable); ok {
+		al.RemoveIter(ic.Iterator())
+		return
+	}
+
+	al.RemoveFunc(ac.Contain)
+}
+
+// RemoveIter remove all items in the iterator it
+func (al *ArrayList) RemoveIter(it Iterator) {
+	for it.Next() {
+		al.Remove(it.Value())
+	}
+}
+
+// RemoveFunc remove all items that function f returns true
+func (al *ArrayList) RemoveFunc(f func(T) bool) {
+	if al.IsEmpty() {
+		return
+	}
+
 	for i := al.Len() - 1; i >= 0; i-- {
-		if ac.Contain(al.data[i]) {
+		if f(al.data[i]) {
 			al.DeleteAt(i)
 		}
 	}
@@ -201,8 +218,17 @@ func (al *ArrayList) RetainCol(ac Collection) {
 		return
 	}
 
+	al.RetainFunc(ac.Contain)
+}
+
+// RetainFunc Retains all items that function f returns true
+func (al *ArrayList) RetainFunc(f func(T) bool) {
+	if al.IsEmpty() {
+		return
+	}
+
 	for i := al.Len() - 1; i >= 0; i-- {
-		if !ac.Contain(al.data[i]) {
+		if !f(al.data[i]) {
 			al.DeleteAt(i)
 		}
 	}

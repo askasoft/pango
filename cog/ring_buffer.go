@@ -77,7 +77,7 @@ func (rb *RingBuffer[T]) Remove(v T) {
 	}
 }
 
-// Removes remove all items with associated value v of vs
+// Removes remove all items in the array vs
 func (rb *RingBuffer[T]) Removes(vs ...T) {
 	if rb.IsEmpty() {
 		return
@@ -85,20 +85,6 @@ func (rb *RingBuffer[T]) Removes(vs ...T) {
 
 	for _, v := range vs {
 		rb.Remove(v)
-	}
-}
-
-// RemoveFunc remove all items that function f returns true
-func (rb *RingBuffer[T]) RemoveFunc(f func(T) bool) {
-	if rb.IsEmpty() {
-		return
-	}
-
-	it := rb.Iterator()
-	for it.Next() {
-		if f(it.Value()) {
-			it.Remove()
-		}
 	}
 }
 
@@ -114,14 +100,32 @@ func (rb *RingBuffer[T]) RemoveCol(ac Collection[T]) {
 	}
 
 	if ic, ok := ac.(Iterable[T]); ok {
-		it := ic.Iterator()
-		for it.Next() {
-			rb.Remove(it.Value())
-		}
+		rb.RemoveIter(ic.Iterator())
 		return
 	}
 
-	rb.Removes(ac.Values()...)
+	rb.RemoveFunc(ac.Contain)
+}
+
+// RemoveIter remove all items in the iterator it
+func (rb *RingBuffer[T]) RemoveIter(it Iterator[T]) {
+	for it.Next() {
+		rb.Remove(it.Value())
+	}
+}
+
+// RemoveFunc remove all items that function f returns true
+func (rb *RingBuffer[T]) RemoveFunc(f func(T) bool) {
+	if rb.IsEmpty() {
+		return
+	}
+
+	it := rb.Iterator()
+	for it.Next() {
+		if f(it.Value()) {
+			it.Remove()
+		}
+	}
 }
 
 // Contain Test to see if the list contains the value v
@@ -200,9 +204,18 @@ func (rb *RingBuffer[T]) RetainCol(ac Collection[T]) {
 		return
 	}
 
+	rb.RetainFunc(ac.Contain)
+}
+
+// RetainFunc Retains all items that function f returns true
+func (rb *RingBuffer[T]) RetainFunc(f func(T) bool) {
+	if rb.IsEmpty() {
+		return
+	}
+
 	it := rb.Iterator()
 	for it.Next() {
-		if !ac.Contain(it.Value()) {
+		if !f(it.Value()) {
 			it.Remove()
 		}
 	}

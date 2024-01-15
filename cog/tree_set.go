@@ -88,7 +88,7 @@ func (ts *TreeSet[T]) Remove(v T) {
 	}
 }
 
-// Removes remove all items with associated value v of vs
+// Removes remove all items in the array vs
 func (ts *TreeSet[T]) Removes(vs ...T) {
 	if ts.IsEmpty() {
 		return
@@ -96,19 +96,6 @@ func (ts *TreeSet[T]) Removes(vs ...T) {
 
 	for _, v := range vs {
 		ts.Remove(v)
-	}
-}
-
-// RemoveFunc remove all items that function f returns true
-func (ts *TreeSet[T]) RemoveFunc(f func(T) bool) {
-	if ts.IsEmpty() {
-		return
-	}
-
-	for tn := ts.head(); tn != nil; tn = tn.next() {
-		if f(tn.value) {
-			ts.deleteNode(tn)
-		}
 	}
 }
 
@@ -124,14 +111,31 @@ func (ts *TreeSet[T]) RemoveCol(ac Collection[T]) {
 	}
 
 	if ic, ok := ac.(Iterable[T]); ok {
-		it := ic.Iterator()
-		for it.Next() {
-			ts.Remove(it.Value())
-		}
+		ts.RemoveIter(ic.Iterator())
 		return
 	}
 
-	ts.Removes(ac.Values()...)
+	ts.RemoveFunc(ac.Contain)
+}
+
+// RemoveIter remove all items in the iterator it
+func (ts *TreeSet[T]) RemoveIter(it Iterator[T]) {
+	for it.Next() {
+		ts.Remove(it.Value())
+	}
+}
+
+// RemoveFunc remove all items that function f returns true
+func (ts *TreeSet[T]) RemoveFunc(f func(T) bool) {
+	if ts.IsEmpty() {
+		return
+	}
+
+	for tn := ts.head(); tn != nil; tn = tn.next() {
+		if f(tn.value) {
+			ts.deleteNode(tn)
+		}
+	}
 }
 
 // Contain Test to see if the list contains the value v
@@ -209,8 +213,17 @@ func (ts *TreeSet[T]) RetainCol(ac Collection[T]) {
 		return
 	}
 
+	ts.RetainFunc(ac.Contain)
+}
+
+// RetainFunc Retains all items that function f returns true
+func (ts *TreeSet[T]) RetainFunc(f func(T) bool) {
+	if ts.IsEmpty() {
+		return
+	}
+
 	for tn := ts.head(); tn != nil; tn = tn.next() {
-		if !ac.Contain(tn.value) {
+		if !f(tn.value) {
 			ts.deleteNode(tn)
 		}
 	}

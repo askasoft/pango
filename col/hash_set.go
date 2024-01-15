@@ -107,6 +107,28 @@ func (hs *HashSet) Removes(vs ...T) {
 	}
 }
 
+// RemoveCol remove all of this collection's elements that are also contained in the specified collection
+func (hs *HashSet) RemoveCol(ac Collection) {
+	if hs == ac {
+		hs.Clear()
+		return
+	}
+
+	if ic, ok := ac.(Iterable); ok {
+		hs.RemoveIter(ic.Iterator())
+		return
+	}
+
+	hs.RemoveFunc(ac.Contain)
+}
+
+// RemoveIter remove all items in the iterator it
+func (hs *HashSet) RemoveIter(it Iterator) {
+	for it.Next() {
+		delete(hs.hash, it.Value())
+	}
+}
+
 // RemoveFunc remove all items that function f returns true
 func (hs *HashSet) RemoveFunc(f func(T) bool) {
 	if hs.IsEmpty() {
@@ -118,24 +140,6 @@ func (hs *HashSet) RemoveFunc(f func(T) bool) {
 			delete(hs.hash, k)
 		}
 	}
-}
-
-// RemoveCol remove all of this collection's elements that are also contained in the specified collection
-func (hs *HashSet) RemoveCol(ac Collection) {
-	if hs == ac {
-		hs.Clear()
-		return
-	}
-
-	if ic, ok := ac.(Iterable); ok {
-		it := ic.Iterator()
-		for it.Next() {
-			delete(hs.hash, it.Value())
-		}
-		return
-	}
-
-	hs.Removes(ac.Values()...)
 }
 
 // Contain Test to see if the list contains the value v
@@ -219,8 +223,17 @@ func (hs *HashSet) RetainCol(ac Collection) {
 		return
 	}
 
+	hs.RetainFunc(ac.Contain)
+}
+
+// RetainFunc Retains all items that function f returns true
+func (hs *HashSet) RetainFunc(f func(T) bool) {
+	if hs.IsEmpty() {
+		return
+	}
+
 	for k := range hs.hash {
-		if !ac.Contain(k) {
+		if !f(k) {
 			delete(hs.hash, k)
 		}
 	}

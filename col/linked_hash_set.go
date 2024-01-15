@@ -77,7 +77,7 @@ func (ls *LinkedHashSet) Remove(v T) {
 	}
 }
 
-// Removes remove all items with associated value v of vs
+// Removes remove all items in the array vs
 func (ls *LinkedHashSet) Removes(vs ...T) {
 	if ls.IsEmpty() {
 		return
@@ -85,19 +85,6 @@ func (ls *LinkedHashSet) Removes(vs ...T) {
 
 	for _, v := range vs {
 		ls.Remove(v)
-	}
-}
-
-// RemoveFunc remove all items that function f returns true
-func (ls *LinkedHashSet) RemoveFunc(f func(T) bool) {
-	if ls.IsEmpty() {
-		return
-	}
-
-	for ln := ls.head; ln != nil; ln = ln.next {
-		if f(ln.value) {
-			ls.deleteNode(ln)
-		}
 	}
 }
 
@@ -113,14 +100,31 @@ func (ls *LinkedHashSet) RemoveCol(ac Collection) {
 	}
 
 	if ic, ok := ac.(Iterable); ok {
-		it := ic.Iterator()
-		for it.Next() {
-			ls.Remove(it.Value())
-		}
+		ls.RemoveIter(ic.Iterator())
 		return
 	}
 
-	ls.Removes(ac.Values()...)
+	ls.RemoveFunc(ac.Contain)
+}
+
+// RemoveIter remove all items in the iterator it
+func (ls *LinkedHashSet) RemoveIter(it Iterator) {
+	for it.Next() {
+		ls.Remove(it.Value())
+	}
+}
+
+// RemoveFunc remove all items that function f returns true
+func (ls *LinkedHashSet) RemoveFunc(f func(T) bool) {
+	if ls.IsEmpty() {
+		return
+	}
+
+	for ln := ls.head; ln != nil; ln = ln.next {
+		if f(ln.value) {
+			ls.deleteNode(ln)
+		}
+	}
 }
 
 // Contain Test to see if the list contains the value v
@@ -204,8 +208,17 @@ func (ls *LinkedHashSet) RetainCol(ac Collection) {
 		return
 	}
 
+	ls.RetainFunc(ac.Contain)
+}
+
+// RetainFunc Retains all items that function f returns true
+func (ls *LinkedHashSet) RetainFunc(f func(T) bool) {
+	if ls.IsEmpty() {
+		return
+	}
+
 	for ln := ls.head; ln != nil; ln = ln.next {
-		if !ac.Contain(ln.value) {
+		if !f(ln.value) {
 			ls.deleteNode(ln)
 		}
 	}

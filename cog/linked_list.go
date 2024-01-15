@@ -77,7 +77,7 @@ func (ll *LinkedList[T]) Remove(v T) {
 	}
 }
 
-// Removes remove all items with associated value v of vs
+// Removes remove all items in the array vs
 func (ll *LinkedList[T]) Removes(vs ...T) {
 	if ll.IsEmpty() {
 		return
@@ -85,19 +85,6 @@ func (ll *LinkedList[T]) Removes(vs ...T) {
 
 	for _, v := range vs {
 		ll.Remove(v)
-	}
-}
-
-// RemoveFunc remove all items that function f returns true
-func (ll *LinkedList[T]) RemoveFunc(f func(T) bool) {
-	if ll.IsEmpty() {
-		return
-	}
-
-	for ln := ll.head; ln != nil; ln = ln.next {
-		if f(ln.value) {
-			ll.deleteNode(ln)
-		}
 	}
 }
 
@@ -113,14 +100,31 @@ func (ll *LinkedList[T]) RemoveCol(ac Collection[T]) {
 	}
 
 	if ic, ok := ac.(Iterable[T]); ok {
-		it := ic.Iterator()
-		for it.Next() {
-			ll.Remove(it.Value())
-		}
+		ll.RemoveIter(ic.Iterator())
 		return
 	}
 
-	ll.Removes(ac.Values()...)
+	ll.RemoveFunc(ac.Contain)
+}
+
+// RemoveIter remove all items in the iterator it
+func (ll *LinkedList[T]) RemoveIter(it Iterator[T]) {
+	for it.Next() {
+		ll.Remove(it.Value())
+	}
+}
+
+// RemoveFunc remove all items that function f returns true
+func (ll *LinkedList[T]) RemoveFunc(f func(T) bool) {
+	if ll.IsEmpty() {
+		return
+	}
+
+	for ln := ll.head; ln != nil; ln = ln.next {
+		if f(ln.value) {
+			ll.deleteNode(ln)
+		}
+	}
 }
 
 // Contain Test to see if the list contains the value v
@@ -198,8 +202,17 @@ func (ll *LinkedList[T]) RetainCol(ac Collection[T]) {
 		return
 	}
 
+	ll.RetainFunc(ac.Contain)
+}
+
+// RetainFunc Retains all items that function f returns true
+func (ll *LinkedList[T]) RetainFunc(f func(T) bool) {
+	if ll.IsEmpty() {
+		return
+	}
+
 	for ln := ll.head; ln != nil; ln = ln.next {
-		if !ac.Contain(ln.value) {
+		if !f(ln.value) {
 			ll.deleteNode(ln)
 		}
 	}

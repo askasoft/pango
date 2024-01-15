@@ -96,26 +96,14 @@ func (al *ArrayList[T]) Remove(v T) {
 	al.data = a[:i]
 }
 
-// Removes remove all items with associated value v of vs
+// Removes remove all items in the array vs
 func (al *ArrayList[T]) Removes(vs ...T) {
 	if al.IsEmpty() {
 		return
 	}
+
 	for _, v := range vs {
 		al.Remove(v)
-	}
-}
-
-// RemoveFunc remove all items that function f returns true
-func (al *ArrayList[T]) RemoveFunc(f func(T) bool) {
-	if al.IsEmpty() {
-		return
-	}
-
-	for i := al.Len() - 1; i >= 0; i-- {
-		if f(al.data[i]) {
-			al.DeleteAt(i)
-		}
 	}
 }
 
@@ -130,8 +118,29 @@ func (al *ArrayList[T]) RemoveCol(ac Collection[T]) {
 		return
 	}
 
+	if ic, ok := ac.(Iterable[T]); ok {
+		al.RemoveIter(ic.Iterator())
+		return
+	}
+
+	al.RemoveFunc(ac.Contain)
+}
+
+// RemoveIter remove all items in the iterator it
+func (al *ArrayList[T]) RemoveIter(it Iterator[T]) {
+	for it.Next() {
+		al.Remove(it.Value())
+	}
+}
+
+// RemoveFunc remove all items that function f returns true
+func (al *ArrayList[T]) RemoveFunc(f func(T) bool) {
+	if al.IsEmpty() {
+		return
+	}
+
 	for i := al.Len() - 1; i >= 0; i-- {
-		if ac.Contain(al.data[i]) {
+		if f(al.data[i]) {
 			al.DeleteAt(i)
 		}
 	}
@@ -212,8 +221,17 @@ func (al *ArrayList[T]) RetainCol(ac Collection[T]) {
 		return
 	}
 
+	al.RetainFunc(ac.Contain)
+}
+
+// RetainFunc Retains all items that function f returns true
+func (al *ArrayList[T]) RetainFunc(f func(T) bool) {
+	if al.IsEmpty() {
+		return
+	}
+
 	for i := al.Len() - 1; i >= 0; i-- {
-		if !ac.Contain(al.data[i]) {
+		if !f(al.data[i]) {
 			al.DeleteAt(i)
 		}
 	}

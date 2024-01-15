@@ -439,8 +439,8 @@ func (ls *LinkedHashSet[T]) Index(v T) int {
 	return -1
 }
 
-// RemoveAt removes the element at the specified position in this set.
-func (ls *LinkedHashSet[T]) RemoveAt(index int) {
+// DeleteAt removes the element at the specified position in this set.
+func (ls *LinkedHashSet[T]) DeleteAt(index int) {
 	index = ls.checkItemIndex(index)
 
 	ln := ls.node(index)

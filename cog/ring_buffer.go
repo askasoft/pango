@@ -73,7 +73,7 @@ func (rb *RingBuffer[T]) AddCol(ac Collection[T]) {
 // Remove remove all items with associated value v of vs
 func (rb *RingBuffer[T]) Remove(v T) {
 	for i := rb.Index(v); i >= 0; i = rb.Index(v) {
-		rb.RemoveAt(i)
+		rb.DeleteAt(i)
 	}
 }
 
@@ -455,8 +455,8 @@ func (rb *RingBuffer[T]) IndexFunc(f func(T) bool) int {
 	return -1
 }
 
-// RemoveAt remove the item at the specified position in this RingBuffer.
-func (rb *RingBuffer[T]) RemoveAt(index int) {
+// DeleteAt remove the item at the specified position in this RingBuffer.
+func (rb *RingBuffer[T]) DeleteAt(index int) {
 	index = rb.checkItemIndex(index)
 	rb.removeAt(index)
 	rb.shrink()

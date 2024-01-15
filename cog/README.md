@@ -134,8 +134,8 @@ type List[T any] interface {
 	// IndexFunc returns the index of the first true returned by function f in this list, or -1 if this list does not contain v.
 	IndexFunc(f func(T) bool) int
 
-	// RemoveAt remove the item at the specified position in this list
-	RemoveAt(index int)
+	// DeleteAt remove the item at the specified position in this list
+	DeleteAt(index int)
 
 	// Swap swaps values of two items at the given index.
 	Swap(i, j int)
@@ -166,9 +166,9 @@ func main() {
 	_ = list.Contains("a", "b", "c")      // true
 	_ = list.Contains("a", "b", "c", "d") // false
 	list.Swap(0, 1)                       // ["b","a",c"]
-	list.RemoveAt(2)                      // ["b","a"]
-	list.RemoveAt(1)                      // ["b"]
-	list.RemoveAt(0)                      // []
+	list.DeleteAt(2)                      // ["b","a"]
+	list.DeleteAt(1)                      // ["b"]
+	list.DeleteAt(0)                      // []
 	_ = list.IsEmpty()                    // true
 	_ = list.Len()                        // 0
 	list.Add("a")                         // ["a"]
@@ -202,9 +202,9 @@ func main() {
 	_ = list.Contains("a", "b", "c")      // true
 	_ = list.Contains("a", "b", "c", "d") // false
 	list.Swap(0, 1)                       // ["b","a",c"]
-	list.RemoveAt(2)                      // ["b","a"]
-	list.RemoveAt(1)                      // ["b"]
-	list.RemoveAt(0)                      // []
+	list.DeleteAt(2)                      // ["b","a"]
+	list.DeleteAt(1)                      // ["b"]
+	list.DeleteAt(0)                      // []
 	_ = list.IsEmpty()                    // true
 	_ = list.Len()                        // 0
 	list.Add("a")                         // ["a"]

@@ -186,13 +186,13 @@ func TestLinkedListDeleteAll(t *testing.T) {
 	}
 }
 
-func TestLinkedListRemoveAt(t *testing.T) {
+func TestLinkedListDeleteAt(t *testing.T) {
 	list := NewLinkedList[string]()
 	list.Add("a")
 	list.Adds("b", "c")
-	list.RemoveAt(2)
-	list.RemoveAt(1)
-	list.RemoveAt(0)
+	list.DeleteAt(2)
+	list.DeleteAt(1)
+	list.DeleteAt(0)
 	if av := list.IsEmpty(); av != true {
 		t.Errorf("Got %v expected %v", av, true)
 	}
@@ -201,7 +201,7 @@ func TestLinkedListRemoveAt(t *testing.T) {
 	}
 }
 
-func TestLinkedListRemoveAtPanic(t *testing.T) {
+func TestLinkedListDeleteAtPanic(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {
 			t.Error("want out of bounds panic")
@@ -209,7 +209,7 @@ func TestLinkedListRemoveAtPanic(t *testing.T) {
 	}()
 
 	list := NewLinkedList("a")
-	list.RemoveAt(1)
+	list.DeleteAt(1)
 }
 
 func TestLinkedListGet(t *testing.T) {
@@ -225,7 +225,7 @@ func TestLinkedListGet(t *testing.T) {
 	if av := list.Get(2); av != "c" {
 		t.Errorf("Got %v expected %v", av, "c")
 	}
-	list.RemoveAt(0)
+	list.DeleteAt(0)
 	if av := list.Get(0); av != "b" {
 		t.Errorf("Got %v expected %v", av, "b")
 	}

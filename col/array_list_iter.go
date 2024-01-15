@@ -74,7 +74,7 @@ func (it *arrayListIterator) Remove() {
 		return
 	}
 
-	it.list.RemoveAt(it.index)
+	it.list.DeleteAt(it.index)
 	it.start = it.index
 	it.index = -1
 }

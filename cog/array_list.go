@@ -114,7 +114,7 @@ func (al *ArrayList[T]) RemoveIf(f func(T) bool) {
 
 	for i := al.Len() - 1; i >= 0; i-- {
 		if f(al.data[i]) {
-			al.RemoveAt(i)
+			al.DeleteAt(i)
 		}
 	}
 }
@@ -132,7 +132,7 @@ func (al *ArrayList[T]) RemoveCol(ac Collection[T]) {
 
 	for i := al.Len() - 1; i >= 0; i-- {
 		if ac.Contain(al.data[i]) {
-			al.RemoveAt(i)
+			al.DeleteAt(i)
 		}
 	}
 }
@@ -196,7 +196,7 @@ func (al *ArrayList[T]) Retains(vs ...T) {
 
 	for i := al.Len() - 1; i >= 0; i-- {
 		if !contains(vs, al.data[i]) {
-			al.RemoveAt(i)
+			al.DeleteAt(i)
 		}
 	}
 }
@@ -214,7 +214,7 @@ func (al *ArrayList[T]) RetainCol(ac Collection[T]) {
 
 	for i := al.Len() - 1; i >= 0; i-- {
 		if !ac.Contain(al.data[i]) {
-			al.RemoveAt(i)
+			al.DeleteAt(i)
 		}
 	}
 }
@@ -321,8 +321,8 @@ func (al *ArrayList[T]) IndexFunc(f func(T) bool) int {
 	return -1
 }
 
-// RemoveAt remove the item at the specified position in this list.
-func (al *ArrayList[T]) RemoveAt(index int) {
+// DeleteAt remove the item at the specified position in this list.
+func (al *ArrayList[T]) DeleteAt(index int) {
 	index = al.checkItemIndex(index)
 
 	var v T
@@ -411,7 +411,7 @@ func (al *ArrayList[T]) PeekTail() (v T, ok bool) {
 func (al *ArrayList[T]) PollHead() (v T, ok bool) {
 	v, ok = al.PeekHead()
 	if ok {
-		al.RemoveAt(0)
+		al.DeleteAt(0)
 	}
 	return
 }

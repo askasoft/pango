@@ -9,9 +9,9 @@ func ExampleArrayList() {
 	_ = list.Contains("a", "b", "c")      // true
 	_ = list.Contains("a", "b", "c", "d") // false
 	list.Swap(0, 1)                       // ["b","a",c"]
-	list.RemoveAt(2)                      // ["b","a"]
-	list.RemoveAt(1)                      // ["b"]
-	list.RemoveAt(0)                      // []
+	list.DeleteAt(2)                      // ["b","a"]
+	list.DeleteAt(1)                      // ["b"]
+	list.DeleteAt(0)                      // []
 	_ = list.IsEmpty()                    // true
 	_ = list.Len()                        // 0
 	list.Add("a")                         // ["a"]

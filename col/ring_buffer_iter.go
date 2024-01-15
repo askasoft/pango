@@ -74,7 +74,7 @@ func (it *ringBufferIterator) Remove() {
 		return
 	}
 
-	it.rb.RemoveAt(it.index)
+	it.rb.DeleteAt(it.index)
 	it.start = it.index
 	it.index = -1
 }

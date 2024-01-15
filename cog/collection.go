@@ -110,8 +110,8 @@ type List[T any] interface {
 	// IndexFunc returns the index of the first true returned by function f in this list, or -1 if this list does not contain v.
 	IndexFunc(f func(T) bool) int
 
-	// RemoveAt remove the item at the specified position in this list
-	RemoveAt(index int)
+	// DeleteAt remove the item at the specified position in this list
+	DeleteAt(index int)
 
 	// Swap swaps values of two items at the given index.
 	Swap(i, j int)

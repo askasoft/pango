@@ -372,8 +372,8 @@ func (ll *LinkedList[T]) LastIndex(v T) int {
 	return -1
 }
 
-// RemoveAt remove the element at the specified position in this list.
-func (ll *LinkedList[T]) RemoveAt(index int) {
+// DeleteAt remove the element at the specified position in this list.
+func (ll *LinkedList[T]) DeleteAt(index int) {
 	index = ll.checkItemIndex(index)
 
 	ln := ll.node(index)

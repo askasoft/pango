@@ -79,7 +79,7 @@ func (al *ArrayList) AddCol(ac Collection) {
 func (al *ArrayList) Remove(v T) {
 	for i := al.Len() - 1; i >= 0; i-- {
 		if al.data[i] == v {
-			al.RemoveAt(i)
+			al.DeleteAt(i)
 		}
 	}
 }
@@ -103,7 +103,7 @@ func (al *ArrayList) RemoveIf(f func(T) bool) {
 
 	for i := al.Len() - 1; i >= 0; i-- {
 		if f(al.data[i]) {
-			al.RemoveAt(i)
+			al.DeleteAt(i)
 		}
 	}
 }
@@ -121,7 +121,7 @@ func (al *ArrayList) RemoveCol(ac Collection) {
 
 	for i := al.Len() - 1; i >= 0; i-- {
 		if ac.Contain(al.data[i]) {
-			al.RemoveAt(i)
+			al.DeleteAt(i)
 		}
 	}
 }
@@ -185,7 +185,7 @@ func (al *ArrayList) Retains(vs ...T) {
 
 	for i := al.Len() - 1; i >= 0; i-- {
 		if !contains(vs, al.data[i]) {
-			al.RemoveAt(i)
+			al.DeleteAt(i)
 		}
 	}
 }
@@ -203,7 +203,7 @@ func (al *ArrayList) RetainCol(ac Collection) {
 
 	for i := al.Len() - 1; i >= 0; i-- {
 		if !ac.Contain(al.data[i]) {
-			al.RemoveAt(i)
+			al.DeleteAt(i)
 		}
 	}
 }
@@ -310,8 +310,8 @@ func (al *ArrayList) IndexFunc(f func(T) bool) int {
 	return -1
 }
 
-// RemoveAt remove the item at the specified position in this list.
-func (al *ArrayList) RemoveAt(index int) {
+// DeleteAt remove the item at the specified position in this list.
+func (al *ArrayList) DeleteAt(index int) {
 	index = al.checkItemIndex(index)
 
 	al.data[index] = nil
@@ -399,7 +399,7 @@ func (al *ArrayList) PeekTail() (v T, ok bool) {
 func (al *ArrayList) PollHead() (v T, ok bool) {
 	v, ok = al.PeekHead()
 	if ok {
-		al.RemoveAt(0)
+		al.DeleteAt(0)
 	}
 	return
 }

@@ -63,9 +63,9 @@ func TestLinkedHashSetRemove(t *testing.T) {
 	lset := NewLinkedHashSet[string]()
 	lset.Add("a")
 	lset.Adds("b", "c")
-	lset.RemoveAt(2)
-	lset.RemoveAt(1)
-	lset.RemoveAt(0)
+	lset.DeleteAt(2)
+	lset.DeleteAt(1)
+	lset.DeleteAt(0)
 	if av := lset.IsEmpty(); av != true {
 		t.Errorf("Got %v expected %v", av, true)
 	}
@@ -82,7 +82,7 @@ func TestLinkedHashSetRemovePanic(t *testing.T) {
 	}()
 
 	list := NewLinkedHashSet("a")
-	list.RemoveAt(1)
+	list.DeleteAt(1)
 }
 
 func TestLinkedHashSetGet(t *testing.T) {
@@ -98,7 +98,7 @@ func TestLinkedHashSetGet(t *testing.T) {
 	if av := lset.Get(2); av != "c" {
 		t.Errorf("Got %v expected %v", av, "c")
 	}
-	lset.RemoveAt(0)
+	lset.DeleteAt(0)
 	if av := lset.Get(0); av != "b" {
 		t.Errorf("Got %v expected %v", av, "b")
 	}

@@ -216,13 +216,13 @@ func TestArrayListDeleteAll(t *testing.T) {
 	}
 }
 
-func TestArrayListRemoveAt(t *testing.T) {
+func TestArrayListDeleteAt(t *testing.T) {
 	list := NewArrayList()
 	list.Add("a")
 	list.Adds("b", "c")
-	list.RemoveAt(2)
-	list.RemoveAt(1)
-	list.RemoveAt(0)
+	list.DeleteAt(2)
+	list.DeleteAt(1)
+	list.DeleteAt(0)
 	if av := list.IsEmpty(); av != true {
 		t.Errorf("Got %v expected %v", av, true)
 	}
@@ -231,7 +231,7 @@ func TestArrayListRemoveAt(t *testing.T) {
 	}
 }
 
-func TestArrayListRemoveAtPanic(t *testing.T) {
+func TestArrayListDeleteAtPanic(t *testing.T) {
 	defer func() {
 		if r := recover(); r == nil {
 			t.Error("want out of bounds panic")
@@ -239,7 +239,7 @@ func TestArrayListRemoveAtPanic(t *testing.T) {
 	}()
 
 	list := NewArrayList("a")
-	list.RemoveAt(1)
+	list.DeleteAt(1)
 }
 
 func TestArrayListGet(t *testing.T) {
@@ -255,7 +255,7 @@ func TestArrayListGet(t *testing.T) {
 	if av := list.Get(2); av != "c" {
 		t.Errorf("Got %v expected %v", av, "c")
 	}
-	list.RemoveAt(0)
+	list.DeleteAt(0)
 	if av := list.Get(0); av != "b" {
 		t.Errorf("Got %v expected %v", av, "b")
 	}

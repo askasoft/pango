@@ -3,10 +3,10 @@ package sql
 import "strings"
 
 // EscapeLike escape sql like string
-func EscapeLike(str string) string {
+func EscapeLike(s string) string {
 	sb := strings.Builder{}
 
-	for _, c := range str {
+	for _, c := range s {
 		if c == '~' {
 			sb.WriteRune('~')
 			sb.WriteRune('~')
@@ -30,21 +30,33 @@ func EscapeLike(str string) string {
 // of percent (%) or underscore (_) for use in LIKE clauses.
 // </p>
 // see http://www.jguru.com/faq/view.jsp?EID=8881
-func EscapeString(str string) string {
-	return strings.ReplaceAll(str, "'", "''")
+func EscapeString(s string) string {
+	return strings.ReplaceAll(s, "'", "''")
 }
 
-// StringLike build a string for like '%' + str + '%'
-func StringLike(str string) string {
-	return "%" + EscapeLike(str) + "%"
+// StringLike build a string for like '%' + s + '%'
+func StringLike(s string) string {
+	return "%" + EscapeLike(s) + "%"
 }
 
-// StartsLike build a string for like prefix str + '%'
-func StartsLike(str string) string {
-	return EscapeLike(str) + "%"
+// StartsLike build a string for like prefix s + '%'
+func StartsLike(s string) string {
+	return EscapeLike(s) + "%"
 }
 
-// StartsLike build a string for like suffix '%' + str
-func EndsLike(str string) string {
-	return "%" + EscapeLike(str)
+// StartsLike build a string for like suffix '%' + s
+func EndsLike(s string) string {
+	return "%" + EscapeLike(s)
+}
+
+// Quote quote string 's' with quote string 'q', return (q + s + q)
+func Quote(s string, q string) string {
+	return q + s + q
+}
+
+// QuoteFunc return a quote function with quote string 'q'
+func QuoteFunc(q string) func(string) string {
+	return func(s string) string {
+		return Quote(s, q)
+	}
 }

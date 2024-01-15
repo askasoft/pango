@@ -88,8 +88,8 @@ func (ls *LinkedHashSet) Removes(vs ...T) {
 	}
 }
 
-// RemoveIf remove all items that function f returns true
-func (ls *LinkedHashSet) RemoveIf(f func(T) bool) {
+// RemoveFunc remove all items that function f returns true
+func (ls *LinkedHashSet) RemoveFunc(f func(T) bool) {
 	if ls.IsEmpty() {
 		return
 	}

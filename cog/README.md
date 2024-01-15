@@ -61,11 +61,11 @@ type Collection[T any] interface {
 	// Removes remove all items with associated value v of vs
 	Removes(vs ...T)
 
-	// RemoveIf remove all items that function f returns true
-	RemoveIf(f func(T) bool)
-
 	// RemoveCol remove all of this collection's elements that are also contained in the specified collection
 	RemoveCol(ac Collection[T])
+
+	// RemoveFunc remove all items that function f returns true
+	RemoveFunc(f func(T) bool)
 
 	// Contain Test to see if the collection contains item v
 	Contain(v T) bool

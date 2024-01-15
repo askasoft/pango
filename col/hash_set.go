@@ -107,8 +107,8 @@ func (hs *HashSet) Removes(vs ...T) {
 	}
 }
 
-// RemoveIf remove all items that function f returns true
-func (hs *HashSet) RemoveIf(f func(T) bool) {
+// RemoveFunc remove all items that function f returns true
+func (hs *HashSet) RemoveFunc(f func(T) bool) {
 	if hs.IsEmpty() {
 		return
 	}

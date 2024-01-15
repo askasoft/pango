@@ -88,8 +88,8 @@ func (rb *RingBuffer[T]) Removes(vs ...T) {
 	}
 }
 
-// RemoveIf remove all items that function f returns true
-func (rb *RingBuffer[T]) RemoveIf(f func(T) bool) {
+// RemoveFunc remove all items that function f returns true
+func (rb *RingBuffer[T]) RemoveFunc(f func(T) bool) {
 	if rb.IsEmpty() {
 		return
 	}

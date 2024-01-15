@@ -445,7 +445,7 @@ func TestTreeSetDelete(t *testing.T) {
 		tset.Add(i)
 	}
 
-	tset.RemoveIf(func(d any) bool {
+	tset.RemoveFunc(func(d any) bool {
 		return d == 101
 	})
 	if tset.Len() != 100 {

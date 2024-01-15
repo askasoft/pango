@@ -658,7 +658,7 @@ func TestLinkedHashSetDelete(t *testing.T) {
 		lset.PushTail(i)
 	}
 
-	lset.RemoveIf(func(d int) bool {
+	lset.RemoveFunc(func(d int) bool {
 		return d == 101
 	})
 	if lset.Len() != 100 {

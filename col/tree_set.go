@@ -96,8 +96,8 @@ func (ts *TreeSet) Removes(vs ...T) {
 	}
 }
 
-// RemoveIf remove all items that function f returns true
-func (ts *TreeSet) RemoveIf(f func(T) bool) {
+// RemoveFunc remove all items that function f returns true
+func (ts *TreeSet) RemoveFunc(f func(T) bool) {
 	if ts.IsEmpty() {
 		return
 	}

@@ -236,7 +236,7 @@ func TestHashSetDelete(t *testing.T) {
 	if av := set.Len(); av != 3 {
 		t.Errorf("Got %v expected %v", av, 3)
 	}
-	set.RemoveIf(func(d any) bool {
+	set.RemoveFunc(func(d any) bool {
 		return d == 1
 	})
 	if av := set.Len(); av != 2 {

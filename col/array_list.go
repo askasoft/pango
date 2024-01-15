@@ -95,8 +95,8 @@ func (al *ArrayList) Removes(vs ...T) {
 	}
 }
 
-// RemoveIf remove all items that function f returns true
-func (al *ArrayList) RemoveIf(f func(T) bool) {
+// RemoveFunc remove all items that function f returns true
+func (al *ArrayList) RemoveFunc(f func(T) bool) {
 	if al.IsEmpty() {
 		return
 	}

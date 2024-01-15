@@ -104,7 +104,7 @@ func TestLinkedListDelete(t *testing.T) {
 		l.Add(i)
 	}
 
-	l.RemoveIf(func(d any) bool {
+	l.RemoveFunc(func(d any) bool {
 		return d == 101
 	})
 	if l.Len() != 100 {

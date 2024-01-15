@@ -88,8 +88,8 @@ func (ll *LinkedList[T]) Removes(vs ...T) {
 	}
 }
 
-// RemoveIf remove all items that function f returns true
-func (ll *LinkedList[T]) RemoveIf(f func(T) bool) {
+// RemoveFunc remove all items that function f returns true
+func (ll *LinkedList[T]) RemoveFunc(f func(T) bool) {
 	if ll.IsEmpty() {
 		return
 	}

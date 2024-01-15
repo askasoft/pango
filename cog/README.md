@@ -131,8 +131,8 @@ type List[T any] interface {
 	// Index returns the index of the first occurrence of the specified v in this list, or -1 if this list does not contain v.
 	Index(v T) int
 
-	// IndexIf returns the index of the first true returned by function f in this list, or -1 if this list does not contain v.
-	IndexIf(f func(T) bool) int
+	// IndexFunc returns the index of the first true returned by function f in this list, or -1 if this list does not contain v.
+	IndexFunc(f func(T) bool) int
 
 	// RemoveAt remove the item at the specified position in this list
 	RemoveAt(index int)

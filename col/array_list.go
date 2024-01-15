@@ -300,8 +300,8 @@ func (al *ArrayList) Index(v T) int {
 	return index(al.data, v)
 }
 
-// IndexIf returns the index of the first true returned by function f in this list, or -1 if this list does not contain v.
-func (al *ArrayList) IndexIf(f func(T) bool) int {
+// IndexFunc returns the index of the first true returned by function f in this list, or -1 if this list does not contain v.
+func (al *ArrayList) IndexFunc(f func(T) bool) int {
 	for i, v := range al.data {
 		if f(v) {
 			return i

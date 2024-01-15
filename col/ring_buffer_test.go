@@ -224,7 +224,7 @@ func TestRingBufferIndex(t *testing.T) {
 	}
 
 	expectedIndex = 2
-	if index := list.IndexIf(func(v any) bool {
+	if index := list.IndexFunc(func(v any) bool {
 		return v == "c"
 	}); index != expectedIndex {
 		t.Errorf("Got %v expected %v", index, expectedIndex)

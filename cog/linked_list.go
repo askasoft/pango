@@ -350,8 +350,8 @@ func (ll *LinkedList[T]) Index(v T) int {
 	return -1
 }
 
-// IndexIf returns the index of the first true returned by function f in this list, or -1 if this list does not contain v.
-func (ll *LinkedList[T]) IndexIf(f func(T) bool) int {
+// IndexFunc returns the index of the first true returned by function f in this list, or -1 if this list does not contain v.
+func (ll *LinkedList[T]) IndexFunc(f func(T) bool) int {
 	for i, ln := 0, ll.head; ln != nil; ln = ln.next {
 		if f(ln.value) {
 			return i

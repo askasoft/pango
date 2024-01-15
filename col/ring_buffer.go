@@ -419,13 +419,13 @@ func (rb *RingBuffer) InsertCol(index int, ac Collection) {
 
 // Index returns the index of the first occurrence of the specified v in this RingBuffer, or -1 if this RingBuffer does not contain v.
 func (rb *RingBuffer) Index(v T) int {
-	return rb.IndexIf(func(d T) bool {
+	return rb.IndexFunc(func(d T) bool {
 		return d == v
 	})
 }
 
-// IndexIf returns the index of the first true returned by function f in this list, or -1 if this list does not contain v.
-func (rb *RingBuffer) IndexIf(f func(T) bool) int {
+// IndexFunc returns the index of the first true returned by function f in this list, or -1 if this list does not contain v.
+func (rb *RingBuffer) IndexFunc(f func(T) bool) int {
 	if rb.len == 0 {
 		return -1
 	}

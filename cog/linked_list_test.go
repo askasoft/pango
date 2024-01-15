@@ -93,7 +93,7 @@ func TestLinkedListIndex(t *testing.T) {
 	}
 
 	expectedIndex = 2
-	if index := list.IndexIf(func(v string) bool {
+	if index := list.IndexFunc(func(v string) bool {
 		return v == "c"
 	}); index != expectedIndex {
 		t.Errorf("Got %v expected %v", index, expectedIndex)

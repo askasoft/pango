@@ -46,6 +46,11 @@ func ContainsRune(s string, r rune) bool {
 	return strings.ContainsRune(s, r)
 }
 
+// ContainsFunc reports whether any Unicode code points r within s satisfy f(r).
+func ContainsFunc(s string, f func(rune) bool) bool {
+	return IndexFunc(s, f) >= 0
+}
+
 // LastIndex returns the index of the last instance of substr in s, or -1 if substr is not present in s.
 func LastIndex(s, substr string) int {
 	return strings.LastIndex(s, substr)

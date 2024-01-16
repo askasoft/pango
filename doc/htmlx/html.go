@@ -10,24 +10,24 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
-func ExtractTextFromHTMLFile(name string) (string, error) {
+func ExtractTextFromHTMLFile(name string, charsets ...string) (string, error) {
 	sb := &strings.Builder{}
-	err := ExtractStringFromHTMLFile(name, sb)
+	err := ExtractStringFromHTMLFile(sb, name, charsets...)
 	return str.Strip(sb.String()), err
 }
 
-func ExtractStringFromHTMLFile(name string, w io.Writer) error {
-	wf, err := wcu.DetectAndOpenFile(name)
+func ExtractStringFromHTMLFile(w io.Writer, name string, charsets ...string) error {
+	wf, _, err := wcu.DetectAndOpenFile(name, charsets...)
 	if err != nil {
 		return err
 	}
 	defer wf.Close()
 
-	return ExtractStringFromHTMLReader(wf, w)
+	return ExtractStringFromHTMLReader(w, wf)
 }
 
-func ParseHTMLFile(name string) (*html.Node, error) {
-	wf, err := wcu.DetectAndOpenFile(name)
+func ParseHTMLFile(name string, charsets ...string) (*html.Node, error) {
+	wf, _, err := wcu.DetectAndOpenFile(name, charsets...)
 	if err != nil {
 		return nil, err
 	}
@@ -36,21 +36,21 @@ func ParseHTMLFile(name string) (*html.Node, error) {
 	return html.Parse(wf)
 }
 
-func ExtractStringFromHTMLReader(r io.Reader, w io.Writer) error {
+func ExtractStringFromHTMLReader(w io.Writer, r io.Reader) error {
 	doc, err := html.Parse(r)
 	if err != nil {
 		return err
 	}
-	return ExtractStringFromHTMLNode(doc, w)
+	return ExtractStringFromHTMLNode(w, doc)
 }
 
 func ExtractTextFromHTMLNode(n *html.Node) string {
 	sb := strings.Builder{}
-	_ = ExtractStringFromHTMLNode(n, &sb)
+	_ = ExtractStringFromHTMLNode(&sb, n)
 	return str.Strip(sb.String())
 }
 
-func ExtractStringFromHTMLNode(n *html.Node, w io.Writer) error {
+func ExtractStringFromHTMLNode(w io.Writer, n *html.Node) error {
 	if n.Type == html.CommentNode {
 		return nil
 	}
@@ -75,7 +75,7 @@ func ExtractStringFromHTMLNode(n *html.Node, w io.Writer) error {
 	}
 
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		if err := ExtractStringFromHTMLNode(c, w); err != nil {
+		if err := ExtractStringFromHTMLNode(w, c); err != nil {
 			return err
 		}
 	}

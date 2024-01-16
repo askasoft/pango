@@ -29,21 +29,21 @@ func DetectAndDecodeBytes(src []byte, html ...bool) ([]byte, error) {
 	return DecodeBytes(src, cs)
 }
 
-// Transform Transform the reader with the specified xcharset.
-func Transform(r io.Reader, charset string) (io.Reader, error) {
-	enc, _ := xcharset.Lookup(charset)
+// Transform Transform the (transformed reader, encoding name, errorr) with the specified charset.
+func Transform(r io.Reader, charset string) (io.Reader, string, error) {
+	enc, name := xcharset.Lookup(charset)
 	if enc == nil {
-		return r, fmt.Errorf("unsupported charset %q", charset)
+		return r, "", fmt.Errorf("unsupported charset %q", charset)
 	}
 
-	return transform.NewReader(r, enc.NewDecoder()), nil
+	return transform.NewReader(r, enc.NewDecoder()), name, nil
 }
 
 // DetectAndTransform Detect the chatset from the reader and transform the reader with the detected xcharset.
-func DetectAndTransform(r io.Reader, html ...bool) (io.Reader, error) {
+func DetectAndTransform(r io.Reader, html ...bool) (io.Reader, string, error) {
 	dr, cs, err := DetectCharsetReader(r, html...)
 	if err != nil {
-		return dr, err
+		return dr, cs, err
 	}
 
 	return Transform(dr, cs)

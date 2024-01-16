@@ -22,43 +22,25 @@ func (rc *rc) Close() error {
 	return rc.c.Close()
 }
 
+// OpenFile use specified charset to open file and return a transformed ReadCloser.
+// return (nil, error) if failed to open file or charset is unsupported
 func OpenFile(filename string, charset string) (io.ReadCloser, error) {
-	fr, err := os.Open(filename)
+	f, err := os.Open(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	dr, err := Transform(fr, charset)
+	r, _, err := Transform(f, charset)
 	if err != nil {
-		fr.Close()
+		f.Close()
 		return nil, err
 	}
 
-	return &rc{r: dr, c: fr}, nil
+	return &rc{r: r, c: f}, nil
 }
 
-func IsHTMLFile(filename string) bool {
-	ext := path.Ext(filename)
-	html := (str.EqualFold(ext, ".html") || str.EqualFold(ext, ".htm"))
-	return html
-}
-
-func DetectAndOpenFile(filename string) (io.ReadCloser, error) {
-	fr, err := os.Open(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	html := IsHTMLFile(filename)
-	dr, err := DetectAndTransform(fr, html)
-	if err != nil {
-		fr.Close()
-		return nil, err
-	}
-
-	return &rc{r: dr, c: fr}, nil
-}
-
+// ReadFile use specified charset to read file.
+// return error if failed to open/read file or charset is unsupported
 func ReadFile(filename string, charset string) ([]byte, error) {
 	wf, err := OpenFile(filename, charset)
 	if err != nil {
@@ -69,12 +51,47 @@ func ReadFile(filename string, charset string) ([]byte, error) {
 	return io.ReadAll(wf)
 }
 
-func DetectAndReadFile(filename string) ([]byte, error) {
-	wf, err := DetectAndOpenFile(filename)
-	if err != nil {
-		return nil, err
-	}
-	defer wf.Close()
+func IsHTMLFile(filename string) bool {
+	ext := path.Ext(filename)
+	html := (str.EqualFold(ext, ".html") || str.EqualFold(ext, ".htm"))
+	return html
+}
 
-	return io.ReadAll(wf)
+// DetectAndOpenFile use specified charsets to open file, return (transformed reader, encoding name, error).
+// if charsets is not specified, or specified charset is unsupported,
+// detect the charset of the file, and open a transformed ReadCloser.
+// return (nil, "", err) if failed to open file, charset is unsupported or read error occurred.
+func DetectAndOpenFile(filename string, charsets ...string) (io.ReadCloser, string, error) {
+	f, err := os.Open(filename)
+	if err != nil {
+		return nil, "", err
+	}
+
+	for _, cs := range charsets {
+		r, enc, err := Transform(f, cs)
+		if err == nil {
+			return &rc{r: r, c: f}, enc, nil
+		}
+	}
+
+	html := IsHTMLFile(filename)
+	r, enc, err := DetectAndTransform(f, html)
+	if err != nil {
+		f.Close()
+		return nil, enc, err
+	}
+
+	return &rc{r: r, c: f}, enc, nil
+}
+
+// DetectAndReadFile detect the charset of the file, and open a transformed ReadCloser
+func DetectAndReadFile(filename string, charsets ...string) ([]byte, string, error) {
+	r, enc, err := DetectAndOpenFile(filename, charsets...)
+	if err != nil {
+		return nil, enc, err
+	}
+	defer r.Close()
+
+	bs, err := io.ReadAll(r)
+	return bs, enc, err
 }

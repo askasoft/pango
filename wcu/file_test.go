@@ -28,14 +28,21 @@ func TestDetectAndReadFile(t *testing.T) {
 
 	for i, c := range cs {
 		tf := testFilename(c)
-		bs, err := DetectAndReadFile(tf)
+		bs, enc, err := DetectAndReadFile(tf)
 		if err != nil {
 			t.Fatalf("[%d] Failed to DetectAndReadFile(%q): %v", i, tf, err)
 		}
-		as := str.SkipBOM(string(bs))
 
+		// fmt.Printf("[%d] DetectAndReadFile(%q) = %v, want %v\n", i, c, enc, c)
+
+		enc = str.ReplaceAll(enc, "_", "-")
+		if !str.EqualFold(enc, str.Remove(c, "bom")) {
+			t.Errorf("[%d] DetectAndReadFile(%q) = %v, want %v", i, c, enc, c)
+		}
+
+		as := str.SkipBOM(string(bs))
 		if as != ws {
-			t.Errorf("[%d] DetectAndReadFile(%q) = %v, want %v", i, c, as, ws)
+			t.Errorf("[%d] DetectAndReadFile(%q) = %q\nREAD: %v\nWANT: %v\n", i, c, enc, as, ws)
 		}
 	}
 }

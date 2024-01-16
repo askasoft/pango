@@ -53,6 +53,12 @@ func DetectCharsetReader(r io.Reader, html ...bool) (io.Reader, string, error) {
 		return br, "", err
 	}
 
+	for _, b := range boms {
+		if bytes.HasPrefix(data, b.bom) {
+			return br, b.enc, nil
+		}
+	}
+
 	cd := cdt.NewDetector(html...)
 	cr, err := cd.DetectBest(data)
 	if err != nil {

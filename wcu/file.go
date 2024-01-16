@@ -8,20 +8,21 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
-type WFile struct {
-	file *os.File
-	read io.Reader
+// rc read closer
+type rc struct {
+	r io.Reader
+	c io.Closer
 }
 
-func (wf *WFile) Read(p []byte) (n int, err error) {
-	return wf.read.Read(p)
+func (rc *rc) Read(p []byte) (n int, err error) {
+	return rc.r.Read(p)
 }
 
-func (wf *WFile) Close() error {
-	return wf.file.Close()
+func (rc *rc) Close() error {
+	return rc.c.Close()
 }
 
-func OpenFile(filename string, charset string) (*WFile, error) {
+func OpenFile(filename string, charset string) (io.ReadCloser, error) {
 	fr, err := os.Open(filename)
 	if err != nil {
 		return nil, err
@@ -33,7 +34,7 @@ func OpenFile(filename string, charset string) (*WFile, error) {
 		return nil, err
 	}
 
-	return &WFile{file: fr, read: dr}, nil
+	return &rc{r: dr, c: fr}, nil
 }
 
 func IsHTMLFile(filename string) bool {
@@ -42,7 +43,7 @@ func IsHTMLFile(filename string) bool {
 	return html
 }
 
-func DetectAndOpenFile(filename string) (*WFile, error) {
+func DetectAndOpenFile(filename string) (io.ReadCloser, error) {
 	fr, err := os.Open(filename)
 	if err != nil {
 		return nil, err
@@ -55,7 +56,7 @@ func DetectAndOpenFile(filename string) (*WFile, error) {
 		return nil, err
 	}
 
-	return &WFile{file: fr, read: dr}, nil
+	return &rc{r: dr, c: fr}, nil
 }
 
 func ReadFile(filename string, charset string) ([]byte, error) {

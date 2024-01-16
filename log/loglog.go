@@ -77,22 +77,20 @@ func (log *Log) SwitchWriter(lw Writer) {
 	defer log.mutex.Unlock()
 
 	ow := log.writer
+	log.writer = lw
 
 	if osw, ok := ow.(*SyncWriter); ok {
 		osw.SetWriter(lw)
-		log.writer = lw
 		return
 	}
 
 	if oaw, ok := ow.(*AsyncWriter); ok {
 		oaw.SetWriter(lw)
-		oaw.StopAfter(time.Second)
-		log.writer = lw
+		oaw.SafeStop(time.Second)
 		return
 	}
 
 	ow.Close()
-	log.writer = lw
 }
 
 // Flush flush all chan data.

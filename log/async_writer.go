@@ -61,33 +61,28 @@ func (aw *AsyncWriter) Stop() {
 	aw.waitg.Wait()
 }
 
-func (aw *AsyncWriter) write(w Writer, le *Event) {
-	err := w.Write(le)
-	if err != nil {
+func (aw *AsyncWriter) write(le *Event) {
+	if err := aw.writer.Write(le); err != nil {
 		perror(err)
 	}
 }
 
 // drainOnce drain the event chan once (ignore after-coming event to prevent dead loop)
 func (aw *AsyncWriter) drainOnce() {
-	w := aw.writer
-
 	ec := aw.evtChan
 	for n := len(ec); n > 0; n-- {
 		le := <-ec
-		aw.write(w, le)
+		aw.write(le)
 	}
 }
 
 // drainFull complete drain the event chan
 func (aw *AsyncWriter) drainFull() {
-	w := aw.writer
-
 	// complete drain the event chan
 	ec := aw.evtChan
 	for len(ec) > 0 {
 		le := <-ec
-		aw.write(w, le)
+		aw.write(le)
 	}
 
 	// complete drain the signal chan
@@ -105,7 +100,6 @@ func (aw *AsyncWriter) run() {
 		case sg := <-aw.sigChan:
 			switch sg.signal {
 			case "switch":
-				aw.drainFull()
 				ow := aw.writer
 				aw.writer = sg.option.(Writer)
 				ow.Close()
@@ -121,7 +115,7 @@ func (aw *AsyncWriter) run() {
 				done = true
 			}
 		case le := <-aw.evtChan:
-			aw.write(aw.writer, le)
+			aw.write(le)
 		}
 		if done {
 			break
@@ -133,8 +127,9 @@ func (aw *AsyncWriter) run() {
 	aw.waitg.Done()
 }
 
-// StopAfter auto stop the run() go-routine when the evtChan is empty and after duration d.
-func (aw *AsyncWriter) StopAfter(d time.Duration) {
+// SafeStop use time.NewTimer(d) to check the evtChan and sigChan,
+// if these channels are empty, stop the run() go-routine.
+func (aw *AsyncWriter) SafeStop(d time.Duration) {
 	timer := time.NewTimer(d)
 	go func() {
 		for {

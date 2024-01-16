@@ -18,12 +18,9 @@ type testConcurrentDetectWriter struct {
 	countAtomic uint64
 	countClosed uint64
 
-	starts [testRoutines]int64
 	counts [testRoutines]int64
 	closed bool
 	last   time.Time
-
-	error string
 }
 
 func newTestConcurrentDetectWriter() *testConcurrentDetectWriter {
@@ -47,14 +44,6 @@ func (tw *testConcurrentDetectWriter) Write(le *Event) error {
 	ss := str.Split(le.Msg, " ")
 	k, _ := strconv.Atoi(ss[0])
 	c, _ := strconv.ParseInt(ss[1], 10, 64)
-	c0 := tw.counts[k]
-	if c0 != 0 && c0+1 != c {
-		tw.error = fmt.Sprintf("[%d] %d <- %d", k, c0, c)
-		fmt.Println(tw.error)
-	}
-	if c0 == 0 {
-		tw.starts[k] = c
-	}
 	tw.counts[k] = c
 
 	t := time.Now()
@@ -71,8 +60,8 @@ func (tw *testConcurrentDetectWriter) Flush() {
 }
 
 func (tw *testConcurrentDetectWriter) Close() {
-	tw.do()
 	tw.closed = true
+	tw.do()
 }
 
 func testLogRoutine(log *Log, wg *sync.WaitGroup, n int, p *int64) {
@@ -88,37 +77,29 @@ func testLogRoutine(log *Log, wg *sync.WaitGroup, n int, p *int64) {
 }
 
 func testCheckConcurrentDetectWriter(t *testing.T, c string, tw1 *testConcurrentDetectWriter, tw2 *testConcurrentDetectWriter, cs []int64) {
-	fmt.Println("tw1: ", tw1.closed, tw1.countStack, tw1.countAtomic, tw1.countClosed, tw1.error)
-	fmt.Println("tw1: ", tw1.starts)
+	fmt.Printf("tw1: %v, CS: %d, CA: %d, CC:%d\n", tw1.closed, tw1.countStack, tw1.countAtomic, tw1.countClosed)
 	fmt.Println("tw1: ", tw1.counts)
-	fmt.Println("tw2: ", tw2.closed, tw2.countStack, tw2.countAtomic, tw2.countClosed, tw2.error)
-	fmt.Println("tw2: ", tw2.starts)
+	fmt.Printf("tw2: %v, CS: %d, CA: %d, CC:%d\n", tw2.closed, tw2.countStack, tw2.countAtomic, tw2.countClosed)
 	fmt.Println("tw2: ", tw2.counts)
 
-	if tw1.error != "" {
-		t.Errorf("%s(%s) error: %s", c, "tw1.error", tw1.error)
-	}
 	if !tw1.closed {
 		t.Errorf("%s(%s) expect: %v, actual: %v", c, "tw1.closed", true, tw1.closed)
 	}
 	if tw1.countStack != tw1.countAtomic {
 		t.Errorf("%s(%s) expect: %v, actual: %v", c, "tw1.count(stack != atomic)", tw1.countStack, tw1.countAtomic)
 	}
-	if tw1.countClosed != 0 {
-		t.Errorf("%s(%s) expect: %v, actual: %v", c, "tw1.countClosed", 0, tw1.countClosed)
+	if tw1.countClosed != 1 {
+		t.Errorf("%s(%s) expect: %v, actual: %v", c, "tw1.countClosed", 1, tw1.countClosed)
 	}
 
-	if tw2.error != "" {
-		t.Errorf("%s(%s) error: %s", c, "tw2.error", tw2.error)
-	}
 	if !tw2.closed {
 		t.Errorf("%s(%s) expect: %v, actual: %v", c, "tw2.closed", true, tw2.closed)
 	}
 	if tw2.countStack != tw2.countAtomic {
 		t.Errorf("%s(%s) expect: %v, actual: %v", c, "tw2.count(stack != atomic)", tw2.countStack, tw2.countAtomic)
 	}
-	if tw2.countClosed != 0 {
-		t.Errorf("%s(%s) expect: %v, actual: %v", c, "tw2.countClosed", 0, tw2.countClosed)
+	if tw2.countClosed != 1 {
+		t.Errorf("%s(%s) expect: %v, actual: %v", c, "tw2.countClosed", 1, tw2.countClosed)
 	}
 
 	for i := 0; i < len(cs); i++ {

@@ -4,6 +4,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/wcu"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
@@ -12,7 +13,7 @@ import (
 func ExtractTextFromHTMLFile(name string) (string, error) {
 	sb := &strings.Builder{}
 	err := ExtractStringFromHTMLFile(name, sb)
-	return sb.String(), err
+	return str.Strip(sb.String()), err
 }
 
 func ExtractStringFromHTMLFile(name string, w io.Writer) error {
@@ -46,7 +47,7 @@ func ExtractStringFromHTMLReader(r io.Reader, w io.Writer) error {
 func ExtractTextFromHTMLNode(n *html.Node) string {
 	sb := strings.Builder{}
 	_ = ExtractStringFromHTMLNode(n, &sb)
-	return sb.String()
+	return str.Strip(sb.String())
 }
 
 func ExtractStringFromHTMLNode(n *html.Node, w io.Writer) error {
@@ -56,7 +57,7 @@ func ExtractStringFromHTMLNode(n *html.Node, w io.Writer) error {
 
 	if n.Type == html.ElementNode {
 		switch n.DataAtom {
-		case atom.Script:
+		case atom.Script, atom.Style, atom.Select:
 			return nil
 		case atom.H1, atom.H2, atom.H3, atom.H4, atom.H5, atom.H6:
 			fallthrough
@@ -68,7 +69,6 @@ func ExtractStringFromHTMLNode(n *html.Node, w io.Writer) error {
 	}
 
 	if n.Type == html.TextNode {
-		// Keep newlines and spaces, like jQuery
 		if _, err := io.WriteString(w, n.Data); err != nil {
 			return err
 		}

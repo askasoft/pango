@@ -122,8 +122,10 @@ func (aw *AsyncWriter) run() {
 		}
 	}
 
-	close(aw.evtChan)
-	close(aw.sigChan)
+	// It's safe to keep channels open. GC will collect the unreachable channels.
+	// close(aw.evtChan)
+	// close(aw.sigChan)
+
 	aw.waitg.Done()
 }
 

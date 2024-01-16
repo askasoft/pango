@@ -1,4 +1,4 @@
-// Package chardet ports character set detection from ICU.
+// Package cdt ports character set detection from ICU.
 package cdt
 
 import (
@@ -79,17 +79,40 @@ func NewHtmlDetector() *Detector {
 	return &Detector{recognizers, true}
 }
 
+// NewDetector creates a Detector for plain text or html.
+func NewDetector(html ...bool) (d *Detector) {
+	if len(html) > 0 && html[0] {
+		d = NewHtmlDetector()
+	} else {
+		d = NewTextDetector()
+	}
+	return
+}
+
 var (
-	NotDetectedError = errors.New("Charset not detected.")
+	ErrNotDetected = errors.New("cdt: charset not detected")
 )
 
 // DetectBest returns the Result with highest Confidence.
-func (d *Detector) DetectBest(b []byte) (r *Result, err error) {
-	var all []Result
-	if all, err = d.DetectAll(b); err == nil {
-		r = &all[0]
+func (d *Detector) DetectBest(b []byte) (*Result, error) {
+	input := newRecognizerInput(b, d.stripTag)
+	outputChan := make(chan recognizerOutput)
+	for _, r := range d.recognizers {
+		go matchHelper(r, input, outputChan)
 	}
-	return
+
+	var output Result
+	for i := 0; i < len(d.recognizers); i++ {
+		o := <-outputChan
+		if output.Confidence < o.Confidence {
+			output = Result(o)
+		}
+	}
+
+	if output.Confidence == 0 {
+		return nil, ErrNotDetected
+	}
+	return &output, nil
 }
 
 // DetectAll returns all Results which have non-zero Confidence. The Results are sorted by Confidence in descending order.
@@ -99,7 +122,7 @@ func (d *Detector) DetectAll(b []byte) ([]Result, error) {
 	for _, r := range d.recognizers {
 		go matchHelper(r, input, outputChan)
 	}
-	outputs := make([]recognizerOutput, 0, len(d.recognizers))
+	outputs := make(recognizerOutputs, 0, len(d.recognizers))
 	for i := 0; i < len(d.recognizers); i++ {
 		o := <-outputChan
 		if o.Confidence > 0 {
@@ -107,10 +130,10 @@ func (d *Detector) DetectAll(b []byte) ([]Result, error) {
 		}
 	}
 	if len(outputs) == 0 {
-		return nil, NotDetectedError
+		return nil, ErrNotDetected
 	}
 
-	sort.Sort(recognizerOutputs(outputs))
+	sort.Sort(outputs)
 	dedupOutputs := make([]Result, 0, len(outputs))
 	foundCharsets := make(map[string]struct{}, len(outputs))
 	for _, o := range outputs {
@@ -120,7 +143,7 @@ func (d *Detector) DetectAll(b []byte) ([]Result, error) {
 		}
 	}
 	if len(dedupOutputs) == 0 {
-		return nil, NotDetectedError
+		return nil, ErrNotDetected
 	}
 	return dedupOutputs, nil
 }

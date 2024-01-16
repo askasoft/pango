@@ -4,7 +4,7 @@ type recognizer interface {
 	Match(*recognizerInput) recognizerOutput
 }
 
-type recognizerOutput Result
+type recognizerOutput = Result
 
 type recognizerInput struct {
 	raw         []byte
@@ -30,17 +30,17 @@ func mayStripInput(raw []byte, stripTag bool) (out []byte, stripped bool) {
 	const inputBufferSize = 8192
 	out = make([]byte, 0, inputBufferSize)
 	var badTags, openTags int32
-	var inMarkup bool = false
+	var inMarkup bool
 	stripped = false
 	if stripTag {
 		stripped = true
 		for _, c := range raw {
 			if c == '<' {
 				if inMarkup {
-					badTags += 1
+					badTags++
 				}
 				inMarkup = true
-				openTags += 1
+				openTags++
 			}
 			if !inMarkup {
 				out = append(out, c)
@@ -68,7 +68,7 @@ func mayStripInput(raw []byte, stripTag bool) (out []byte, stripped bool) {
 func computeByteStats(input []byte) []int {
 	r := make([]int, 256)
 	for _, c := range input {
-		r[c] += 1
+		r[c]++
 	}
 	return r
 }

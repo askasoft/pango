@@ -49,9 +49,8 @@ func (r *recognizerMultiByte) matchConfidence(input *recognizerInput) int {
 	if doubleByteCharCount <= 10 && badCharCount == 0 {
 		if doubleByteCharCount == 0 && totalCharCount < 10 {
 			return 0
-		} else {
-			return 10
 		}
+		return 10
 	}
 
 	if doubleByteCharCount < 20*badCharCount {
@@ -92,15 +91,15 @@ func binarySearch(l []uint16, c uint16) bool {
 	return false
 }
 
-var eobError = errors.New("End of input buffer")
-var badCharError = errors.New("Decode a bad char")
+var errEOB = errors.New("End of input buffer")
+var errBadChar = errors.New("Decode a bad char")
 
 type charDecoder_sjis struct {
 }
 
 func (charDecoder_sjis) DecodeOneChar(input []byte) (c uint16, remain []byte, err error) {
 	if len(input) == 0 {
-		return 0, nil, eobError
+		return 0, nil, errEOB
 	}
 	first := input[0]
 	c = uint16(first)
@@ -109,14 +108,14 @@ func (charDecoder_sjis) DecodeOneChar(input []byte) (c uint16, remain []byte, er
 		return
 	}
 	if len(remain) == 0 {
-		return c, remain, badCharError
+		return c, remain, errBadChar
 	}
 	second := remain[0]
 	remain = remain[1:]
 	c = c<<8 | uint16(second)
 	if (second >= 0x40 && second <= 0x7F) || (second >= 0x80 && second <= 0xFE) {
 	} else {
-		err = badCharError
+		err = errBadChar
 	}
 	return
 }
@@ -144,7 +143,7 @@ type charDecoder_euc struct {
 
 func (charDecoder_euc) DecodeOneChar(input []byte) (c uint16, remain []byte, err error) {
 	if len(input) == 0 {
-		return 0, nil, eobError
+		return 0, nil, errEOB
 	}
 	first := input[0]
 	remain = input[1:]
@@ -153,32 +152,32 @@ func (charDecoder_euc) DecodeOneChar(input []byte) (c uint16, remain []byte, err
 		return uint16(first), remain, nil
 	}
 	if len(remain) == 0 {
-		return 0, nil, eobError
+		return 0, nil, errEOB
 	}
 	second := remain[0]
 	remain = remain[1:]
 	c = c<<8 | uint16(second)
 	if first >= 0xA1 && first <= 0xFE {
 		if second < 0xA1 {
-			err = badCharError
+			err = errBadChar
 		}
 		return
 	}
 	if first == 0x8E {
 		if second < 0xA1 {
-			err = badCharError
+			err = errBadChar
 		}
 		return
 	}
 	if first == 0x8F {
 		if len(remain) == 0 {
-			return 0, nil, eobError
+			return 0, nil, errEOB
 		}
 		third := remain[0]
 		remain = remain[1:]
 		c = c<<0 | uint16(third)
 		if third < 0xa1 {
-			err = badCharError
+			err = errBadChar
 		}
 	}
 	return
@@ -233,7 +232,7 @@ type charDecoder_big5 struct {
 
 func (charDecoder_big5) DecodeOneChar(input []byte) (c uint16, remain []byte, err error) {
 	if len(input) == 0 {
-		return 0, nil, eobError
+		return 0, nil, errEOB
 	}
 	first := input[0]
 	remain = input[1:]
@@ -242,13 +241,13 @@ func (charDecoder_big5) DecodeOneChar(input []byte) (c uint16, remain []byte, er
 		return
 	}
 	if len(remain) == 0 {
-		return c, nil, eobError
+		return c, nil, errEOB
 	}
 	second := remain[0]
 	remain = remain[1:]
 	c = c<<8 | uint16(second)
 	if second < 0x40 || second == 0x7F || second == 0xFF {
-		err = badCharError
+		err = errBadChar
 	}
 	return
 }
@@ -280,7 +279,7 @@ type charDecoder_gb_18030 struct {
 
 func (charDecoder_gb_18030) DecodeOneChar(input []byte) (c uint16, remain []byte, err error) {
 	if len(input) == 0 {
-		return 0, nil, eobError
+		return 0, nil, errEOB
 	}
 	first := input[0]
 	remain = input[1:]
@@ -289,7 +288,7 @@ func (charDecoder_gb_18030) DecodeOneChar(input []byte) (c uint16, remain []byte
 		return
 	}
 	if len(remain) == 0 {
-		return 0, nil, eobError
+		return 0, nil, errEOB
 	}
 	second := remain[0]
 	remain = remain[1:]
@@ -301,23 +300,23 @@ func (charDecoder_gb_18030) DecodeOneChar(input []byte) (c uint16, remain []byte
 
 		if second >= 0x30 && second <= 0x39 {
 			if len(remain) == 0 {
-				return 0, nil, eobError
+				return 0, nil, errEOB
 			}
 			third := remain[0]
 			remain = remain[1:]
 			if third >= 0x81 && third <= 0xFE {
 				if len(remain) == 0 {
-					return 0, nil, eobError
+					return 0, nil, errEOB
 				}
 				fourth := remain[0]
 				remain = remain[1:]
 				if fourth >= 0x30 && fourth <= 0x39 {
-					c = c<<16 | uint16(third)<<8 | uint16(fourth)
+					c = uint16(third)<<8 | uint16(fourth)
 					return
 				}
 			}
 		}
-		err = badCharError
+		err = errBadChar
 	}
 	return
 }

@@ -12,7 +12,7 @@ var (
 	}
 )
 
-func ExampleTextDetector() {
+func ExampleDetector() {
 	detector := NewTextDetector()
 	result, err := detector.DetectBest(zh_gb18030_text)
 	if err == nil {

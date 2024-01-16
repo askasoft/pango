@@ -10,7 +10,7 @@ type recognizerSingleByte struct {
 }
 
 func (r *recognizerSingleByte) Match(input *recognizerInput) recognizerOutput {
-	var charset string = r.charset
+	charset := r.charset
 	if input.hasC1Bytes && len(r.hasC1ByteCharset) > 0 {
 		charset = r.hasC1ByteCharset
 	}
@@ -76,10 +76,10 @@ func (s *ngramState) lookup() bool {
 		index += 2
 	}
 	if s.table[index+1] <= s.ngram {
-		index += 1
+		index++
 	}
 	if s.table[index] > s.ngram {
-		index -= 1
+		index--
 	}
 	if index < 0 || s.table[index] != s.ngram {
 		return false

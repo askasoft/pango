@@ -63,10 +63,17 @@ func GetJob(db *gorm.DB, jid int64, details ...bool) (*xwm.Job, error) {
 	return job, nil
 }
 
-func GetJobLogs(db *gorm.DB, jid int64, start, limit int) ([]*xwm.JobLog, error) {
+// GetJobLogs get job logs
+// set levels to ("I", "W", "E", "F") to filter DEBUG/TRACE logs
+func GetJobLogs(db *gorm.DB, jid int64, start, limit int, levels ...string) ([]*xwm.JobLog, error) {
 	var jls []*xwm.JobLog
 
-	r := db.Where("jid = ?", jid).Order("id asc").Offset(start).Limit(limit).Find(&jls)
+	tx := db.Where("jid = ?", jid)
+	if len(levels) > 0 {
+		tx.Where("level IN ?", levels)
+	}
+
+	r := tx.Order("id asc").Offset(start).Limit(limit).Find(&jls)
 	if r.Error != nil {
 		log.Errorf("Failed to get job logs #%d: %v", jid, r.Error)
 	}

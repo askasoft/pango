@@ -50,7 +50,7 @@ jobs:
         with:
           ref: ${{ github.ref }}
           
-      - uses: actions/cache@v3.3.2
+      - uses: actions/cache@v3.3.3
         with:
           path: |
             ${{ matrix.go-build }}

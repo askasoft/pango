@@ -108,7 +108,7 @@ func (ls *LinkedHashSet[T]) RemoveCol(ac Collection[T]) {
 		return
 	}
 
-	ls.RemoveFunc(ac.Contain)
+	ls.Removes(ac.Values()...)
 }
 
 // RemoveIter remove all items in the iterator it
@@ -171,16 +171,20 @@ func (ls *LinkedHashSet[T]) ContainCol(ac Collection[T]) bool {
 	}
 
 	if ic, ok := ac.(Iterable[T]); ok {
-		it := ic.Iterator()
-		for it.Next() {
-			if _, ok := ls.hash[it.Value()]; !ok {
-				return false
-			}
-		}
-		return true
+		return ls.ContainIter(ic.Iterator())
 	}
 
 	return ls.Contains(ac.Values()...)
+}
+
+// ContainIter Test to see if the collection contains all items of iterator 'it'
+func (ls *LinkedHashSet[T]) ContainIter(it Iterator[T]) bool {
+	for it.Next() {
+		if _, ok := ls.hash[it.Value()]; !ok {
+			return false
+		}
+	}
+	return true
 }
 
 // Retains Retains only the elements in this collection that are contained in the argument array vs.

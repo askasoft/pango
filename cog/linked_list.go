@@ -104,7 +104,7 @@ func (ll *LinkedList[T]) RemoveCol(ac Collection[T]) {
 		return
 	}
 
-	ll.RemoveFunc(ac.Contain)
+	ll.Removes(ac.Values()...)
 }
 
 // RemoveIter remove all items in the iterator it
@@ -161,16 +161,20 @@ func (ll *LinkedList[T]) ContainCol(ac Collection[T]) bool {
 	}
 
 	if ic, ok := ac.(Iterable[T]); ok {
-		it := ic.Iterator()
-		for it.Next() {
-			if ll.Index(it.Value()) < 0 {
-				return false
-			}
-		}
-		return true
+		return ll.ContainIter(ic.Iterator())
 	}
 
 	return ll.Contains(ac.Values()...)
+}
+
+// ContainIter Test to see if the collection contains all items of iterator 'it'
+func (ll *LinkedList[T]) ContainIter(it Iterator[T]) bool {
+	for it.Next() {
+		if ll.Index(it.Value()) < 0 {
+			return false
+		}
+	}
+	return true
 }
 
 // Retains Retains only the elements in this collection that are contained in the argument array vs.

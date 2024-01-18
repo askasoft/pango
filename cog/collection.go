@@ -60,6 +60,9 @@ type Collection[T any] interface {
 	// ContainCol Test to see if the collection contains all items of another collection
 	ContainCol(ac Collection[T]) bool
 
+	// ContainIter Test to see if the collection contains all items of iterator 'it'
+	ContainIter(it Iterator[T]) bool
+
 	// Retains Retains only the elements in this collection that are contained in the argument array vs.
 	Retains(vs ...T)
 

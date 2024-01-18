@@ -123,7 +123,7 @@ func (al *ArrayList[T]) RemoveCol(ac Collection[T]) {
 		return
 	}
 
-	al.RemoveFunc(ac.Contain)
+	al.Removes(ac.Values()...)
 }
 
 // RemoveIter remove all items in the iterator it
@@ -180,16 +180,20 @@ func (al *ArrayList[T]) ContainCol(ac Collection[T]) bool {
 	}
 
 	if ic, ok := ac.(Iterable[T]); ok {
-		it := ic.Iterator()
-		for it.Next() {
-			if al.Index(it.Value()) < 0 {
-				return false
-			}
-		}
-		return true
+		return al.ContainIter(ic.Iterator())
 	}
 
 	return al.Contains(ac.Values()...)
+}
+
+// ContainIter Test to see if the collection contains all items of iterator 'it'
+func (al *ArrayList[T]) ContainIter(it Iterator[T]) bool {
+	for it.Next() {
+		if al.Index(it.Value()) < 0 {
+			return false
+		}
+	}
+	return true
 }
 
 // Retains Retains only the elements in this collection that are contained in the argument array vs.

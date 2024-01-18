@@ -112,7 +112,7 @@ func (ts *TreeSet) RemoveCol(ac Collection) {
 		return
 	}
 
-	ts.RemoveFunc(ac.Contain)
+	ts.Removes(ac.Values()...)
 }
 
 // RemoveIter remove all items in the iterator it
@@ -169,16 +169,20 @@ func (ts *TreeSet) ContainCol(ac Collection) bool {
 	}
 
 	if ic, ok := ac.(Iterable); ok {
-		it := ic.Iterator()
-		for it.Next() {
-			if tn := ts.lookup(it.Value()); tn == nil {
-				return false
-			}
-		}
-		return true
+		return ts.ContainIter(ic.Iterator())
 	}
 
 	return ts.Contains(ac.Values()...)
+}
+
+// ContainIter Test to see if the collection contains all items of iterator 'it'
+func (ts *TreeSet) ContainIter(it Iterator) bool {
+	for it.Next() {
+		if tn := ts.lookup(it.Value()); tn == nil {
+			return false
+		}
+	}
+	return true
 }
 
 // Retains Retains only the elements in this collection that are contained in the argument array vs.

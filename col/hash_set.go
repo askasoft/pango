@@ -119,7 +119,7 @@ func (hs *HashSet) RemoveCol(ac Collection) {
 		return
 	}
 
-	hs.RemoveFunc(ac.Contain)
+	hs.Removes(ac.Values()...)
 }
 
 // RemoveIter remove all items in the iterator it
@@ -182,16 +182,20 @@ func (hs *HashSet) ContainCol(ac Collection) bool {
 	}
 
 	if ic, ok := ac.(Iterable); ok {
-		it := ic.Iterator()
-		for it.Next() {
-			if _, ok := hs.hash[it.Value()]; !ok {
-				return false
-			}
-		}
-		return true
+		return hs.ContainIter(ic.Iterator())
 	}
 
 	return hs.Contains(ac.Values()...)
+}
+
+// ContainIter Test to see if the collection contains all items of iterator 'it'
+func (hs *HashSet) ContainIter(it Iterator) bool {
+	for it.Next() {
+		if _, ok := hs.hash[it.Value()]; !ok {
+			return false
+		}
+	}
+	return true
 }
 
 // Retains Retains only the elements in this collection that are contained in the argument array vs.

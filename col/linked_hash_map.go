@@ -2,6 +2,7 @@ package col
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/askasoft/pango/bye"
 )
@@ -59,6 +60,18 @@ func (lm *LinkedHashMap) Get(key K) (V, bool) {
 		}
 	}
 	return nil, false
+}
+
+// MustGet looks for the given key, and returns the value associated with it.
+// If not found, return defaults[0] or panic if defaults is not supplied.
+func (lm *LinkedHashMap) MustGet(key K, defaults ...V) V {
+	if v, ok := lm.Get(key); ok {
+		return v
+	}
+	if len(defaults) > 0 {
+		return defaults[0]
+	}
+	panic(fmt.Errorf("LinkedHashMap invalid key '%v'", key))
 }
 
 // Set sets the paired key-value items, and returns what `Get` would have returned

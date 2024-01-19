@@ -5,6 +5,7 @@ package cog
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/askasoft/pango/bye"
 )
@@ -117,6 +118,18 @@ func (tm *TreeMap[K, V]) Get(key K) (V, bool) {
 
 	var v V
 	return v, false
+}
+
+// MustGet looks for the given key, and returns the value associated with it.
+// If not found, return defaults[0] or panic if defaults is not supplied.
+func (tm *TreeMap[K, V]) MustGet(key K, defaults ...V) V {
+	if v, ok := tm.Get(key); ok {
+		return v
+	}
+	if len(defaults) > 0 {
+		return defaults[0]
+	}
+	panic(fmt.Errorf("TreeMap invalid key '%v'", key))
 }
 
 // Set sets the paired key-value item, and returns what `Get` would have returned

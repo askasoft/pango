@@ -5,6 +5,7 @@ package cog
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/askasoft/pango/bye"
 )
@@ -68,6 +69,18 @@ func (hm *HashMap[K, V]) Get(key K) (v V, ok bool) {
 
 	v, ok = hm.hash[key]
 	return
+}
+
+// MustGet looks for the given key, and returns the value associated with it.
+// If not found, return defaults[0] or panic if defaults is not supplied.
+func (hm *HashMap[K, V]) MustGet(key K, defaults ...V) V {
+	if v, ok := hm.Get(key); ok {
+		return v
+	}
+	if len(defaults) > 0 {
+		return defaults[0]
+	}
+	panic(fmt.Errorf("HashMap invalid key '%v'", key))
 }
 
 // Set sets the paired key-value items, and returns what `Get` would have returned

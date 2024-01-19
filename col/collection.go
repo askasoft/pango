@@ -150,6 +150,10 @@ type Map interface {
 	// or nil if not found. The boolean it returns says whether the key is ok in the map.
 	Get(key K) (V, bool)
 
+	// MustGet looks for the given key, and returns the value associated with it.
+	// If not found, return defaults[0] or panic if defaults is not supplied.
+	MustGet(key K, defaults ...V) V
+
 	// Set sets the paired key-value items, and returns what `Get` would have returned
 	// on that key prior to the call to `Set`.
 	// Example: lm.Set("k1", "v1", "k2", "v2")

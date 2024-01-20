@@ -68,9 +68,11 @@ func DetectAndOpenFile(filename string, charsets ...string) (io.ReadCloser, stri
 	}
 
 	for _, cs := range charsets {
-		r, enc, err := Transform(f, cs)
-		if err == nil {
-			return &rc{r: r, c: f}, enc, nil
+		if cs != "" {
+			r, enc, err := Transform(f, cs)
+			if err == nil {
+				return &rc{r: r, c: f}, enc, nil
+			}
 		}
 	}
 

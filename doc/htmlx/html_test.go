@@ -2,7 +2,6 @@ package htmlx
 
 import (
 	"fmt"
-	"os"
 	"path"
 	"reflect"
 	"testing"
@@ -54,28 +53,7 @@ func TestParseHTMLFile(t *testing.T) {
 	f(doc, "")
 }
 
-func TestExtractTextFromHTMLFile(t *testing.T) {
-	cs := []string{"utf-8.html", "shift-jis.html"}
-
-	w := string(testReadFile(t, "expect.txt"))
-
-	for i, c := range cs {
-		fn := testFilename(c)
-		a, err := ExtractTextFromHTMLFile(fn)
-		if err != nil {
-			t.Fatalf("[%d] Failed to ExtractTextFromHTMLFile(%q): %v", i, c, err)
-		}
-
-		if w != a {
-			t.Errorf("[%d] ExtractTextFromHTMLFile(%q):\nACTUAL: %q\n  WANT: %q\n", i, c, a, w)
-			fsu.WriteString(fn+".out", a, fsu.FileMode(0660))
-		} else {
-			os.Remove(fn + ".out")
-		}
-	}
-}
-
-func TestExtractTitleFromHTMLNode(t *testing.T) {
+func TestGetTitle(t *testing.T) {
 	cs := []string{"utf-8.html", "shift-jis.html"}
 
 	w := "タイトル"
@@ -87,14 +65,14 @@ func TestExtractTitleFromHTMLNode(t *testing.T) {
 			t.Fatalf("[%d] Failed to ParseHTMLFile(%q): %v", i, c, err)
 		}
 
-		a := ExtractTitleFromHTMLNode(doc)
+		a := GetTitle(doc)
 		if w != a {
-			t.Errorf("[%d] ExtractTitleFromHTMLNode(%q):\nACTUAL: %q\n  WANT: %q\n", i, c, a, w)
+			t.Errorf("[%d] GetTitle(%q):\nACTUAL: %q\n  WANT: %q\n", i, c, a, w)
 		}
 	}
 }
 
-func TestExtractMetasFromHTMLNode(t *testing.T) {
+func TestGetMetas(t *testing.T) {
 	cs := []string{"utf-8.html", "shift-jis.html"}
 
 	w := map[string]string{
@@ -109,9 +87,9 @@ func TestExtractMetasFromHTMLNode(t *testing.T) {
 			t.Fatalf("[%d] Failed to ParseHTMLFile(%q): %v", i, c, err)
 		}
 
-		a := ExtractMetasFromHTMLNode(doc)
+		a := GetMetas(doc)
 		if !reflect.DeepEqual(w, a) {
-			t.Errorf("[%d] ExtractMetasFromHTMLNode(%q):\nACTUAL: %v\n  WANT: %v\n", i, c, a, w)
+			t.Errorf("[%d] GetMetas(%q):\nACTUAL: %v\n  WANT: %v\n", i, c, a, w)
 		}
 	}
 }

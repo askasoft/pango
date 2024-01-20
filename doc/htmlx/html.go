@@ -1,30 +1,14 @@
 package htmlx
 
 import (
-	"io"
 	"strings"
 
+	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/wcu"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 )
-
-func ExtractTextFromHTMLFile(name string, charsets ...string) (string, error) {
-	sb := &strings.Builder{}
-	err := ExtractStringFromHTMLFile(sb, name, charsets...)
-	return str.Strip(sb.String()), err
-}
-
-func ExtractStringFromHTMLFile(w io.Writer, name string, charsets ...string) error {
-	wf, _, err := wcu.DetectAndOpenFile(name, charsets...)
-	if err != nil {
-		return err
-	}
-	defer wf.Close()
-
-	return ExtractStringFromHTMLReader(w, wf)
-}
 
 func ParseHTMLFile(name string, charsets ...string) (*html.Node, error) {
 	wf, _, err := wcu.DetectAndOpenFile(name, charsets...)
@@ -36,52 +20,19 @@ func ParseHTMLFile(name string, charsets ...string) (*html.Node, error) {
 	return html.Parse(wf)
 }
 
-func ExtractStringFromHTMLReader(w io.Writer, r io.Reader) error {
-	doc, err := html.Parse(r)
-	if err != nil {
-		return err
-	}
-	return ExtractStringFromHTMLNode(w, doc)
-}
+// var ErrAbort = errors.New("abort")
 
-func ExtractTextFromHTMLNode(n *html.Node) string {
-	sb := strings.Builder{}
-	_ = ExtractStringFromHTMLNode(&sb, n)
-	return str.Strip(sb.String())
-}
-
-func ExtractStringFromHTMLNode(w io.Writer, n *html.Node) error {
-	if n.Type == html.CommentNode {
-		return nil
-	}
-
-	if n.Type == html.ElementNode {
-		switch n.DataAtom {
-		case atom.Script, atom.Style, atom.Select:
-			return nil
-		case atom.H1, atom.H2, atom.H3, atom.H4, atom.H5, atom.H6:
-			fallthrough
-		case atom.Div, atom.P, atom.Pre, atom.Textarea, atom.Li, atom.Br:
-			if _, err := io.WriteString(w, "\n"); err != nil {
-				return err
-			}
-		}
-	}
-
-	if n.Type == html.TextNode {
-		if _, err := io.WriteString(w, n.Data); err != nil {
-			return err
-		}
-	}
-
-	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		if err := ExtractStringFromHTMLNode(w, c); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
+// func Iterate(n *html.Node, iter func(*html.Node) error) error {
+// 	for c := n.FirstChild; c != nil; c = c.NextSibling {
+// 		if err := iter(c); err != nil {
+// 			return err
+// 		}
+// 		if err := Iterate(c, iter); err != nil {
+// 			return err
+// 		}
+// 	}
+// 	return nil
+// }
 
 func FindElementNode(n *html.Node, tag atom.Atom) *html.Node {
 	if n.Type == html.ElementNode && n.DataAtom == tag {
@@ -110,21 +61,29 @@ func FindElementNodes(n *html.Node, tag atom.Atom) (ns []*html.Node) {
 	return
 }
 
-func ExtractTitleFromHTMLNode(n *html.Node) string {
-	head := FindElementNode(n, atom.Head)
-	if head != nil {
-		title := FindElementNode(n, atom.Title)
-		if title != nil {
-			return ExtractTextFromHTMLNode(title)
+func Stringify(n *html.Node) string {
+	sb := &strings.Builder{}
+	cw := iox.NewCompactWriter(sb, isSpace, ' ')
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		if c.Type == html.TextNode {
+			cw.WriteString(c.Data)
+		}
+	}
+	return str.Strip(sb.String())
+}
+
+func GetTitle(n *html.Node) string {
+	if h := FindElementNode(n, atom.Head); h != nil {
+		if t := FindElementNode(h, atom.Title); n != nil {
+			return Stringify(t)
 		}
 	}
 	return ""
 }
 
-func ExtractMetasFromHTMLNode(n *html.Node) map[string]string {
-	head := FindElementNode(n, atom.Head)
-	if head != nil {
-		ns := FindElementNodes(n, atom.Meta)
+func GetMetas(n *html.Node) map[string]string {
+	if h := FindElementNode(n, atom.Head); h != nil {
+		ns := FindElementNodes(h, atom.Meta)
 		if len(ns) > 0 {
 			mm := make(map[string]string, len(ns))
 			for _, m := range ns {

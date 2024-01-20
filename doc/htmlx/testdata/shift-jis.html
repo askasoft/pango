@@ -5,20 +5,85 @@
 	<meta property="description" content="meta説明"/>
 </head>
 <body>
-	<div>これはDIVです。
-		<span>これはSPANです。</span>
-		<pre>これはPREです。</pre>
-		<a href="/">これはAです</a>
+	<h1>H1です。</h1>
+	<h2>H2です。</h2>
+	<h3>H3です。</h3>
+	<h4>H4です。</h4>
+	<h5>H5です。</h5>
+	<h6>H6です。</h6>
+	<div>DIVです。
+		<span>SPANです。</span>
+		<pre>PREです。
+LINE2です。</pre>
+		<a href="/">Aです。</a>
 	</div>
-	<!--これまコメントです。-->
-	<p>これはPです。</p>
+	<ol>
+		<li> OL.LI(1)
+			<ul>
+				<li> OL.UL.LI(1)</li>
+				<li> OL.UL.LI(2)</li>
+				<li> OL.UL.LI(3)</li>
+			</ul>
+		</li>
+		<li> OL.LI(2)</li>
+		<li> OL.LI(3)</li>
+	</ol>
 	<ul>
-		<li>これはLI-1です。</li>
-		<li>これはLI-2です。</li>
+		<li> UL.LI(1)</li>
+		<li> UL.LI(2)
+			<ol>
+				<li> UL.OL.LI(1)</li>
+				<li> UL.OL.LI(2)</li>
+				<li> UL.OL.LI(3)</li>
+			</ol>
+		</li>
+		<li> UL.LI(3)</li>
 	</ul>
-	<![CDATA[ これはCDATAです。 ]]>
-	<select>"これはSELECTです。"</select>
-	<script>"これはSCRIPTです。"</script>
-	<style>/*"これはSCRIPTです。"*/</style>
+	<dl>
+		<dt>DT(1)</dt>
+		<dd>DD(1.1)</dd>
+		<dd>DD(1.2)</dd>
+		<dt>DT(2)</dt>
+		<dd>DD(2.1)</dd>
+		<dd>DD(2.2)</dd>
+	</dl>
+	<table>
+		<thead>
+			<tr>
+				<th>TH(1,1)</th>
+				<th>TH(1,2)</th>
+				<th>TH(1,3)</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>TB(1,1)</td>
+				<td>TB(1,2)</td>
+				<td>TB(1,3)</td>
+			</tr>
+			<tr>
+				<td>TB(2,1)</td>
+				<td>TB(2,2)</td>
+				<td>TB(2,3)</td>
+			</tr>
+		</tbody>
+		<tfoot>
+			<tr>
+				<td>TF(1,1)</td>
+				<td>TF(1,2)</td>
+				<td>TF(1,3)</td>
+			</tr>
+		</tfoot>
+	</table>
+	<!--これまコメントです。-->
+	<p>Pです。</p>
+	<ul>
+		<li> LI-1です。</li>
+		<li> LI-2です。</li>
+	</ul>
+	<![CDATA[ CDATAです。 ]]>
+	<select>"SELECTです。"</select>
+	<script>"SCRIPTです。"</script>
+	<style>/*"SCRIPTです。"*/</style>
 </body>
 </html>

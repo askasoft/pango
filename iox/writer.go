@@ -3,6 +3,7 @@ package iox
 import (
 	"io"
 	"sync"
+	"unicode"
 
 	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/str"
@@ -178,4 +179,55 @@ func (sw *stripWriter) WriteString(s string) (n int, err error) {
 		_, err = sw.Write(str.UnsafeBytes(s))
 	}
 	return
+}
+
+type CompactWriter struct {
+	w io.Writer       // underlying writer
+	f func(rune) bool // is compact rune function
+	r rune            // replace rune
+	c bool            // last rune is compact or not
+}
+
+// SpaceCompactor return a space compact writer
+func SpaceCompactWriter(w io.Writer) *CompactWriter {
+	return &CompactWriter{w: w, f: unicode.IsSpace, r: ' '}
+}
+
+// NewCompactWriter return a compact writer
+func NewCompactWriter(w io.Writer, f func(rune) bool, r rune) *CompactWriter {
+	return &CompactWriter{w: w, f: unicode.IsSpace, r: r, c: true}
+}
+
+func (cw *CompactWriter) Reset(c bool) {
+	cw.c = c
+}
+
+func (cw *CompactWriter) Write(p []byte) (int, error) {
+	return cw.WriteString(bye.UnsafeString(p))
+}
+
+func (cw *CompactWriter) WriteString(s string) (int, error) {
+	if s == "" {
+		return 0, nil
+	}
+
+	for i, r := range s {
+		c := cw.f(r)
+		if cw.c {
+			if !c {
+				if n, err := io.WriteString(cw.w, string(r)); err != nil {
+					return i + n, err
+				}
+			}
+		} else {
+			if c {
+				r = cw.r
+			}
+			if n, err := io.WriteString(cw.w, string(r)); err != nil {
+				return i + n, err
+			}
+		}
+		cw.c = c
+	}
+	return len(s), nil
 }

@@ -328,7 +328,7 @@ func getFormatOption(format string, i *int) string {
 func write(w io.Writer, le *Event, fmts []fmtfunc) {
 	for _, f := range fmts {
 		s := f(le)
-		io.WriteString(w, s) //nolint: errcheck
+		iox.WriteString(w, s) //nolint: errcheck
 	}
 }
 

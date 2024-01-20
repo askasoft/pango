@@ -215,7 +215,7 @@ func (cw *CompactWriter) WriteString(s string) (int, error) {
 		c := cw.f(r)
 		if cw.c {
 			if !c {
-				if n, err := io.WriteString(cw.w, string(r)); err != nil {
+				if n, err := WriteString(cw.w, string(r)); err != nil {
 					return i + n, err
 				}
 			}
@@ -223,7 +223,7 @@ func (cw *CompactWriter) WriteString(s string) (int, error) {
 			if c {
 				r = cw.r
 			}
-			if n, err := io.WriteString(cw.w, string(r)); err != nil {
+			if n, err := WriteString(cw.w, string(r)); err != nil {
 				return i + n, err
 			}
 		}

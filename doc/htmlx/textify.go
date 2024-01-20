@@ -63,7 +63,7 @@ func NewTextifier(w io.Writer) *Textifier {
 }
 
 func (tf *Textifier) write(s string) error {
-	_, err := io.WriteString(tf.o, s)
+	_, err := iox.WriteString(tf.o, s)
 	return err
 }
 
@@ -173,14 +173,14 @@ func (tf *Textifier) title(n *html.Node) error {
 		return err
 	}
 	s := Stringify(n)
-	if _, err := io.WriteString(tf.w, s); err != nil {
+	if _, err := iox.WriteString(tf.w, s); err != nil {
 		return err
 	}
 	if err := tf.eol(); err != nil {
 		return err
 	}
 	s = str.RepeatRune('=', len(s))
-	if _, err := io.WriteString(tf.w, s); err != nil {
+	if _, err := iox.WriteString(tf.w, s); err != nil {
 		return err
 	}
 	return tf.eol()
@@ -197,7 +197,7 @@ func (tf *Textifier) thead(n *html.Node) error {
 }
 
 func (tf *Textifier) tr(n *html.Node) error {
-	if _, err := io.WriteString(tf.w, "| "); err != nil {
+	if _, err := iox.WriteString(tf.w, "| "); err != nil {
 		return err
 	}
 	tf.cw.Reset(true)
@@ -214,7 +214,7 @@ func (tf *Textifier) tr(n *html.Node) error {
 			return err
 		}
 		for i := 0; i < tf.tc; i++ {
-			if _, err := io.WriteString(tf.w, "---|"); err != nil {
+			if _, err := iox.WriteString(tf.w, "---|"); err != nil {
 				return err
 			}
 		}
@@ -231,7 +231,7 @@ func (tf *Textifier) td(n *html.Node) error {
 	if err := tf.deep(n); err != nil {
 		return err
 	}
-	_, err := io.WriteString(tf.w, " |")
+	_, err := iox.WriteString(tf.w, " |")
 	return err
 }
 
@@ -268,12 +268,12 @@ func (tf *Textifier) ul(n *html.Node) error {
 func (tf *Textifier) li(n *html.Node) error {
 	p := str.RepeatRune('\t', tf.lv-1)
 	if tf.ln > 0 {
-		if _, err := io.WriteString(tf.w, fmt.Sprintf("%s%d. ", p, tf.ln)); err != nil {
+		if _, err := iox.WriteString(tf.w, fmt.Sprintf("%s%d. ", p, tf.ln)); err != nil {
 			return err
 		}
 		tf.ln++
 	} else {
-		if _, err := io.WriteString(tf.w, p+"- "); err != nil {
+		if _, err := iox.WriteString(tf.w, p+"- "); err != nil {
 			return err
 		}
 	}
@@ -282,7 +282,7 @@ func (tf *Textifier) li(n *html.Node) error {
 }
 
 func (tf *Textifier) dd(n *html.Node) error {
-	if _, err := io.WriteString(tf.w, ": "); err != nil {
+	if _, err := iox.WriteString(tf.w, ": "); err != nil {
 		return err
 	}
 	tf.cw.Reset(true)

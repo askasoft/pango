@@ -5,6 +5,8 @@ import (
 	"io"
 	"net"
 	"time"
+
+	"github.com/askasoft/pango/iox"
 )
 
 // DumpConn wrap a net.conn for dump
@@ -29,7 +31,7 @@ func (cd *ConnDumper) Read(b []byte) (int, error) {
 			cd.Recv.Write(b[:n]) //nolint: errcheck
 		}
 		if err != nil {
-			io.WriteString(cd.Recv, err.Error()) //nolint: errcheck
+			iox.WriteString(cd.Recv, err.Error()) //nolint: errcheck
 		}
 	}
 	return n, err
@@ -45,7 +47,7 @@ func (cd *ConnDumper) Write(b []byte) (int, error) {
 			cd.Send.Write(b[:n]) //nolint: errcheck
 		}
 		if err != nil {
-			io.WriteString(cd.Send, err.Error()) //nolint: errcheck
+			iox.WriteString(cd.Send, err.Error()) //nolint: errcheck
 		}
 	}
 	return n, err
@@ -103,10 +105,10 @@ func (cd *ConnDebugger) Read(b []byte) (int, error) {
 	n, err := cd.Conn.Read(b)
 
 	if cd.state == stateSend {
-		io.WriteString(cd.Writer, cd.timestamp(cd.SendSuffix)) //nolint: errcheck
+		iox.WriteString(cd.Writer, cd.timestamp(cd.SendSuffix)) //nolint: errcheck
 	}
 	if cd.state != stateRecv {
-		io.WriteString(cd.Writer, cd.timestamp(cd.RecvPrefix)) //nolint: errcheck
+		iox.WriteString(cd.Writer, cd.timestamp(cd.RecvPrefix)) //nolint: errcheck
 	}
 
 	cd.state = stateRecv
@@ -114,8 +116,8 @@ func (cd *ConnDebugger) Read(b []byte) (int, error) {
 		cd.Writer.Write(b[:n]) //nolint: errcheck
 	}
 	if err != nil {
-		io.WriteString(cd.Writer, err.Error()) //nolint: errcheck
-		cd.Writer.Write([]byte{'\r', '\n'})    //nolint: errcheck
+		iox.WriteString(cd.Writer, err.Error()) //nolint: errcheck
+		cd.Writer.Write([]byte{'\r', '\n'})     //nolint: errcheck
 	}
 	return n, err
 }
@@ -127,10 +129,10 @@ func (cd *ConnDebugger) Write(b []byte) (int, error) {
 	n, err := cd.Conn.Write(b)
 
 	if cd.state == stateRecv {
-		io.WriteString(cd.Writer, cd.timestamp(cd.RecvSuffix)) //nolint: errcheck
+		iox.WriteString(cd.Writer, cd.timestamp(cd.RecvSuffix)) //nolint: errcheck
 	}
 	if cd.state != stateSend {
-		io.WriteString(cd.Writer, cd.timestamp(cd.SendPrefix)) //nolint: errcheck
+		iox.WriteString(cd.Writer, cd.timestamp(cd.SendPrefix)) //nolint: errcheck
 	}
 
 	cd.state = stateSend
@@ -138,8 +140,8 @@ func (cd *ConnDebugger) Write(b []byte) (int, error) {
 		cd.Writer.Write(b[:n]) //nolint: errcheck
 	}
 	if err != nil {
-		io.WriteString(cd.Writer, err.Error()) //nolint: errcheck
-		cd.Writer.Write([]byte{'\r', '\n'})    //nolint: errcheck
+		iox.WriteString(cd.Writer, err.Error()) //nolint: errcheck
+		cd.Writer.Write([]byte{'\r', '\n'})     //nolint: errcheck
 	}
 
 	return n, err
@@ -150,9 +152,9 @@ func (cd *ConnDebugger) Write(b []byte) (int, error) {
 func (cd *ConnDebugger) Close() error {
 	switch cd.state {
 	case stateRecv:
-		io.WriteString(cd.Writer, cd.timestamp(cd.RecvSuffix)) //nolint: errcheck
+		iox.WriteString(cd.Writer, cd.timestamp(cd.RecvSuffix)) //nolint: errcheck
 	case stateSend:
-		io.WriteString(cd.Writer, cd.timestamp(cd.SendSuffix)) //nolint: errcheck
+		iox.WriteString(cd.Writer, cd.timestamp(cd.SendSuffix)) //nolint: errcheck
 	}
 
 	if c, ok := cd.Writer.(io.Closer); ok {

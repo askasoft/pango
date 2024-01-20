@@ -66,7 +66,7 @@ func Stringify(n *html.Node) string {
 	cw := iox.NewCompactWriter(sb, isSpace, ' ')
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
 		if c.Type == html.TextNode {
-			cw.WriteString(c.Data)
+			cw.WriteString(c.Data) //nolint: errcheck
 		}
 	}
 	return str.Strip(sb.String())

@@ -2,10 +2,10 @@ package xin
 
 import (
 	"bufio"
-	"io"
 	"net"
 	"net/http"
 
+	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/log"
 )
 
@@ -80,7 +80,7 @@ func (w *responseWriter) Write(data []byte) (n int, err error) {
 
 func (w *responseWriter) WriteString(s string) (n int, err error) {
 	w.WriteHeaderNow()
-	n, err = io.WriteString(w.ResponseWriter, s)
+	n, err = iox.WriteString(w.ResponseWriter, s)
 	w.size += n
 	return
 }

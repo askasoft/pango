@@ -163,7 +163,7 @@ func docxTextify(r io.Reader, w io.Writer) error {
 		case xml.EndElement:
 			switch ty.Name.Local {
 			case "p":
-				if _, err := io.WriteString(w, sb.String()); err != nil {
+				if _, err := iox.WriteString(w, sb.String()); err != nil {
 					return err
 				}
 				sb.Reset()

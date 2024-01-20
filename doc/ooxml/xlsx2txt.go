@@ -69,30 +69,30 @@ import (
 func ExtractTextFromXlsxFile(name string) (string, error) {
 	sb := &strings.Builder{}
 	lw := iox.LineWriter(sb)
-	err := ExtractStringFromXlsxFile(name, lw)
+	err := XlsxFileTextify(name, lw)
 	return sb.String(), err
 }
 
-func ExtractStringFromXlsxFile(name string, w io.Writer) error {
+func XlsxFileTextify(name string, w io.Writer) error {
 	zr, err := zip.OpenReader(name)
 	if err != nil {
 		return err
 	}
 	defer zr.Close()
 
-	return extractStringFromXlsx(&zr.Reader, w)
+	return xlsxTextify(&zr.Reader, w)
 }
 
-func ExtractStringFromXlsxReader(r io.ReaderAt, size int64, w io.Writer) error {
+func XlsxReaderTextify(r io.ReaderAt, size int64, w io.Writer) error {
 	zr, err := zip.NewReader(r, size)
 	if err != nil {
 		return err
 	}
 
-	return extractStringFromXlsx(zr, w)
+	return xlsxTextify(zr, w)
 }
 
-func extractStringFromXlsx(zr *zip.Reader, w io.Writer) error {
+func xlsxTextify(zr *zip.Reader, w io.Writer) error {
 	for _, zf := range zr.File {
 		if zf.Name == "xl/sharedStrings.xml" {
 			fr, err := zf.Open()
@@ -101,13 +101,13 @@ func extractStringFromXlsx(zr *zip.Reader, w io.Writer) error {
 			}
 			defer fr.Close()
 
-			return extractTextFromXlSharedStrings(fr, w)
+			return xlsxStringsTextify(fr, w)
 		}
 	}
 	return nil
 }
 
-func extractTextFromXlSharedStrings(r io.Reader, w io.Writer) error {
+func xlsxStringsTextify(r io.Reader, w io.Writer) error {
 	xd := xml.NewDecoder(r)
 
 	sb := strings.Builder{}

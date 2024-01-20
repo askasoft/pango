@@ -54,30 +54,30 @@ import (
 func ExtractTextFromPptxFile(name string) (string, error) {
 	sb := &strings.Builder{}
 	lw := iox.LineWriter(sb)
-	err := ExtractStringFromPptxFile(name, lw)
+	err := PptxFileTexify(name, lw)
 	return sb.String(), err
 }
 
-func ExtractStringFromPptxFile(name string, w io.Writer) error {
+func PptxFileTexify(name string, w io.Writer) error {
 	zr, err := zip.OpenReader(name)
 	if err != nil {
 		return err
 	}
 	defer zr.Close()
 
-	return extractStringFromPptx(&zr.Reader, w)
+	return pptxTextify(&zr.Reader, w)
 }
 
-func ExtractStringFromPptxReader(r io.ReaderAt, size int64, w io.Writer) error {
+func PptxReaderTexify(r io.ReaderAt, size int64, w io.Writer) error {
 	zr, err := zip.NewReader(r, size)
 	if err != nil {
 		return err
 	}
 
-	return extractStringFromPptx(zr, w)
+	return pptxTextify(zr, w)
 }
 
-func extractStringFromPptx(zr *zip.Reader, w io.Writer) error {
+func pptxTextify(zr *zip.Reader, w io.Writer) error {
 	zfm := cog.NewTreeMap[string, *zip.File](cog.CompareString)
 	for _, zf := range zr.File {
 		if str.StartsWith(zf.Name, "ppt/slides/slide") && str.EndsWith(zf.Name, ".xml") {
@@ -92,14 +92,14 @@ func extractStringFromPptx(zr *zip.Reader, w io.Writer) error {
 		}
 		defer fr.Close()
 
-		if err := extractTextFromPptxSlide(fr, w); err != nil {
+		if err := pptxSlideTextify(fr, w); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func extractTextFromPptxSlide(r io.Reader, w io.Writer) error {
+func pptxSlideTextify(r io.Reader, w io.Writer) error {
 	xd := xml.NewDecoder(r)
 
 	sb := &strings.Builder{}

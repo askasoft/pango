@@ -100,11 +100,11 @@ import (
 func ExtractTextFromDocxFile(name string) (string, error) {
 	sb := &strings.Builder{}
 	lw := iox.LineWriter(sb)
-	err := ExtractStringFromDocxFile(name, lw)
+	err := DocxFileTextify(name, lw)
 	return sb.String(), err
 }
 
-func ExtractStringFromDocxFile(name string, w io.Writer) error {
+func DocxFileTextify(name string, w io.Writer) error {
 	zr, err := zip.OpenReader(name)
 	if err != nil {
 		return err
@@ -114,7 +114,7 @@ func ExtractStringFromDocxFile(name string, w io.Writer) error {
 	return extractStringFromDocx(&zr.Reader, w)
 }
 
-func ExtractStringFromDocxReader(r io.ReaderAt, size int64, w io.Writer) error {
+func DocxReaderTextify(r io.ReaderAt, size int64, w io.Writer) error {
 	zr, err := zip.NewReader(r, size)
 	if err != nil {
 		return err
@@ -132,13 +132,13 @@ func extractStringFromDocx(zr *zip.Reader, w io.Writer) error {
 			}
 			defer fr.Close()
 
-			return extractTextFromWordDocument(fr, w)
+			return docxTextify(fr, w)
 		}
 	}
 	return nil
 }
 
-func extractTextFromWordDocument(r io.Reader, w io.Writer) error {
+func docxTextify(r io.Reader, w io.Writer) error {
 	xd := xml.NewDecoder(r)
 
 	sb := &strings.Builder{}

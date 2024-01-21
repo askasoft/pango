@@ -79,7 +79,7 @@ func (tf *Textifier) Textify(n *html.Node) error {
 		return nil
 	case html.ElementNode:
 		switch n.DataAtom {
-		case atom.Script, atom.Style, atom.Select, atom.Object, atom.Applet, atom.Iframe, atom.Frameset, atom.Frame:
+		case atom.Noscript, atom.Script, atom.Style, atom.Select, atom.Object, atom.Applet, atom.Iframe, atom.Frameset, atom.Frame:
 			return nil
 		case atom.Br:
 			return tf.lbrDeep(n)

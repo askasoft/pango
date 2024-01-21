@@ -20,20 +20,6 @@ func ParseHTMLFile(name string, charsets ...string) (*html.Node, error) {
 	return html.Parse(wf)
 }
 
-// var ErrAbort = errors.New("abort")
-
-// func Iterate(n *html.Node, iter func(*html.Node) error) error {
-// 	for c := n.FirstChild; c != nil; c = c.NextSibling {
-// 		if err := iter(c); err != nil {
-// 			return err
-// 		}
-// 		if err := Iterate(c, iter); err != nil {
-// 			return err
-// 		}
-// 	}
-// 	return nil
-// }
-
 func FindElementNode(n *html.Node, tag atom.Atom) *html.Node {
 	if n.Type == html.ElementNode && n.DataAtom == tag {
 		return n

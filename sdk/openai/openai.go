@@ -1,34 +1,13 @@
 package openai
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"time"
 
-	"github.com/askasoft/pango/bye"
-	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/sdk"
 )
-
-const (
-	contentTypeJSON = `application/json; charset="utf-8"`
-)
-
-func toJSONIndent(o any) string {
-	if o == nil {
-		return ""
-	}
-
-	bs, err := json.MarshalIndent(o, "", "  ")
-	if err != nil {
-		return err.Error()
-	}
-	return bye.UnsafeString(bs)
-}
 
 type OpenAI struct {
 	Domain string
@@ -45,36 +24,6 @@ type OpenAI struct {
 
 func (oai *OpenAI) endpoint(format string, a ...any) string {
 	return "https://" + oai.Domain + "/v1" + fmt.Sprintf(format, a...)
-}
-
-func (oai *OpenAI) buildJsonRequest(a any) (io.Reader, string, error) {
-	body, err := json.Marshal(a)
-	if err != nil {
-		return nil, "", err
-	}
-
-	buf := bytes.NewReader(body)
-	return buf, contentTypeJSON, nil
-}
-
-func (oai *OpenAI) decodeResponse(res *http.Response, obj any) error {
-	defer iox.DrainAndClose(res.Body)
-
-	decoder := json.NewDecoder(res.Body)
-	if res.StatusCode == http.StatusOK {
-		if obj != nil {
-			return decoder.Decode(obj)
-		}
-		return nil
-	}
-
-	er := &ErrorResult{
-		Status:     res.Status,
-		StatusCode: res.StatusCode,
-	}
-	_ = decoder.Decode(er)
-
-	return er
 }
 
 func (oai *OpenAI) call(req *http.Request) (res *http.Response, err error) {
@@ -117,7 +66,7 @@ func (oai *OpenAI) doCall(req *http.Request, result any) error {
 		return err
 	}
 
-	return oai.decodeResponse(res, result)
+	return decodeResponse(res, result)
 }
 
 func (oai *OpenAI) doPostWithRetry(url string, source, result any) error {
@@ -127,7 +76,7 @@ func (oai *OpenAI) doPostWithRetry(url string, source, result any) error {
 }
 
 func (oai *OpenAI) doPost(url string, source, result any) error {
-	buf, ct, err := oai.buildJsonRequest(source)
+	buf, ct, err := buildJsonRequest(source)
 	if err != nil {
 		return err
 	}

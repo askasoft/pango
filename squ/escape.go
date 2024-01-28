@@ -1,4 +1,4 @@
-package sql
+package squ
 
 import "strings"
 

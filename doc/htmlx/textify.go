@@ -18,6 +18,12 @@ func ExtractTextFromHTMLFile(name string, charsets ...string) (string, error) {
 	return sb.String(), err
 }
 
+func ExtractTextFromHTMLString(html string) (string, error) {
+	sb := &strings.Builder{}
+	err := HTMLStringTextify(sb, html)
+	return sb.String(), err
+}
+
 func ExtractTextFromHTMLNode(node *html.Node) string {
 	sb := &strings.Builder{}
 	_ = Textify(node, sb)
@@ -32,6 +38,12 @@ func HTMLFileTextify(w io.Writer, name string, charsets ...string) error {
 	defer wf.Close()
 
 	return HTMLReaderTextify(w, wf)
+}
+
+func HTMLStringTextify(w io.Writer, html string) error {
+	r := strings.NewReader(html)
+
+	return HTMLReaderTextify(w, r)
 }
 
 func HTMLReaderTextify(w io.Writer, r io.Reader) error {

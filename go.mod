@@ -5,7 +5,7 @@ go 1.21
 require github.com/stretchr/testify v1.8.4
 
 require (
-	github.com/google/uuid v1.5.0
+	github.com/google/uuid v1.6.0
 	golang.org/x/net v0.20.0
 	golang.org/x/sys v0.16.0
 	golang.org/x/text v0.14.0

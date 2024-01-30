@@ -1,5 +1,11 @@
 package openai
 
+import (
+	"fmt"
+
+	"github.com/askasoft/pango/str"
+)
+
 const (
 	RoleUser      = "user"
 	RoleSystem    = "system"
@@ -88,6 +94,18 @@ type ChatCompeletionRequest struct {
 	User string `json:"user,omitempty"`
 }
 
+func (cc *ChatCompeletionRequest) AddMessage(cm *ChatMessage) {
+	cc.Messages = append(cc.Messages, cm)
+}
+
+func (cc *ChatCompeletionRequest) MessageRuneCount() int {
+	cnt := 0
+	for _, cm := range cc.Messages {
+		cnt += str.RuneCount(cm.Content)
+	}
+	return cnt
+}
+
 func (cc *ChatCompeletionRequest) String() string {
 	return toJSONIndent(cc)
 }
@@ -104,14 +122,40 @@ type ChatUsage struct {
 	TotalTokens      int `json:"total_tokens"`
 }
 
+func (cu *ChatUsage) Add(u *ChatUsage) {
+	cu.PromptTokens += u.PromptTokens
+	cu.CompletionTokens += u.CompletionTokens
+	cu.TotalTokens += u.TotalTokens
+}
+
+func (cu *ChatUsage) String() string {
+	return fmt.Sprintf("%d, %d, %d", cu.PromptTokens, cu.CompletionTokens, cu.TotalTokens)
+}
+
 type ChatCompeletionResponse struct {
-	ID                string       `json:"id,omitempty"`
-	Object            string       `json:"object,omitempty"`
-	Created           int64        `json:"created,omitempty"`
-	Model             string       `json:"model,omitempty"`
-	SystemFingerprint string       `json:"system_fingerprint,omitempty"`
-	Choices           []ChatChoice `json:"choices,omitempty"`
-	Usage             ChatUsage    `json:"usage,omitempty"`
+	ID                string        `json:"id,omitempty"`
+	Object            string        `json:"object,omitempty"`
+	Created           int64         `json:"created,omitempty"`
+	Model             string        `json:"model,omitempty"`
+	SystemFingerprint string        `json:"system_fingerprint,omitempty"`
+	Choices           []*ChatChoice `json:"choices,omitempty"`
+	Usage             ChatUsage     `json:"usage,omitempty"`
+}
+
+// Answer return first choice content
+func (cc *ChatCompeletionResponse) Answer() string {
+	if len(cc.Choices) > 0 {
+		return cc.Choices[0].Message.Content
+	}
+	return ""
+}
+
+func (cc *ChatCompeletionResponse) ChoiceRuneCount() int {
+	cnt := 0
+	for _, c := range cc.Choices {
+		cnt += str.RuneCount(c.Message.Content)
+	}
+	return cnt
 }
 
 func (cc *ChatCompeletionResponse) String() string {

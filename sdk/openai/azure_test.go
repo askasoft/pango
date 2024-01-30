@@ -47,7 +47,7 @@ func TestAzureOpenAICreateChatCompletion(t *testing.T) {
 	req := &ChatCompeletionRequest{
 		Model: "gpt-3.5-turbo",
 		Messages: []*ChatMessage{
-			{Role: RoleSystem, Content: "あなたはだれですか？"},
+			{Role: RoleUser, Content: "あなたはだれですか？"},
 		},
 	}
 

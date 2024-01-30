@@ -48,19 +48,28 @@ func SaveUploadedFile(c *xin.Context, dir string, file *multipart.FileHeader) (*
 	return fi, nil
 }
 
-func CleanOutdatedFiles(log log.Logger, dir string, due time.Time) {
-	log.Debugf("CleanOutdatedFiles('%s', '%v')", dir, due)
+func getLogger(loggers ...log.Logger) log.Logger {
+	if len(loggers) > 0 {
+		return loggers[0]
+	}
+	return log.GetLogger("XFU")
+}
+
+func CleanOutdatedFiles(dir string, due time.Time, loggers ...log.Logger) {
+	logger := getLogger(loggers...)
+
+	logger.Debugf("CleanOutdatedFiles('%s', '%v')", dir, due)
 
 	f, err := os.Open(dir)
 	if err != nil {
-		log.Errorf("Open('%s') failed: %v", dir, err)
+		logger.Errorf("Open('%s') failed: %v", dir, err)
 		return
 	}
 	defer f.Close()
 
 	des, err := f.ReadDir(-1)
 	if err != nil {
-		log.Error("ReadDir('%s') failed: %v", dir, err)
+		logger.Error("ReadDir('%s') failed: %v", dir, err)
 		return
 	}
 
@@ -68,7 +77,7 @@ func CleanOutdatedFiles(log log.Logger, dir string, due time.Time) {
 		path := filepath.Join(dir, de.Name())
 
 		if de.IsDir() {
-			CleanOutdatedFiles(log, path, due)
+			CleanOutdatedFiles(path, due, logger)
 			if err := fsu.DirIsEmpty(path); err != nil {
 				log.Errorf("DirIsEmpty('%s') failed: %v", path, err)
 			} else {

@@ -10,9 +10,6 @@ import (
 
 	"github.com/askasoft/pango/fsu"
 	"github.com/askasoft/pango/log"
-	"github.com/askasoft/pango/str"
-	"github.com/askasoft/pango/xin"
-	"github.com/google/uuid"
 )
 
 type FileItem struct {
@@ -30,22 +27,15 @@ type FilesResult struct {
 	Files []*FileItem `json:"files"`
 }
 
-func SaveUploadedFile(c *xin.Context, dir string, file *multipart.FileHeader) (*FileItem, error) {
-	ext := str.IfEmpty(path.Ext(file.Filename), ".x")
-
-	name := str.RemoveByte(uuid.New().String(), '-') + ext
-
-	if err := c.SaveUploadedFile(file, path.Join(dir, name)); err != nil {
-		return nil, err
-	}
+func NewFileItem(file *multipart.FileHeader) *FileItem {
+	ext := path.Ext(file.Filename)
 
 	fi := &FileItem{
-		ID:   name,
 		Name: file.Filename,
 		Size: file.Size,
 		Type: mime.TypeByExtension(ext),
 	}
-	return fi, nil
+	return fi
 }
 
 func getLogger(loggers ...log.Logger) log.Logger {

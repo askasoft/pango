@@ -6,40 +6,61 @@ import (
 )
 
 // SplitLength splits the string s by the length 'n' to a string slice.
-// Each string 's' in the result slice satisfying len(s) < n.
+// Each string 's' in the result slice satisfying len(s) <= n.
 func SplitLength(s string, n int) []string {
-	if len(s) <= n || n < 1 {
+	z := len(s)
+	if z <= n || n < 1 {
 		return []string{s}
 	}
 
-	a := make([]string, 0, len(s)/n+1)
+	a := make([]string, 0, z/n+1)
 
+	x := 0
 	b := 0
-	for {
-		_, z := utf8.DecodeRuneInString(s[b:])
-		if b+z <= n {
-			b += z
-			continue
-		}
-
-		x := b
-		if b == 0 {
-			x = z
-		}
-
-		a = append(a, s[:x])
-		s = s[x:]
-		if s == "" {
-			return a
-		}
-		if len(s) <= n {
-			a = append(a, s)
-			return a
-		}
-		if b != 0 {
-			b = z
+	for i, r := range s {
+		d := utf8.RuneLen(r)
+		b += d
+		if b > n && i > x {
+			a = append(a, s[x:i])
+			x = i
+			if z-x <= n {
+				break
+			}
+			b = d
 		}
 	}
+
+	if x < z {
+		a = append(a, s[x:])
+	}
+	return a
+}
+
+// SplitCount splits the string s by the length 'n' to a string slice.
+// Each string 's' in the result slice satisfying utf8.RuneCountInString(s) <= n.
+func SplitCount(s string, n int) []string {
+	z := RuneCount(s)
+	if z <= n || n < 1 {
+		return []string{s}
+	}
+
+	a := make([]string, 0, z/n+1)
+
+	x := 0
+	b := 0
+	for i := range s {
+		b++
+		if b > n {
+			a = append(a, s[x:i])
+			x = i
+			b = 1
+		}
+	}
+
+	if x < len(s) {
+		a = append(a, s[x:])
+	}
+	return a
 }
 
 // SplitFunc splits the string s at each rune of Unicode code points c satisfying f(c)

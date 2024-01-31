@@ -33,6 +33,34 @@ func TestSplitLength(t *testing.T) {
 	}
 }
 
+func TestSplitCount(t *testing.T) {
+	cs := []struct {
+		s string
+		n int
+		w []string
+	}{
+		{"", 0, []string{""}},
+		{"a", 0, []string{"a"}},
+		{"ab", 0, []string{"ab"}},
+		{"", 1, []string{""}},
+		{"a", 1, []string{"a"}},
+		{"abc", 1, []string{"a", "b", "c"}},
+		{"あ", 1, []string{"あ"}},
+		{"あaい", 1, []string{"あ", "a", "い"}},
+		{"あい", 1, []string{"あ", "い"}},
+		{"あい", 2, []string{"あい"}},
+		{"あいうえお", 3, []string{"あいう", "えお"}},
+		{"あいうえおか", 3, []string{"あいう", "えおか"}},
+	}
+
+	for i, c := range cs {
+		a := SplitCount(c.s, c.n)
+		if !reflect.DeepEqual(a, c.w) {
+			t.Errorf("[%d] SplitCount(%q, %d) = %v, want %v", i, c.s, c.n, a, c.w)
+		}
+	}
+}
+
 func TestSplitAny(t *testing.T) {
 	cs := []struct {
 		w []string

@@ -3,6 +3,8 @@ package fsu
 import (
 	"errors"
 	"path"
+	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -94,6 +96,40 @@ func TestDirIsEmpty(t *testing.T) {
 		err := DirIsEmpty(c.f)
 		if !errors.Is(err, c.e) {
 			t.Errorf("[%d] %s - %v, want %v", i, c.f, err, c.e)
+		}
+	}
+}
+
+func TestCopyFile(t *testing.T) {
+	defer RemoveAll(testdir)
+	MkdirAll(testdir, FileMode(0777))
+
+	cs := []struct {
+		s string
+		d string
+	}{
+		{"1.txt", "_testdir/1.txt"},
+	}
+
+	for i, c := range cs {
+		defer Remove(c.s)
+		defer Remove(c.d)
+
+		sbs := []byte(strings.Repeat("a", (i+1)*10))
+		err := WriteFile(c.s, sbs, FileMode(0600))
+		if err != nil {
+			t.Fatalf("#%d: %v", i, err)
+		}
+		err = CopyFile(c.s, c.d)
+		if err != nil {
+			t.Fatalf("#%d: %v", i, err)
+		}
+		dbs, err := ReadFile(c.d)
+		if err != nil {
+			t.Fatalf("#%d: %v", i, err)
+		}
+		if !reflect.DeepEqual(sbs, dbs) {
+			t.Fatalf("#%d: \n GOT: %v\nWANT: %v\n", i, dbs, sbs)
 		}
 	}
 }

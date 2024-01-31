@@ -5,7 +5,44 @@ import (
 	"unicode/utf8"
 )
 
-// SplitFunc splits the string s at each run of Unicode code points c satisfying f(c)
+// SplitLength splits the string s by the length 'n' to a string slice.
+// Each string 's' in the result slice satisfying len(s) < n.
+func SplitLength(s string, n int) []string {
+	if len(s) <= n || n < 1 {
+		return []string{s}
+	}
+
+	a := make([]string, 0, len(s)/n+1)
+
+	b := 0
+	for {
+		_, z := utf8.DecodeRuneInString(s[b:])
+		if b+z <= n {
+			b += z
+			continue
+		}
+
+		x := b
+		if b == 0 {
+			x = z
+		}
+
+		a = append(a, s[:x])
+		s = s[x:]
+		if s == "" {
+			return a
+		}
+		if len(s) <= n {
+			a = append(a, s)
+			return a
+		}
+		if b != 0 {
+			b = z
+		}
+	}
+}
+
+// SplitFunc splits the string s at each rune of Unicode code points c satisfying f(c)
 // and returns an array of slices of s.
 // If s does not satisfying f(c), Split returns a
 // slice of length 1 whose only element is s.
@@ -15,6 +52,7 @@ func SplitFunc(s string, f func(rune) bool) []string {
 	}
 
 	a := make([]string, 0, 32)
+
 	b := 0
 	for i, c := range s {
 		if f(c) {
@@ -39,6 +77,7 @@ func SplitAny(s, chars string) []string {
 
 	n := CountAny(s, chars)
 	a := make([]string, 0, n)
+
 	b := 0
 	for i, c := range s {
 		if strings.ContainsRune(chars, c) {
@@ -52,20 +91,22 @@ func SplitAny(s, chars string) []string {
 }
 
 // FieldsRune split string (exclude empty string) into string slice by rune c
-func FieldsRune(s string, c rune) []string {
+func FieldsRune(s string, r rune) []string {
 	if s == "" {
 		return []string{}
 	}
 
-	n := CountRune(s, c)
+	n := CountRune(s, r)
 	a := make([]string, 0, n)
+
 	b := 0
-	for i, r := range s {
+	z := utf8.RuneLen(r)
+	for i, c := range s {
 		if r == c {
 			if i > b {
 				a = append(a, s[b:i])
 			}
-			b = i + utf8.RuneLen(c)
+			b = i + z
 		}
 	}
 
@@ -87,6 +128,7 @@ func FieldsAny(s, chars string) []string {
 
 	n := CountAny(s, chars)
 	a := make([]string, 0, n)
+
 	b := 0
 	for i, c := range s {
 		if strings.ContainsRune(chars, c) {

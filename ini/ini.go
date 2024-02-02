@@ -462,7 +462,7 @@ func isNotPrint(r rune) bool {
 }
 
 func needQuote(s string) bool {
-	ss := []byte(s)
+	ss := str.UnsafeBytes(s)
 	bs := bytes.TrimSpace(ss)
 	if len(bs) != len(ss) {
 		return true

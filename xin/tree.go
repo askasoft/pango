@@ -181,7 +181,7 @@ walk:
 
 			n.children = []*node{&child}
 			// []byte for proper unicode char conversion, see #65
-			n.indices = bye.UnsafeString([]byte{n.path[i]})
+			n.indices = n.path[i : i+1]
 			n.path = path[:i]
 			n.handlers = nil
 			n.wildChild = false
@@ -265,8 +265,10 @@ walk:
 // Search for a wildcard segment and check the name for invalid characters.
 // Returns -1 as index, if no wildcard was found.
 func findWildcard(path string) (wildcard string, i int, valid bool) {
+	pbs := str.UnsafeBytes(path)
+
 	// Find start
-	for start, c := range []byte(path) {
+	for start, c := range pbs {
 		// A wildcard starts with ':' (param) or '*' (catch-all)
 		if c != ':' && c != '*' {
 			continue
@@ -274,7 +276,7 @@ func findWildcard(path string) (wildcard string, i int, valid bool) {
 
 		// Find end and check for invalid characters
 		valid = true
-		for end, c := range []byte(path[start+1:]) {
+		for end, c := range pbs[start+1:] {
 			switch c {
 			case '/':
 				return path[start : start+1+end], start, valid
@@ -372,7 +374,7 @@ func (n *node) insertChild(path string, fullPath string, handlers HandlersChain)
 		}
 
 		n.addChild(child)
-		n.indices = string('/')
+		n.indices = "/"
 		n = child
 		n.priority++
 
@@ -426,8 +428,8 @@ walk: // Outer loop for walking the tree
 
 				// Try all the non-wildcard children first by matching the indices
 				idxc := path[0]
-				for i, c := range []byte(n.indices) {
-					if c == idxc {
+				for i := 0; i < len(n.indices); i++ {
+					if n.indices[i] == idxc {
 						//  strings.HasPrefix(n.children[len(n.children)-1].path, ":") == n.wildChild
 						if n.wildChild {
 							index := len(*skippedNodes)
@@ -610,8 +612,8 @@ walk: // Outer loop for walking the tree
 
 			// No handle found. Check if a handle for this path + a
 			// trailing slash exists for trailing slash recommendation
-			for i, c := range []byte(n.indices) {
-				if c == '/' {
+			for i := 0; i < len(n.indices); i++ {
+				if n.indices[i] == '/' {
 					n = n.children[i]
 					value.tsr = (len(n.path) == 1 && n.handlers != nil) ||
 						(n.nType == catchAll && n.children[0].handlers != nil)
@@ -710,8 +712,8 @@ walk: // Outer loop for walking the tree
 			// No handle found.
 			// Try to fix the path by adding a trailing slash
 			if fixTrailingSlash {
-				for i, c := range []byte(n.indices) {
-					if c == '/' {
+				for i := 0; i < len(n.indices); i++ {
+					if n.indices[i] == '/' {
 						n = n.children[i]
 						if (len(n.path) == 1 && n.handlers != nil) ||
 							(n.nType == catchAll && n.children[0].handlers != nil) {
@@ -734,8 +736,8 @@ walk: // Outer loop for walking the tree
 			if rb[0] != 0 {
 				// Old rune not finished
 				idxc := rb[0]
-				for i, c := range []byte(n.indices) {
-					if c == idxc {
+				for i := 0; i < len(n.indices); i++ {
+					if n.indices[i] == idxc {
 						// continue with child node
 						n = n.children[i]
 						npLen = len(n.path)
@@ -766,9 +768,9 @@ walk: // Outer loop for walking the tree
 				rb = shiftNRuneBytes(rb, off)
 
 				idxc := rb[0]
-				for i, c := range []byte(n.indices) {
+				for i := 0; i < len(n.indices); i++ {
 					// Lowercase matches
-					if c == idxc {
+					if n.indices[i] == idxc {
 						// must use a recursive approach since both the
 						// uppercase byte and the lowercase byte might exist
 						// as an index
@@ -788,9 +790,9 @@ walk: // Outer loop for walking the tree
 					rb = shiftNRuneBytes(rb, off)
 
 					idxc := rb[0]
-					for i, c := range []byte(n.indices) {
+					for i := 0; i < len(n.indices); i++ {
 						// Uppercase matches
-						if c == idxc {
+						if n.indices[i] == idxc {
 							// Continue with child node
 							n = n.children[i]
 							npLen = len(n.path)

@@ -106,12 +106,34 @@ func Delete[T any](a []T, i, j int) []T {
 // collected.
 func DeleteFunc[T any](a []T, del func(T) bool) []T {
 	i := IndexFunc(a, del)
-	if i == -1 {
+	if i < 0 {
 		return a
 	}
+
 	// Don't start copying elements until we find one to delete.
 	for j := i + 1; j < len(a); j++ {
 		if v := a[j]; !del(v) {
+			a[i] = v
+			i++
+		}
+	}
+	return a[:i]
+}
+
+// DeleteEqual removes any elements from a for which elemant == e, returning the modified slice.
+// When DeleteFunc removes m elements, it might not modify the elements
+// a[len(a)-m:len(a)]. If those elements contain pointers you might consider
+// zeroing those elements so that objects they reference can be garbage
+// collected.
+func DeleteEqual[T comparable](a []T, e T) []T {
+	i := Index(a, e)
+	if i < 0 {
+		return a
+	}
+
+	// Don't start copying elements until we find one to delete.
+	for j := i + 1; j < len(a); j++ {
+		if v := a[j]; v != e {
 			a[i] = v
 			i++
 		}

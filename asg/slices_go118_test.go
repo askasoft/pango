@@ -332,6 +332,52 @@ func TestDeleteFunc(t *testing.T) {
 	}
 }
 
+var deleteEqualTests = []struct {
+	s    []int
+	v    int
+	want []int
+}{
+	{
+		nil,
+		0,
+		nil,
+	},
+	{
+		[]int{1, 2, 3},
+		4,
+		[]int{1, 2, 3},
+	},
+	{
+		[]int{1, 2, 3},
+		3,
+		[]int{1, 2},
+	},
+	{
+		[]int{1, 2, 3},
+		2,
+		[]int{1, 3},
+	},
+	{
+		[]int{1, 2, 3},
+		1,
+		[]int{2, 3},
+	},
+	{
+		[]int{1, 1, 2, 3},
+		1,
+		[]int{2, 3},
+	},
+}
+
+func TestDeleteEqual(t *testing.T) {
+	for i, test := range deleteEqualTests {
+		copy := Clone(test.s)
+		if got := DeleteEqual(copy, test.v); !Equal(got, test.want) {
+			t.Errorf("DeleteEqual case %d: got %v, want %v", i, got, test.want)
+		}
+	}
+}
+
 func panics(f func()) (b bool) {
 	defer func() {
 		if x := recover(); x != nil {

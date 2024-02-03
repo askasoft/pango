@@ -1,42 +1,13 @@
 package xfu
 
 import (
-	"mime"
-	"mime/multipart"
 	"os"
-	"path"
 	"path/filepath"
 	"time"
 
 	"github.com/askasoft/pango/fsu"
 	"github.com/askasoft/pango/log"
 )
-
-type FileItem struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	Size int64  `json:"size"`
-	Type string `json:"type"`
-}
-
-type FileResult struct {
-	File *FileItem `json:"file"`
-}
-
-type FilesResult struct {
-	Files []*FileItem `json:"files"`
-}
-
-func NewFileItem(file *multipart.FileHeader) *FileItem {
-	ext := path.Ext(file.Filename)
-
-	fi := &FileItem{
-		Name: file.Filename,
-		Size: file.Size,
-		Type: mime.TypeByExtension(ext),
-	}
-	return fi
-}
 
 func getLogger(loggers ...log.Logger) log.Logger {
 	if len(loggers) > 0 {

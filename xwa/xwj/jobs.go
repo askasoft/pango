@@ -11,7 +11,6 @@ import (
 	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/str"
-	"github.com/askasoft/pango/xwa/xwm"
 	"gorm.io/gorm"
 )
 
@@ -65,9 +64,9 @@ func Decode(p string, v any) error {
 
 func RependingJobs(db *gorm.DB, delay time.Duration) (int, error) {
 	ut := time.Now().Add(-delay)
-	tx := db.Where("status = ? AND updated_at < ?", xwm.JobStatusRunning, ut)
+	tx := db.Where("status = ? AND updated_at < ?", JobStatusRunning, ut)
 
-	job := &xwm.Job{RID: 0, Status: xwm.JobStatusPending, Error: ""}
+	job := &Job{RID: 0, Status: JobStatusPending, Error: ""}
 	r := tx.Select("rid", "status", "error").Updates(job)
 	if r.Error != nil {
 		return 0, r.Error
@@ -76,13 +75,13 @@ func RependingJobs(db *gorm.DB, delay time.Duration) (int, error) {
 }
 
 func PendingJob(db *gorm.DB, name string, param string) (int64, error) {
-	job := &xwm.Job{Name: name, Param: param, Status: xwm.JobStatusPending}
+	job := &Job{Name: name, Param: param, Status: JobStatusPending}
 	r := db.Create(job)
 	return job.ID, r.Error
 }
 
-func GetJob(db *gorm.DB, jid int64, details ...bool) (*xwm.Job, error) {
-	job := &xwm.Job{}
+func GetJob(db *gorm.DB, jid int64, details ...bool) (*Job, error) {
+	job := &Job{}
 
 	tx := db.Model(job)
 	if len(details) <= 0 || !details[0] {
@@ -101,8 +100,8 @@ func GetJob(db *gorm.DB, jid int64, details ...bool) (*xwm.Job, error) {
 
 // GetJobLogs get job logs
 // set levels to ("I", "W", "E", "F") to filter DEBUG/TRACE logs
-func GetJobLogs(db *gorm.DB, jid int64, start, limit int, levels ...string) ([]*xwm.JobLog, error) {
-	var jls []*xwm.JobLog
+func GetJobLogs(db *gorm.DB, jid int64, start, limit int, levels ...string) ([]*JobLog, error) {
+	var jls []*JobLog
 
 	tx := db.Where("jid = ?", jid)
 	if len(levels) > 0 {
@@ -113,8 +112,8 @@ func GetJobLogs(db *gorm.DB, jid int64, start, limit int, levels ...string) ([]*
 	return jls, r.Error
 }
 
-func FindJob(db *gorm.DB, name string, details ...bool) (*xwm.Job, error) {
-	job := &xwm.Job{}
+func FindJob(db *gorm.DB, name string, details ...bool) (*Job, error) {
+	job := &Job{}
 
 	tx := db.Model(job).Where("name = ?", name).Order("id desc")
 	if len(details) <= 0 || !details[0] {
@@ -138,8 +137,8 @@ func FindAndAbortJob(db *gorm.DB, name, reason string) error {
 }
 
 func AbortJob(db *gorm.DB, jid int64, reason string) error {
-	job := &xwm.Job{Status: xwm.JobStatusAborted, Error: reason}
-	tx := db.Where("id = ? AND status IN ?", jid, []string{xwm.JobStatusPending, xwm.JobStatusRunning})
+	job := &Job{Status: JobStatusAborted, Error: reason}
+	tx := db.Where("id = ? AND status IN ?", jid, []string{JobStatusPending, JobStatusRunning})
 	r := tx.Select("status", "error").Updates(job)
 	if r.Error != nil {
 		return r.Error
@@ -150,7 +149,7 @@ func AbortJob(db *gorm.DB, jid int64, reason string) error {
 	return nil
 }
 
-func StartJobs(db *gorm.DB, limit int, run func(*xwm.Job), loggers ...log.Logger) error {
+func StartJobs(db *gorm.DB, limit int, run func(*Job), loggers ...log.Logger) error {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -164,9 +163,9 @@ func StartJobs(db *gorm.DB, limit int, run func(*xwm.Job), loggers ...log.Logger
 		return nil
 	}
 
-	var jobs []*xwm.Job
+	var jobs []*Job
 
-	r := db.Where("status = ?", xwm.JobStatusPending).Order("id asc").Limit(remain).Find(&jobs)
+	r := db.Where("status = ?", JobStatusPending).Order("id asc").Limit(remain).Find(&jobs)
 	if r.Error != nil {
 		return r.Error
 	}
@@ -178,7 +177,7 @@ func StartJobs(db *gorm.DB, limit int, run func(*xwm.Job), loggers ...log.Logger
 	return nil
 }
 
-func SafeRunJob(job *xwm.Job, run func(*xwm.Job), logger log.Logger) {
+func SafeRunJob(job *Job, run func(*Job), logger log.Logger) {
 	n := atomic.AddInt32(&runnings, 1)
 
 	defer func() {
@@ -196,8 +195,8 @@ func SafeRunJob(job *xwm.Job, run func(*xwm.Job), logger log.Logger) {
 func CleanOutdatedJobs(db *gorm.DB, due time.Time, loggers ...log.Logger) error {
 	logger := getLogger(loggers...)
 
-	ss := []string{xwm.JobStatusAborted, xwm.JobStatusCompleted}
-	r := db.Where("jid IN (SELECT id FROM jobs WHERE status IN ? AND updated_at < ?)", ss, due).Delete(&xwm.JobLog{})
+	ss := []string{JobStatusAborted, JobStatusCompleted}
+	r := db.Where("jid IN (SELECT id FROM jobs WHERE status IN ? AND updated_at < ?)", ss, due).Delete(&JobLog{})
 	if r.Error != nil {
 		logger.Errorf("Failed to delete outdated job logs: %v", r.Error)
 		return r.Error
@@ -206,7 +205,7 @@ func CleanOutdatedJobs(db *gorm.DB, due time.Time, loggers ...log.Logger) error 
 		logger.Infof("Delete outdated job logs: %d", r.RowsAffected)
 	}
 
-	r = db.Where("status IN ? AND updated_at < ?", ss, due).Delete(&xwm.Job{})
+	r = db.Where("status IN ? AND updated_at < ?", ss, due).Delete(&Job{})
 	if r.Error != nil {
 		logger.Errorf("Failed to delete outdated jobs: %v", r.Error)
 		return r.Error

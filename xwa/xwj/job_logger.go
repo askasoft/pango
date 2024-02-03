@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/log"
-	"github.com/askasoft/pango/xwa/xwm"
 	"gorm.io/gorm"
 )
 
@@ -63,12 +62,12 @@ func (jlw *JobLogWriter) Flush() {
 }
 
 func (jlw *JobLogWriter) flush() error {
-	var jls []*xwm.JobLog
+	var jls []*JobLog
 
 	for it := jlw.EventBuffer.Iterator(); it.Next(); {
 		le := it.Value()
 		bs := jlw.Format(le)
-		jl := &xwm.JobLog{
+		jl := &JobLog{
 			JID:     jlw.jid,
 			When:    le.When,
 			Level:   le.Level.Prefix(),

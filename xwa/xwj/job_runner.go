@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/log"
-	"github.com/askasoft/pango/xwa/xwm"
 	"gorm.io/gorm"
 )
 
@@ -16,7 +15,7 @@ type JobRunner struct {
 	jid int64
 	rid int64
 
-	job     *xwm.Job
+	job     *Job
 	takeAt  time.Time
 	pingAt  time.Time
 	timeout time.Duration
@@ -53,12 +52,12 @@ func (jr *JobRunner) expired() {
 	jr.takeAt = time.Time{}
 }
 
-func (jr *JobRunner) take() (*xwm.Job, error) {
+func (jr *JobRunner) take() (*Job, error) {
 	if jr.takeAt.Add(jr.timeout).After(time.Now()) {
 		return jr.job, nil
 	}
 
-	job := &xwm.Job{}
+	job := &Job{}
 	r := jr.db.Select("id", "rid", "name", "status").Take(job, jr.jid)
 	if r.Error != nil {
 		log.Errorf("Failed to fetch job #%d: %v", jr.jid, r.Error)
@@ -89,8 +88,8 @@ func (jr *JobRunner) DecodeParams(p string, v any) error {
 func (jr *JobRunner) Checkout() error {
 	log.Infof("Checkout job #%d", jr.jid)
 
-	job := &xwm.Job{RID: jr.rid, Status: xwm.JobStatusRunning, Error: ""}
-	r := jr.db.Select("rid", "status", "error").Where("id = ? AND status <> ?", jr.jid, xwm.JobStatusRunning).Updates(job)
+	job := &Job{RID: jr.rid, Status: JobStatusRunning, Error: ""}
+	r := jr.db.Select("rid", "status", "error").Where("id = ? AND status <> ?", jr.jid, JobStatusRunning).Updates(job)
 	if r.Error != nil {
 		log.Errorf("Failed to checkout job #%d: %v", jr.jid, r.Error)
 		return r.Error
@@ -109,7 +108,7 @@ func (jr *JobRunner) Running(result any) error {
 		return nil
 	}
 
-	if err := jr.update(xwm.JobStatusRunning, result); err != nil {
+	if err := jr.update(JobStatusRunning, result); err != nil {
 		return err
 	}
 
@@ -122,7 +121,7 @@ func (jr *JobRunner) Abort(reason string) error {
 
 	jr.expired()
 
-	job := &xwm.Job{Status: xwm.JobStatusAborted, Error: reason}
+	job := &Job{Status: JobStatusAborted, Error: reason}
 	r := jr.db.Where("id = ?", jr.jid).Select("status", "error").Updates(job)
 	if r.Error != nil {
 		log.Errorf("Failed to abort job #%d: %v", jr.jid, r.Error)
@@ -140,7 +139,7 @@ func (jr *JobRunner) Abort(reason string) error {
 func (jr *JobRunner) Complete(result any) error {
 	log.Infof("Complete job #%d: %v", jr.jid, result)
 
-	err := jr.update(xwm.JobStatusCompleted, result)
+	err := jr.update(JobStatusCompleted, result)
 
 	jr.Log.Flush()
 	return err
@@ -149,7 +148,7 @@ func (jr *JobRunner) Complete(result any) error {
 func (jr *JobRunner) update(status string, result any) error {
 	jr.expired()
 
-	job := &xwm.Job{Status: status, Result: Encode(result)}
+	job := &Job{Status: status, Result: Encode(result)}
 	r := jr.db.Where("id = ? AND rid = ?", jr.jid, jr.rid).Select("status", "result").Updates(job)
 	if r.Error != nil {
 		log.Errorf("Failed to update job #%d (%s): %v", jr.jid, status, r.Error)

@@ -1,4 +1,4 @@
-package xwm
+package xwj
 
 import (
 	"encoding/json"
@@ -6,7 +6,7 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
-func ToString(o any) string {
+func toString(o any) string {
 	bs, err := json.MarshalIndent(o, "", "  ")
 	if err != nil {
 		return err.Error()
@@ -14,7 +14,7 @@ func ToString(o any) string {
 	return string(bs)
 }
 
-func ToMap(o string) (m map[string]any) {
+func toMap(o string) (m map[string]any) {
 	if o != "" {
 		_ = json.Unmarshal(str.UnsafeBytes(o), &m)
 	}

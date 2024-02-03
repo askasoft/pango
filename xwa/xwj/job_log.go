@@ -1,4 +1,4 @@
-package xwm
+package xwj
 
 import (
 	"time"
@@ -13,5 +13,5 @@ type JobLog struct {
 }
 
 func (jl *JobLog) String() string {
-	return ToString(jl)
+	return toString(jl)
 }

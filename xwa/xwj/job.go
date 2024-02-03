@@ -1,4 +1,4 @@
-package xwm
+package xwj
 
 import (
 	"time"
@@ -40,13 +40,13 @@ func (j *Job) IsRunning() bool {
 }
 
 func (j *Job) String() string {
-	return ToString(j)
+	return toString(j)
 }
 
 func (j *Job) Params() (m map[string]any) {
-	return ToMap(j.Param)
+	return toMap(j.Param)
 }
 
 func (j *Job) Results() (m map[string]any) {
-	return ToMap(j.Result)
+	return toMap(j.Result)
 }

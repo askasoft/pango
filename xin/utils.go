@@ -2,11 +2,8 @@ package xin
 
 import (
 	"encoding/xml"
-	"io"
 	"io/fs"
-	"mime/multipart"
 	"net/http"
-	"os"
 	"path"
 	"reflect"
 	"runtime"
@@ -72,29 +69,6 @@ func (h H) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	}
 
 	return e.EncodeToken(xml.EndElement{Name: start.Name})
-}
-
-// SaveUploadedFile uploads the form file to specific dst.
-func SaveUploadedFile(file *multipart.FileHeader, dst string) error {
-	dir := path.Dir(dst)
-	if err := os.MkdirAll(dir, os.FileMode(0770)); err != nil {
-		return err
-	}
-
-	src, err := file.Open()
-	if err != nil {
-		return err
-	}
-	defer src.Close()
-
-	out, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	_, err = io.Copy(out, src)
-	return err
 }
 
 // Dir returns a http.FileSystem that can be used by http.FileServer().

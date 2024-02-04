@@ -641,7 +641,7 @@ func (c *Context) MultipartForm() (*multipart.Form, error) {
 
 // SaveUploadedFile uploads the form file to specific dst.
 func (c *Context) SaveUploadedFile(file *multipart.FileHeader, dst string) error {
-	return SaveUploadedFile(file, dst)
+	return httpx.SaveMultipartFile(file, dst)
 }
 
 // MustBind checks the Content-Type to select a binding engine automatically,

@@ -2,15 +2,15 @@ package fsu
 
 import (
 	"errors"
+	"math/rand"
 	"path"
-	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 )
 
-const testdir = "_testdir"
-
 func TestFileExists(t *testing.T) {
+	testdir := "TestFileExists-" + strconv.Itoa(rand.Int())
 	defer RemoveAll(testdir)
 	MkdirAll(testdir, FileMode(0777))
 	WriteFile(path.Join(testdir, "test.txt"), []byte("a"), FileMode(0666))
@@ -19,20 +19,22 @@ func TestFileExists(t *testing.T) {
 		f string
 		e error
 	}{
-		{"_testdir/test.txt", nil},
-		{"_testdir/notexist.txt", ErrNotExist},
-		{"_testdir", ErrIsDir},
+		{"/test.txt", nil},
+		{"/notexist.txt", ErrNotExist},
+		{"", ErrIsDir},
 	}
 
 	for i, c := range cs {
-		err := FileExists(c.f)
+		f := testdir + c.f
+		err := FileExists(f)
 		if !errors.Is(err, c.e) {
-			t.Errorf("[%d] %s - %v, want %v", i, c.f, err, c.e)
+			t.Errorf("#%d FileExists(%q) = %v, want %v", i, c.f, err, c.e)
 		}
 	}
 }
 
 func TestFileSize(t *testing.T) {
+	testdir := "TestFileSize-" + strconv.Itoa(rand.Int())
 	defer RemoveAll(testdir)
 	MkdirAll(testdir, FileMode(0777))
 	WriteFile(path.Join(testdir, "test.txt"), []byte("a"), FileMode(0666))
@@ -42,20 +44,22 @@ func TestFileSize(t *testing.T) {
 		z int64
 		e error
 	}{
-		{"_testdir/test.txt", 1, nil},
-		{"_testdir/notexist.txt", 0, ErrNotExist},
-		{"_testdir", 0, ErrIsDir},
+		{"/test.txt", 1, nil},
+		{"/notexist.txt", 0, ErrNotExist},
+		{"", 0, ErrIsDir},
 	}
 
 	for i, c := range cs {
-		err := FileExists(c.f)
+		f := testdir + c.f
+		err := FileExists(f)
 		if !errors.Is(err, c.e) {
-			t.Errorf("[%d] %s - %v, want %v", i, c.f, err, c.e)
+			t.Errorf("#%d FileSize(%q) = %v, want %v", i, c.f, err, c.e)
 		}
 	}
 }
 
 func TestDirExists(t *testing.T) {
+	testdir := "TestDirExists-" + strconv.Itoa(rand.Int())
 	defer RemoveAll(testdir)
 	MkdirAll(testdir, FileMode(0777))
 	WriteFile(path.Join(testdir, "test.txt"), []byte("a"), FileMode(0666))
@@ -64,72 +68,90 @@ func TestDirExists(t *testing.T) {
 		f string
 		e error
 	}{
-		{"_testdir/test.txt", ErrNotDir},
-		{"_testdir/notexist", ErrNotExist},
-		{"_testdir", nil},
+		{"/test.txt", ErrNotDir},
+		{"/notexist", ErrNotExist},
+		{"", nil},
 	}
 
 	for i, c := range cs {
-		err := DirExists(c.f)
+		f := testdir + c.f
+		err := DirExists(f)
 		if !errors.Is(err, c.e) {
-			t.Errorf("[%d] %s - %v, want %v", i, c.f, err, c.e)
+			t.Errorf("#%d DirExists(%q) = %v, want %v", i, c.f, err, c.e)
 		}
 	}
 }
 
 func TestDirIsEmpty(t *testing.T) {
+	testdir := "TestDirIsEmpty-" + strconv.Itoa(rand.Int())
 	defer RemoveAll(testdir)
 	MkdirAll(testdir, FileMode(0777))
-	MkdirAll(path.Join(testdir, "empty"), FileMode(0777))
 	WriteFile(path.Join(testdir, "test.txt"), []byte("a"), FileMode(0666))
+	MkdirAll(path.Join(testdir, "empty"), FileMode(0777))
+	MkdirAll(path.Join(testdir, "hasdir", "empty"), FileMode(0777))
+	MkdirAll(path.Join(testdir, "hasfile"), FileMode(0777))
+	WriteFile(path.Join(testdir, "hasfile", "test.txt"), []byte("a"), FileMode(0666))
 
 	cs := []struct {
 		f string
 		e error
 	}{
-		{"_testdir/test.txt", ErrNotDir},
-		{"_testdir/notexist", ErrNotExist},
-		{"_testdir/empty", nil},
+		{"/test.txt", ErrNotDir},
+		{"/notexist", ErrNotExist},
+		{"/hasdir", ErrNotEmpty},
+		{"/hasfile", ErrNotEmpty},
+		{"/empty", nil},
 	}
 
 	for i, c := range cs {
-		err := DirIsEmpty(c.f)
+		f := testdir + c.f
+		err := DirIsEmpty(f)
 		if !errors.Is(err, c.e) {
-			t.Errorf("[%d] %s - %v, want %v", i, c.f, err, c.e)
+			t.Errorf("#%d DirIsEmpty(%q) = %v, want %v", i, c.f, err, c.e)
 		}
 	}
 }
 
 func TestCopyFile(t *testing.T) {
-	defer RemoveAll(testdir)
-	MkdirAll(testdir, FileMode(0777))
+	srcdir := "TestCopyFile-" + strconv.Itoa(rand.Int())
+	dstdir := "TestCopyFile-" + strconv.Itoa(rand.Int())
+	defer RemoveAll(srcdir)
+	defer RemoveAll(dstdir)
 
 	cs := []struct {
-		s string
-		d string
+		s, d string
 	}{
-		{"1.txt", "_testdir/1.txt"},
+		{"1.txt", "1.txt"},
 	}
 
 	for i, c := range cs {
-		defer Remove(c.s)
-		defer Remove(c.d)
+		sf := path.Join(srcdir, c.s)
+		df := path.Join(dstdir, c.d)
 
-		sbs := []byte(strings.Repeat("a", (i+1)*10))
-		err := WriteFile(c.s, sbs, FileMode(0600))
+		MkdirAll(srcdir, FileMode(0777))
+
+		ss := strings.Repeat("a", (i+1)*10)
+		err := WriteString(sf, ss, FileMode(0666))
 		if err != nil {
 			t.Fatalf("#%d: %v", i, err)
 		}
-		err = CopyFile(c.s, c.d)
+
+		err = Chmod(sf, 0400)
 		if err != nil {
 			t.Fatalf("#%d: %v", i, err)
 		}
-		dbs, err := ReadFile(c.d)
+
+		err = CopyFile(sf, df)
 		if err != nil {
 			t.Fatalf("#%d: %v", i, err)
 		}
-		if !reflect.DeepEqual(sbs, dbs) {
-			t.Fatalf("#%d: \n GOT: %v\nWANT: %v\n", i, dbs, sbs)
+
+		ds, err := ReadString(df)
+		if err != nil {
+			t.Fatalf("#%d: %v", i, err)
+		}
+		if ss != ds {
+			t.Fatalf("#%d: \n GOT: %v\nWANT: %v\n", i, ds, ss)
 		}
 	}
 }

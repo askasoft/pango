@@ -33,8 +33,9 @@ var (
 	ErrExist      = fs.ErrExist      // "file already exists"
 	ErrNotExist   = fs.ErrNotExist   // "file does not exist"
 	ErrClosed     = fs.ErrClosed     // "file already closed"
-	ErrIsDir      = errors.New("file is directory")
 	ErrNotDir     = syscall.ENOTDIR
+	ErrIsDir      = errors.New("file is directory")
+	ErrNotEmpty   = errors.New("directory not empty")
 )
 
 // CopyFile copy src file to des file
@@ -45,11 +46,11 @@ func CopyFile(src string, dst string) error {
 	}
 
 	if !ss.Mode().IsRegular() {
-		return fmt.Errorf("%s is not a regular file", src)
+		return fmt.Errorf("'%s' is not a regular file", src)
 	}
 
 	dd := filepath.Dir(dst)
-	err = os.MkdirAll(dd, ss.Mode().Perm())
+	err = MkdirAll(dd, FileMode(0770))
 	if err != nil {
 		return err
 	}
@@ -60,7 +61,7 @@ func CopyFile(src string, dst string) error {
 	}
 	defer sf.Close()
 
-	df, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE, ss.Mode().Perm())
+	df, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE, FileMode(0660))
 	if err != nil {
 		return err
 	}
@@ -86,7 +87,10 @@ func DirIsEmpty(dir string) error {
 	if errors.Is(err, io.EOF) {
 		return nil
 	}
-	return err // Either not empty or error, suits both cases
+	if err != nil {
+		return err
+	}
+	return ErrNotEmpty
 }
 
 // DirExists check if the directory dir exists

@@ -17,7 +17,7 @@ type RingBuffer struct {
 }
 
 // NewRingBuffer constructs and returns a new RingBuffer.
-// Example: NewRingBuffer(1, 2, 3)
+// Example: col.NewRingBuffer(1, 2, 3)
 func NewRingBuffer(vs ...T) *RingBuffer {
 	size := doubleup(minArrayCap, len(vs))
 	rb := &RingBuffer{

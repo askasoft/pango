@@ -7,7 +7,7 @@ import (
 )
 
 // NewTreeSet creates a new TreeSet.
-// Example: NewTreeSet(CompareString, "v1", "v2")
+// Example: col.NewTreeSet(col.CompareString, "v1", "v2")
 func NewTreeSet(compare Compare, vs ...T) *TreeSet {
 	ts := &TreeSet{compare: compare}
 	ts.Adds(vs...)

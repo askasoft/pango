@@ -12,7 +12,7 @@ import (
 )
 
 // NewLinkedList returns an initialized list.
-// Example: NewLinkedList(1, 2, 3)
+// Example: cog.NewLinkedList(1, 2, 3)
 func NewLinkedList[T any](vs ...T) *LinkedList[T] {
 	ll := &LinkedList[T]{}
 	ll.Adds(vs...)

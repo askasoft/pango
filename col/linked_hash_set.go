@@ -9,7 +9,7 @@ import (
 )
 
 // NewLinkedHashSet returns an initialized set.
-// Example: NewLinkedHashSet(1, 2, 3)
+// Example: col.NewLinkedHashSet(1, 2, 3)
 func NewLinkedHashSet(vs ...T) *LinkedHashSet {
 	ls := &LinkedHashSet{}
 	ls.Adds(vs...)

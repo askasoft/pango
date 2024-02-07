@@ -11,7 +11,7 @@ import (
 )
 
 // NewTreeMap creates a new TreeMap.
-// Example: NewTreeMap(CompareString, []P{{"k1", "v1"}, {"k2", "v2"}}...)
+// Example: cog.NewTreeMap(cog.CompareString, cog.KV("k1", "v1"), cog.KV("k2", "v2"))
 func NewTreeMap[K any, V any](compare Compare[K], kvs ...P[K, V]) *TreeMap[K, V] {
 	tm := &TreeMap[K, V]{compare: compare}
 	tm.SetEntries(kvs...)

@@ -136,6 +136,11 @@ func (p *P[K, V]) String() string {
 	return fmt.Sprintf("%v = %v", p.Key, p.Value)
 }
 
+// KV create key/value pair
+func KV[K any, V any](k K, v V) P[K, V] {
+	return P[K, V]{Key: k, Value: v}
+}
+
 // Map map interface
 type Map[K any, V any] interface {
 	Container

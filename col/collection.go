@@ -142,6 +142,11 @@ func (p *P) String() string {
 	return fmt.Sprintf("%v = %v", p.Key, p.Value)
 }
 
+// KV create key/value pair
+func KV(k K, v V) P {
+	return P{Key: k, Value: v}
+}
+
 // Map map interface
 type Map interface {
 	Container

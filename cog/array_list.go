@@ -12,7 +12,7 @@ import (
 )
 
 // NewArrayList returns an initialized list.
-// Example: NewArrayList(1, 2, 3)
+// Example: cog.NewArrayList(1, 2, 3)
 func NewArrayList[T any](vs ...T) *ArrayList[T] {
 	al := &ArrayList[T]{data: vs}
 	return al

@@ -8,7 +8,7 @@ import (
 )
 
 // NewTreeMap creates a new TreeMap.
-// Example: NewTreeMap(CompareString, []P{{"k1", "v1"}, {"k2", "v2"}}...)
+// Example: col.NewTreeMap(col.CompareString, col.KV("k1", "v1"), col.KV("k2", "v2"))
 func NewTreeMap(compare Compare, kvs ...P) *TreeMap {
 	tm := &TreeMap{compare: compare}
 	tm.SetEntries(kvs...)

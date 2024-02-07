@@ -9,7 +9,7 @@ import (
 )
 
 // NewLinkedList returns an initialized list.
-// Example: NewLinkedList(1, 2, 3)
+// Example: col.NewLinkedList(1, 2, 3)
 func NewLinkedList(vs ...T) *LinkedList {
 	ll := &LinkedList{}
 	ll.Adds(vs...)

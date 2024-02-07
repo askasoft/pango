@@ -13,7 +13,7 @@ import (
 )
 
 // NewLinkedHashSet returns an initialized set.
-// Example: NewLinkedHashSet(1, 2, 3)
+// Example: cog.NewLinkedHashSet(1, 2, 3)
 func NewLinkedHashSet[T comparable](vs ...T) *LinkedHashSet[T] {
 	ls := &LinkedHashSet[T]{}
 	ls.Adds(vs...)

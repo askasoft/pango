@@ -9,7 +9,7 @@ import (
 )
 
 // NewArrayList returns an initialized list.
-// Example: NewArrayList(1, 2, 3)
+// Example: col.NewArrayList(1, 2, 3)
 func NewArrayList(vs ...T) *ArrayList {
 	al := &ArrayList{data: vs}
 	return al

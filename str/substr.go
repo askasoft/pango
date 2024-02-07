@@ -1,6 +1,9 @@
 package str
 
-import "unicode/utf8"
+import (
+	"fmt"
+	"unicode/utf8"
+)
 
 // BOM "\uFEFF"
 const BOM = "\uFEFF"
@@ -439,4 +442,104 @@ func LastCutRune(s string, sep rune) (before, after string, found bool) {
 		return s[:i], s[i+RuneLen(sep):], true
 	}
 	return s, "", false
+}
+
+// CutCount slices s around the rune count position p,
+// returning the text before and start position p.
+// panic if p < 0 or p > RuneCount(s).
+func CutCount(s string, p int) (before, after string) {
+	if p < 0 {
+		panic(fmt.Sprintf("invalid argument: position %d must not be negative", p))
+	}
+	if p == 0 {
+		return "", s
+	}
+
+	if len(s) < p {
+		panic(fmt.Sprintf("invalid argument: position %d out of bounds [0:%d]", p, len(s)))
+	}
+
+	z := RuneCount(s)
+	if z < p {
+		panic(fmt.Sprintf("invalid argument: position %d out of bounds (0:%d)", p, z))
+	}
+
+	i, c, a := 0, 0, s
+	for a != "" {
+		_, z = utf8.DecodeRuneInString(a)
+		i += z
+		c++
+		if c >= p {
+			break
+		}
+		a = a[z:]
+	}
+
+	return s[:i], s[i:]
+}
+
+// LeftCount return the leftmost n rune string.
+func LeftCount(s string, n int) string {
+	if n <= 0 {
+		return ""
+	}
+
+	if len(s) <= n {
+		return s
+	}
+
+	z := RuneCount(s)
+	if z <= n {
+		return s
+	}
+
+	i, c, a := 0, 0, s
+	for a != "" {
+		_, z = utf8.DecodeRuneInString(a)
+		i += z
+		c++
+		if c >= n {
+			break
+		}
+		a = a[z:]
+	}
+
+	return s[:i]
+}
+
+// RightCount return the rightmost n rune string.
+func RightCount(s string, n int) string {
+	if n <= 0 {
+		return ""
+	}
+
+	if len(s) <= n {
+		return s
+	}
+
+	z := RuneCount(s)
+	if z <= n {
+		return s
+	}
+
+	i, c, a := len(s), 0, s
+	for a != "" {
+		_, z = utf8.DecodeLastRuneInString(a)
+		i -= z
+		c++
+		if c >= n {
+			break
+		}
+		a = s[:i]
+	}
+
+	return s[i:]
+}
+
+// MidCount slices s around the rune count position p,
+// returning the max n rune string start from the position p.
+// panic if p < 0 or p > RuneCount(s).
+func MidCount(s string, p, n int) string {
+	_, a := CutCount(s, p)
+	return LeftCount(a, n)
 }

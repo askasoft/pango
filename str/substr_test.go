@@ -555,3 +555,113 @@ func TestLastCutRune(t *testing.T) {
 		}
 	}
 }
+
+func TestCutCount(t *testing.T) {
+	cutTests := []struct {
+		s             string
+		n             int
+		before, after string
+	}{
+		{"abc", 0, "", "abc"},
+		{"abc", 1, "a", "bc"},
+		{"abc", 2, "ab", "c"},
+		{"abc", 3, "abc", ""},
+		{"１２３４５", 0, "", "１２３４５"},
+		{"１２３４５", 1, "１", "２３４５"},
+		{"１２３４５", 2, "１２", "３４５"},
+		{"１２３４５", 3, "１２３", "４５"},
+		{"１２３４５", 4, "１２３４", "５"},
+		{"１２３４５", 5, "１２３４５", ""},
+	}
+
+	for _, tt := range cutTests {
+		if before, after := CutCount(tt.s, tt.n); before != tt.before || after != tt.after {
+			t.Errorf("CutCount(%q, %d) = %q, %q, want %q, %q", tt.s, tt.n, before, after, tt.before, tt.after)
+		}
+	}
+}
+
+func TestLeftCount(t *testing.T) {
+	cs := []struct {
+		s string
+		n int
+		w string
+	}{
+		{"abc", -1, ""},
+		{"abc", 0, ""},
+		{"abc", 1, "a"},
+		{"abc", 2, "ab"},
+		{"abc", 3, "abc"},
+		{"abc", 4, "abc"},
+		{"１２３４５", -1, ""},
+		{"１２３４５", 0, ""},
+		{"１２３４５", 1, "１"},
+		{"１２３４５", 2, "１２"},
+		{"１２３４５", 3, "１２３"},
+		{"１２３４５", 4, "１２３４"},
+		{"１２３４５", 5, "１２３４５"},
+		{"１２３４５", 6, "１２３４５"},
+	}
+
+	for _, tt := range cs {
+		if b := LeftCount(tt.s, tt.n); b != tt.w {
+			t.Errorf("LeftCount(%q, %d) = %q, want %q", tt.s, tt.n, b, tt.w)
+		}
+	}
+}
+
+func TestRightCount(t *testing.T) {
+	cs := []struct {
+		s string
+		n int
+		w string
+	}{
+		{"abc", -1, ""},
+		{"abc", 0, ""},
+		{"abc", 1, "c"},
+		{"abc", 2, "bc"},
+		{"abc", 3, "abc"},
+		{"abc", 4, "abc"},
+		{"１２３４５", -1, ""},
+		{"１２３４５", 0, ""},
+		{"１２３４５", 1, "５"},
+		{"１２３４５", 2, "４５"},
+		{"１２３４５", 3, "３４５"},
+		{"１２３４５", 4, "２３４５"},
+		{"１２３４５", 5, "１２３４５"},
+		{"１２３４５", 6, "１２３４５"},
+	}
+
+	for _, tt := range cs {
+		if a := RightCount(tt.s, tt.n); a != tt.w {
+			t.Errorf("RightCount(%q, %d) = %q, want %q", tt.s, tt.n, a, tt.w)
+		}
+	}
+}
+
+func TestMidCount(t *testing.T) {
+	cs := []struct {
+		s    string
+		p, n int
+		w    string
+	}{
+		{"abc", 0, 0, ""},
+		{"abc", 0, 1, "a"},
+		{"abc", 1, 1, "b"},
+		{"abc", 2, 2, "c"},
+		{"abc", 3, 1, ""},
+		{"１２３４５", 0, 0, ""},
+		{"１２３４５", 0, 1, "１"},
+		{"１２３４５", 1, 1, "２"},
+		{"１２３４５", 2, 2, "３４"},
+		{"１２３４５", 3, 3, "４５"},
+		{"１２３４５", 4, 4, "５"},
+		{"１２３４５", 5, 1, ""},
+	}
+
+	for _, tt := range cs {
+		if b := MidCount(tt.s, tt.p, tt.n); b != tt.w {
+			t.Errorf("MidCount(%q, %d, %d) = %q, want %q", tt.s, tt.p, tt.n, b, tt.w)
+		}
+	}
+}

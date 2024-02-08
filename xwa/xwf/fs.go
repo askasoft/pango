@@ -10,16 +10,18 @@ import (
 
 // hfs implements http.FileSystem interface
 type hfs struct {
-	db *gorm.DB
+	db func() *gorm.DB
 }
 
-func FS(db *gorm.DB) http.FileSystem {
+func FS(db func() *gorm.DB) http.FileSystem {
 	return &hfs{db}
 }
 
 func (hfs *hfs) Open(name string) (http.File, error) {
+	db := hfs.db()
+
 	f := &File{ID: name}
-	r := hfs.db.Omit("data").Take(f)
+	r := db.Omit("data").Take(f)
 	if errors.Is(r.Error, gorm.ErrRecordNotFound) {
 		return nil, fs.ErrNotExist
 	}
@@ -27,6 +29,6 @@ func (hfs *hfs) Open(name string) (http.File, error) {
 		return nil, r.Error
 	}
 
-	hf := &file{f: f, db: hfs.db}
+	hf := &file{f: f, db: db}
 	return hf, nil
 }

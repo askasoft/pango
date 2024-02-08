@@ -11,35 +11,13 @@ import (
 	"github.com/askasoft/pango/net/httpx"
 )
 
-type WriterWrapper func(http.ResponseWriter) http.ResponseWriter
-
-func ServeFileHandler(filePath string, wws ...WriterWrapper) HandlerFunc {
-	if len(wws) == 0 {
-		return func(c *Context) {
-			http.ServeFile(c.Writer, c.Request, filePath)
-		}
-	}
-
+func ServeFileHandler(filePath string) HandlerFunc {
 	return func(c *Context) {
-		ww := wws[0](c.Writer)
-		http.ServeFile(ww, c.Request, filePath)
+		http.ServeFile(c.Writer, c.Request, filePath)
 	}
 }
 
-func ServeFSFileHandler(hfs http.FileSystem, filePath string, wws ...WriterWrapper) HandlerFunc {
-	if len(wws) == 0 {
-		return func(c *Context) {
-			org := c.Request.URL.Path
-
-			defer func(url string) {
-				c.Request.URL.Path = url
-			}(org)
-
-			c.Request.URL.Path = filePath
-			http.FileServer(hfs).ServeHTTP(c.Writer, c.Request)
-		}
-	}
-
+func ServeFSFileHandler(hfs http.FileSystem, filePath string) HandlerFunc {
 	return func(c *Context) {
 		org := c.Request.URL.Path
 
@@ -48,121 +26,126 @@ func ServeFSFileHandler(hfs http.FileSystem, filePath string, wws ...WriterWrapp
 		}(org)
 
 		c.Request.URL.Path = filePath
-
-		ww := wws[0](c.Writer)
-
-		http.FileServer(hfs).ServeHTTP(ww, c.Request)
+		http.FileServer(hfs).ServeHTTP(c.Writer, c.Request)
 	}
 }
 
-func ServerFSHandler(prefix string, hfs http.FileSystem, filePath string, wws ...WriterWrapper) HandlerFunc {
-	fileServer := http.FileServer(hfs)
-	if prefix == "" || prefix == "/" {
-		fileServer = httpx.AppendPrefix(filePath, fileServer)
-	} else if filePath == "" || filePath == "." {
-		fileServer = http.StripPrefix(prefix, fileServer)
-	} else {
-		fileServer = httpx.URLReplace(prefix, filePath, fileServer)
-	}
-
-	if len(wws) == 0 {
-		return func(c *Context) {
-			fileServer.ServeHTTP(c.Writer, c.Request)
-		}
-	}
-
+func ServeFSHandler(prefix string, hfs http.FileSystem, filePath string) HandlerFunc {
+	fileServer := httpx.FileServer(prefix, hfs, filePath)
 	return func(c *Context) {
-		ww := wws[0](c.Writer)
-		fileServer.ServeHTTP(ww, c.Request)
+		fileServer.ServeHTTP(c.Writer, c.Request)
 	}
 }
 
-func ServeContent(data []byte, modtime time.Time, wws ...WriterWrapper) HandlerFunc {
+func ServeFSCHandler(prefix string, hfsc func(c *Context) http.FileSystem, filePath string) HandlerFunc {
+	return func(c *Context) {
+		hfs := hfsc(c)
+		fileServer := httpx.FileServer(prefix, hfs, filePath)
+		fileServer.ServeHTTP(c.Writer, c.Request)
+	}
+}
+
+func ServeContentHandler(data []byte, modtime time.Time) HandlerFunc {
 	if modtime.IsZero() {
 		modtime = time.Now()
 	}
 
-	if len(wws) == 0 {
-		return func(c *Context) {
-			name := filepath.Base(c.Request.URL.Path)
-			http.ServeContent(c.Writer, c.Request, name, modtime, bytes.NewReader(data))
-		}
-	}
-
 	return func(c *Context) {
-		ww := wws[0](c.Writer)
 		name := filepath.Base(c.Request.URL.Path)
-		http.ServeContent(ww, c.Request, name, modtime, bytes.NewReader(data))
+		http.ServeContent(c.Writer, c.Request, name, modtime, bytes.NewReader(data))
 	}
 }
 
 // StaticFile registers a single route in order to serve a single file of the local filesystem.
-// router.StaticFile("favicon.ico", "./resources/favicon.ico", "public, max-age=31536000")
-func StaticFile(r IRoutes, relativePath, filePath string, wws ...WriterWrapper) {
+// example:
+//
+//	xin.StaticFile(r, "favicon.ico", "./resources/favicon.ico", xin.NewCacheControlSetter("public, max-age=31536000").Handler())
+func StaticFile(r IRoutes, relativePath, filePath string, handlers ...HandlerFunc) {
 	if strings.Contains(relativePath, ":") || strings.Contains(relativePath, "*") {
 		panic("URL parameters can not be used when serving a static file")
 	}
 
-	handler := ServeFileHandler(filePath, wws...)
+	handler := ServeFileHandler(filePath)
+	handlers = append(handlers, handler)
 
-	r.GET(relativePath, handler)
-	r.HEAD(relativePath, handler)
+	r.GET(relativePath, handlers...)
+	r.HEAD(relativePath, handlers...)
 }
 
 // Static serves files from the given file system root.
 // Internally a http.FileServer is used, therefore http.NotFound is used instead
 // of the Router's NotFound handler.
-// To use the operating system's file system implementation,
-// use :
+// example:
 //
-//	router.Static("/static", "/var/www")
-func Static(r IRoutes, relativePath, root string, wws ...WriterWrapper) {
-	StaticFS(r, relativePath, httpx.Dir(root), "", wws...)
+//	xin.Static(r, "/static", "/var/www", xin.NewCacheControlSetter("public, max-age=31536000").Handler())
+func Static(r IRoutes, relativePath, root string, handlers ...HandlerFunc) {
+	StaticFS(r, relativePath, httpx.Dir(root), "", handlers...)
 }
 
 // StaticFS works just like `Static()` but a custom `http.FileSystem` can be used instead.
-func StaticFS(r IRoutes, relativePath string, hfs http.FileSystem, filePath string, wws ...WriterWrapper) {
+func StaticFS(r IRoutes, relativePath string, hfs http.FileSystem, filePath string, handlers ...HandlerFunc) {
 	if strings.Contains(relativePath, ":") || strings.Contains(relativePath, "*") {
 		panic("URL parameters can not be used when serving a static folder")
 	}
 
 	prefix := path.Join(r.BasePath(), relativePath)
 
-	handler := ServerFSHandler(prefix, hfs, filePath, wws...)
-
-	urlPattern := path.Join(relativePath, "/*path")
+	handler := ServeFSHandler(prefix, hfs, filePath)
+	handlers = append(handlers, handler)
 
 	// Register GET and HEAD handlers
-	r.GET(urlPattern, handler)
-	r.HEAD(urlPattern, handler)
+	urlPattern := path.Join(relativePath, "/*path")
+	r.GET(urlPattern, handlers...)
+	r.HEAD(urlPattern, handlers...)
+}
+
+// StaticFSC works just like `StaticFS()` but a dynamic `http.FileSystem` can be used instead.
+func StaticFSC(r IRoutes, relativePath string, hfsc func(c *Context) http.FileSystem, filePath string, handlers ...HandlerFunc) {
+	if strings.Contains(relativePath, ":") || strings.Contains(relativePath, "*") {
+		panic("URL parameters can not be used when serving a static folder")
+	}
+
+	prefix := path.Join(r.BasePath(), relativePath)
+
+	handler := ServeFSCHandler(prefix, hfsc, filePath)
+	handlers = append(handlers, handler)
+
+	// Register GET and HEAD handlers
+	urlPattern := path.Join(relativePath, "/*path")
+	r.GET(urlPattern, handlers...)
+	r.HEAD(urlPattern, handlers...)
 }
 
 // StaticFSFile registers a single route in order to serve a single file of the filesystem.
-// router.StaticFSFile("favicon.ico", "./resources/favicon.ico", hfs, "public, max-age=31536000")
-func StaticFSFile(r IRoutes, relativePath string, hfs http.FileSystem, filePath string, wws ...WriterWrapper) {
+// xin.StaticFSFile(r, "favicon.ico", hfs, "./resources/favicon.ico", xin.NewCacheControlSetter("public, max-age=31536000").Handler())
+func StaticFSFile(r IRoutes, relativePath string, hfs http.FileSystem, filePath string, handlers ...HandlerFunc) {
 	if strings.Contains(relativePath, ":") || strings.Contains(relativePath, "*") {
 		panic("URL parameters can not be used when serving a static file")
 	}
 
-	handler := ServeFSFileHandler(hfs, filePath, wws...)
+	handler := ServeFSFileHandler(hfs, filePath)
+	handlers = append(handlers, handler)
 
-	r.GET(relativePath, handler)
-	r.HEAD(relativePath, handler)
+	r.GET(relativePath, handlers...)
+	r.HEAD(relativePath, handlers...)
 }
 
 // StaticContent registers a single route in order to serve a single file of the data.
-// //go:embed favicon.ico
-// var favicon []byte
-// router.StaticContent("favicon.ico", favicon, time.Now(), "public, max-age=31536000")
-func StaticContent(r IRoutes, relativePath string, data []byte, modtime time.Time, wws ...WriterWrapper) {
+// example:
+//
+//	//go:embed favicon.ico
+//	var favicon []byte
+//	xin.StaticContent(r, "favicon.ico", favicon, time.Now(), xin.NewCacheControlSetter("public, max-age=31536000").Handler())
+func StaticContent(r IRoutes, relativePath string, data []byte, modtime time.Time, handlers ...HandlerFunc) {
 	if strings.Contains(relativePath, ":") || strings.Contains(relativePath, "*") {
 		panic("URL parameters can not be used when serving a static content")
 	}
 
-	handler := ServeContent(data, modtime, wws...)
+	handler := ServeContentHandler(data, modtime)
+	handlers = append(handlers, handler)
 
-	r.GET(relativePath, handler)
-	r.HEAD(relativePath, handler)
+	r.GET(relativePath, handlers...)
+	r.HEAD(relativePath, handlers...)
 }
 
 // -----------------------------------------------
@@ -182,13 +165,17 @@ func (ccs *CacheControlSetter) SetCacheControl(cacheControls ...string) {
 	ccs.CacheControl = strings.Join(cacheControls, ", ")
 }
 
-func (ccs *CacheControlSetter) WrapWriter(hrw http.ResponseWriter) http.ResponseWriter {
+func (ccs *CacheControlSetter) WrapWriter(w ResponseWriter) ResponseWriter {
 	if ccs.CacheControl == "" {
-		return hrw
+		return w
 	}
-	return httpx.NewHeaderWriter(hrw, "Cache-Control", ccs.CacheControl)
+	return NewHeaderWriter(w, "Cache-Control", ccs.CacheControl)
 }
 
-func (ccs *CacheControlSetter) WriterWrapper() WriterWrapper {
-	return ccs.WrapWriter
+func (ccs *CacheControlSetter) Handle(c *Context) {
+	c.Writer = ccs.WrapWriter(c.Writer)
+}
+
+func (ccs *CacheControlSetter) Handler() HandlerFunc {
+	return ccs.Handle
 }

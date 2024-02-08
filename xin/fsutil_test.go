@@ -186,27 +186,27 @@ func testGetFile(t *testing.T, r *Engine, path string, cache string) {
 
 func TestRouterStatic(t *testing.T) {
 	r := Default()
-	Static(r, "/", "testdata", NewCacheControlSetter("private").WrapWriter)
+	Static(r, "/", "testdata", NewCacheControlSetter("private").Handler())
 	testGetFile(t, r, "/root1.txt", "private")
 	testGetFile(t, r, "/files/file1.txt", "private")
 }
 
 func TestRouterStaticFile(t *testing.T) {
 	r := Default()
-	StaticFile(r, "/root1.txt", "testdata/root1.txt", NewCacheControlSetter("public").WrapWriter)
+	StaticFile(r, "/root1.txt", "testdata/root1.txt", NewCacheControlSetter("public").Handler())
 	testGetFile(t, r, "/root1.txt", "public")
 }
 
 func TestRouterStaticFS_AppendPrefix(t *testing.T) {
 	r := Default()
-	StaticFS(r, "", FS(testdata), "/testdata", NewCacheControlSetter("private").WrapWriter)
+	StaticFS(r, "", FS(testdata), "/testdata", NewCacheControlSetter("private").Handler())
 	testGetFile(t, r, "/root1.txt", "private")
 	testGetFile(t, r, "/files/file1.txt", "private")
 }
 
 func TestRouterStaticFS_AppendPrefix2(t *testing.T) {
 	r := Default()
-	StaticFS(r, "/", FS(testdata), "/testdata", NewCacheControlSetter("private").WrapWriter)
+	StaticFS(r, "/", FS(testdata), "/testdata", NewCacheControlSetter("private").Handler())
 	testGetFile(t, r, "/root1.txt", "private")
 	testGetFile(t, r, "/files/file1.txt", "private")
 }
@@ -215,14 +215,14 @@ func TestRouterStaticFS_StripPrefix(t *testing.T) {
 	r := Default()
 	g := r.Group("/web")
 
-	StaticFS(g, "/", FS(testdata), "", NewCacheControlSetter("private").WrapWriter)
+	StaticFS(g, "/", FS(testdata), "", NewCacheControlSetter("private").Handler())
 	testGetFile(t, r, "/web/testdata/root1.txt", "private")
 	testGetFile(t, r, "/web/testdata/files/file1.txt", "private")
 }
 
 func TestRouterStaticFS_URLReplace(t *testing.T) {
 	r := New()
-	StaticFS(r, "/data", FS(testdata), "/testdata", NewCacheControlSetter("private").WrapWriter)
+	StaticFS(r, "/data", FS(testdata), "/testdata", NewCacheControlSetter("private").Handler())
 	testGetFile(t, r, "/data/root1.txt", "private")
 	testGetFile(t, r, "/data/files/file1.txt", "private")
 }
@@ -230,19 +230,19 @@ func TestRouterStaticFS_URLReplace(t *testing.T) {
 func TestRouterStaticFS_URLReplace2(t *testing.T) {
 	r := Default()
 	g := r.Group("web")
-	StaticFS(g, "/", FS(testdata), "/testdata", NewCacheControlSetter("private").WrapWriter)
+	StaticFS(g, "/", FS(testdata), "/testdata", NewCacheControlSetter("private").Handler())
 	testGetFile(t, r, "/web/root1.txt", "private")
 	testGetFile(t, r, "/web/files/file1.txt", "private")
 }
 
 func TestRouterStaticFSFile(t *testing.T) {
 	r := Default()
-	StaticFSFile(r, "/root1.txt", FS(testdata), "testdata/root1.txt", NewCacheControlSetter("public").WrapWriter)
+	StaticFSFile(r, "/root1.txt", FS(testdata), "testdata/root1.txt", NewCacheControlSetter("public").Handler())
 	testGetFile(t, r, "/root1.txt", "public")
 }
 
 func TestRouterStaticContent(t *testing.T) {
 	r := Default()
-	StaticContent(r, "/files/file1.txt", file1, time.Now(), NewCacheControlSetter("no-store").WrapWriter)
+	StaticContent(r, "/files/file1.txt", file1, time.Now(), NewCacheControlSetter("no-store").Handler())
 	testGetFile(t, r, "/files/file1.txt", "no-store")
 }

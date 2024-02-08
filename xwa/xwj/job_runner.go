@@ -11,18 +11,16 @@ type JobRunner struct {
 	Log *log.Log
 	jlw *JobLogWriter
 
-	db  *gorm.DB
+	DB  *gorm.DB
 	jid int64
 	rid int64
 
-	job     *Job
-	takeAt  time.Time
 	pingAt  time.Time
 	timeout time.Duration
 }
 
 func NewJobRunner(db *gorm.DB, jid, rid int64, logger ...log.Logger) *JobRunner {
-	jr := &JobRunner{Log: log.NewLog(), db: db, jid: jid, rid: rid, timeout: time.Second}
+	jr := &JobRunner{Log: log.NewLog(), DB: db, jid: jid, rid: rid, timeout: time.Second}
 
 	jr.jlw = NewJobLogWriter(db, jid)
 	if len(logger) > 0 {
@@ -48,35 +46,6 @@ func (jr *JobRunner) SetTimeout(timeout time.Duration) {
 	jr.timeout = timeout
 }
 
-func (jr *JobRunner) expired() {
-	jr.takeAt = time.Time{}
-}
-
-func (jr *JobRunner) take() (*Job, error) {
-	if jr.takeAt.Add(jr.timeout).After(time.Now()) {
-		return jr.job, nil
-	}
-
-	job := &Job{}
-	r := jr.db.Select("id", "rid", "name", "status").Take(job, jr.jid)
-	if r.Error != nil {
-		log.Errorf("Failed to fetch job #%d: %v", jr.jid, r.Error)
-	} else {
-		jr.takeAt = time.Now()
-		jr.job = job
-	}
-	return jr.job, r.Error
-}
-
-func (jr *JobRunner) IsAborted() bool {
-	job, err := jr.take()
-	if err != nil || job == nil {
-		return true
-	}
-
-	return job.IsAborted()
-}
-
 func (jr *JobRunner) DecodeParams(p string, v any) error {
 	err := Decode(p, v)
 	if err != nil {
@@ -85,11 +54,15 @@ func (jr *JobRunner) DecodeParams(p string, v any) error {
 	return err
 }
 
+func (jr *JobRunner) GetJob(details ...bool) (*Job, error) {
+	return GetJob(jr.DB, jr.jid, details...)
+}
+
 func (jr *JobRunner) Checkout() error {
 	log.Infof("Checkout job #%d", jr.jid)
 
 	job := &Job{RID: jr.rid, Status: JobStatusRunning, Error: ""}
-	r := jr.db.Select("rid", "status", "error").Where("id = ? AND status <> ?", jr.jid, JobStatusRunning).Updates(job)
+	r := jr.DB.Select("rid", "status", "error").Where("id = ? AND status <> ?", jr.jid, JobStatusRunning).Updates(job)
 	if r.Error != nil {
 		log.Errorf("Failed to checkout job #%d: %v", jr.jid, r.Error)
 		return r.Error
@@ -99,8 +72,33 @@ func (jr *JobRunner) Checkout() error {
 		return ErrJobCheckout
 	}
 
-	jr.expired()
 	return nil
+}
+
+func (jr *JobRunner) Ping() error {
+	if jr.pingAt.Add(jr.timeout).After(time.Now()) {
+		return nil
+	}
+
+	tx := jr.DB.Model(&Job{})
+	r := tx.Where("id = ? AND rid = ? AND status = ?", jr.jid, jr.rid, JobStatusRunning).Update("updated_at", time.Now())
+	if r.Error != nil {
+		log.Errorf("Failed to ping job #%d: %v", jr.jid, r.Error)
+		return r.Error
+	}
+	if r.RowsAffected != 1 {
+		log.Warnf("Unable to ping job #%d: %d", jr.jid, r.RowsAffected)
+		return ErrJobPing
+	}
+
+	jr.pingAt = time.Now()
+	return nil
+}
+
+func (jr *JobRunner) PingAborted() bool {
+	err := jr.Ping()
+
+	return err != nil
 }
 
 func (jr *JobRunner) Running(result any) error {
@@ -119,10 +117,8 @@ func (jr *JobRunner) Running(result any) error {
 func (jr *JobRunner) Abort(reason string) error {
 	log.Infof("Abort job #%d: %s", jr.jid, reason)
 
-	jr.expired()
-
 	job := &Job{Status: JobStatusAborted, Error: reason}
-	r := jr.db.Where("id = ?", jr.jid).Select("status", "error").Updates(job)
+	r := jr.DB.Where("id = ?", jr.jid).Select("status", "error").Updates(job)
 	if r.Error != nil {
 		log.Errorf("Failed to abort job #%d: %v", jr.jid, r.Error)
 		return r.Error
@@ -146,16 +142,14 @@ func (jr *JobRunner) Complete(result any) error {
 }
 
 func (jr *JobRunner) update(status string, result any) error {
-	jr.expired()
-
 	job := &Job{Status: status, Result: Encode(result)}
-	r := jr.db.Where("id = ? AND rid = ?", jr.jid, jr.rid).Select("status", "result").Updates(job)
+	r := jr.DB.Where("id = ? AND rid = ?", jr.jid, jr.rid).Select("status", "result").Updates(job)
 	if r.Error != nil {
 		log.Errorf("Failed to update job #%d (%s): %v", jr.jid, status, r.Error)
 		return r.Error
 	}
 	if r.RowsAffected != 1 {
-		log.Warnf("Unable to update job #%d (%s): %v", jr.jid, status, ErrJobMissing)
+		log.Errorf("Unable to update job #%d (%s): %d, %v", jr.jid, status, r.RowsAffected, ErrJobMissing)
 		return ErrJobMissing
 	}
 

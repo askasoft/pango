@@ -85,7 +85,7 @@ func GetJob(db *gorm.DB, jid int64, details ...bool) (*Job, error) {
 
 	tx := db.Model(job)
 	if len(details) <= 0 || !details[0] {
-		tx = tx.Select("id", "rid", "name", "status")
+		tx = tx.Select("id", "rid", "name", "status", "created_at", "updated_at")
 	}
 
 	r := tx.Take(job, jid)
@@ -117,7 +117,7 @@ func FindJob(db *gorm.DB, name string, details ...bool) (*Job, error) {
 
 	tx := db.Model(job).Where("name = ?", name).Order("id desc")
 	if len(details) <= 0 || !details[0] {
-		tx = tx.Select("id", "rid", "name", "status")
+		tx = tx.Select("id", "rid", "name", "status", "created_at", "updated_at")
 	}
 
 	r := tx.First(job)

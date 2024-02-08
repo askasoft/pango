@@ -9,4 +9,5 @@ var (
 	ErrJobCompleted = errors.New("job completed")
 	ErrJobCheckout  = errors.New("job checkout failed: job running or missing")
 	ErrJobMissing   = errors.New("job missing")
+	ErrJobPing      = errors.New("job ping failed")
 )

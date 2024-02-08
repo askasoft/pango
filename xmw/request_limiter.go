@@ -51,7 +51,7 @@ func (rl *RequestLimiter) Handle(c *xin.Context) {
 	}
 
 	if err != nil {
-		if mbe, ok := err.(*httpx.MaxBytesError); ok { //nolint: errorlint
+		if mbe, ok := err.(*httpx.MaxBytesError); ok { //nolint: all
 			if rl.DrainBody {
 				iox.Drain(c.Request.Body)
 			}

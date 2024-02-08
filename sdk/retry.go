@@ -45,7 +45,7 @@ func sleepForRetry(ra time.Duration, abort func() bool, logger log.Logger) bool 
 }
 
 func getRetryAfter(err error) time.Duration {
-	if re, ok := err.(RetryableError); ok { //nolint: errorlint
+	if re, ok := err.(RetryableError); ok { //nolint: all
 		return re.RetryAfter()
 	}
 

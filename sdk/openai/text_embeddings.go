@@ -1,5 +1,7 @@
 package openai
 
+import "github.com/askasoft/pango/str"
+
 type TextEmbeddingsRequest struct {
 	// Input Input text to embed (required)
 	Input []string `json:"input,omitempty"`
@@ -13,6 +15,14 @@ type TextEmbeddingsRequest struct {
 
 func (te *TextEmbeddingsRequest) String() string {
 	return toJSONIndent(te)
+}
+
+func (te *TextEmbeddingsRequest) InputRuneCount() int {
+	cnt := 0
+	for _, s := range te.Input {
+		cnt += str.RuneCount(s)
+	}
+	return cnt
 }
 
 type EmbeddingData struct {

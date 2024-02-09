@@ -1,32 +1,31 @@
 package xwf
 
 import (
-	"mime"
 	"mime/multipart"
-	"path"
 	"path/filepath"
 	"time"
 
 	"github.com/askasoft/pango/fsu"
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/squ"
+	"github.com/askasoft/pango/str"
 	"gorm.io/gorm"
 )
 
 func SaveLocalFile(db *gorm.DB, table string, id string, filename string) (*File, error) {
-	base := filepath.Base(filename)
-	ext := path.Ext(filename)
-
 	data, err := fsu.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
 
+	name := filepath.Base(filename)
+	fext := str.ToLower(filepath.Ext(filename))
+
 	fi := &File{
 		ID:        id,
-		Name:      base,
+		Name:      name,
+		Ext:       fext,
 		Size:      int64(len(data)),
-		Type:      mime.TypeByExtension(ext),
 		Data:      data,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -37,8 +36,6 @@ func SaveLocalFile(db *gorm.DB, table string, id string, filename string) (*File
 }
 
 func SaveUploadedFile(db *gorm.DB, table string, id string, file *multipart.FileHeader) (*File, error) {
-	ext := path.Ext(file.Filename)
-
 	fr, err := file.Open()
 	if err != nil {
 		return nil, err
@@ -51,11 +48,13 @@ func SaveUploadedFile(db *gorm.DB, table string, id string, file *multipart.File
 		return nil, err
 	}
 
+	name := filepath.Base(file.Filename)
+	fext := str.ToLower(filepath.Ext(file.Filename))
 	fi := &File{
 		ID:        id,
-		Name:      file.Filename,
+		Name:      name,
+		Ext:       fext,
 		Size:      file.Size,
-		Type:      mime.TypeByExtension(ext),
 		Data:      data,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),

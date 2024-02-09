@@ -42,7 +42,7 @@ func TestRetryForError(t *testing.T) {
 	}, 2, func() bool {
 		aborted++
 		return false
-	}, log.NewLog())
+	}, time.Millisecond*250, log.NewLog())
 
 	if err.Error() != w {
 		t.Errorf("Error(): %s, want %s", err.Error(), w)

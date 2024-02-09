@@ -36,11 +36,11 @@ func testNewFreshdesk(t *testing.T) *Freshdesk {
 	logs := log.NewLog()
 	//logs.SetLevel(log.LevelDebug)
 	fd := &Freshdesk{
-		Domain:        domain,
-		Apikey:        apikey,
-		Logger:        logs.GetLogger("FDK"),
-		MaxRetryCount: 1,
-		MaxRetryAfter: time.Second * 3,
+		Domain:     domain,
+		Apikey:     apikey,
+		Logger:     logs.GetLogger("FDK"),
+		MaxRetries: 1,
+		RetryAfter: time.Second * 3,
 	}
 
 	return fd

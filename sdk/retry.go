@@ -10,35 +10,45 @@ type RetryableError interface {
 	RetryAfter() time.Duration
 }
 
-func RetryForError(api func() error, maxRetryCount int, abort func() bool, logger log.Logger) (err error) {
+// RetryForError call api(), if api() returns a RetryableError,
+// sleep until RetryableError.RetryAfter() duration, retry call api().
+// sleep 'sleep' duration, call 'abort()', if abort() returns true, returns the last error.
+func RetryForError(api func() error, retries int, abort func() bool, sleep time.Duration, logger log.Logger) (err error) {
 	for i := 1; ; i++ {
 		err = api()
-		if err == nil || i > maxRetryCount {
+		if err == nil || i > retries {
 			break
 		}
 
-		ra := getRetryAfter(err)
-		if ra <= 0 {
+		after := getRetryAfter(err)
+		if after <= 0 {
 			break
 		}
 
 		if logger != nil {
-			logger.Warnf("Sleep %s for retry [%d] %s", ra, i, err.Error())
+			logger.Warnf("Sleep %s for retry [%d] %s", after, i, err.Error())
 		}
 
-		if !sleepForRetry(ra, abort, logger) {
+		if !sleepForRetry(sleep, after, abort) {
 			break
 		}
 	}
 	return
 }
 
-func sleepForRetry(ra time.Duration, abort func() bool, logger log.Logger) bool {
-	for te := time.Now().Add(ra); te.After(time.Now()); {
+func sleepForRetry(sleep, after time.Duration, abort func() bool) bool {
+	if sleep <= 0 {
+		sleep = time.Second
+	}
+	if sleep > after {
+		sleep = after
+	}
+
+	for te := time.Now().Add(after); te.After(time.Now()); {
 		if abort != nil && abort() {
 			return false
 		}
-		time.Sleep(time.Millisecond * 250)
+		time.Sleep(sleep)
 	}
 
 	return true

@@ -25,12 +25,12 @@ func testNewAzureOpenAI(t *testing.T) *AzureOpenAI {
 	logs := log.NewLog()
 	logs.SetLevel(log.LevelDebug)
 	aoai := &AzureOpenAI{
-		Domain:        domain,
-		Apikey:        apikey,
-		Apiver:        "2023-05-15",
-		Logger:        logs.GetLogger("AZUREOPENAI"),
-		MaxRetryCount: 1,
-		MaxRetryAfter: time.Second * 3,
+		Domain:     domain,
+		Apikey:     apikey,
+		Apiver:     "2023-05-15",
+		Logger:     logs.GetLogger("AZUREOPENAI"),
+		MaxRetries: 1,
+		RetryAfter: time.Second * 3,
 	}
 
 	return aoai

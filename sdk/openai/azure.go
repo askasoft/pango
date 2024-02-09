@@ -19,9 +19,10 @@ type AzureOpenAI struct {
 	Timeout   time.Duration
 	Logger    log.Logger
 
-	MaxRetryCount int
-	MaxRetryAfter time.Duration
+	MaxRetries    int
+	RetryAfter    time.Duration
 	AbortOnRetry  func() bool
+	AbortInterval time.Duration
 }
 
 func (aoai *AzureOpenAI) endpoint(format string, a ...any) string {
@@ -42,7 +43,7 @@ func (aoai *AzureOpenAI) call(req *http.Request) (res *http.Response, err error)
 
 	res, err = client.Do(req)
 	if err != nil {
-		return res, sdk.NewNetError(err, aoai.MaxRetryAfter)
+		return res, sdk.NewNetError(err, aoai.RetryAfter)
 	}
 
 	log.TraceHttpResponse(aoai.Logger, res, rid)
@@ -74,7 +75,7 @@ func (aoai *AzureOpenAI) doCall(req *http.Request, result any) error {
 func (aoai *AzureOpenAI) doPostWithRetry(url string, source, result any) error {
 	return sdk.RetryForError(func() error {
 		return aoai.doPost(url, source, result)
-	}, aoai.MaxRetryCount, aoai.AbortOnRetry, aoai.Logger)
+	}, aoai.MaxRetries, aoai.AbortOnRetry, aoai.AbortInterval, aoai.Logger)
 }
 
 func (aoai *AzureOpenAI) doPost(url string, source, result any) error {

@@ -19,11 +19,11 @@ func testNewOpenAI(t *testing.T) *OpenAI {
 	logs := log.NewLog()
 	logs.SetLevel(log.LevelDebug)
 	oai := &OpenAI{
-		Domain:        "api.openai.com",
-		Apikey:        apikey,
-		Logger:        logs.GetLogger("OPENAI"),
-		MaxRetryCount: 1,
-		MaxRetryAfter: time.Second * 3,
+		Domain:     "api.openai.com",
+		Apikey:     apikey,
+		Logger:     logs.GetLogger("OPENAI"),
+		MaxRetries: 1,
+		RetryAfter: time.Second * 3,
 	}
 
 	return oai

@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
 )
 
@@ -18,7 +18,7 @@ func TestMultipartWriteFile(t *testing.T) {
 
 	files := []string{}
 	for i := 0; i < 2; i++ {
-		f := path.Join(testdir, fmt.Sprintf("%d.txt", i))
+		f := filepath.Join(testdir, fmt.Sprintf("%d.txt", i))
 		os.WriteFile(f, []byte(f), os.FileMode(0666))
 		files = append(files, f)
 	}
@@ -57,7 +57,7 @@ func TestMultipartWriteFilePipe(t *testing.T) {
 
 	files := []string{}
 	for i := 0; i < 2; i++ {
-		f := path.Join(testdir, fmt.Sprintf("%d.txt", i))
+		f := filepath.Join(testdir, fmt.Sprintf("%d.txt", i))
 		os.WriteFile(f, []byte(f), os.FileMode(0666))
 		files = append(files, f)
 	}

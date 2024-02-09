@@ -8,7 +8,7 @@ import (
 	"net/textproto"
 	"net/url"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -29,10 +29,10 @@ func NewMultipartWriter(w io.Writer) *MultipartWriter {
 func (mw *MultipartWriter) CreateFormFile(fieldname, filename string) (io.Writer, error) {
 	mh := make(textproto.MIMEHeader)
 
-	cd := fmt.Sprintf(`form-data; name="%s"; filename="%s"`, escapeQuotes(fieldname), escapeQuotes(path.Base(filename)))
+	cd := fmt.Sprintf(`form-data; name="%s"; filename="%s"`, escapeQuotes(fieldname), escapeQuotes(filepath.Base(filename)))
 	mh.Set("Content-Disposition", cd)
 
-	ct := mime.TypeByExtension(path.Ext(filename))
+	ct := mime.TypeByExtension(filepath.Ext(filename))
 	if ct == "" {
 		ct = "application/octet-stream"
 	}

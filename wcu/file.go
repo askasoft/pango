@@ -3,7 +3,7 @@ package wcu
 import (
 	"io"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/askasoft/pango/str"
 )
@@ -52,7 +52,7 @@ func ReadFile(filename string, charset string) ([]byte, error) {
 }
 
 func IsHTMLFile(filename string) bool {
-	ext := path.Ext(filename)
+	ext := filepath.Ext(filename)
 	html := (str.EqualFold(ext, ".html") || str.EqualFold(ext, ".htm"))
 	return html
 }

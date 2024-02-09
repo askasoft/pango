@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"net/http"
 	"path"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -51,7 +50,7 @@ func ServeContentHandler(data []byte, modtime time.Time) HandlerFunc {
 	}
 
 	return func(c *Context) {
-		name := filepath.Base(c.Request.URL.Path)
+		name := path.Base(c.Request.URL.Path)
 		http.ServeContent(c.Writer, c.Request, name, modtime, bytes.NewReader(data))
 	}
 }

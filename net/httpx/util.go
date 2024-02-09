@@ -6,13 +6,13 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 )
 
 // SaveMultipartFile save multipart file to the specific local file 'dst'.
 func SaveMultipartFile(file *multipart.FileHeader, dst string) error {
-	dir := path.Dir(dst)
+	dir := filepath.Dir(dst)
 	if err := os.MkdirAll(dir, os.FileMode(0770)); err != nil {
 		return err
 	}

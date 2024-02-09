@@ -2,7 +2,7 @@ package htmlx
 
 import (
 	"fmt"
-	"path"
+	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -11,7 +11,7 @@ import (
 )
 
 func testFilename(name string) string {
-	return path.Join("testdata", name)
+	return filepath.Join("testdata", name)
 }
 
 func testReadFile(t *testing.T, name string) []byte {

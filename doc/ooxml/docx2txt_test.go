@@ -2,14 +2,14 @@ package ooxml
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/askasoft/pango/fsu"
 )
 
 func testFilename(name string) string {
-	return path.Join("testdata", name)
+	return filepath.Join("testdata", name)
 }
 
 func testReadFile(t *testing.T, name string) []byte {

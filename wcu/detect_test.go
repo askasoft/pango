@@ -2,7 +2,7 @@ package wcu
 
 import (
 	"bytes"
-	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/askasoft/pango/fsu"
@@ -14,7 +14,7 @@ var cs = []string{
 }
 
 func testFilename(name string) string {
-	return path.Join("testdata", name+".txt")
+	return filepath.Join("testdata", name+".txt")
 }
 
 func testReadFile(t *testing.T, name string) []byte {

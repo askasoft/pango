@@ -3,7 +3,7 @@ package fsu
 import (
 	"errors"
 	"math/rand"
-	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
@@ -13,7 +13,7 @@ func TestFileExists(t *testing.T) {
 	testdir := "TestFileExists-" + strconv.Itoa(rand.Int())
 	defer RemoveAll(testdir)
 	MkdirAll(testdir, FileMode(0777))
-	WriteFile(path.Join(testdir, "test.txt"), []byte("a"), FileMode(0666))
+	WriteFile(filepath.Join(testdir, "test.txt"), []byte("a"), FileMode(0666))
 
 	cs := []struct {
 		f string
@@ -37,7 +37,7 @@ func TestFileSize(t *testing.T) {
 	testdir := "TestFileSize-" + strconv.Itoa(rand.Int())
 	defer RemoveAll(testdir)
 	MkdirAll(testdir, FileMode(0777))
-	WriteFile(path.Join(testdir, "test.txt"), []byte("a"), FileMode(0666))
+	WriteFile(filepath.Join(testdir, "test.txt"), []byte("a"), FileMode(0666))
 
 	cs := []struct {
 		f string
@@ -62,7 +62,7 @@ func TestDirExists(t *testing.T) {
 	testdir := "TestDirExists-" + strconv.Itoa(rand.Int())
 	defer RemoveAll(testdir)
 	MkdirAll(testdir, FileMode(0777))
-	WriteFile(path.Join(testdir, "test.txt"), []byte("a"), FileMode(0666))
+	WriteFile(filepath.Join(testdir, "test.txt"), []byte("a"), FileMode(0666))
 
 	cs := []struct {
 		f string
@@ -86,11 +86,11 @@ func TestDirIsEmpty(t *testing.T) {
 	testdir := "TestDirIsEmpty-" + strconv.Itoa(rand.Int())
 	defer RemoveAll(testdir)
 	MkdirAll(testdir, FileMode(0777))
-	WriteFile(path.Join(testdir, "test.txt"), []byte("a"), FileMode(0666))
-	MkdirAll(path.Join(testdir, "empty"), FileMode(0777))
-	MkdirAll(path.Join(testdir, "hasdir", "empty"), FileMode(0777))
-	MkdirAll(path.Join(testdir, "hasfile"), FileMode(0777))
-	WriteFile(path.Join(testdir, "hasfile", "test.txt"), []byte("a"), FileMode(0666))
+	WriteFile(filepath.Join(testdir, "test.txt"), []byte("a"), FileMode(0666))
+	MkdirAll(filepath.Join(testdir, "empty"), FileMode(0777))
+	MkdirAll(filepath.Join(testdir, "hasdir", "empty"), FileMode(0777))
+	MkdirAll(filepath.Join(testdir, "hasfile"), FileMode(0777))
+	WriteFile(filepath.Join(testdir, "hasfile", "test.txt"), []byte("a"), FileMode(0666))
 
 	cs := []struct {
 		f string
@@ -125,8 +125,8 @@ func TestCopyFile(t *testing.T) {
 	}
 
 	for i, c := range cs {
-		sf := path.Join(srcdir, c.s)
-		df := path.Join(dstdir, c.d)
+		sf := filepath.Join(srcdir, c.s)
+		df := filepath.Join(dstdir, c.d)
 
 		MkdirAll(srcdir, FileMode(0777))
 

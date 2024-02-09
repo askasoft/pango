@@ -2,7 +2,7 @@ package vad
 
 import (
 	"fmt"
-	"path"
+	"path/filepath"
 	"reflect"
 	"runtime"
 	"testing"
@@ -71,9 +71,9 @@ func assertIsEqual(val1, val2 any) bool {
 // 		_, file, line, _ := runtime.Caller(skip)
 
 // 		if err != nil {
-// 			fmt.Printf("%s:%d %v error compiling regex %v\n", path.Base(file), line, value, r.String())
+// 			fmt.Printf("%s:%d %v error compiling regex %v\n", filepath.Base(file), line, value, r.String())
 // 		} else {
-// 			fmt.Printf("%s:%d %v matches regex %v\n", path.Base(file), line, value, r.String())
+// 			fmt.Printf("%s:%d %v matches regex %v\n", filepath.Base(file), line, value, r.String())
 // 		}
 
 // 		t.FailNow()
@@ -95,9 +95,9 @@ func assertIsEqual(val1, val2 any) bool {
 // 		_, file, line, _ := runtime.Caller(skip)
 
 // 		if err != nil {
-// 			fmt.Printf("%s:%d %v error compiling regex %v\n", path.Base(file), line, value, r.String())
+// 			fmt.Printf("%s:%d %v error compiling regex %v\n", filepath.Base(file), line, value, r.String())
 // 		} else {
-// 			fmt.Printf("%s:%d %v does not match regex %v\n", path.Base(file), line, value, r.String())
+// 			fmt.Printf("%s:%d %v does not match regex %v\n", filepath.Base(file), line, value, r.String())
 // 		}
 
 // 		t.FailNow()
@@ -130,7 +130,7 @@ func assertEqual(t *testing.T, val1, val2 any) {
 func assertEqualSkip(t *testing.T, skip int, val1, val2 any) {
 	if !assertIsEqual(val1, val2) {
 		_, file, line, _ := runtime.Caller(skip)
-		fmt.Printf("%s:%d %v does not equal %v\n", path.Base(file), line, val1, val2)
+		fmt.Printf("%s:%d %v does not equal %v\n", filepath.Base(file), line, val1, val2)
 		t.FailNow()
 	}
 }
@@ -146,7 +146,7 @@ func assertNotEqual(t *testing.T, val1, val2 any) {
 func assertNotEqualSkip(t *testing.T, skip int, val1, val2 any) {
 	if assertIsEqual(val1, val2) {
 		_, file, line, _ := runtime.Caller(skip)
-		fmt.Printf("%s:%d %v should not be equal %v\n", path.Base(file), line, val1, val2)
+		fmt.Printf("%s:%d %v should not be equal %v\n", filepath.Base(file), line, val1, val2)
 		t.FailNow()
 	}
 }
@@ -167,11 +167,11 @@ func assertPanicMatchesSkip(t *testing.T, skip int, fn func(), matches string) {
 			err := fmt.Sprintf("%s", r)
 
 			if err != matches {
-				fmt.Printf("%s:%d Panic...  expected [%s] received [%s]", path.Base(file), line, matches, err)
+				fmt.Printf("%s:%d Panic...  expected [%s] received [%s]", filepath.Base(file), line, matches, err)
 				t.FailNow()
 			}
 		} else {
-			fmt.Printf("%s:%d Panic Expected, none found...  expected [%s]", path.Base(file), line, matches)
+			fmt.Printf("%s:%d Panic Expected, none found...  expected [%s]", filepath.Base(file), line, matches)
 			t.FailNow()
 		}
 	}()

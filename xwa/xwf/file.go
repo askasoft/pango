@@ -14,14 +14,14 @@ type FileResult = xfu.FileResult
 type FilesResult = xfu.FilesResult
 
 type file struct {
-	f  *File
-	r  *bytes.Reader
-	db *gorm.DB
+	hfs *hfs
+	f   *File
+	r   *bytes.Reader
 }
 
 func (f *file) open() error {
 	if f.r == nil {
-		r := f.db.Take(f.f)
+		r := f.hfs.db.Table(f.hfs.tn).Take(f.f)
 		if errors.Is(r.Error, gorm.ErrRecordNotFound) {
 			return fs.ErrNotExist
 		}

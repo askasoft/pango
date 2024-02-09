@@ -13,7 +13,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func SaveLocalFile(db *gorm.DB, id string, filename string) (*File, error) {
+func SaveLocalFile(db *gorm.DB, table string, id string, filename string) (*File, error) {
 	base := filepath.Base(filename)
 	ext := path.Ext(filename)
 
@@ -32,11 +32,11 @@ func SaveLocalFile(db *gorm.DB, id string, filename string) (*File, error) {
 		UpdatedAt: time.Now(),
 	}
 
-	r := db.Save(fi)
+	r := db.Table(table).Save(fi)
 	return fi, r.Error
 }
 
-func SaveUploadedFile(db *gorm.DB, id string, file *multipart.FileHeader) (*File, error) {
+func SaveUploadedFile(db *gorm.DB, table string, id string, file *multipart.FileHeader) (*File, error) {
 	ext := path.Ext(file.Filename)
 
 	fr, err := file.Open()
@@ -61,45 +61,44 @@ func SaveUploadedFile(db *gorm.DB, id string, file *multipart.FileHeader) (*File
 		UpdatedAt: time.Now(),
 	}
 
-	r := db.Save(fi)
+	r := db.Table(table).Save(fi)
 	return fi, r.Error
 }
 
-func DeleteFile(db *gorm.DB, id string) error {
-	f := &File{ID: id}
-	r := db.Delete(f)
+func DeleteFile(db *gorm.DB, table string, id string) error {
+	r := db.Table(table).Where("id = ?", id).Delete(&File{})
 	return r.Error
 }
 
-func DeleteFilesByPrefix(db *gorm.DB, prefix string) error {
-	r := db.Where("id LIKE ?", squ.StartsLike(prefix)).Delete(&File{})
+func DeleteFilesByPrefix(db *gorm.DB, table string, prefix string) error {
+	r := db.Table(table).Where("id LIKE ?", squ.StartsLike(prefix)).Delete(&File{})
 	return r.Error
 }
 
 // CleanFiles use "DELETE FROM files" to clean files
-func CleanFiles(db *gorm.DB) error {
-	r := db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&File{})
+func CleanFiles(db *gorm.DB, table string) error {
+	r := db.Exec("DELETE FROM " + table)
 	return r.Error
 }
 
 // TruncateFiles use "TRUNCATE TABLE files" to truncate files
-func TruncateFiles(db *gorm.DB) error {
-	r := db.Exec("TRUNCATE TABLE files")
+func TruncateFiles(db *gorm.DB, table string) error {
+	r := db.Exec("TRUNCATE TABLE " + table)
 	return r.Error
 }
 
-func CleanOutdatedFiles(db *gorm.DB, due time.Time, loggers ...log.Logger) {
+func CleanOutdatedFiles(db *gorm.DB, table string, before time.Time, loggers ...log.Logger) {
 	logger := getLogger(loggers...)
 
-	logger.Debugf("CleanOutdatedFiles('%v')", due)
+	logger.Debugf("CleanOutdatedFiles('%s', '%v')", table, before)
 
-	r := db.Where("updated_at < ?", due).Delete(&File{})
+	r := db.Table(table).Where("updated_at < ?", before).Delete(&File{})
 	if r.Error != nil {
-		logger.Errorf("CleanOutdatedFiles('%v') failed: %v", due, r.Error)
+		logger.Errorf("CleanOutdatedFiles('%s', '%v') failed: %v", table, before, r.Error)
 		return
 	}
 
-	logger.Infof("CleanOutdatedFiles('%v'): %d", due, r.RowsAffected)
+	logger.Infof("CleanOutdatedFiles('%s', '%v'): %d", table, before, r.RowsAffected)
 }
 
 func getLogger(loggers ...log.Logger) log.Logger {

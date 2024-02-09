@@ -16,11 +16,12 @@ type JobLogWriter struct {
 	log.BatchWriter
 
 	db  *gorm.DB
+	tn  string
 	jid int64
 }
 
-func NewJobLogWriter(db *gorm.DB, jid int64) *JobLogWriter {
-	jlw := &JobLogWriter{db: db, jid: jid}
+func NewJobLogWriter(db *gorm.DB, table string, jid int64) *JobLogWriter {
+	jlw := &JobLogWriter{db: db, tn: table, jid: jid}
 
 	jlw.Filter = log.NewLevelFilter(log.LevelDebug)
 	jlw.Formatter = log.NewTextFormatter("%t{2006-01-02 15:04:05} [%p] - %m")
@@ -76,7 +77,7 @@ func (jlw *JobLogWriter) flush() error {
 		jls = append(jls, jl)
 	}
 
-	r := jlw.db.Create(jls)
+	r := jlw.db.Table(jlw.tn).Create(jls)
 	return r.Error
 }
 

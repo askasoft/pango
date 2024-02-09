@@ -62,28 +62,10 @@ func Decode(p string, v any) error {
 	return json.Unmarshal(str.UnsafeBytes(p), v)
 }
 
-func RependingJobs(db *gorm.DB, delay time.Duration) (int, error) {
-	ut := time.Now().Add(-delay)
-	tx := db.Where("status = ? AND updated_at < ?", JobStatusRunning, ut)
-
-	job := &Job{RID: 0, Status: JobStatusPending, Error: ""}
-	r := tx.Select("rid", "status", "error").Updates(job)
-	if r.Error != nil {
-		return 0, r.Error
-	}
-	return int(r.RowsAffected), nil
-}
-
-func PendingJob(db *gorm.DB, name string, param string) (int64, error) {
-	job := &Job{Name: name, Param: param, Status: JobStatusPending}
-	r := db.Create(job)
-	return job.ID, r.Error
-}
-
-func GetJob(db *gorm.DB, jid int64, details ...bool) (*Job, error) {
+func GetJob(db *gorm.DB, table string, jid int64, details ...bool) (*Job, error) {
 	job := &Job{}
 
-	tx := db.Model(job)
+	tx := db.Table(table)
 	if len(details) <= 0 || !details[0] {
 		tx = tx.Select("id", "rid", "name", "status", "created_at", "updated_at")
 	}
@@ -100,10 +82,10 @@ func GetJob(db *gorm.DB, jid int64, details ...bool) (*Job, error) {
 
 // GetJobLogs get job logs
 // set levels to ("I", "W", "E", "F") to filter DEBUG/TRACE logs
-func GetJobLogs(db *gorm.DB, jid int64, start, limit int, levels ...string) ([]*JobLog, error) {
+func GetJobLogs(db *gorm.DB, table string, jid int64, start, limit int, levels ...string) ([]*JobLog, error) {
 	var jls []*JobLog
 
-	tx := db.Where("jid = ?", jid)
+	tx := db.Table(table).Where("jid = ?", jid)
 	if len(levels) > 0 {
 		tx.Where("level IN ?", levels)
 	}
@@ -112,10 +94,10 @@ func GetJobLogs(db *gorm.DB, jid int64, start, limit int, levels ...string) ([]*
 	return jls, r.Error
 }
 
-func FindJob(db *gorm.DB, name string, details ...bool) (*Job, error) {
+func FindJob(db *gorm.DB, table string, name string, details ...bool) (*Job, error) {
 	job := &Job{}
 
-	tx := db.Model(job).Where("name = ?", name).Order("id desc")
+	tx := db.Table(table).Where("name = ?", name).Order("id desc")
 	if len(details) <= 0 || !details[0] {
 		tx = tx.Select("id", "rid", "name", "status", "created_at", "updated_at")
 	}
@@ -127,29 +109,63 @@ func FindJob(db *gorm.DB, name string, details ...bool) (*Job, error) {
 	return job, r.Error
 }
 
-func FindAndAbortJob(db *gorm.DB, name, reason string) error {
-	job, err := FindJob(db, name)
+func AppendJob(db *gorm.DB, table string, name string, param string) (int64, error) {
+	job := &Job{Name: name, Param: param, Status: JobStatusPending}
+	r := db.Table(table).Create(job)
+	return job.ID, r.Error
+}
+
+func FindAndAbortJob(db *gorm.DB, table string, name, reason string, loggers ...log.Logger) error {
+	logger := getLogger(loggers...)
+
+	job, err := FindJob(db, table, name)
 	if err != nil {
+		logger.Errorf("Failed to find job '%s': %v", name, err)
 		return err
 	}
 
-	return AbortJob(db, job.ID, reason)
+	return AbortJob(db, table, job.ID, reason, logger)
 }
 
-func AbortJob(db *gorm.DB, jid int64, reason string) error {
+func AbortJob(db *gorm.DB, table string, jid int64, reason string, loggers ...log.Logger) error {
+	logger := getLogger(loggers...)
+
+	logger.Infof("Abort job #%d: %s", jid, reason)
+
 	job := &Job{Status: JobStatusAborted, Error: reason}
-	tx := db.Where("id = ? AND status IN ?", jid, []string{JobStatusPending, JobStatusRunning})
+	jss := []string{JobStatusPending, JobStatusRunning}
+
+	tx := db.Table(table).Where("id = ? AND status IN ?", jid, jss)
 	r := tx.Select("status", "error").Updates(job)
 	if r.Error != nil {
+		logger.Errorf("Failed to abort job #%d: %v", jid, r.Error)
 		return r.Error
 	}
 	if r.RowsAffected != 1 {
+		logger.Warnf("Unable to abort job #%d: %d, %v", jid, r.RowsAffected, ErrJobMissing)
 		return ErrJobMissing
 	}
 	return nil
 }
 
-func StartJobs(db *gorm.DB, limit int, run func(*Job), loggers ...log.Logger) error {
+func ReappendJobs(db *gorm.DB, table string, before time.Time, loggers ...log.Logger) error {
+	logger := getLogger(loggers...)
+
+	job := &Job{RID: 0, Status: JobStatusPending, Error: ""}
+
+	tx := db.Table(table).Where("status = ? AND updated_at < ?", JobStatusRunning, before)
+	r := tx.Select("rid", "status", "error").Updates(job)
+	if r.Error != nil {
+		logger.Errorf("Failed to ReappendJobs(): %v", r.Error)
+		return r.Error
+	}
+	if r.RowsAffected > 0 {
+		logger.Infof("Job reappended: %d", r.RowsAffected)
+	}
+	return nil
+}
+
+func StartJobs(db *gorm.DB, table string, limit int, run func(*Job), loggers ...log.Logger) error {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -160,13 +176,14 @@ func StartJobs(db *gorm.DB, limit int, run func(*Job), loggers ...log.Logger) er
 
 	remain := limit - int(current)
 	if remain <= 0 {
-		return nil
+		return ErrJobStartLimited
 	}
 
 	var jobs []*Job
 
-	r := db.Where("status = ?", JobStatusPending).Order("id asc").Limit(remain).Find(&jobs)
+	r := db.Table(table).Where("status = ?", JobStatusPending).Order("id asc").Limit(remain).Find(&jobs)
 	if r.Error != nil {
+		logger.Errorf("Failed to find pendding job: %v", r.Error)
 		return r.Error
 	}
 
@@ -177,26 +194,30 @@ func StartJobs(db *gorm.DB, limit int, run func(*Job), loggers ...log.Logger) er
 	return nil
 }
 
-func SafeRunJob(job *Job, run func(*Job), logger log.Logger) {
+func SafeRunJob(job *Job, run func(*Job), loggers ...log.Logger) {
+	logger := getLogger(loggers...)
+
 	n := atomic.AddInt32(&runnings, 1)
 
 	defer func() {
 		if err := recover(); err != nil {
-			log.Errorf("Panic: %v", err)
+			logger.Errorf("Job #%d (#%d %s) panic: %v", n, job.ID, job.Name, err)
 		}
 		atomic.AddInt32(&runnings, -1)
 	}()
 
-	logger.Debugf("Start job #%d: #%d %s", n, job.ID, job.Name)
+	logger.Debugf("Start job #%d (#%d %s)", n, job.ID, job.Name)
 
 	run(job)
 }
 
-func CleanOutdatedJobs(db *gorm.DB, due time.Time, loggers ...log.Logger) error {
+func CleanOutdatedJobs(db *gorm.DB, jobTable, logTable string, before time.Time, loggers ...log.Logger) error {
 	logger := getLogger(loggers...)
 
-	ss := []string{JobStatusAborted, JobStatusCompleted}
-	r := db.Where("jid IN (SELECT id FROM jobs WHERE status IN ? AND updated_at < ?)", ss, due).Delete(&JobLog{})
+	jss := []string{JobStatusAborted, JobStatusCompleted}
+	where := "jid IN (SELECT id FROM " + jobTable + " WHERE status IN ? AND updated_at < ?)"
+
+	r := db.Table(logTable).Where(where, jss, before).Delete(&JobLog{})
 	if r.Error != nil {
 		logger.Errorf("Failed to delete outdated job logs: %v", r.Error)
 		return r.Error
@@ -205,7 +226,7 @@ func CleanOutdatedJobs(db *gorm.DB, due time.Time, loggers ...log.Logger) error 
 		logger.Infof("Delete outdated job logs: %d", r.RowsAffected)
 	}
 
-	r = db.Where("status IN ? AND updated_at < ?", ss, due).Delete(&Job{})
+	r = db.Table(jobTable).Where("status IN ? AND updated_at < ?", jss, before).Delete(&Job{})
 	if r.Error != nil {
 		logger.Errorf("Failed to delete outdated jobs: %v", r.Error)
 		return r.Error

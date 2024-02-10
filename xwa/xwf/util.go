@@ -69,7 +69,17 @@ func DeleteFile(db *gorm.DB, table string, id string) error {
 	return r.Error
 }
 
-func DeleteFilesByPrefix(db *gorm.DB, table string, prefix string) error {
+func DeleteFiles(db *gorm.DB, table string, ids ...string) error {
+	r := db.Table(table).Where("id IN ?", ids).Delete(&File{})
+	return r.Error
+}
+
+func DeleteWhere(db *gorm.DB, table string, where string, args ...any) error {
+	r := db.Table(table).Where(where, args...).Delete(&File{})
+	return r.Error
+}
+
+func DeletePrefix(db *gorm.DB, table string, prefix string) error {
 	r := db.Table(table).Where("id LIKE ?", squ.StartsLike(prefix)).Delete(&File{})
 	return r.Error
 }

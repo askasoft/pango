@@ -67,7 +67,7 @@ func (oai *OpenAI) doCall(req *http.Request, result any) error {
 		return err
 	}
 
-	return decodeResponse(res, result)
+	return decodeResponse(res, result, oai.RetryAfter)
 }
 
 func (oai *OpenAI) doPostWithRetry(url string, source, result any) error {

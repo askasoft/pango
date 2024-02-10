@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/iox"
@@ -36,7 +37,7 @@ func buildJsonRequest(a any) (io.Reader, string, error) {
 	return buf, contentTypeJSON, nil
 }
 
-func decodeResponse(res *http.Response, obj any) error {
+func decodeResponse(res *http.Response, obj any, retryAfter time.Duration) error {
 	defer iox.DrainAndClose(res.Body)
 
 	decoder := json.NewDecoder(res.Body)
@@ -52,6 +53,11 @@ func decodeResponse(res *http.Response, obj any) error {
 		StatusCode: res.StatusCode,
 	}
 	_ = decoder.Decode(er)
+
+	switch er.StatusCode {
+	case http.StatusTooManyRequests, http.StatusInternalServerError, http.StatusBadGateway, http.StatusServiceUnavailable, http.StatusGatewayTimeout:
+		er.retryAfter = retryAfter
+	}
 
 	return er
 }

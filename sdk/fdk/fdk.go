@@ -100,14 +100,17 @@ func (fdk *FDK) decodeResponse(res *http.Response, obj any) error {
 		_ = decoder.Decode(er)
 	}
 
-	if res.StatusCode == http.StatusTooManyRequests {
+	switch res.StatusCode {
+	case http.StatusTooManyRequests:
 		s := res.Header.Get("Retry-After")
 		n := num.Atoi(s)
-		if n <= 0 {
-			n = 20
+		if n > 0 {
+			er.retryAfter = time.Second * time.Duration(n)
+		} else {
+			er.retryAfter = fdk.RetryAfter
 		}
-
-		er.retryAfter = time.Second * time.Duration(n)
+	case http.StatusInternalServerError, http.StatusBadGateway, http.StatusServiceUnavailable, http.StatusGatewayTimeout:
+		er.retryAfter = fdk.RetryAfter
 	}
 
 	return er

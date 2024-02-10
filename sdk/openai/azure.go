@@ -69,7 +69,7 @@ func (aoai *AzureOpenAI) doCall(req *http.Request, result any) error {
 		return err
 	}
 
-	return decodeResponse(res, result)
+	return decodeResponse(res, result, aoai.RetryAfter)
 }
 
 func (aoai *AzureOpenAI) doPostWithRetry(url string, source, result any) error {

@@ -42,7 +42,7 @@ func testDirectSendEmail(t *testing.T, m *Email) {
 		return
 	}
 
-	sts := str.RemoveEmptys(str.TrimSpaces(str.Split(os.Getenv("SMTP_TO"), ";")))
+	sts := str.RemoveEmpties(str.TrimSpaces(str.Split(os.Getenv("SMTP_TO"), ";")))
 	if len(sts) < 1 {
 		skipTest(t, "SMTP_TO not set")
 		return

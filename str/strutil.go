@@ -467,12 +467,12 @@ func TrimSpaces(ss []string) []string {
 	return ss
 }
 
-// RemoveEmptys remove empty string in the string array 'ss', and returns the string array 'ss'
-func RemoveEmptys(ss []string) []string {
+// RemoveEmpties remove empty string in the string array 'ss', and returns the string array 'ss'
+func RemoveEmpties(ss []string) []string {
 	return Removes(ss, "")
 }
 
-// RemoveEmptys remove string 'v' in the string array 'ss', and returns the string array 'ss'
+// Removes remove string 'v' in the string array 'ss', and returns the string array 'ss'
 func Removes(ss []string, v string) []string {
 	for i, s := range ss {
 		if s == v {

@@ -31,12 +31,12 @@ type SMTPWriter struct {
 
 // SetTo set To recipients
 func (sw *SMTPWriter) SetTo(s string) {
-	sw.Tos = str.RemoveEmptys(str.TrimSpaces(str.FieldsAny(s, ",;")))
+	sw.Tos = str.RemoveEmpties(str.TrimSpaces(str.FieldsAny(s, ",;")))
 }
 
 // SetCc set Cc recipients
 func (sw *SMTPWriter) SetCc(s string) {
-	sw.Ccs = str.RemoveEmptys(str.TrimSpaces(str.FieldsAny(s, ",;")))
+	sw.Ccs = str.RemoveEmpties(str.TrimSpaces(str.FieldsAny(s, ",;")))
 }
 
 // SetTimeout set timeout

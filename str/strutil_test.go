@@ -343,7 +343,7 @@ func TestTrimSpaces(t *testing.T) {
 	}
 }
 
-func TestRemoveEmptys(t *testing.T) {
+func TestRemoveEmpties(t *testing.T) {
 	cs := []struct {
 		s []string
 		w []string
@@ -353,9 +353,9 @@ func TestRemoveEmptys(t *testing.T) {
 	}
 
 	for i, c := range cs {
-		a := RemoveEmptys(c.s)
+		a := RemoveEmpties(c.s)
 		if !reflect.DeepEqual(a, c.w) {
-			t.Errorf("[%d] RemoveEmptys(%v) = %v, want %v", i, c.s, a, c.w)
+			t.Errorf("[%d] RemoveEmpties(%v) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }

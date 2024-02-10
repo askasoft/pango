@@ -217,7 +217,7 @@ func setByForm(value reflect.Value, field reflect.StructField, form map[string][
 	}
 
 	if ok && opt.stripValue {
-		vs = str.RemoveEmptys(str.Strips(vs))
+		vs = str.RemoveEmpties(str.Strips(vs))
 		ok = (len(vs) > 0)
 	}
 

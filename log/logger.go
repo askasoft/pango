@@ -53,7 +53,12 @@ type logger struct {
 
 // GetLogger create a new logger with name
 func (l *logger) GetLogger(name string) Logger {
-	return l.log.GetLogger(name)
+	return &logger{
+		log:   l.log,
+		name:  name,
+		depth: l.log.logger.depth,
+		props: l.props,
+	}
 }
 
 // Outputer return a io.Writer for go log.SetOutput
@@ -107,7 +112,7 @@ func (l *logger) GetTraceLevel() Level {
 // GetProp get logger property
 func (l *logger) GetProp(k string) any {
 	ps := l.props
-	if ps != nil {
+	if len(ps) > 0 {
 		if v, ok := ps[k]; ok {
 			return v
 		}
@@ -132,7 +137,7 @@ func (l *logger) SetProp(k string, v any) {
 // GetProps get logger properties
 func (l *logger) GetProps() map[string]any {
 	tm := l.props
-	if tm == nil {
+	if len(tm) == 0 {
 		return l.log.GetProps()
 	}
 
@@ -141,7 +146,7 @@ func (l *logger) GetProps() map[string]any {
 
 	// parent props
 	pm := l.log.logger.props
-	if pm != nil {
+	if len(pm) > 0 {
 		// new return props
 		nm = make(map[string]any, len(tm)+len(pm))
 		for k, v := range pm {

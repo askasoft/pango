@@ -6,43 +6,50 @@ import (
 	"os"
 )
 
-func usage() {
-	fmt.Fprintf(flag.CommandLine.Output(),
-		"Usage: %s <command> [options]\n"+
-			"  <command>:\n"+
-			"    help | usage    print the usage information.\n"+
-			"    version         print the version information.\n"+
-			"  <options>:\n",
-		os.Args[0])
-
-	flag.PrintDefaults()
-}
-
 // Main server main
 func Main(app App) {
-	workdir := flag.String("d", "", "set the working directory.")
+	Usage = func() {
+		out := flag.CommandLine.Output()
 
-	flag.CommandLine.Usage = usage
-	flag.Parse()
-
-	if *workdir != "" {
-		if err := os.Chdir(*workdir); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to change directory: %v\n", err)
-			os.Exit(1)
+		fmt.Fprintln(out, "Usage: "+app.Name()+" <command> [options]")
+		fmt.Fprintln(out, "  <command>:")
+		if cmd, ok := app.(Cmd); ok {
+			cmd.CmdHelp(out)
 		}
+		fmt.Fprintln(out, "    version         print the version information.")
+		fmt.Fprintln(out, "    help | usage    print the usage information.")
+		fmt.Fprintln(out, "  <options>:")
+
+		flag.PrintDefaults()
 	}
 
-	cmd := flag.Arg(0)
-	switch cmd {
+	flag.CommandLine.Usage = Usage
+
+	workdir := flag.String("d", "", "set the working directory.")
+
+	if cmd, ok := app.(Cmd); ok {
+		cmd.Flag()
+	}
+
+	flag.Parse()
+
+	chdir(*workdir)
+
+	arg := flag.Arg(0)
+	switch arg {
 	case "help", "usage":
 		flag.CommandLine.SetOutput(os.Stdout)
-		usage()
+		Help()
 	case "version":
 		fmt.Printf("%s.%s (%s)\n", app.Version(), app.Revision(), app.BuildTime().Local())
 	case "":
 		runStandalone(app)
 	default:
-		fmt.Fprintf(os.Stderr, "Invalid command %q\n\n", cmd)
-		usage()
+		if cmd, ok := app.(Cmd); ok {
+			cmd.Exec(arg)
+		} else {
+			fmt.Fprintf(os.Stderr, "Invalid command %q\n\n", arg)
+			Help()
+		}
 	}
 }

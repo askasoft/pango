@@ -4,8 +4,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/askasoft/pango/bye"
@@ -13,15 +11,6 @@ import (
 	"github.com/askasoft/pango/str"
 	"gorm.io/gorm"
 )
-
-var (
-	runnings int32
-	mutex    sync.Mutex
-)
-
-func LocalRunningJobs() int {
-	return int(atomic.LoadInt32(&runnings))
-}
 
 func Encode(v any) string {
 	if v == nil {
@@ -166,22 +155,11 @@ func ReappendJobs(db *gorm.DB, table string, before time.Time, loggers ...log.Lo
 }
 
 func StartJobs(db *gorm.DB, table string, limit int, run func(*Job), loggers ...log.Logger) error {
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	current := atomic.LoadInt32(&runnings)
-
 	logger := getLogger(loggers...)
-	logger.Debugf("Current running jobs: %d / %d", current, limit)
-
-	remain := limit - int(current)
-	if remain <= 0 {
-		return ErrJobStartLimited
-	}
 
 	var jobs []*Job
 
-	r := db.Table(table).Where("status = ?", JobStatusPending).Order("id asc").Limit(remain).Find(&jobs)
+	r := db.Table(table).Where("status = ?", JobStatusPending).Order("id asc").Limit(limit).Find(&jobs)
 	if r.Error != nil {
 		logger.Errorf("Failed to find pendding job: %v", r.Error)
 		return r.Error
@@ -197,16 +175,13 @@ func StartJobs(db *gorm.DB, table string, limit int, run func(*Job), loggers ...
 func SafeRunJob(job *Job, run func(*Job), loggers ...log.Logger) {
 	logger := getLogger(loggers...)
 
-	n := atomic.AddInt32(&runnings, 1)
-
 	defer func() {
 		if err := recover(); err != nil {
-			logger.Errorf("Job #%d (#%d %s) panic: %v", n, job.ID, job.Name, err)
+			logger.Errorf("Job #%d '%s' panic: %v", job.ID, job.Name, err)
 		}
-		atomic.AddInt32(&runnings, -1)
 	}()
 
-	logger.Debugf("Start job #%d (#%d %s)", n, job.ID, job.Name)
+	logger.Debugf("Start job #%d '%s'", job.ID, job.Name)
 
 	run(job)
 }

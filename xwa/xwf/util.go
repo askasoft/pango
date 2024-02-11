@@ -8,6 +8,7 @@ import (
 
 	"github.com/askasoft/pango/fsu"
 	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/net/httpx"
 	"github.com/askasoft/pango/squ"
 	"github.com/askasoft/pango/str"
 	"gorm.io/gorm"
@@ -51,14 +52,7 @@ func SaveLocalFile(db *gorm.DB, table string, id string, filename string) (*File
 }
 
 func SaveUploadedFile(db *gorm.DB, table string, id string, file *multipart.FileHeader) (*File, error) {
-	fr, err := file.Open()
-	if err != nil {
-		return nil, err
-	}
-	defer fr.Close()
-
-	data := make([]byte, file.Size)
-	_, err = fr.Read(data)
+	data, err := httpx.ReadMultipartFile(file)
 	if err != nil {
 		return nil, err
 	}

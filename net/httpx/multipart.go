@@ -81,3 +81,57 @@ func (mw *MultipartWriter) WriteFileData(fieldname, filename string, data []byte
 	_, err = fw.Write(data)
 	return err
 }
+
+//----------------------------------------------
+
+// SaveMultipartFile save multipart file to the specific local file 'dst'.
+func SaveMultipartFile(file *multipart.FileHeader, dst string) error {
+	dir := filepath.Dir(dst)
+	if err := os.MkdirAll(dir, os.FileMode(0770)); err != nil {
+		return err
+	}
+
+	src, err := file.Open()
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	out, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, src)
+	return err
+}
+
+// CopyMultipartFile read multipart file to the specific buffer 'dst'.
+func CopyMultipartFile(file *multipart.FileHeader, dst io.Writer) error {
+	src, err := file.Open()
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	_, err = io.Copy(dst, src)
+	return err
+}
+
+// ReadMultipartFile read multipart file and return it's content []byte.
+func ReadMultipartFile(file *multipart.FileHeader) ([]byte, error) {
+	src, err := file.Open()
+	if err != nil {
+		return nil, err
+	}
+	defer src.Close()
+
+	data := make([]byte, file.Size)
+	_, err = src.Read(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, err
+}

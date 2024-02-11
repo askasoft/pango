@@ -639,9 +639,19 @@ func (c *Context) MultipartForm() (*multipart.Form, error) {
 	return c.Request.MultipartForm, nil
 }
 
-// SaveUploadedFile uploads the form file to specific dst.
+// SaveUploadedFile save uploaded file to the specific local file dst.
 func (c *Context) SaveUploadedFile(file *multipart.FileHeader, dst string) error {
 	return httpx.SaveMultipartFile(file, dst)
+}
+
+// CopyUploadedFile read uploaded file to the specific buffer 'dst'.
+func (c *Context) CopyUploadedFile(file *multipart.FileHeader, dst io.Writer) error {
+	return httpx.CopyMultipartFile(file, dst)
+}
+
+// ReadUploadedFile read uploaded file and return it's content []byte.
+func (c *Context) ReadUploadedFile(file *multipart.FileHeader) ([]byte, error) {
+	return httpx.ReadMultipartFile(file)
 }
 
 // MustBind checks the Content-Type to select a binding engine automatically,

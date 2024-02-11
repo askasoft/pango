@@ -51,3 +51,10 @@ type TextEmbeddingsResponse struct {
 func (te *TextEmbeddingsResponse) String() string {
 	return toJSONIndent(te)
 }
+
+func (te *TextEmbeddingsResponse) Embedding() []float64 {
+	if len(te.Data) > 0 {
+		return te.Data[0].Embedding
+	}
+	return nil
+}

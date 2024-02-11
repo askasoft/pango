@@ -2,6 +2,7 @@ package xwf
 
 import (
 	"mime/multipart"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -12,27 +13,41 @@ import (
 	"gorm.io/gorm"
 )
 
+func SaveFile(db *gorm.DB, table string, id string, filename string, data []byte, modTime ...time.Time) (*File, error) {
+	name := filepath.Base(filename)
+	fext := str.ToLower(filepath.Ext(filename))
+
+	fi := &File{
+		ID:   id,
+		Name: name,
+		Ext:  fext,
+		Size: int64(len(data)),
+		Data: data,
+	}
+
+	if len(modTime) > 0 {
+		fi.Time = modTime[0]
+	}
+	if fi.Time.IsZero() {
+		fi.Time = time.Now()
+	}
+
+	r := db.Table(table).Save(fi)
+	return fi, r.Error
+}
+
 func SaveLocalFile(db *gorm.DB, table string, id string, filename string) (*File, error) {
+	fi, err := os.Stat(filename)
+	if err != nil {
+		return nil, err
+	}
+
 	data, err := fsu.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
 
-	name := filepath.Base(filename)
-	fext := str.ToLower(filepath.Ext(filename))
-
-	fi := &File{
-		ID:        id,
-		Name:      name,
-		Ext:       fext,
-		Size:      int64(len(data)),
-		Data:      data,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-
-	r := db.Table(table).Save(fi)
-	return fi, r.Error
+	return SaveFile(db, table, id, filename, data, fi.ModTime())
 }
 
 func SaveUploadedFile(db *gorm.DB, table string, id string, file *multipart.FileHeader) (*File, error) {
@@ -48,20 +63,7 @@ func SaveUploadedFile(db *gorm.DB, table string, id string, file *multipart.File
 		return nil, err
 	}
 
-	name := filepath.Base(file.Filename)
-	fext := str.ToLower(filepath.Ext(file.Filename))
-	fi := &File{
-		ID:        id,
-		Name:      name,
-		Ext:       fext,
-		Size:      file.Size,
-		Data:      data,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-
-	r := db.Table(table).Save(fi)
-	return fi, r.Error
+	return SaveFile(db, table, id, file.Filename, data)
 }
 
 func DeleteFile(db *gorm.DB, table string, id string) error {
@@ -101,7 +103,7 @@ func CleanOutdatedFiles(db *gorm.DB, table string, before time.Time, loggers ...
 
 	logger.Debugf("CleanOutdatedFiles('%s', '%v')", table, before)
 
-	r := db.Table(table).Where("updated_at < ?", before).Delete(&File{})
+	r := db.Table(table).Where("time < ?", before).Delete(&File{})
 	if r.Error != nil {
 		logger.Errorf("CleanOutdatedFiles('%s', '%v') failed: %v", table, before, r.Error)
 		return

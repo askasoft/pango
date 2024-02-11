@@ -16,10 +16,10 @@ func getLogger(loggers ...log.Logger) log.Logger {
 	return log.GetLogger("XFU")
 }
 
-func CleanOutdatedFiles(dir string, due time.Time, loggers ...log.Logger) {
+func CleanOutdatedFiles(dir string, before time.Time, loggers ...log.Logger) {
 	logger := getLogger(loggers...)
 
-	logger.Debugf("CleanOutdatedFiles('%s', '%v')", dir, due)
+	logger.Debugf("CleanOutdatedFiles('%s', '%v')", dir, before)
 
 	f, err := os.Open(dir)
 	if err != nil {
@@ -38,7 +38,7 @@ func CleanOutdatedFiles(dir string, due time.Time, loggers ...log.Logger) {
 		path := filepath.Join(dir, de.Name())
 
 		if de.IsDir() {
-			CleanOutdatedFiles(path, due, logger)
+			CleanOutdatedFiles(path, before, logger)
 			if err := fsu.DirIsEmpty(path); err != nil {
 				log.Errorf("DirIsEmpty('%s') failed: %v", path, err)
 			} else {
@@ -54,7 +54,7 @@ func CleanOutdatedFiles(dir string, due time.Time, loggers ...log.Logger) {
 		if fi, err := de.Info(); err != nil {
 			log.Errorf("DirEntry('%s').Info() failed: %v", path, err)
 		} else {
-			if fi.ModTime().Before(due) {
+			if fi.ModTime().Before(before) {
 				if err := os.Remove(path); err != nil {
 					log.Errorf("Remove('%s') failed: %v", path, err)
 				} else {

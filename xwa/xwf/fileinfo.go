@@ -27,7 +27,7 @@ func (fi *fileinfo) Mode() fs.FileMode {
 
 // modification time
 func (fi *fileinfo) ModTime() time.Time {
-	return fi.f.UpdatedAt
+	return fi.f.Time
 }
 
 // abbreviation for Mode().IsDir()

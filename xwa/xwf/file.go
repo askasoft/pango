@@ -2,11 +2,9 @@ package xwf
 
 import (
 	"bytes"
-	"errors"
 	"io/fs"
 
 	"github.com/askasoft/pango/xwa/xfu"
-	"gorm.io/gorm"
 )
 
 type File = xfu.File
@@ -21,13 +19,12 @@ type file struct {
 
 func (f *file) open() error {
 	if f.r == nil {
-		r := f.hfs.db.Table(f.hfs.tn).Take(f.f)
-		if errors.Is(r.Error, gorm.ErrRecordNotFound) {
-			return fs.ErrNotExist
+		data, err := ReadFile(f.hfs.db, f.hfs.tn, f.f.ID)
+		if err != nil {
+			return err
 		}
-		if r.Error != nil {
-			return r.Error
-		}
+
+		f.f.Data = data
 		f.r = bytes.NewReader(f.f.Data)
 	}
 	return nil

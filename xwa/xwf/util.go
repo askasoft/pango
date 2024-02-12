@@ -1,6 +1,8 @@
 package xwf
 
 import (
+	"errors"
+	"io/fs"
 	"mime/multipart"
 	"os"
 	"path/filepath"
@@ -58,6 +60,18 @@ func SaveUploadedFile(db *gorm.DB, table string, id string, file *multipart.File
 	}
 
 	return SaveFile(db, table, id, file.Filename, data)
+}
+
+func ReadFile(db *gorm.DB, table string, id string) ([]byte, error) {
+	f := &File{}
+	r := db.Table(table).Where("id = ?", id).Take(f)
+	if errors.Is(r.Error, gorm.ErrRecordNotFound) {
+		return nil, fs.ErrNotExist
+	}
+	if r.Error != nil {
+		return nil, r.Error
+	}
+	return f.Data, nil
 }
 
 func DeleteFile(db *gorm.DB, table string, id string) error {

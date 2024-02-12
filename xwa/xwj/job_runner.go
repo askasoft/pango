@@ -66,25 +66,12 @@ func (jr *JobRunner) DecodeParams(p string, v any) error {
 	return err
 }
 
-func (jr *JobRunner) GetJob(details ...bool) (*Job, error) {
-	return GetJob(jr.DB, jr.JobTable, jr.jid, details...)
+func (jr *JobRunner) GetJob() (*Job, error) {
+	return GetJob(jr.DB, jr.JobTable, jr.jid)
 }
 
 func (jr *JobRunner) Checkout() error {
-	jr.Log.Debugf("Checkout job #%d", jr.jid)
-
-	job := &Job{RID: jr.rid, Status: JobStatusRunning, Error: ""}
-	r := jr.DB.Table(jr.JobTable).Select("rid", "status", "error").Where("id = ? AND status <> ?", jr.jid, JobStatusRunning).Updates(job)
-	if r.Error != nil {
-		jr.Log.Errorf("Failed to checkout job #%d: %v", jr.jid, r.Error)
-		return r.Error
-	}
-	if r.RowsAffected != 1 {
-		jr.Log.Errorf("Unable to checkout job #%d: %v", jr.jid, ErrJobCheckout)
-		return ErrJobCheckout
-	}
-
-	return nil
+	return CheckoutJob(jr.DB, jr.JobTable, jr.jid, jr.rid, jr.Log)
 }
 
 func (jr *JobRunner) Ping() error {
@@ -92,14 +79,8 @@ func (jr *JobRunner) Ping() error {
 		return nil
 	}
 
-	tx := jr.DB.Table(jr.JobTable)
-	r := tx.Where("id = ? AND rid = ? AND status = ?", jr.jid, jr.rid, JobStatusRunning).Update("updated_at", time.Now())
-	if r.Error != nil {
-		jr.Log.Errorf("Failed to ping job #%d: %v", jr.jid, r.Error)
-		return r.Error
-	}
-	if r.RowsAffected != 1 {
-		return ErrJobPing
+	if err := PingJob(jr.DB, jr.JobTable, jr.jid, jr.rid, jr.Log); err != nil {
+		return err
 	}
 
 	jr.pingAt = time.Now()
@@ -117,7 +98,7 @@ func (jr *JobRunner) Running(result any) error {
 		return nil
 	}
 
-	if err := jr.update(JobStatusRunning, result); err != nil {
+	if err := UpdateJob(jr.DB, jr.JobTable, jr.jid, jr.rid, JobStatusRunning, result, jr.Log); err != nil {
 		return err
 	}
 
@@ -132,26 +113,7 @@ func (jr *JobRunner) Abort(reason string) error {
 }
 
 func (jr *JobRunner) Complete(result any) error {
-	jr.Log.Debugf("Complete job #%d: %v", jr.jid, result)
-
-	err := jr.update(JobStatusCompleted, result)
-
+	err := CompleteJob(jr.DB, jr.JobTable, jr.jid, result, jr.Log)
 	jr.Log.Flush()
 	return err
-}
-
-func (jr *JobRunner) update(status string, result any) error {
-	job := &Job{Status: status, Result: Encode(result)}
-
-	r := jr.DB.Table(jr.JobTable).Where("id = ? AND rid = ?", jr.jid, jr.rid).Select("status", "result").Updates(job)
-	if r.Error != nil {
-		jr.Log.Errorf("Failed to update job #%d (%s): %v", jr.jid, status, r.Error)
-		return r.Error
-	}
-	if r.RowsAffected != 1 {
-		jr.Log.Errorf("Unable to update job #%d (%s): %d, %v", jr.jid, status, r.RowsAffected, ErrJobMissing)
-		return ErrJobMissing
-	}
-
-	return nil
 }

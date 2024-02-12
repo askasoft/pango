@@ -11,6 +11,11 @@ const (
 	JobStatusRunning   = "R"
 )
 
+var (
+	JobPendingRunning   = []string{JobStatusPending, JobStatusRunning}
+	JobAbortedCompleted = []string{JobStatusAborted, JobStatusCompleted}
+)
+
 type Job struct {
 	ID        int64     `gorm:"not null;primaryKey;autoIncrement" uri:"id" form:"id" json:"id,omitempty"`
 	RID       int64     `gorm:"column:rid;not null" form:"rid" json:"rid,omitempty"` // job runner id

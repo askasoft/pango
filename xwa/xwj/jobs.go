@@ -51,15 +51,10 @@ func Decode(p string, v any) error {
 	return json.Unmarshal(str.UnsafeBytes(p), v)
 }
 
-func GetJob(db *gorm.DB, table string, jid int64, details ...bool) (*Job, error) {
+func GetJob(db *gorm.DB, table string, jid int64) (*Job, error) {
 	job := &Job{}
 
-	tx := db.Table(table)
-	if len(details) <= 0 || !details[0] {
-		tx = tx.Select("id", "rid", "name", "status", "created_at", "updated_at")
-	}
-
-	r := tx.Take(job, jid)
+	r := db.Table(table).Take(job, jid)
 	if errors.Is(r.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
@@ -119,10 +114,10 @@ func FindAndAbortJob(db *gorm.DB, table string, name, reason string, loggers ...
 func AbortJob(db *gorm.DB, table string, jid int64, reason string, loggers ...log.Logger) error {
 	logger := getLogger(loggers...)
 
-	logger.Infof("Abort job #%d: %s", jid, reason)
+	logger.Debugf("Abort job #%d: %s", jid, reason)
 
 	job := &Job{Status: JobStatusAborted, Error: reason}
-	jss := []string{JobStatusPending, JobStatusRunning}
+	jss := JobPendingRunning
 
 	tx := db.Table(table).Where("id = ? AND status IN ?", jid, jss)
 	r := tx.Select("status", "error").Updates(job)
@@ -134,6 +129,80 @@ func AbortJob(db *gorm.DB, table string, jid int64, reason string, loggers ...lo
 		logger.Warnf("Unable to abort job #%d: %d, %v", jid, r.RowsAffected, ErrJobMissing)
 		return ErrJobMissing
 	}
+	return nil
+}
+
+func CompleteJob(db *gorm.DB, table string, jid int64, result any, loggers ...log.Logger) error {
+	logger := getLogger(loggers...)
+
+	res := Encode(result)
+	logger.Debugf("Complete job #%d %s", jid, res)
+
+	job := &Job{Status: JobStatusCompleted, Result: res}
+
+	tx := db.Table(table).Where("id = ?", jid)
+	r := tx.Select("status", "result", "error").Updates(job)
+	if r.Error != nil {
+		logger.Errorf("Failed to complete job #%d: %v", jid, r.Error)
+		return r.Error
+	}
+	if r.RowsAffected != 1 {
+		logger.Warnf("Unable to complete job #%d: %d, %v", jid, r.RowsAffected, ErrJobMissing)
+		return ErrJobMissing
+	}
+	return nil
+}
+
+func CheckoutJob(db *gorm.DB, table string, jid, rid int64, loggers ...log.Logger) error {
+	logger := getLogger(loggers...)
+
+	logger.Debugf("Checkout job #%d", jid)
+
+	job := &Job{RID: rid, Status: JobStatusRunning, Error: ""}
+	r := db.Table(table).Select("rid", "status", "error").Where("id = ? AND status <> ?", jid, JobStatusRunning).Updates(job)
+	if r.Error != nil {
+		logger.Errorf("Failed to checkout job #%d: %v", jid, r.Error)
+		return r.Error
+	}
+	if r.RowsAffected != 1 {
+		logger.Errorf("Unable to checkout job #%d: %v", jid, ErrJobCheckout)
+		return ErrJobCheckout
+	}
+
+	return nil
+}
+
+func PingJob(db *gorm.DB, table string, jid, rid int64, loggers ...log.Logger) error {
+	logger := getLogger(loggers...)
+
+	tx := db.Table(table)
+	r := tx.Where("id = ? AND rid = ? AND status = ?", jid, rid, JobStatusRunning).Update("updated_at", time.Now())
+	if r.Error != nil {
+		logger.Errorf("Failed to ping job #%d: %v", jid, r.Error)
+		return r.Error
+	}
+	if r.RowsAffected != 1 {
+		return ErrJobPing
+	}
+
+	return nil
+}
+
+func UpdateJob(db *gorm.DB, table string, jid, rid int64, status string, result any, loggers ...log.Logger) error {
+	logger := getLogger(loggers...)
+
+	job := &Job{Status: status, Result: Encode(result)}
+
+	r := db.Table(table).Where("id = ? AND rid = ?", jid, rid).Select("status", "result").Updates(job)
+	if r.Error != nil {
+		logger.Errorf("Failed to update job #%d [%d] (%s): %v", jid, rid, status, r.Error)
+		return r.Error
+	}
+	if r.RowsAffected != 1 {
+		logger.Errorf("Unable to update job #%d [%d] (%s): %d, %v", jid, rid, status, r.RowsAffected, ErrJobMissing)
+		return ErrJobMissing
+	}
+
 	return nil
 }
 
@@ -189,7 +258,7 @@ func SafeRunJob(job *Job, run func(*Job), loggers ...log.Logger) {
 func CleanOutdatedJobs(db *gorm.DB, jobTable, logTable string, before time.Time, loggers ...log.Logger) error {
 	logger := getLogger(loggers...)
 
-	jss := []string{JobStatusAborted, JobStatusCompleted}
+	jss := JobAbortedCompleted
 	where := "jid IN (SELECT id FROM " + jobTable + " WHERE status IN ? AND updated_at < ?)"
 
 	r := db.Table(logTable).Where(where, jss, before).Delete(&JobLog{})

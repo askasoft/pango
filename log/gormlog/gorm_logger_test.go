@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/log"
-	"gorm.io/driver/postgres" // postgres dialect
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -31,14 +31,14 @@ func TestGormLogger(t *testing.T) {
 		SkipDefaultTransaction: true,
 	})
 	if err != nil {
+		fmt.Println(err)
 		t.Skip(err)
-		return
 	}
 
 	db, err := orm.DB()
 	if err != nil {
 		fmt.Println(err)
-		return
+		fmt.Println(err)
 	}
 	db.SetConnMaxLifetime(time.Minute)
 
@@ -46,6 +46,5 @@ func TestGormLogger(t *testing.T) {
 	err = orm.AutoMigrate(&GormLoggerTest{})
 	if err != nil {
 		fmt.Println(err)
-		return
 	}
 }

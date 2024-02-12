@@ -1,4 +1,4 @@
-package xwj
+package gormjob
 
 import (
 	"encoding/base64"
@@ -9,7 +9,31 @@ import (
 	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/xwa/xwj"
 	"gorm.io/gorm"
+)
+
+type Job = xwj.Job
+type JobLog = xwj.JobLog
+
+const (
+	JobStatusAborted   = xwj.JobStatusAborted
+	JobStatusCompleted = xwj.JobStatusCompleted
+	JobStatusPending   = xwj.JobStatusPending
+	JobStatusRunning   = xwj.JobStatusRunning
+)
+
+var (
+	JobPendingRunning   = xwj.JobPendingRunning
+	JobAbortedCompleted = xwj.JobAbortedCompleted
+)
+
+var (
+	ErrJobAborted   = xwj.ErrJobAborted
+	ErrJobCompleted = xwj.ErrJobCompleted
+	ErrJobCheckout  = xwj.ErrJobCheckout
+	ErrJobMissing   = xwj.ErrJobMissing
+	ErrJobPing      = xwj.ErrJobPing
 )
 
 func Encode(v any) string {
@@ -132,13 +156,12 @@ func AbortJob(db *gorm.DB, table string, jid int64, reason string, loggers ...lo
 	return nil
 }
 
-func CompleteJob(db *gorm.DB, table string, jid int64, result any, loggers ...log.Logger) error {
+func CompleteJob(db *gorm.DB, table string, jid int64, result string, loggers ...log.Logger) error {
 	logger := getLogger(loggers...)
 
-	res := Encode(result)
-	logger.Debugf("Complete job #%d %s", jid, res)
+	logger.Debugf("Complete job #%d %s", jid, result)
 
-	job := &Job{Status: JobStatusCompleted, Result: res}
+	job := &Job{Status: JobStatusCompleted, Result: result}
 
 	tx := db.Table(table).Where("id = ?", jid)
 	r := tx.Select("status", "result", "error").Updates(job)
@@ -188,10 +211,10 @@ func PingJob(db *gorm.DB, table string, jid, rid int64, loggers ...log.Logger) e
 	return nil
 }
 
-func UpdateJob(db *gorm.DB, table string, jid, rid int64, status string, result any, loggers ...log.Logger) error {
+func UpdateJob(db *gorm.DB, table string, jid, rid int64, status string, result string, loggers ...log.Logger) error {
 	logger := getLogger(loggers...)
 
-	job := &Job{Status: status, Result: Encode(result)}
+	job := &Job{Status: status, Result: result}
 
 	r := db.Table(table).Where("id = ? AND rid = ?", jid, rid).Select("status", "result").Updates(job)
 	if r.Error != nil {

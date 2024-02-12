@@ -1,4 +1,4 @@
-package xwj
+package gormjob
 
 import (
 	"fmt"

@@ -1,4 +1,4 @@
-package xwj
+package gormjob
 
 import (
 	"fmt"
@@ -98,7 +98,7 @@ func (jr *JobRunner) Running(result any) error {
 		return nil
 	}
 
-	if err := UpdateJob(jr.DB, jr.JobTable, jr.jid, jr.rid, JobStatusRunning, result, jr.Log); err != nil {
+	if err := UpdateJob(jr.DB, jr.JobTable, jr.jid, jr.rid, JobStatusRunning, Encode(result), jr.Log); err != nil {
 		return err
 	}
 
@@ -113,7 +113,7 @@ func (jr *JobRunner) Abort(reason string) error {
 }
 
 func (jr *JobRunner) Complete(result any) error {
-	err := CompleteJob(jr.DB, jr.JobTable, jr.jid, result, jr.Log)
+	err := CompleteJob(jr.DB, jr.JobTable, jr.jid, Encode(result), jr.Log)
 	jr.Log.Flush()
 	return err
 }

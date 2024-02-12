@@ -1,4 +1,4 @@
-package xwf
+package gormfile
 
 import (
 	"bytes"

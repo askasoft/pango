@@ -19,19 +19,19 @@ type JobRunner struct {
 	jid int64 // Job ID
 	rid int64 // Runner ID
 
-	pingAt  time.Time
-	Timeout time.Duration
+	pingAt    time.Time
+	PingAfter time.Duration // Ping after duration
 }
 
 func NewJobRunner(db *gorm.DB, jobTable, logTable string, jid, rid int64, logger ...log.Logger) *JobRunner {
 	jr := &JobRunner{
-		Log:      log.NewLog(),
-		DB:       db,
-		JobTable: jobTable,
-		LogTable: logTable,
-		jid:      jid,
-		rid:      rid,
-		Timeout:  time.Second,
+		Log:       log.NewLog(),
+		DB:        db,
+		JobTable:  jobTable,
+		LogTable:  logTable,
+		jid:       jid,
+		rid:       rid,
+		PingAfter: time.Second,
 	}
 
 	jr.jlw = NewJobLogWriter(db, logTable, jid)
@@ -75,7 +75,7 @@ func (jr *JobRunner) Checkout() error {
 }
 
 func (jr *JobRunner) Ping() error {
-	if jr.pingAt.Add(jr.Timeout).After(time.Now()) {
+	if jr.pingAt.Add(jr.PingAfter).After(time.Now()) {
 		return nil
 	}
 
@@ -88,17 +88,15 @@ func (jr *JobRunner) Ping() error {
 }
 
 func (jr *JobRunner) PingAborted() bool {
-	err := jr.Ping()
-
-	return err != nil
+	return jr.Ping() != nil
 }
 
 func (jr *JobRunner) Running(result any) error {
-	if jr.pingAt.Add(jr.Timeout).After(time.Now()) {
+	if jr.pingAt.Add(jr.PingAfter).After(time.Now()) {
 		return nil
 	}
 
-	if err := UpdateJob(jr.DB, jr.JobTable, jr.jid, jr.rid, JobStatusRunning, Encode(result), jr.Log); err != nil {
+	if err := RunningJob(jr.DB, jr.JobTable, jr.jid, jr.rid, Encode(result), jr.Log); err != nil {
 		return err
 	}
 

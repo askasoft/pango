@@ -102,12 +102,14 @@ func GetJobLogs(db *gorm.DB, table string, jid int64, start, limit int, levels .
 	return jls, r.Error
 }
 
-func FindJob(db *gorm.DB, table string, name string, details ...bool) (*Job, error) {
+// FindJob find job by name, default select all columns.
+// cols: columns to select.
+func FindJob(db *gorm.DB, table string, name string, cols ...string) (*Job, error) {
 	job := &Job{}
 
 	tx := db.Table(table).Where("name = ?", name).Order("id desc")
-	if len(details) <= 0 || !details[0] {
-		tx = tx.Select("id", "rid", "name", "status", "created_at", "updated_at")
+	if len(cols) > 0 {
+		tx = tx.Select(cols)
 	}
 
 	r := tx.First(job)
@@ -115,6 +117,20 @@ func FindJob(db *gorm.DB, table string, name string, details ...bool) (*Job, err
 		return nil, nil
 	}
 	return job, r.Error
+}
+
+// FindJobs find jobs by name, default select all columns.
+// cols: columns to select.
+func FindJobs(db *gorm.DB, table string, name string, start, limit int, cols ...string) ([]*Job, error) {
+	jobs := []*Job{}
+
+	tx := db.Table(table).Where("name = ?", name).Order("id desc").Offset(start).Limit(limit)
+	if len(cols) > 0 {
+		tx = tx.Select(cols)
+	}
+
+	r := tx.Find(&jobs)
+	return jobs, r.Error
 }
 
 func AppendJob(db *gorm.DB, table string, name string, param string) (int64, error) {
@@ -211,18 +227,16 @@ func PingJob(db *gorm.DB, table string, jid, rid int64, loggers ...log.Logger) e
 	return nil
 }
 
-func UpdateJob(db *gorm.DB, table string, jid, rid int64, status string, result string, loggers ...log.Logger) error {
+func RunningJob(db *gorm.DB, table string, jid, rid int64, result string, loggers ...log.Logger) error {
 	logger := getLogger(loggers...)
 
-	job := &Job{Status: status, Result: result}
-
-	r := db.Table(table).Where("id = ? AND rid = ?", jid, rid).Select("status", "result").Updates(job)
+	r := db.Table(table).Where("id = ? AND rid = ? AND status = ?", jid, rid, JobStatusRunning).Update("result", result)
 	if r.Error != nil {
-		logger.Errorf("Failed to update job #%d [%d] (%s): %v", jid, rid, status, r.Error)
+		logger.Errorf("Failed to update running job #%d [%d]: %v", jid, rid, r.Error)
 		return r.Error
 	}
 	if r.RowsAffected != 1 {
-		logger.Errorf("Unable to update job #%d [%d] (%s): %d, %v", jid, rid, status, r.RowsAffected, ErrJobMissing)
+		logger.Errorf("Unable to update running job #%d [%d]: %d, %v", jid, rid, r.RowsAffected, ErrJobMissing)
 		return ErrJobMissing
 	}
 

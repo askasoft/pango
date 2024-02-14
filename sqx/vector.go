@@ -1,4 +1,4 @@
-package squ
+package sqx
 
 import (
 	"database/sql/driver"

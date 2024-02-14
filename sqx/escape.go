@@ -1,4 +1,4 @@
-package squ
+package sqx
 
 import "strings"
 
@@ -8,8 +8,7 @@ func EscapeLike(s string) string {
 
 	for _, c := range s {
 		if c == '~' {
-			sb.WriteRune('~')
-			sb.WriteRune('~')
+			sb.WriteString("~~")
 			continue
 		}
 

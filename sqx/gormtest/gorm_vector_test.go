@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/askasoft/pango/squ"
+	"github.com/askasoft/pango/sqx"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -19,21 +19,21 @@ import (
 // GRANT ALL ON DATABASE pango TO pango;
 
 // statically assert that Vector implements sql.Scanner.
-var _ sql.Scanner = (*squ.Vector)(nil)
+var _ sql.Scanner = (*sqx.Vector)(nil)
 
 // statically assert that Vector implements driver.Valuer.
-var _ driver.Valuer = (*squ.Vector)(nil)
+var _ driver.Valuer = (*sqx.Vector)(nil)
 
 type GormVectorTest struct {
 	gorm.Model
-	Embedding squ.Vector `gorm:"type:vector(3)"`
+	Embedding sqx.Vector `gorm:"type:vector(3)"`
 }
 
 func createTestItems(t *testing.T, db *gorm.DB) {
 	items := []GormVectorTest{
-		{Embedding: squ.NewVector([]float64{1, 1, 1})},
-		{Embedding: squ.NewVector([]float64{2, 2, 2})},
-		{Embedding: squ.NewVector([]float64{1, 1, 2})},
+		{Embedding: sqx.NewVector([]float64{1, 1, 1})},
+		{Embedding: sqx.NewVector([]float64{2, 2, 2})},
+		{Embedding: sqx.NewVector([]float64{1, 1, 2})},
 	}
 
 	result := db.Create(items)
@@ -62,7 +62,7 @@ func TestGormVector(t *testing.T) {
 
 	var items []GormVectorTest
 	db.Clauses(clause.OrderBy{
-		Expression: clause.Expr{SQL: "embedding <-> ?", Vars: []interface{}{squ.NewVector([]float64{1, 1, 1})}},
+		Expression: clause.Expr{SQL: "embedding <-> ?", Vars: []interface{}{sqx.NewVector([]float64{1, 1, 1})}},
 	}).Limit(5).Find(&items)
 	if items[0].ID != 1 || items[1].ID != 3 || items[2].ID != 2 {
 		t.Errorf("Bad ids")
@@ -72,14 +72,14 @@ func TestGormVector(t *testing.T) {
 	}
 
 	var distances []float64
-	db.Model(&GormVectorTest{}).Select("embedding <-> ?", squ.NewVector([]float64{1, 1, 1})).Order("id").Find(&distances)
+	db.Model(&GormVectorTest{}).Select("embedding <-> ?", sqx.NewVector([]float64{1, 1, 1})).Order("id").Find(&distances)
 	fmt.Println(distances)
 	if distances[0] != 0 || distances[1] != math.Sqrt(3) || distances[2] != 1 {
 		t.Errorf("Bad distances")
 	}
 
 	var similars []float64
-	db.Model(&GormVectorTest{}).Select("1 - (embedding <=> ?)", squ.NewVector([]float64{1, 1, 1})).Order("id").Find(&similars)
+	db.Model(&GormVectorTest{}).Select("1 - (embedding <=> ?)", sqx.NewVector([]float64{1, 1, 1})).Order("id").Find(&similars)
 	fmt.Println(similars)
 	if similars[0] != 1 || similars[1] != 1 || similars[2] < 0.9 {
 		t.Errorf("Bad similarity")

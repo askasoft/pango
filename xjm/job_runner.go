@@ -1,20 +1,16 @@
-package gormjob
+package xjm
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/askasoft/pango/log"
-	"gorm.io/gorm"
 )
 
 type JobRunner struct {
 	Log *log.Log
-	jlw *JobLogWriter
 
-	DB       *gorm.DB
-	JobTable string
-	LogTable string
+	jmr JobManager
+	jlw *JobLogWriter
 
 	jid int64 // Job ID
 	rid int64 // Runner ID
@@ -23,18 +19,18 @@ type JobRunner struct {
 	PingAfter time.Duration // Ping after duration
 }
 
-func NewJobRunner(db *gorm.DB, jobTable, logTable string, jid, rid int64, logger ...log.Logger) *JobRunner {
+// NewJobRunner create a JobRunner
+func NewJobRunner(jmr JobManager, jid, rid int64, logger ...log.Logger) *JobRunner {
 	jr := &JobRunner{
 		Log:       log.NewLog(),
-		DB:        db,
-		JobTable:  jobTable,
-		LogTable:  logTable,
+		jmr:       jmr,
 		jid:       jid,
 		rid:       rid,
 		PingAfter: time.Second,
 	}
 
-	jr.jlw = NewJobLogWriter(db, logTable, jid)
+	jr.Log.SetFormat("%t{2006-01-02 15:04:05} [%p] - %m")
+	jr.jlw = NewJobLogWriter(jmr, jid)
 	if len(logger) > 0 {
 		bw := log.NewBridgeWriter(logger[0])
 		mw := log.NewMultiWriter(jr.jlw, bw)
@@ -46,10 +42,6 @@ func NewJobRunner(db *gorm.DB, jobTable, logTable string, jid, rid int64, logger
 	return jr
 }
 
-func (jr *JobRunner) SetLogFormat(format string) {
-	jr.jlw.SetFormat(format)
-}
-
 func (jr *JobRunner) JobID() int64 {
 	return jr.jid
 }
@@ -58,20 +50,12 @@ func (jr *JobRunner) RunnerID() int64 {
 	return jr.rid
 }
 
-func (jr *JobRunner) DecodeParams(p string, v any) error {
-	err := Decode(p, v)
-	if err != nil {
-		err = fmt.Errorf("Failed to decode parameters for job #%d : %w", jr.jid, err)
-	}
-	return err
-}
-
 func (jr *JobRunner) GetJob() (*Job, error) {
-	return GetJob(jr.DB, jr.JobTable, jr.jid)
+	return jr.jmr.GetJob(jr.jid)
 }
 
 func (jr *JobRunner) Checkout() error {
-	return CheckoutJob(jr.DB, jr.JobTable, jr.jid, jr.rid, jr.Log)
+	return jr.jmr.CheckoutJob(jr.jid, jr.rid)
 }
 
 func (jr *JobRunner) Ping() error {
@@ -79,7 +63,7 @@ func (jr *JobRunner) Ping() error {
 		return nil
 	}
 
-	if err := PingJob(jr.DB, jr.JobTable, jr.jid, jr.rid, jr.Log); err != nil {
+	if err := jr.jmr.PingJob(jr.jid, jr.rid); err != nil {
 		return err
 	}
 
@@ -91,12 +75,12 @@ func (jr *JobRunner) PingAborted() bool {
 	return jr.Ping() != nil
 }
 
-func (jr *JobRunner) Running(result any) error {
+func (jr *JobRunner) Running(result string) error {
 	if jr.pingAt.Add(jr.PingAfter).After(time.Now()) {
 		return nil
 	}
 
-	if err := RunningJob(jr.DB, jr.JobTable, jr.jid, jr.rid, Encode(result), jr.Log); err != nil {
+	if err := jr.jmr.RunningJob(jr.jid, jr.rid, result); err != nil {
 		return err
 	}
 
@@ -105,13 +89,13 @@ func (jr *JobRunner) Running(result any) error {
 }
 
 func (jr *JobRunner) Abort(reason string) error {
-	err := AbortJob(jr.DB, jr.JobTable, jr.jid, reason, jr.Log)
+	err := jr.jmr.AbortJob(jr.jid, reason)
 	jr.Log.Flush()
 	return err
 }
 
-func (jr *JobRunner) Complete(result any) error {
-	err := CompleteJob(jr.DB, jr.JobTable, jr.jid, Encode(result), jr.Log)
+func (jr *JobRunner) Complete(result string) error {
+	err := jr.jmr.CompleteJob(jr.jid, result)
 	jr.Log.Flush()
 	return err
 }

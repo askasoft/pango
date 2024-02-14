@@ -1,4 +1,4 @@
-package gormjob
+package xjm
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/log"
-	"gorm.io/gorm"
 )
 
 // JobLogWriter implements log Writer Interface and writes messages to terminal.
@@ -15,16 +14,14 @@ type JobLogWriter struct {
 	log.LogFormatter
 	log.BatchWriter
 
-	db  *gorm.DB
-	tn  string
+	jmr JobManager
 	jid int64
 }
 
-func NewJobLogWriter(db *gorm.DB, table string, jid int64) *JobLogWriter {
-	jlw := &JobLogWriter{db: db, tn: table, jid: jid}
+func NewJobLogWriter(jmr JobManager, jid int64) *JobLogWriter {
+	jlw := &JobLogWriter{jmr: jmr, jid: jid}
 
 	jlw.Filter = log.NewLevelFilter(log.LevelDebug)
-	jlw.Formatter = log.NewTextFormatter("%t{2006-01-02 15:04:05} [%p] - %m")
 	jlw.BatchCount = 100
 	jlw.CacheCount = 200
 	jlw.FlushLevel = log.LevelError
@@ -77,8 +74,7 @@ func (jlw *JobLogWriter) flush() error {
 		jls = append(jls, jl)
 	}
 
-	r := jlw.db.Table(jlw.tn).Create(jls)
-	return r.Error
+	return jlw.jmr.AddJobLogs(jls)
 }
 
 // Close implementing method. empty.

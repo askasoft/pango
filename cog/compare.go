@@ -149,10 +149,15 @@ func CompareUInt64(a, b uint64) int {
 
 // CompareFloat32 provides a basic comparison on float32
 func CompareFloat32(a, b float32) int {
+	aNaN := a != a
+	bNaN := b != b
+
 	switch {
-	case a > b:
+	case aNaN && bNaN:
+		return 0
+	case bNaN || a > b:
 		return 1
-	case a < b:
+	case aNaN || a < b:
 		return -1
 	default:
 		return 0
@@ -161,10 +166,15 @@ func CompareFloat32(a, b float32) int {
 
 // CompareFloat64 provides a basic comparison on float64
 func CompareFloat64(a, b float64) int {
+	aNaN := a != a
+	bNaN := b != b
+
 	switch {
-	case a > b:
+	case aNaN && bNaN:
+		return 0
+	case bNaN || a > b:
 		return 1
-	case a < b:
+	case aNaN || a < b:
 		return -1
 	default:
 		return 0

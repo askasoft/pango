@@ -26,12 +26,13 @@ func CompareStringFold(a, b T) int {
 
 // CompareInt provides a basic comparison on int
 func CompareInt(a, b T) int {
-	ia := a.(int)
-	ib := b.(int)
+	x := a.(int)
+	y := b.(int)
+
 	switch {
-	case ia > ib:
+	case x > y:
 		return 1
-	case ia < ib:
+	case x < y:
 		return -1
 	default:
 		return 0
@@ -40,12 +41,13 @@ func CompareInt(a, b T) int {
 
 // CompareInt8 provides a basic comparison on int8
 func CompareInt8(a, b T) int {
-	ia := a.(int8)
-	ib := b.(int8)
+	x := a.(int8)
+	y := b.(int8)
+
 	switch {
-	case ia > ib:
+	case x > y:
 		return 1
-	case ia < ib:
+	case x < y:
 		return -1
 	default:
 		return 0
@@ -54,12 +56,13 @@ func CompareInt8(a, b T) int {
 
 // CompareInt16 provides a basic comparison on int16
 func CompareInt16(a, b T) int {
-	ia := a.(int16)
-	ib := b.(int16)
+	x := a.(int16)
+	y := b.(int16)
+
 	switch {
-	case ia > ib:
+	case x > y:
 		return 1
-	case ia < ib:
+	case x < y:
 		return -1
 	default:
 		return 0
@@ -68,12 +71,13 @@ func CompareInt16(a, b T) int {
 
 // CompareInt32 provides a basic comparison on int32
 func CompareInt32(a, b T) int {
-	ia := a.(int32)
-	ib := b.(int32)
+	x := a.(int32)
+	y := b.(int32)
+
 	switch {
-	case ia > ib:
+	case x > y:
 		return 1
-	case ia < ib:
+	case x < y:
 		return -1
 	default:
 		return 0
@@ -82,12 +86,13 @@ func CompareInt32(a, b T) int {
 
 // CompareInt64 provides a basic comparison on int64
 func CompareInt64(a, b T) int {
-	ia := a.(int64)
-	ib := b.(int64)
+	x := a.(int64)
+	y := b.(int64)
+
 	switch {
-	case ia > ib:
+	case x > y:
 		return 1
-	case ia < ib:
+	case x < y:
 		return -1
 	default:
 		return 0
@@ -96,12 +101,13 @@ func CompareInt64(a, b T) int {
 
 // CompareUInt provides a basic comparison on uint
 func CompareUInt(a, b T) int {
-	ia := a.(uint)
-	ib := b.(uint)
+	x := a.(uint)
+	y := b.(uint)
+
 	switch {
-	case ia > ib:
+	case x > y:
 		return 1
-	case ia < ib:
+	case x < y:
 		return -1
 	default:
 		return 0
@@ -110,12 +116,13 @@ func CompareUInt(a, b T) int {
 
 // CompareUInt8 provides a basic comparison on uint8
 func CompareUInt8(a, b T) int {
-	ia := a.(uint8)
-	ib := b.(uint8)
+	x := a.(uint8)
+	y := b.(uint8)
+
 	switch {
-	case ia > ib:
+	case x > y:
 		return 1
-	case ia < ib:
+	case x < y:
 		return -1
 	default:
 		return 0
@@ -124,12 +131,13 @@ func CompareUInt8(a, b T) int {
 
 // CompareUInt16 provides a basic comparison on uint16
 func CompareUInt16(a, b T) int {
-	ia := a.(uint16)
-	ib := b.(uint16)
+	x := a.(uint16)
+	y := b.(uint16)
+
 	switch {
-	case ia > ib:
+	case x > y:
 		return 1
-	case ia < ib:
+	case x < y:
 		return -1
 	default:
 		return 0
@@ -138,12 +146,13 @@ func CompareUInt16(a, b T) int {
 
 // CompareUInt32 provides a basic comparison on uint32
 func CompareUInt32(a, b T) int {
-	ia := a.(uint32)
-	ib := b.(uint32)
+	x := a.(uint32)
+	y := b.(uint32)
+
 	switch {
-	case ia > ib:
+	case x > y:
 		return 1
-	case ia < ib:
+	case x < y:
 		return -1
 	default:
 		return 0
@@ -152,12 +161,13 @@ func CompareUInt32(a, b T) int {
 
 // CompareUInt64 provides a basic comparison on uint64
 func CompareUInt64(a, b T) int {
-	ia := a.(uint64)
-	ib := b.(uint64)
+	x := a.(uint64)
+	y := b.(uint64)
+
 	switch {
-	case ia > ib:
+	case x > y:
 		return 1
-	case ia < ib:
+	case x < y:
 		return -1
 	default:
 		return 0
@@ -166,12 +176,18 @@ func CompareUInt64(a, b T) int {
 
 // CompareFloat32 provides a basic comparison on float32
 func CompareFloat32(a, b T) int {
-	ia := a.(float32)
-	ib := b.(float32)
+	x := a.(float32)
+	y := b.(float32)
+
+	xNaN := x != x
+	yNaN := y != y
+
 	switch {
-	case ia > ib:
+	case xNaN && yNaN:
+		return 0
+	case yNaN || x > y:
 		return 1
-	case ia < ib:
+	case xNaN || x < y:
 		return -1
 	default:
 		return 0
@@ -180,12 +196,18 @@ func CompareFloat32(a, b T) int {
 
 // CompareFloat64 provides a basic comparison on float64
 func CompareFloat64(a, b T) int {
-	ia := a.(float64)
-	ib := b.(float64)
+	x := a.(float64)
+	y := b.(float64)
+
+	xNaN := x != x
+	yNaN := y != y
+
 	switch {
-	case ia > ib:
+	case xNaN && yNaN:
+		return 0
+	case yNaN || x > y:
 		return 1
-	case ia < ib:
+	case xNaN || x < y:
 		return -1
 	default:
 		return 0
@@ -194,12 +216,13 @@ func CompareFloat64(a, b T) int {
 
 // CompareByte provides a basic comparison on byte
 func CompareByte(a, b T) int {
-	ia := a.(byte)
-	ib := b.(byte)
+	x := a.(byte)
+	y := b.(byte)
+
 	switch {
-	case ia > ib:
+	case x > y:
 		return 1
-	case ia < ib:
+	case x < y:
 		return -1
 	default:
 		return 0
@@ -208,12 +231,13 @@ func CompareByte(a, b T) int {
 
 // CompareRune provides a basic comparison on rune
 func CompareRune(a, b T) int {
-	ia := a.(rune)
-	ib := b.(rune)
+	x := a.(rune)
+	y := b.(rune)
+
 	switch {
-	case ia > ib:
+	case x > y:
 		return 1
-	case ia < ib:
+	case x < y:
 		return -1
 	default:
 		return 0

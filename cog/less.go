@@ -86,10 +86,10 @@ func LessUint64(a, b uint64) bool {
 
 // LessFloat32 float32 less function
 func LessFloat32(a, b float32) bool {
-	return a < b
+	return (a != a && b == b) || a < b
 }
 
 // LessFloat64 float64 less function
 func LessFloat64(a, b float64) bool {
-	return a < b
+	return (a != a && b == b) || a < b
 }

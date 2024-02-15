@@ -21,6 +21,7 @@ type Job struct {
 	RID       int64     `gorm:"column:rid;not null" form:"rid" json:"rid,omitempty"` // job runner id
 	Name      string    `gorm:"size:250;not null;index" json:"name,omitempty"`
 	Status    string    `gorm:"size:1;not null" form:"status" json:"status,omitempty"`
+	File      string    `gorm:"not null" json:"file,omitempty"`
 	Param     string    `gorm:"not null" json:"param,omitempty"`
 	Result    string    `gorm:"not null" json:"result,omitempty"`
 	Error     string    `gorm:"not null" json:"error,omitempty"`

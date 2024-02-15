@@ -22,7 +22,7 @@ type JobManager interface {
 	// cols: columns to select.
 	FindJobs(name string, start, limit int, cols ...string) ([]*Job, error)
 
-	AppendJob(name string, param string) (int64, error)
+	AppendJob(name, file, param string) (int64, error)
 
 	FindAndAbortJob(name, reason string) error
 

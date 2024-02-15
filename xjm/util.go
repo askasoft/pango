@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 
 	"github.com/askasoft/pango/bye"
-	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/str"
 )
 
@@ -46,18 +45,6 @@ func Decode(p string, v any) error {
 	}
 
 	return json.Unmarshal(str.UnsafeBytes(p), v)
-}
-
-func SafeRunJob(job *Job, run func(*Job), logger log.Logger) {
-	defer func() {
-		if err := recover(); err != nil {
-			logger.Errorf("Job #%d '%s' panic: %v", job.ID, job.Name, err)
-		}
-	}()
-
-	logger.Debugf("Start job #%d '%s'", job.ID, job.Name)
-
-	run(job)
 }
 
 func toString(o any) string {

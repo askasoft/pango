@@ -85,8 +85,8 @@ func (gjm *gjm) FindJobs(name string, start, limit int, cols ...string) ([]*xjm.
 	return jobs, r.Error
 }
 
-func (gjm *gjm) AppendJob(name string, param string) (int64, error) {
-	job := &xjm.Job{Name: name, Param: param, Status: xjm.JobStatusPending}
+func (gjm *gjm) AppendJob(name, file, param string) (int64, error) {
+	job := &xjm.Job{Name: name, File: file, Param: param, Status: xjm.JobStatusPending}
 	r := gjm.db.Table(gjm.jt).Create(job)
 	return job.ID, r.Error
 }

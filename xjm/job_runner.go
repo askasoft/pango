@@ -29,7 +29,6 @@ func NewJobRunner(jmr JobManager, jid, rid int64, logger ...log.Logger) *JobRunn
 		PingAfter: time.Second,
 	}
 
-	jr.Log.SetFormat("%t{2006-01-02 15:04:05} [%p] - %m")
 	jr.jlw = NewJobLogWriter(jmr, jid)
 	if len(logger) > 0 {
 		bw := log.NewBridgeWriter(logger[0])

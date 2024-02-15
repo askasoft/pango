@@ -11,7 +11,6 @@ import (
 // JobLogWriter implements log Writer Interface and writes messages to terminal.
 type JobLogWriter struct {
 	log.LogFilter
-	log.LogFormatter
 	log.BatchWriter
 
 	jmr JobManager
@@ -64,12 +63,11 @@ func (jlw *JobLogWriter) flush() error {
 
 	for it := jlw.EventBuffer.Iterator(); it.Next(); {
 		le := it.Value()
-		bs := jlw.Format(le)
 		jl := &JobLog{
 			JID:     jlw.jid,
 			When:    le.When,
 			Level:   le.Level.Prefix(),
-			Message: string(bs),
+			Message: le.Msg,
 		}
 		jls = append(jls, jl)
 	}

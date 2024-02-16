@@ -47,7 +47,7 @@ func (jlw *JobLogWriter) Write(le *log.Event) (err error) {
 
 // Flush implementing method. empty.
 func (jlw *JobLogWriter) Flush() {
-	if jlw.EventBuffer.IsEmpty() {
+	if jlw.EventBuffer == nil || jlw.EventBuffer.IsEmpty() {
 		return
 	}
 

@@ -33,12 +33,17 @@ func (wbw *BatchWriter) InitBuffer() {
 }
 
 func (wbw *BatchWriter) ShouldFlush(le *Event) bool {
+	if wbw.EventBuffer == nil {
+		return false
+	}
+
 	if wbw.EventBuffer.Len() >= wbw.BatchCount {
 		return true
 	}
 	if le.Level <= wbw.FlushLevel {
 		return true
 	}
+
 	if wbw.FlushDelta > 0 && wbw.EventBuffer.Len() > 1 {
 		if fle, ok := wbw.EventBuffer.Peek(); ok {
 			if le.When.Sub(fle.When) >= wbw.FlushDelta {

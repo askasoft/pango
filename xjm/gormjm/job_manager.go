@@ -32,7 +32,7 @@ func (gjm *gjm) GetJobLogs(jid int64, start, limit int, levels ...string) ([]*xj
 		tx.Where("level IN ?", levels)
 	}
 
-	r := tx.Order("id asc").Offset(start).Limit(limit).Find(&jls)
+	r := tx.Order("id ASC").Offset(start).Limit(limit).Find(&jls)
 	return jls, r.Error
 }
 
@@ -59,7 +59,7 @@ func (gjm *gjm) GetJob(jid int64) (*xjm.Job, error) {
 func (gjm *gjm) FindJob(name string, cols ...string) (*xjm.Job, error) {
 	job := &xjm.Job{}
 
-	tx := gjm.db.Table(gjm.jt).Where("name = ?", name).Order("id desc")
+	tx := gjm.db.Table(gjm.jt).Where("name = ?", name).Order("id DESC")
 	if len(cols) > 0 {
 		tx = tx.Select(cols)
 	}
@@ -76,7 +76,7 @@ func (gjm *gjm) FindJob(name string, cols ...string) (*xjm.Job, error) {
 func (gjm *gjm) FindJobs(name string, start, limit int, cols ...string) ([]*xjm.Job, error) {
 	jobs := []*xjm.Job{}
 
-	tx := gjm.db.Table(gjm.jt).Where("name = ?", name).Order("id desc").Offset(start).Limit(limit)
+	tx := gjm.db.Table(gjm.jt).Where("name = ?", name).Order("id DESC").Offset(start).Limit(limit)
 	if len(cols) > 0 {
 		tx = tx.Select(cols)
 	}
@@ -115,11 +115,11 @@ func (gjm *gjm) AbortJob(jid int64, reason string) error {
 	return nil
 }
 
-func (gjm *gjm) CompleteJob(jid int64, result string) error {
-	job := &xjm.Job{Status: xjm.JobStatusCompleted, Result: result}
+func (gjm *gjm) CompleteJob(jid int64, state, result string) error {
+	job := &xjm.Job{Status: xjm.JobStatusCompleted, State: state, Result: result}
 
 	tx := gjm.db.Table(gjm.jt).Where("id = ?", jid)
-	r := tx.Select("status", "result", "error").Updates(job)
+	r := tx.Select("status", "state", "result", "error").Updates(job)
 	if r.Error != nil {
 		return r.Error
 	}
@@ -154,8 +154,11 @@ func (gjm *gjm) PingJob(jid, rid int64) error {
 	return nil
 }
 
-func (gjm *gjm) RunningJob(jid, rid int64, result string) error {
-	r := gjm.db.Table(gjm.jt).Where("id = ? AND rid = ? AND status = ?", jid, rid, xjm.JobStatusRunning).Update("result", result)
+func (gjm *gjm) RunningJob(jid, rid int64, state, result string) error {
+	job := &xjm.Job{State: state, Result: result}
+
+	tx := gjm.db.Table(gjm.jt).Where("id = ? AND rid = ? AND status = ?", jid, rid, xjm.JobStatusRunning)
+	r := tx.Select("state", "result").Updates(job)
 	if r.Error != nil {
 		return r.Error
 	}

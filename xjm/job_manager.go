@@ -28,13 +28,13 @@ type JobManager interface {
 
 	AbortJob(jid int64, reason string) error
 
-	CompleteJob(jid int64, result string) error
+	CompleteJob(jid int64, state, result string) error
 
 	CheckoutJob(jid, rid int64) error
 
 	PingJob(jid, rid int64) error
 
-	RunningJob(jid, rid int64, result string) error
+	RunningJob(jid, rid int64, state, result string) error
 
 	ReappendJobs(before time.Time) (int64, error)
 

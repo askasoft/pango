@@ -74,12 +74,12 @@ func (jr *JobRunner) PingAborted() bool {
 	return jr.Ping() != nil
 }
 
-func (jr *JobRunner) Running(result string) error {
+func (jr *JobRunner) Running(state, result string) error {
 	if jr.pingAt.Add(jr.PingAfter).After(time.Now()) {
 		return nil
 	}
 
-	if err := jr.jmr.RunningJob(jr.jid, jr.rid, result); err != nil {
+	if err := jr.jmr.RunningJob(jr.jid, jr.rid, state, result); err != nil {
 		return err
 	}
 
@@ -93,8 +93,8 @@ func (jr *JobRunner) Abort(reason string) error {
 	return err
 }
 
-func (jr *JobRunner) Complete(result string) error {
-	err := jr.jmr.CompleteJob(jr.jid, result)
+func (jr *JobRunner) Complete(state, result string) error {
+	err := jr.jmr.CompleteJob(jr.jid, state, result)
 	jr.Log.Flush()
 	return err
 }

@@ -22,6 +22,18 @@ func JM(db *gorm.DB, jobTable, logTable string) xjm.JobManager {
 	}
 }
 
+// CountJobLogs count job logs
+func (gjm *gjm) CountJobLogs(jid int64, levels ...string) (int64, error) {
+	tx := gjm.db.Table(gjm.lt).Where("jid = ?", jid)
+	if len(levels) > 0 {
+		tx.Where("level IN ?", levels)
+	}
+
+	var cnt int64
+	r := tx.Order("id ASC").Count(&cnt)
+	return cnt, r.Error
+}
+
 // GetJobLogs get job logs
 // set levels to ("I", "W", "E", "F") to filter DEBUG/TRACE logs
 func (gjm *gjm) GetJobLogs(jid int64, start, limit int, levels ...string) ([]*xjm.JobLog, error) {
@@ -54,7 +66,7 @@ func (gjm *gjm) GetJob(jid int64) (*xjm.Job, error) {
 	return job, nil
 }
 
-// FindJob find job by name, default select all columns.
+// FindJob find the latest job by name, default select all columns.
 // cols: columns to select.
 func (gjm *gjm) FindJob(name string, cols ...string) (*xjm.Job, error) {
 	job := &xjm.Job{}

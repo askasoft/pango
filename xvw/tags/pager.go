@@ -379,7 +379,12 @@ func (pr *PageRenderer) writeLimitsSelect(sb *strings.Builder) error {
 		Value: num.Itoa(pr.Limit),
 	}
 
-	return sr.Render(sb, "title", tbs.GetText(pr.Locale, "pager.limits.tooltip"))
+	args := []any{
+		"title=", tbs.GetText(pr.Locale, "pager.limits.tooltip"),
+		"class=", tbs.GetText(pr.Locale, "pager.limits.class"),
+	}
+
+	return sr.Render(sb, args...)
 }
 
 func (pr *PageRenderer) writePagerLimits(sb *strings.Builder) error {

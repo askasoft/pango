@@ -27,7 +27,7 @@ func (sr *SelectRenderer) Render(sb *strings.Builder, args ...any) error {
 		return err
 	}
 
-	a.Class("form-control ui-select")
+	a.Class("ui-select")
 	a.Name(sr.Name)
 	if sr.Disabled {
 		a.Set("disabled", "")

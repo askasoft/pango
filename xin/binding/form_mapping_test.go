@@ -230,7 +230,9 @@ func TestMappingTimeDuration(t *testing.T) {
 
 func TestMappingSlice(t *testing.T) {
 	var s struct {
-		Slice []int `form:"slice,strip,default=9"`
+		Slice  []int    `form:"slice,strip,default=9"`
+		Lslice []string `form:"lslice,lower,default=A"`
+		Uslice []string `form:"uslice,upper,default=a"`
 	}
 
 	// default value
@@ -241,11 +243,19 @@ func TestMappingSlice(t *testing.T) {
 	err = mappingByPtr(&s, formSource{"slice": {""}}, "form")
 	assert.NoError(t, err)
 	assert.Equal(t, []int{9}, s.Slice)
+	assert.Equal(t, []string{"A"}, s.Lslice)
+	assert.Equal(t, []string{"a"}, s.Uslice)
 
 	// ok
-	err = mappingByPtr(&s, formSource{"slice": {"3", "", " 4 "}}, "form")
+	err = mappingByPtr(&s, formSource{
+		"slice":  {"3", "", " 4 "},
+		"lslice": {"A", "", " B "},
+		"uslice": {"a", "", " b "},
+	}, "form")
 	assert.NoError(t, err)
 	assert.Equal(t, []int{3, 4}, s.Slice)
+	assert.Equal(t, []string{"a", "", " b "}, s.Lslice)
+	assert.Equal(t, []string{"A", "", " B "}, s.Uslice)
 
 	// error
 	err = mappingByPtr(&s, formSource{"slice": {"wrong"}}, "form")

@@ -7,7 +7,7 @@ import (
 
 type Sorter struct {
 	Col string `form:"c"`
-	Dir string `form:"d"`
+	Dir string `form:"d,lower"`
 }
 
 // String return Col + " " + Dir

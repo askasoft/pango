@@ -57,13 +57,13 @@ func mapFormByTag(ptr any, form map[string][]string, tag string) error {
 
 // setter tries to set value on a walking by fields of a struct
 type setter interface {
-	TrySet(value reflect.Value, field reflect.StructField, key string, opt setOptions) (isSet bool, err *FieldBindError)
+	TrySet(value reflect.Value, field reflect.StructField, key string, opt *setOptions) (isSet bool, err *FieldBindError)
 }
 
 type formSource map[string][]string
 
 // TrySet tries to set a value by request's form source (like map[string][]string)
-func (form formSource) TrySet(value reflect.Value, field reflect.StructField, key string, opt setOptions) (isSet bool, err *FieldBindError) {
+func (form formSource) TrySet(value reflect.Value, field reflect.StructField, key string, opt *setOptions) (isSet bool, err *FieldBindError) {
 	return setByForm(value, field, form, key, opt)
 }
 
@@ -145,8 +145,10 @@ func getStructFieldPrefix(prefix string, field reflect.StructField, tag string) 
 }
 
 type setOptions struct {
-	stripValue   bool
-	defaultValue string
+	defaults string
+	strip    bool
+	lower    bool
+	upper    bool
 }
 
 func tryToSetValue(prefix string, value reflect.Value, field reflect.StructField, setter setter, tag string) (isSet bool, err *FieldBindError) {
@@ -163,16 +165,20 @@ func tryToSetValue(prefix string, value reflect.Value, field reflect.StructField
 		return false, nil
 	}
 
-	var setOpts setOptions
+	setOpts := &setOptions{}
 	var opt string
 	for len(opts) > 0 {
 		opt, opts = head(opts, ",")
 		k, v := head(opt, "=")
 		switch k {
 		case "default":
-			setOpts.defaultValue = v
+			setOpts.defaults = v
 		case "strip":
-			setOpts.stripValue = true
+			setOpts.strip = true
+		case "lower":
+			setOpts.lower = true
+		case "upper":
+			setOpts.upper = true
 		}
 	}
 
@@ -207,7 +213,7 @@ func alterFormKey(key string) string {
 	return sb.String()
 }
 
-func setByForm(value reflect.Value, field reflect.StructField, form map[string][]string, key string, opt setOptions) (isSet bool, be *FieldBindError) {
+func setByForm(value reflect.Value, field reflect.StructField, form map[string][]string, key string, opt *setOptions) (isSet bool, be *FieldBindError) {
 	vs, ok := form[key]
 	if !ok {
 		akey := alterFormKey(key)
@@ -216,12 +222,20 @@ func setByForm(value reflect.Value, field reflect.StructField, form map[string][
 		}
 	}
 
-	if ok && opt.stripValue {
-		vs = str.RemoveEmpties(str.Strips(vs))
-		ok = (len(vs) > 0)
+	if ok {
+		if opt.lower {
+			vs = str.ToLowers(vs)
+		}
+		if opt.upper {
+			vs = str.ToUppers(vs)
+		}
+		if opt.strip {
+			vs = str.RemoveEmpties(str.Strips(vs))
+			ok = (len(vs) > 0)
+		}
 	}
 
-	if !ok && opt.defaultValue == "" {
+	if !ok && opt.defaults == "" {
 		return
 	}
 
@@ -229,12 +243,12 @@ func setByForm(value reflect.Value, field reflect.StructField, form map[string][
 	switch value.Kind() {
 	case reflect.Slice:
 		if !ok {
-			vs = []string{opt.defaultValue}
+			vs = []string{opt.defaults}
 		}
 		isSet, err = true, setSlice(vs, value, field)
 	case reflect.Array:
 		if !ok {
-			vs = []string{opt.defaultValue}
+			vs = []string{opt.defaults}
 		}
 		if len(vs) != value.Len() {
 			isSet, err = false, fmt.Errorf("%q is not valid value for %s", vs, value.Type().String())
@@ -244,7 +258,7 @@ func setByForm(value reflect.Value, field reflect.StructField, form map[string][
 	default:
 		var val string
 		if !ok {
-			val = opt.defaultValue
+			val = opt.defaults
 		}
 
 		if len(vs) > 0 {

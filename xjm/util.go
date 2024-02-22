@@ -29,6 +29,10 @@ func Encode(v any) string {
 }
 
 func Decode(p string, v any) error {
+	if p == "" {
+		return nil
+	}
+
 	if ps, ok := v.(*string); ok {
 		*ps = p
 		return nil

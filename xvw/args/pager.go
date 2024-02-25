@@ -26,9 +26,14 @@ func (p *Pager) End() int {
 
 // Pages return the pages according to the total, limit.
 func (p *Pager) Pages() int {
+	if p.Total <= 0 {
+		return 0
+	}
+
 	if p.Limit <= 0 {
 		return 1
 	}
+
 	return ((p.Total - 1) / p.Limit) + 1
 }
 
@@ -42,7 +47,8 @@ func (p *Pager) Normalize(limits ...int) {
 
 	if p.Page <= 0 {
 		p.Page = 1
-	} else if p.Page > p.Pages() {
+	}
+	if p.Page > p.Pages() {
 		p.Page = p.Pages()
 	}
 }

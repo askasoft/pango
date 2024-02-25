@@ -43,8 +43,15 @@ func (gjm *gjm) GetJobLogs(jid int64, start, limit int, levels ...string) ([]*xj
 	if len(levels) > 0 {
 		tx.Where("level IN ?", levels)
 	}
+	if start > 0 {
+		tx = tx.Offset(start)
+	}
+	if limit > 0 {
+		tx = tx.Limit(limit)
+	}
+	tx = tx.Order("id ASC")
 
-	r := tx.Order("id ASC").Offset(start).Limit(limit).Find(&jls)
+	r := tx.Find(&jls)
 	return jls, r.Error
 }
 
@@ -88,9 +95,15 @@ func (gjm *gjm) FindJob(name string, cols ...string) (*xjm.Job, error) {
 func (gjm *gjm) FindJobs(name string, start, limit int, cols ...string) ([]*xjm.Job, error) {
 	jobs := []*xjm.Job{}
 
-	tx := gjm.db.Table(gjm.jt).Where("name = ?", name).Order("id DESC").Offset(start).Limit(limit)
+	tx := gjm.db.Table(gjm.jt).Where("name = ?", name).Order("id DESC")
 	if len(cols) > 0 {
 		tx = tx.Select(cols)
+	}
+	if start > 0 {
+		tx = tx.Offset(start)
+	}
+	if limit > 0 {
+		tx = tx.Limit(limit)
 	}
 
 	r := tx.Find(&jobs)

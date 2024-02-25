@@ -23,8 +23,8 @@ func NewJobLogWriter(jmr JobManager, jid int64) *JobLogWriter {
 	jlw.Filter = log.NewLevelFilter(log.LevelDebug)
 	jlw.BatchCount = 100
 	jlw.CacheCount = 200
-	jlw.FlushLevel = log.LevelError
-	jlw.FlushDelta = time.Second * 2
+	jlw.FlushLevel = log.LevelWarn
+	jlw.FlushDelta = time.Second
 
 	return jlw
 }

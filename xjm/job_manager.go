@@ -36,7 +36,7 @@ type JobManager interface {
 	AbortJob(jid int64, reason string) error
 
 	// CompleteJob complete the job
-	CompleteJob(jid int64, state, result string) error
+	CompleteJob(jid int64, result string) error
 
 	// CheckoutJob checkout the job to the running status
 	CheckoutJob(jid, rid int64) error
@@ -44,8 +44,8 @@ type JobManager interface {
 	// PingJob update the job updated_at to now
 	PingJob(jid, rid int64) error
 
-	// RunningJob update the running job state and result
-	RunningJob(jid, rid int64, state, result string) error
+	// RunningJob update the running job state
+	RunningJob(jid, rid int64, state string) error
 
 	// ReappendJobs reappend the interrupted runnings job to the pennding status
 	ReappendJobs(before time.Time) (int64, error)

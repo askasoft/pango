@@ -140,11 +140,11 @@ func (gjm *gjm) AbortJob(jid int64, reason string) error {
 	return nil
 }
 
-func (gjm *gjm) CompleteJob(jid int64, state, result string) error {
-	job := &xjm.Job{Status: xjm.JobStatusCompleted, State: state, Result: result}
+func (gjm *gjm) CompleteJob(jid int64, result string) error {
+	job := &xjm.Job{Status: xjm.JobStatusCompleted, Result: result}
 
 	tx := gjm.db.Table(gjm.jt).Where("id = ?", jid)
-	r := tx.Select("status", "state", "result", "error").Updates(job)
+	r := tx.Select("status", "result", "error").Updates(job)
 	if r.Error != nil {
 		return r.Error
 	}
@@ -179,11 +179,9 @@ func (gjm *gjm) PingJob(jid, rid int64) error {
 	return nil
 }
 
-func (gjm *gjm) RunningJob(jid, rid int64, state, result string) error {
-	job := &xjm.Job{State: state, Result: result}
-
-	tx := gjm.db.Table(gjm.jt).Where("id = ? AND rid = ? AND status = ?", jid, rid, xjm.JobStatusRunning)
-	r := tx.Select("state", "result").Updates(job)
+func (gjm *gjm) RunningJob(jid, rid int64, state string) error {
+	tx := gjm.db.Table(gjm.jt).Where("id = ? AND rid = ?", jid, rid)
+	r := tx.Update("state", state)
 	if r.Error != nil {
 		return r.Error
 	}

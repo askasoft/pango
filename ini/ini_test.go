@@ -1,6 +1,7 @@
 package ini
 
 import (
+	"bytes"
 	"os"
 	"strings"
 	"testing"
@@ -10,6 +11,15 @@ import (
 	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/iox"
 )
+
+func TestLoadEmpty(t *testing.T) {
+	ini := NewIni()
+
+	buf := bytes.NewBuffer([]byte{})
+	if err := ini.LoadData(buf); err != nil {
+		t.Errorf("ini.LoadData('') = %v", err)
+	}
+}
 
 func TestLoadFile(t *testing.T) {
 	fsrc := "testdata/source.ini"

@@ -2,6 +2,7 @@ package iox
 
 import (
 	"bufio"
+	"errors"
 	"io"
 
 	"github.com/askasoft/pango/str"
@@ -107,9 +108,14 @@ func ReadFull(r io.Reader, buf []byte) (n int, err error) {
 func SkipBOM(r io.Reader) (io.Reader, error) {
 	br := bufio.NewReader(r)
 	c, _, err := br.ReadRune()
+
+	if errors.Is(err, io.EOF) {
+		return br, nil
+	}
 	if err != nil {
 		return br, err
 	}
+
 	if c != BOM {
 		// Not a BOM -- put the rune back
 		err = br.UnreadRune()

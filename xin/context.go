@@ -811,7 +811,7 @@ func (c *Context) ClientIP() string {
 	// Check if we're running on a trusted platform, continue running backwards if error
 	if c.engine.TrustedIPHeader != "" {
 		// Developers can define their own header of Trusted Platform or use predefined constants
-		if addr := c.requestHeader(c.engine.TrustedIPHeader); addr != "" {
+		if addr := c.GetHeader(c.engine.TrustedIPHeader); addr != "" {
 			return addr
 		}
 	}
@@ -826,7 +826,7 @@ func (c *Context) ClientIP() string {
 
 	if len(c.engine.RemoteIPHeaders) > 0 && c.engine.isTrustedProxy(remoteIP) {
 		for _, headerName := range c.engine.RemoteIPHeaders {
-			ip, valid := c.engine.validateClientIP(c.requestHeader(headerName))
+			ip, valid := c.engine.validateClientIP(c.GetHeader(headerName))
 			if valid {
 				return ip
 			}
@@ -846,21 +846,17 @@ func (c *Context) RemoteIP() string {
 
 // ContentType returns the Content-Type header of the request.
 func (c *Context) ContentType() string {
-	return filterFlags(c.requestHeader("Content-Type"))
+	return filterFlags(c.GetHeader("Content-Type"))
 }
 
 // IsWebsocket returns true if the request headers indicate that a websocket
 // handshake is being initiated by the client.
 func (c *Context) IsWebsocket() bool {
-	if strings.Contains(strings.ToLower(c.requestHeader("Connection")), "upgrade") &&
-		strings.EqualFold(c.requestHeader("Upgrade"), "websocket") {
+	if strings.Contains(strings.ToLower(c.GetHeader("Connection")), "upgrade") &&
+		strings.EqualFold(c.GetHeader("Upgrade"), "websocket") {
 		return true
 	}
 	return false
-}
-
-func (c *Context) requestHeader(key string) string {
-	return c.Request.Header.Get(key)
 }
 
 /************************************/
@@ -898,7 +894,7 @@ func (c *Context) Header(key, value string) {
 
 // GetHeader returns value from request headers.
 func (c *Context) GetHeader(key string) string {
-	return c.requestHeader(key)
+	return c.Request.Header.Get(key)
 }
 
 // GetRawData returns stream data.
@@ -1142,7 +1138,7 @@ func (c *Context) NegotiateFormat(offered ...string) string {
 	}
 
 	if c.Accepted == nil {
-		c.Accepted = parseAccept(c.requestHeader("Accept"))
+		c.Accepted = parseAccept(c.GetHeader("Accept"))
 	}
 	if len(c.Accepted) == 0 {
 		return offered[0]

@@ -59,7 +59,7 @@ func TestAzureOpenAICreateChatCompletion(t *testing.T) {
 	fmt.Println(res)
 }
 
-func TestAzureOpenAICreateTextEmbeddings(t *testing.T) {
+func TestAzureOpenAICreateTextEmbeddingsAda002(t *testing.T) {
 	aoai := testNewAzureOpenAI(t)
 	if aoai == nil {
 		return
@@ -75,7 +75,50 @@ func TestAzureOpenAICreateTextEmbeddings(t *testing.T) {
 	res, err := aoai.CreateTextEmbeddings(req)
 	if err != nil {
 		t.Fatalf("AzureOpenAI.CreateTextEmbeddings(): %v", err)
+	} else {
+		fmt.Println(len(res.Embedding()), res.Usage)
+	}
+}
+
+func TestAzureOpenAICreateTextEmbeddings3Small(t *testing.T) {
+	aoai := testNewAzureOpenAI(t)
+	if aoai == nil {
+		return
 	}
 
-	fmt.Println(res)
+	aoai.Deployment = os.Getenv("AZURE_OPENAI_TEMB_DEPLOYMENT")
+
+	req := &TextEmbeddingsRequest{
+		Model: "text-embedding-3-small",
+		Input: []string{"あなたはだれですか？"},
+	}
+
+	res, err := aoai.CreateTextEmbeddings(req)
+	if err != nil {
+		t.Fatalf("AzureOpenAI.CreateTextEmbeddings(): %v", err)
+	} else {
+		fmt.Println(len(res.Embedding()), res.Usage)
+	}
+}
+
+func TestAzureCreateTextEmbeddings3LargeWithDimensions(t *testing.T) {
+	aoai := testNewAzureOpenAI(t)
+	if aoai == nil {
+		return
+	}
+
+	aoai.Deployment = os.Getenv("AZURE_OPENAI_TEMB_DEPLOYMENT")
+
+	req := &TextEmbeddingsRequest{
+		Model:      "text-embedding-3-large",
+		Input:      []string{"あなたはだれですか？"},
+		Dimensions: 1536,
+	}
+
+	res, err := aoai.CreateTextEmbeddings(req)
+	if err != nil {
+		t.Fatalf("AzureOpenAI.CreateTextEmbeddings(): %v", err)
+	} else {
+		fmt.Println(len(res.Embedding()), res.Usage)
+	}
 }

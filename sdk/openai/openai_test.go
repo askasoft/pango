@@ -50,7 +50,7 @@ func TestOpenAICreateChatCompletion(t *testing.T) {
 	fmt.Println(res)
 }
 
-func TestOpenAICreateTextEmbeddings(t *testing.T) {
+func TestOpenAICreateTextEmbeddingsAda002(t *testing.T) {
 	oai := testNewOpenAI(t)
 	if oai == nil {
 		return
@@ -64,7 +64,46 @@ func TestOpenAICreateTextEmbeddings(t *testing.T) {
 	res, err := oai.CreateTextEmbeddings(req)
 	if err != nil {
 		t.Fatalf("OpenAI.CreateTextEmbeddings(): %v", err)
+	} else {
+		fmt.Println(len(res.Embedding()), res.Usage)
+	}
+}
+
+func TestOpenAICreateTextEmbeddings3Small(t *testing.T) {
+	oai := testNewOpenAI(t)
+	if oai == nil {
+		return
 	}
 
-	fmt.Println(res)
+	req := &TextEmbeddingsRequest{
+		Model: "text-embedding-3-small",
+		Input: []string{"あなたはだれですか？"},
+	}
+
+	res, err := oai.CreateTextEmbeddings(req)
+	if err != nil {
+		t.Fatalf("OpenAI.CreateTextEmbeddings(): %v", err)
+	} else {
+		fmt.Println(len(res.Embedding()), res.Usage)
+	}
+}
+
+func TestOpenAICreateTextEmbeddings3LargeWithDimensions(t *testing.T) {
+	oai := testNewOpenAI(t)
+	if oai == nil {
+		return
+	}
+
+	req := &TextEmbeddingsRequest{
+		Model:      "text-embedding-3-large",
+		Input:      []string{"あなたはだれですか？"},
+		Dimensions: 1536,
+	}
+
+	res, err := oai.CreateTextEmbeddings(req)
+	if err != nil {
+		t.Fatalf("OpenAI.CreateTextEmbeddings(): %v", err)
+	} else {
+		fmt.Println(len(res.Embedding()), res.Usage)
+	}
 }

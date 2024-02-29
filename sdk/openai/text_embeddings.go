@@ -6,10 +6,13 @@ type TextEmbeddingsRequest struct {
 	// Input Input text to embed (required)
 	Input []string `json:"input,omitempty"`
 
-	// ID of the model to use (required)
+	// Model ID of the model to use (required)
 	Model string `json:"model,omitempty"`
 
-	// A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse.
+	// Dimensions (optional) The number of dimensions the resulting output embeddings should have. Only supported in text-embedding-3 and later models.
+	Dimensions int `json:"dimensions,omitempty"`
+
+	// User (optional) A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse.
 	User string `json:"user,omitempty"`
 }
 

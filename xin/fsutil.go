@@ -29,6 +29,20 @@ func ServeFSFileHandler(hfs http.FileSystem, filePath string) HandlerFunc {
 	}
 }
 
+func ServeFSFuncFileHandler(hfsc func(c *Context) http.FileSystem, filePath string) HandlerFunc {
+	return func(c *Context) {
+		org := c.Request.URL.Path
+
+		defer func(url string) {
+			c.Request.URL.Path = url
+		}(org)
+
+		c.Request.URL.Path = filePath
+		hfs := hfsc(c)
+		http.FileServer(hfs).ServeHTTP(c.Writer, c.Request)
+	}
+}
+
 func ServeFSHandler(prefix string, hfs http.FileSystem, filePath string) HandlerFunc {
 	fileServer := httpx.FileServer(prefix, hfs, filePath)
 	return func(c *Context) {
@@ -36,7 +50,7 @@ func ServeFSHandler(prefix string, hfs http.FileSystem, filePath string) Handler
 	}
 }
 
-func ServeFSCHandler(prefix string, hfsc func(c *Context) http.FileSystem, filePath string) HandlerFunc {
+func ServeFSFuncHandler(prefix string, hfsc func(c *Context) http.FileSystem, filePath string) HandlerFunc {
 	return func(c *Context) {
 		hfs := hfsc(c)
 		fileServer := httpx.FileServer(prefix, hfs, filePath)
@@ -98,15 +112,15 @@ func StaticFS(r IRoutes, relativePath string, hfs http.FileSystem, filePath stri
 	r.HEAD(urlPattern, handlers...)
 }
 
-// StaticFSC works just like `StaticFS()` but a dynamic `http.FileSystem` can be used instead.
-func StaticFSC(r IRoutes, relativePath string, hfsc func(c *Context) http.FileSystem, filePath string, handlers ...HandlerFunc) {
+// StaticFSFunc works just like `StaticFS()` but a dynamic `http.FileSystem` can be used instead.
+func StaticFSFunc(r IRoutes, relativePath string, hfsc func(c *Context) http.FileSystem, filePath string, handlers ...HandlerFunc) {
 	if strings.Contains(relativePath, ":") || strings.Contains(relativePath, "*") {
 		panic("URL parameters can not be used when serving a static folder")
 	}
 
 	prefix := path.Join(r.BasePath(), relativePath)
 
-	handler := ServeFSCHandler(prefix, hfsc, filePath)
+	handler := ServeFSFuncHandler(prefix, hfsc, filePath)
 	handlers = append(handlers, handler)
 
 	// Register GET and HEAD handlers
@@ -123,6 +137,19 @@ func StaticFSFile(r IRoutes, relativePath string, hfs http.FileSystem, filePath 
 	}
 
 	handler := ServeFSFileHandler(hfs, filePath)
+	handlers = append(handlers, handler)
+
+	r.GET(relativePath, handlers...)
+	r.HEAD(relativePath, handlers...)
+}
+
+// StaticFSFuncFile works just like `StaticFSFile()` but a dynamic `http.FileSystem` can be used instead.
+func StaticFSFuncFile(r IRoutes, relativePath string, hfsc func(c *Context) http.FileSystem, filePath string, handlers ...HandlerFunc) {
+	if strings.Contains(relativePath, ":") || strings.Contains(relativePath, "*") {
+		panic("URL parameters can not be used when serving a static file")
+	}
+
+	handler := ServeFSFuncFileHandler(hfsc, filePath)
 	handlers = append(handlers, handler)
 
 	r.GET(relativePath, handlers...)

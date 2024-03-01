@@ -2,7 +2,6 @@ package xmw
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/askasoft/pango/xin"
 )
@@ -16,17 +15,10 @@ type HTTPSRedirector struct {
 
 	// SSLHost is the host name that is used to redirect http requests to https. Default is "", which indicates to use the same host.
 	SSLHost string
-
-	// ProxyHeaders is set of header keys with associated values that would indicate a valid https request.
-	// Useful when behind a Proxy Server(Apache, Nginx).
-	// Default is `map[string]string{"X-Forwarded-Proto": "https"}`.
-	ProxyHeaders map[string]string
 }
 
 func NewHTTPSRedirector() *HTTPSRedirector {
-	return &HTTPSRedirector{
-		ProxyHeaders: map[string]string{"X-Forwarded-Proto": "https"},
-	}
+	return &HTTPSRedirector{}
 }
 
 // Disable disable the secure handler or not
@@ -46,26 +38,12 @@ func (sh *HTTPSRedirector) Handle(c *xin.Context) {
 		return
 	}
 
-	r := c.Request
-
-	// SSL check.
-	isSSL := false
-	if strings.EqualFold(r.URL.Scheme, "https") || r.TLS != nil {
-		isSSL = true
-	} else {
-		sslProxyHeaders := sh.ProxyHeaders
-		for k, v := range sslProxyHeaders {
-			if c.GetHeader(k) == v {
-				isSSL = true
-				break
-			}
-		}
-	}
-
-	if isSSL {
+	if c.IsSecure() {
 		c.Next()
 		return
 	}
+
+	r := c.Request
 
 	url := r.URL
 	url.Scheme = "https"

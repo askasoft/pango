@@ -25,6 +25,7 @@ func TestHTTPSRedirectorDisabled(t *testing.T) {
 
 	res := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/foo", nil)
+	req.RemoteAddr = "127.0.0.1:1000"
 	req.Host = "www.example.com"
 	req.URL.Scheme = "http"
 
@@ -38,6 +39,7 @@ func TestHTTPSRedirectorNoConfig(t *testing.T) {
 
 	res := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/foo", nil)
+	req.RemoteAddr = "127.0.0.1:1000"
 	req.Host = "www.example.com"
 	req.URL.Scheme = "http"
 
@@ -54,6 +56,7 @@ func TestHTTPSRedirectorWithHost(t *testing.T) {
 
 	res := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/foo", nil)
+	req.RemoteAddr = "127.0.0.1:1000"
 	req.Host = "www.example.com"
 	req.URL.Scheme = "http"
 
@@ -65,9 +68,11 @@ func TestHTTPSRedirectorWithHost(t *testing.T) {
 
 func TestHTTPSRedirectorNoProxyHeaders(t *testing.T) {
 	s := newHTTPSRedirectorServer(&HTTPSRedirector{})
+	s.SSLProxyHeaders = map[string]string{}
 
 	res := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/foo", nil)
+	req.RemoteAddr = "127.0.0.1:1000"
 	req.Host = "www.example.com"
 	req.URL.Scheme = "http"
 	req.Header.Add("X-Forwarded-Proto", "https")
@@ -83,6 +88,7 @@ func TestHTTPSRedirectorWithProxyHeaders(t *testing.T) {
 
 	res := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/foo", nil)
+	req.RemoteAddr = "127.0.0.1:1000"
 	req.Host = "www.example.com"
 	req.URL.Scheme = "http"
 	req.Header.Add("X-Forwarded-Proto", "https")
@@ -94,12 +100,12 @@ func TestHTTPSRedirectorWithProxyHeaders(t *testing.T) {
 
 func TestHTTPSRedirectorWithProxyHeadersDisabled(t *testing.T) {
 	s := newHTTPSRedirectorServer(&HTTPSRedirector{
-		ProxyHeaders: map[string]string{"X-Forwarded-Proto": "https"},
-		disabled:     true,
+		disabled: true,
 	})
 
 	res := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/foo", nil)
+	req.RemoteAddr = "127.0.0.1:1000"
 	req.Host = "www.example.com"
 	req.URL.Scheme = "http"
 	req.Header.Add("X-Forwarded-Proto", "http")
@@ -111,12 +117,12 @@ func TestHTTPSRedirectorWithProxyHeadersDisabled(t *testing.T) {
 
 func TestHTTPSRedirectorWithProxyAndHost(t *testing.T) {
 	s := newHTTPSRedirectorServer(&HTTPSRedirector{
-		ProxyHeaders: map[string]string{"X-Forwarded-Proto": "https"},
-		SSLHost:      "secure.example.com",
+		SSLHost: "secure.example.com",
 	})
 
 	res := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/foo", nil)
+	req.RemoteAddr = "127.0.0.1:1000"
 	req.Host = "www.example.com"
 	req.URL.Scheme = "http"
 	req.Header.Add("X-Forwarded-Proto", "https")
@@ -128,12 +134,13 @@ func TestHTTPSRedirectorWithProxyAndHost(t *testing.T) {
 
 func TestHTTPSRedirectorCustomBadProxyAndHost(t *testing.T) {
 	s := newHTTPSRedirectorServer(&HTTPSRedirector{
-		ProxyHeaders: map[string]string{"X-Forwarded-Proto": "superman"},
-		SSLHost:      "secure.example.com",
+		SSLHost: "secure.example.com",
 	})
+	s.SSLProxyHeaders = map[string]string{"X-Forwarded-Proto": "bad"}
 
 	res := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/foo", nil)
+	req.RemoteAddr = "127.0.0.1:1000"
 	req.Host = "www.example.com"
 	req.URL.Scheme = "http"
 	req.Header.Add("X-Forwarded-Proto", "https")
@@ -146,13 +153,14 @@ func TestHTTPSRedirectorCustomBadProxyAndHost(t *testing.T) {
 
 func TestHTTPSRedirectorCustomBadProxyAndHostWithTempRedirect(t *testing.T) {
 	s := newHTTPSRedirectorServer(&HTTPSRedirector{
-		ProxyHeaders:      map[string]string{"X-Forwarded-Proto": "superman"},
 		SSLHost:           "secure.example.com",
 		TemporaryRedirect: true,
 	})
+	s.SSLProxyHeaders = map[string]string{"X-Forwarded-Proto": "bad"}
 
 	res := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/foo", nil)
+	req.RemoteAddr = "127.0.0.1:1000"
 	req.Host = "www.example.com"
 	req.URL.Scheme = "http"
 	req.Header.Add("X-Forwarded-Proto", "https")

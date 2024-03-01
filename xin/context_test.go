@@ -1428,7 +1428,7 @@ func resetContextForClientIPTests(c *Context) {
 	c.Request.Header.Set("CF-Connecting-IP", "60.60.60.60")
 	c.Request.RemoteAddr = "  40.40.40.40:42123 "
 	c.engine.TrustedIPHeader = ""
-	c.engine.SetTrustedProxies(defaultTrustedProxies)
+	c.engine.SetTrustedProxies(AnywhereCIDRs)
 }
 
 func TestContextContentType(t *testing.T) {

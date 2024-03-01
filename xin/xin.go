@@ -15,7 +15,8 @@ import (
 
 const defaultMultipartMemory = 32 << 20 // 32 MB
 
-var defaultTrustedProxies = []string{"0.0.0.0/0", "::/0"}
+// AnywhereCIDRs []string{"0.0.0.0/0", "::/0"} used by default TrustedProxies
+var AnywhereCIDRs = []string{"0.0.0.0/0", "::/0"}
 
 // HandlerFunc defines the handler used by xin middleware as return value.
 type HandlerFunc func(*Context)
@@ -47,6 +48,7 @@ const (
 	// PlatformGoogleAppEngine when running on Google App Engine. Trust X-Appengine-Remote-Addr
 	// for determining the client's IP
 	PlatformGoogleAppEngine = "X-Appengine-Remote-Addr"
+
 	// PlatformCloudflare when using Cloudflare's CDN. Trust CF-Connecting-IP for determining
 	// the client's IP
 	PlatformCloudflare = "CF-Connecting-IP"
@@ -104,6 +106,11 @@ type Engine struct {
 	// that platform to determine the client IP
 	TrustedIPHeader string
 
+	// SSLProxyHeaders is set of header keys with associated values that would indicate a valid https request.
+	// Useful when behind a Proxy Server (Apache, Nginx).
+	// Default is `map[string]string{"X-Forwarded-Proto": "https"}`.
+	SSLProxyHeaders map[string]string
+
 	// MaxMultipartMemory value of 'maxMemory' param that is given to http.Request's ParseMultipartForm
 	// method call.
 	MaxMultipartMemory int64
@@ -152,6 +159,7 @@ func New() *Engine {
 		HandleMethodNotAllowed: false,
 		RemoteIPHeaders:        []string{"X-Forwarded-For", "X-Real-IP"},
 		TrustedIPHeader:        "",
+		SSLProxyHeaders:        map[string]string{"X-Forwarded-Proto": "https"},
 		UseRawPath:             false,
 		RemoveExtraSlash:       false,
 		UnescapePathValues:     true,
@@ -166,7 +174,7 @@ func New() *Engine {
 	engine.pool.New = func() any {
 		return engine.allocateContext(engine.maxParams)
 	}
-	engine.SetTrustedProxies(defaultTrustedProxies) //nolint: errcheck
+	engine.SetTrustedProxies(AnywhereCIDRs) //nolint: errcheck
 	return engine
 }
 

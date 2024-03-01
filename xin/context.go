@@ -802,6 +802,34 @@ func (c *Context) BindBodyWith(obj any, bb binding.BodyBinding) (err error) {
 	return
 }
 
+// IsSecure implements one best effort algorithm to check the https request.
+// It checks the Request.URL.Scheme is 'https' or Request.TLS != nil.
+// It called c.RemoteIP() under the hood, to check if the remote IP is a trusted proxy or not,
+// then checks the SSLProxyHeaders (default "X-Forwarded-Proto": "https") to determine the https request.
+func (c *Context) IsSecure() bool {
+	r := c.Request
+	if strings.EqualFold(r.URL.Scheme, "https") || r.TLS != nil {
+		return true
+	}
+
+	// It also checks if the remoteIP is a trusted proxy or not.
+	// In order to perform this validation, it will see if the IP is contained within at least one of the CIDR blocks
+	// defined by Engine.SetTrustedProxies()
+	remoteIP := net.ParseIP(c.RemoteIP())
+	if remoteIP == nil || !c.engine.isTrustedProxy(remoteIP) {
+		return false
+	}
+
+	sslProxyHeaders := c.engine.SSLProxyHeaders
+	for k, v := range sslProxyHeaders {
+		if c.GetHeader(k) == v {
+			return true
+		}
+	}
+
+	return false
+}
+
 // ClientIP implements one best effort algorithm to return the real client IP.
 // It called c.RemoteIP() under the hood, to check if the remote IP is a trusted proxy or not.
 // If it is it will then try to parse the headers defined in Engine.RemoteIPHeaders (defaulting to [X-Forwarded-For, X-Real-Ip]).

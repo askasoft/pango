@@ -13,7 +13,12 @@ import (
 	"github.com/askasoft/pango/xin/validate"
 )
 
-const defaultMultipartMemory = 32 << 20 // 32 MB
+const (
+	defaultMultipartMemory = 32 << 20 // 32 MB
+
+	DefaultNotFoundBody         = "404 page not found"
+	DefaultMethodNotAllowedBody = "405 method not allowed"
+)
 
 // AnywhereCIDRs []string{"0.0.0.0/0", "::/0"} used by default TrustedProxies
 var AnywhereCIDRs = []string{"0.0.0.0/0", "::/0"}
@@ -450,19 +455,27 @@ func (engine *Engine) handleHTTPRequest(c *Context) {
 			}
 			if value := tree.root.getValue(rPath, nil, c.skippedNodes, unescape); value.handlers != nil {
 				c.handlers = engine.allNoMethod
-				serveError(c, http.StatusMethodNotAllowed)
+				serveError(c, http.StatusMethodNotAllowed, DefaultMethodNotAllowedBody)
 				return
 			}
 		}
 	}
 	c.handlers = engine.allNoRoute
-	serveError(c, http.StatusNotFound)
+	serveError(c, http.StatusNotFound, DefaultNotFoundBody)
 }
 
-func serveError(c *Context, code int) {
+func serveError(c *Context, code int, body string) {
 	c.writermem.status = code
 	c.Next()
 	if c.writermem.Written() {
+		return
+	}
+	if c.writermem.Status() == code {
+		c.writermem.Header().Set("Content-Type", MIMEPlain)
+		_, err := c.Writer.Write(str.UnsafeBytes(body))
+		if err != nil {
+			c.Logger.Warnf("cannot write message to writer during serve error: %v", err)
+		}
 		return
 	}
 	c.writermem.WriteHeaderNow()

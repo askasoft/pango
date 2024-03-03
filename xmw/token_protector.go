@@ -9,10 +9,10 @@ import (
 )
 
 const (
-	TokenAttrKey    = "WW_TOKEN"
+	TokenAttrKey    = "XMW_TOKEN"
 	TokenParamName  = "_token_"
-	TokenHeaderName = "X-WW-TOKEN" //nolint: gosec
-	TokenCookieName = "WW_TOKEN"
+	TokenHeaderName = "X-MW-TOKEN" //nolint: gosec
+	TokenCookieName = "X_TOKEN"
 )
 
 // TokenProtector token protector for CSRF

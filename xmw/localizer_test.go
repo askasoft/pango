@@ -46,7 +46,7 @@ func TestLocalizerHttpHeader(t *testing.T) {
 }
 
 func TestLocalizerQueryString(t *testing.T) {
-	req, _ := http.NewRequest("GET", "/?__locale=zh", nil)
+	req, _ := http.NewRequest("GET", "/?_locale_=zh", nil)
 
 	doLocalizerTest(t, req, "zh")
 }
@@ -54,7 +54,7 @@ func TestLocalizerQueryString(t *testing.T) {
 func TestLocalizerPostForm(t *testing.T) {
 	req, _ := http.NewRequest("POST", "/", nil)
 	req.PostForm = url.Values{}
-	req.PostForm.Add("__locale", "zh")
+	req.PostForm.Add("_locale_", "zh")
 
 	doLocalizerTest(t, req, "zh")
 }

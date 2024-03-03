@@ -7,13 +7,13 @@ import (
 
 const (
 	// LocaleParamName default parameter key name
-	LocaleParamName = "__locale"
+	LocaleParamName = "_locale_"
 
 	// LocaleHeaderName default http header name
 	LocaleHeaderName = "X-Accept-Language"
 
 	// LocaleCookieName default cookie name
-	LocaleCookieName = "WW_LOCALE"
+	LocaleCookieName = "X_LOCALE"
 )
 
 // Localizer localizer middleware

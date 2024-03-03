@@ -156,7 +156,7 @@ func (da *DigestAuth) checkUserPass(c *xin.Context, auth map[string]string) (any
 	if user == nil {
 		return nil, false
 	}
-	pass := da.UserProvider.GetPassword(user)
+	pass := user.GetPassword()
 
 	// hash password
 	ha1 := auth["username"] + ":" + da.Realm + ":" + pass

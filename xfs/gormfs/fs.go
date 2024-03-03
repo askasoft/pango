@@ -23,10 +23,8 @@ func FS(db *gorm.DB, table string) xfs.XFS {
 }
 
 func (gfs *gfs) Open(name string) (fs.File, error) {
-	db := gfs.db
-
-	f := &xfs.File{ID: name}
-	r := db.Table(gfs.tn).Omit("data").Take(f)
+	f := &xfs.File{}
+	r := gfs.db.Table(gfs.tn).Omit("data").Where("id = ?", name).First(f)
 	if errors.Is(r.Error, gorm.ErrRecordNotFound) {
 		return nil, fs.ErrNotExist
 	}
@@ -63,7 +61,7 @@ func (gfs *gfs) SaveFile(id string, filename string, data []byte, modTime ...tim
 
 func (gfs *gfs) ReadFile(id string) ([]byte, error) {
 	f := &xfs.File{}
-	r := gfs.db.Table(gfs.tn).Where("id = ?", id).Take(f)
+	r := gfs.db.Table(gfs.tn).Where("id = ?", id).First(f)
 	if errors.Is(r.Error, gorm.ErrRecordNotFound) {
 		return nil, fs.ErrNotExist
 	}

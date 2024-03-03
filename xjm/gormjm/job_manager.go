@@ -62,8 +62,7 @@ func (gjm *gjm) AddJobLogs(jls []*xjm.JobLog) error {
 
 func (gjm *gjm) GetJob(jid int64) (*xjm.Job, error) {
 	job := &xjm.Job{}
-
-	r := gjm.db.Table(gjm.jt).Take(job, jid)
+	r := gjm.db.Table(gjm.jt).Where("id = ?", jid).First(job)
 	if errors.Is(r.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
@@ -76,17 +75,17 @@ func (gjm *gjm) GetJob(jid int64) (*xjm.Job, error) {
 // FindJob find the latest job by name, default select all columns.
 // cols: columns to select.
 func (gjm *gjm) FindJob(name string, cols ...string) (*xjm.Job, error) {
-	job := &xjm.Job{}
-
 	tx := gjm.db.Table(gjm.jt).Where("name = ?", name).Order("id DESC")
 	if len(cols) > 0 {
 		tx = tx.Select(cols)
 	}
 
+	job := &xjm.Job{}
 	r := tx.First(job)
 	if errors.Is(r.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
+
 	return job, r.Error
 }
 

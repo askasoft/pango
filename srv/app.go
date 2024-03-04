@@ -1,13 +1,10 @@
 package srv
 
 import (
-	"flag"
 	"fmt"
-	"io"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 )
 
 type App interface {
@@ -23,11 +20,8 @@ type App interface {
 	// Version app version
 	Version() string
 
-	// Revision app revision
-	Revision() string
-
-	// BuildTime app build time
-	BuildTime() time.Time
+	// Usage print command line usage
+	Usage()
 
 	// Init initialize the app
 	Init()
@@ -49,8 +43,8 @@ type Cmd interface {
 	// Flag set custom options
 	Flag()
 
-	// CmdHelp print custom command
-	CmdHelp(io.Writer)
+	// PrintCommand print custom command
+	PrintCommand()
 
 	// Exec execute optional command except the internal command
 	// Basic: 'help' 'usage' 'version'
@@ -75,19 +69,6 @@ func Wait(app App) {
 			app.Shutdown()
 			break
 		}
-	}
-}
-
-var Usage func()
-
-func Help() {
-	if Usage != nil {
-		Usage()
-		return
-	}
-
-	if flag.CommandLine.Usage != nil {
-		flag.CommandLine.Usage()
 	}
 }
 

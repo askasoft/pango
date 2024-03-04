@@ -6,24 +6,35 @@ import (
 	"os"
 )
 
-// Main server main
-func Main(app App) {
-	Usage = func() {
-		out := flag.CommandLine.Output()
+func PrintDefaultCommand() {
+	out := flag.CommandLine.Output()
 
-		fmt.Fprintln(out, "Usage: "+app.Name()+" <command> [options]")
-		fmt.Fprintln(out, "  <command>:")
-		if cmd, ok := app.(Cmd); ok {
-			cmd.CmdHelp(out)
-		}
-		fmt.Fprintln(out, "    version         print the version information.")
-		fmt.Fprintln(out, "    help | usage    print the usage information.")
-		fmt.Fprintln(out, "  <options>:")
+	fmt.Fprintln(out, "    version             print the version information.")
+	fmt.Fprintln(out, "    help | usage        print the usage information.")
+}
 
-		flag.PrintDefaults()
+func PrintDefaultOptions() {
+	flag.PrintDefaults()
+}
+
+func PrintUsage(app App) {
+	out := flag.CommandLine.Output()
+
+	fmt.Fprintln(out, "Usage: "+app.Name()+" <command> [options]")
+	fmt.Fprintln(out, "  <command>:")
+	if cmd, ok := app.(Cmd); ok {
+		cmd.PrintCommand()
+	} else {
+		PrintDefaultCommand()
 	}
 
-	flag.CommandLine.Usage = Usage
+	fmt.Fprintln(out, "  <options>:")
+	PrintDefaultOptions()
+}
+
+// Main server main
+func Main(app App) {
+	flag.CommandLine.Usage = app.Usage
 
 	workdir := flag.String("d", "", "set the working directory.")
 
@@ -39,17 +50,18 @@ func Main(app App) {
 	switch arg {
 	case "help", "usage":
 		flag.CommandLine.SetOutput(os.Stdout)
-		Help()
+		app.Usage()
 	case "version":
-		fmt.Printf("%s.%s (%s)\n", app.Version(), app.Revision(), app.BuildTime().Local())
+		fmt.Println(app.Version())
 	case "":
 		runStandalone(app)
 	default:
 		if cmd, ok := app.(Cmd); ok {
 			cmd.Exec(arg)
 		} else {
+			flag.CommandLine.SetOutput(os.Stdout)
 			fmt.Fprintf(os.Stderr, "Invalid command %q\n\n", arg)
-			Help()
+			app.Usage()
 		}
 	}
 }

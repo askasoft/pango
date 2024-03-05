@@ -1,6 +1,7 @@
 package xfs
 
 import (
+	"errors"
 	"mime/multipart"
 	"os"
 	"path/filepath"
@@ -73,7 +74,12 @@ func CleanOutdatedLocalFiles(dir string, before time.Time, loggers ...log.Logger
 
 		if de.IsDir() {
 			CleanOutdatedLocalFiles(path, before, logger)
-			if err := fsu.DirIsEmpty(path); err != nil {
+			err := fsu.DirIsEmpty(path)
+			if errors.Is(err, fsu.ErrDirNotEmpty) {
+				continue
+			}
+
+			if err != nil {
 				log.Errorf("DirIsEmpty('%s') failed: %v", path, err)
 			} else {
 				if err := os.Remove(path); err != nil {

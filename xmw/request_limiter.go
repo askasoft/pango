@@ -1,10 +1,10 @@
 package xmw
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/askasoft/pango/iox"
-	"github.com/askasoft/pango/net/httpx"
 	"github.com/askasoft/pango/xin"
 )
 
@@ -39,10 +39,10 @@ func (rl *RequestLimiter) Handle(c *xin.Context) {
 	var err error
 
 	if c.Request.ContentLength > rl.MaxBodySize {
-		err = &httpx.MaxBytesError{Limit: rl.MaxBodySize}
+		err = &iox.MaxBytesError{Limit: rl.MaxBodySize}
 	} else {
 		crb := c.Request.Body
-		mbr := httpx.NewMaxBytesReader(crb, rl.MaxBodySize)
+		mbr := iox.NewMaxBytesReader(crb, rl.MaxBodySize)
 		c.Request.Body = mbr
 		c.Next()
 		c.Request.Body = crb
@@ -51,7 +51,8 @@ func (rl *RequestLimiter) Handle(c *xin.Context) {
 	}
 
 	if err != nil {
-		if mbe, ok := err.(*httpx.MaxBytesError); ok { //nolint: all
+		var mbe *iox.MaxBytesError
+		if ok := errors.As(err, &mbe); ok {
 			if rl.DrainBody {
 				iox.Drain(c.Request.Body)
 			}

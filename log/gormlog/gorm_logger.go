@@ -85,7 +85,7 @@ func (gl *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (str
 	case gl.SlowThreshold != 0 && elapsed > gl.SlowThreshold && gl.Logger.IsWarnEnabled():
 		sql, rows := fc()
 		gl.printf(gl.SlowSQLLevel, "SLOW >= %v [%d: %v] %s", gl.SlowThreshold, rows, elapsed, sql)
-	case gl.Logger.IsDebugEnabled():
+	case gl.Logger.IsLevelEnabled(gl.Level):
 		sql, rows := fc()
 		gl.printf(gl.Level, "[%d: %v] %s", rows, elapsed, sql)
 	}

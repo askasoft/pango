@@ -28,14 +28,14 @@ type FileInfo = fs.FileInfo
 type FileMode = fs.FileMode
 
 var (
-	ErrInvalid    = fs.ErrInvalid    // "invalid argument"
-	ErrPermission = fs.ErrPermission // "permission denied"
-	ErrExist      = fs.ErrExist      // "file already exists"
-	ErrNotExist   = fs.ErrNotExist   // "file does not exist"
-	ErrClosed     = fs.ErrClosed     // "file already closed"
-	ErrNotDir     = syscall.ENOTDIR
-	ErrIsDir      = errors.New("file is directory")
-	ErrNotEmpty   = errors.New("directory not empty")
+	ErrInvalid     = fs.ErrInvalid    // "invalid argument"
+	ErrPermission  = fs.ErrPermission // "permission denied"
+	ErrExist       = fs.ErrExist      // "file already exists"
+	ErrNotExist    = fs.ErrNotExist   // "file does not exist"
+	ErrClosed      = fs.ErrClosed     // "file already closed"
+	ErrNotDir      = syscall.ENOTDIR
+	ErrIsDir       = errors.New("file is directory")
+	ErrDirNotEmpty = errors.New("directory not empty")
 )
 
 // CopyFile copy src file to des file
@@ -90,7 +90,7 @@ func DirIsEmpty(dir string) error {
 	if err != nil {
 		return err
 	}
-	return ErrNotEmpty
+	return ErrDirNotEmpty
 }
 
 // DirExists check if the directory dir exists

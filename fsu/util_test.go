@@ -98,8 +98,8 @@ func TestDirIsEmpty(t *testing.T) {
 	}{
 		{"/test.txt", ErrNotDir},
 		{"/notexist", ErrNotExist},
-		{"/hasdir", ErrNotEmpty},
-		{"/hasfile", ErrNotEmpty},
+		{"/hasdir", ErrDirNotEmpty},
+		{"/hasfile", ErrDirNotEmpty},
 		{"/empty", nil},
 	}
 

@@ -18,18 +18,18 @@ import (
 
 // DigestAuth digest http authenticator
 type DigestAuth struct {
-	UserProvider UserProvider
-	AuthUserKey  string
 	Realm        string
 	Opaque       string
 	NonceExpires time.Duration
+	FindUser     FindUserFunc
+	AuthUserKey  string
 }
 
-func NewDigestAuth(up UserProvider) *DigestAuth {
+func NewDigestAuth(f FindUserFunc) *DigestAuth {
 	return &DigestAuth{
-		UserProvider: up,
 		AuthUserKey:  AuthUserKey,
 		NonceExpires: time.Minute * 5,
+		FindUser:     f,
 	}
 }
 
@@ -44,7 +44,14 @@ func (da *DigestAuth) Handle(c *xin.Context) {
 	if auth != "" {
 		dap := DigestAuthParams(auth)
 		if dap != nil {
-			if user, ok := da.checkAuthorization(c, dap); ok {
+			user, err := da.checkAuthorization(c, dap)
+			if err != nil {
+				c.Logger.Errorf("DigestAuth: %v", err)
+				c.AbortWithStatus(http.StatusInternalServerError)
+				return
+			}
+
+			if user != nil {
 				c.Set(AuthUserKey, user)
 				c.Next()
 				return
@@ -62,15 +69,15 @@ func (da *DigestAuth) Handle(c *xin.Context) {
 
 var noncer = cpt.NewTokener(8, 16)
 
-func (da *DigestAuth) checkAuthorization(c *xin.Context, auth map[string]string) (any, bool) {
+func (da *DigestAuth) checkAuthorization(c *xin.Context, auth map[string]string) (any, error) {
 	if !da.checkAlgorithm(c, auth) {
-		return nil, false
+		return nil, nil
 	}
 	if !da.checkURI(c, auth["uri"]) {
-		return nil, false
+		return nil, nil
 	}
 	if !da.checkNonce(c, auth["nonce"]) {
-		return nil, false
+		return nil, nil
 	}
 	return da.checkUserPass(c, auth)
 }
@@ -148,13 +155,16 @@ func (da *DigestAuth) checkNonce(c *xin.Context, nonce string) bool {
 	return true
 }
 
-func (da *DigestAuth) checkUserPass(c *xin.Context, auth map[string]string) (any, bool) {
+func (da *DigestAuth) checkUserPass(c *xin.Context, auth map[string]string) (any, error) {
 	digest := md5.New() //nolint: gosec
 
 	// find user
-	user := da.UserProvider.FindUser(auth["username"])
+	user, err := da.FindUser(c, auth["username"])
+	if err != nil {
+		return nil, err
+	}
 	if user == nil {
-		return nil, false
+		return nil, nil
 	}
 	pass := user.GetPassword()
 
@@ -178,10 +188,10 @@ func (da *DigestAuth) checkUserPass(c *xin.Context, auth map[string]string) (any
 	// check password
 	if kd != auth["response"] {
 		c.Logger.Debugf("Digest auth response %q is invalid", auth["response"])
-		return nil, false
+		return nil, nil
 	}
 
-	return user, true
+	return user, nil
 }
 
 // DigestAuthParams parses Authorization header from the

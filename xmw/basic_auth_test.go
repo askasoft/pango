@@ -25,11 +25,11 @@ func (ta *testAccount) GetPassword() string {
 
 type testAccounts map[string]*testAccount
 
-func (tas testAccounts) FindUser(username string) User {
+func (tas testAccounts) FindUser(c *xin.Context, username string) (AuthUser, error) {
 	if ta, ok := tas[username]; ok {
-		return ta
+		return ta, nil
 	}
-	return nil
+	return nil, nil
 }
 
 func testBasicAuthHeader(user, password string) string {
@@ -40,7 +40,7 @@ func testBasicAuthHeader(user, password string) string {
 func TestBasicAuthSucceed(t *testing.T) {
 	accounts := testAccounts{"admin": {"admin", "password"}}
 	router := xin.New()
-	router.Use(NewBasicAuth(accounts).Handler())
+	router.Use(NewBasicAuth(accounts.FindUser).Handler())
 	router.GET("/login", func(c *xin.Context) {
 		c.String(http.StatusOK, c.MustGet(AuthUserKey).(*testAccount).username)
 	})
@@ -58,7 +58,7 @@ func TestBasicAuth401(t *testing.T) {
 	called := false
 	accounts := testAccounts{"foo": {"foo", "bar"}}
 	router := xin.New()
-	router.Use(NewBasicAuth(accounts).Handler())
+	router.Use(NewBasicAuth(accounts.FindUser).Handler())
 	router.GET("/login", func(c *xin.Context) {
 		called = true
 		c.String(http.StatusOK, c.MustGet(AuthUserKey).(*testAccount).username)
@@ -78,11 +78,8 @@ func TestBasicAuth401WithCustomRealm(t *testing.T) {
 	called := false
 	accounts := testAccounts{"foo": {"foo", "bar"}}
 	router := xin.New()
-	ba := &BasicAuth{
-		UserProvider: accounts,
-		AuthUserKey:  AuthUserKey,
-		Realm:        "My Custom \"Realm\"",
-	}
+	ba := NewBasicAuth(accounts.FindUser)
+	ba.Realm = `My Custom "Realm"`
 	router.Use(ba.Handler())
 	router.GET("/login", func(c *xin.Context) {
 		called = true

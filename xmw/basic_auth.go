@@ -11,26 +11,24 @@ import (
 // AuthUserKey is the key for user credential authenticated saved in context
 const AuthUserKey = "XMW_USER"
 
-type User interface {
+type AuthUser interface {
 	GetUsername() string
 	GetPassword() string
 }
 
-type UserProvider interface {
-	FindUser(username string) User
-}
+type FindUserFunc func(c *xin.Context, username string) (AuthUser, error)
 
 // BasicAuth basic http authenticator
 type BasicAuth struct {
-	UserProvider UserProvider
-	AuthUserKey  string
-	Realm        string
+	Realm       string
+	FindUser    FindUserFunc
+	AuthUserKey string
 }
 
-func NewBasicAuth(up UserProvider) *BasicAuth {
+func NewBasicAuth(f FindUserFunc) *BasicAuth {
 	return &BasicAuth{
-		UserProvider: up,
-		AuthUserKey:  AuthUserKey,
+		AuthUserKey: AuthUserKey,
+		FindUser:    f,
 	}
 }
 
@@ -43,12 +41,17 @@ func (ba *BasicAuth) Handler() xin.HandlerFunc {
 func (ba *BasicAuth) Handle(c *xin.Context) {
 	username, password, ok := c.Request.BasicAuth()
 	if ok {
-		if user := ba.UserProvider.FindUser(username); user != nil {
-			if password == user.GetPassword() {
-				c.Set(ba.AuthUserKey, user)
-				c.Next()
-				return
-			}
+		user, err := ba.FindUser(c, username)
+		if err != nil {
+			c.Logger.Errorf("BasicAuth: %v", err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
+
+		if user != nil && password == user.GetPassword() {
+			c.Set(ba.AuthUserKey, user)
+			c.Next()
+			return
 		}
 	}
 

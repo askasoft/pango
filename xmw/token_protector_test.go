@@ -19,6 +19,9 @@ func TestTokenProtectorFail(t *testing.T) {
 	})
 
 	req, _ := http.NewRequest("POST", "/", nil)
+	req.AddCookie(&http.Cookie{
+		Name: TokenCookieName,
+	})
 	router.ServeHTTP(w, req)
 
 	val := w.Result().StatusCode

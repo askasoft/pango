@@ -28,6 +28,7 @@ type TokenProtector struct {
 	CookiePath     string
 	CookieSecure   bool
 	CookieHttpOnly bool
+	CookieSameSite http.SameSite
 
 	methods *stringSet
 }
@@ -44,6 +45,7 @@ func NewTokenProtector(secret string) *TokenProtector {
 		CookieName:     TokenCookieName,
 		CookieMaxAge:   time.Hour * 24 * 30, // 30 days
 		CookieHttpOnly: true,
+		CookieSameSite: http.SameSiteStrictMode,
 		methods:        newStringSet(http.MethodDelete, http.MethodPatch, http.MethodPost, http.MethodPut),
 	}
 	return tp
@@ -131,7 +133,7 @@ func (tp *TokenProtector) getSourceToken(c *xin.Context) *cpt.Token {
 	}
 
 	ts, err := c.Cookie(tp.CookieName)
-	if err != nil {
+	if err != nil || ts == "" {
 		return nil
 	}
 
@@ -183,7 +185,16 @@ func (tp *TokenProtector) RefreshToken(c *xin.Context) string {
 
 	ts, err := tp.Cryptor.EncryptString(t.Token())
 	if err == nil {
-		c.SetCookie(tp.CookieName, ts, int(tp.CookieMaxAge.Seconds()), tp.CookiePath, tp.CookieDomain, tp.CookieSecure, tp.CookieHttpOnly)
+		c.SetCookie(&http.Cookie{
+			Name:     tp.CookieName,
+			Value:    ts,
+			MaxAge:   int(tp.CookieMaxAge.Seconds()),
+			Path:     tp.CookiePath,
+			Domain:   tp.CookieDomain,
+			Secure:   tp.CookieSecure,
+			HttpOnly: tp.CookieHttpOnly,
+			SameSite: tp.CookieSameSite,
+		})
 	} else {
 		c.Logger.Errorf("EncryptToken: %v", err)
 	}

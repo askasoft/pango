@@ -15,16 +15,21 @@ type AesCFB struct {
 }
 
 func NewAesCFB(key string, iv ...string) *AesCFB {
-	ac := &AesCFB{key: []byte(key)}
+	ac := &AesCFB{}
+
+	ac.SetKey(key)
+
 	if len(iv) > 0 {
 		ac.iv = []byte(iv[0])
 	} else {
 		ac.iv = ac.key
 	}
+
 	return ac
 }
 
 func (ac *AesCFB) SetKey(key string) {
+	key = CutPadKey(key, 16)
 	ac.key = []byte(key)
 }
 

@@ -7,7 +7,7 @@ import (
 )
 
 func TestAesCBCEncryptString(t *testing.T) {
-	ac := NewAesCBC("1234567890123456")
+	ac := NewAesCBC("1234567890abcde")
 	for i := 1; i < 100; i++ {
 		c := str.RandLetterNumbers(i)
 		o, err := ac.EncryptString(c)
@@ -27,7 +27,7 @@ func TestAesCBCEncryptString(t *testing.T) {
 }
 
 func TestAesCBCEncryptData(t *testing.T) {
-	ac := NewAesCBC("1234567890123456", "0987654321654321")
+	ac := NewAesCBC("1234567890abcedfg", "0987654321654321")
 	for i := 1; i < 100; i++ {
 		c := str.RandLetterNumbers(i)
 		o, err := ac.EncryptData(str.UnsafeBytes(c))

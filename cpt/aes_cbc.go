@@ -16,16 +16,21 @@ type AesCBC struct {
 }
 
 func NewAesCBC(key string, iv ...string) *AesCBC {
-	ac := &AesCBC{key: []byte(key)}
+	ac := &AesCBC{}
+
+	ac.SetKey(key)
+
 	if len(iv) > 0 {
 		ac.iv = []byte(iv[0])
 	} else {
 		ac.iv = ac.key
 	}
+
 	return ac
 }
 
 func (ac *AesCBC) SetKey(key string) {
+	key = CutPadKey(key, 16)
 	ac.key = []byte(key)
 }
 

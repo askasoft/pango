@@ -1,6 +1,7 @@
 package xin
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 	"os"
@@ -23,7 +24,10 @@ func TestPanicWithAbort(t *testing.T) {
 
 	w := performRequest(router, "GET", "/recovery")
 	assert.Equal(t, http.StatusBadRequest, w.Code)
-	assert.Equal(t, "", w.Body.String())
+
+	b := fmt.Sprintf("%d %s", http.StatusBadRequest, http.StatusText(http.StatusBadRequest))
+	b += fmt.Sprintf("%d %s", http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	assert.Equal(t, b, w.Body.String())
 }
 
 // TestPanicWithBrokenPipe asserts that recovery specifically handles

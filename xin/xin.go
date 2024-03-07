@@ -1,6 +1,7 @@
 package xin
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 	"path"
@@ -15,9 +16,6 @@ import (
 
 const (
 	defaultMultipartMemory = 32 << 20 // 32 MB
-
-	DefaultNotFoundBody         = "404 page not found"
-	DefaultMethodNotAllowedBody = "405 method not allowed"
 )
 
 // AnywhereCIDRs []string{"0.0.0.0/0", "::/0"} used by default TrustedProxies
@@ -455,16 +453,16 @@ func (engine *Engine) handleHTTPRequest(c *Context) {
 			}
 			if value := tree.root.getValue(rPath, nil, c.skippedNodes, unescape); value.handlers != nil {
 				c.handlers = engine.allNoMethod
-				serveError(c, http.StatusMethodNotAllowed, DefaultMethodNotAllowedBody)
+				serveError(c, http.StatusMethodNotAllowed)
 				return
 			}
 		}
 	}
 	c.handlers = engine.allNoRoute
-	serveError(c, http.StatusNotFound, DefaultNotFoundBody)
+	serveError(c, http.StatusNotFound)
 }
 
-func serveError(c *Context, code int, body string) {
+func serveError(c *Context, code int) {
 	c.writermem.status = code
 	c.Next()
 	if c.writermem.Written() {
@@ -472,6 +470,7 @@ func serveError(c *Context, code int, body string) {
 	}
 	if c.writermem.Status() == code {
 		c.writermem.Header().Set("Content-Type", MIMEPlain)
+		body := fmt.Sprintf("%d %s", code, http.StatusText(code))
 		_, err := c.Writer.Write(str.UnsafeBytes(body))
 		if err != nil {
 			c.Logger.Warnf("cannot write message to writer during serve error: %v", err)

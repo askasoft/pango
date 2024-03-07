@@ -1240,8 +1240,6 @@ func TestContextIsAborted(t *testing.T) {
 	assert.True(t, c.IsAborted())
 }
 
-// TestContextData tests that the response can be written from `bytestring`
-// with specified MIME type
 func TestContextAbortWithStatus(t *testing.T) {
 	w := httptest.NewRecorder()
 	c, _ := CreateTestContext(w)
@@ -1253,6 +1251,39 @@ func TestContextAbortWithStatus(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, c.Writer.Status())
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 	assert.True(t, c.IsAborted())
+
+	contentType := w.Header().Get("Content-Type")
+	assert.Equal(t, "text/plain; charset=utf-8", contentType)
+
+	buf := new(bytes.Buffer)
+	_, err := buf.ReadFrom(w.Body)
+	assert.NoError(t, err)
+	body := buf.String()
+
+	want := fmt.Sprintf("%d %s", http.StatusUnauthorized, http.StatusText(http.StatusUnauthorized))
+	assert.Equal(t, want, body)
+}
+
+func TestContextAbortWithStatusText(t *testing.T) {
+	w := httptest.NewRecorder()
+	c, _ := CreateTestContext(w)
+
+	c.index = 4
+	c.AbortWithStatusText(http.StatusUnauthorized, "Unauthorized")
+
+	assert.Equal(t, abortIndex, c.index)
+	assert.Equal(t, http.StatusUnauthorized, c.Writer.Status())
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.True(t, c.IsAborted())
+
+	contentType := w.Header().Get("Content-Type")
+	assert.Equal(t, "text/plain; charset=utf-8", contentType)
+
+	buf := new(bytes.Buffer)
+	_, err := buf.ReadFrom(w.Body)
+	assert.NoError(t, err)
+	body := buf.String()
+	assert.Equal(t, "Unauthorized", body)
 }
 
 type testJSONAbortMsg struct {

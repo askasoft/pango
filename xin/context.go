@@ -72,10 +72,6 @@ type Context struct {
 	// or PUT body parameters.
 	formCache url.Values
 
-	// SameSite allows a server to define a cookie attribute making it impossible for
-	// the browser to send this cookie along with cross-site requests.
-	sameSite http.SameSite
-
 	// Logger
 	Logger log.Logger
 }
@@ -937,25 +933,11 @@ func (c *Context) GetRawData() ([]byte, error) {
 	return io.ReadAll(c.Request.Body)
 }
 
-// SetSameSite with cookie
-func (c *Context) SetSameSite(samesite http.SameSite) {
-	c.sameSite = samesite
-}
-
 // SetCookie adds a Set-Cookie header to the ResponseWriter's headers.
 // The provided cookie must have a valid Name. Invalid cookies may be
 // silently dropped.
-func (c *Context) SetCookie(name, value string, maxAge int, path, domain string, secure, httpOnly bool) {
-	http.SetCookie(c.Writer, &http.Cookie{
-		Name:     name,
-		Value:    url.QueryEscape(value),
-		MaxAge:   maxAge,
-		Path:     path,
-		Domain:   domain,
-		SameSite: c.sameSite,
-		Secure:   secure,
-		HttpOnly: httpOnly,
-	})
+func (c *Context) SetCookie(cookie *http.Cookie) {
+	http.SetCookie(c.Writer, cookie)
 }
 
 // Cookie returns the named cookie provided in the request or
@@ -967,8 +949,7 @@ func (c *Context) Cookie(name string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	val, _ := url.QueryUnescape(cookie.Value)
-	return val, nil
+	return cookie.Value, nil
 }
 
 // Render writes the response headers and calls render.Render to render data.

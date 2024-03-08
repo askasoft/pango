@@ -83,28 +83,42 @@ func (ca *CookieAuth) Handle(c *xin.Context) {
 		}
 	}
 
-	u := ca.RedirectURL
+	u := ca.buildRedirectURL(c)
 	if u != "" {
-		if ca.OriginURLQuery != "" {
-			url, err := url.Parse(ca.RedirectURL)
-			if err != nil {
-				c.Logger.Errorf("Invalid RedirectURL %q", ca.RedirectURL)
-			} else {
-				q := url.Query()
-				if q.Get(ca.OriginURLQuery) == "" {
-					q.Add(ca.OriginURLQuery, c.Request.URL.String())
-					url.RawQuery = q.Encode()
-					u = url.String()
-				}
-			}
-		}
-
 		c.Abort()
 		c.Redirect(http.StatusTemporaryRedirect, u)
 		return
 	}
 
 	c.AbortWithStatus(http.StatusUnauthorized)
+}
+
+func (ca *CookieAuth) buildRedirectURL(c *xin.Context) string {
+	u := ca.RedirectURL
+	if u == "" {
+		return ""
+	}
+
+	if str.EqualFold(c.GetHeader("X-Requested-With"), "XMLHttpRequest") {
+		return ""
+	}
+
+	p := ca.OriginURLQuery
+	if p != "" {
+		url, err := url.Parse(u)
+		if err != nil {
+			c.Logger.Errorf("Invalid RedirectURL %q", u)
+		} else {
+			q := url.Query()
+			if q.Get(p) == "" {
+				q.Add(p, c.Request.URL.String())
+				url.RawQuery = q.Encode()
+				u = url.String()
+			}
+		}
+	}
+
+	return u
 }
 
 func (ca *CookieAuth) GetUserPassFromCookie(c *xin.Context) (username, password string, ok bool) {

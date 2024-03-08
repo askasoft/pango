@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"io"
-	"strconv"
 
 	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/xin"
@@ -29,17 +28,15 @@ type gzipWriter struct {
 }
 
 func (g *gzipWriter) Close() {
-	g.WriteHeaderNow()
 	if g.buf.Len() > 0 {
 		g.ResponseWriter.Write(g.buf.Bytes()) //nolint: errcheck
 		g.buf.Reset()
 	} else {
 		g.gzw.Flush()
 	}
+
 	g.ctx.Writer = g.ResponseWriter
-	if g.state == gzwStateGzip {
-		g.ctx.Header("Content-Length", strconv.Itoa(g.ctx.Writer.Size()))
-	}
+
 	g.reset()
 }
 

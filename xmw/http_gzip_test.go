@@ -6,14 +6,13 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/askasoft/pango/xin"
 )
 
-func assertGzipHeader(t *testing.T, rr *httptest.ResponseRecorder, sc int, hce, hvary, hcl string) {
+func assertGzipHeader(t *testing.T, rr *httptest.ResponseRecorder, sc int, hce, hvary string) {
 	if sc != rr.Code {
 		t.Errorf("rr.Code = %v, want %v", rr.Code, sc)
 	}
@@ -23,20 +22,17 @@ func assertGzipHeader(t *testing.T, rr *httptest.ResponseRecorder, sc int, hce, 
 	if rr.Header().Get("Vary") != hvary {
 		t.Errorf(`Header[Vary] = %v, want %v`, rr.Header().Get("Vary"), hce)
 	}
-	if rr.Header().Get("Content-Length") != hcl {
-		t.Errorf(`Header[Content-Length] = %v, want %v`, rr.Header().Get("Content-Length"), hcl)
-	}
 }
 
 func assertGzipIgnore(t *testing.T, rr *httptest.ResponseRecorder, body string) {
-	assertGzipHeader(t, rr, http.StatusOK, "", "", "")
+	assertGzipHeader(t, rr, http.StatusOK, "", "")
 	if rr.Body.String() != body {
 		t.Errorf(`Body = %v, want %v`, rr.Body.String(), body)
 	}
 }
 
 func assertGzipEnable(t *testing.T, rr *httptest.ResponseRecorder, body string) {
-	assertGzipHeader(t, rr, http.StatusOK, "gzip", "Accept-Encoding", strconv.Itoa(rr.Body.Len()))
+	assertGzipHeader(t, rr, http.StatusOK, "gzip", "Accept-Encoding")
 
 	if len(body) == rr.Body.Len() {
 		t.Errorf("len(body) = rr.Body.Len() = %v", len(body))

@@ -39,6 +39,12 @@ func (ba *BasicAuth) Handler() xin.HandlerFunc {
 
 // Handle process xin request
 func (ba *BasicAuth) Handle(c *xin.Context) {
+	if _, ok := c.Get(ba.AuthUserKey); ok {
+		// already authenticated
+		c.Next()
+		return
+	}
+
 	username, password, ok := c.Request.BasicAuth()
 	if ok {
 		user, err := ba.FindUser(c, username)

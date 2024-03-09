@@ -40,6 +40,12 @@ func (da *DigestAuth) Handler() xin.HandlerFunc {
 
 // Handle process xin request
 func (da *DigestAuth) Handle(c *xin.Context) {
+	if _, ok := c.Get(da.AuthUserKey); ok {
+		// already authenticated
+		c.Next()
+		return
+	}
+
 	auth := c.Request.Header.Get("Authorization")
 	if auth != "" {
 		dap := DigestAuthParams(auth)

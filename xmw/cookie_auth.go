@@ -57,6 +57,12 @@ func (ca *CookieAuth) Handler() xin.HandlerFunc {
 
 // Handle process xin request
 func (ca *CookieAuth) Handle(c *xin.Context) {
+	if _, ok := c.Get(ca.AuthUserKey); ok {
+		// already authenticated
+		c.Next()
+		return
+	}
+
 	username, password, ok := ca.GetUserPassFromCookie(c)
 	if ok {
 		user, err := ca.FindUser(c, username)

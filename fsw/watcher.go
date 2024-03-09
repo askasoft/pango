@@ -84,7 +84,7 @@ func (fw *FileWatcher) Start() (err error) {
 
 	log := fw.Logger
 	if log != nil {
-		log.Info("fswatch: Start")
+		log.Info("fswatch: start")
 	}
 
 	fsn, err := fsnotify.NewWatcher()
@@ -100,7 +100,7 @@ func (fw *FileWatcher) Start() (err error) {
 			}
 		} else {
 			if log != nil {
-				log.Debugf("fswatch: watch file %q", path)
+				log.Debugf("fswatch: watch file '%s'", path)
 			}
 			err = fsn.Add(path)
 			if err != nil {
@@ -132,7 +132,7 @@ func (fw *FileWatcher) Stop() (err error) {
 	timer, log := fw.timer, fw.Logger
 
 	if log != nil {
-		log.Info("fswatch: Stop")
+		log.Info("fswatch: stop")
 	}
 
 	fw.timer = nil
@@ -152,7 +152,7 @@ func (fw *FileWatcher) Add(path string, op Op, callback func(string, Op)) error 
 	fsn, log := fw.fsnotify, fw.Logger
 	if fsn != nil {
 		if log != nil {
-			log.Debugf("fswatch: Add file %q ", path)
+			log.Debugf("fswatch: watch file '%s' ", path)
 		}
 		err := fsn.Add(path)
 		if err != nil {
@@ -169,7 +169,7 @@ func (fw *FileWatcher) Remove(path string) error {
 	fsn, log := fw.fsnotify, fw.Logger
 	if fsn != nil {
 		if log != nil {
-			log.Debugf("fswatch: Remove file %q", path)
+			log.Debugf("fswatch: unwatch file '%s'", path)
 		}
 		err := fsn.Remove(path)
 		if err != nil {
@@ -215,14 +215,14 @@ func (fw *FileWatcher) doRecursive(root string, watch bool) error {
 		if fi.IsDir() {
 			if watch {
 				if log != nil {
-					log.Debugf("fswatch: Add dir %q", path)
+					log.Debugf("fswatch: watch dir '%s'", path)
 				}
 				if err = fsn.Add(path); err != nil {
 					return err
 				}
 			} else {
 				if log != nil {
-					log.Debugf("fswatch: Remove dir %q", path)
+					log.Debugf("fswatch: unwatch dir '%s'", path)
 				}
 				if err = fsn.Remove(path); err != nil {
 					return err
@@ -289,7 +289,7 @@ func (fw *FileWatcher) procEvent(evt *fsnotify.Event) {
 		if err := fsu.DirExists(evt.Name); err == nil {
 			if fw.isRecursive(evt.Name) {
 				if err = fw.doRecursive(evt.Name, true); err != nil && log != nil {
-					log.Errorf("fswatch: add %q error: %v", evt.Name, err)
+					log.Errorf("fswatch: watch dir '%s' error: %v", evt.Name, err)
 				}
 			}
 		}
@@ -297,7 +297,7 @@ func (fw *FileWatcher) procEvent(evt *fsnotify.Event) {
 
 	if evt.Op&OpRemove != 0 && fsn != nil {
 		if err := fsn.Remove(evt.Name); err != nil && log != nil {
-			log.Errorf("fswatch: remove %q error: %v", evt.Name, err)
+			log.Errorf("fswatch: unwatch '%s' error: %v", evt.Name, err)
 		}
 	}
 }
@@ -323,7 +323,7 @@ func (fw *FileWatcher) sendEvent(event *fsnotify.Event) {
 		fe.Time = time.Now()
 		fe.Op |= Op(event.Op)
 		if log != nil {
-			log.Debugf("fswatch: delay %q [%v] [%s] ", fe.Name, fe.Op, fe.Time)
+			log.Debugf("fswatch: delay '%s' [%v] (%s) ", fe.Name, fe.Op, fe.Time)
 		}
 		return
 	}
@@ -332,12 +332,12 @@ func (fw *FileWatcher) sendEvent(event *fsnotify.Event) {
 	fe.Callbacks = fw.findCallbacks(fe)
 	if len(fe.Callbacks) > 0 {
 		if log != nil {
-			log.Debugf("fswatch: queue %q [%v] [%s] ", fe.Name, fe.Op, fe.Time)
+			log.Debugf("fswatch: queue '%s' [%v] (%s) ", fe.Name, fe.Op, fe.Time)
 		}
 		fw.events[event.Name] = fe
 		if len(fw.events) == 1 {
 			if log != nil {
-				log.Debugf("fswatch: reset timer [%s] ", fw.Delay)
+				log.Debugf("fswatch: reset timer (%s) ", fw.Delay)
 			}
 			timer.Reset(fw.Delay)
 		}
@@ -359,7 +359,7 @@ func (fw *FileWatcher) delayCallbacks() {
 	if len(fw.events) > 0 {
 		log := fw.Logger
 		if log != nil {
-			log.Debugf("fswatch: reset timer [%s] ", fw.Delay)
+			log.Debugf("fswatch: reset timer (%s) ", fw.Delay)
 		}
 		fw.timer.Reset(fw.Delay)
 	}
@@ -368,7 +368,7 @@ func (fw *FileWatcher) delayCallbacks() {
 func (fw *FileWatcher) execCallbacks(fe *fileevent) {
 	log := fw.Logger
 	if log != nil {
-		log.Debugf("fswatch: execute callback %q [%v]", fe.Name, fe.Op)
+		log.Debugf("fswatch: execute callback '%s' [%v]", fe.Name, fe.Op)
 	}
 
 	for _, cb := range fe.Callbacks {

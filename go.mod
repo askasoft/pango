@@ -10,7 +10,7 @@ require (
 	golang.org/x/net v0.21.0
 	golang.org/x/sys v0.17.0
 	golang.org/x/text v0.14.0
-	gorm.io/driver/postgres v1.5.6
+	gorm.io/driver/postgres v1.5.7
 	gorm.io/gorm v1.25.7
 )
 

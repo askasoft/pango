@@ -63,14 +63,12 @@ type TestString struct {
 	BlankTag  string `validate:""`
 	Required  string `validate:"required"`
 	Len       string `validate:"len=10"`
-	Min       string `validate:"min=1"`
-	Max       string `validate:"max=10"`
-	MinMax    string `validate:"min=1,max=10"`
-	Lt        string `validate:"lt=10"`
-	Lte       string `validate:"lte=10"`
-	Gt        string `validate:"gt=10"`
-	Gte       string `validate:"gte=10"`
-	OmitEmpty string `validate:"omitempty,min=1,max=10"`
+	MinLen    string `validate:"minlen=1"`
+	MaxLen    string `validate:"maxlen=10"`
+	LenMinMax string `validate:"minlen=1,maxlen=10"`
+	BtwLen    string `validate:"btwlen=1~10"`
+	Regexp    string `validate:"regexp=[0-9].*"`
+	OmitEmpty string `validate:"omitempty,minlen=1,maxlen=10"`
 	Boolean   string `validate:"boolean"`
 	Sub       *SubTest
 	SubIgnore *SubTest `validate:"-"`
@@ -82,19 +80,21 @@ type TestString struct {
 
 type TestUint64 struct {
 	Required  uint64 `validate:"required"`
-	Len       uint64 `validate:"len=10"`
+	Eq        uint64 `validate:"eq=10"`
 	Min       uint64 `validate:"min=1"`
 	Max       uint64 `validate:"max=10"`
 	MinMax    uint64 `validate:"min=1,max=10"`
+	Btw       uint64 `validate:"btw=1 ~ 10"`
 	OmitEmpty uint64 `validate:"omitempty,min=1,max=10"`
 }
 
 type TestFloat64 struct {
 	Required  float64 `validate:"required"`
-	Len       float64 `validate:"len=10"`
+	Eq        float64 `validate:"eq=10"`
 	Min       float64 `validate:"min=1"`
 	Max       float64 `validate:"max=10"`
 	MinMax    float64 `validate:"min=1,max=10"`
+	Btw       uint64  `validate:"btw=1 ~ 10"`
 	Lte       float64 `validate:"lte=10"`
 	OmitEmpty float64 `validate:"omitempty,min=1,max=10"`
 }
@@ -102,10 +102,10 @@ type TestFloat64 struct {
 type TestSlice struct {
 	Required  []int `validate:"required"`
 	Len       []int `validate:"len=10"`
-	Min       []int `validate:"min=1"`
-	Max       []int `validate:"max=10"`
-	MinMax    []int `validate:"min=1,max=10"`
-	OmitEmpty []int `validate:"omitempty,min=1,max=10"`
+	MinLen    []int `validate:"minlen=1"`
+	MaxLen    []int `validate:"maxlen=10"`
+	LenMinMax []int `validate:"minlen=1,maxlen=10"`
+	OmitEmpty []int `validate:"omitempty,minlen=1,maxlen=10"`
 }
 
 func AssertError(t *testing.T, err error, nsKey, structNsKey, field, structField, expectedTag string) {
@@ -3075,10 +3075,10 @@ func TestInterfaceErrValidation(t *testing.T) {
 	var v1 = v2
 
 	validate := New()
-	errs := validate.Var(v1, "len=1")
+	errs := validate.Var(v1, "eq=1")
 	assertEqual(t, errs, nil)
 
-	errs = validate.Var(v2, "len=1")
+	errs = validate.Var(v2, "eq=1")
 	assertEqual(t, errs, nil)
 
 	type ExternalCMD struct {
@@ -3101,7 +3101,7 @@ func TestInterfaceErrValidation(t *testing.T) {
 	type ExternalCMD2 struct {
 		Userid string `json:"userid"`
 		Action uint32 `json:"action"`
-		Data   any    `json:"data,omitempty" validate:"len=1"`
+		Data   any    `json:"data,omitempty" validate:"eq=1"`
 	}
 
 	s2 := &ExternalCMD2{
@@ -3113,7 +3113,7 @@ func TestInterfaceErrValidation(t *testing.T) {
 	errs = validate.Struct(s2)
 	assertNotEqual(t, errs, nil)
 	assertEqual(t, len(errs.(ValidationErrors)), 1)
-	AssertError(t, errs, "ExternalCMD2.Data", "ExternalCMD2.Data", "Data", "Data", "len")
+	AssertError(t, errs, "ExternalCMD2.Data", "ExternalCMD2.Data", "Data", "Data", "eq")
 
 	s3 := &ExternalCMD2{
 		Userid: "123456",
@@ -3124,7 +3124,7 @@ func TestInterfaceErrValidation(t *testing.T) {
 	errs = validate.Struct(s3)
 	assertNotEqual(t, errs, nil)
 	assertEqual(t, len(errs.(ValidationErrors)), 1)
-	AssertError(t, errs, "ExternalCMD2.Data", "ExternalCMD2.Data", "Data", "Data", "len")
+	AssertError(t, errs, "ExternalCMD2.Data", "ExternalCMD2.Data", "Data", "Data", "eq")
 
 	type Inner struct {
 		Name string `validate:"required"`
@@ -3358,7 +3358,7 @@ func TestMapDiveValidation(t *testing.T) {
 	})
 
 	type MapDiveJSONTest struct {
-		Map map[string]string `validate:"required,gte=1,dive,gte=1" json:"MyName"`
+		Map map[string]string `validate:"required,minlen=1,dive,minlen=1" json:"MyName"`
 	}
 
 	mdjt := &MapDiveJSONTest{
@@ -3374,8 +3374,8 @@ func TestMapDiveValidation(t *testing.T) {
 	errs = err.(ValidationErrors)
 	fe := getError(errs, "MapDiveJSONTest.MyName[Key2]", "MapDiveJSONTest.Map[Key2]")
 	assertNotEqual(t, fe, nil)
-	assertEqual(t, fe.Tag(), "gte")
-	assertEqual(t, fe.ActualTag(), "gte")
+	assertEqual(t, fe.Tag(), "minlen")
+	assertEqual(t, fe.ActualTag(), "minlen")
 	assertEqual(t, fe.Field(), "MyName[Key2]")
 	assertEqual(t, fe.StructField(), "Map[Key2]")
 }
@@ -6472,14 +6472,14 @@ func TestBadParams(t *testing.T) {
 	errs := validate.Var(i, "-")
 	assertEqual(t, errs, nil)
 
-	assertPanicMatches(t, func() { _ = validate.Var(i, "len=a") }, "strconv.ParseInt: parsing \"a\": invalid syntax")
-	assertPanicMatches(t, func() { _ = validate.Var(i, "len=a") }, "strconv.ParseInt: parsing \"a\": invalid syntax")
+	assertPanicMatches(t, func() { _ = validate.Var(i, "eq=a") }, "strconv.ParseInt: parsing \"a\": invalid syntax")
+	assertPanicMatches(t, func() { _ = validate.Var(i, "eq=a") }, "strconv.ParseInt: parsing \"a\": invalid syntax")
 
 	var ui uint = 1
-	assertPanicMatches(t, func() { _ = validate.Var(ui, "len=a") }, "strconv.ParseUint: parsing \"a\": invalid syntax")
+	assertPanicMatches(t, func() { _ = validate.Var(ui, "eq=a") }, "strconv.ParseUint: parsing \"a\": invalid syntax")
 
 	f := 1.23
-	assertPanicMatches(t, func() { _ = validate.Var(f, "len=a") }, "strconv.ParseFloat: parsing \"a\": invalid syntax")
+	assertPanicMatches(t, func() { _ = validate.Var(f, "eq=a") }, "strconv.ParseFloat: parsing \"a\": invalid syntax")
 }
 
 func TestLength(t *testing.T) {
@@ -6836,7 +6836,7 @@ func TestMinMaxValidation(t *testing.T) {
 	assertEqual(t, errs, nil)
 }
 
-func TestLenValidation(t *testing.T) {
+func TestEqValidation(t *testing.T) {
 	var errs error
 	validate := New()
 
@@ -6844,24 +6844,24 @@ func TestLenValidation(t *testing.T) {
 
 	// -- Validations for a variable of time.Duration type.
 
-	errs = validate.Var(time.Hour, "len=1h")
+	errs = validate.Var(time.Hour, "eq=1h")
 	assertEqual(t, errs, nil)
 
-	errs = validate.Var(time.Hour-time.Minute, "len=1h")
+	errs = validate.Var(time.Hour-time.Minute, "eq=1h")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "len")
+	AssertError(t, errs, "", "", "", "", "eq")
 
-	errs = validate.Var(time.Hour+time.Minute, "len=1h")
+	errs = validate.Var(time.Hour+time.Minute, "eq=1h")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "len")
+	AssertError(t, errs, "", "", "", "", "eq")
 
-	errs = validate.Var(time.Duration(0), "omitempty,len=1h")
+	errs = validate.Var(time.Duration(0), "omitempty,eq=1h")
 	assertEqual(t, errs, nil)
 
 	// -- Validations for a struct with a time.Duration type field.
 
 	type TimeDurationTest struct {
-		Duration time.Duration `validate:"len=1h"`
+		Duration time.Duration `validate:"eq=1h"`
 	}
 	var timeDurationTest *TimeDurationTest
 
@@ -6872,15 +6872,15 @@ func TestLenValidation(t *testing.T) {
 	timeDurationTest = &TimeDurationTest{time.Hour - time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "len")
+	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "eq")
 
 	timeDurationTest = &TimeDurationTest{time.Hour + time.Minute}
 	errs = validate.Struct(timeDurationTest)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "len")
+	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "eq")
 
 	type TimeDurationOmitemptyTest struct {
-		Duration time.Duration `validate:"omitempty,len=1h"`
+		Duration time.Duration `validate:"omitempty,eq=1h"`
 	}
 
 	timeDurationOmitemptyTest := &TimeDurationOmitemptyTest{time.Duration(0)}
@@ -7213,7 +7213,7 @@ func TestOrTag(t *testing.T) {
 	assertEqual(t, errs, nil)
 
 	s = "rgba(0,31,255,0.5)"
-	errs = validate.Var(s, "rgb|rgba|len=18")
+	errs = validate.Var(s, "rgb|rgba|eq=18")
 	assertEqual(t, errs, nil)
 
 	s = "this ain't right"
@@ -7620,15 +7620,15 @@ func TestNumeric(t *testing.T) {
 
 	s = "1.12"
 	errs = validate.Var(s, "numeric")
-	assertEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "numeric")
 
 	s = "+1.12"
 	errs = validate.Var(s, "numeric")
-	assertEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "numeric")
 
 	s = "-1.12"
 	errs = validate.Var(s, "numeric")
-	assertEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "numeric")
 
 	s = "1."
 	errs = validate.Var(s, "numeric")
@@ -7642,6 +7642,48 @@ func TestNumeric(t *testing.T) {
 
 	i := 1
 	errs = validate.Var(i, "numeric")
+	assertEqual(t, errs, nil)
+}
+
+func TestDecimal(t *testing.T) {
+	validate := New()
+
+	s := "1"
+	errs := validate.Var(s, "decimal")
+	assertEqual(t, errs, nil)
+
+	s = "+1"
+	errs = validate.Var(s, "decimal")
+	assertEqual(t, errs, nil)
+
+	s = "-1"
+	errs = validate.Var(s, "decimal")
+	assertEqual(t, errs, nil)
+
+	s = "1.12"
+	errs = validate.Var(s, "decimal")
+	assertEqual(t, errs, nil)
+
+	s = "+1.12"
+	errs = validate.Var(s, "decimal")
+	assertEqual(t, errs, nil)
+
+	s = "-1.12"
+	errs = validate.Var(s, "decimal")
+	assertEqual(t, errs, nil)
+
+	s = "1."
+	errs = validate.Var(s, "decimal")
+	assertNotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "decimal")
+
+	s = "1.o"
+	errs = validate.Var(s, "decimal")
+	assertNotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "decimal")
+
+	i := 1
+	errs = validate.Var(i, "decimal")
 	assertEqual(t, errs, nil)
 }
 
@@ -7700,13 +7742,11 @@ func TestStructStringValidation(t *testing.T) {
 	tSuccess := &TestString{
 		Required:  "Required",
 		Len:       "length==10",
-		Min:       "min=1",
-		Max:       "1234567890",
-		MinMax:    "12345",
-		Lt:        "012345678",
-		Lte:       "0123456789",
-		Gt:        "01234567890",
-		Gte:       "0123456789",
+		MinLen:    "minlen=1",
+		MaxLen:    "1234567890",
+		LenMinMax: "12345",
+		BtwLen:    "12345",
+		Regexp:    "1234567890",
 		Boolean:   "true",
 		OmitEmpty: "",
 		Sub: &SubTest{
@@ -7731,13 +7771,11 @@ func TestStructStringValidation(t *testing.T) {
 	tFail := &TestString{
 		Required:  "",
 		Len:       "",
-		Min:       "",
-		Max:       "12345678901",
-		MinMax:    "",
-		Lt:        "0123456789",
-		Lte:       "01234567890",
-		Gt:        "1",
-		Gte:       "1",
+		MinLen:    "",
+		MaxLen:    "12345678901",
+		LenMinMax: "",
+		BtwLen:    "",
+		Regexp:    "a",
 		OmitEmpty: "12345678901",
 		Boolean:   "nope",
 		Sub: &SubTest{
@@ -7757,19 +7795,17 @@ func TestStructStringValidation(t *testing.T) {
 
 	// Assert Top Level
 	assertNotEqual(t, errs, nil)
-	assertEqual(t, len(errs.(ValidationErrors)), 14)
+	assertEqual(t, len(errs.(ValidationErrors)), 12)
 
 	// Assert Fields
 	AssertError(t, errs, "TestString.Required", "TestString.Required", "Required", "Required", "required")
 	AssertError(t, errs, "TestString.Len", "TestString.Len", "Len", "Len", "len")
-	AssertError(t, errs, "TestString.Min", "TestString.Min", "Min", "Min", "min")
-	AssertError(t, errs, "TestString.Max", "TestString.Max", "Max", "Max", "max")
-	AssertError(t, errs, "TestString.MinMax", "TestString.MinMax", "MinMax", "MinMax", "min")
-	AssertError(t, errs, "TestString.Lt", "TestString.Lt", "Lt", "Lt", "lt")
-	AssertError(t, errs, "TestString.Lte", "TestString.Lte", "Lte", "Lte", "lte")
-	AssertError(t, errs, "TestString.Gt", "TestString.Gt", "Gt", "Gt", "gt")
-	AssertError(t, errs, "TestString.Gte", "TestString.Gte", "Gte", "Gte", "gte")
-	AssertError(t, errs, "TestString.OmitEmpty", "TestString.OmitEmpty", "OmitEmpty", "OmitEmpty", "max")
+	AssertError(t, errs, "TestString.MinLen", "TestString.MinLen", "MinLen", "MinLen", "minlen")
+	AssertError(t, errs, "TestString.MaxLen", "TestString.MaxLen", "MaxLen", "MaxLen", "maxlen")
+	AssertError(t, errs, "TestString.LenMinMax", "TestString.LenMinMax", "LenMinMax", "LenMinMax", "minlen")
+	AssertError(t, errs, "TestString.BtwLen", "TestString.BtwLen", "BtwLen", "BtwLen", "btwlen")
+	AssertError(t, errs, "TestString.Regexp", "TestString.Regexp", "Regexp", "Regexp", "regexp")
+	AssertError(t, errs, "TestString.OmitEmpty", "TestString.OmitEmpty", "OmitEmpty", "OmitEmpty", "maxlen")
 	AssertError(t, errs, "TestString.Boolean", "TestString.Boolean", "Boolean", "Boolean", "boolean")
 
 	// Nested Struct Field Errs
@@ -7781,10 +7817,11 @@ func TestStructStringValidation(t *testing.T) {
 func TestStructInt32Validation(t *testing.T) {
 	type TestInt32 struct {
 		Required  int `validate:"required"`
-		Len       int `validate:"len=10"`
+		Eq        int `validate:"eq=10"`
 		Min       int `validate:"min=1"`
 		Max       int `validate:"max=10"`
 		MinMax    int `validate:"min=1,max=10"`
+		Btw       int `validate:"btw=1 ~ 10"`
 		Lt        int `validate:"lt=10"`
 		Lte       int `validate:"lte=10"`
 		Gt        int `validate:"gt=10"`
@@ -7794,10 +7831,11 @@ func TestStructInt32Validation(t *testing.T) {
 
 	tSuccess := &TestInt32{
 		Required:  1,
-		Len:       10,
+		Eq:        10,
 		Min:       1,
 		Max:       10,
 		MinMax:    5,
+		Btw:       5,
 		Lt:        9,
 		Lte:       10,
 		Gt:        11,
@@ -7811,10 +7849,11 @@ func TestStructInt32Validation(t *testing.T) {
 
 	tFail := &TestInt32{
 		Required:  0,
-		Len:       11,
+		Eq:        11,
 		Min:       -1,
 		Max:       11,
 		MinMax:    -1,
+		Btw:       -1,
 		Lt:        10,
 		Lte:       11,
 		Gt:        10,
@@ -7826,14 +7865,15 @@ func TestStructInt32Validation(t *testing.T) {
 
 	// Assert Top Level
 	assertNotEqual(t, errs, nil)
-	assertEqual(t, len(errs.(ValidationErrors)), 10)
+	assertEqual(t, len(errs.(ValidationErrors)), 11)
 
 	// Assert Fields
 	AssertError(t, errs, "TestInt32.Required", "TestInt32.Required", "Required", "Required", "required")
-	AssertError(t, errs, "TestInt32.Len", "TestInt32.Len", "Len", "Len", "len")
+	AssertError(t, errs, "TestInt32.Eq", "TestInt32.Eq", "Eq", "Eq", "eq")
 	AssertError(t, errs, "TestInt32.Min", "TestInt32.Min", "Min", "Min", "min")
 	AssertError(t, errs, "TestInt32.Max", "TestInt32.Max", "Max", "Max", "max")
 	AssertError(t, errs, "TestInt32.MinMax", "TestInt32.MinMax", "MinMax", "MinMax", "min")
+	AssertError(t, errs, "TestInt32.Btw", "TestInt32.Btw", "Btw", "Btw", "btw")
 	AssertError(t, errs, "TestInt32.Lt", "TestInt32.Lt", "Lt", "Lt", "lt")
 	AssertError(t, errs, "TestInt32.Lte", "TestInt32.Lte", "Lte", "Lte", "lte")
 	AssertError(t, errs, "TestInt32.Gt", "TestInt32.Gt", "Gt", "Gt", "gt")
@@ -7846,10 +7886,11 @@ func TestStructUint64Validation(t *testing.T) {
 
 	tSuccess := &TestUint64{
 		Required:  1,
-		Len:       10,
+		Eq:        10,
 		Min:       1,
 		Max:       10,
 		MinMax:    5,
+		Btw:       5,
 		OmitEmpty: 0,
 	}
 
@@ -7858,10 +7899,11 @@ func TestStructUint64Validation(t *testing.T) {
 
 	tFail := &TestUint64{
 		Required:  0,
-		Len:       11,
+		Eq:        11,
 		Min:       0,
 		Max:       11,
 		MinMax:    0,
+		Btw:       0,
 		OmitEmpty: 11,
 	}
 
@@ -7869,14 +7911,15 @@ func TestStructUint64Validation(t *testing.T) {
 
 	// Assert Top Level
 	assertNotEqual(t, errs, nil)
-	assertEqual(t, len(errs.(ValidationErrors)), 6)
+	assertEqual(t, len(errs.(ValidationErrors)), 7)
 
 	// Assert Fields
 	AssertError(t, errs, "TestUint64.Required", "TestUint64.Required", "Required", "Required", "required")
-	AssertError(t, errs, "TestUint64.Len", "TestUint64.Len", "Len", "Len", "len")
+	AssertError(t, errs, "TestUint64.Eq", "TestUint64.Eq", "Eq", "Eq", "eq")
 	AssertError(t, errs, "TestUint64.Min", "TestUint64.Min", "Min", "Min", "min")
 	AssertError(t, errs, "TestUint64.Max", "TestUint64.Max", "Max", "Max", "max")
 	AssertError(t, errs, "TestUint64.MinMax", "TestUint64.MinMax", "MinMax", "MinMax", "min")
+	AssertError(t, errs, "TestUint64.Btw", "TestUint64.Btw", "Btw", "Btw", "btw")
 	AssertError(t, errs, "TestUint64.OmitEmpty", "TestUint64.OmitEmpty", "OmitEmpty", "OmitEmpty", "max")
 }
 
@@ -7885,10 +7928,11 @@ func TestStructFloat64Validation(t *testing.T) {
 
 	tSuccess := &TestFloat64{
 		Required:  1,
-		Len:       10,
+		Eq:        10,
 		Min:       1,
 		Max:       10,
 		MinMax:    5,
+		Btw:       5,
 		OmitEmpty: 0,
 	}
 
@@ -7897,10 +7941,11 @@ func TestStructFloat64Validation(t *testing.T) {
 
 	tFail := &TestFloat64{
 		Required:  0,
-		Len:       11,
+		Eq:        11,
 		Min:       0,
 		Max:       11,
 		MinMax:    0,
+		Btw:       0,
 		OmitEmpty: 11,
 	}
 
@@ -7908,14 +7953,15 @@ func TestStructFloat64Validation(t *testing.T) {
 
 	// Assert Top Level
 	assertNotEqual(t, errs, nil)
-	assertEqual(t, len(errs.(ValidationErrors)), 6)
+	assertEqual(t, len(errs.(ValidationErrors)), 7)
 
 	// Assert Fields
 	AssertError(t, errs, "TestFloat64.Required", "TestFloat64.Required", "Required", "Required", "required")
-	AssertError(t, errs, "TestFloat64.Len", "TestFloat64.Len", "Len", "Len", "len")
+	AssertError(t, errs, "TestFloat64.Eq", "TestFloat64.Eq", "Eq", "Eq", "eq")
 	AssertError(t, errs, "TestFloat64.Min", "TestFloat64.Min", "Min", "Min", "min")
 	AssertError(t, errs, "TestFloat64.Max", "TestFloat64.Max", "Max", "Max", "max")
 	AssertError(t, errs, "TestFloat64.MinMax", "TestFloat64.MinMax", "MinMax", "MinMax", "min")
+	AssertError(t, errs, "TestFloat64.Btw", "TestFloat64.Btw", "Btw", "Btw", "btw")
 	AssertError(t, errs, "TestFloat64.OmitEmpty", "TestFloat64.OmitEmpty", "OmitEmpty", "OmitEmpty", "max")
 }
 
@@ -7925,9 +7971,9 @@ func TestStructSliceValidation(t *testing.T) {
 	tSuccess := &TestSlice{
 		Required:  []int{1},
 		Len:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
-		Min:       []int{1, 2},
-		Max:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
-		MinMax:    []int{1, 2, 3, 4, 5},
+		MinLen:    []int{1, 2},
+		MaxLen:    []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0},
+		LenMinMax: []int{1, 2, 3, 4, 5},
 		OmitEmpty: nil,
 	}
 
@@ -7937,9 +7983,9 @@ func TestStructSliceValidation(t *testing.T) {
 	tFail := &TestSlice{
 		Required:  nil,
 		Len:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1},
-		Min:       []int{},
-		Max:       []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1},
-		MinMax:    []int{},
+		MinLen:    []int{},
+		MaxLen:    []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1},
+		LenMinMax: []int{},
 		OmitEmpty: []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1},
 	}
 
@@ -7950,10 +7996,10 @@ func TestStructSliceValidation(t *testing.T) {
 	// Assert Field Errors
 	AssertError(t, errs, "TestSlice.Required", "TestSlice.Required", "Required", "Required", "required")
 	AssertError(t, errs, "TestSlice.Len", "TestSlice.Len", "Len", "Len", "len")
-	AssertError(t, errs, "TestSlice.Min", "TestSlice.Min", "Min", "Min", "min")
-	AssertError(t, errs, "TestSlice.Max", "TestSlice.Max", "Max", "Max", "max")
-	AssertError(t, errs, "TestSlice.MinMax", "TestSlice.MinMax", "MinMax", "MinMax", "min")
-	AssertError(t, errs, "TestSlice.OmitEmpty", "TestSlice.OmitEmpty", "OmitEmpty", "OmitEmpty", "max")
+	AssertError(t, errs, "TestSlice.MinLen", "TestSlice.MinLen", "MinLen", "MinLen", "minlen")
+	AssertError(t, errs, "TestSlice.MaxLen", "TestSlice.MaxLen", "MaxLen", "MaxLen", "maxlen")
+	AssertError(t, errs, "TestSlice.LenMinMax", "TestSlice.LenMinMax", "LenMinMax", "LenMinMax", "minlen")
+	AssertError(t, errs, "TestSlice.OmitEmpty", "TestSlice.OmitEmpty", "OmitEmpty", "OmitEmpty", "maxlen")
 
 	fe := getError(errs, "TestSlice.Len", "TestSlice.Len")
 	assertNotEqual(t, fe, nil)
@@ -10087,8 +10133,8 @@ func TestRequiredWithout(t *testing.T) {
 	AssertError(t, errs, "Field8", "Field8", "Field8", "Field8", "required_without")
 
 	test3 := struct {
-		Field1 *string `validate:"required_without=Field2,omitempty,min=1" json:"field_1"`
-		Field2 *string `validate:"required_without=Field1,omitempty,min=1" json:"field_2"`
+		Field1 *string `validate:"required_without=Field2,omitempty,minlen=1" json:"field_1"`
+		Field2 *string `validate:"required_without=Field1,omitempty,minlen=1" json:"field_2"`
 	}{
 		Field1: &fieldVal,
 	}

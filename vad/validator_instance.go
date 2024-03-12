@@ -48,7 +48,8 @@ var (
 	timeDurationType = reflect.TypeOf(time.Duration(0))
 	timeType         = reflect.TypeOf(time.Time{})
 
-	defaultCField = &cField{namesEqual: true}
+	defaultCField   = &cField{namesEqual: true}
+	utf8HexReplacer = strings.NewReplacer(utf8HexComma, ",", utf8Pipe, "|")
 )
 
 // FilterFunc is the type used to filter fields using

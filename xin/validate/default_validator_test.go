@@ -46,7 +46,7 @@ func TestDefaultValidator(t *testing.T) {
 	v := NewStructValidator()
 
 	type exampleStruct struct {
-		A string `validate:"max=8"`
+		A string `validate:"maxlen=8"`
 		B int    `validate:"gt=0"`
 	}
 	tests := []struct {

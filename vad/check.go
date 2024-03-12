@@ -105,7 +105,7 @@ func IsHexColor(s string) bool {
 	s = s[1:]
 	switch len(s) {
 	case 3, 6:
-		return str.IsHexDecimal(s)
+		return str.IsHexadecimal(s)
 	default:
 		return false
 	}

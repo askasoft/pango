@@ -122,6 +122,7 @@ Baked-in Validations
 | multibyte | Multi-Byte Characters |
 | number | NOT DOCUMENTED IN doc.go |
 | numeric | Numeric |
+| decimal | Decimal |
 | printascii | Printable ASCII |
 | startsnotwith | Starts Not With |
 | startswith | Starts With |
@@ -179,11 +180,22 @@ Baked-in Validations
 | Tag | Description |
 | - | - |
 | eq | Equals |
+| ne | Not Equal |
 | gt | Greater than|
 | gte | Greater than or equal |
+| min | Greater than or equal |
 | lt | Less Than |
 | lte | Less Than or Equal |
-| ne | Not Equal |
+| max | Less Than or Equal |
+| btw | Between |
+
+### Length:
+| Tag | Description |
+| - | - |
+| len | (string's rune count, slice/map length) Equal |
+| maxlen | (string's rune count, slice/map length) Maximum |
+| minlen | (string's rune count, slice/map length) Minimum |
+| btwlen | (string's rune count, slice/map length) Between |
 
 ### Other:
 | Tag | Description |
@@ -191,9 +203,6 @@ Baked-in Validations
 | dir | Directory |
 | file | File path |
 | isdefault | Is Default |
-| len | Length |
-| max | Maximum |
-| min | Minimum |
 | oneof | One Of |
 | required | Required |
 | required_if | Required If |
@@ -207,6 +216,7 @@ Baked-in Validations
 | excluded_without | Excluded Without |
 | excluded_without_all | Excluded Without All |
 | unique | Unique |
+| regexp | Regular Expression Match |
 
 #### Aliases:
 | Tag | Description |

@@ -40,7 +40,6 @@ const (
 const (
 	alphaUnicodeRegexString          = "^[\\p{L}]+$"
 	alphaUnicodeNumericRegexString   = "^[\\p{L}\\p{N}]+$"
-	numericRegexString               = "^[-+]?[0-9]+(?:\\.[0-9]+)?$"
 	e164RegexString                  = "^\\+[1-9]?[0-9]{7,14}$"
 	uLIDRegexString                  = "^[A-HJKMNP-TV-Z0-9]{26}$"
 	hostnameRegexStringRFC952        = `^[a-zA-Z]([a-zA-Z0-9\-]+[\.]?)*[a-zA-Z0-9]$`                                                                      // https://tools.ietf.org/html/rfc952
@@ -87,7 +86,6 @@ var (
 var (
 	alphaUnicodeRegex          = regexp.MustCompile(alphaUnicodeRegexString)
 	alphaUnicodeNumericRegex   = regexp.MustCompile(alphaUnicodeNumericRegexString)
-	numericRegex               = regexp.MustCompile(numericRegexString)
 	e164Regex                  = regexp.MustCompile(e164RegexString)
 	uLIDRegex                  = regexp.MustCompile(uLIDRegexString)
 	hostnameRegexRFC952        = regexp.MustCompile(hostnameRegexStringRFC952)

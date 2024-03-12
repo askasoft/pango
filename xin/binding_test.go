@@ -16,7 +16,7 @@ func requestWithBody(method, path, body string) (req *http.Request) {
 }
 
 type FooStruct struct {
-	Foo string `msgpack:"foo" json:"foo" form:"foo" xml:"foo" validate:"required,max=32"`
+	Foo string `json:"foo" form:"foo" xml:"foo" validate:"required"`
 }
 
 var vd = validate.NewStructValidator()

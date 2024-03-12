@@ -121,21 +121,17 @@ func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStr
 	var customName string
 
 	for i := 0; i < numFields; i++ {
-
 		fld = typ.Field(i)
-
 		if !fld.Anonymous && len(fld.PkgPath) > 0 {
 			continue
 		}
 
 		tag = fld.Tag.Get(v.tagName)
-
 		if tag == skipValidationTag {
 			continue
 		}
 
 		customName = fld.Name
-
 		if v.hasTagNameFunc {
 			name := v.tagNameFunc(fld)
 			if len(name) > 0 {
@@ -207,7 +203,6 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 
 		case keysTag:
 			current.typeof = typeKeys
-
 			if i == 0 || prevTag != typeDive {
 				panic(fmt.Sprintf("'%s' tag must be immediately preceded by the '%s' tag", keysTag, diveTag))
 			}
@@ -219,12 +214,9 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 			b := make([]byte, 0, 64)
 
 			i++
-
 			for ; i < len(tags); i++ {
-
 				b = append(b, tags[i]...)
 				b = append(b, ',')
-
 				if tags[i] == endKeysTag {
 					break
 				}
@@ -294,7 +286,7 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 				}
 
 				if len(vals) > 1 {
-					current.param = strings.Replace(strings.Replace(vals[1], utf8HexComma, ",", -1), utf8Pipe, "|", -1)
+					current.param = utf8HexReplacer.Replace(vals[1])
 				}
 			}
 			current.isBlockEnd = true

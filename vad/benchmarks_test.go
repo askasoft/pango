@@ -876,7 +876,7 @@ func BenchmarkStructSimpleCrossStructCrossFieldFailureParallel(b *testing.B) {
 func BenchmarkStructSimpleSuccess(b *testing.B) {
 	validate := New()
 	type Foo struct {
-		StringValue string `validate:"min=5,max=10"`
+		StringValue string `validate:"minlen=5,maxlen=10"`
 		IntValue    int    `validate:"min=5,max=10"`
 	}
 
@@ -891,7 +891,7 @@ func BenchmarkStructSimpleSuccess(b *testing.B) {
 func BenchmarkStructSimpleSuccessParallel(b *testing.B) {
 	validate := New()
 	type Foo struct {
-		StringValue string `validate:"min=5,max=10"`
+		StringValue string `validate:"minlen=5,maxlen=10"`
 		IntValue    int    `validate:"min=5,max=10"`
 	}
 	validFoo := &Foo{StringValue: "Foobar", IntValue: 7}
@@ -907,7 +907,7 @@ func BenchmarkStructSimpleSuccessParallel(b *testing.B) {
 func BenchmarkStructSimpleFailure(b *testing.B) {
 	validate := New()
 	type Foo struct {
-		StringValue string `validate:"min=5,max=10"`
+		StringValue string `validate:"minlen=5,maxlen=10"`
 		IntValue    int    `validate:"min=5,max=10"`
 	}
 
@@ -922,7 +922,7 @@ func BenchmarkStructSimpleFailure(b *testing.B) {
 func BenchmarkStructSimpleFailureParallel(b *testing.B) {
 	validate := New()
 	type Foo struct {
-		StringValue string `validate:"min=5,max=10"`
+		StringValue string `validate:"minlen=5,maxlen=10"`
 		IntValue    int    `validate:"min=5,max=10"`
 	}
 
@@ -941,13 +941,9 @@ func BenchmarkStructComplexSuccess(b *testing.B) {
 	tSuccess := &TestString{
 		Required:  "Required",
 		Len:       "length==10",
-		Min:       "min=1",
-		Max:       "1234567890",
-		MinMax:    "12345",
-		Lt:        "012345678",
-		Lte:       "0123456789",
-		Gt:        "01234567890",
-		Gte:       "0123456789",
+		MinLen:    "minlen=1",
+		MaxLen:    "1234567890",
+		LenMinMax: "12345",
 		OmitEmpty: "",
 		Sub: &SubTest{
 			Test: "1",
@@ -976,13 +972,9 @@ func BenchmarkStructComplexSuccessParallel(b *testing.B) {
 	tSuccess := &TestString{
 		Required:  "Required",
 		Len:       "length==10",
-		Min:       "min=1",
-		Max:       "1234567890",
-		MinMax:    "12345",
-		Lt:        "012345678",
-		Lte:       "0123456789",
-		Gt:        "01234567890",
-		Gte:       "0123456789",
+		MinLen:    "minlen=1",
+		MaxLen:    "1234567890",
+		LenMinMax: "12345",
 		OmitEmpty: "",
 		Sub: &SubTest{
 			Test: "1",
@@ -1013,13 +1005,9 @@ func BenchmarkStructComplexFailure(b *testing.B) {
 	tFail := &TestString{
 		Required:  "",
 		Len:       "",
-		Min:       "",
-		Max:       "12345678901",
-		MinMax:    "",
-		Lt:        "0123456789",
-		Lte:       "01234567890",
-		Gt:        "1",
-		Gte:       "1",
+		MinLen:    "",
+		MaxLen:    "12345678901",
+		LenMinMax: "",
 		OmitEmpty: "12345678901",
 		Sub: &SubTest{
 			Test: "",
@@ -1045,13 +1033,9 @@ func BenchmarkStructComplexFailureParallel(b *testing.B) {
 	tFail := &TestString{
 		Required:  "",
 		Len:       "",
-		Min:       "",
-		Max:       "12345678901",
-		MinMax:    "",
-		Lt:        "0123456789",
-		Lte:       "01234567890",
-		Gt:        "1",
-		Gte:       "1",
+		MinLen:    "",
+		MaxLen:    "12345678901",
+		LenMinMax: "",
 		OmitEmpty: "12345678901",
 		Sub: &SubTest{
 			Test: "",

@@ -38,7 +38,6 @@ func (v *validate) validateStruct(ctx context.Context, parent reflect.Value, cur
 	}
 
 	if len(ns) == 0 && len(cs.name) != 0 {
-
 		ns = append(ns, cs.name...)
 		ns = append(ns, '.')
 
@@ -49,21 +48,17 @@ func (v *validate) validateStruct(ctx context.Context, parent reflect.Value, cur
 	// ct is nil on top level struct, and structs as fields that have no tag info
 	// so if nil or if not nil and the structonly tag isn't present
 	if ct == nil || ct.typeof != typeStructOnly {
-
 		var f *cField
 
 		for i := 0; i < len(cs.fields); i++ {
-
 			f = cs.fields[i]
 
 			if v.isPartial {
-
 				if v.ffn != nil {
 					// used with StructFiltered
 					if v.ffn(append(structNs, f.name...)) {
 						continue
 					}
-
 				} else {
 					// used with StructPartial & StructExcept
 					_, ok = v.includeExclude[string(append(structNs, f.name...))]
@@ -82,7 +77,6 @@ func (v *validate) validateStruct(ctx context.Context, parent reflect.Value, cur
 	// first iteration will have no info about nostructlevel tag, and is checked prior to
 	// calling the next iteration of validateStruct called from traverseField.
 	if cs.fn != nil {
-
 		v.slflParent = parent
 		v.slCurrent = current
 		v.ns = ns
@@ -101,7 +95,6 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 
 	switch kind {
 	case reflect.Ptr, reflect.Interface, reflect.Invalid:
-
 		if ct == nil {
 			return
 		}

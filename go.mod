@@ -2,15 +2,15 @@ module github.com/askasoft/pango
 
 go 1.21
 
-require github.com/stretchr/testify v1.8.4
+require github.com/stretchr/testify v1.9.0
 
 require (
 	github.com/doug-martin/goqu/v9 v9.19.0
 	github.com/lib/pq v1.10.9
-	golang.org/x/net v0.21.0
-	golang.org/x/sys v0.17.0
+	golang.org/x/net v0.22.0
+	golang.org/x/sys v0.18.0
 	golang.org/x/text v0.14.0
-	gorm.io/driver/postgres v1.5.6
+	gorm.io/driver/postgres v1.5.7
 	gorm.io/gorm v1.25.7
 )
 
@@ -22,7 +22,7 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
-	golang.org/x/crypto v0.19.0 // indirect
+	golang.org/x/crypto v0.21.0 // indirect
 )
 
 require (

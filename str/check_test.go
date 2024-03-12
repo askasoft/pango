@@ -454,6 +454,67 @@ func TestIsNumeric(t *testing.T) {
 	}
 }
 
+func TestIsDecimal(t *testing.T) {
+	t.Parallel()
+
+	cs := []struct {
+		s string
+		w bool
+	}{
+		{"\n", false},
+		{"\r", false},
+		{"Ⅸ", false},
+		{"", false},
+		{"   fooo   ", false},
+		{"abc!!!", false},
+		{"abc1", false},
+		{"abc〩", false},
+		{"abc", false},
+		{"소주", false},
+		{"ABC", false},
+		{"FoObAr", false},
+		{"소aBC", false},
+		{"소", false},
+		{"달기&Co.", false},
+		{"〩Hours", false},
+		{"\ufff0", false},
+		{"\u0070", false}, //UTF-8(ASCII): p
+		{"\u0026", false}, //UTF-8(ASCII): &
+		{"\u0030", true},  //UTF-8(ASCII): 0
+		{"123", true},
+		{"0123", true},
+		{"-00123", true},
+		{"+00123", true},
+		{"0", true},
+		{"-0", true},
+		{"123.123", true},
+		{" ", false},
+		{".", false},
+		{"12𐅪3", false},
+		{"-1¾", false},
+		{"1¾", false},
+		{"〥〩", false},
+		{"모자", false},
+		{"ix", false},
+		{"۳۵۶۰", false},
+		{"1--", false},
+		{"1-1", false},
+		{"-", false},
+		{"--", false},
+		{"1++", false},
+		{"1+1", false},
+		{"+", false},
+		{"++", false},
+		{"+1", true},
+	}
+	for i, c := range cs {
+		a := IsDecimal(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsDecimal(%q) = %v, want %v", i, c.s, a, c.w)
+		}
+	}
+}
+
 func TestIsUTFNumeric(t *testing.T) {
 	t.Parallel()
 
@@ -705,7 +766,7 @@ func TestHasUpperCase(t *testing.T) {
 	}
 }
 
-func TestIsHexDecimal(t *testing.T) {
+func TestIsHexadecimal(t *testing.T) {
 	t.Parallel()
 
 	cs := []struct {
@@ -722,9 +783,9 @@ func TestIsHexDecimal(t *testing.T) {
 		{"fe0x44", false},
 	}
 	for i, c := range cs {
-		a := IsHexDecimal(c.s)
+		a := IsHexadecimal(c.s)
 		if a != c.w {
-			t.Errorf("[%d] IsHexDecimal(%q) = %v, want %v", i, c.s, a, c.w)
+			t.Errorf("[%d] IsHexadecimal(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }

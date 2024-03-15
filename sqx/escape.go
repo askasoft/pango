@@ -2,18 +2,25 @@ package sqx
 
 import "strings"
 
-// EscapeLike escape sql like string
-func EscapeLike(s string) string {
+// EscapeLike escape sql like string.
+// The default escape char is backslach '\\'.
+func EscapeLike(s string, escape ...rune) string {
+	esc := '\\'
+	if len(escape) > 0 {
+		esc = escape[0]
+	}
+
 	sb := strings.Builder{}
 
 	for _, c := range s {
-		if c == '~' {
-			sb.WriteString("~~")
+		if c == esc {
+			sb.WriteRune(esc)
+			sb.WriteRune(esc)
 			continue
 		}
 
 		if c == '%' || c == '_' {
-			sb.WriteRune('~')
+			sb.WriteRune(esc)
 			sb.WriteRune(c)
 			continue
 		}
@@ -34,18 +41,21 @@ func EscapeString(s string) string {
 }
 
 // StringLike build a string for like '%' + s + '%'
-func StringLike(s string) string {
-	return "%" + EscapeLike(s) + "%"
+// The default escape char is backslach '\\'.
+func StringLike(s string, escape ...rune) string {
+	return "%" + EscapeLike(s, escape...) + "%"
 }
 
 // StartsLike build a string for like prefix s + '%'
-func StartsLike(s string) string {
-	return EscapeLike(s) + "%"
+// The default escape char is backslach '\\'.
+func StartsLike(s string, escape ...rune) string {
+	return EscapeLike(s, escape...) + "%"
 }
 
 // StartsLike build a string for like suffix '%' + s
-func EndsLike(s string) string {
-	return "%" + EscapeLike(s)
+// The default escape char is backslach '\\'.
+func EndsLike(s string, escape ...rune) string {
+	return "%" + EscapeLike(s, escape...)
 }
 
 // Quote quote string 's' with quote string 'q', return (q + s + q)

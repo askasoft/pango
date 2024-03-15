@@ -14,9 +14,9 @@ func TestEscapeLike(t *testing.T) {
 	}
 
 	for i, c := range cs {
-		a := EscapeLike(c.s)
+		a := EscapeLike(c.s, '~')
 		if a != c.w {
-			t.Errorf("[%d] EscapeLike(%q) = %v, want %v", i, c.s, a, c.w)
+			t.Errorf("[%d] EscapeLike(%q. '~') = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -47,7 +47,7 @@ func TestStringLike(t *testing.T) {
 	}
 
 	for i, c := range cs {
-		a := StringLike(c.s)
+		a := StringLike(c.s, '~')
 		if a != c.w {
 			t.Errorf("[%d] StringLike(%q) = %v, want %v", i, c.s, a, c.w)
 		}
@@ -65,7 +65,7 @@ func TestStartsLike(t *testing.T) {
 	}
 
 	for i, c := range cs {
-		a := StartsLike(c.s)
+		a := StartsLike(c.s, '~')
 		if a != c.w {
 			t.Errorf("[%d] StartsLike(%q) = %v, want %v", i, c.s, a, c.w)
 		}
@@ -83,7 +83,7 @@ func TestEndsLike(t *testing.T) {
 	}
 
 	for i, c := range cs {
-		a := EndsLike(c.s)
+		a := EndsLike(c.s, '~')
 		if a != c.w {
 			t.Errorf("[%d] EndsLike(%q) = %v, want %v", i, c.s, a, c.w)
 		}

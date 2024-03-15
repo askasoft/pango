@@ -57,9 +57,8 @@ func (lto *ListTicketsOption) Values() Values {
 }
 
 type FilterTicketsOption struct {
-	Query   string
-	Page    int
-	PerPage int
+	Query string
+	Page  int
 }
 
 func (fto *FilterTicketsOption) IsNil() bool {
@@ -70,8 +69,12 @@ func (fto *FilterTicketsOption) Values() Values {
 	q := Values{}
 	q.SetString("query", fto.Query)
 	q.SetInt("page", fto.Page)
-	q.SetInt("per_page", fto.PerPage)
 	return q
+}
+
+type FilterTicketsResult struct {
+	Total   int       `json:"total"`
+	Results []*Ticket `json:"results"`
 }
 
 // PerPage: 1 ~ 100, default: 30
@@ -103,7 +106,7 @@ func (fd *Freshdesk) GetTicket(tid int64, include ...string) (*Ticket, error) {
 // By default, only tickets that have not been deleted or marked as spam will be returned, unless you use the 'deleted' filter.
 // Note:
 // 1. By default, only tickets that have been created within the past 30 days will be returned. For older tickets, use the updated_since filter
-// 2. A maximum of 300 pages (9000 tickets) will be returned.
+// 2. A maximum of 300 pages (30000 tickets) will be returned.
 // 3. When using filters, the query string must be URL encoded - see example
 // 4. Use 'include' to embed additional details in the response. Each include will consume an additional 2 credits. For example if you embed the stats information you will be charged a total of 3 API credits for the call.
 // 5. For accounts created after 2018-11-30, you will have to use include to get description.
@@ -135,7 +138,7 @@ func (fd *Freshdesk) IterTickets(lto *ListTicketsOption, itf func(*Ticket) error
 				return err
 			}
 		}
-		if !next {
+		if !next || lto.Page >= 300 {
 			break
 		}
 		lto.Page++
@@ -146,11 +149,23 @@ func (fd *Freshdesk) IterTickets(lto *ListTicketsOption, itf func(*Ticket) error
 // FilterTickets
 // Use custom ticket fields that you have created in your account to filter through the tickets and get a list of tickets matching the specified ticket fields.
 // Query Format: "(ticket_field:integer OR ticket_field:'string') AND ticket_field:boolean"
-func (fd *Freshdesk) FilterTickets(fto *FilterTicketsOption) ([]*Ticket, bool, error) {
+// Note:
+// 1. Archived tickets will not be included in the results
+// 2. The query must be URL encoded
+// 3. Query can be framed using the name of the ticket fields, which can be obtained from Ticket Fields endpoint. Ticket Fields are case sensitive
+// 4. Query string must be enclosed between a pair of double quotes and can have up to 512 characters
+// 5. Logical operators AND, OR along with parentheses () can be used to group conditions
+// 6. Relational operators greater than or equal to :> and less than or equal to :< can be used along with date fields and numeric fields
+// 7. Input for date fields should be in UTC Format
+// 8. The number of objects returned per page is 30 also the total count of the results will be returned along with the result
+// 9. To scroll through the pages add page parameter to the url. The page number starts with 1 and should not exceed 10
+// 10. To filter for fields with no values assigned, use the null keyword
+// 11. Please note that the updates will take a few minutes to get indexed, after which it will be available through API
+func (fd *Freshdesk) FilterTickets(fto *FilterTicketsOption) ([]*Ticket, int, error) {
 	url := fd.endpoint("/search/tickets")
-	tickets := []*Ticket{}
-	next, err := fd.doList(url, fto, &tickets)
-	return tickets, next, err
+	ftr := &FilterTicketsResult{}
+	_, err := fd.doList(url, fto, ftr)
+	return ftr.Results, ftr.Total, err
 }
 
 func (fd *Freshdesk) IterFilterTickets(fto *FilterTicketsOption, itf func(*Ticket) error) error {
@@ -160,12 +175,9 @@ func (fd *Freshdesk) IterFilterTickets(fto *FilterTicketsOption, itf func(*Ticke
 	if fto.Page < 1 {
 		fto.Page = 1
 	}
-	if fto.PerPage < 1 {
-		fto.PerPage = 100
-	}
 
 	for {
-		tickets, next, err := fd.FilterTickets(fto)
+		tickets, total, err := fd.FilterTickets(fto)
 		if err != nil {
 			return err
 		}
@@ -174,7 +186,7 @@ func (fd *Freshdesk) IterFilterTickets(fto *FilterTicketsOption, itf func(*Ticke
 				return err
 			}
 		}
-		if !next {
+		if len(tickets) < 30 || fto.Page >= 10 || (fto.Page-1)*30+len(tickets) >= total {
 			break
 		}
 		fto.Page++

@@ -115,7 +115,7 @@ func TestTicketAPIs(t *testing.T) {
 	}
 }
 
-func TestListTicket(t *testing.T) {
+func TestListTickets(t *testing.T) {
 	fd := testNewFreshdesk(t)
 	if fd == nil {
 		return
@@ -126,18 +126,66 @@ func TestListTicket(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	fd.Logger.Debug(ts)
+
+	for i, t := range ts {
+		fd.Logger.Debugf("%d: #%d [%s] %s", i+1, t.ID, t.CreatedAt.String(), t.Subject)
+	}
 }
 
-func TestIterTicket(t *testing.T) {
+func TestIterTickets(t *testing.T) {
 	fd := testNewFreshdesk(t)
 	if fd == nil {
 		return
 	}
 
-	ltp := &ListTicketsOption{PerPage: 2}
+	ltp := &ListTicketsOption{PerPage: 10}
+
+	i := 0
 	err := fd.IterTickets(ltp, func(t *Ticket) error {
-		fd.Logger.Debug(t)
+		i++
+		fd.Logger.Debugf("%d: #%d [%s] %s", i, t.ID, t.CreatedAt.String(), t.Subject)
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("ERROR: %v", err)
+	}
+}
+
+func TestFilterTickets(t *testing.T) {
+	fd := testNewFreshdesk(t)
+	if fd == nil {
+		return
+	}
+
+	ftp := &FilterTicketsOption{
+		Query: `"created_at:>'2023-10-01'"`,
+	}
+
+	ts, total, err := fd.FilterTickets(ftp)
+	if err != nil {
+		t.Fatalf("ERROR: %v", err)
+	}
+
+	fd.Logger.Debugf("Total: %d", total)
+	for i, t := range ts {
+		fd.Logger.Debugf("%d: #%d [%s] %s", i+1, t.ID, t.CreatedAt.String(), t.Subject)
+	}
+}
+
+func TestIterFilterTickets(t *testing.T) {
+	fd := testNewFreshdesk(t)
+	if fd == nil {
+		return
+	}
+
+	ftp := &FilterTicketsOption{
+		Query: `"created_at:>'2023-10-01'"`,
+	}
+
+	i := 0
+	err := fd.IterFilterTickets(ftp, func(t *Ticket) error {
+		i++
+		fd.Logger.Debugf("%d: #%d [%s] %s", i, t.ID, t.CreatedAt.String(), t.Subject)
 		return nil
 	})
 	if err != nil {

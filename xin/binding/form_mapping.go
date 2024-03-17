@@ -44,8 +44,7 @@ func mapFormByTag(ptr any, form map[string][]string, tag string) error {
 		ptrVal = ptrVal.Elem()
 		pointed = ptrVal.Interface()
 	}
-	if ptrVal.Kind() == reflect.Map &&
-		ptrVal.Type().Key().Kind() == reflect.String {
+	if ptrVal.Kind() == reflect.Map && ptrVal.Type().Key().Kind() == reflect.String {
 		if pointed != nil {
 			ptr = pointed
 		}
@@ -68,9 +67,9 @@ func (form formSource) TrySet(value reflect.Value, field reflect.StructField, ke
 }
 
 func mappingByPtr(ptr any, setter setter, tag string) error {
-	bes := &FieldBindErrors{}
-	mapping("", reflect.ValueOf(ptr), emptyField, setter, tag, bes)
-	if bes.IsEmpty() {
+	bes := FieldBindErrors{}
+	mapping("", reflect.ValueOf(ptr), emptyField, setter, tag, &bes)
+	if len(bes) == 0 {
 		return nil
 	}
 	return bes
@@ -100,7 +99,7 @@ func mapping(prefix string, value reflect.Value, field reflect.StructField, sett
 	if vKind != reflect.Struct || !field.Anonymous {
 		ok, err := tryToSetValue(prefix, value, field, setter, tag)
 		if err != nil {
-			bes.AddError(err)
+			*bes = append(*bes, err)
 			return false
 		}
 		if ok {
@@ -310,7 +309,7 @@ func setWithProperType(val string, value reflect.Value, field reflect.StructFiel
 	case reflect.Float64:
 		return setFloatField(val, 64, value)
 	case reflect.String:
-		return setStringField(val, field, value)
+		return setStringField(val, value)
 	case reflect.Struct:
 		switch value.Interface().(type) {
 		case time.Time:
@@ -368,20 +367,20 @@ func setFloatField(val string, bitSize int, field reflect.Value) error {
 	return err
 }
 
-func setStringField(val string, structField reflect.StructField, field reflect.Value) error {
+func setStringField(val string, field reflect.Value) error {
 	field.SetString(val)
 	return nil
 }
 
 var timeFormats = []string{time.RFC3339, "2006-01-02 15:04:05", "2006-01-02", "15:04:05"}
 
-func setTimeField(val string, structField reflect.StructField, value reflect.Value) error {
+func setTimeField(val string, field reflect.StructField, value reflect.Value) error {
 	if val == "" {
 		value.Set(reflect.ValueOf(time.Time{}))
 		return nil
 	}
 
-	timeFormat := structField.Tag.Get("time_format")
+	timeFormat := field.Tag.Get("time_format")
 
 	switch tf := strings.ToLower(timeFormat); tf {
 	case "unix", "unixnano":
@@ -401,11 +400,11 @@ func setTimeField(val string, structField reflect.StructField, value reflect.Val
 	}
 
 	l := time.Local
-	if isUTC, _ := strconv.ParseBool(structField.Tag.Get("time_utc")); isUTC {
+	if isUTC, _ := strconv.ParseBool(field.Tag.Get("time_utc")); isUTC {
 		l = time.UTC
 	}
 
-	if locTag := structField.Tag.Get("time_location"); locTag != "" {
+	if locTag := field.Tag.Get("time_location"); locTag != "" {
 		loc, err := time.LoadLocation(locTag)
 		if err != nil {
 			return err

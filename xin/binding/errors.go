@@ -18,22 +18,12 @@ func (be *FieldBindError) Error() string {
 }
 
 // FieldBindErrors bind errors
-type FieldBindErrors struct {
-	Errors []*FieldBindError
-}
-
-func (bes *FieldBindErrors) IsEmpty() bool {
-	return len(bes.Errors) == 0
-}
-
-func (bes *FieldBindErrors) AddError(be *FieldBindError) {
-	bes.Errors = append(bes.Errors, be)
-}
+type FieldBindErrors []*FieldBindError
 
 // Error return a string representing the bind errors
-func (bes *FieldBindErrors) Error() string {
+func (bes FieldBindErrors) Error() string {
 	var sb strings.Builder
-	for i, e := range bes.Errors {
+	for i, e := range bes {
 		if i > 0 {
 			sb.WriteRune('\n')
 		}

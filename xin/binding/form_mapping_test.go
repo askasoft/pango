@@ -50,9 +50,9 @@ func TestMappingBaseTypes(t *testing.T) {
 
 		field := val.Elem().Type().Field(0)
 
-		bes := &FieldBindErrors{}
-		mapping("", val, emptyField, formSource{field.Name: {tt.form}}, "form", bes)
-		if !bes.IsEmpty() {
+		bes := FieldBindErrors{}
+		mapping("", val, emptyField, formSource{field.Name: {tt.form}}, "form", &bes)
+		if len(bes) > 0 {
 			t.Errorf("Error: %v", bes)
 		}
 
@@ -126,13 +126,13 @@ func TestMappingUnknownFieldType(t *testing.T) {
 	err := mappingByPtr(&s, formSource{"U": {"unknown"}}, "form")
 	assert.Error(t, err)
 
-	if bes, ok := err.(*FieldBindErrors); ok {
-		if 1 != len(bes.Errors) {
-			t.Errorf("Invalid errors: want 1, but %d, %v", len(bes.Errors), bes.Errors)
+	if bes, ok := err.(FieldBindErrors); ok {
+		if 1 != len(bes) {
+			t.Errorf("Invalid errors: want 1, but %d, %v", len(bes), bes)
 			return
 		}
 
-		be0 := bes.Errors[0]
+		be0 := bes[0]
 		assert.Equal(t, "U", be0.Name)
 		assert.Equal(t, []string{"unknown"}, be0.Values)
 		assert.Equal(t, errUnknownType, be0.Cause)
@@ -362,23 +362,23 @@ func TestMappingErrors(t *testing.T) {
 		S *s
 	}
 	err := mappingByPtr(&p, formSource{"S.Int": {"i"}, "S.Slice": {"s"}, "S.Array": {"a"}, "S.Last": {"9"}}, "form")
-	if bes, ok := err.(*FieldBindErrors); ok {
+	if bes, ok := err.(FieldBindErrors); ok {
 		assert.Equal(t, 9, p.S.Last)
 
-		if 3 != len(bes.Errors) {
-			t.Errorf("Invalid errors: want 3, but %d, %v", len(bes.Errors), bes.Errors)
+		if 3 != len(bes) {
+			t.Errorf("Invalid errors: want 3, but %d, %v", len(bes), bes)
 			return
 		}
 
-		be0 := bes.Errors[0]
+		be0 := bes[0]
 		assert.Equal(t, "S.Int", be0.Name)
 		assert.Equal(t, []string{"i"}, be0.Values)
 
-		be1 := bes.Errors[1]
+		be1 := bes[1]
 		assert.Equal(t, "S.Slice", be1.Name)
 		assert.Equal(t, []string{"s"}, be1.Values)
 
-		be2 := bes.Errors[2]
+		be2 := bes[2]
 		assert.Equal(t, "S.Array", be2.Name)
 		assert.Equal(t, []string{"a"}, be2.Values)
 	} else {

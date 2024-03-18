@@ -444,10 +444,12 @@ func LastCutRune(s string, sep rune) (before, after string, found bool) {
 	return s, "", false
 }
 
-// CutCount slices s around the rune count position p,
+// CutAt slices s around the rune position p,
 // returning the text before and start position p.
-// panic if p < 0 or p > RuneCount(s).
-func CutCount(s string, p int) (before, after string) {
+// panic if p < 0.
+// if p == 0, return "", s.
+// if p > RuneCount(s), return s, "".
+func CutAt(s string, p int) (before, after string) {
 	if p < 0 {
 		panic(fmt.Sprintf("invalid argument: position %d must not be negative", p))
 	}
@@ -455,13 +457,13 @@ func CutCount(s string, p int) (before, after string) {
 		return "", s
 	}
 
-	if len(s) < p {
-		panic(fmt.Sprintf("invalid argument: position %d out of bounds [0:%d]", p, len(s)))
+	if p > len(s) {
+		return s, ""
 	}
 
 	z := RuneCount(s)
 	if z < p {
-		panic(fmt.Sprintf("invalid argument: position %d out of bounds (0:%d)", p, z))
+		return s, ""
 	}
 
 	i, c, a := 0, 0, s
@@ -478,8 +480,8 @@ func CutCount(s string, p int) (before, after string) {
 	return s[:i], s[i:]
 }
 
-// LeftCount return the leftmost n rune string.
-func LeftCount(s string, n int) string {
+// Left return the leftmost n rune string.
+func Left(s string, n int) string {
 	if n <= 0 {
 		return ""
 	}
@@ -507,8 +509,8 @@ func LeftCount(s string, n int) string {
 	return s[:i]
 }
 
-// RightCount return the rightmost n rune string.
-func RightCount(s string, n int) string {
+// Right return the rightmost n rune string.
+func Right(s string, n int) string {
 	if n <= 0 {
 		return ""
 	}
@@ -536,10 +538,10 @@ func RightCount(s string, n int) string {
 	return s[i:]
 }
 
-// MidCount slices s around the rune count position p,
+// Mid slices s around the rune position p,
 // returning the max n rune string start from the position p.
-// panic if p < 0 or p > RuneCount(s).
-func MidCount(s string, p, n int) string {
-	_, a := CutCount(s, p)
-	return LeftCount(a, n)
+// panic if p < 0.
+func Mid(s string, p, n int) string {
+	_, a := CutAt(s, p)
+	return Left(a, n)
 }

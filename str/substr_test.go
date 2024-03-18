@@ -556,7 +556,7 @@ func TestLastCutRune(t *testing.T) {
 	}
 }
 
-func TestCutCount(t *testing.T) {
+func TestCutAt(t *testing.T) {
 	cutTests := []struct {
 		s             string
 		n             int
@@ -572,16 +572,17 @@ func TestCutCount(t *testing.T) {
 		{"１２３４５", 3, "１２３", "４５"},
 		{"１２３４５", 4, "１２３４", "５"},
 		{"１２３４５", 5, "１２３４５", ""},
+		{"１２３４５", 6, "１２３４５", ""},
 	}
 
 	for _, tt := range cutTests {
-		if before, after := CutCount(tt.s, tt.n); before != tt.before || after != tt.after {
-			t.Errorf("CutCount(%q, %d) = %q, %q, want %q, %q", tt.s, tt.n, before, after, tt.before, tt.after)
+		if before, after := CutAt(tt.s, tt.n); before != tt.before || after != tt.after {
+			t.Errorf("CutAt(%q, %d) = %q, %q, want %q, %q", tt.s, tt.n, before, after, tt.before, tt.after)
 		}
 	}
 }
 
-func TestLeftCount(t *testing.T) {
+func TestLeft(t *testing.T) {
 	cs := []struct {
 		s string
 		n int
@@ -604,13 +605,13 @@ func TestLeftCount(t *testing.T) {
 	}
 
 	for _, tt := range cs {
-		if b := LeftCount(tt.s, tt.n); b != tt.w {
-			t.Errorf("LeftCount(%q, %d) = %q, want %q", tt.s, tt.n, b, tt.w)
+		if b := Left(tt.s, tt.n); b != tt.w {
+			t.Errorf("Left(%q, %d) = %q, want %q", tt.s, tt.n, b, tt.w)
 		}
 	}
 }
 
-func TestRightCount(t *testing.T) {
+func TestRight(t *testing.T) {
 	cs := []struct {
 		s string
 		n int
@@ -633,13 +634,13 @@ func TestRightCount(t *testing.T) {
 	}
 
 	for _, tt := range cs {
-		if a := RightCount(tt.s, tt.n); a != tt.w {
-			t.Errorf("RightCount(%q, %d) = %q, want %q", tt.s, tt.n, a, tt.w)
+		if a := Right(tt.s, tt.n); a != tt.w {
+			t.Errorf("Right(%q, %d) = %q, want %q", tt.s, tt.n, a, tt.w)
 		}
 	}
 }
 
-func TestMidCount(t *testing.T) {
+func TestMid(t *testing.T) {
 	cs := []struct {
 		s    string
 		p, n int
@@ -657,11 +658,12 @@ func TestMidCount(t *testing.T) {
 		{"１２３４５", 3, 3, "４５"},
 		{"１２３４５", 4, 4, "５"},
 		{"１２３４５", 5, 1, ""},
+		{"１２３４５", 6, 1, ""},
 	}
 
 	for _, tt := range cs {
-		if b := MidCount(tt.s, tt.p, tt.n); b != tt.w {
-			t.Errorf("MidCount(%q, %d, %d) = %q, want %q", tt.s, tt.p, tt.n, b, tt.w)
+		if b := Mid(tt.s, tt.p, tt.n); b != tt.w {
+			t.Errorf("Mid(%q, %d, %d) = %q, want %q", tt.s, tt.p, tt.n, b, tt.w)
 		}
 	}
 }

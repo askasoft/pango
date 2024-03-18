@@ -446,7 +446,9 @@ func LastCutRune(s string, sep rune) (before, after string, found bool) {
 
 // CutCount slices s around the rune count position p,
 // returning the text before and start position p.
-// panic if p < 0 or p > RuneCount(s).
+// panic if p < 0.
+// if p == 0, return "", s.
+// if p > RuneCount(s), return s, "".
 func CutCount(s string, p int) (before, after string) {
 	if p < 0 {
 		panic(fmt.Sprintf("invalid argument: position %d must not be negative", p))
@@ -455,13 +457,13 @@ func CutCount(s string, p int) (before, after string) {
 		return "", s
 	}
 
-	if len(s) < p {
-		panic(fmt.Sprintf("invalid argument: position %d out of bounds [0:%d]", p, len(s)))
+	if p > len(s) {
+		return s, ""
 	}
 
 	z := RuneCount(s)
 	if z < p {
-		panic(fmt.Sprintf("invalid argument: position %d out of bounds (0:%d)", p, z))
+		return s, ""
 	}
 
 	i, c, a := 0, 0, s
@@ -538,7 +540,7 @@ func RightCount(s string, n int) string {
 
 // MidCount slices s around the rune count position p,
 // returning the max n rune string start from the position p.
-// panic if p < 0 or p > RuneCount(s).
+// panic if p < 0.
 func MidCount(s string, p, n int) string {
 	_, a := CutCount(s, p)
 	return LeftCount(a, n)

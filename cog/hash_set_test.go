@@ -15,15 +15,8 @@ import (
 func TestHashSetInterface(t *testing.T) {
 	hs := NewHashSet(0)
 
-	var c Collection[int] = hs
-	if c == nil {
-		t.Error("HashSet is not a Collection")
-	}
-
-	var s Set[int] = hs
-	if s == nil {
-		t.Error("HashSet is not a Set")
-	}
+	var _ Collection[int] = hs
+	var _ Set[int] = hs
 }
 
 func TestHashSetLazyInit(t *testing.T) {

@@ -20,13 +20,13 @@ func NewHashSet[T comparable](vs ...T) *HashSet[T] {
 // The zero value for HashSet is an empty set ready to use.
 // http://en.wikipedia.org/wiki/Set_(computer_science%29)
 type HashSet[T comparable] struct {
-	hash map[T]bool
+	hash map[T]struct{}
 }
 
 // lazyInit lazily initializes a zero List value.
 func (hs *HashSet[T]) lazyInit() {
 	if hs.hash == nil {
-		hs.hash = make(map[T]bool)
+		hs.hash = make(map[T]struct{})
 	}
 }
 
@@ -51,7 +51,7 @@ func (hs *HashSet[T]) Clear() {
 // Add Add the item v to the set
 func (hs *HashSet[T]) Add(v T) {
 	hs.lazyInit()
-	hs.hash[v] = true
+	hs.hash[v] = struct{}{}
 }
 
 // Adds Adds all items of vs to the set
@@ -62,7 +62,7 @@ func (hs *HashSet[T]) Adds(vs ...T) {
 
 	hs.lazyInit()
 	for _, v := range vs {
-		hs.hash[v] = true
+		hs.hash[v] = struct{}{}
 	}
 }
 
@@ -76,7 +76,7 @@ func (hs *HashSet[T]) AddCol(ac Collection[T]) {
 	if ic, ok := ac.(Iterable[T]); ok {
 		it := ic.Iterator()
 		for it.Next() {
-			hs.hash[it.Value()] = true
+			hs.hash[it.Value()] = struct{}{}
 		}
 		return
 	}
@@ -258,11 +258,11 @@ func (hs *HashSet[T]) Each(f func(T)) {
 
 // Difference Find the difference btween two sets
 func (hs *HashSet[T]) Difference(a *HashSet[T]) *HashSet[T] {
-	b := make(map[T]bool)
+	b := make(map[T]struct{})
 
 	for k := range hs.hash {
 		if _, ok := a.hash[k]; !ok {
-			b[k] = true
+			b[k] = struct{}{}
 		}
 	}
 
@@ -271,11 +271,11 @@ func (hs *HashSet[T]) Difference(a *HashSet[T]) *HashSet[T] {
 
 // Intersection Find the intersection of two sets
 func (hs *HashSet[T]) Intersection(a *HashSet[T]) *HashSet[T] {
-	b := make(map[T]bool)
+	b := make(map[T]struct{})
 
 	for k := range hs.hash {
 		if _, ok := a.hash[k]; ok {
-			b[k] = true
+			b[k] = struct{}{}
 		}
 	}
 

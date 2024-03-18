@@ -14,10 +14,7 @@ import (
 )
 
 func TestLinkedHashMapInterface(t *testing.T) {
-	var lm Map = NewLinkedHashMap()
-	if lm == nil {
-		t.Error("LinkedHashMap is not a Map")
-	}
+	var _ Map = NewLinkedHashMap()
 }
 
 func TestLinkedHashMapBasicFeatures(t *testing.T) {

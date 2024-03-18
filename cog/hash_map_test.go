@@ -11,10 +11,7 @@ import (
 )
 
 func TestHashMapInterface(t *testing.T) {
-	var m Map[int, int] = NewHashMap[int, int]()
-	if m == nil {
-		t.Error("HashMap is not a Map")
-	}
+	var _ Map[int, int] = NewHashMap[int, int]()
 }
 
 func TestHashMapAsHashMap(t *testing.T) {

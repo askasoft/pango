@@ -12,25 +12,10 @@ import (
 )
 
 func TestRingBufferInterface(t *testing.T) {
-	var l List = NewRingBuffer()
-	if l == nil {
-		t.Error("RingBuffer is not a List")
-	}
-
-	var q Queue = NewRingBuffer()
-	if q == nil {
-		t.Error("RingBuffer is not a Queue")
-	}
-
-	var dq Deque = NewRingBuffer()
-	if dq == nil {
-		t.Error("RingBuffer is not a Deque")
-	}
-
-	var s Sortable = NewRingBuffer()
-	if s == nil {
-		t.Error("RingBuffer is not a Sortable")
-	}
+	var _ List = NewRingBuffer()
+	var _ Queue = NewRingBuffer()
+	var _ Deque = NewRingBuffer()
+	var _ Sortable = NewRingBuffer()
 }
 
 func TestRingBufferNew(t *testing.T) {

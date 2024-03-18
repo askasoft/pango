@@ -10,25 +10,10 @@ import (
 )
 
 func TestLinkedListInterface(t *testing.T) {
-	var l List = NewLinkedList()
-	if l == nil {
-		t.Error("LinkedList is not a List")
-	}
-
-	var q Queue = NewLinkedList()
-	if q == nil {
-		t.Error("LinkedList is not a Queue")
-	}
-
-	var dq Deque = NewLinkedList()
-	if dq == nil {
-		t.Error("LinkedList is not a Deque")
-	}
-
-	var st Sortable = NewLinkedList()
-	if st == nil {
-		t.Error("LinkedList is not a Sortable")
-	}
+	var _ List = NewLinkedList()
+	var _ Queue = NewLinkedList()
+	var _ Deque = NewLinkedList()
+	var _ Sortable = NewLinkedList()
 }
 
 func TestLinkedListNew(t *testing.T) {

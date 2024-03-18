@@ -12,25 +12,10 @@ import (
 )
 
 func TestArrayListInterface(t *testing.T) {
-	var l List = NewArrayList()
-	if l == nil {
-		t.Error("ArrayList is not a List")
-	}
-
-	var q Queue = NewArrayList()
-	if q == nil {
-		t.Error("ArrayList is not a Queue")
-	}
-
-	var dq Queue = NewArrayList()
-	if dq == nil {
-		t.Error("ArrayList is not a Deque")
-	}
-
-	var s Sortable = NewArrayList()
-	if s == nil {
-		t.Error("ArrayList is not a Sortable")
-	}
+	var _ List = NewArrayList()
+	var _ Queue = NewArrayList()
+	var _ Deque = NewArrayList()
+	var _ Sortable = NewArrayList()
 }
 
 func TestArrayListNew(t *testing.T) {

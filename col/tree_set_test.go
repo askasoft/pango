@@ -10,10 +10,7 @@ import (
 )
 
 func TestTreeSetInterface(t *testing.T) {
-	var s Set = NewTreeSet(CompareInt)
-	if s == nil {
-		t.Error("TreeSet is not a Set")
-	}
+	var _ Set = NewTreeSet(CompareInt)
 }
 
 func TestTreeSetNew(t *testing.T) {

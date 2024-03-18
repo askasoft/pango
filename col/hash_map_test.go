@@ -7,10 +7,7 @@ import (
 )
 
 func TestHashMapInterface(t *testing.T) {
-	var m Map = NewHashMap()
-	if m == nil {
-		t.Error("HashMap is not a Map")
-	}
+	var _ Map = NewHashMap()
 }
 
 func TestHashMapAsHashMap(t *testing.T) {

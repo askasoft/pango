@@ -3,8 +3,6 @@ package str
 import (
 	"math/rand"
 	"time"
-
-	"github.com/askasoft/pango/bye"
 )
 
 var seed = rand.New(rand.NewSource(time.Now().UnixNano())) //nolint: gosec
@@ -38,5 +36,5 @@ func RandString(size int, chars ...string) string {
 		buf[i] = cs[seed.Intn(n)]
 	}
 
-	return bye.UnsafeString(buf)
+	return UnsafeString(buf)
 }

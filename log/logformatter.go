@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/iox"
+	"github.com/askasoft/pango/str"
 )
 
 // EOL windows: "\r\n" other: "\n"
@@ -445,11 +445,11 @@ func fcProps(f string) fmtfunc {
 func fcPropJSON(key string) fmtfunc {
 	return func(le *Event) string {
 		b, _ := json.Marshal(le.Logger.GetProp(key))
-		return bye.UnsafeString(b)
+		return str.UnsafeString(b)
 	}
 }
 
 func fcPropsJSON(le *Event) string {
 	b, _ := json.Marshal(le.Logger.GetProps())
-	return bye.UnsafeString(b)
+	return str.UnsafeString(b)
 }

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/askasoft/pango/bye"
+	"github.com/askasoft/pango/str"
 )
 
 // NewTreeMap creates a new TreeMap.
@@ -294,7 +294,7 @@ func (tm *TreeMap) Items() []*TreeMapNode {
 // String print map to string
 func (tm *TreeMap) String() string {
 	bs, _ := json.Marshal(tm)
-	return bye.UnsafeString(bs)
+	return str.UnsafeString(bs)
 }
 
 // Graph return the map's graph

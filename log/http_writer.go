@@ -7,8 +7,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/iox"
+	"github.com/askasoft/pango/str"
 )
 
 // HTTPWriter implements log Writer Interface and batch send log messages to webhook.
@@ -132,7 +132,7 @@ func (hw *HTTPWriter) send() error {
 
 	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusCreated {
 		buf, _ := iox.ReadAll(res.Body)
-		err = fmt.Errorf("HTTPWriter(%q): Send(): %s: %s", hw.URL, res.Status, bye.UnsafeString(buf))
+		err = fmt.Errorf("HTTPWriter(%q): Send(): %s: %s", hw.URL, res.Status, str.UnsafeString(buf))
 	}
 
 	iox.DrainAndClose(res.Body)

@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/cpt"
 	"github.com/askasoft/pango/num"
 	"github.com/askasoft/pango/str"
@@ -202,7 +201,7 @@ func (ca *CookieAuth) decode(auth string) (username, password string, ok bool) {
 		return
 	}
 
-	raw := bye.UnsafeString(bs)
+	raw := str.UnsafeString(bs)
 
 	ss := str.FieldsByte(raw, '\n')
 	if len(ss) != 3 {

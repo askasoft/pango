@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 
-	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/str"
 )
 
@@ -25,7 +24,7 @@ func Encode(v any) string {
 	if err != nil {
 		panic(err)
 	}
-	return bye.UnsafeString(bs)
+	return str.UnsafeString(bs)
 }
 
 func Decode(p string, v any) error {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/askasoft/pango/bye"
+	"github.com/askasoft/pango/str"
 )
 
 // RingBuffer A fast Golang queue using a ring-buffer, based on the version suggested by Dariusz Górecki.
@@ -669,7 +669,7 @@ func (rb *RingBuffer) PushTailCol(ac Collection) {
 // String print RingBuffer to string
 func (rb *RingBuffer) String() string {
 	bs, _ := json.Marshal(rb)
-	return bye.UnsafeString(bs)
+	return str.UnsafeString(bs)
 }
 
 //-----------------------------------------------------------

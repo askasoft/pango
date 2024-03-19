@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"syscall"
 
-	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/str"
 )
 
@@ -245,7 +244,7 @@ func ReadFile(filename string) ([]byte, error) {
 // to be reported.
 func ReadString(filename string) (string, error) {
 	bs, err := os.ReadFile(filename)
-	return bye.UnsafeString(bs), err
+	return str.UnsafeString(bs), err
 }
 
 // WriteFile writes data to a file named by filename.

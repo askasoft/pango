@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/cpt"
 	"github.com/askasoft/pango/net/httpx"
 	"github.com/askasoft/pango/str"
@@ -150,7 +149,7 @@ func (da *DigestAuth) checkNonce(c *xin.Context, nonce string) bool {
 		c.Logger.Debugf("Digest auth nonce %q contains invalid secret", t.String())
 		return false
 	}
-	if bye.UnsafeString(bs) != c.ClientIP() {
+	if str.UnsafeString(bs) != c.ClientIP() {
 		c.Logger.Debugf("Digest auth %q does not match request client IP %s", t.String(), c.ClientIP())
 		return false
 	}

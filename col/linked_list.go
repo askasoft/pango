@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/askasoft/pango/bye"
+	"github.com/askasoft/pango/str"
 )
 
 // NewLinkedList returns an initialized list.
@@ -520,7 +520,7 @@ func (ll *LinkedList) PushTailCol(ac Collection) {
 // String print list to string
 func (ll *LinkedList) String() string {
 	bs, _ := json.Marshal(ll)
-	return bye.UnsafeString(bs)
+	return str.UnsafeString(bs)
 }
 
 // -----------------------------------------------------------

@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/str"
 )
 
@@ -64,7 +63,7 @@ func (v *Vector) Parse(s string) error {
 func (v *Vector) Scan(src interface{}) (err error) {
 	switch src := src.(type) {
 	case []byte:
-		return v.Parse(bye.UnsafeString(src))
+		return v.Parse(str.UnsafeString(src))
 	case string:
 		return v.Parse(src)
 	default:

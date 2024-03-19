@@ -5,8 +5,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/sdk/slack"
+	"github.com/askasoft/pango/str"
 )
 
 // SlackWriter implements log Writer Interface and send log message to slack.
@@ -67,11 +67,11 @@ func (sw *SlackWriter) Write(le *Event) (err error) {
 // format format log event to (subject, message)
 func (sw *SlackWriter) format(le *Event) (sub, msg string) {
 	sbs := sw.SubFormat(le)
-	sub = bye.UnsafeString(sbs)
+	sub = str.UnsafeString(sbs)
 	sub = slack.EscapeString(sub)
 
 	mbs := sw.Format(le)
-	msg = bye.UnsafeString(mbs)
+	msg = str.UnsafeString(mbs)
 
 	return
 }

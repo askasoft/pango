@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/iox"
+	"github.com/askasoft/pango/str"
 )
 
 const (
@@ -24,7 +24,7 @@ func toJSONIndent(o any) string {
 	if err != nil {
 		return err.Error()
 	}
-	return bye.UnsafeString(bs)
+	return str.UnsafeString(bs)
 }
 
 func buildJsonRequest(a any) (io.Reader, string, error) {

@@ -7,7 +7,6 @@ import (
 	"path"
 	"sync"
 
-	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/xin/render"
@@ -498,7 +497,7 @@ func redirectFixedPath(c *Context, root *node, trailingSlash bool) bool {
 	rPath := req.URL.Path
 
 	if fixedPath, ok := root.findCaseInsensitivePath(cleanPath(rPath), trailingSlash); ok {
-		req.URL.Path = bye.UnsafeString(fixedPath)
+		req.URL.Path = str.UnsafeString(fixedPath)
 		redirectRequest(c)
 		return true
 	}

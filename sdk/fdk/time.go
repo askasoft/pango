@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/str"
 )
 
@@ -39,7 +38,7 @@ func (d *Date) MarshalJSON() ([]byte, error) {
 
 func (d *Date) UnmarshalJSON(data []byte) (err error) {
 	// Ignore null, like in the main JSON package.
-	js := bye.UnsafeString(data)
+	js := str.UnsafeString(data)
 	if js == "null" {
 		return
 	}
@@ -70,7 +69,7 @@ func (t *Time) MarshalJSON() ([]byte, error) {
 
 func (t *Time) UnmarshalJSON(data []byte) (err error) {
 	// Ignore null, like in the main JSON package.
-	js := bye.UnsafeString(data)
+	js := str.UnsafeString(data)
 	if js == "null" {
 		return
 	}
@@ -118,7 +117,7 @@ func (ts TimeSpent) MarshalJSON() ([]byte, error) {
 
 func (ts *TimeSpent) UnmarshalJSON(data []byte) (err error) {
 	// Ignore null, like in the main JSON package.
-	js := bye.UnsafeString(data)
+	js := str.UnsafeString(data)
 	if js == "null" {
 		return
 	}

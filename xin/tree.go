@@ -7,7 +7,6 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/str"
 )
 
@@ -214,7 +213,7 @@ walk:
 			// Otherwise insert it
 			if c != ':' && c != '*' && n.nType != catchAll {
 				// []byte for proper unicode char conversion, see #65
-				n.indices += bye.UnsafeString([]byte{c})
+				n.indices += str.UnsafeString([]byte{c})
 				child := &node{
 					fullPath: fullPath,
 				}

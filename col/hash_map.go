@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/askasoft/pango/bye"
+	"github.com/askasoft/pango/str"
 )
 
 // NewHashMap creates a new HashMap.
@@ -216,7 +216,7 @@ func (hm *HashMap) HashMap() map[K]V {
 // String print map to string
 func (hm *HashMap) String() string {
 	bs, _ := json.Marshal(hm)
-	return bye.UnsafeString(bs)
+	return str.UnsafeString(bs)
 }
 
 //-----------------------------------------------------------

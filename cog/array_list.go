@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/askasoft/pango/bye"
+	"github.com/askasoft/pango/str"
 )
 
 // NewArrayList returns an initialized list.
@@ -494,7 +494,7 @@ func (al *ArrayList[T]) Reserve(n int) {
 // String print list to string
 func (al *ArrayList[T]) String() string {
 	bs, _ := json.Marshal(al)
-	return bye.UnsafeString(bs)
+	return str.UnsafeString(bs)
 }
 
 //-----------------------------------------------------------

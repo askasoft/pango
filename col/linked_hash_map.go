@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/askasoft/pango/bye"
+	"github.com/askasoft/pango/str"
 )
 
 // NewLinkedHashMap creates a new LinkedHashMap.
@@ -273,7 +273,7 @@ func (lm *LinkedHashMap) Items() []*LinkedMapNode {
 // String print map to string
 func (lm *LinkedHashMap) String() string {
 	bs, _ := json.Marshal(lm)
-	return bye.UnsafeString(bs)
+	return str.UnsafeString(bs)
 }
 
 //-----------------------------------------------------

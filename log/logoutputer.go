@@ -3,7 +3,7 @@ package log
 import (
 	"io"
 
-	"github.com/askasoft/pango/bye"
+	"github.com/askasoft/pango/str"
 )
 
 // Outputer interface for io.Writer, gorm.logger.Writer
@@ -20,7 +20,7 @@ type outputer struct {
 
 // Write io.Writer implement
 func (o *outputer) Write(p []byte) (int, error) {
-	o.logger.Log(o.level, bye.UnsafeString(p))
+	o.logger.Log(o.level, str.UnsafeString(p))
 	return len(p), nil
 }
 

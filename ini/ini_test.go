@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/ars"
-	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/iox"
+	"github.com/askasoft/pango/str"
 )
 
 func TestLoadEmpty(t *testing.T) {
@@ -37,7 +37,7 @@ func TestLoadFileBom(t *testing.T) {
 
 func testReadString(filename string) string {
 	bs, _ := os.ReadFile(filename)
-	return bye.UnsafeString(bs)
+	return str.UnsafeString(bs)
 }
 
 func testLoadFile(t *testing.T, fsrc, fexp, fout string) {

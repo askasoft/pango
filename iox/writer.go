@@ -5,7 +5,6 @@ import (
 	"sync"
 	"unicode"
 
-	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/str"
 )
 
@@ -156,7 +155,7 @@ func StripWriter(w io.Writer) io.Writer {
 func (sw *stripWriter) Write(p []byte) (n int, err error) {
 	n = len(p)
 
-	s := str.Strip(bye.UnsafeString(p))
+	s := str.Strip(str.UnsafeString(p))
 	if s == "" {
 		return
 	}
@@ -203,7 +202,7 @@ func (cw *CompactWriter) Reset(c bool) {
 }
 
 func (cw *CompactWriter) Write(p []byte) (int, error) {
-	return cw.WriteString(bye.UnsafeString(p))
+	return cw.WriteString(str.UnsafeString(p))
 }
 
 func (cw *CompactWriter) WriteString(s string) (int, error) {

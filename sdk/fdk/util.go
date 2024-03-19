@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/fsu"
 	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/net/httpx"
+	"github.com/askasoft/pango/str"
 )
 
 const (
@@ -26,7 +26,7 @@ func ToJSONIndent(o any) string {
 	if err != nil {
 		return err.Error()
 	}
-	return bye.UnsafeString(bs)
+	return str.UnsafeString(bs)
 }
 
 func ToJSON(o any) string {
@@ -38,7 +38,7 @@ func ToJSON(o any) string {
 	if err != nil {
 		return err.Error()
 	}
-	return bye.UnsafeString(bs)
+	return str.UnsafeString(bs)
 }
 
 func addMultipartValues(mw *httpx.MultipartWriter, vs Values) error {

@@ -5,8 +5,8 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/sdk/teams"
+	"github.com/askasoft/pango/str"
 )
 
 // TeamsWriter implements log Writer Interface and send log message to teams.
@@ -64,10 +64,10 @@ func (tw *TeamsWriter) Write(le *Event) (err error) {
 // format format log event to (message)
 func (tw *TeamsWriter) format(le *Event) (sub, msg string) {
 	sbs := tw.SubFormat(le)
-	sub = bye.UnsafeString(sbs)
+	sub = str.UnsafeString(sbs)
 
 	mbs := tw.Format(le)
-	msg = bye.UnsafeString(mbs)
+	msg = str.UnsafeString(mbs)
 
 	return
 }

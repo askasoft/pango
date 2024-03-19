@@ -9,7 +9,7 @@ import (
 	"sort"
 
 	"github.com/askasoft/pango/asg"
-	"github.com/askasoft/pango/bye"
+	"github.com/askasoft/pango/str"
 )
 
 // NewLinkedHashSet returns an initialized set.
@@ -590,7 +590,7 @@ func (ls *LinkedHashSet[T]) PushTailCol(ac Collection[T]) {
 // String print list to string
 func (ls *LinkedHashSet[T]) String() string {
 	bs, _ := json.Marshal(ls)
-	return bye.UnsafeString(bs)
+	return str.UnsafeString(bs)
 }
 
 // -----------------------------------------------------------

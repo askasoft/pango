@@ -6,7 +6,7 @@ import (
 	"net/http/httputil"
 	"time"
 
-	"github.com/askasoft/pango/bye"
+	"github.com/askasoft/pango/str"
 )
 
 const (
@@ -18,7 +18,7 @@ func TraceHttpRequest(logger Logger, req *http.Request) (rid uint64) {
 		rid = rand.Uint64() //nolint: gosec
 		bs, _ := httputil.DumpRequestOut(req, true)
 		logger.Tracef(">>>>>>>> %s %016x >>>>>>>>", time.Now().Format(logTimeFormat), rid)
-		logger.Trace(bye.UnsafeString(bs))
+		logger.Trace(str.UnsafeString(bs))
 	}
 	return
 }
@@ -27,6 +27,6 @@ func TraceHttpResponse(logger Logger, res *http.Response, rid uint64) {
 	if logger != nil && logger.IsTraceEnabled() {
 		bs, _ := httputil.DumpResponse(res, true)
 		logger.Tracef("<<<<<<<< %s %016x <<<<<<<<", time.Now().Format(logTimeFormat), rid)
-		logger.Trace(bye.UnsafeString(bs))
+		logger.Trace(str.UnsafeString(bs))
 	}
 }

@@ -11,12 +11,29 @@ type XFS interface {
 
 	SaveFile(id string, filename string, data []byte, modTime ...time.Time) (*File, error)
 	ReadFile(fid string) ([]byte, error)
+
+	// DeleteFile delete file by id
 	DeleteFile(id string) error
+
+	// DeleteFiles delete file by ids
 	DeleteFiles(ids ...string) (int64, error)
+
+	// DeletePrefix delete files by prefix
 	DeletePrefix(prefix string) (int64, error)
+
+	// DeleteBefore delete files by time
 	DeleteBefore(before time.Time) (int64, error)
+
+	// DeletePrefixBefore delete files by prefix and time
+	DeletePrefixBefore(prefix string, before time.Time) (int64, error)
+
+	// DeleteWhere delete files by customized where filter
 	DeleteWhere(where string, args ...any) (int64, error)
+
+	// DeleteAll delete all files
 	DeleteAll() (int64, error)
+
+	// Truncate truncate files
 	Truncate() error
 }
 

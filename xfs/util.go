@@ -35,26 +35,36 @@ func SaveUploadedFile(xfs XFS, id string, file *multipart.FileHeader) (*File, er
 	return xfs.SaveFile(id, file.Filename, data)
 }
 
-func CleanOutdatedFiles(xfs XFS, before time.Time, loggers ...log.Logger) {
+func CleanOutdatedFiles(xfs XFS, prefix string, before time.Time, loggers ...log.Logger) {
 	logger := getLogger(loggers...)
 
 	tm := before.Format(time.RFC3339)
 
-	logger.Debugf("CleanOutdatedFiles('%s')", tm)
+	logger.Debugf("CleanOutdatedFiles('%s', '%s')", prefix, tm)
 
-	cnt, err := xfs.DeleteBefore(before)
+	var (
+		cnt int64
+		err error
+	)
+
+	if prefix == "" {
+		cnt, err = xfs.DeleteBefore(before)
+	} else {
+		cnt, err = xfs.DeletePrefixBefore(prefix, before)
+	}
+
 	if err != nil {
-		logger.Errorf("CleanOutdatedFiles('%s') failed: %v", before.Format(time.RFC3339), err)
+		logger.Errorf("CleanOutdatedFiles('%s', '%s') failed: %v", prefix, tm, err)
 		return
 	}
 
-	logger.Infof("CleanOutdatedFiles('%v'): %d", tm, cnt)
+	logger.Infof("CleanOutdatedFiles('%s', '%s'): %d", prefix, tm, cnt)
 }
 
 func CleanOutdatedLocalFiles(dir string, before time.Time, loggers ...log.Logger) {
 	logger := getLogger(loggers...)
 
-	logger.Debugf("CleanOutdatedLocalFiles('%s', '%v')", dir, before)
+	logger.Debugf("CleanOutdatedLocalFiles('%s', '%s')", dir, before.Format(time.RFC3339))
 
 	f, err := os.Open(dir)
 	if err != nil {

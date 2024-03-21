@@ -91,6 +91,11 @@ func (gfs *gfs) DeleteBefore(before time.Time) (int64, error) {
 	return r.RowsAffected, r.Error
 }
 
+func (gfs *gfs) DeletePrefixBefore(prefix string, before time.Time) (int64, error) {
+	r := gfs.db.Table(gfs.tn).Where("id LIKE ? AND time < ?", sqx.StartsLike(prefix), before).Delete(&xfs.File{})
+	return r.RowsAffected, r.Error
+}
+
 func (gfs *gfs) DeleteWhere(where string, args ...any) (int64, error) {
 	r := gfs.db.Table(gfs.tn).Where(where, args...).Delete(&xfs.File{})
 	return r.RowsAffected, r.Error

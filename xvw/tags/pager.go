@@ -201,11 +201,11 @@ func (pr *PageRenderer) writeOuterInfos(sb *strings.Builder, info string) {
 }
 
 func (pr *PageRenderer) writePagerLinkFirst(sb *strings.Builder, hidden bool) {
-	sb.WriteString("<li class=\"first")
+	sb.WriteString("<li class=\"page-item first")
 	if pr.Page <= 1 {
 		sb.WriteString(str.If(hidden, " hidden", " disabled"))
 	}
-	sb.WriteString("\"><a href=\"")
+	sb.WriteString("\"><a class=\"page-link\" href=\"")
 	sb.WriteString(pr.getLinkHref(1))
 	sb.WriteString("\" pageno=\"1\" title=\"")
 	sb.WriteString(tbs.GetText(pr.Locale, "pager.tooltip.first"))
@@ -220,11 +220,11 @@ func (pr *PageRenderer) writePagerLinkPrev(sb *strings.Builder, hidden bool) {
 		p = 1
 	}
 
-	sb.WriteString("<li class=\"prev")
+	sb.WriteString("<li class=\"page-item prev")
 	if pr.Page <= 1 {
 		sb.WriteString(str.If(hidden, " hidden", " disabled"))
 	}
-	sb.WriteString("\"><a href=\"")
+	sb.WriteString("\"><a class=\"page-link\" href=\"")
 	sb.WriteString(pr.getLinkHref(p))
 	sb.WriteString("\" pageno=\"")
 	sb.WriteString(num.Itoa(p))
@@ -238,11 +238,11 @@ func (pr *PageRenderer) writePagerLinkPrev(sb *strings.Builder, hidden bool) {
 func (pr *PageRenderer) writePagerLinkNext(sb *strings.Builder, hidden bool) {
 	p := pr.Page + 1
 
-	sb.WriteString("<li class=\"next")
+	sb.WriteString("<li class=\"page-item next")
 	if pr.Page >= pr.Pages() {
 		sb.WriteString(str.If(hidden, " hidden", " disabled"))
 	}
-	sb.WriteString("\"><a href=\"")
+	sb.WriteString("\"><a class=\"page-link\" href=\"")
 	sb.WriteString(pr.getLinkHref(p))
 	sb.WriteString("\" pageno=\"")
 	sb.WriteString(num.Itoa(p))
@@ -254,11 +254,11 @@ func (pr *PageRenderer) writePagerLinkNext(sb *strings.Builder, hidden bool) {
 }
 
 func (pr *PageRenderer) writePagerLinkLast(sb *strings.Builder, hidden bool) {
-	sb.WriteString("<li class=\"last")
+	sb.WriteString("<li class=\"page-item last")
 	if pr.Page >= pr.Pages() {
 		sb.WriteString(str.If(hidden, " hidden", " disabled"))
 	}
-	sb.WriteString("\"><a href=\"")
+	sb.WriteString("\"><a class=\"page-link\" href=\"")
 	sb.WriteString(pr.getLinkHref(pr.Pages()))
 	sb.WriteString("\" pageno=\"")
 	sb.WriteString(num.Itoa(pr.Pages()))
@@ -341,7 +341,7 @@ func (pr *PageRenderer) writePagerLinkNums(sb *strings.Builder) {
 }
 
 func (pr *PageRenderer) ellipsis(sb *strings.Builder, left, show bool) {
-	sb.WriteString("<li class=\"")
+	sb.WriteString("<li class=\"page-item ")
 	sb.WriteString(str.If(left, "eleft", "eright"))
 	if !show {
 		sb.WriteString(" hidden")
@@ -350,11 +350,11 @@ func (pr *PageRenderer) ellipsis(sb *strings.Builder, left, show bool) {
 }
 
 func (pr *PageRenderer) linkp(sb *strings.Builder, p int) {
-	sb.WriteString("<li class=\"page")
+	sb.WriteString("<li class=\"page-item page")
 	if pr.Page == p {
 		sb.WriteString(" active")
 	}
-	sb.WriteString("\"><a href=\"")
+	sb.WriteString("\"><a class=\"page-link\" href=\"")
 	sb.WriteString(pr.getLinkHref(p))
 	sb.WriteString("\" pageno=\"")
 	sb.WriteString(num.Itoa(p))

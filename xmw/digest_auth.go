@@ -22,14 +22,22 @@ type DigestAuth struct {
 	NonceExpires time.Duration
 	FindUser     FindUserFunc
 	AuthUserKey  string
+	AuthPassed   xin.HandlerFunc
+	AuthFailed   xin.HandlerFunc
+	AuthRequired xin.HandlerFunc
 }
 
 func NewDigestAuth(f FindUserFunc) *DigestAuth {
-	return &DigestAuth{
+	da := &DigestAuth{
 		AuthUserKey:  AuthUserKey,
 		NonceExpires: time.Minute * 5,
 		FindUser:     f,
 	}
+	da.AuthPassed = da.Authorized
+	da.AuthFailed = da.Unauthorized
+	da.AuthRequired = da.Unauthorized
+
+	return da
 }
 
 // Handler returns the xin.HandlerFunc
@@ -49,21 +57,38 @@ func (da *DigestAuth) Handle(c *xin.Context) {
 	if auth != "" {
 		dap := DigestAuthParams(auth)
 		if dap != nil {
-			user, err := da.checkAuthorization(c, dap)
-			if err != nil {
-				c.Logger.Errorf("DigestAuth: %v", err)
-				c.AbortWithStatus(http.StatusInternalServerError)
-				return
-			}
+			if da.checkAuthorization(c, dap) {
+				user, err := da.checkUserPass(c, dap)
+				if err != nil {
+					c.Logger.Errorf("DigestAuth: %v", err)
+					c.AbortWithStatus(http.StatusInternalServerError)
+					return
+				}
 
-			if user != nil {
-				c.Set(AuthUserKey, user)
-				c.Next()
+				if user != nil {
+					c.Set(AuthUserKey, user)
+					da.AuthPassed(c)
+					return
+				}
+
+				da.AuthFailed(c)
 				return
 			}
 		}
 	}
 
+	da.AuthRequired(c)
+}
+
+// Authorized just call c.Next()
+func (da *DigestAuth) Authorized(c *xin.Context) {
+	c.Next()
+}
+
+var noncer = cpt.NewTokener(8, 16)
+
+// Unauthorized set WWW-Authenticate header
+func (da *DigestAuth) Unauthorized(c *xin.Context) {
 	cip := base64.RawURLEncoding.EncodeToString(str.UnsafeBytes(c.ClientIP()))
 	nonce := noncer.NewToken(cip)
 	wa := fmt.Sprintf(`Digest realm="%s", nonce="%s", opaque="%s", algorithm=MD5, qop="auth"`, da.Realm, nonce.Token(), da.Opaque)
@@ -72,19 +97,8 @@ func (da *DigestAuth) Handle(c *xin.Context) {
 	c.AbortWithStatus(http.StatusUnauthorized)
 }
 
-var noncer = cpt.NewTokener(8, 16)
-
-func (da *DigestAuth) checkAuthorization(c *xin.Context, auth map[string]string) (any, error) {
-	if !da.checkAlgorithm(c, auth) {
-		return nil, nil
-	}
-	if !da.checkURI(c, auth["uri"]) {
-		return nil, nil
-	}
-	if !da.checkNonce(c, auth["nonce"]) {
-		return nil, nil
-	}
-	return da.checkUserPass(c, auth)
+func (da *DigestAuth) checkAuthorization(c *xin.Context, auth map[string]string) bool {
+	return da.checkAlgorithm(c, auth) && da.checkURI(c, auth["uri"]) && da.checkNonce(c, auth["nonce"])
 }
 
 func (da *DigestAuth) checkAlgorithm(c *xin.Context, auth map[string]string) bool {
@@ -165,12 +179,10 @@ func (da *DigestAuth) checkUserPass(c *xin.Context, auth map[string]string) (any
 
 	// find user
 	user, err := da.FindUser(c, auth["username"])
-	if err != nil {
+	if user == nil || err != nil {
 		return nil, err
 	}
-	if user == nil {
-		return nil, nil
-	}
+
 	pass := user.GetPassword()
 
 	// hash password

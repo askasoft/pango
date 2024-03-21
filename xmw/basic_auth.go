@@ -20,16 +20,24 @@ type FindUserFunc func(c *xin.Context, username string) (AuthUser, error)
 
 // BasicAuth basic http authenticator
 type BasicAuth struct {
-	Realm       string
-	FindUser    FindUserFunc
-	AuthUserKey string
+	Realm        string
+	FindUser     FindUserFunc
+	AuthUserKey  string
+	AuthPassed   xin.HandlerFunc
+	AuthFailed   xin.HandlerFunc
+	AuthRequired xin.HandlerFunc
 }
 
 func NewBasicAuth(f FindUserFunc) *BasicAuth {
-	return &BasicAuth{
+	ba := &BasicAuth{
 		AuthUserKey: AuthUserKey,
 		FindUser:    f,
 	}
+	ba.AuthPassed = ba.Authorized
+	ba.AuthFailed = ba.Unauthorized
+	ba.AuthRequired = ba.Unauthorized
+
+	return ba
 }
 
 // Handler returns the xin.HandlerFunc
@@ -56,11 +64,24 @@ func (ba *BasicAuth) Handle(c *xin.Context) {
 
 		if user != nil && password == user.GetPassword() {
 			c.Set(ba.AuthUserKey, user)
-			c.Next()
+			ba.AuthPassed(c)
 			return
 		}
+
+		ba.AuthFailed(c)
+		return
 	}
 
+	ba.AuthRequired(c)
+}
+
+// Authorized just call c.Next()
+func (ba *BasicAuth) Authorized(c *xin.Context) {
+	c.Next()
+}
+
+// Unauthorized set basic authentication WWW-Authenticate header
+func (ba *BasicAuth) Unauthorized(c *xin.Context) {
 	c.Header("WWW-Authenticate", "Basic realm="+strconv.Quote(str.IfEmpty(ba.Realm, "Authorization Required")))
 	c.AbortWithStatus(http.StatusUnauthorized)
 }

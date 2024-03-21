@@ -32,10 +32,13 @@ type CookieAuth struct {
 	AuthUserKey    string
 	RedirectURL    string
 	OriginURLQuery string
+	AuthPassed     xin.HandlerFunc
+	AuthFailed     xin.HandlerFunc
+	AuthRequired   xin.HandlerFunc
 }
 
 func NewCookieAuth(f FindUserFunc, secret string) *CookieAuth {
-	return &CookieAuth{
+	ca := &CookieAuth{
 		Cryptor:        cpt.NewAesCBC(secret),
 		FindUser:       f,
 		CookieName:     AuthCookieName,
@@ -47,6 +50,11 @@ func NewCookieAuth(f FindUserFunc, secret string) *CookieAuth {
 		RedirectURL:    "/",
 		OriginURLQuery: AuthRedirectOriginURLQuery,
 	}
+	ca.AuthPassed = ca.Authorized
+	ca.AuthFailed = ca.Unauthorized
+	ca.AuthRequired = ca.Unauthorized
+
+	return ca
 }
 
 // Handler returns the xin.HandlerFunc
@@ -83,11 +91,23 @@ func (ca *CookieAuth) Handle(c *xin.Context) {
 			// set user to context
 			c.Set(ca.AuthUserKey, user)
 
-			c.Next()
+			ca.AuthPassed(c)
 			return
 		}
+
+		ca.AuthFailed(c)
 	}
 
+	ca.AuthRequired(c)
+}
+
+// Authorized just call c.Next()
+func (ca *CookieAuth) Authorized(c *xin.Context) {
+	c.Next()
+}
+
+// Unauthorized redirect or abort with status 401
+func (ca *CookieAuth) Unauthorized(c *xin.Context) {
 	u := ca.buildRedirectURL(c)
 	if u != "" {
 		c.Abort()
@@ -115,11 +135,9 @@ func (ca *CookieAuth) buildRedirectURL(c *xin.Context) string {
 			c.Logger.Errorf("Invalid RedirectURL %q", u)
 		} else {
 			q := url.Query()
-			if q.Get(p) == "" {
-				q.Add(p, c.Request.URL.String())
-				url.RawQuery = q.Encode()
-				u = url.String()
-			}
+			q.Set(p, c.Request.URL.String())
+			url.RawQuery = q.Encode()
+			u = url.String()
 		}
 	}
 

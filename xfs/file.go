@@ -5,7 +5,7 @@ import (
 )
 
 type File struct {
-	ID   string    `gorm:"size:256;not null;primaryKey" json:"id"`
+	ID   string    `gorm:"size:255;not null;primaryKey" json:"id"`
 	Name string    `gorm:"not null;" json:"name"`
 	Ext  string    `gorm:"not null;" json:"ext"`
 	Size int64     `gorm:"not null;" json:"size"`

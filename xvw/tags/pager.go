@@ -210,7 +210,7 @@ func (pr *PageRenderer) writePagerLinkFirst(sb *strings.Builder, hidden bool) {
 	sb.WriteString("\" pageno=\"1\" title=\"")
 	sb.WriteString(tbs.GetText(pr.Locale, "pager.tooltip.first"))
 	sb.WriteString("\">")
-	sb.WriteString(tbs.GetText(pr.Locale, "pager.label.first", "&lt;&lt;"))
+	sb.WriteString(tbs.GetText(pr.Locale, "pager.label.first", "&laquo;"))
 	sb.WriteString("</a></li>")
 }
 
@@ -231,7 +231,7 @@ func (pr *PageRenderer) writePagerLinkPrev(sb *strings.Builder, hidden bool) {
 	sb.WriteString("\" title=\"")
 	sb.WriteString(tbs.GetText(pr.Locale, "pager.tooltip.prev"))
 	sb.WriteString("\">")
-	sb.WriteString(tbs.GetText(pr.Locale, "pager.label.prev", "&lt;"))
+	sb.WriteString(tbs.GetText(pr.Locale, "pager.label.prev", "&#139;"))
 	sb.WriteString("</a></li>")
 }
 
@@ -249,7 +249,7 @@ func (pr *PageRenderer) writePagerLinkNext(sb *strings.Builder, hidden bool) {
 	sb.WriteString("\" title=\"")
 	sb.WriteString(tbs.GetText(pr.Locale, "pager.tooltip.next"))
 	sb.WriteString("\">")
-	sb.WriteString(tbs.GetText(pr.Locale, "pager.label.next", "&gt;"))
+	sb.WriteString(tbs.GetText(pr.Locale, "pager.label.next", "&#155;"))
 	sb.WriteString("</a></li>")
 }
 
@@ -265,7 +265,7 @@ func (pr *PageRenderer) writePagerLinkLast(sb *strings.Builder, hidden bool) {
 	sb.WriteString("\" title=\"")
 	sb.WriteString(tbs.GetText(pr.Locale, "pager.tooltip.last"))
 	sb.WriteString("\">")
-	sb.WriteString(tbs.GetText(pr.Locale, "pager.label.last", "&gt;&gt;"))
+	sb.WriteString(tbs.GetText(pr.Locale, "pager.label.last", "&raquo;"))
 	sb.WriteString("</a></li>")
 }
 

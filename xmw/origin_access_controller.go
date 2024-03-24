@@ -13,6 +13,7 @@ import (
 // if the request method is OPTIONS, also set the status code to 200.
 type OriginAccessController struct {
 	Origins *cog.HashSet[string]
+	Headers string
 }
 
 // NewOriginAccessController create a default OriginAccessController
@@ -25,27 +26,37 @@ func (ll *OriginAccessController) Handler() xin.HandlerFunc {
 	return ll.Handle
 }
 
-// SetOrigins set allowed origins
-func (ll *OriginAccessController) SetOrigins(origins ...string) {
+// SetAllowOrigins set allowed origins
+func (ll *OriginAccessController) SetAllowOrigins(origins ...string) {
 	ll.Origins = cog.NewHashSet(origins...)
+}
+
+// SetAllowHeaders set allowed headers
+func (ll *OriginAccessController) SetAllowHeaders(headers string) {
+	ll.Headers = headers
 }
 
 // Handle process xin request
 func (ll *OriginAccessController) Handle(c *xin.Context) {
-	if ll.Origins.Len() > 0 {
+	acaos := ll.Origins
+	if acaos.Len() > 0 {
 		acao := ""
 
-		if ll.Origins.Contain("*") {
+		if acaos.Contain("*") {
 			acao = "*"
 		} else {
 			origin := c.GetHeader("Origin")
-			if origin != "" && ll.Origins.Contain(origin) {
+			if origin != "" && acaos.Contain(origin) {
 				acao = origin
 			}
 		}
 
 		if acao != "" {
-			c.Header("Access-Control-Allow-Origin", "*")
+			c.Header("Access-Control-Allow-Origin", acao)
+			acahs := ll.Headers
+			if acahs != "" {
+				c.Header("Access-Control-Allow-Headers", acahs)
+			}
 			if c.Request.Method == http.MethodOptions {
 				c.Status(http.StatusOK)
 			}

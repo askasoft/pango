@@ -448,7 +448,7 @@ func ToUint16(v any) (uint16, error) {
 	return uint16(0), fmt.Errorf("cannot cast '%v' to uint16", v)
 }
 
-func ToUint32(v any) (any, error) {
+func ToUint32(v any) (uint32, error) {
 	if v == nil {
 		return uint32(0), nil
 	}
@@ -682,6 +682,8 @@ func ToString(v any) (string, error) {
 			return "true", nil
 		}
 		return "false", nil
+	case time.Duration:
+		return s.String(), nil
 	case int8:
 		return strconv.FormatInt(int64(s), 10), nil
 	case int16:

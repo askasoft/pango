@@ -2,15 +2,11 @@ package xin
 
 import (
 	"encoding/xml"
-	"io/fs"
 	"net/http"
 	"path"
 	"reflect"
 	"runtime"
 	"strings"
-	"time"
-
-	"github.com/askasoft/pango/net/httpx"
 )
 
 // BindKey indicates a default bind key.
@@ -30,6 +26,11 @@ func MustBind(val any) HandlerFunc {
 			c.Set(BindKey, obj)
 		}
 	}
+}
+
+// Next is a xin.HandlerFunc just call c.Next().
+func Next(c *Context) {
+	c.Next()
 }
 
 // WrapF is a helper function for wrapping http.HandlerFunc and returns a Xin middleware.
@@ -69,25 +70,6 @@ func (h H) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	}
 
 	return e.EncodeToken(xml.EndElement{Name: start.Name})
-}
-
-// Dir returns a http.FileSystem that can be used by http.FileServer().
-// if browsable == true, then it works the same as http.Dir() otherwise it returns
-// a filesystem that prevents http.FileServer() to list the directory files.
-func Dir(root string, browsable ...bool) http.FileSystem {
-	return httpx.Dir(root, browsable...)
-}
-
-// FS returns a http.FileSystem that can be used by http.FileServer().
-// if browsable == true, then it works the same as http.FS() otherwise it returns
-// a filesystem that prevents http.FileServer() to list the directory files.
-func FS(fsys fs.FS, browsable ...bool) http.FileSystem {
-	return httpx.FS(fsys, browsable...)
-}
-
-// FixedModTimeFS returns a FileSystem with fixed ModTime
-func FixedModTimeFS(hfs http.FileSystem, mt time.Time) http.FileSystem {
-	return httpx.FixedModTimeFS(hfs, mt)
 }
 
 // --------------------------------------------------------------------

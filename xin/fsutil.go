@@ -2,6 +2,7 @@ package xin
 
 import (
 	"bytes"
+	"io/fs"
 	"net/http"
 	"path"
 	"strings"
@@ -9,6 +10,25 @@ import (
 
 	"github.com/askasoft/pango/net/httpx"
 )
+
+// Dir returns a http.FileSystem that can be used by http.FileServer().
+// if browsable == true, then it works the same as http.Dir() otherwise it returns
+// a filesystem that prevents http.FileServer() to list the directory files.
+func Dir(root string, browsable ...bool) http.FileSystem {
+	return httpx.Dir(root, browsable...)
+}
+
+// FS returns a http.FileSystem that can be used by http.FileServer().
+// if browsable == true, then it works the same as http.FS() otherwise it returns
+// a filesystem that prevents http.FileServer() to list the directory files.
+func FS(fsys fs.FS, browsable ...bool) http.FileSystem {
+	return httpx.FS(fsys, browsable...)
+}
+
+// FixedModTimeFS returns a FileSystem with fixed ModTime
+func FixedModTimeFS(hfs http.FileSystem, mt time.Time) http.FileSystem {
+	return httpx.FixedModTimeFS(hfs, mt)
+}
 
 func ServeFileHandler(filePath string) HandlerFunc {
 	return func(c *Context) {

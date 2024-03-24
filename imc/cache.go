@@ -1,6 +1,3 @@
-//go:build go1.18
-// +build go1.18
-
 package imc
 
 import (
@@ -8,6 +5,8 @@ import (
 	"runtime"
 	"sync"
 	"time"
+
+	"github.com/askasoft/pango/cas"
 )
 
 type Item struct {
@@ -118,7 +117,7 @@ func (c *cache) Add(k string, x any, d ...time.Duration) error {
 	return nil
 }
 
-// Set a new value for the cache key only if it already exists, and the existing
+// Replace a new value for the cache key only if it already exists, and the existing
 // item hasn't expired. Returns an error otherwise.
 func (c *cache) Replace(k string, x any, d ...time.Duration) error {
 	c.mu.Lock()
@@ -131,6 +130,202 @@ func (c *cache) Replace(k string, x any, d ...time.Duration) error {
 	e := c.expire(d...)
 	c.set(k, x, e)
 	c.mu.Unlock()
+	return nil
+}
+
+// Increment an item of type int, int8, int16, int32, int64, uint,
+// uint8, uint32, or uint64, float32 or float64 by n. Returns an error if the
+// item's value is not an integer, if it was not found and default value 'x[0]' is not supplied,
+// or if it is not possible to increment it by n.
+func (c *cache) Increment(k string, n any, x ...any) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	v, found := c.items[k]
+	if !found || v.Expired() {
+		if len(x) > 0 {
+			c.set(k, x[0], c.expire())
+			return nil
+		}
+		return fmt.Errorf("item %s doesn't exist", k)
+	}
+
+	switch s := v.Object.(type) {
+	case int:
+		d, err := cas.ToInt(n)
+		if err != nil {
+			return err
+		}
+		v.Object = s + d
+	case int8:
+		d, err := cas.ToInt8(n)
+		if err != nil {
+			return err
+		}
+		v.Object = s + d
+	case int16:
+		d, err := cas.ToInt16(n)
+		if err != nil {
+			return err
+		}
+		v.Object = s + d
+	case int32:
+		d, err := cas.ToInt32(n)
+		if err != nil {
+			return err
+		}
+		v.Object = s + d
+	case int64:
+		d, err := cas.ToInt64(n)
+		if err != nil {
+			return err
+		}
+		v.Object = s + d
+	case uint:
+		d, err := cas.ToUint(n)
+		if err != nil {
+			return err
+		}
+		v.Object = s + d
+	case uint8:
+		d, err := cas.ToUint8(n)
+		if err != nil {
+			return err
+		}
+		v.Object = s + d
+	case uint16:
+		d, err := cas.ToUint16(n)
+		if err != nil {
+			return err
+		}
+		v.Object = s + d
+	case uint32:
+		d, err := cas.ToUint32(n)
+		if err != nil {
+			return err
+		}
+		v.Object = s + d
+	case uint64:
+		d, err := cas.ToUint64(n)
+		if err != nil {
+			return err
+		}
+		v.Object = s + d
+	case float32:
+		d, err := cas.ToFloat32(n)
+		if err != nil {
+			return err
+		}
+		v.Object = s + d
+	case float64:
+		d, err := cas.ToFloat64(n)
+		if err != nil {
+			return err
+		}
+		v.Object = s + d
+	default:
+		return fmt.Errorf("item '%s' is not number", k)
+	}
+
+	c.items[k] = v
+	return nil
+}
+
+// Decrement an item of type int, int8, int16, int32, int64, uint,
+// uint8, uint32, or uint64, float32 or float64 by n. Returns an error if the
+// item's value is not an integer, if it was not found and default value 'x[0]' is not supplied,
+// or if it is not possible to decrement it by n.
+func (c *cache) Decrement(k string, n any, x ...any) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	v, found := c.items[k]
+	if !found || v.Expired() {
+		if len(x) > 0 {
+			c.set(k, x[0], c.expire())
+			return nil
+		}
+		return fmt.Errorf("item %s doesn't exist", k)
+	}
+
+	switch s := v.Object.(type) {
+	case int:
+		d, err := cas.ToInt(n)
+		if err != nil {
+			return err
+		}
+		v.Object = s - d
+	case int8:
+		d, err := cas.ToInt8(n)
+		if err != nil {
+			return err
+		}
+		v.Object = s - d
+	case int16:
+		d, err := cas.ToInt16(n)
+		if err != nil {
+			return err
+		}
+		v.Object = s - d
+	case int32:
+		d, err := cas.ToInt32(n)
+		if err != nil {
+			return err
+		}
+		v.Object = s - d
+	case int64:
+		d, err := cas.ToInt64(n)
+		if err != nil {
+			return err
+		}
+		v.Object = s - d
+	case uint:
+		d, err := cas.ToUint(n)
+		if err != nil {
+			return err
+		}
+		v.Object = s - d
+	case uint8:
+		d, err := cas.ToUint8(n)
+		if err != nil {
+			return err
+		}
+		v.Object = s - d
+	case uint16:
+		d, err := cas.ToUint16(n)
+		if err != nil {
+			return err
+		}
+		v.Object = s - d
+	case uint32:
+		d, err := cas.ToUint32(n)
+		if err != nil {
+			return err
+		}
+		v.Object = s - d
+	case uint64:
+		d, err := cas.ToUint64(n)
+		if err != nil {
+			return err
+		}
+		v.Object = s - d
+	case float32:
+		d, err := cas.ToFloat32(n)
+		if err != nil {
+			return err
+		}
+		v.Object = s - d
+	case float64:
+		d, err := cas.ToFloat64(n)
+		if err != nil {
+			return err
+		}
+		v.Object = s - d
+	default:
+		return fmt.Errorf("item '%s' is not number", k)
+	}
+
+	c.items[k] = v
 	return nil
 }
 

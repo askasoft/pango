@@ -33,7 +33,9 @@ func (d *Date) String() string {
 }
 
 func (d *Date) MarshalJSON() ([]byte, error) {
-	return []byte(d.Time.Format(jsonDateFormat)), nil
+	bs := make([]byte, 0, len(jsonDateFormat))
+	bs = d.Time.AppendFormat(bs, jsonDateFormat)
+	return bs, nil
 }
 
 func (d *Date) UnmarshalJSON(data []byte) (err error) {
@@ -64,7 +66,9 @@ func (t *Time) String() string {
 }
 
 func (t *Time) MarshalJSON() ([]byte, error) {
-	return []byte(t.Time.UTC().Format(jsonTimeFormat)), nil
+	bs := make([]byte, 0, len(jsonTimeFormat))
+	bs = t.Time.UTC().AppendFormat(bs, jsonTimeFormat)
+	return bs, nil
 }
 
 func (t *Time) UnmarshalJSON(data []byte) (err error) {
@@ -111,8 +115,8 @@ func (ts TimeSpent) String() string {
 }
 
 func (ts TimeSpent) MarshalJSON() ([]byte, error) {
-	min, sec := ts/60, ts%60
-	return []byte(fmt.Sprintf(`"%02d:%02d"`, min, sec)), nil
+	hour, min := ts/60, ts%60
+	return []byte(fmt.Sprintf(`"%02d:%02d"`, hour, min)), nil
 }
 
 func (ts *TimeSpent) UnmarshalJSON(data []byte) (err error) {

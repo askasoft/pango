@@ -88,7 +88,7 @@ func (pr *PageRenderer) Render(sb *strings.Builder, args ...any) error {
 		for _, r := range pr.Style {
 			switch r {
 			case '<':
-				sb.WriteString("<ul class=\"pagination\">")
+				sb.WriteString(`<ul class="pagination">`)
 			case 'f':
 				pr.writePagerLinkFirst(sb, true)
 			case 'F':
@@ -171,9 +171,9 @@ func (pr *PageRenderer) buildPagerTextInfo(name, defv string) string {
 }
 
 func (pr *PageRenderer) writePagerInfo(sb *strings.Builder, info string) {
-	sb.WriteString("<li class=\"info\">")
+	sb.WriteString(`<li class="page-item info"><span class="page-link">`)
 	sb.WriteString(info)
-	sb.WriteString("</li>")
+	sb.WriteString("</span></li>")
 }
 
 func (pr *PageRenderer) writePagerInfoEmpty(sb *strings.Builder) {
@@ -195,21 +195,21 @@ func (pr *PageRenderer) writeOuterInfosLabel(sb *strings.Builder) {
 }
 
 func (pr *PageRenderer) writeOuterInfos(sb *strings.Builder, info string) {
-	sb.WriteString("<div class=\"infos\">")
+	sb.WriteString(`<div class="infos">`)
 	sb.WriteString(info)
 	sb.WriteString("</div>")
 }
 
 func (pr *PageRenderer) writePagerLinkFirst(sb *strings.Builder, hidden bool) {
-	sb.WriteString("<li class=\"page-item first")
+	sb.WriteString(`<li class="page-item first`)
 	if pr.Page <= 1 {
 		sb.WriteString(str.If(hidden, " hidden", " disabled"))
 	}
-	sb.WriteString("\"><a class=\"page-link\" href=\"")
+	sb.WriteString(`"><a class="page-link" href="`)
 	sb.WriteString(pr.getLinkHref(1))
-	sb.WriteString("\" pageno=\"1\" title=\"")
+	sb.WriteString(`" pageno="1" title="`)
 	sb.WriteString(tbs.GetText(pr.Locale, "pager.tooltip.first"))
-	sb.WriteString("\">")
+	sb.WriteString(`">`)
 	sb.WriteString(tbs.GetText(pr.Locale, "pager.label.first", "&laquo;"))
 	sb.WriteString("</a></li>")
 }
@@ -220,17 +220,17 @@ func (pr *PageRenderer) writePagerLinkPrev(sb *strings.Builder, hidden bool) {
 		p = 1
 	}
 
-	sb.WriteString("<li class=\"page-item prev")
+	sb.WriteString(`<li class="page-item prev`)
 	if pr.Page <= 1 {
 		sb.WriteString(str.If(hidden, " hidden", " disabled"))
 	}
-	sb.WriteString("\"><a class=\"page-link\" href=\"")
+	sb.WriteString(`"><a class="page-link" href="`)
 	sb.WriteString(pr.getLinkHref(p))
-	sb.WriteString("\" pageno=\"")
+	sb.WriteString(`" pageno="`)
 	sb.WriteString(num.Itoa(p))
-	sb.WriteString("\" title=\"")
+	sb.WriteString(`" title="`)
 	sb.WriteString(tbs.GetText(pr.Locale, "pager.tooltip.prev"))
-	sb.WriteString("\">")
+	sb.WriteString(`">`)
 	sb.WriteString(tbs.GetText(pr.Locale, "pager.label.prev", "&#139;"))
 	sb.WriteString("</a></li>")
 }
@@ -238,33 +238,33 @@ func (pr *PageRenderer) writePagerLinkPrev(sb *strings.Builder, hidden bool) {
 func (pr *PageRenderer) writePagerLinkNext(sb *strings.Builder, hidden bool) {
 	p := pr.Page + 1
 
-	sb.WriteString("<li class=\"page-item next")
+	sb.WriteString(`<li class="page-item next`)
 	if pr.Page >= pr.Pages() {
 		sb.WriteString(str.If(hidden, " hidden", " disabled"))
 	}
-	sb.WriteString("\"><a class=\"page-link\" href=\"")
+	sb.WriteString(`"><a class="page-link" href="`)
 	sb.WriteString(pr.getLinkHref(p))
-	sb.WriteString("\" pageno=\"")
+	sb.WriteString(`" pageno="`)
 	sb.WriteString(num.Itoa(p))
-	sb.WriteString("\" title=\"")
+	sb.WriteString(`" title="`)
 	sb.WriteString(tbs.GetText(pr.Locale, "pager.tooltip.next"))
-	sb.WriteString("\">")
+	sb.WriteString(`">`)
 	sb.WriteString(tbs.GetText(pr.Locale, "pager.label.next", "&#155;"))
 	sb.WriteString("</a></li>")
 }
 
 func (pr *PageRenderer) writePagerLinkLast(sb *strings.Builder, hidden bool) {
-	sb.WriteString("<li class=\"page-item last")
+	sb.WriteString(`<li class="page-item last`)
 	if pr.Page >= pr.Pages() {
 		sb.WriteString(str.If(hidden, " hidden", " disabled"))
 	}
-	sb.WriteString("\"><a class=\"page-link\" href=\"")
+	sb.WriteString(`"><a class="page-link" href="`)
 	sb.WriteString(pr.getLinkHref(pr.Pages()))
-	sb.WriteString("\" pageno=\"")
+	sb.WriteString(`" pageno="`)
 	sb.WriteString(num.Itoa(pr.Pages()))
-	sb.WriteString("\" title=\"")
+	sb.WriteString(`" title="`)
 	sb.WriteString(tbs.GetText(pr.Locale, "pager.tooltip.last"))
-	sb.WriteString("\">")
+	sb.WriteString(`">`)
 	sb.WriteString(tbs.GetText(pr.Locale, "pager.label.last", "&raquo;"))
 	sb.WriteString("</a></li>")
 }
@@ -341,24 +341,24 @@ func (pr *PageRenderer) writePagerLinkNums(sb *strings.Builder) {
 }
 
 func (pr *PageRenderer) ellipsis(sb *strings.Builder, left, show bool) {
-	sb.WriteString("<li class=\"page-item ")
+	sb.WriteString(`<li class="page-item `)
 	sb.WriteString(str.If(left, "eleft", "eright"))
 	if !show {
 		sb.WriteString(" hidden")
 	}
-	sb.WriteString("\"><span>&hellip;</span></li>")
+	sb.WriteString(`"><span class="page-link">&hellip;</span></li>`)
 }
 
 func (pr *PageRenderer) linkp(sb *strings.Builder, p int) {
-	sb.WriteString("<li class=\"page-item page")
+	sb.WriteString(`<li class="page-item page`)
 	if pr.Page == p {
 		sb.WriteString(" active")
 	}
-	sb.WriteString("\"><a class=\"page-link\" href=\"")
+	sb.WriteString(`"><a class="page-link" href="`)
 	sb.WriteString(pr.getLinkHref(p))
-	sb.WriteString("\" pageno=\"")
+	sb.WriteString(`" pageno="`)
 	sb.WriteString(num.Itoa(p))
-	sb.WriteString("\">")
+	sb.WriteString(`">`)
 	sb.WriteString(num.Itoa(p))
 	sb.WriteString("</a></li>")
 }
@@ -367,7 +367,7 @@ func (pr *PageRenderer) writeLimitsSelect(sb *strings.Builder) error {
 	sb.WriteString(tbs.GetText(pr.Locale, "pager.limits.label"))
 
 	tlist := tbs.GetText(pr.Locale, "pager.limits.text", `%s Items`)
-	slist := str.Fields(tbs.GetText(pr.Locale, "pager.limits.list", `20 50 100`))
+	slist := str.Fields(tbs.GetText(pr.Locale, "pager.limits.list", "20 50 100"))
 
 	olist := &cog.LinkedHashMap[string, string]{}
 	for _, s := range slist {
@@ -388,14 +388,14 @@ func (pr *PageRenderer) writeLimitsSelect(sb *strings.Builder) error {
 }
 
 func (pr *PageRenderer) writePagerLimits(sb *strings.Builder) error {
-	sb.WriteString("<li class=\"limits\">")
+	sb.WriteString(`<li class="limits">`)
 	err := pr.writeLimitsSelect(sb)
 	sb.WriteString("</li>")
 	return err
 }
 
 func (pr *PageRenderer) writeOuterLimits(sb *strings.Builder) error {
-	sb.WriteString("<div class=\"limits\">")
+	sb.WriteString(`<div class="limits">`)
 	err := pr.writeLimitsSelect(sb)
 	sb.WriteString("</div>")
 	return err

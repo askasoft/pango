@@ -15,6 +15,7 @@ import (
 
 func TestLinkedHashMapInterface(t *testing.T) {
 	var _ Map = NewLinkedHashMap()
+	var _ IterableMap = NewLinkedHashMap()
 }
 
 func TestLinkedHashMapBasicFeatures(t *testing.T) {

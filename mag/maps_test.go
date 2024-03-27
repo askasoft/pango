@@ -30,6 +30,24 @@ func TestEqual(t *testing.T) {
 	}
 }
 
+func TestCopy(t *testing.T) {
+	cs := []struct {
+		d map[int]int
+		s map[int]int
+		w map[int]int
+	}{
+		{map[int]int{1: 11, 2: 22}, map[int]int{2: 20, 3: 30}, map[int]int{1: 11, 2: 20, 3: 30}},
+	}
+
+	for i, c := range cs {
+		Copy(c.d, c.s)
+		a := c.d
+		if !reflect.DeepEqual(a, c.w) {
+			t.Errorf("[%d] Copy(%v) = %v, want %v", i, c.s, a, c.w)
+		}
+	}
+}
+
 func TestMerge(t *testing.T) {
 	cs := []struct {
 		s []map[int]int

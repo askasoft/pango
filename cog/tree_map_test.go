@@ -11,6 +11,11 @@ import (
 	"testing"
 )
 
+func TestTreeMapInterface(t *testing.T) {
+	var _ Map[int, int] = NewTreeMap[int, int](CompareInt)
+	var _ IterableMap[int, int] = NewTreeMap[int, int](CompareInt)
+}
+
 func TestTreeMapSet(t *testing.T) {
 	tree := NewTreeMap[int, string](CompareInt)
 	tree.Set(5, "e")

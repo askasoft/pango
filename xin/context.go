@@ -237,6 +237,15 @@ func (c *Context) Attrs() map[string]any {
 	return c.attrs
 }
 
+// Del is used to delete a stored key/value pair for this context.
+func (c *Context) Del(key string) {
+	if c.attrs == nil {
+		return
+	}
+
+	delete(c.attrs, key)
+}
+
 // Set is used to store a new key/value pair exclusively for this context.
 // It also lazy initializes  c.attrs if it was not used previously.
 func (c *Context) Set(key string, value any) {

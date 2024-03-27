@@ -10,16 +10,16 @@ import (
 )
 
 type Item struct {
-	Object any
-	Expiry int64
+	Object  any   // Cache Object
+	Expires int64 // UnixNano
 }
 
 // Returns true if the item has expired.
 func (item Item) Expired() bool {
-	if item.Expiry == 0 {
+	if item.Expires == 0 {
 		return false
 	}
-	return time.Now().UnixNano() > item.Expiry
+	return time.Now().UnixNano() > item.Expires
 }
 
 type Cache struct {
@@ -31,9 +31,9 @@ type Cache struct {
 // the items in the cache never expire (by default), and must be deleted
 // manually. If the cleanup interval is less than 1, expired items are not
 // deleted from the cache before calling c.DeleteExpired().
-func New(defaultExpiration, cleanupInterval time.Duration) *Cache {
+func New(defaultExpires, cleanupInterval time.Duration) *Cache {
 	items := make(map[string]Item)
-	return newCacheWithJanitor(defaultExpiration, cleanupInterval, items)
+	return newCacheWithJanitor(defaultExpires, cleanupInterval, items)
 }
 
 // Return a new cache with a given default expiration duration and cleanup
@@ -51,8 +51,8 @@ func New(defaultExpiration, cleanupInterval time.Duration) *Cache {
 // recommended to keep any references to the map around after creating a cache.
 // If need be, the map can be accessed at a later point using c.Items() (subject
 // to the same caveat.)
-func NewFrom(defaultExpiration, cleanupInterval time.Duration, items map[string]Item) *Cache {
-	return newCacheWithJanitor(defaultExpiration, cleanupInterval, items)
+func NewFrom(defaultExpires, cleanupInterval time.Duration, items map[string]Item) *Cache {
+	return newCacheWithJanitor(defaultExpires, cleanupInterval, items)
 }
 
 type cache struct {
@@ -62,7 +62,7 @@ type cache struct {
 	janitor *janitor
 }
 
-func (c *cache) expire(ds ...time.Duration) int64 {
+func (c *cache) expires(ds ...time.Duration) int64 {
 	var d time.Duration
 	var e int64
 
@@ -84,20 +84,20 @@ func (c *cache) expire(ds ...time.Duration) int64 {
 // If the duration is 0, the cache's default expiration time is used.
 // If it < 0, the item never expires.
 func (c *cache) Set(k string, x any, d ...time.Duration) {
-	e := c.expire(d...)
+	e := c.expires(d...)
 
 	c.mu.Lock()
 	c.items[k] = Item{
-		Object: x,
-		Expiry: e,
+		Object:  x,
+		Expires: e,
 	}
 	c.mu.Unlock()
 }
 
 func (c *cache) set(k string, x any, e int64) {
 	c.items[k] = Item{
-		Object: x,
-		Expiry: e,
+		Object:  x,
+		Expires: e,
 	}
 }
 
@@ -111,7 +111,7 @@ func (c *cache) Add(k string, x any, d ...time.Duration) error {
 		return fmt.Errorf("item '%s' already exists", k)
 	}
 
-	e := c.expire(d...)
+	e := c.expires(d...)
 	c.set(k, x, e)
 	c.mu.Unlock()
 	return nil
@@ -127,7 +127,7 @@ func (c *cache) Replace(k string, x any, d ...time.Duration) error {
 		return fmt.Errorf("item %s doesn't exist", k)
 	}
 
-	e := c.expire(d...)
+	e := c.expires(d...)
 	c.set(k, x, e)
 	c.mu.Unlock()
 	return nil
@@ -144,7 +144,7 @@ func (c *cache) Increment(k string, n any, x ...any) error {
 	v, found := c.items[k]
 	if !found || v.Expired() {
 		if len(x) > 0 {
-			c.set(k, x[0], c.expire())
+			c.set(k, x[0], c.expires())
 			return nil
 		}
 		return fmt.Errorf("item %s doesn't exist", k)
@@ -242,7 +242,7 @@ func (c *cache) Decrement(k string, n any, x ...any) error {
 	v, found := c.items[k]
 	if !found || v.Expired() {
 		if len(x) > 0 {
-			c.set(k, x[0], c.expire())
+			c.set(k, x[0], c.expires())
 			return nil
 		}
 		return fmt.Errorf("item %s doesn't exist", k)
@@ -339,8 +339,8 @@ func (c *cache) Get(k string) (any, bool) {
 		return nil, false
 	}
 
-	if item.Expiry > 0 {
-		if time.Now().UnixNano() > item.Expiry {
+	if item.Expires > 0 {
+		if time.Now().UnixNano() > item.Expires {
 			c.mu.RUnlock()
 			return nil, false
 		}
@@ -350,11 +350,11 @@ func (c *cache) Get(k string) (any, bool) {
 	return item.Object, true
 }
 
-// GetWithExpiry returns an item and its expiration time from the cache.
+// GetWithExpires returns an item and its expiration time from the cache.
 // It returns the item or nil, the expiration time if one is set (if the item
 // never expires a zero value for time.Time is returned), and a bool indicating
 // whether the key was found.
-func (c *cache) GetWithExpiry(k string) (any, time.Time, bool) {
+func (c *cache) GetWithExpires(k string) (any, time.Time, bool) {
 	c.mu.RLock()
 	item, found := c.items[k]
 	if !found {
@@ -362,15 +362,15 @@ func (c *cache) GetWithExpiry(k string) (any, time.Time, bool) {
 		return nil, time.Time{}, false
 	}
 
-	if item.Expiry > 0 {
-		if time.Now().UnixNano() > item.Expiry {
+	if item.Expires > 0 {
+		if time.Now().UnixNano() > item.Expires {
 			c.mu.RUnlock()
 			return nil, time.Time{}, false
 		}
 
 		// Return the item and the expiration time
 		c.mu.RUnlock()
-		return item.Object, time.Unix(0, item.Expiry), true
+		return item.Object, time.Unix(0, item.Expires), true
 	}
 
 	// If expiration <= 0 (i.e. no expiration time set) then return the item
@@ -385,8 +385,8 @@ func (c *cache) get(k string) (any, bool) {
 		return nil, false
 	}
 
-	if item.Expiry > 0 {
-		if time.Now().UnixNano() > item.Expiry {
+	if item.Expires > 0 {
+		if time.Now().UnixNano() > item.Expires {
 			return nil, false
 		}
 	}
@@ -406,7 +406,7 @@ func (c *cache) DeleteExpired() {
 
 	c.mu.Lock()
 	for k, v := range c.items {
-		if v.Expiry > 0 && now > v.Expiry {
+		if v.Expires > 0 && now > v.Expires {
 			delete(c.items, k)
 		}
 	}
@@ -421,8 +421,8 @@ func (c *cache) Items() map[string]Item {
 	m := make(map[string]Item, len(c.items))
 	now := time.Now().UnixNano()
 	for k, v := range c.items {
-		if v.Expiry > 0 {
-			if now > v.Expiry {
+		if v.Expires > 0 {
+			if now > v.Expires {
 				continue
 			}
 		}

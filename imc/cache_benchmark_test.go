@@ -250,20 +250,20 @@ func BenchmarkDeleteExpiredLoop(b *testing.B) {
 	}
 }
 
-func TestGetWithExpiry(t *testing.T) {
+func TestGetWithExpires(t *testing.T) {
 	tc := New(0, 0)
 
-	a, expiration, found := tc.GetWithExpiry("a")
+	a, expiration, found := tc.GetWithExpires("a")
 	if found || a != nil || !expiration.IsZero() {
 		t.Error("Getting A found value that shouldn't exist:", a)
 	}
 
-	b, expiration, found := tc.GetWithExpiry("b")
+	b, expiration, found := tc.GetWithExpires("b")
 	if found || b != nil || !expiration.IsZero() {
 		t.Error("Getting B found value that shouldn't exist:", b)
 	}
 
-	c, expiration, found := tc.GetWithExpiry("c")
+	c, expiration, found := tc.GetWithExpires("c")
 	if found || c != nil || !expiration.IsZero() {
 		t.Error("Getting C found value that shouldn't exist:", c)
 	}
@@ -274,7 +274,7 @@ func TestGetWithExpiry(t *testing.T) {
 	tc.Set("d", 1, -1)
 	tc.Set("e", 1, 50*time.Millisecond)
 
-	x, expiration, found := tc.GetWithExpiry("a")
+	x, expiration, found := tc.GetWithExpires("a")
 	if !found {
 		t.Error("a was not found while getting a2")
 	}
@@ -287,7 +287,7 @@ func TestGetWithExpiry(t *testing.T) {
 		t.Error("expiration for a is not a zeroed time")
 	}
 
-	x, expiration, found = tc.GetWithExpiry("b")
+	x, expiration, found = tc.GetWithExpires("b")
 	if !found {
 		t.Error("b was not found while getting b2")
 	}
@@ -300,7 +300,7 @@ func TestGetWithExpiry(t *testing.T) {
 		t.Error("expiration for b is not a zeroed time")
 	}
 
-	x, expiration, found = tc.GetWithExpiry("c")
+	x, expiration, found = tc.GetWithExpires("c")
 	if !found {
 		t.Error("c was not found while getting c2")
 	}
@@ -313,7 +313,7 @@ func TestGetWithExpiry(t *testing.T) {
 		t.Error("expiration for c is not a zeroed time")
 	}
 
-	x, expiration, found = tc.GetWithExpiry("d")
+	x, expiration, found = tc.GetWithExpires("d")
 	if !found {
 		t.Error("d was not found while getting d2")
 	}
@@ -326,7 +326,7 @@ func TestGetWithExpiry(t *testing.T) {
 		t.Error("expiration for d is not a zeroed time")
 	}
 
-	x, expiration, found = tc.GetWithExpiry("e")
+	x, expiration, found = tc.GetWithExpires("e")
 	if !found {
 		t.Error("e was not found while getting e2")
 	}
@@ -335,7 +335,7 @@ func TestGetWithExpiry(t *testing.T) {
 	} else if e2 := x.(int); e2+2 != 3 {
 		t.Error("e (which should be 1) plus 2 does not equal 3; value:", e2)
 	}
-	if expiration.UnixNano() != tc.items["e"].Expiry {
+	if expiration.UnixNano() != tc.items["e"].Expires {
 		t.Error("expiration for e is not the correct time")
 	}
 	if expiration.UnixNano() < time.Now().UnixNano() {

@@ -10,18 +10,16 @@ import (
 )
 
 // Vector is a wrapper for []float64 to implement sql.Scanner and driver.Valuer.
-type Vector struct {
-	vec []float64
-}
+type Vector []float64
 
 // NewVector creates a new Vector from a slice of float64.
-func NewVector(vec []float64) Vector {
-	return Vector{vec: vec}
+func NewVector(v []float64) Vector {
+	return Vector(v)
 }
 
 // Slice returns the underlying slice of float64.
 func (v Vector) Slice() []float64 {
-	return v.vec
+	return v
 }
 
 // String returns a string representation of the vector.
@@ -29,11 +27,11 @@ func (v Vector) String() string {
 	var sb strings.Builder
 
 	sb.WriteString("[")
-	for i := 0; i < len(v.vec); i++ {
+	for i := 0; i < len(v); i++ {
 		if i > 0 {
 			sb.WriteString(",")
 		}
-		sb.WriteString(strconv.FormatFloat(float64(v.vec[i]), 'f', -1, 32))
+		sb.WriteString(strconv.FormatFloat(float64(v[i]), 'f', -1, 32))
 	}
 	sb.WriteString("]")
 
@@ -48,14 +46,16 @@ func (v *Vector) Parse(s string) error {
 
 	ss := strings.Split(s[1:len(s)-1], ",")
 
-	v.vec = make([]float64, len(ss))
+	a := make([]float64, len(ss))
 	for i, s := range ss {
 		n, err := strconv.ParseFloat(s, 64)
 		if err != nil {
 			return err
 		}
-		v.vec[i] = n
+		a[i] = n
 	}
+
+	*v = a
 	return nil
 }
 

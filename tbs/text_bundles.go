@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/askasoft/pango/ars"
+	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/bol"
 	"github.com/askasoft/pango/ini"
 	"github.com/askasoft/pango/num"
@@ -67,7 +67,7 @@ func (tbs *TextBundles) LoadFS(fsys fs.FS, root string) error {
 // loadFile load from path or fsys
 func (tbs *TextBundles) loadFile(fsys fs.FS, path string) error {
 	ext := filepath.Ext(path)
-	if !ars.ContainsString(tbs.Extensions, ext) {
+	if !asg.Contains(tbs.Extensions, ext) {
 		return nil
 	}
 

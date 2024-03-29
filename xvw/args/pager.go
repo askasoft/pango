@@ -1,7 +1,7 @@
 package args
 
 import (
-	"github.com/askasoft/pango/ars"
+	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/num"
 )
 
@@ -40,7 +40,7 @@ func (p *Pager) Pages() int {
 func (p *Pager) Normalize(limits ...int) {
 	p.Limit = num.AbsInt(p.Limit)
 	if len(limits) > 0 {
-		if !ars.ContainsInt(limits, p.Limit) {
+		if !asg.Contains(limits, p.Limit) {
 			p.Limit = limits[0]
 		}
 	}

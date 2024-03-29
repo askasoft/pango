@@ -1,7 +1,7 @@
 package args
 
 import (
-	"github.com/askasoft/pango/ars"
+	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/str"
 )
 
@@ -35,7 +35,7 @@ func (s *Sorter) Order(quote ...string) string {
 
 func (s *Sorter) Normalize(columns ...string) {
 	if len(columns) > 0 {
-		if !ars.ContainsString(columns, s.Col) {
+		if !asg.Contains(columns, s.Col) {
 			s.Col = columns[0]
 		}
 	}

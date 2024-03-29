@@ -4,7 +4,7 @@ import (
 	"html"
 	"strings"
 
-	"github.com/askasoft/pango/ars"
+	"github.com/askasoft/pango/asg"
 )
 
 func ChecksRender(args ...any) (any, error) {
@@ -14,18 +14,22 @@ func ChecksRender(args ...any) (any, error) {
 type ChecksRenderer struct {
 	Name     string
 	List     Iterator
-	Value    []string
+	Values   []string
 	Disabled bool
 }
 
-func (sr *ChecksRenderer) TagName() string {
+func (cr *ChecksRenderer) TagName() string {
 	return "Checks"
 }
 
-func (sr *ChecksRenderer) Render(sb *strings.Builder, args ...any) error {
+func (cr *ChecksRenderer) SetValue(val string) {
+	cr.Values = []string{val}
+}
+
+func (cr *ChecksRenderer) Render(sb *strings.Builder, args ...any) error {
 	a := Attrs{}
 
-	if err := TagSetAttrs(sr, a, args); err != nil {
+	if err := TagSetAttrs(cr, a, args); err != nil {
 		return err
 	}
 
@@ -33,10 +37,10 @@ func (sr *ChecksRenderer) Render(sb *strings.Builder, args ...any) error {
 
 	TagStart(sb, "div", a)
 
-	if sr.List != nil {
-		it := sr.List
+	if cr.List != nil {
+		it := cr.List
 		for it.Next() {
-			sr.writeCheckbox(sb, it.Key(), it.Value(), ars.ContainsString(sr.Value, it.Key()))
+			cr.writeCheckbox(sb, it.Key(), it.Value(), asg.Contains(cr.Values, it.Key()))
 		}
 	}
 
@@ -45,19 +49,19 @@ func (sr *ChecksRenderer) Render(sb *strings.Builder, args ...any) error {
 	return nil
 }
 
-func (sr *ChecksRenderer) writeCheckbox(sb *strings.Builder, key, text string, checked bool) {
+func (cr *ChecksRenderer) writeCheckbox(sb *strings.Builder, key, text string, checked bool) {
 	TagStart(sb, "label")
 
 	a := Attrs{
 		"type":  "checkbox",
-		"name":  sr.Name,
+		"name":  cr.Name,
 		"value": key,
 	}
 
 	if checked {
 		a.Set("checked", "")
 	}
-	if sr.Disabled {
+	if cr.Disabled {
 		a.Set("disabled", "")
 	}
 

@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/askasoft/pango/ars"
+	"github.com/askasoft/pango/asg"
 )
 
 // HTMLTemplates html template engine
@@ -110,7 +110,7 @@ func (ht *HTMLTemplates) LoadFS(fsys fs.FS, root string) (err error) {
 // loadFile load template file
 func (ht *HTMLTemplates) loadFile(fsys fs.FS, root, path string) error {
 	ext := filepath.Ext(path)
-	if !ars.ContainsString(ht.extensions, ext) {
+	if !asg.Contains(ht.extensions, ext) {
 		return nil
 	}
 

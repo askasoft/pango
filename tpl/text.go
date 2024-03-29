@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/askasoft/pango/ars"
+	"github.com/askasoft/pango/asg"
 )
 
 // TextTemplates text template engine
@@ -109,7 +109,7 @@ func (tt *TextTemplates) LoadFS(fsys fs.FS, root string) (err error) {
 // loadFile load template file
 func (tt *TextTemplates) loadFile(fsys fs.FS, root, path string) error {
 	ext := filepath.Ext(path)
-	if !ars.ContainsString(tt.extensions, ext) {
+	if !asg.Contains(tt.extensions, ext) {
 		return nil
 	}
 

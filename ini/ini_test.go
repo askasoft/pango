@@ -3,11 +3,11 @@ package ini
 import (
 	"bytes"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/askasoft/pango/ars"
 	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/str"
 )
@@ -144,12 +144,12 @@ func testLoadFile(t *testing.T, fsrc, fexp, fout string) {
 		}
 
 		ssm := sec.StringsMap()
-		if len(ssm) != 1 || !ars.EqualStrings(ssm["test"], []string{"a", "b", "<tab>\t<tab>"}) {
+		if len(ssm) != 1 || !reflect.DeepEqual(ssm["test"], []string{"a", "b", "<tab>\t<tab>"}) {
 			t.Errorf(`sec.StringsMap() = %v`, ssm)
 		}
 
 		om := sec.Map()
-		if len(om) != 1 || !ars.EqualStrings(ssm["test"], []string{"a", "b", "<tab>\t<tab>"}) {
+		if len(om) != 1 || !reflect.DeepEqual(ssm["test"], []string{"a", "b", "<tab>\t<tab>"}) {
 			t.Errorf(`sec.Map() = %v`, ssm)
 		}
 	}

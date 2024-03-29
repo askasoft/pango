@@ -375,8 +375,8 @@ func (pr *PageRenderer) writeLimitsSelect(sb *strings.Builder) error {
 	}
 
 	sr := &SelectRenderer{
-		List:  olist.Iterator(),
-		Value: num.Itoa(pr.Limit),
+		List:   olist.Iterator(),
+		Values: []string{num.Itoa(pr.Limit)},
 	}
 
 	args := []any{

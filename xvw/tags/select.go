@@ -3,6 +3,8 @@ package tags
 import (
 	"html"
 	"strings"
+
+	"github.com/askasoft/pango/asg"
 )
 
 func SelectRender(args ...any) (any, error) {
@@ -12,12 +14,17 @@ func SelectRender(args ...any) (any, error) {
 type SelectRenderer struct {
 	Name     string
 	List     Iterator
-	Value    string
+	Values   []string
 	Disabled bool
+	Multiple bool
 }
 
 func (sr *SelectRenderer) TagName() string {
 	return "Select"
+}
+
+func (sr *SelectRenderer) SetValue(val string) {
+	sr.Values = []string{val}
 }
 
 func (sr *SelectRenderer) Render(sb *strings.Builder, args ...any) error {
@@ -32,13 +39,16 @@ func (sr *SelectRenderer) Render(sb *strings.Builder, args ...any) error {
 	if sr.Disabled {
 		a.Set("disabled", "")
 	}
+	if sr.Multiple {
+		a.Set("multiple", "")
+	}
 
 	TagStart(sb, "select", a)
 
 	if sr.List != nil {
 		it := sr.List
 		for it.Next() {
-			sr.writeOption(sb, it.Key(), it.Value(), it.Key() == sr.Value)
+			sr.writeOption(sb, it.Key(), it.Value())
 		}
 	}
 
@@ -47,11 +57,11 @@ func (sr *SelectRenderer) Render(sb *strings.Builder, args ...any) error {
 	return nil
 }
 
-func (sr *SelectRenderer) writeOption(sb *strings.Builder, key, text string, selected bool) {
+func (sr *SelectRenderer) writeOption(sb *strings.Builder, key, text string) {
 	a := Attrs{}
 
 	a.Set("value", key)
-	if selected {
+	if asg.Contains(sr.Values, key) {
 		a.Set("selected", "")
 	}
 

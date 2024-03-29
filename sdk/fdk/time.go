@@ -1,12 +1,10 @@
 package fdk
 
 import (
-	"errors"
-	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/tmu"
 )
 
 const (
@@ -82,55 +80,8 @@ func (t *Time) UnmarshalJSON(data []byte) (err error) {
 	return
 }
 
-// TimeSpent HH:MM (Minutes)
-type TimeSpent int
+type TimeSpent = tmu.HHMM
 
 func ParseTimeSpent(s string) (TimeSpent, error) {
-	s1, s2, ok := str.Cut(s, ":")
-	if ok {
-		hour, err := strconv.Atoi(s1)
-		if err == nil {
-			min, err := strconv.Atoi(s2)
-			if err == nil {
-				return TimeSpent(hour*60 + min), nil
-			}
-		}
-		return 0, fmt.Errorf(`ParseTimeSpent: "%s" is not a HH:MM string`, s)
-	}
-
-	min, err := strconv.Atoi(s1)
-	if err == nil {
-		return TimeSpent(min), nil
-	}
-	return 0, fmt.Errorf(`ParseTimeSpent: "%s" is not a numeric string`, s)
-}
-
-func (ts TimeSpent) Minutes() int {
-	return int(ts)
-}
-
-func (ts TimeSpent) String() string {
-	hour, min := ts/60, ts%60
-	return fmt.Sprintf("%02d:%02d", hour, min)
-}
-
-func (ts TimeSpent) MarshalJSON() ([]byte, error) {
-	hour, min := ts/60, ts%60
-	return []byte(fmt.Sprintf(`"%02d:%02d"`, hour, min)), nil
-}
-
-func (ts *TimeSpent) UnmarshalJSON(data []byte) (err error) {
-	// Ignore null, like in the main JSON package.
-	js := str.UnsafeString(data)
-	if js == "null" {
-		return
-	}
-
-	if len(js) < 2 || js[0] != '"' || js[len(js)-1] != '"' {
-		return errors.New("TimeSpent.UnmarshalJSON: input is not a JSON string")
-	}
-	js = js[len(`"`) : len(js)-len(`"`)]
-
-	*ts, err = ParseTimeSpent(js)
-	return
+	return tmu.ParseHHMM(s)
 }

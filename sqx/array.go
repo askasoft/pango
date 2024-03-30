@@ -9,37 +9,32 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
-// Array is a wrapper for []string to implement sql.Scanner and driver.Valuer.
-type Array []string
+// StringArray is sa wrapper for []string to implement sql.Scanner and driver.Valuer.
+type StringArray []string
 
-// NewArray creates a new Array from a slice of string.
-func NewArray(a []string) Array {
-	return Array(a)
+// Slice returns the []string slice.
+func (sa StringArray) Slice() []string {
+	return sa
 }
 
-// Slice returns the underlying slice of string.
-func (a Array) Slice() []string {
-	return a
-}
-
-// String returns a string representation of the array.
-func (a Array) String() string {
+// String returns sa string representation of the array.
+func (sa StringArray) String() string {
 	var sb strings.Builder
 
 	sb.WriteString("[")
-	for i := 0; i < len(a); i++ {
+	for i := 0; i < len(sa); i++ {
 		if i > 0 {
 			sb.WriteString(",")
 		}
-		sb.WriteString(strconv.Quote(a[i]))
+		sb.WriteString(strconv.Quote(sa[i]))
 	}
 	sb.WriteString("]")
 
 	return sb.String()
 }
 
-// Parse parses a string representation of a array.
-func (a *Array) Parse(s string) error {
+// Parse parses sa string representation of sa array.
+func (sa *StringArray) Parse(s string) error {
 	if !str.StartsWithByte(s, '[') || !str.EndsWithByte(s, ']') {
 		return nil
 	}
@@ -55,23 +50,23 @@ func (a *Array) Parse(s string) error {
 		v[i] = n
 	}
 
-	*a = v
+	*sa = v
 	return nil
 }
 
 // Scan implements the sql.Scanner interface.
-func (a *Array) Scan(src interface{}) (err error) {
+func (sa *StringArray) Scan(src interface{}) (err error) {
 	switch src := src.(type) {
 	case []byte:
-		return a.Parse(str.UnsafeString(src))
+		return sa.Parse(str.UnsafeString(src))
 	case string:
-		return a.Parse(src)
+		return sa.Parse(src)
 	default:
 		return fmt.Errorf("unsupported data type: %T", src)
 	}
 }
 
 // Value implements the driver.Valuer interface.
-func (a Array) Value() (driver.Value, error) {
-	return a.String(), nil
+func (sa StringArray) Value() (driver.Value, error) {
+	return sa.String(), nil
 }

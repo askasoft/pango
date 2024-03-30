@@ -1,4 +1,4 @@
-package sqx
+package pqx
 
 import (
 	"database/sql/driver"
@@ -12,12 +12,7 @@ import (
 // Vector is a wrapper for []float64 to implement sql.Scanner and driver.Valuer.
 type Vector []float64
 
-// NewVector creates a new Vector from a slice of float64.
-func NewVector(v []float64) Vector {
-	return Vector(v)
-}
-
-// Slice returns the underlying slice of float64.
+// Slice returns the []float64 slice.
 func (v Vector) Slice() []float64 {
 	return v
 }

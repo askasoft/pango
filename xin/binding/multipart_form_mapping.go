@@ -24,7 +24,7 @@ func (r *multipartRequest) TrySet(value reflect.Value, field reflect.StructField
 		ok, err := setByMultipartFormFile(value, field, files)
 		if err != nil {
 			be := &FieldBindError{
-				Name:  key,
+				Field: key,
 				Cause: err,
 			}
 			for _, f := range files {

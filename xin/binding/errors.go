@@ -7,14 +7,14 @@ import (
 
 // FieldBindError bind error
 type FieldBindError struct {
-	Name   string
+	Field  string
 	Cause  error
 	Values []string
 }
 
 // Error return a string representing the bind error
 func (be *FieldBindError) Error() string {
-	return fmt.Sprintf("FieldBindError: %s: %s - %v", be.Name, be.Cause, be.Values)
+	return fmt.Sprintf("FieldBindError: %s: %s - %v", be.Field, be.Cause, be.Values)
 }
 
 // FieldBindErrors bind errors

@@ -133,7 +133,7 @@ func TestMappingUnknownFieldType(t *testing.T) {
 		}
 
 		be0 := bes[0]
-		assert.Equal(t, "U", be0.Name)
+		assert.Equal(t, "U", be0.Field)
 		assert.Equal(t, []string{"unknown"}, be0.Values)
 		assert.Equal(t, errUnknownType, be0.Cause)
 	} else {
@@ -371,15 +371,15 @@ func TestMappingErrors(t *testing.T) {
 		}
 
 		be0 := bes[0]
-		assert.Equal(t, "S.Int", be0.Name)
+		assert.Equal(t, "S.Int", be0.Field)
 		assert.Equal(t, []string{"i"}, be0.Values)
 
 		be1 := bes[1]
-		assert.Equal(t, "S.Slice", be1.Name)
+		assert.Equal(t, "S.Slice", be1.Field)
 		assert.Equal(t, []string{"s"}, be1.Values)
 
 		be2 := bes[2]
-		assert.Equal(t, "S.Array", be2.Name)
+		assert.Equal(t, "S.Array", be2.Field)
 		assert.Equal(t, []string{"a"}, be2.Values)
 	} else {
 		t.Errorf("missing binding errors: %v", err)

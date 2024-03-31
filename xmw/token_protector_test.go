@@ -25,7 +25,7 @@ func TestTokenProtectorFail(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	val := w.Result().StatusCode
-	exp := http.StatusBadRequest
+	exp := http.StatusForbidden
 	if val != exp {
 		t.Errorf("%v = %v, want %v", req.URL.String(), val, exp)
 	}

@@ -29,6 +29,7 @@ type TokenProtector struct {
 	CookieSecure   bool
 	CookieHttpOnly bool
 	CookieSameSite http.SameSite
+	AbortStatus    int
 
 	methods *stringSet
 }
@@ -46,6 +47,7 @@ func NewTokenProtector(secret string) *TokenProtector {
 		CookieMaxAge:   time.Hour * 24 * 30, // 30 days
 		CookieHttpOnly: true,
 		CookieSameSite: http.SameSiteStrictMode,
+		AbortStatus:    http.StatusForbidden,
 		methods:        newStringSet(http.MethodDelete, http.MethodPatch, http.MethodPost, http.MethodPut),
 	}
 	return tp
@@ -77,7 +79,7 @@ func (tp *TokenProtector) Handle(c *xin.Context) {
 	ms := tp.methods
 	if ms != nil && ms.Contains(c.Request.Method) {
 		if !tp.validate(c) {
-			c.AbortWithStatus(http.StatusBadRequest)
+			c.AbortWithStatus(tp.AbortStatus)
 			return
 		}
 	}

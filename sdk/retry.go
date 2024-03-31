@@ -26,7 +26,7 @@ func RetryForError(api func() error, retries int, abort func() bool, sleep time.
 		}
 
 		if logger != nil {
-			logger.Warnf("Sleep %s for retry [%d] %s", after, i, err.Error())
+			logger.Warnf("Sleep %s for retry #%d: %s", after, i, err.Error())
 		}
 
 		if !sleepForRetry(sleep, after, abort) {

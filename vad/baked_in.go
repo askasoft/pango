@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
-	"net/url"
 	"os"
 	"reflect"
 	"regexp"
@@ -119,8 +118,10 @@ var (
 		"hsla":                          isHSLA,
 		"e164":                          isE164,
 		"email":                         isEmail,
-		"url":                           isURL,
 		"uri":                           isURI,
+		"url":                           isURL,
+		"httpurl":                       isHttpURL,
+		"httpsurl":                      isHttpsURL,
 		"file":                          isFile,
 		"base64":                        isBase64,
 		"base64url":                     isBase64URL,
@@ -236,7 +237,6 @@ func isOneOf(fl FieldLevel) bool {
 
 // isUnique is the validation function for validating if each array|slice|map value is unique
 func isUnique(fl FieldLevel) bool {
-
 	field := fl.Field()
 	param := fl.Param()
 	v := reflect.ValueOf(struct{}{})
@@ -1071,58 +1071,22 @@ func isBase64URL(fl FieldLevel) bool {
 
 // isURI is the validation function for validating if the current field's value is a valid URI.
 func isURI(fl FieldLevel) bool {
-	field := fl.Field()
-
-	switch field.Kind() {
-	case reflect.String:
-		s := field.String()
-
-		// checks needed as of Go 1.6 because of change https://github.com/golang/go/commit/617c93ce740c3c3cc28cdd1a0d712be183d0b328#diff-6c2d018290e298803c0c9419d8739885L195
-		// emulate browser and strip the '#' suffix prior to validation. see issue-#237
-		if i := strings.Index(s, "#"); i > -1 {
-			s = s[:i]
-		}
-
-		if len(s) == 0 {
-			return false
-		}
-
-		_, err := url.ParseRequestURI(s)
-		return err == nil
-	}
-
-	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	return IsURI(fl.Field().String())
 }
 
 // isURL is the validation function for validating if the current field's value is a valid URL.
 func isURL(fl FieldLevel) bool {
-	field := fl.Field()
+	return IsURL(fl.Field().String())
+}
 
-	switch field.Kind() {
-	case reflect.String:
-		var i int
-		s := field.String()
+// isHttpURL is the validation function for validating if the current field's value is a valid https?:// URL.
+func isHttpURL(fl FieldLevel) bool {
+	return IsHttpURL(fl.Field().String())
+}
 
-		// checks needed as of Go 1.6 because of change https://github.com/golang/go/commit/617c93ce740c3c3cc28cdd1a0d712be183d0b328#diff-6c2d018290e298803c0c9419d8739885L195
-		// emulate browser and strip the '#' suffix prior to validation. see issue-#237
-		if i = strings.Index(s, "#"); i > -1 {
-			s = s[:i]
-		}
-
-		if len(s) == 0 {
-			return false
-		}
-
-		url, err := url.ParseRequestURI(s)
-
-		if err != nil || url.Scheme == "" {
-			return false
-		}
-
-		return true
-	}
-
-	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+// isHttpsURL is the validation function for validating if the current field's value is a valid https:// URL.
+func isHttpsURL(fl FieldLevel) bool {
+	return IsHttpsURL(fl.Field().String())
 }
 
 // isFile is the validation function for validating if the current field's value is a valid file path.

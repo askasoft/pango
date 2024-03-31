@@ -24,8 +24,9 @@ Then import the validator package into your own code.
 
 	import "github.com/askasoft/pango/vad"
 
+
 Error Return Value
--------
+-------------------
 
 Validation functions return type error
 
@@ -39,7 +40,7 @@ validationErrors := err.(vad.ValidationErrors)
  ```
 
 Usage and documentation
-------
+------------------------
 
 ##### Examples:
 
@@ -48,7 +49,7 @@ Usage and documentation
 - [Struct Level](./_examples/struct-level/main.go)
 
 Baked-in Validations
-------
+---------------------
 
 ### Fields:
 
@@ -97,8 +98,8 @@ Baked-in Validations
 | unix_addr | Unix domain socket end point Address |
 | uri | URI String |
 | url | URL String |
-| url_encoded | URL Encoded |
-| urn_rfc2141 | Urn RFC 2141 String |
+| httpurl | URL (https?://) String |
+| httpsurl | URL (https://) String |
 
 ### Strings:
 

@@ -7134,9 +7134,6 @@ func TestUrl(t *testing.T) {
 			}
 		}
 	}
-
-	i := 1
-	assertPanicMatches(t, func() { _ = validate.Var(i, "url") }, "Bad field type int")
 }
 
 func TestUri(t *testing.T) {
@@ -7200,9 +7197,6 @@ func TestUri(t *testing.T) {
 			}
 		}
 	}
-
-	i := 1
-	assertPanicMatches(t, func() { _ = validate.Var(i, "uri") }, "Bad field type int")
 }
 
 func TestOrTag(t *testing.T) {

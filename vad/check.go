@@ -5,7 +5,6 @@ import (
 	"net"
 	"net/url"
 	"strconv"
-	"unicode/utf8"
 
 	"github.com/askasoft/pango/str"
 )
@@ -47,31 +46,67 @@ func IsExistingEmail(email string) bool {
 	return true
 }
 
-const maxURLRuneCount = 2083
-const minURLRuneCount = 3
+// IsURI checks if the string is an URI.
+func IsURI(s string) bool {
+	u, _, _ := str.CutByte(s, '#')
+
+	if len(u) == 0 {
+		return false
+	}
+
+	_, err := url.ParseRequestURI(u)
+	return err == nil
+}
 
 // IsURL checks if the string is an URL.
 func IsURL(s string) bool {
-	if s == "" || utf8.RuneCountInString(s) >= maxURLRuneCount || len(s) <= minURLRuneCount || str.HasPrefix(s, ".") {
+	u, _, _ := str.CutByte(s, '#')
+
+	if len(u) == 0 {
 		return false
 	}
-	strTemp := s
-	if str.Contains(s, ":") && !str.Contains(s, "://") {
-		// support no indicated urlscheme but with colon for port number
-		// http:// is appended so url.Parse will succeed, strTemp used so it does not impact rxURL.MatchString
-		strTemp = "http://" + s
-	}
-	u, err := url.Parse(strTemp)
-	if err != nil {
+
+	url, err := url.ParseRequestURI(u)
+
+	if err != nil || url.Scheme == "" {
 		return false
 	}
-	if str.HasPrefix(u.Host, ".") {
+
+	return true
+}
+
+// IsHttpURL checks if the string is an https?:// URL.
+func IsHttpURL(s string) bool {
+	u, _, _ := str.CutByte(s, '#')
+
+	if len(u) == 0 {
 		return false
 	}
-	if u.Host == "" && (u.Path != "" && !str.Contains(u.Path, ".")) {
+
+	url, err := url.ParseRequestURI(u)
+
+	if err != nil || !(str.EqualFold(url.Scheme, "http") || str.EqualFold(url.Scheme, "https")) {
 		return false
 	}
-	return rxURL.MatchString(s)
+
+	return true
+}
+
+// IsHttpsURL checks if the string is an https:// URL.
+func IsHttpsURL(s string) bool {
+	u, _, _ := str.CutByte(s, '#')
+
+	if len(u) == 0 {
+		return false
+	}
+
+	url, err := url.ParseRequestURI(u)
+
+	if err != nil || !str.EqualFold(url.Scheme, "https") {
+		return false
+	}
+
+	return true
 }
 
 // IsRequestURL checks if the string rawurl, assuming

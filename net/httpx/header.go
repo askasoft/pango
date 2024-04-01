@@ -3,6 +3,7 @@ package httpx
 import (
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/askasoft/pango/str"
 )
@@ -63,7 +64,7 @@ func SetAttachmentHeader(header http.Header, filename string) {
 	var v string
 
 	if str.IsASCII(filename) {
-		v = `attachment; filename="` + filename + `"`
+		v = `attachment; filename=` + strconv.Quote(filename)
 	} else {
 		v = `attachment; filename*=UTF-8''` + url.QueryEscape(filename)
 	}

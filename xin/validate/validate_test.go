@@ -193,6 +193,31 @@ func TestValidatePrimitives(t *testing.T) {
 	assert.Equal(t, "value", str)
 }
 
+type structModifyValidation struct {
+	Integer int
+}
+
+func toZero(sl vad.StructLevel) {
+	var s *structModifyValidation = sl.Top().Interface().(*structModifyValidation)
+	s.Integer = 0
+}
+
+func TestValidateAndModifyStruct(t *testing.T) {
+	// This validates that pointers to structs are passed to the validator
+	// giving us the ability to modify the struct being validated.
+	v := NewStructValidator()
+	engine, ok := v.Engine().(*vad.Validate)
+	assert.True(t, ok)
+
+	engine.RegisterStructValidation(toZero, structModifyValidation{})
+
+	s := structModifyValidation{Integer: 1}
+	errs := v.ValidateStruct(&s)
+
+	assert.Nil(t, errs)
+	assert.Equal(t, s, structModifyValidation{Integer: 0})
+}
+
 // structCustomValidation is a helper struct we use to check that
 // custom validation can be registered on it.
 // The `notone` binding directive is for custom validation and registered later.

@@ -334,6 +334,69 @@ func (a Int32Array) Value() (driver.Value, error) {
 	return "{}", nil
 }
 
+// IntArray represents a one-dimensional array of the PostgreSQL integer types.
+type IntArray []int
+
+// Scan implements the sql.Scanner interface.
+func (a *IntArray) Scan(src interface{}) error {
+	switch src := src.(type) {
+	case []byte:
+		return a.scanBytes(src)
+	case string:
+		return a.scanBytes(str.UnsafeBytes(src))
+	case nil:
+		*a = nil
+		return nil
+	}
+
+	return fmt.Errorf("pqx: cannot convert %T to Int32Array", src)
+}
+
+func (a *IntArray) scanBytes(src []byte) error {
+	elems, err := scanLinearArray(src, []byte{','}, "IntArray")
+	if err != nil {
+		return err
+	}
+	if *a != nil && len(elems) == 0 {
+		*a = (*a)[:0]
+	} else {
+		b := make(IntArray, len(elems))
+		for i, v := range elems {
+			x, err := strconv.ParseInt(str.UnsafeString(v), 10, strconv.IntSize)
+			if err != nil {
+				return fmt.Errorf("pqx: parsing array element index %d: %w", i, err)
+			}
+			b[i] = int(x)
+		}
+		*a = b
+	}
+	return nil
+}
+
+// Value implements the driver.Valuer interface.
+func (a IntArray) Value() (driver.Value, error) {
+	if a == nil {
+		return nil, nil
+	}
+
+	if n := len(a); n > 0 {
+		// There will be at least two curly brackets, N bytes of values,
+		// and N-1 bytes of delimiters.
+		b := make([]byte, 1, 1+2*n)
+		b[0] = '{'
+
+		b = strconv.AppendInt(b, int64(a[0]), 10)
+		for i := 1; i < n; i++ {
+			b = append(b, ',')
+			b = strconv.AppendInt(b, int64(a[i]), 10)
+		}
+
+		return str.UnsafeString(append(b, '}')), nil
+	}
+
+	return "{}", nil
+}
+
 // StringArray represents a one-dimensional array of the PostgreSQL character types.
 type StringArray []string
 

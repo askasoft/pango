@@ -349,7 +349,10 @@ func (n *node) insertChild(path string, fullPath string, handlers HandlersChain)
 		}
 
 		if len(n.path) > 0 && n.path[len(n.path)-1] == '/' {
-			pathSeg := strings.SplitN(n.children[0].path, "/", 2)[0]
+			pathSeg := ""
+			if len(n.children) != 0 {
+				pathSeg = strings.SplitN(n.children[0].path, "/", 2)[0]
+			}
 			panic("catch-all wildcard '" + path +
 				"' in new path '" + fullPath +
 				"' conflicts with existing path segment '" + pathSeg +
@@ -457,7 +460,7 @@ walk: // Outer loop for walking the tree
 					// If the path at the end of the loop is not equal to '/' and the current node has no child nodes
 					// the current node needs to roll back to last valid skippedNode
 					if path != "/" {
-						for l := len(*skippedNodes); l > 0; {
+						for l := len(*skippedNodes); l > 0; l-- {
 							skippedNode := (*skippedNodes)[l-1]
 							*skippedNodes = (*skippedNodes)[:l-1]
 							if strings.HasSuffix(skippedNode.path, path) {
@@ -495,7 +498,14 @@ walk: // Outer loop for walking the tree
 					}
 
 					// Save param value
-					if params != nil && cap(*params) > 0 {
+					if params != nil {
+						// Preallocate capacity if necessary
+						if cap(*params) < int(globalParamsCount) {
+							newParams := make(Params, len(*params), globalParamsCount)
+							copy(newParams, *params)
+							*params = newParams
+						}
+
 						if value.params == nil {
 							value.params = params
 						}
@@ -542,6 +552,13 @@ walk: // Outer loop for walking the tree
 				case catchAll:
 					// Save param value
 					if params != nil {
+						// Preallocate capacity if necessary
+						if cap(*params) < int(globalParamsCount) {
+							newParams := make(Params, len(*params), globalParamsCount)
+							copy(newParams, *params)
+							*params = newParams
+						}
+
 						if value.params == nil {
 							value.params = params
 						}
@@ -574,7 +591,7 @@ walk: // Outer loop for walking the tree
 			// If the current path does not equal '/' and the node does not have a registered handle and the most recently matched node has a child node
 			// the current node needs to roll back to last valid skippedNode
 			if n.handlers == nil && path != "/" {
-				for l := len(*skippedNodes); l > 0; {
+				for l := len(*skippedNodes); l > 0; l-- {
 					skippedNode := (*skippedNodes)[l-1]
 					*skippedNodes = (*skippedNodes)[:l-1]
 					if strings.HasSuffix(skippedNode.path, path) {
@@ -631,7 +648,7 @@ walk: // Outer loop for walking the tree
 
 		// roll back to last valid skippedNode
 		if !value.tsr && path != "/" {
-			for l := len(*skippedNodes); l > 0; {
+			for l := len(*skippedNodes); l > 0; l-- {
 				skippedNode := (*skippedNodes)[l-1]
 				*skippedNodes = (*skippedNodes)[:l-1]
 				if strings.HasSuffix(skippedNode.path, path) {

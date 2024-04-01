@@ -34,6 +34,9 @@ const BodyBytesKey = "XIN_BODY_BYTES"
 // ContextKey is the key that a Context returns itself for.
 const ContextKey = "XIN_CONTEXT"
 
+// RequestKey is the key that a Context returns it's Request.
+const RequestKey = "XIN_REQUEST"
+
 // abortIndex represents a typical value used in abort functions.
 const abortIndex = 128
 
@@ -109,10 +112,13 @@ func (c *Context) Copy() *Context {
 		Locale:    c.Locale,
 		Logger:    c.Logger,
 	}
+
 	cp.writermem.ResponseWriter = nil
 	cp.Writer = &cp.writermem
 	cp.index = abortIndex
 	cp.handlers = nil
+	cp.fullPath = c.fullPath
+
 	cp.attrs = make(map[string]any, len(c.attrs))
 	for k, v := range c.attrs {
 		cp.attrs[k] = v
@@ -445,6 +451,8 @@ func getStringsMapFromCache(cache map[string][]string, key string) (map[string][
 //	router.GET("/user/:id", func(c *xin.Context) {
 //	    // a GET request to /user/john
 //	    id := c.Param("id") // id == "john"
+//	    // a GET request to /user/john/
+//	    id := c.Param("id") // id == "/john/"
 //	})
 func (c *Context) Param(key string) string {
 	return c.Params.ByName(key)
@@ -759,7 +767,7 @@ func (c *Context) BindHeader(obj any) error {
 
 // BindURI binds the passed struct pointer using the specified binding engine.
 func (c *Context) BindURI(obj any) (err error) {
-	m := make(map[string][]string)
+	m := make(map[string][]string, len(c.Params))
 	for _, v := range c.Params {
 		m[v.Key] = []string{v.Value}
 	}
@@ -812,6 +820,16 @@ func (c *Context) BindBodyWith(obj any, bb binding.BodyBinding) (err error) {
 
 	err = c.engine.Validator.ValidateStruct(obj)
 	return
+}
+
+// BindBodyWithJSON is a shortcut for c.BindBodyWith(obj, binding.JSON).
+func (c *Context) BindBodyWithJSON(obj any) error {
+	return c.BindBodyWith(obj, binding.JSON)
+}
+
+// BindBodyWithXML is a shortcut for c.BindBodyWith(obj, binding.XML).
+func (c *Context) BindBodyWithXML(obj any) error {
+	return c.BindBodyWith(obj, binding.XML)
 }
 
 // IsSecure implements one best effort algorithm to check the https request.
@@ -939,6 +957,9 @@ func (c *Context) GetHeader(key string) string {
 
 // GetRawData returns stream data.
 func (c *Context) GetRawData() ([]byte, error) {
+	if c.Request.Body == nil {
+		return nil, errors.New("cannot read nil body")
+	}
 	return io.ReadAll(c.Request.Body)
 }
 
@@ -1173,7 +1194,7 @@ func (c *Context) NegotiateFormat(offered ...string) string {
 			// According to RFC 2616 and RFC 2396, non-ASCII characters are not allowed in headers,
 			// therefore we can just iterate over the string without casting it into []rune
 			i := 0
-			for ; i < len(accepted); i++ {
+			for ; i < len(accepted) && i < len(offer); i++ {
 				if accepted[i] == '*' || offer[i] == '*' {
 					return offer
 				}
@@ -1233,7 +1254,7 @@ func (c *Context) Err() error {
 // if no value is associated with key. Successive calls to Value with
 // the same key returns the same result.
 func (c *Context) Value(key any) any {
-	if key == 0 {
+	if key == RequestKey {
 		return c.Request
 	}
 	if key == ContextKey {

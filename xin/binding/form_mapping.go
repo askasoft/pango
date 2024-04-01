@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"mime/multipart"
 	"reflect"
 	"strconv"
 	"strings"
@@ -314,10 +315,17 @@ func setWithProperType(val string, value reflect.Value, field reflect.StructFiel
 		switch value.Interface().(type) {
 		case time.Time:
 			return setTimeField(val, field, value)
+		case multipart.FileHeader:
+			return nil
 		}
 		return json.Unmarshal(str.UnsafeBytes(val), value.Addr().Interface())
 	case reflect.Map:
 		return json.Unmarshal(str.UnsafeBytes(val), value.Addr().Interface())
+	case reflect.Ptr:
+		if !value.Elem().IsValid() {
+			value.Set(reflect.New(value.Type().Elem()))
+		}
+		return setWithProperType(val, value.Elem(), field)
 	default:
 		return errUnknownType
 	}

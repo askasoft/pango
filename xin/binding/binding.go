@@ -34,20 +34,20 @@ type BodyBinding interface {
 // but it reads the Params.
 type URIBinding interface {
 	Name() string
-	BindUri(map[string][]string, any) error
+	BindURI(map[string][]string, any) error
 }
 
 // These implement the Binding interface and can be used to bind the data
 // present in the request to struct instances.
 var (
-	JSON          = jsonBinding{}
-	XML           = xmlBinding{}
-	Form          = formBinding{}
-	Query         = queryBinding{}
-	FormPost      = formPostBinding{}
-	FormMultipart = formMultipartBinding{}
-	URI           = uriBinding{}
-	Header        = headerBinding{}
+	JSON          BodyBinding = jsonBinding{}
+	XML           BodyBinding = xmlBinding{}
+	Form          Binding     = formBinding{}
+	Query         Binding     = queryBinding{}
+	FormPost      Binding     = formPostBinding{}
+	FormMultipart Binding     = formMultipartBinding{}
+	URI           URIBinding  = uriBinding{}
+	Header        Binding     = headerBinding{}
 )
 
 // Default returns the appropriate Binding instance based on the HTTP method

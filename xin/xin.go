@@ -5,6 +5,8 @@ import (
 	"net"
 	"net/http"
 	"path"
+	"regexp"
+	"strings"
 	"sync"
 
 	"github.com/askasoft/pango/log"
@@ -19,6 +21,9 @@ const (
 
 // AnywhereCIDRs []string{"0.0.0.0/0", "::/0"} used by default TrustedProxies
 var AnywhereCIDRs = []string{"0.0.0.0/0", "::/0"}
+
+var regSafePrefix = regexp.MustCompile("[^a-zA-Z0-9/-]+")
+var regRemoveRepeatedChar = regexp.MustCompile("/{2,}")
 
 // HandlerFunc defines the handler used by xin middleware as return value.
 type HandlerFunc func(*Context)
@@ -259,7 +264,6 @@ func (engine *Engine) addRoute(method, path string, handlers HandlersChain) {
 	}
 	root.addRoute(path, handlers)
 
-	// Update maxParams
 	if paramsCount := countParams(path); paramsCount > engine.maxParams {
 		engine.maxParams = paramsCount
 	}
@@ -438,7 +442,7 @@ func (engine *Engine) handleHTTPRequest(c *Context) {
 				redirectTrailingSlash(c)
 				return
 			}
-			if engine.RedirectFixedPath && redirectFixedPath(c, root, engine.RedirectFixedPath) {
+			if engine.RedirectFixedPath && redirectFixedPath(c, root) {
 				return
 			}
 		}
@@ -446,17 +450,25 @@ func (engine *Engine) handleHTTPRequest(c *Context) {
 	}
 
 	if engine.HandleMethodNotAllowed {
+		// According to RFC 7231 section 6.5.5, MUST generate an Allow header field in response
+		// containing a list of the target resource's currently supported methods.
+		allowed := make([]string, 0, len(t)-1)
 		for _, tree := range engine.trees {
 			if tree.method == httpMethod {
 				continue
 			}
 			if value := tree.root.getValue(rPath, nil, c.skippedNodes, unescape); value.handlers != nil {
-				c.handlers = engine.allNoMethod
-				serveError(c, http.StatusMethodNotAllowed)
-				return
+				allowed = append(allowed, tree.method)
 			}
 		}
+		if len(allowed) > 0 {
+			c.handlers = engine.allNoMethod
+			c.writermem.Header().Set("Allow", strings.Join(allowed, ", "))
+			serveError(c, http.StatusMethodNotAllowed)
+			return
+		}
 	}
+
 	c.handlers = engine.allNoRoute
 	serveError(c, http.StatusNotFound)
 }
@@ -483,6 +495,9 @@ func redirectTrailingSlash(c *Context) {
 	req := c.Request
 	p := req.URL.Path
 	if prefix := path.Clean(c.Request.Header.Get("X-Forwarded-Prefix")); prefix != "." {
+		prefix = regSafePrefix.ReplaceAllString(prefix, "")
+		prefix = regRemoveRepeatedChar.ReplaceAllString(prefix, "/")
+
 		p = prefix + "/" + req.URL.Path
 	}
 	req.URL.Path = p + "/"
@@ -492,11 +507,11 @@ func redirectTrailingSlash(c *Context) {
 	redirectRequest(c)
 }
 
-func redirectFixedPath(c *Context, root *node, trailingSlash bool) bool {
+func redirectFixedPath(c *Context, root *node) bool {
 	req := c.Request
 	rPath := req.URL.Path
 
-	if fixedPath, ok := root.findCaseInsensitivePath(cleanPath(rPath), trailingSlash); ok {
+	if fixedPath, ok := root.findCaseInsensitivePath(cleanPath(rPath), true); ok {
 		req.URL.Path = str.UnsafeString(fixedPath)
 		redirectRequest(c)
 		return true

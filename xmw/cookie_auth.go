@@ -71,34 +71,35 @@ func (ca *CookieAuth) Handle(c *xin.Context) {
 	}
 
 	username, password, ok := ca.GetUserPassFromCookie(c)
-	if ok {
-		user, err := ca.FindUser(c, username)
-		if err != nil {
-			c.Logger.Errorf("CookieAuth: %v", err)
-			c.AbortWithStatus(http.StatusInternalServerError)
-			return
-		}
-
-		if user != nil && password == user.GetPassword() {
-			// save or refresh cookie
-			err = ca.SaveUserPassToCookie(c, username, password)
-			if err != nil {
-				c.Logger.Errorf("CookieAuth: %v", err)
-				c.AbortWithStatus(http.StatusInternalServerError)
-				return
-			}
-
-			// set user to context
-			c.Set(ca.AuthUserKey, user)
-
-			ca.AuthPassed(c)
-			return
-		}
-
-		ca.AuthFailed(c)
+	if !ok {
+		ca.AuthRequired(c)
+		return
 	}
 
-	ca.AuthRequired(c)
+	user, err := ca.FindUser(c, username)
+	if err != nil {
+		c.Logger.Errorf("CookieAuth: %v", err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	if user == nil || password != user.GetPassword() {
+		ca.AuthFailed(c)
+		return
+	}
+
+	// save or refresh cookie
+	err = ca.SaveUserPassToCookie(c, username, password)
+	if err != nil {
+		c.Logger.Errorf("CookieAuth: %v", err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	// set user to context
+	c.Set(ca.AuthUserKey, user)
+
+	ca.AuthPassed(c)
 }
 
 // Authorized just call c.Next()
@@ -120,7 +121,7 @@ func (ca *CookieAuth) Unauthorized(c *xin.Context) {
 
 func (ca *CookieAuth) buildRedirectURL(c *xin.Context) string {
 	u := ca.RedirectURL
-	if u == "" {
+	if u == "" || u == c.Request.URL.Path { // prevent redirect dead loop
 		return ""
 	}
 

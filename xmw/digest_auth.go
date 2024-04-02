@@ -25,6 +25,8 @@ type DigestAuth struct {
 	AuthPassed   xin.HandlerFunc
 	AuthFailed   xin.HandlerFunc
 	AuthRequired xin.HandlerFunc
+
+	noncer *cpt.Tokener
 }
 
 func NewDigestAuth(f FindUserFunc) *DigestAuth {
@@ -36,6 +38,7 @@ func NewDigestAuth(f FindUserFunc) *DigestAuth {
 	da.AuthPassed = da.Authorized
 	da.AuthFailed = da.Unauthorized
 	da.AuthRequired = da.Unauthorized
+	da.noncer = cpt.NewTokener(8, 16)
 
 	return da
 }
@@ -53,31 +56,27 @@ func (da *DigestAuth) Handle(c *xin.Context) {
 		return
 	}
 
-	auth := c.Request.Header.Get("Authorization")
-	if auth != "" {
-		dap := DigestAuthParams(auth)
-		if dap != nil {
-			if da.checkAuthorization(c, dap) {
-				user, err := da.checkUserPass(c, dap)
-				if err != nil {
-					c.Logger.Errorf("DigestAuth: %v", err)
-					c.AbortWithStatus(http.StatusInternalServerError)
-					return
-				}
-
-				if user != nil {
-					c.Set(AuthUserKey, user)
-					da.AuthPassed(c)
-					return
-				}
-
-				da.AuthFailed(c)
-				return
-			}
-		}
+	dap := da.getDigestAuthParams(c)
+	if dap == nil {
+		da.AuthRequired(c)
+		return
 	}
 
-	da.AuthRequired(c)
+	user, err := da.checkUserPass(c, dap)
+	if err != nil {
+		c.Logger.Errorf("DigestAuth: %v", err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	if user == nil {
+		da.AuthFailed(c)
+		return
+	}
+
+	c.Set(AuthUserKey, user)
+	da.AuthPassed(c)
+
 }
 
 // Authorized just call c.Next()
@@ -85,20 +84,40 @@ func (da *DigestAuth) Authorized(c *xin.Context) {
 	c.Next()
 }
 
-var noncer = cpt.NewTokener(8, 16)
-
 // Unauthorized set WWW-Authenticate header
 func (da *DigestAuth) Unauthorized(c *xin.Context) {
 	cip := base64.RawURLEncoding.EncodeToString(str.UnsafeBytes(c.ClientIP()))
-	nonce := noncer.NewToken(cip)
+	nonce := da.noncer.NewToken(cip)
 	wa := fmt.Sprintf(`Digest realm="%s", nonce="%s", opaque="%s", algorithm=MD5, qop="auth"`, da.Realm, nonce.Token(), da.Opaque)
 
 	c.Header("WWW-Authenticate", wa)
 	c.AbortWithStatus(http.StatusUnauthorized)
 }
 
-func (da *DigestAuth) checkAuthorization(c *xin.Context, auth map[string]string) bool {
-	return da.checkAlgorithm(c, auth) && da.checkURI(c, auth["uri"]) && da.checkNonce(c, auth["nonce"])
+// getDigestAuthParams parses Authorization header from the
+// http.Request. Returns a map of auth parameters or nil if the header
+// is not a valid parsable Digest auth header.
+func (da *DigestAuth) getDigestAuthParams(c *xin.Context) map[string]string {
+	auth := c.Request.Header.Get("Authorization")
+	if auth == "" {
+		return nil
+	}
+
+	const prefix = "Digest "
+	if !str.StartsWithFold(auth, prefix) {
+		return nil
+	}
+
+	dap := httpx.ParsePairs(auth[len(prefix):])
+	if len(dap) == 0 {
+		return nil
+	}
+
+	if !da.checkAlgorithm(c, dap) || !da.checkURI(c, dap["uri"]) || !da.checkNonce(c, dap["nonce"]) {
+		return nil
+	}
+
+	return dap
 }
 
 func (da *DigestAuth) checkAlgorithm(c *xin.Context, auth map[string]string) bool {
@@ -153,7 +172,7 @@ func (da *DigestAuth) checkURI(c *xin.Context, uri string) bool {
 }
 
 func (da *DigestAuth) checkNonce(c *xin.Context, nonce string) bool {
-	t, err := noncer.ParseToken(nonce)
+	t, err := da.noncer.ParseToken(nonce)
 	if err != nil {
 		c.Logger.Debugf("Digest auth nonce %q is invalid", nonce)
 		return false
@@ -203,22 +222,10 @@ func (da *DigestAuth) checkUserPass(c *xin.Context, auth map[string]string) (any
 	kd = fmt.Sprintf("%x", digest.Sum(nil))
 
 	// check password
-	if kd != auth["response"] {
-		c.Logger.Debugf("Digest auth response %q is invalid", auth["response"])
-		return nil, nil
+	if kd == auth["response"] {
+		return user, nil
 	}
 
-	return user, nil
-}
-
-// DigestAuthParams parses Authorization header from the
-// http.Request. Returns a map of auth parameters or nil if the header
-// is not a valid parsable Digest auth header.
-func DigestAuthParams(auth string) map[string]string {
-	const prefix = "Digest "
-	if !str.StartsWithFold(auth, prefix) {
-		return nil
-	}
-
-	return httpx.ParsePairs(auth[len(prefix):])
+	c.Logger.Debugf("Digest auth response %q is invalid", auth["response"])
+	return nil, nil
 }

@@ -54,25 +54,25 @@ func (ba *BasicAuth) Handle(c *xin.Context) {
 	}
 
 	username, password, ok := c.Request.BasicAuth()
-	if ok {
-		user, err := ba.FindUser(c, username)
-		if err != nil {
-			c.Logger.Errorf("BasicAuth: %v", err)
-			c.AbortWithStatus(http.StatusInternalServerError)
-			return
-		}
+	if !ok {
+		ba.AuthRequired(c)
+		return
+	}
 
-		if user != nil && password == user.GetPassword() {
-			c.Set(ba.AuthUserKey, user)
-			ba.AuthPassed(c)
-			return
-		}
+	user, err := ba.FindUser(c, username)
+	if err != nil {
+		c.Logger.Errorf("BasicAuth: %v", err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
 
+	if user == nil || password != user.GetPassword() {
 		ba.AuthFailed(c)
 		return
 	}
 
-	ba.AuthRequired(c)
+	c.Set(ba.AuthUserKey, user)
+	ba.AuthPassed(c)
 }
 
 // Authorized just call c.Next()

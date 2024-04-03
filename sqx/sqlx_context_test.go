@@ -212,8 +212,8 @@ func TestEmbeddedStructsContextContext(t *testing.T) {
 		err := db.SelectContext(
 			ctx,
 			&peopleAndPlaces,
-			`SELECT person.*, place.* FROM
-             person natural join place`)
+			`SELECT person.*, place.* FROM person natural join place`,
+		)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1028,7 +1028,7 @@ func TestUsageContext(t *testing.T) {
 		if err != nil {
 			t.Error(err, "in db:", db.DriverName())
 		}
-		db.MapperFunc(strings.ToLower)
+		db.MapperFunc(defaultNameMap)
 
 		// create a copy and change the mapper, then verify the copy behaves
 		// differently from the original.

@@ -53,20 +53,18 @@ func TestCompileQuery(t *testing.T) {
 			T: `SELECT @name := "name", @p1, @p2, @p3`,
 			V: []string{"age", "first", "last"},
 		},
-		/* This unicode awareness test sadly fails, because of our byte-wise worldview.
-		 * We could certainly iterate by Rune instead, though it's a great deal slower,
-		 * it's probably the RightWay(tm)
 		{
 			Q: `INSERT INTO foo (a,b,c,d) VALUES (:あ, :b, :キコ, :名前)`,
 			R: `INSERT INTO foo (a,b,c,d) VALUES (?, ?, ?, ?)`,
 			D: `INSERT INTO foo (a,b,c,d) VALUES ($1, $2, $3, $4)`,
-			N: []string{"name", "age", "first", "last"},
+			N: `INSERT INTO foo (a,b,c,d) VALUES (:あ, :b, :キコ, :名前)`,
+			T: `INSERT INTO foo (a,b,c,d) VALUES (@p1, @p2, @p3, @p4)`,
+			V: []string{"あ", "b", "キコ", "名前"},
 		},
-		*/
 	}
 
 	for _, test := range table {
-		qr, names, err := compileNamedQuery([]byte(test.Q), QUESTION)
+		qr, names, err := compileNamedQuery(test.Q, QUESTION)
 		if err != nil {
 			t.Error(err)
 		}
@@ -82,17 +80,17 @@ func TestCompileQuery(t *testing.T) {
 				}
 			}
 		}
-		qd, _, _ := compileNamedQuery([]byte(test.Q), DOLLAR)
+		qd, _, _ := compileNamedQuery(test.Q, DOLLAR)
 		if qd != test.D {
 			t.Errorf("\nexpected: `%s`\ngot:      `%s`", test.D, qd)
 		}
 
-		qt, _, _ := compileNamedQuery([]byte(test.Q), AT)
+		qt, _, _ := compileNamedQuery(test.Q, AT)
 		if qt != test.T {
 			t.Errorf("\nexpected: `%s`\ngot:      `%s`", test.T, qt)
 		}
 
-		qq, _, _ := compileNamedQuery([]byte(test.Q), NAMED)
+		qq, _, _ := compileNamedQuery(test.Q, NAMED)
 		if qq != test.N {
 			t.Errorf("\nexpected: `%s`\ngot:      `%s`\n(len: %d vs %d)", test.N, qq, len(test.N), len(qq))
 		}
@@ -125,7 +123,7 @@ func TestEscapedColons(t *testing.T) {
 	t.Skip("not sure it is possible to support this in general case without an SQL parser")
 	var qs = `SELECT * FROM testtable WHERE timeposted BETWEEN (now() AT TIME ZONE 'utc') AND
 	(now() AT TIME ZONE 'utc') - interval '01:30:00') AND name = '\'this is a test\'' and id = :id`
-	_, _, err := compileNamedQuery([]byte(qs), DOLLAR)
+	_, _, err := compileNamedQuery(qs, DOLLAR)
 	if err != nil {
 		t.Error("Didn't handle colons correctly when inside a string")
 	}

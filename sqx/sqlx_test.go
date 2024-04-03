@@ -66,10 +66,13 @@ func ConnectAll() {
 	pgdsn := os.Getenv("SQX_POSTGRES_DSN")
 	mydsn := os.Getenv("SQX_MYSQL_DSN")
 	sqdsn := os.Getenv("SQX_SQLITE_DSN")
+	if sqdsn == "" {
+		sqdsn = "sqx.db3"
+	}
 
 	TestPostgres = pgdsn != ""
 	TestMysql = mydsn != ""
-	TestSqlite = sqdsn != ""
+	TestSqlite = sqdsn != "SKIP"
 
 	if !str.ContainsFold(mydsn, "parseTime=true") {
 		mydsn += "?parseTime=true"

@@ -62,7 +62,7 @@ func TestGormVector(t *testing.T) {
 
 	var items []GormVectorTest
 	db.Clauses(clause.OrderBy{
-		Expression: clause.Expr{SQL: "embedding <-> ?", Vars: []interface{}{pqx.Vector([]float64{1, 1, 1})}},
+		Expression: clause.Expr{SQL: "embedding <-> ?", Vars: []any{pqx.Vector([]float64{1, 1, 1})}},
 	}).Limit(5).Find(&items)
 	if items[0].ID != 1 || items[1].ID != 3 || items[2].ID != 2 {
 		t.Errorf("Bad ids")

@@ -43,17 +43,17 @@ func (gl *GormLogger) LogMode(level logger.LogLevel) logger.Interface {
 }
 
 // Info print info
-func (gl *GormLogger) Info(ctx context.Context, msg string, data ...interface{}) {
+func (gl *GormLogger) Info(ctx context.Context, msg string, data ...any) {
 	gl.printf(log.LevelInfo, msg, data...)
 }
 
 // Warn print warn messages
-func (gl *GormLogger) Warn(ctx context.Context, msg string, data ...interface{}) {
+func (gl *GormLogger) Warn(ctx context.Context, msg string, data ...any) {
 	gl.printf(log.LevelWarn, msg, data...)
 }
 
 // Error print error messages
-func (gl *GormLogger) Error(ctx context.Context, msg string, data ...interface{}) {
+func (gl *GormLogger) Error(ctx context.Context, msg string, data ...any) {
 	gl.printf(log.LevelError, msg, data...)
 }
 
@@ -92,7 +92,7 @@ func (gl *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (str
 }
 
 // Trace print sql message
-func (gl *GormLogger) ParamsFilter(ctx context.Context, sql string, params ...interface{}) (string, []interface{}) {
+func (gl *GormLogger) ParamsFilter(ctx context.Context, sql string, params ...any) (string, []any) {
 	if gl.ParameterizedQueries {
 		return sql, nil
 	}

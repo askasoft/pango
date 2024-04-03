@@ -662,7 +662,7 @@ func TestMapperMethodsByName(t *testing.T) {
 	testCases := []struct {
 		Name            string
 		ExpectInvalid   bool
-		ExpectedValue   interface{}
+		ExpectedValue   any
 		ExpectedIndexes []int
 	}{
 		{
@@ -790,9 +790,9 @@ func TestFieldByIndexes(t *testing.T) {
 		A2 *B
 	}
 	testCases := []struct {
-		value         interface{}
+		value         any
 		indexes       []int
-		expectedValue interface{}
+		expectedValue any
 		readOnly      bool
 	}{
 		{

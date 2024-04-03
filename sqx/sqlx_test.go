@@ -359,7 +359,7 @@ func TestMissingNames(t *testing.T) {
 			t.Error("expected NamedStmt to be unsafe but its underlying stmt did not inherit safety")
 		}
 		pps = []PersonPlus{}
-		err = nstmt.Select(&pps, map[string]interface{}{"name": "Jason"})
+		err = nstmt.Select(&pps, map[string]any{"name": "Jason"})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -385,7 +385,7 @@ func TestMissingNames(t *testing.T) {
 			t.Error("expected newly unsafed NamedStmt to be unsafe")
 		}
 		pps = []PersonPlus{}
-		err = nstmt.Select(&pps, map[string]interface{}{"name": "Jason"})
+		err = nstmt.Select(&pps, map[string]any{"name": "Jason"})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -580,7 +580,7 @@ func TestSelectSliceMapTime(t *testing.T) {
 			t.Fatal(err)
 		}
 		for rows.Next() {
-			m := map[string]interface{}{}
+			m := map[string]any{}
 			err := rows.MapScan(m)
 			if err != nil {
 				t.Error(err)
@@ -1098,7 +1098,7 @@ func TestUsage(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		m := map[string]interface{}{}
+		m := map[string]any{}
 		for rows.Next() {
 			err = rows.MapScan(m)
 			if err != nil {
@@ -1126,7 +1126,7 @@ func TestUsage(t *testing.T) {
 
 		// test advanced querying
 		// test that NamedExec works with a map as well as a struct
-		_, err = db.NamedExec("INSERT INTO person (first_name, last_name, email) VALUES (:first, :last, :email)", map[string]interface{}{
+		_, err = db.NamedExec("INSERT INTO person (first_name, last_name, email) VALUES (:first, :last, :email)", map[string]any{
 			"first": "Bin",
 			"last":  "Smuth",
 			"email": "bensmith@allblacks.nz",
@@ -1136,8 +1136,8 @@ func TestUsage(t *testing.T) {
 		}
 
 		// ensure that if the named param happens right at the end it still works
-		// ensure that NamedQuery works with a map[string]interface{}
-		rows, err = db.NamedQuery("SELECT * FROM person WHERE first_name=:first", map[string]interface{}{"first": "Bin"})
+		// ensure that NamedQuery works with a map[string]any
+		rows, err = db.NamedQuery("SELECT * FROM person WHERE first_name=:first", map[string]any{"first": "Bin"})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1378,7 +1378,7 @@ func TestRebind(t *testing.T) {
 func TestBindMap(t *testing.T) {
 	// Test that it works..
 	q1 := `INSERT INTO foo (a, b, c, d) VALUES (:name, :age, :first, :last)`
-	am := map[string]interface{}{
+	am := map[string]any{
 		"name":  "Jason Moiron",
 		"age":   30,
 		"first": "Jason",
@@ -1425,7 +1425,7 @@ func (p PropertyMap) Value() (driver.Value, error) {
 	return json.Marshal(p)
 }
 
-func (p PropertyMap) Scan(src interface{}) error {
+func (p PropertyMap) Scan(src any) error {
 	v := reflect.ValueOf(src)
 	if !v.IsValid() || v.CanAddr() && v.IsNil() {
 		return nil
@@ -1527,21 +1527,21 @@ func TestIn(t *testing.T) {
 	// some quite normal situations
 	type tr struct {
 		q    string
-		args []interface{}
+		args []any
 		c    int
 	}
 	tests := []tr{
 		{"SELECT * FROM foo WHERE x = ? AND v in (?) AND y = ?",
-			[]interface{}{"foo", []int{0, 5, 7, 2, 9}, "bar"},
+			[]any{"foo", []int{0, 5, 7, 2, 9}, "bar"},
 			7},
 		{"SELECT * FROM foo WHERE x in (?)",
-			[]interface{}{[]int{1, 2, 3, 4, 5, 6, 7, 8}},
+			[]any{[]int{1, 2, 3, 4, 5, 6, 7, 8}},
 			8},
 		{"SELECT * FROM foo WHERE x = ? AND y in (?)",
-			[]interface{}{[]byte("foo"), []int{0, 5, 3}},
+			[]any{[]byte("foo"), []int{0, 5, 3}},
 			4},
 		{"SELECT * FROM foo WHERE x = ? AND y IN (?)",
-			[]interface{}{sql.NullString{Valid: false}, []string{"a", "b"}},
+			[]any{sql.NullString{Valid: false}, []string{"a", "b"}},
 			3},
 	}
 	for _, test := range tests {
@@ -1577,15 +1577,15 @@ func TestIn(t *testing.T) {
 	tests = []tr{
 		// too many bindvars;  slice present so should return error during parse
 		{"SELECT * FROM foo WHERE x = ? and y = ?",
-			[]interface{}{"foo", []int{1, 2, 3}, "bar"},
+			[]any{"foo", []int{1, 2, 3}, "bar"},
 			0},
 		// empty slice, should return error before parse
 		{"SELECT * FROM foo WHERE x = ?",
-			[]interface{}{[]int{}},
+			[]any{[]int{}},
 			0},
 		// too *few* bindvars, should return an error
 		{"SELECT * FROM foo WHERE x = ? AND y in (?)",
-			[]interface{}{[]int{1, 2, 3}},
+			[]any{[]int{1, 2, 3}},
 			0},
 	}
 	for _, test := range tests {
@@ -1768,7 +1768,7 @@ func BenchmarkBindStruct(b *testing.B) {
 }
 
 func TestBindNamedMapper(t *testing.T) {
-	type A map[string]interface{}
+	type A map[string]any
 	m := ref.NewMapperFunc("db", NameMapper)
 	query, args, err := bindNamedMapper(DOLLAR, `select :x`, A{
 		"x": "X!",
@@ -1797,7 +1797,7 @@ func TestBindNamedMapper(t *testing.T) {
 func BenchmarkBindMap(b *testing.B) {
 	b.StopTimer()
 	q1 := `INSERT INTO foo (a, b, c, d) VALUES (:name, :age, :first, :last)`
-	am := map[string]interface{}{
+	am := map[string]any{
 		"name":  "Jason Moiron",
 		"age":   30,
 		"first": "Jason",
@@ -1813,17 +1813,17 @@ func BenchmarkIn(b *testing.B) {
 	q := `SELECT * FROM foo WHERE x = ? AND v in (?) AND y = ?`
 
 	for i := 0; i < b.N; i++ {
-		_, _, _ = In(q, []interface{}{"foo", []int{0, 5, 7, 2, 9}, "bar"}...)
+		_, _, _ = In(q, []any{"foo", []int{0, 5, 7, 2, 9}, "bar"}...)
 	}
 }
 
 func BenchmarkIn1k(b *testing.B) {
 	q := `SELECT * FROM foo WHERE x = ? AND v in (?) AND y = ?`
 
-	var vals [1000]interface{}
+	var vals [1000]any
 
 	for i := 0; i < b.N; i++ {
-		_, _, _ = In(q, []interface{}{"foo", vals[:], "bar"}...)
+		_, _, _ = In(q, []any{"foo", vals[:], "bar"}...)
 	}
 }
 
@@ -1833,7 +1833,7 @@ func BenchmarkIn1kInt(b *testing.B) {
 	var vals [1000]int
 
 	for i := 0; i < b.N; i++ {
-		_, _, _ = In(q, []interface{}{"foo", vals[:], "bar"}...)
+		_, _, _ = In(q, []any{"foo", vals[:], "bar"}...)
 	}
 }
 
@@ -1843,7 +1843,7 @@ func BenchmarkIn1kString(b *testing.B) {
 	var vals [1000]string
 
 	for i := 0; i < b.N; i++ {
-		_, _, _ = In(q, []interface{}{"foo", vals[:], "bar"}...)
+		_, _, _ = In(q, []any{"foo", vals[:], "bar"}...)
 	}
 }
 
@@ -1872,8 +1872,8 @@ func BenchmarkRebindBuffer(b *testing.B) {
 }
 
 func TestIn130Regression(t *testing.T) {
-	t.Run("[]interface{}{}", func(t *testing.T) {
-		q, args, err := In("SELECT * FROM people WHERE name IN (?)", []interface{}{[]string{"gopher"}}...)
+	t.Run("[]any{}", func(t *testing.T) {
+		q, args, err := In("SELECT * FROM people WHERE name IN (?)", []any{[]string{"gopher"}}...)
 		if err != nil {
 			t.Fatal(err)
 		}

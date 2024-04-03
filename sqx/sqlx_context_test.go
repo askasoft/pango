@@ -164,7 +164,7 @@ func TestMissingNamesContextContext(t *testing.T) {
 			t.Error("expected NamedStmt to be unsafe but its underlying stmt did not inherit safety")
 		}
 		pps = []PersonPlus{}
-		err = nstmt.SelectContext(ctx, &pps, map[string]interface{}{"name": "Jason"})
+		err = nstmt.SelectContext(ctx, &pps, map[string]any{"name": "Jason"})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -190,7 +190,7 @@ func TestMissingNamesContextContext(t *testing.T) {
 			t.Error("expected newly unsafed NamedStmt to be unsafe")
 		}
 		pps = []PersonPlus{}
-		err = nstmt.SelectContext(ctx, &pps, map[string]interface{}{"name": "Jason"})
+		err = nstmt.SelectContext(ctx, &pps, map[string]any{"name": "Jason"})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -388,7 +388,7 @@ func TestSelectSliceMapTimeContext(t *testing.T) {
 			t.Fatal(err)
 		}
 		for rows.Next() {
-			m := map[string]interface{}{}
+			m := map[string]any{}
 			err := rows.MapScan(m)
 			if err != nil {
 				t.Error(err)
@@ -895,7 +895,7 @@ func TestUsageContext(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		m := map[string]interface{}{}
+		m := map[string]any{}
 		for rows.Next() {
 			err = rows.MapScan(m)
 			if err != nil {
@@ -923,7 +923,7 @@ func TestUsageContext(t *testing.T) {
 
 		// test advanced querying
 		// test that NamedExec works with a map as well as a struct
-		_, err = db.NamedExecContext(ctx, "INSERT INTO person (first_name, last_name, email) VALUES (:first, :last, :email)", map[string]interface{}{
+		_, err = db.NamedExecContext(ctx, "INSERT INTO person (first_name, last_name, email) VALUES (:first, :last, :email)", map[string]any{
 			"first": "Bin",
 			"last":  "Smuth",
 			"email": "bensmith@allblacks.nz",
@@ -933,8 +933,8 @@ func TestUsageContext(t *testing.T) {
 		}
 
 		// ensure that if the named param happens right at the end it still works
-		// ensure that NamedQuery works with a map[string]interface{}
-		rows, err = db.NamedQueryContext(ctx, "SELECT * FROM person WHERE first_name=:first", map[string]interface{}{"first": "Bin"})
+		// ensure that NamedQuery works with a map[string]any
+		rows, err = db.NamedQueryContext(ctx, "SELECT * FROM person WHERE first_name=:first", map[string]any{"first": "Bin"})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1211,15 +1211,15 @@ func TestInContext(t *testing.T) {
 	// some quite normal situations
 	type tr struct {
 		q    string
-		args []interface{}
+		args []any
 		c    int
 	}
 	tests := []tr{
 		{"SELECT * FROM foo WHERE x = ? AND v in (?) AND y = ?",
-			[]interface{}{"foo", []int{0, 5, 7, 2, 9}, "bar"},
+			[]any{"foo", []int{0, 5, 7, 2, 9}, "bar"},
 			7},
 		{"SELECT * FROM foo WHERE x in (?)",
-			[]interface{}{[]int{1, 2, 3, 4, 5, 6, 7, 8}},
+			[]any{[]int{1, 2, 3, 4, 5, 6, 7, 8}},
 			8},
 	}
 	for _, test := range tests {
@@ -1255,15 +1255,15 @@ func TestInContext(t *testing.T) {
 	tests = []tr{
 		// too many bindvars;  slice present so should return error during parse
 		{"SELECT * FROM foo WHERE x = ? and y = ?",
-			[]interface{}{"foo", []int{1, 2, 3}, "bar"},
+			[]any{"foo", []int{1, 2, 3}, "bar"},
 			0},
 		// empty slice, should return error before parse
 		{"SELECT * FROM foo WHERE x = ?",
-			[]interface{}{[]int{}},
+			[]any{[]int{}},
 			0},
 		// too *few* bindvars, should return an error
 		{"SELECT * FROM foo WHERE x = ? AND y in (?)",
-			[]interface{}{[]int{1, 2, 3}},
+			[]any{[]int{1, 2, 3}},
 			0},
 	}
 	for _, test := range tests {

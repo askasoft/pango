@@ -63,7 +63,7 @@ func TestPanicCustomRecovery(t *testing.T) {
 	e := "Oupps, Houston, we have a problem"
 
 	router := New()
-	recovery := func(c *Context, err interface{}) {
+	recovery := func(c *Context, err any) {
 		c.String(http.StatusBadRequest, err.(string))
 	}
 	router.Use(CustomRecovery(recovery))
@@ -81,7 +81,7 @@ func TestPanicInCustomRecovery(t *testing.T) {
 	e := "Oupps, Houston, we have a problem. "
 
 	router := New()
-	recovery := func(c *Context, err interface{}) {
+	recovery := func(c *Context, err any) {
 		c.String(http.StatusBadRequest, err.(string))
 		panic(e + e)
 	}

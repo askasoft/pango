@@ -114,7 +114,7 @@ func rebindBuff(bindType int, query string) string {
 	return rqb.String()
 }
 
-func asSliceForIn(i interface{}) (v reflect.Value, ok bool) {
+func asSliceForIn(i any) (v reflect.Value, ok bool) {
 	if i == nil {
 		return reflect.Value{}, false
 	}
@@ -139,12 +139,12 @@ func asSliceForIn(i interface{}) (v reflect.Value, ok bool) {
 // In expands slice values in args, returning the modified query string
 // and a new arg list that can be executed by a database. The `query` should
 // use the `?` bindVar.  The return value uses the `?` bindVar.
-func In(query string, args ...interface{}) (string, []interface{}, error) {
+func In(query string, args ...any) (string, []any, error) {
 	// argMeta stores reflect.Value and length for slices and
 	// the value itself for non-slice arguments
 	type argMeta struct {
 		v      reflect.Value
-		i      interface{}
+		i      any
 		length int
 	}
 
@@ -191,7 +191,7 @@ func In(query string, args ...interface{}) (string, []interface{}, error) {
 		return query, args, nil
 	}
 
-	newArgs := make([]interface{}, 0, flatArgsCount)
+	newArgs := make([]any, 0, flatArgsCount)
 
 	var buf strings.Builder
 	buf.Grow(len(query) + len(", ?")*flatArgsCount)
@@ -243,9 +243,9 @@ func In(query string, args ...interface{}) (string, []interface{}, error) {
 	return buf.String(), newArgs, nil
 }
 
-func appendReflectSlice(args []interface{}, v reflect.Value, vlen int) []interface{} {
+func appendReflectSlice(args []any, v reflect.Value, vlen int) []any {
 	switch val := v.Interface().(type) {
-	case []interface{}:
+	case []any:
 		args = append(args, val...)
 	case []int:
 		for i := range val {

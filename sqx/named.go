@@ -39,7 +39,7 @@ func (n *NamedStmt) Close() error {
 
 // Exec executes a named statement using the struct passed.
 // Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) Exec(arg interface{}) (sql.Result, error) {
+func (n *NamedStmt) Exec(arg any) (sql.Result, error) {
 	args, err := bindAnyArgs(n.Params, arg, n.Stmt.Mapper)
 	if err != nil {
 		return *new(sql.Result), err
@@ -49,7 +49,7 @@ func (n *NamedStmt) Exec(arg interface{}) (sql.Result, error) {
 
 // Query executes a named statement using the struct argument, returning rows.
 // Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) Query(arg interface{}) (*sql.Rows, error) {
+func (n *NamedStmt) Query(arg any) (*sql.Rows, error) {
 	args, err := bindAnyArgs(n.Params, arg, n.Stmt.Mapper)
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (n *NamedStmt) Query(arg interface{}) (*sql.Rows, error) {
 // create a *sql.Row with an error condition pre-set for binding errors, sqx
 // returns a *sqx.Row instead.
 // Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) QueryRow(arg interface{}) *Row {
+func (n *NamedStmt) QueryRow(arg any) *Row {
 	args, err := bindAnyArgs(n.Params, arg, n.Stmt.Mapper)
 	if err != nil {
 		return &Row{err: err}
@@ -71,7 +71,7 @@ func (n *NamedStmt) QueryRow(arg interface{}) *Row {
 
 // MustExec execs a NamedStmt, panicing on error
 // Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) MustExec(arg interface{}) sql.Result {
+func (n *NamedStmt) MustExec(arg any) sql.Result {
 	res, err := n.Exec(arg)
 	if err != nil {
 		panic(err)
@@ -81,7 +81,7 @@ func (n *NamedStmt) MustExec(arg interface{}) sql.Result {
 
 // Queryx using this NamedStmt
 // Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) Queryx(arg interface{}) (*Rows, error) {
+func (n *NamedStmt) Queryx(arg any) (*Rows, error) {
 	r, err := n.Query(arg)
 	if err != nil {
 		return nil, err
@@ -92,13 +92,13 @@ func (n *NamedStmt) Queryx(arg interface{}) (*Rows, error) {
 // QueryRowx this NamedStmt.  Because of limitations with QueryRow, this is
 // an alias for QueryRow.
 // Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) QueryRowx(arg interface{}) *Row {
+func (n *NamedStmt) QueryRowx(arg any) *Row {
 	return n.QueryRow(arg)
 }
 
 // Select using this NamedStmt
 // Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) Select(dest interface{}, arg interface{}) error {
+func (n *NamedStmt) Select(dest any, arg any) error {
 	rows, err := n.Queryx(arg)
 	if err != nil {
 		return err
@@ -110,7 +110,7 @@ func (n *NamedStmt) Select(dest interface{}, arg interface{}) error {
 
 // Get using this NamedStmt
 // Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) Get(dest interface{}, arg interface{}) error {
+func (n *NamedStmt) Get(dest any, arg any) error {
 	r := n.QueryRowx(arg)
 	return r.scanAny(dest, false)
 }
@@ -146,21 +146,21 @@ func prepareNamed(p namedPreparer, query string) (*NamedStmt, error) {
 	}, nil
 }
 
-// convertMapStringInterface attempts to convert v to map[string]interface{}.
-// Unlike v.(map[string]interface{}), this function works on named types that
-// are convertible to map[string]interface{} as well.
-func convertMapStringInterface(v interface{}) (map[string]interface{}, bool) {
-	var m map[string]interface{}
+// convertMapStringInterface attempts to convert v to map[string]any.
+// Unlike v.(map[string]any), this function works on named types that
+// are convertible to map[string]any as well.
+func convertMapStringInterface(v any) (map[string]any, bool) {
+	var m map[string]any
 	mtype := reflect.TypeOf(m)
 	t := reflect.TypeOf(v)
 	if !t.ConvertibleTo(mtype) {
 		return nil, false
 	}
-	return reflect.ValueOf(v).Convert(mtype).Interface().(map[string]interface{}), true
+	return reflect.ValueOf(v).Convert(mtype).Interface().(map[string]any), true
 
 }
 
-func bindAnyArgs(names []string, arg interface{}, m *ref.Mapper) ([]interface{}, error) {
+func bindAnyArgs(names []string, arg any, m *ref.Mapper) ([]any, error) {
 	if maparg, ok := convertMapStringInterface(arg); ok {
 		return bindMapArgs(names, maparg)
 	}
@@ -170,8 +170,8 @@ func bindAnyArgs(names []string, arg interface{}, m *ref.Mapper) ([]interface{},
 // private interface to generate a list of interfaces from a given struct
 // type, given a list of names to pull out of the struct.  Used by public
 // BindStruct interface.
-func bindArgs(names []string, arg interface{}, m *ref.Mapper) ([]interface{}, error) {
-	arglist := make([]interface{}, 0, len(names))
+func bindArgs(names []string, arg any, m *ref.Mapper) ([]any, error) {
+	arglist := make([]any, 0, len(names))
 
 	// grab the indirected value of arg
 	v := reflect.ValueOf(arg)
@@ -194,8 +194,8 @@ func bindArgs(names []string, arg interface{}, m *ref.Mapper) ([]interface{}, er
 }
 
 // like bindArgs, but for maps.
-func bindMapArgs(names []string, arg map[string]interface{}) ([]interface{}, error) {
-	arglist := make([]interface{}, 0, len(names))
+func bindMapArgs(names []string, arg map[string]any) ([]any, error) {
+	arglist := make([]any, 0, len(names))
 
 	for _, name := range names {
 		val, ok := arg[name]
@@ -210,15 +210,15 @@ func bindMapArgs(names []string, arg map[string]interface{}) ([]interface{}, err
 // bindStruct binds a named parameter query with fields from a struct argument.
 // The rules for binding field names to parameter names follow the same
 // conventions as for StructScan, including obeying the `db` struct tags.
-func bindStruct(bindType int, query string, arg interface{}, m *ref.Mapper) (string, []interface{}, error) {
+func bindStruct(bindType int, query string, arg any, m *ref.Mapper) (string, []any, error) {
 	bound, names, err := compileNamedQuery([]byte(query), bindType)
 	if err != nil {
-		return "", []interface{}{}, err
+		return "", []any{}, err
 	}
 
 	arglist, err := bindAnyArgs(names, arg, m)
 	if err != nil {
-		return "", []interface{}{}, err
+		return "", []any{}, err
 	}
 
 	return bound, arglist, nil
@@ -270,23 +270,23 @@ func fixBound(bound string, loop int) string {
 
 // bindArray binds a named parameter query with fields from an array or slice of
 // structs argument.
-func bindArray(bindType int, query string, arg interface{}, m *ref.Mapper) (string, []interface{}, error) {
+func bindArray(bindType int, query string, arg any, m *ref.Mapper) (string, []any, error) {
 	// do the initial binding with QUESTION;  if bindType is not question,
 	// we can rebind it at the end.
 	bound, names, err := compileNamedQuery([]byte(query), QUESTION)
 	if err != nil {
-		return "", []interface{}{}, err
+		return "", []any{}, err
 	}
 	arrayValue := reflect.ValueOf(arg)
 	arrayLen := arrayValue.Len()
 	if arrayLen == 0 {
-		return "", []interface{}{}, fmt.Errorf("length of array is 0: %#v", arg)
+		return "", []any{}, fmt.Errorf("length of array is 0: %#v", arg)
 	}
-	var arglist = make([]interface{}, 0, len(names)*arrayLen)
+	var arglist = make([]any, 0, len(names)*arrayLen)
 	for i := 0; i < arrayLen; i++ {
 		elemArglist, err := bindAnyArgs(names, arrayValue.Index(i).Interface(), m)
 		if err != nil {
-			return "", []interface{}{}, err
+			return "", []any{}, err
 		}
 		arglist = append(arglist, elemArglist...)
 	}
@@ -301,10 +301,10 @@ func bindArray(bindType int, query string, arg interface{}, m *ref.Mapper) (stri
 }
 
 // bindMap binds a named parameter query with a map of arguments.
-func bindMap(bindType int, query string, args map[string]interface{}) (string, []interface{}, error) {
+func bindMap(bindType int, query string, args map[string]any) (string, []any, error) {
 	bound, names, err := compileNamedQuery([]byte(query), bindType)
 	if err != nil {
-		return "", []interface{}{}, err
+		return "", []any{}, err
 	}
 
 	arglist, err := bindMapArgs(names, args)
@@ -407,18 +407,18 @@ func compileNamedQuery(qs []byte, bindType int) (query string, names []string, e
 
 // BindNamed binds a struct or a map to a query with named parameters.
 // DEPRECATED: use sqx.Named` instead of this, it may be removed in future.
-func BindNamed(bindType int, query string, arg interface{}) (string, []interface{}, error) {
+func BindNamed(bindType int, query string, arg any) (string, []any, error) {
 	return bindNamedMapper(bindType, query, arg, mapper())
 }
 
 // Named takes a query using named parameters and an argument and
 // returns a new query with a list of args that can be executed by
 // a database.  The return value uses the `?` bindvar.
-func Named(query string, arg interface{}) (string, []interface{}, error) {
+func Named(query string, arg any) (string, []any, error) {
 	return bindNamedMapper(QUESTION, query, arg, mapper())
 }
 
-func bindNamedMapper(bindType int, query string, arg interface{}, m *ref.Mapper) (string, []interface{}, error) {
+func bindNamedMapper(bindType int, query string, arg any, m *ref.Mapper) (string, []any, error) {
 	t := reflect.TypeOf(arg)
 	k := t.Kind()
 	switch {
@@ -437,8 +437,8 @@ func bindNamedMapper(bindType int, query string, arg interface{}, m *ref.Mapper)
 
 // NamedQuery binds a named query and then runs Query on the result using the
 // provided Ext (sqx.Tx, sqx.Db).  It works with both structs and with
-// map[string]interface{} types.
-func NamedQuery(e Ext, query string, arg interface{}) (*Rows, error) {
+// map[string]any types.
+func NamedQuery(e Ext, query string, arg any) (*Rows, error) {
 	q, args, err := bindNamedMapper(BindType(e.DriverName()), query, arg, mapperFor(e))
 	if err != nil {
 		return nil, err
@@ -449,7 +449,7 @@ func NamedQuery(e Ext, query string, arg interface{}) (*Rows, error) {
 // NamedExec uses BindStruct to get a query executable by the driver and
 // then runs Exec on the result.  Returns an error from the binding
 // or the query execution itself.
-func NamedExec(e Ext, query string, arg interface{}) (sql.Result, error) {
+func NamedExec(e Ext, query string, arg any) (sql.Result, error) {
 	q, args, err := bindNamedMapper(BindType(e.DriverName()), query, arg, mapperFor(e))
 	if err != nil {
 		return nil, err

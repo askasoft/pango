@@ -55,7 +55,7 @@ func (v *Vector) Parse(s string) error {
 }
 
 // Scan implements the sql.Scanner interface.
-func (v *Vector) Scan(src interface{}) (err error) {
+func (v *Vector) Scan(src any) (err error) {
 	switch src := src.(type) {
 	case []byte:
 		return v.Parse(str.UnsafeString(src))

@@ -14,7 +14,7 @@ import (
 type BoolArray []bool
 
 // Scan implements the sql.Scanner interface.
-func (a *BoolArray) Scan(src interface{}) error {
+func (a *BoolArray) Scan(src any) error {
 	switch src := src.(type) {
 	case []byte:
 		return a.scanBytes(src)
@@ -89,7 +89,7 @@ func (a BoolArray) Value() (driver.Value, error) {
 type Float64Array []float64
 
 // Scan implements the sql.Scanner interface.
-func (a *Float64Array) Scan(src interface{}) error {
+func (a *Float64Array) Scan(src any) error {
 	switch src := src.(type) {
 	case []byte:
 		return a.scanBytes(src)
@@ -151,7 +151,7 @@ func (a Float64Array) Value() (driver.Value, error) {
 type Float32Array []float32
 
 // Scan implements the sql.Scanner interface.
-func (a *Float32Array) Scan(src interface{}) error {
+func (a *Float32Array) Scan(src any) error {
 	switch src := src.(type) {
 	case []byte:
 		return a.scanBytes(src)
@@ -214,7 +214,7 @@ func (a Float32Array) Value() (driver.Value, error) {
 type Int64Array []int64
 
 // Scan implements the sql.Scanner interface.
-func (a *Int64Array) Scan(src interface{}) error {
+func (a *Int64Array) Scan(src any) error {
 	switch src := src.(type) {
 	case []byte:
 		return a.scanBytes(src)
@@ -275,7 +275,7 @@ func (a Int64Array) Value() (driver.Value, error) {
 type Int32Array []int32
 
 // Scan implements the sql.Scanner interface.
-func (a *Int32Array) Scan(src interface{}) error {
+func (a *Int32Array) Scan(src any) error {
 	switch src := src.(type) {
 	case []byte:
 		return a.scanBytes(src)
@@ -338,7 +338,7 @@ func (a Int32Array) Value() (driver.Value, error) {
 type IntArray []int
 
 // Scan implements the sql.Scanner interface.
-func (a *IntArray) Scan(src interface{}) error {
+func (a *IntArray) Scan(src any) error {
 	switch src := src.(type) {
 	case []byte:
 		return a.scanBytes(src)
@@ -401,7 +401,7 @@ func (a IntArray) Value() (driver.Value, error) {
 type StringArray []string
 
 // Scan implements the sql.Scanner interface.
-func (a *StringArray) Scan(src interface{}) error {
+func (a *StringArray) Scan(src any) error {
 	switch src := src.(type) {
 	case []byte:
 		return a.scanBytes(src)

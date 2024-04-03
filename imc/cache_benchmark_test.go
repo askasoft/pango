@@ -43,7 +43,7 @@ func BenchmarkRWMutexMapGet(b *testing.B) {
 func BenchmarkRWMutexInterfaceMapGetStruct(b *testing.B) {
 	b.StopTimer()
 	s := struct{ name string }{name: "foo"}
-	m := map[interface{}]string{
+	m := map[any]string{
 		s: "bar",
 	}
 	mu := sync.RWMutex{}
@@ -57,7 +57,7 @@ func BenchmarkRWMutexInterfaceMapGetStruct(b *testing.B) {
 
 func BenchmarkRWMutexInterfaceMapGetString(b *testing.B) {
 	b.StopTimer()
-	m := map[interface{}]string{
+	m := map[any]string{
 		"foo": "bar",
 	}
 	mu := sync.RWMutex{}

@@ -250,6 +250,14 @@ func appendReflectSlice(args []any, v reflect.Value, vlen int) []any {
 		for i := range val {
 			args = append(args, val[i])
 		}
+	case []int32:
+		for i := range val {
+			args = append(args, val[i])
+		}
+	case []int64:
+		for i := range val {
+			args = append(args, val[i])
+		}
 	case []string:
 		for i := range val {
 			args = append(args, val[i])

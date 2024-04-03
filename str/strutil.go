@@ -158,8 +158,15 @@ func Capitalize(s string) string {
 
 // CamelCase returns a copy of the string s with camel case.
 func CamelCase(s string) string {
+	if s == "" {
+		return s
+	}
+
+	uc := false
+
 	var sb strings.Builder
-	var uc bool
+	sb.Grow(len(s))
+
 	for _, r := range s {
 		if r == '_' || r == '-' {
 			uc = true
@@ -178,8 +185,15 @@ func CamelCase(s string) string {
 
 // PascalCase returns a copy of the string s with pascal case.
 func PascalCase(s string) string {
+	if s == "" {
+		return s
+	}
+
+	uc := false
+
 	var sb strings.Builder
-	var uc bool
+	sb.Grow(len(s))
+
 	for _, r := range s {
 		if r == '_' || r == '-' {
 			uc = true
@@ -189,12 +203,13 @@ func PascalCase(s string) string {
 		if uc {
 			sb.WriteRune(unicode.ToUpper(r))
 			uc = false
+			continue
+		}
+
+		if sb.Len() == 0 {
+			sb.WriteRune(unicode.ToUpper(r))
 		} else {
-			if sb.Len() == 0 {
-				sb.WriteRune(unicode.ToUpper(r))
-			} else {
-				sb.WriteRune(unicode.ToLower(r))
-			}
+			sb.WriteRune(unicode.ToLower(r))
 		}
 	}
 	return sb.String()
@@ -202,21 +217,47 @@ func PascalCase(s string) string {
 
 // SnakeCase returns a copy of the string s with snake case c (default _).
 func SnakeCase(s string, c ...rune) string {
+	if s == "" {
+		return s
+	}
+
 	d := '_'
 	if len(c) > 0 {
 		d = c[0]
 	}
 
-	var sb strings.Builder
+	uc := 0
+
+	var lr rune
+	var sb Builder
 	for i, r := range s {
 		if unicode.IsUpper(r) {
-			if i > 0 {
+			if sb.Len() == 0 {
+				sb.Grow(len(s))
+				sb.WriteString(s[:i])
+			}
+			if i > 0 && uc == 0 && lr != d {
 				sb.WriteRune(d)
 			}
-			sb.WriteRune(unicode.ToLower(r))
-		} else {
+			uc++
+			lr = unicode.ToLower(r)
+			sb.WriteRune(lr)
+			continue
+		}
+
+		if sb.Len() > 0 {
+			if uc > 1 && d != r {
+				sb.WriteRune(d)
+			}
 			sb.WriteRune(r)
 		}
+
+		uc = 0
+		lr = r
+	}
+
+	if sb.Len() == 0 {
+		return s
 	}
 	return sb.String()
 }

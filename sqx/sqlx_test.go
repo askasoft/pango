@@ -17,7 +17,6 @@ import (
 	"log"
 	"os"
 	"reflect"
-	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -101,10 +100,6 @@ func ConnectAll() {
 		if err != nil {
 			fmt.Printf("Disabling SQLite:\n    %v", err)
 			TestSqlite = false
-		} else {
-			runtime.SetFinalizer(sldb, func(_ *DB) {
-				fmt.Printf("Finalize %s", sqdsn)
-			})
 		}
 	} else {
 		fmt.Println("Disabling SQLite tests.")
@@ -674,6 +669,24 @@ func TestNamedQuery(t *testing.T) {
 			}
 		}
 
+		p3 := &Person{}
+		row := db.NamedQueryRow("SELECT * FROM person WHERE first_name=:first_name", p)
+		if row.Err() != nil {
+			log.Fatal(row.Err())
+		}
+		{
+			err = row.StructScan(p3)
+			if err != nil {
+				t.Error(err)
+			}
+			if p3.FirstName.String != "ben" {
+				t.Error("Expected first name of `ben`, got " + p3.FirstName.String)
+			}
+			if p3.LastName.String != "doe" {
+				t.Error("Expected first name of `doe`, got " + p3.LastName.String)
+			}
+		}
+
 		// verify that named queries work if you've changed the db mapper.
 		// This code checks both NamedQuery "ad-hoc" style
 		// queries and NamedStmt queries, which use different code paths internally.
@@ -832,6 +845,40 @@ func TestNamedQuery(t *testing.T) {
 			}
 			if pp2.Place.ID != pp.Place.ID {
 				t.Errorf("Expected place name of %v, got %v", pp.Place.ID, pp2.Place.ID)
+			}
+		}
+
+		pp3 := &PlacePerson{}
+		row = db.NamedQueryRow(`
+			SELECT
+				first_name,
+				last_name,
+				email,
+				place.id AS "place.id",
+				place.name AS "place.name"
+			FROM placeperson
+			INNER JOIN place ON place.id = placeperson.place_id
+			WHERE
+				place.id=:place.id`, pp)
+		if row.Err() != nil {
+			log.Fatal(row.Err())
+		}
+		{
+			err = row.StructScan(pp3)
+			if err != nil {
+				t.Error(err)
+			}
+			if pp3.FirstName.String != "ben" {
+				t.Error("Expected first name of `ben`, got " + pp3.FirstName.String)
+			}
+			if pp3.LastName.String != "doe" {
+				t.Error("Expected first name of `doe`, got " + pp3.LastName.String)
+			}
+			if pp3.Place.Name.String != "myplace" {
+				t.Error("Expected place name of `myplace`, got " + pp3.Place.Name.String)
+			}
+			if pp3.Place.ID != pp.Place.ID {
+				t.Errorf("Expected place name of %v, got %v", pp.Place.ID, pp3.Place.ID)
 			}
 		}
 	})

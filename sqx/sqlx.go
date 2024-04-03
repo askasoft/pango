@@ -303,6 +303,12 @@ func (db *DB) NamedQuery(query string, arg any) (*Rows, error) {
 	return NamedQuery(db, query, arg)
 }
 
+// NamedQueryRow using this DB.
+// Any named placeholder parameters are replaced with fields from arg.
+func (db *DB) NamedQueryRow(query string, arg any) *Row {
+	return NamedQueryRow(db, query, arg)
+}
+
 // NamedExec using this DB.
 // Any named placeholder parameters are replaced with fields from arg.
 func (db *DB) NamedExec(query string, arg any) (sql.Result, error) {
@@ -415,6 +421,12 @@ func (tx *Tx) BindNamed(query string, arg any) (string, []any, error) {
 // Any named placeholder parameters are replaced with fields from arg.
 func (tx *Tx) NamedQuery(query string, arg any) (*Rows, error) {
 	return NamedQuery(tx, query, arg)
+}
+
+// NamedQueryRow within a transaction.
+// Any named placeholder parameters are replaced with fields from arg.
+func (tx *Tx) NamedQueryRow(query string, arg any) *Row {
+	return NamedQueryRow(tx, query, arg)
 }
 
 // NamedExec a named query within a transaction.

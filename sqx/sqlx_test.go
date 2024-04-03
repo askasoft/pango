@@ -81,7 +81,7 @@ func ConnectAll() {
 	if TestPostgres {
 		pgdb, err = Connect("postgres", pgdsn)
 		if err != nil {
-			fmt.Printf("Disabling PG tests:\n    %v\n", err)
+			fmt.Printf("Disabling PG tests: %v\n", err)
 			TestPostgres = false
 		}
 	} else {
@@ -91,7 +91,7 @@ func ConnectAll() {
 	if TestMysql {
 		mysqldb, err = Connect("mysql", mydsn)
 		if err != nil {
-			fmt.Printf("Disabling MySQL tests:\n    %v", err)
+			fmt.Printf("Disabling MySQL tests: %v\n", err)
 			TestMysql = false
 		}
 	} else {
@@ -101,7 +101,7 @@ func ConnectAll() {
 	if TestSqlite {
 		sldb, err = Connect("sqlite3", sqdsn)
 		if err != nil {
-			fmt.Printf("Disabling SQLite:\n    %v", err)
+			fmt.Printf("Disabling SQLite: %v\n", err)
 			TestSqlite = false
 		}
 	} else {
@@ -170,7 +170,7 @@ drop table employees;
 }
 
 type Person struct {
-	FirstName string `db:"first_name"`
+	FirstName string
 	LastName  string `db:"last_name"`
 	Email     string
 	AddedAt   time.Time `db:"added_at"`
@@ -178,20 +178,20 @@ type Person struct {
 
 type Person2 struct {
 	FirstName sql.NullString `db:"first_name"`
-	LastName  sql.NullString `db:"last_name"`
+	LastName  sql.NullString
 	Email     sql.NullString
 }
 
 type Place struct {
 	Country string
 	City    sql.NullString
-	TelCode int
+	TelCode int `db:"telcode"`
 }
 
 type PlacePtr struct {
 	Country string
 	City    *string
-	TelCode int
+	TelCode int `db:"telcode"`
 }
 
 type PersonPlace struct {
@@ -212,14 +212,18 @@ type EmbedConflict struct {
 type SliceMember struct {
 	Country   string
 	City      sql.NullString
-	TelCode   int
+	TelCode   int      `db:"telcode"`
 	People    []Person `db:"-"`
 	Addresses []Place  `db:"-"`
 }
 
 // Note that because of field map caching, we need a new type here
 // if we've used Place already somewhere in sqx
-type CPlace Place
+type CPlace struct {
+	Country string
+	City    sql.NullString
+	TelCode int
+}
 
 func MultiExec(e Execer, query string) {
 	stmts := strings.Split(query, ";\n")
@@ -404,8 +408,8 @@ func TestEmbeddedStructs(t *testing.T) {
 		peopleAndPlaces := []PersonPlace{}
 		err := db.Select(
 			&peopleAndPlaces,
-			`SELECT person.*, place.* FROM
-             person natural join place`)
+			`SELECT person.*, place.* FROM person natural join place`,
+		)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1281,7 +1285,7 @@ func TestUsage(t *testing.T) {
 		if err != nil {
 			t.Error(err, "in db:", db.DriverName())
 		}
-		db.MapperFunc(strings.ToLower)
+		db.MapperFunc(defaultNameMap)
 
 		// create a copy and change the mapper, then verify the copy behaves
 		// differently from the original.

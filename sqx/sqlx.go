@@ -6,10 +6,10 @@ import (
 	"fmt"
 
 	"reflect"
-	"strings"
 	"sync"
 
 	"github.com/askasoft/pango/ref"
+	"github.com/askasoft/pango/str"
 )
 
 // Although the NameMapper is convenient, in practice it should not
@@ -18,10 +18,10 @@ import (
 // can be overridden by your user's application.
 
 // NameMapper is used to map column names to struct field names.  By default,
-// it uses strings.ToLower to lowercase struct field names.  It can be set
+// it uses str.SnakeCase to lowercase struct field names.  It can be set
 // to whatever you want, but it is encouraged to be set before sqx is used
 // as name-to-field mappings are cached after first use on a type.
-var NameMapper = strings.ToLower
+var NameMapper = defaultNameMap
 var origMapper = reflect.ValueOf(NameMapper)
 
 // Rather than creating on init, this is created when necessary so that
@@ -30,6 +30,15 @@ var mpr *ref.Mapper
 
 // mprMu protects mpr.
 var mprMu sync.Mutex
+
+// defaultNameMap use str.SnakeCase() to map struct's field name to column name
+// Example:
+//
+//	ID -> id
+//	ZipCode -> zip_code
+func defaultNameMap(s string) string {
+	return str.SnakeCase(s)
+}
 
 // mapper returns a valid mapper using the configured NameMapper func.
 func mapper() *ref.Mapper {

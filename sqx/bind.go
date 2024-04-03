@@ -21,22 +21,21 @@ const (
 	AT
 )
 
-var defaultBinds = map[int][]string{
-	DOLLAR:   {"postgres", "pgx", "pq-timeouts", "cloudsqlpostgres", "ql", "nrpostgres", "cockroach"},
-	QUESTION: {"mysql", "sqlite3", "nrmysql", "nrsqlite3"},
-	NAMED:    {"oci8", "ora", "goracle", "godror"},
-	AT:       {"sqlserver"},
-}
-
 var binds sync.Map
 
 func init() {
+	defaultBinds := map[int][]string{
+		DOLLAR:   {"postgres", "pgx", "pq-timeouts", "cloudsqlpostgres", "ql", "nrpostgres", "cockroach"},
+		QUESTION: {"mysql", "sqlite3", "nrmysql", "nrsqlite3"},
+		NAMED:    {"oci8", "ora", "goracle", "godror"},
+		AT:       {"sqlserver"},
+	}
+
 	for bind, drivers := range defaultBinds {
 		for _, driver := range drivers {
 			BindDriver(driver, bind)
 		}
 	}
-
 }
 
 // BindType returns the bindtype for a given database given a drivername.

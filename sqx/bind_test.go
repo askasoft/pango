@@ -74,6 +74,5 @@ func BenchmarkBindSpeed(b *testing.B) {
 				b.Error("unknown driver")
 			}
 		}
-
 	})
 }

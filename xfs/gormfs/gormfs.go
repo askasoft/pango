@@ -23,20 +23,29 @@ func FS(db *gorm.DB, table string) xfs.XFS {
 }
 
 func (gfs *gfs) Open(name string) (fs.File, error) {
-	f := &xfs.File{}
-	r := gfs.db.Table(gfs.tn).Omit("data").Where("id = ?", name).First(f)
-	if errors.Is(r.Error, gorm.ErrRecordNotFound) {
-		return nil, fs.ErrNotExist
-	}
-	if r.Error != nil {
-		return nil, r.Error
+	f, err := gfs.FindFile(name)
+	if err != nil {
+		return nil, err
 	}
 
 	hf := &xfs.FSFile{XFS: gfs, File: f}
 	return hf, nil
 }
 
-func (gfs *gfs) SaveFile(id string, filename string, data []byte, modTime ...time.Time) (*xfs.File, error) {
+// FindFile find a file
+func (gfs *gfs) FindFile(id string) (*xfs.File, error) {
+	f := &xfs.File{}
+	r := gfs.db.Table(gfs.tn).Omit("data").Where("id = ?", id).First(f)
+	if errors.Is(r.Error, gorm.ErrRecordNotFound) {
+		return nil, fs.ErrNotExist
+	}
+	if r.Error != nil {
+		return nil, r.Error
+	}
+	return f, nil
+}
+
+func (gfs *gfs) SaveFile(id string, filename string, modTime time.Time, data []byte) (*xfs.File, error) {
 	name := filepath.Base(filename)
 	fext := str.ToLower(filepath.Ext(filename))
 
@@ -45,14 +54,8 @@ func (gfs *gfs) SaveFile(id string, filename string, data []byte, modTime ...tim
 		Name: name,
 		Ext:  fext,
 		Size: int64(len(data)),
+		Time: modTime,
 		Data: data,
-	}
-
-	if len(modTime) > 0 {
-		fi.Time = modTime[0]
-	}
-	if fi.Time.IsZero() {
-		fi.Time = time.Now()
 	}
 
 	r := gfs.db.Table(gfs.tn).Save(fi)

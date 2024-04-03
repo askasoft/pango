@@ -9,7 +9,13 @@ import (
 type XFS interface {
 	fs.FS
 
-	SaveFile(id string, filename string, data []byte, modTime ...time.Time) (*File, error)
+	// FindFile find a file
+	FindFile(id string) (*File, error)
+
+	// SaveFile save a file
+	SaveFile(id string, filename string, modTime time.Time, data []byte) (*File, error)
+
+	// ReadFile read file data
 	ReadFile(fid string) ([]byte, error)
 
 	// DeleteFile delete file by id

@@ -23,7 +23,7 @@ func SaveLocalFile(xfs XFS, id string, filename string) (*File, error) {
 		return nil, err
 	}
 
-	return xfs.SaveFile(id, filename, data, fi.ModTime())
+	return xfs.SaveFile(id, filename, fi.ModTime(), data)
 }
 
 func SaveUploadedFile(xfs XFS, id string, file *multipart.FileHeader) (*File, error) {
@@ -32,7 +32,7 @@ func SaveUploadedFile(xfs XFS, id string, file *multipart.FileHeader) (*File, er
 		return nil, err
 	}
 
-	return xfs.SaveFile(id, file.Filename, data)
+	return xfs.SaveFile(id, file.Filename, time.Now(), data)
 }
 
 func CleanOutdatedFiles(xfs XFS, prefix string, before time.Time, loggers ...log.Logger) {

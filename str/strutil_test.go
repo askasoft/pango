@@ -97,6 +97,7 @@ func TestPascalCase(t *testing.T) {
 	var tests = []StringTest{
 		{"", ""},
 		{"abc_abc", "AbcAbc"},
+		{"abc__abc", "AbcAbc"},
 		{"ABC", "Abc"},
 		{"хлеб", "Хлеб"},
 		{"хлеб-Хлеб", "ХлебХлеб"},
@@ -110,7 +111,14 @@ func TestSnakeCase(t *testing.T) {
 		{"", ""},
 		{"abcAbc", "abc_abc"},
 		{"abc", "abc"},
-		{"ABC", "a_b_c"},
+		{"STARTSwith", "starts_with"},
+		{"STARTS_with", "starts_with"},
+		{"startsWITH", "starts_with"},
+		{"StartsWITH", "starts_with"},
+		{"starts_WITH", "starts_with"},
+		{"STARTS_WITH", "starts_with"},
+		{"startsWITHabc", "starts_with_abc"},
+		{"ABC", "abc"},
 		{"Хлеб", "хлеб"},
 		{"ХлебХлеб", "хлеб_хлеб"},
 	}

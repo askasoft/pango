@@ -7,8 +7,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"io/ioutil"
-	"path/filepath"
 	"reflect"
 )
 
@@ -82,30 +80,6 @@ func PreparexContext(ctx context.Context, p PreparerContext, query string) (*Stm
 func GetContext(ctx context.Context, q QueryerContext, dest any, query string, args ...any) error {
 	r := q.QueryRowxContext(ctx, query, args...)
 	return r.scanAny(dest, false)
-}
-
-// LoadFileContext exec's every statement in a file (as a single call to Exec).
-// LoadFileContext may return a nil *sql.Result if errors are encountered
-// locating or reading the file at path.  LoadFile reads the entire file into
-// memory, so it is not suitable for loading large data dumps, but can be useful
-// for initializing schemas or loading indexes.
-//
-// FIXME: this does not really work with multi-statement files for mattn/go-sqlite3
-// or the go-mysql-driver/mysql drivers;  pq seems to be an exception here.  Detecting
-// this by requiring something with DriverName() and then attempting to split the
-// queries will be difficult to get right, and its current driver-specific behavior
-// is deemed at least not complex in its incorrectness.
-func LoadFileContext(ctx context.Context, e ExecerContext, path string) (*sql.Result, error) {
-	realpath, err := filepath.Abs(path)
-	if err != nil {
-		return nil, err
-	}
-	contents, err := ioutil.ReadFile(realpath)
-	if err != nil {
-		return nil, err
-	}
-	res, err := e.ExecContext(ctx, string(contents))
-	return &res, err
 }
 
 // MustExecContext execs the query using e and panics if there was an error.
@@ -219,6 +193,13 @@ func (db *DB) Connx(ctx context.Context) (*Conn, error) {
 	return &Conn{Conn: conn, driverName: db.driverName, unsafe: db.unsafe, Mapper: db.Mapper}, nil
 }
 
+// Transactionx start a transaction as a block, return error will rollback, otherwise to commit. Transaction executes an
+// arbitrary number of commands in fc within a transaction. On success the changes are committed; if an error occurs
+// they are rolled back.
+func (db *DB) Transactionx(ctx context.Context, opts *sql.TxOptions, fc func(tx *Tx) error) (err error) {
+	return Transactionx(db, ctx, opts, fc)
+}
+
 // BeginTxx begins a transaction and returns an *sqx.Tx instead of an
 // *sql.Tx.
 //
@@ -275,6 +256,13 @@ func (c *Conn) QueryRowxContext(ctx context.Context, query string, args ...any) 
 // Rebind a query within a Conn's bindvar type.
 func (c *Conn) Rebind(query string) string {
 	return Rebind(BindType(c.driverName), query)
+}
+
+// Transactionx start a transaction as a block, return error will rollback, otherwise to commit. Transaction executes an
+// arbitrary number of commands in fc within a transaction. On success the changes are committed; if an error occurs
+// they are rolled back.
+func (c *Conn) Transactionx(ctx context.Context, opts *sql.TxOptions, fc func(tx *Tx) error) (err error) {
+	return Transactionx(c, ctx, opts, fc)
 }
 
 // StmtxContext returns a version of the prepared statement which runs within a

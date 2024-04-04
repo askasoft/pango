@@ -15,7 +15,7 @@ type Event struct {
 	Logger Logger `json:"-"`
 	Level  Level
 	Msg    string
-	When   time.Time
+	Time   time.Time
 	File   string
 	Line   int
 	Func   string
@@ -94,7 +94,7 @@ func newEvent(logger Logger, lvl Level, msg string) *Event {
 		Logger: logger,
 		Level:  lvl,
 		Msg:    msg,
-		When:   time.Now(),
+		Time:   time.Now(),
 		File:   "???",
 		Func:   "???",
 		Line:   0,

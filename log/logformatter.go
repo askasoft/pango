@@ -30,8 +30,8 @@ var TextFmtSimple = newTextFormatter("[%p] %m%n")
 // TextFmtDefault default log format "%t %l{-5s} %c %S:%L %F() - %m%n%T"
 var TextFmtDefault = newTextFormatter("%t %l{-5s} %c %S:%L %F() - %m%n%T")
 
-// JSONFmtDefault default log format `{"when": %t, "level": %l, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`
-var JSONFmtDefault = newJSONFormatter(`{"when": %t, "level": %l, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
+// JSONFmtDefault default log format `{"time": %t, "level": %l, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`
+var JSONFmtDefault = newJSONFormatter(`{"time": %t, "level": %l, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
 
 // NewLogFormatter create a text or json formatter
 // text:[%p] %m%n -> TextFormatter
@@ -386,7 +386,7 @@ func fcString(s string) fmtfunc {
 
 func fcTime(layout string) fmtfunc {
 	return func(le *Event) string {
-		return le.When.Format(layout)
+		return le.Time.Format(layout)
 	}
 }
 

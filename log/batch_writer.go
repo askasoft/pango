@@ -46,7 +46,7 @@ func (wbw *BatchWriter) ShouldFlush(le *Event) bool {
 
 	if wbw.FlushDelta > 0 && wbw.EventBuffer.Len() > 1 {
 		if fle, ok := wbw.EventBuffer.Peek(); ok {
-			if le.When.Sub(fle.When) >= wbw.FlushDelta {
+			if le.Time.Sub(fle.Time) >= wbw.FlushDelta {
 				return true
 			}
 		}

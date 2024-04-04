@@ -114,7 +114,7 @@ Configure like this:
 		ContentType: "application/json",
 		Timeout: time.Second*5,
 	}
-	hw.SetFormat(`json:{"when": %t{2006-01-02T15:04:05.000Z07:00}, "level": %l, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
+	hw.SetFormat(`json:{"time": %t{2006-01-02T15:04:05.000Z07:00}, "level": %l, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
 
 	log.SetWriter(log.NewSyncWriter(hw))
 	log.Fatal("fatal error!")
@@ -137,7 +137,7 @@ Configure like this:
 			FlushDelta: time.Second,
 		},
 	}
-	hw.SetFormat(`json:{"create": {}}%n{"when": %t{2006-01-02T15:04:05.000Z07:00}, "level": %l, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
+	hw.SetFormat(`json:{"create": {}}%n{"time": %t{2006-01-02T15:04:05.000Z07:00}, "level": %l, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
 
 	log.SetWriter(log.NewSyncWriter(hw))
 	log.Fatal("fatal error!")
@@ -274,6 +274,6 @@ batchCount = 10
 cacheCount = 20
 flushLevel = ERROR
 flushDelta = 5s
-format = json:{"create": {}}%n{"when": %t{2006-01-02T15:04:05.000Z07:00}, "level": %l, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n
+format = json:{"create": {}}%n{"time": %t{2006-01-02T15:04:05.000Z07:00}, "level": %l, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n
 filter = level:debug
 ```

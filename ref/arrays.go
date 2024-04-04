@@ -6,6 +6,20 @@ import (
 	"reflect"
 )
 
+func ArrayLen(a any) (int, error) {
+	if a == nil {
+		return 0, nil
+	}
+
+	rv := reflect.ValueOf(a)
+	switch rv.Kind() {
+	case reflect.Slice, reflect.Array:
+		return rv.Len(), nil
+	default:
+		return 0, errors.New("ArrayLen(): invalid array or slice")
+	}
+}
+
 // ArrayGet getting value from array or slice by index
 // usage:
 //

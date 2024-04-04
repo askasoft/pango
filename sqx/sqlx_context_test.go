@@ -1032,7 +1032,7 @@ func TestUsageContext(t *testing.T) {
 
 		// create a copy and change the mapper, then verify the copy behaves
 		// differently from the original.
-		dbCopy := NewDb(db.DB, db.DriverName())
+		dbCopy := NewDB(db.DB, db.DriverName())
 		dbCopy.MapperFunc(strings.ToUpper)
 		err = dbCopy.GetContext(ctx, &rsa, "SELECT * FROM capplace;")
 		if err != nil {
@@ -1208,84 +1208,17 @@ func TestIssue197Context(t *testing.T) {
 }
 
 func TestInContext(t *testing.T) {
-	// some quite normal situations
-	type tr struct {
-		q    string
-		args []any
-		c    int
-	}
-	tests := []tr{
-		{"SELECT * FROM foo WHERE x = ? AND v in (?) AND y = ?",
-			[]any{"foo", []int{0, 5, 7, 2, 9}, "bar"},
-			7},
-		{"SELECT * FROM foo WHERE x in (?)",
-			[]any{[]int{1, 2, 3, 4, 5, 6, 7, 8}},
-			8},
-	}
-	for _, test := range tests {
-		q, a, err := In(test.q, test.args...)
-		if err != nil {
-			t.Error(err)
-		}
-		if len(a) != test.c {
-			t.Errorf("Expected %d args, but got %d (%+v)", test.c, len(a), a)
-		}
-		if strings.Count(q, "?") != test.c {
-			t.Errorf("Expected %d bindVars, got %d", test.c, strings.Count(q, "?"))
-		}
-	}
-
-	// too many bindVars, but no slices, so short circuits parsing
-	// i'm not sure if this is the right behavior;  this query/arg combo
-	// might not work, but we shouldn't parse if we don't need to
-	{
-		orig := "SELECT * FROM foo WHERE x = ? AND y = ?"
-		q, a, err := In(orig, "foo", "bar", "baz")
-		if err != nil {
-			t.Error(err)
-		}
-		if len(a) != 3 {
-			t.Errorf("Expected 3 args, but got %d (%+v)", len(a), a)
-		}
-		if q != orig {
-			t.Error("Expected unchanged query.")
-		}
-	}
-
-	tests = []tr{
-		// too many bindvars;  slice present so should return error during parse
-		{"SELECT * FROM foo WHERE x = ? and y = ?",
-			[]any{"foo", []int{1, 2, 3}, "bar"},
-			0},
-		// empty slice, should return error before parse
-		{"SELECT * FROM foo WHERE x = ?",
-			[]any{[]int{}},
-			0},
-		// too *few* bindvars, should return an error
-		{"SELECT * FROM foo WHERE x = ? AND y in (?)",
-			[]any{[]int{1, 2, 3}},
-			0},
-	}
-	for _, test := range tests {
-		_, _, err := In(test.q, test.args...)
-		if err == nil {
-			t.Error("Expected an error, but got nil.")
-		}
-	}
 	RunWithSchemaContext(context.Background(), defaultSchema, t, func(ctx context.Context, db *DB, t *testing.T) {
 		loadDefaultFixtureContext(ctx, db, t)
 		//tx.MustExecContext(ctx, tx.Rebind("INSERT INTO place (country, city, telcode) VALUES (?, ?, ?)"), "United States", "New York", "1")
 		//tx.MustExecContext(ctx, tx.Rebind("INSERT INTO place (country, telcode) VALUES (?, ?)"), "Hong Kong", "852")
 		//tx.MustExecContext(ctx, tx.Rebind("INSERT INTO place (country, telcode) VALUES (?, ?)"), "Singapore", "65")
 		telcodes := []int{852, 65}
-		q := "SELECT * FROM place WHERE telcode IN(?) ORDER BY telcode"
-		query, args, err := In(q, telcodes)
-		if err != nil {
-			t.Error(err)
-		}
+		sqb := &Builder{}
+		query, args := sqb.Select("*").From("place").In("telcode", telcodes).Order("telcode").Build()
 		query = db.Rebind(query)
 		places := []Place{}
-		err = db.SelectContext(ctx, &places, query, args...)
+		err := db.SelectContext(ctx, &places, query, args...)
 		if err != nil {
 			t.Error(err)
 		}

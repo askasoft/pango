@@ -94,7 +94,7 @@ type Execer interface {
 
 // Binder is an interface for something which can bind queries (Tx, DB)
 type binder interface {
-	DriverName() string
+	Binder() Binder
 	Rebind(string) string
 	BindNamed(string, any) (string, []any, error)
 }
@@ -170,9 +170,9 @@ var _scannerInterface = reflect.TypeOf((*sql.Scanner)(nil)).Elem()
 // Row is a reimplementation of sql.Row in order to gain access to the underlying
 // sql.Rows.Columns() data, necessary for StructScan.
 type Row struct {
+	rows   *sql.Rows
 	err    error
 	unsafe bool
-	rows   *sql.Rows
 	Mapper *ref.Mapper
 }
 
@@ -242,24 +242,45 @@ func (r *Row) Err() error {
 	return r.err
 }
 
-// DB is a wrapper around sql.DB which keeps track of the driverName upon Open,
-// used mostly to automatically bind named queries using the right bindvars.
-type DB struct {
-	*sql.DB
+type dbx struct {
 	driverName string
-	unsafe     bool
+	binder     Binder
+	quoter     Quoter
 	Mapper     *ref.Mapper
-}
-
-// NewDb returns a new sqx DB wrapper for a pre-existing *sql.DB.  The
-// driverName of the original database is required for named query support.
-func NewDb(db *sql.DB, driverName string) *DB {
-	return &DB{DB: db, driverName: driverName, Mapper: mapper()}
 }
 
 // DriverName returns the driverName passed to the Open function for this DB.
 func (db *DB) DriverName() string {
 	return db.driverName
+}
+
+// Binder returns the binder by driverName passed to the Open function for this DB.
+func (dbx *dbx) Binder() Binder {
+	return dbx.binder
+}
+
+// Quoter returns the quoter by driverName passed to the Open function for this DB.
+func (dbx *dbx) Quoter() Quoter {
+	return dbx.quoter
+}
+
+// Rebind transforms a query from QUESTION to the DB driver's bindvar type.
+func (dbx *dbx) Rebind(query string) string {
+	return dbx.binder.Rebind(query)
+}
+
+// DB is a wrapper around sql.DB which keeps track of the driverName upon Open,
+// used mostly to automatically bind named queries using the right bindvars.
+type DB struct {
+	*sql.DB
+	dbx
+	unsafe bool
+}
+
+// NewDB returns a new sqx DB wrapper for a pre-existing *sql.DB.  The
+// driverName of the original database is required for named query support.
+func NewDB(db *sql.DB, driverName string) *DB {
+	return &DB{DB: db, dbx: dbx{driverName: driverName, binder: GetBinder(driverName), quoter: GetQuoter(driverName), Mapper: mapper()}}
 }
 
 // Open is the same as sql.Open, but returns an *sqx.DB instead.
@@ -268,7 +289,7 @@ func Open(driverName, dataSourceName string) (*DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &DB{DB: db, driverName: driverName, Mapper: mapper()}, err
+	return NewDB(db, driverName), err
 }
 
 // MustOpen is the same as sql.Open, but returns an *sqx.DB instead and panics on error.
@@ -286,22 +307,17 @@ func (db *DB) MapperFunc(mf func(string) string) {
 	db.Mapper = ref.NewMapperFunc("db", mf)
 }
 
-// Rebind transforms a query from QUESTION to the DB driver's bindvar type.
-func (db *DB) Rebind(query string) string {
-	return Rebind(BindType(db.driverName), query)
-}
-
 // Unsafe returns a version of DB which will silently succeed to scan when
 // columns in the SQL result have no fields in the destination struct.
 // sqx.Stmt and sqx.Tx which are created from this DB will inherit its
 // safety behavior.
 func (db *DB) Unsafe() *DB {
-	return &DB{DB: db.DB, driverName: db.driverName, unsafe: true, Mapper: db.Mapper}
+	return &DB{DB: db.DB, dbx: db.dbx, unsafe: true}
 }
 
 // BindNamed binds a query using the DB driver's bindvar type.
 func (db *DB) BindNamed(query string, arg any) (string, []any, error) {
-	return bindNamedMapper(BindType(db.driverName), query, arg, db.Mapper)
+	return db.binder.bindNamedMapper(query, arg, db.Mapper)
 }
 
 // NamedQuery using this DB.
@@ -351,7 +367,7 @@ func (db *DB) Beginx() (*Tx, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Tx{Tx: tx, driverName: db.driverName, unsafe: db.unsafe, Mapper: db.Mapper}, err
+	return &Tx{Tx: tx, dbx: db.dbx, unsafe: db.unsafe}, err
 }
 
 // Queryx queries the database and returns an *sqx.Rows.
@@ -397,38 +413,26 @@ func (db *DB) Transaction(fc func(tx *Tx) error) (err error) {
 // Conn is a wrapper around sql.Conn with extra functionality
 type Conn struct {
 	*sql.Conn
-	driverName string
-	unsafe     bool
-	Mapper     *ref.Mapper
+	dbx
+	unsafe bool
 }
 
 // Tx is an sqx wrapper around sql.Tx with extra functionality
 type Tx struct {
 	*sql.Tx
-	driverName string
-	unsafe     bool
-	Mapper     *ref.Mapper
-}
-
-// DriverName returns the driverName used by the DB which began this transaction.
-func (tx *Tx) DriverName() string {
-	return tx.driverName
-}
-
-// Rebind a query within a transaction's bindvar type.
-func (tx *Tx) Rebind(query string) string {
-	return Rebind(BindType(tx.driverName), query)
+	dbx
+	unsafe bool
 }
 
 // Unsafe returns a version of Tx which will silently succeed to scan when
 // columns in the SQL result have no fields in the destination struct.
 func (tx *Tx) Unsafe() *Tx {
-	return &Tx{Tx: tx.Tx, driverName: tx.driverName, unsafe: true, Mapper: tx.Mapper}
+	return &Tx{Tx: tx.Tx, dbx: tx.dbx, unsafe: true}
 }
 
 // BindNamed binds a query within a transaction's bindvar type.
 func (tx *Tx) BindNamed(query string, arg any) (string, []any, error) {
-	return bindNamedMapper(BindType(tx.driverName), query, arg, tx.Mapper)
+	return tx.binder.bindNamedMapper(query, arg, tx.Mapper)
 }
 
 // NamedQuery within a transaction.

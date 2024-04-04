@@ -133,8 +133,7 @@ type namedPreparer interface {
 }
 
 func prepareNamed(p namedPreparer, query string) (*NamedStmt, error) {
-	bindType := BindType(p.DriverName())
-	q, args, err := compileNamedQuery(query, bindType)
+	q, args, err := p.Binder().compileNamedQuery(query)
 	if err != nil {
 		return nil, err
 	}
@@ -213,8 +212,8 @@ func bindMapArgs(names []string, arg map[string]any) ([]any, error) {
 // bindStruct binds a named parameter query with fields from a struct argument.
 // The rules for binding field names to parameter names follow the same
 // conventions as for StructScan, including obeying the `db` struct tags.
-func bindStruct(bindType int, query string, arg any, m *ref.Mapper) (string, []any, error) {
-	bound, names, err := compileNamedQuery(query, bindType)
+func (binder Binder) bindStruct(query string, arg any, m *ref.Mapper) (string, []any, error) {
+	bound, names, err := binder.compileNamedQuery(query)
 	if err != nil {
 		return "", []any{}, err
 	}
@@ -273,10 +272,10 @@ func fixBound(bound string, loop int) string {
 
 // bindArray binds a named parameter query with fields from an array or slice of
 // structs argument.
-func bindArray(bindType int, query string, arg any, m *ref.Mapper) (string, []any, error) {
-	// do the initial binding with QUESTION;  if bindType is not question,
+func (binder Binder) bindArray(query string, arg any, m *ref.Mapper) (string, []any, error) {
+	// do the initial binding with QUESTION;  if binder is not question,
 	// we can rebind it at the end.
-	bound, names, err := compileNamedQuery(query, QUESTION)
+	bound, names, err := BindQuestion.compileNamedQuery(query)
 	if err != nil {
 		return "", nil, err
 	}
@@ -300,15 +299,15 @@ func bindArray(bindType int, query string, arg any, m *ref.Mapper) (string, []an
 	}
 
 	// adjust binding type if we weren't on question
-	if bindType != QUESTION {
-		bound = Rebind(bindType, bound)
+	if binder != BindQuestion {
+		bound = binder.Rebind(bound)
 	}
 	return bound, arglist, nil
 }
 
 // bindMap binds a named parameter query with a map of arguments.
-func bindMap(bindType int, query string, args map[string]any) (string, []any, error) {
-	bound, names, err := compileNamedQuery(query, bindType)
+func (binder Binder) bindMap(query string, args map[string]any) (string, []any, error) {
+	bound, names, err := binder.compileNamedQuery(query)
 	if err != nil {
 		return "", []any{}, err
 	}
@@ -326,7 +325,7 @@ func bindMap(bindType int, query string, args map[string]any) (string, []any, er
 var allowedBindRunes = []*unicode.RangeTable{unicode.Letter, unicode.Digit}
 
 // compile a NamedQuery into an unbound query (using the '?' bindvar) and a list of names.
-func compileNamedQuery(qs string, bindType int) (query string, names []string, err error) {
+func (binder Binder) compileNamedQuery(qs string) (query string, names []string, err error) {
 	names = make([]string, 0, str.CountByte(qs, ':'))
 	rebound := &strings.Builder{}
 	rebound.Grow(len(qs))
@@ -384,22 +383,22 @@ func compileNamedQuery(qs string, bindType int) (query string, names []string, e
 
 			// add the string representation to the names list
 			names = append(names, name.String())
-			// add a proper bindvar for the bindType
-			switch bindType {
+			// add a proper bindvar for the binder
+			switch binder {
 			// oracle only supports named type bind vars even for positional
-			case NAMED:
+			case BindColon:
 				rebound.WriteByte(':')
 				rebound.WriteString(name.String())
-			case QUESTION, UNKNOWN:
-				rebound.WriteByte('?')
-			case DOLLAR:
+			case BindDollar:
 				vars++
 				rebound.WriteByte('$')
 				rebound.WriteString(strconv.Itoa(vars))
-			case AT:
+			case BindAt:
 				vars++
 				rebound.WriteString("@p")
 				rebound.WriteString(strconv.Itoa(vars))
+			case BindQuestion, BindUnknown:
+				rebound.WriteByte('?')
 			}
 
 			// add this byte to string unless it was not part of the name
@@ -420,18 +419,18 @@ func compileNamedQuery(qs string, bindType int) (query string, names []string, e
 
 // BindNamed binds a struct or a map to a query with named parameters.
 // DEPRECATED: use sqx.Named` instead of this, it may be removed in future.
-func BindNamed(bindType int, query string, arg any) (string, []any, error) {
-	return bindNamedMapper(bindType, query, arg, mapper())
-}
+// func BindNamed(binder int, query string, arg any) (string, []any, error) {
+// 	return bindNamedMapper(binder, query, arg, mapper())
+// }
 
 // Named takes a query using named parameters and an argument and
 // returns a new query with a list of args that can be executed by
 // a database.  The return value uses the `?` bindvar.
 func Named(query string, arg any) (string, []any, error) {
-	return bindNamedMapper(QUESTION, query, arg, mapper())
+	return BindQuestion.bindNamedMapper(query, arg, mapper())
 }
 
-func bindNamedMapper(bindType int, query string, arg any, m *ref.Mapper) (string, []any, error) {
+func (binder Binder) bindNamedMapper(query string, arg any, m *ref.Mapper) (string, []any, error) {
 	t := reflect.TypeOf(arg)
 	k := t.Kind()
 	switch {
@@ -440,11 +439,11 @@ func bindNamedMapper(bindType int, query string, arg any, m *ref.Mapper) (string
 		if !ok {
 			return "", nil, fmt.Errorf("sqx.bindNamedMapper: unsupported map type: %T", arg)
 		}
-		return bindMap(bindType, query, m)
+		return binder.bindMap(query, m)
 	case k == reflect.Array || k == reflect.Slice:
-		return bindArray(bindType, query, arg, m)
+		return binder.bindArray(query, arg, m)
 	default:
-		return bindStruct(bindType, query, arg, m)
+		return binder.bindStruct(query, arg, m)
 	}
 }
 
@@ -452,7 +451,7 @@ func bindNamedMapper(bindType int, query string, arg any, m *ref.Mapper) (string
 // provided Ext (sqx.Tx, sqx.Db).  It works with both structs and with
 // map[string]any types.
 func NamedQuery(e Ext, query string, arg any) (*Rows, error) {
-	q, args, err := bindNamedMapper(BindType(e.DriverName()), query, arg, mapperFor(e))
+	q, args, err := e.Binder().bindNamedMapper(query, arg, mapperFor(e))
 	if err != nil {
 		return nil, err
 	}
@@ -463,7 +462,7 @@ func NamedQuery(e Ext, query string, arg any) (*Rows, error) {
 // provided Ext (sqx.Tx, sqx.Db).  It works with both structs and with
 // map[string]any types.
 func NamedQueryRow(e Ext, query string, arg any) *Row {
-	q, args, err := bindNamedMapper(BindType(e.DriverName()), query, arg, mapperFor(e))
+	q, args, err := e.Binder().bindNamedMapper(query, arg, mapperFor(e))
 	if err != nil {
 		return &Row{err: err}
 	}
@@ -474,7 +473,7 @@ func NamedQueryRow(e Ext, query string, arg any) *Row {
 // then runs Exec on the result.  Returns an error from the binding
 // or the query execution itself.
 func NamedExec(e Ext, query string, arg any) (sql.Result, error) {
-	q, args, err := bindNamedMapper(BindType(e.DriverName()), query, arg, mapperFor(e))
+	q, args, err := e.Binder().bindNamedMapper(query, arg, mapperFor(e))
 	if err != nil {
 		return nil, err
 	}

@@ -64,7 +64,7 @@ func TestCompileQuery(t *testing.T) {
 	}
 
 	for _, test := range table {
-		qr, names, err := compileNamedQuery(test.Q, QUESTION)
+		qr, names, err := BindQuestion.compileNamedQuery(test.Q)
 		if err != nil {
 			t.Error(err)
 		}
@@ -80,17 +80,17 @@ func TestCompileQuery(t *testing.T) {
 				}
 			}
 		}
-		qd, _, _ := compileNamedQuery(test.Q, DOLLAR)
+		qd, _, _ := BindDollar.compileNamedQuery(test.Q)
 		if qd != test.D {
 			t.Errorf("\nexpected: `%s`\ngot:      `%s`", test.D, qd)
 		}
 
-		qt, _, _ := compileNamedQuery(test.Q, AT)
+		qt, _, _ := BindAt.compileNamedQuery(test.Q)
 		if qt != test.T {
 			t.Errorf("\nexpected: `%s`\ngot:      `%s`", test.T, qt)
 		}
 
-		qq, _, _ := compileNamedQuery(test.Q, NAMED)
+		qq, _, _ := BindColon.compileNamedQuery(test.Q)
 		if qq != test.N {
 			t.Errorf("\nexpected: `%s`\ngot:      `%s`\n(len: %d vs %d)", test.N, qq, len(test.N), len(qq))
 		}
@@ -123,7 +123,7 @@ func TestEscapedColons(t *testing.T) {
 	t.Skip("not sure it is possible to support this in general case without an SQL parser")
 	var qs = `SELECT * FROM testtable WHERE timeposted BETWEEN (now() AT TIME ZONE 'utc') AND
 	(now() AT TIME ZONE 'utc') - interval '01:30:00') AND name = '\'this is a test\'' and id = :id`
-	_, _, err := compileNamedQuery(qs, DOLLAR)
+	_, _, err := BindDollar.compileNamedQuery(qs)
 	if err != nil {
 		t.Error("Didn't handle colons correctly when inside a string")
 	}

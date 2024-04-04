@@ -10,6 +10,7 @@
 package sqx
 
 import (
+	"bytes"
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
@@ -17,6 +18,7 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -1289,7 +1291,7 @@ func TestUsage(t *testing.T) {
 
 		// create a copy and change the mapper, then verify the copy behaves
 		// differently from the original.
-		dbCopy := NewDb(db.DB, db.DriverName())
+		dbCopy := NewDB(db.DB, db.DriverName())
 		dbCopy.MapperFunc(strings.ToUpper)
 		err = dbCopy.Get(&rsa, "SELECT * FROM capplace;")
 		if err != nil {
@@ -1392,8 +1394,8 @@ func TestRebind(t *testing.T) {
 	q1 := `INSERT INTO foo (a, b, c, d, e, f, g, h, i) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	q2 := `INSERT INTO foo (a, b, c) VALUES (?, ?, "foo"), ("Hi", ?, ?)`
 
-	s1 := Rebind(DOLLAR, q1)
-	s2 := Rebind(DOLLAR, q2)
+	s1 := BindDollar.Rebind(q1)
+	s2 := BindDollar.Rebind(q2)
 
 	if s1 != `INSERT INTO foo (a, b, c, d, e, f, g, h, i) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)` {
 		t.Errorf("q1 failed")
@@ -1403,8 +1405,8 @@ func TestRebind(t *testing.T) {
 		t.Errorf("q2 failed")
 	}
 
-	s1 = Rebind(AT, q1)
-	s2 = Rebind(AT, q2)
+	s1 = BindAt.Rebind(q1)
+	s2 = BindAt.Rebind(q2)
 
 	if s1 != `INSERT INTO foo (a, b, c, d, e, f, g, h, i) VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10)` {
 		t.Errorf("q1 failed")
@@ -1414,8 +1416,8 @@ func TestRebind(t *testing.T) {
 		t.Errorf("q2 failed")
 	}
 
-	s1 = Rebind(NAMED, q1)
-	s2 = Rebind(NAMED, q2)
+	s1 = BindColon.Rebind(q1)
+	s2 = BindColon.Rebind(q2)
 
 	ex1 := `INSERT INTO foo (a, b, c, d, e, f, g, h, i) VALUES ` +
 		`(:arg1, :arg2, :arg3, :arg4, :arg5, :arg6, :arg7, :arg8, :arg9, :arg10)`
@@ -1439,7 +1441,7 @@ func TestBindMap(t *testing.T) {
 		"last":  "Moiron",
 	}
 
-	bq, args, _ := bindMap(QUESTION, q1, am)
+	bq, args, _ := BindQuestion.bindMap(q1, am)
 	expect := `INSERT INTO foo (a, b, c, d) VALUES (?, ?, ?, ?)`
 	if bq != expect {
 		t.Errorf("Interpolation of query failed: got `%v`, expected `%v`\n", bq, expect)
@@ -1578,90 +1580,17 @@ func TestIssue197(t *testing.T) {
 }
 
 func TestIn(t *testing.T) {
-	// some quite normal situations
-	type tr struct {
-		q    string
-		args []any
-		c    int
-	}
-	tests := []tr{
-		{"SELECT * FROM foo WHERE x = ? AND v in (?) AND y = ?",
-			[]any{"foo", []int{0, 5, 7, 2, 9}, "bar"},
-			7},
-		{"SELECT * FROM foo WHERE x in (?)",
-			[]any{[]int{1, 2, 3, 4, 5, 6, 7, 8}},
-			8},
-		{"SELECT * FROM foo WHERE x = ? AND y in (?)",
-			[]any{[]byte("foo"), []int{0, 5, 3}},
-			4},
-		{"SELECT * FROM foo WHERE x = ? AND y IN (?)",
-			[]any{sql.NullString{Valid: false}, []string{"a", "b"}},
-			3},
-	}
-	for _, test := range tests {
-		q, a, err := In(test.q, test.args...)
-		if err != nil {
-			t.Error(err)
-		}
-		if len(a) != test.c {
-			t.Errorf("Expected %d args, but got %d (%+v)", test.c, len(a), a)
-		}
-		if strings.Count(q, "?") != test.c {
-			t.Errorf("Expected %d bindVars, got %d", test.c, strings.Count(q, "?"))
-		}
-	}
-
-	// too many bindVars, but no slices, so short circuits parsing
-	// i'm not sure if this is the right behavior;  this query/arg combo
-	// might not work, but we shouldn't parse if we don't need to
-	{
-		orig := "SELECT * FROM foo WHERE x = ? AND y = ?"
-		q, a, err := In(orig, "foo", "bar", "baz")
-		if err != nil {
-			t.Error(err)
-		}
-		if len(a) != 3 {
-			t.Errorf("Expected 3 args, but got %d (%+v)", len(a), a)
-		}
-		if q != orig {
-			t.Error("Expected unchanged query.")
-		}
-	}
-
-	tests = []tr{
-		// too many bindvars;  slice present so should return error during parse
-		{"SELECT * FROM foo WHERE x = ? and y = ?",
-			[]any{"foo", []int{1, 2, 3}, "bar"},
-			0},
-		// empty slice, should return error before parse
-		{"SELECT * FROM foo WHERE x = ?",
-			[]any{[]int{}},
-			0},
-		// too *few* bindvars, should return an error
-		{"SELECT * FROM foo WHERE x = ? AND y in (?)",
-			[]any{[]int{1, 2, 3}},
-			0},
-	}
-	for _, test := range tests {
-		_, _, err := In(test.q, test.args...)
-		if err == nil {
-			t.Error("Expected an error, but got nil.")
-		}
-	}
 	RunWithSchema(defaultSchema, t, func(db *DB, t *testing.T, now string) {
 		loadDefaultFixture(db, t)
 		//tx.MustExec(tx.Rebind("INSERT INTO place (country, city, telcode) VALUES (?, ?, ?)"), "United States", "New York", "1")
 		//tx.MustExec(tx.Rebind("INSERT INTO place (country, telcode) VALUES (?, ?)"), "Hong Kong", "852")
 		//tx.MustExec(tx.Rebind("INSERT INTO place (country, telcode) VALUES (?, ?)"), "Singapore", "65")
 		telcodes := []int{852, 65}
-		q := "SELECT * FROM place WHERE telcode IN(?) ORDER BY telcode"
-		query, args, err := In(q, telcodes)
-		if err != nil {
-			t.Error(err)
-		}
+		sqb := &Builder{}
+		query, args := sqb.Select("*").From("place").In("telcode", telcodes).Order("telcode").Build()
 		query = db.Rebind(query)
 		places := []Place{}
-		err = db.Select(&places, query, args...)
+		err := db.Select(&places, query, args...)
 		if err != nil {
 			t.Error(err)
 		}
@@ -1701,7 +1630,7 @@ func TestBindStruct(t *testing.T) {
 
 	am := tt{"Jason Moiron", 30, "Jason", "Moiron"}
 
-	bq, args, _ := bindStruct(QUESTION, q1, am, mapper())
+	bq, args, _ := BindQuestion.bindStruct(q1, am, mapper())
 	expect := `INSERT INTO foo (a, b, c, d) VALUES (?, ?, ?, ?)`
 	if bq != expect {
 		t.Errorf("Interpolation of query failed: got `%v`, expected `%v`\n", bq, expect)
@@ -1724,7 +1653,7 @@ func TestBindStruct(t *testing.T) {
 	}
 
 	am2 := tt2{"Hello", "World"}
-	bq, args, _ = bindStruct(QUESTION, "INSERT INTO foo (a, b) VALUES (:field_2, :field_1)", am2, mapper())
+	bq, args, _ = BindQuestion.bindStruct("INSERT INTO foo (a, b) VALUES (:field_2, :field_1)", am2, mapper())
 	expect = `INSERT INTO foo (a, b) VALUES (?, ?)`
 	if bq != expect {
 		t.Errorf("Interpolation of query failed: got `%v`, expected `%v`\n", bq, expect)
@@ -1741,7 +1670,7 @@ func TestBindStruct(t *testing.T) {
 	am3.Field1 = "Hello"
 	am3.Field2 = "World"
 
-	bq, args, err = bindStruct(QUESTION, "INSERT INTO foo (a, b, c) VALUES (:name, :field_1, :field_2)", am3, mapper())
+	bq, args, err = BindQuestion.bindStruct("INSERT INTO foo (a, b, c) VALUES (:name, :field_1, :field_2)", am3, mapper())
 
 	if err != nil {
 		t.Fatal(err)
@@ -1817,14 +1746,14 @@ func BenchmarkBindStruct(b *testing.B) {
 	am := t{"Jason Moiron", 30, "Jason", "Moiron"}
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		bindStruct(DOLLAR, q1, am, mapper())
+		BindDollar.bindStruct(q1, am, mapper())
 	}
 }
 
 func TestBindNamedMapper(t *testing.T) {
 	type A map[string]any
 	m := ref.NewMapperFunc("db", NameMapper)
-	query, args, err := bindNamedMapper(DOLLAR, `select :x`, A{
+	query, args, err := BindDollar.bindNamedMapper(`select :x`, A{
 		"x": "X!",
 	}, m)
 	if err != nil {
@@ -1837,7 +1766,7 @@ func TestBindNamedMapper(t *testing.T) {
 		t.Errorf("\ngot:  %q\nwant: %q", got, want)
 	}
 
-	_, _, err = bindNamedMapper(DOLLAR, `select :x`, map[string]string{
+	_, _, err = BindDollar.bindNamedMapper(`select :x`, map[string]string{
 		"x": "X!",
 	}, m)
 	if err == nil {
@@ -1859,45 +1788,7 @@ func BenchmarkBindMap(b *testing.B) {
 	}
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		bindMap(DOLLAR, q1, am)
-	}
-}
-
-func BenchmarkIn(b *testing.B) {
-	q := `SELECT * FROM foo WHERE x = ? AND v in (?) AND y = ?`
-
-	for i := 0; i < b.N; i++ {
-		_, _, _ = In(q, []any{"foo", []int{0, 5, 7, 2, 9}, "bar"}...)
-	}
-}
-
-func BenchmarkIn1k(b *testing.B) {
-	q := `SELECT * FROM foo WHERE x = ? AND v in (?) AND y = ?`
-
-	var vals [1000]any
-
-	for i := 0; i < b.N; i++ {
-		_, _, _ = In(q, []any{"foo", vals[:], "bar"}...)
-	}
-}
-
-func BenchmarkIn1kInt(b *testing.B) {
-	q := `SELECT * FROM foo WHERE x = ? AND v in (?) AND y = ?`
-
-	var vals [1000]int
-
-	for i := 0; i < b.N; i++ {
-		_, _, _ = In(q, []any{"foo", vals[:], "bar"}...)
-	}
-}
-
-func BenchmarkIn1kString(b *testing.B) {
-	q := `SELECT * FROM foo WHERE x = ? AND v in (?) AND y = ?`
-
-	var vals [1000]string
-
-	for i := 0; i < b.N; i++ {
-		_, _, _ = In(q, []any{"foo", vals[:], "bar"}...)
+		BindDollar.bindMap(q1, am)
 	}
 }
 
@@ -1908,9 +1799,34 @@ func BenchmarkRebind(b *testing.B) {
 	b.StartTimer()
 
 	for i := 0; i < b.N; i++ {
-		Rebind(DOLLAR, q1)
-		Rebind(DOLLAR, q2)
+		BindDollar.Rebind(q1)
+		BindDollar.Rebind(q2)
 	}
+}
+
+// Experimental implementation of Rebind which uses a bytes.Buffer.  The code is
+// much simpler and should be more resistant to odd unicode, but it is twice as
+// slow.  Kept here for benchmarking purposes and to possibly replace Rebind if
+// problems arise with its somewhat naive handling of unicode.
+func rebindBuff(binder Binder, query string) string {
+	if binder != BindDollar {
+		return query
+	}
+
+	b := make([]byte, 0, len(query))
+	rqb := bytes.NewBuffer(b)
+	j := 1
+	for _, r := range query {
+		if r == '?' {
+			rqb.WriteRune('$')
+			rqb.WriteString(strconv.Itoa(j))
+			j++
+		} else {
+			rqb.WriteRune(r)
+		}
+	}
+
+	return rqb.String()
 }
 
 func BenchmarkRebindBuffer(b *testing.B) {
@@ -1920,49 +1836,9 @@ func BenchmarkRebindBuffer(b *testing.B) {
 	b.StartTimer()
 
 	for i := 0; i < b.N; i++ {
-		rebindBuff(DOLLAR, q1)
-		rebindBuff(DOLLAR, q2)
+		rebindBuff(BindDollar, q1)
+		rebindBuff(BindDollar, q2)
 	}
-}
-
-func TestIn130Regression(t *testing.T) {
-	t.Run("[]any{}", func(t *testing.T) {
-		q, args, err := In("SELECT * FROM people WHERE name IN (?)", []any{[]string{"gopher"}}...)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if q != "SELECT * FROM people WHERE name IN (?)" {
-			t.Errorf("got=%v", q)
-		}
-		t.Log(args)
-		for _, a := range args {
-			switch v := a.(type) {
-			case string:
-				t.Log("ok: string", v)
-			case *string:
-				t.Error("ng: string pointer", a, *v)
-			}
-		}
-	})
-
-	t.Run("[]string{}", func(t *testing.T) {
-		q, args, err := In("SELECT * FROM people WHERE name IN (?)", []string{"gopher"})
-		if err != nil {
-			t.Fatal(err)
-		}
-		if q != "SELECT * FROM people WHERE name IN (?)" {
-			t.Errorf("got=%v", q)
-		}
-		t.Log(args)
-		for _, a := range args {
-			switch v := a.(type) {
-			case string:
-				t.Log("ok: string", v)
-			case *string:
-				t.Error("ng: string pointer", a, *v)
-			}
-		}
-	})
 }
 
 func TestSelectReset(t *testing.T) {

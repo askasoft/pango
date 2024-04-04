@@ -99,9 +99,9 @@ type binder interface {
 	BindNamed(string, any) (string, []any, error)
 }
 
-// Ext is a union interface which can bind, query, and exec, used by
+// Sqx is a union interface which can bind, query, and exec, used by
 // NamedQuery and NamedExec.
-type Ext interface {
+type Sqx interface {
 	binder
 	Queryer
 	Execer
@@ -153,13 +153,13 @@ func isUnsafe(i any) bool {
 func mapperFor(i any) *ref.Mapper {
 	switch i := i.(type) {
 	case DB:
-		return i.Mapper
+		return i.mapper
 	case *DB:
-		return i.Mapper
+		return i.mapper
 	case Tx:
-		return i.Mapper
+		return i.mapper
 	case *Tx:
-		return i.Mapper
+		return i.mapper
 	default:
 		return mapper()
 	}
@@ -173,7 +173,7 @@ type Row struct {
 	rows   *sql.Rows
 	err    error
 	unsafe bool
-	Mapper *ref.Mapper
+	mapper *ref.Mapper
 }
 
 // Scan is a fixed implementation of sql.Row.Scan, which does not discard the
@@ -246,12 +246,12 @@ type dbx struct {
 	driverName string
 	binder     Binder
 	quoter     Quoter
-	Mapper     *ref.Mapper
+	mapper     *ref.Mapper
 }
 
 // DriverName returns the driverName passed to the Open function for this DB.
-func (db *DB) DriverName() string {
-	return db.driverName
+func (dbx *dbx) DriverName() string {
+	return dbx.driverName
 }
 
 // Binder returns the binder by driverName passed to the Open function for this DB.
@@ -262,6 +262,11 @@ func (dbx *dbx) Binder() Binder {
 // Quoter returns the quoter by driverName passed to the Open function for this DB.
 func (dbx *dbx) Quoter() Quoter {
 	return dbx.quoter
+}
+
+// Quote quote string 's' with quote marks [2]rune, return (m[0] + s + m[1])
+func (dbx *dbx) Quote(s string) string {
+	return dbx.quoter.Quote(s)
 }
 
 // Rebind transforms a query from QUESTION to the DB driver's bindvar type.
@@ -280,7 +285,7 @@ type DB struct {
 // NewDB returns a new sqx DB wrapper for a pre-existing *sql.DB.  The
 // driverName of the original database is required for named query support.
 func NewDB(db *sql.DB, driverName string) *DB {
-	return &DB{DB: db, dbx: dbx{driverName: driverName, binder: GetBinder(driverName), quoter: GetQuoter(driverName), Mapper: mapper()}}
+	return &DB{DB: db, dbx: dbx{driverName: driverName, binder: GetBinder(driverName), quoter: GetQuoter(driverName), mapper: mapper()}}
 }
 
 // Open is the same as sql.Open, but returns an *sqx.DB instead.
@@ -304,7 +309,7 @@ func MustOpen(driverName, dataSourceName string) *DB {
 // MapperFunc sets a new mapper for this db using the default sqx struct tag
 // and the provided mapper function.
 func (db *DB) MapperFunc(mf func(string) string) {
-	db.Mapper = ref.NewMapperFunc("db", mf)
+	db.mapper = ref.NewMapperFunc("db", mf)
 }
 
 // Unsafe returns a version of DB which will silently succeed to scan when
@@ -317,7 +322,7 @@ func (db *DB) Unsafe() *DB {
 
 // BindNamed binds a query using the DB driver's bindvar type.
 func (db *DB) BindNamed(query string, arg any) (string, []any, error) {
-	return db.binder.bindNamedMapper(query, arg, db.Mapper)
+	return db.binder.bindNamedMapper(query, arg, db.mapper)
 }
 
 // NamedQuery using this DB.
@@ -377,14 +382,14 @@ func (db *DB) Queryx(query string, args ...any) (*Rows, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Rows{Rows: r, unsafe: db.unsafe, Mapper: db.Mapper}, err
+	return &Rows{Rows: r, unsafe: db.unsafe, mapper: db.mapper}, err
 }
 
 // QueryRowx queries the database and returns an *sqx.Row.
 // Any placeholder parameters are replaced with supplied args.
 func (db *DB) QueryRowx(query string, args ...any) *Row {
 	rows, err := db.DB.Query(query, args...)
-	return &Row{rows: rows, err: err, unsafe: db.unsafe, Mapper: db.Mapper}
+	return &Row{rows: rows, err: err, unsafe: db.unsafe, mapper: db.mapper}
 }
 
 // MustExec (panic) runs MustExec using this database.
@@ -432,7 +437,7 @@ func (tx *Tx) Unsafe() *Tx {
 
 // BindNamed binds a query within a transaction's bindvar type.
 func (tx *Tx) BindNamed(query string, arg any) (string, []any, error) {
-	return tx.binder.bindNamedMapper(query, arg, tx.Mapper)
+	return tx.binder.bindNamedMapper(query, arg, tx.mapper)
 }
 
 // NamedQuery within a transaction.
@@ -466,14 +471,14 @@ func (tx *Tx) Queryx(query string, args ...any) (*Rows, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Rows{Rows: r, unsafe: tx.unsafe, Mapper: tx.Mapper}, err
+	return &Rows{Rows: r, unsafe: tx.unsafe, mapper: tx.mapper}, err
 }
 
 // QueryRowx within a transaction.
 // Any placeholder parameters are replaced with supplied args.
 func (tx *Tx) QueryRowx(query string, args ...any) *Row {
 	rows, err := tx.Tx.Query(query, args...)
-	return &Row{rows: rows, err: err, unsafe: tx.unsafe, Mapper: tx.Mapper}
+	return &Row{rows: rows, err: err, unsafe: tx.unsafe, mapper: tx.mapper}
 }
 
 // Get within a transaction.
@@ -508,7 +513,7 @@ func (tx *Tx) Stmtx(stmt any) *Stmt {
 	default:
 		panic(fmt.Sprintf("non-statement type %v passed to Stmtx", reflect.ValueOf(stmt).Type()))
 	}
-	return &Stmt{Stmt: tx.Stmt(s), Mapper: tx.Mapper}
+	return &Stmt{Stmt: tx.Stmt(s), mapper: tx.mapper}
 }
 
 // NamedStmt returns a version of the prepared statement which runs within a transaction.
@@ -529,13 +534,13 @@ func (tx *Tx) PrepareNamed(query string) (*NamedStmt, error) {
 type Stmt struct {
 	*sql.Stmt
 	unsafe bool
-	Mapper *ref.Mapper
+	mapper *ref.Mapper
 }
 
 // Unsafe returns a version of Stmt which will silently succeed to scan when
 // columns in the SQL result have no fields in the destination struct.
 func (s *Stmt) Unsafe() *Stmt {
-	return &Stmt{Stmt: s.Stmt, unsafe: true, Mapper: s.Mapper}
+	return &Stmt{Stmt: s.Stmt, unsafe: true, mapper: s.mapper}
 }
 
 // Select using the prepared statement.
@@ -585,12 +590,12 @@ func (q *qStmt) Queryx(query string, args ...any) (*Rows, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Rows{Rows: r, unsafe: q.Stmt.unsafe, Mapper: q.Stmt.Mapper}, err
+	return &Rows{Rows: r, unsafe: q.Stmt.unsafe, mapper: q.Stmt.mapper}, err
 }
 
 func (q *qStmt) QueryRowx(query string, args ...any) *Row {
 	rows, err := q.Stmt.Query(args...)
-	return &Row{rows: rows, err: err, unsafe: q.Stmt.unsafe, Mapper: q.Stmt.Mapper}
+	return &Row{rows: rows, err: err, unsafe: q.Stmt.unsafe, mapper: q.Stmt.mapper}
 }
 
 func (q *qStmt) Exec(query string, args ...any) (sql.Result, error) {
@@ -602,7 +607,8 @@ func (q *qStmt) Exec(query string, args ...any) (sql.Result, error) {
 type Rows struct {
 	*sql.Rows
 	unsafe bool
-	Mapper *ref.Mapper
+	mapper *ref.Mapper
+
 	// these fields cache memory use for a rows during iteration w/ structScan
 	started bool
 	fields  [][]int
@@ -638,7 +644,7 @@ func (r *Rows) StructScan(dest any) error {
 		if err != nil {
 			return err
 		}
-		m := r.Mapper
+		m := r.mapper
 
 		r.fields = m.TraversalsByName(v.Type(), columns)
 		// if we are not unsafe and are missing fields, return an error
@@ -690,7 +696,7 @@ func Preparex(p Preparer, query string) (*Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Stmt{Stmt: s, unsafe: isUnsafe(p), Mapper: mapperFor(p)}, err
+	return &Stmt{Stmt: s, unsafe: isUnsafe(p), mapper: mapperFor(p)}, err
 }
 
 // Select executes a query using the provided Queryer, and StructScans each row
@@ -776,7 +782,7 @@ func (r *Row) scanAny(dest any, structOnly bool) error {
 		return r.Scan(dest)
 	}
 
-	m := r.Mapper
+	m := r.mapper
 
 	fields := m.TraversalsByName(v.Type(), columns)
 	// if we are not unsafe and are missing fields, return an error
@@ -940,7 +946,7 @@ func scanAll(rows rowsi, dest any, structOnly bool) error {
 		var m *ref.Mapper
 
 		if rs, ok := rows.(*Rows); ok {
-			m = rs.Mapper
+			m = rs.mapper
 		} else {
 			m = mapper()
 		}

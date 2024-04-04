@@ -34,7 +34,7 @@ func prepareNamedContext(ctx context.Context, p namedPreparerContext, query stri
 // ExecContext executes a named statement using the struct passed.
 // Any named placeholder parameters are replaced with fields from arg.
 func (n *NamedStmt) ExecContext(ctx context.Context, arg any) (sql.Result, error) {
-	args, err := bindAnyArgs(n.Params, arg, n.Stmt.Mapper)
+	args, err := bindAnyArgs(n.Params, arg, n.Stmt.mapper)
 	if err != nil {
 		return *new(sql.Result), err
 	}
@@ -44,7 +44,7 @@ func (n *NamedStmt) ExecContext(ctx context.Context, arg any) (sql.Result, error
 // QueryContext executes a named statement using the struct argument, returning rows.
 // Any named placeholder parameters are replaced with fields from arg.
 func (n *NamedStmt) QueryContext(ctx context.Context, arg any) (*sql.Rows, error) {
-	args, err := bindAnyArgs(n.Params, arg, n.Stmt.Mapper)
+	args, err := bindAnyArgs(n.Params, arg, n.Stmt.mapper)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (n *NamedStmt) QueryContext(ctx context.Context, arg any) (*sql.Rows, error
 // returns a *sqx.Row instead.
 // Any named placeholder parameters are replaced with fields from arg.
 func (n *NamedStmt) QueryRowContext(ctx context.Context, arg any) *Row {
-	args, err := bindAnyArgs(n.Params, arg, n.Stmt.Mapper)
+	args, err := bindAnyArgs(n.Params, arg, n.Stmt.mapper)
 	if err != nil {
 		return &Row{err: err}
 	}
@@ -80,7 +80,7 @@ func (n *NamedStmt) QueryxContext(ctx context.Context, arg any) (*Rows, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Rows{Rows: r, Mapper: n.Stmt.Mapper, unsafe: isUnsafe(n)}, err
+	return &Rows{Rows: r, mapper: n.Stmt.mapper, unsafe: n.Stmt.unsafe}, err
 }
 
 // QueryRowxContext this NamedStmt.  Because of limitations with QueryRow, this is

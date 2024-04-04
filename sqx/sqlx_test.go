@@ -32,7 +32,7 @@ import (
 )
 
 /* compile time checks that Db, Tx, Stmt (qStmt) implement expected interfaces */
-var _, _ Ext = &DB{}, &Tx{}
+var _, _ Sqx = &DB{}, &Tx{}
 var _, _ ColScanner = &Row{}, &Rows{}
 var _ Queryer = &qStmt{}
 var _ Execer = &qStmt{}
@@ -699,7 +699,7 @@ func TestNamedQuery(t *testing.T) {
 		// verify that named queries work if you've changed the db mapper.
 		// This code checks both NamedQuery "ad-hoc" style
 		// queries and NamedStmt queries, which use different code paths internally.
-		old := db.Mapper
+		old := db.mapper
 
 		type JSONPerson struct {
 			FirstName sql.NullString `json:"FIRST"`
@@ -713,7 +713,7 @@ func TestNamedQuery(t *testing.T) {
 			Email:     sql.NullString{String: "ben@smith.com", Valid: true},
 		}
 
-		db.Mapper = ref.NewMapperFunc("json", strings.ToUpper)
+		db.mapper = ref.NewMapperFunc("json", strings.ToUpper)
 
 		// prepare queries for case sensitivity to test our ToUpper function.
 		// postgres and sqlite accept "", but mysql uses ``;  since Go's multi-line
@@ -784,7 +784,7 @@ func TestNamedQuery(t *testing.T) {
 
 		check(t, rows)
 
-		db.Mapper = old
+		db.mapper = old
 
 		// Test nested structs
 		type Place struct {

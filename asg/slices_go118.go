@@ -3,6 +3,15 @@
 
 package asg
 
+// Anys convert slice 'sa' to []any slice
+func Anys[T any](sa []T) []any {
+	sb := make([]any, len(sa))
+	for i, a := range sa {
+		sb[i] = a
+	}
+	return sb
+}
+
 // Clone returns a copy of the slice.
 // The elements are copied using assignment, so this is a shallow clone.
 func Clone[T any](a []T) []T {

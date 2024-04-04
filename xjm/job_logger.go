@@ -65,7 +65,7 @@ func (jlw *JobLogWriter) flush() error {
 		le := it.Value()
 		jl := &JobLog{
 			JID:     jlw.jid,
-			When:    le.When,
+			Time:    le.Time,
 			Level:   le.Level.Prefix(),
 			Message: le.Msg,
 		}

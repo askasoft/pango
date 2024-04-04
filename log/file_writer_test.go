@@ -417,7 +417,7 @@ func TestFileRotateDaily(t *testing.T) {
 	tm := now
 	for i := 1; i < 10; i++ {
 		le := newEvent(lg, LevelInfo, "hello test "+strconv.Itoa(i))
-		le.When = tm
+		le.Time = tm
 		fw.Write(le)
 		fw.openTime = tm
 		tm = tm.Add(time.Hour * 24)
@@ -471,7 +471,7 @@ func TestFileRotateDailyInit(t *testing.T) {
 	tm := now
 	for i := 1; i < 10; i++ {
 		le := newEvent(lg, LevelInfo, "hello test "+strconv.Itoa(i))
-		le.When = tm
+		le.Time = tm
 		fw.Write(le)
 		fw.openTime = tm
 		tm = tm.Add(time.Hour * 24)
@@ -534,7 +534,7 @@ func TestFileRotateDailyOutdated(t *testing.T) {
 	tm := now
 	for i := 1; i < 10; i++ {
 		le := newEvent(lg, LevelInfo, "hello test "+strconv.Itoa(i))
-		le.When = tm
+		le.Time = tm
 		fw.Write(le)
 		fw.openTime = tm
 		if i > 1 && i < 10 {
@@ -600,7 +600,7 @@ func TestFileRotateHourly(t *testing.T) {
 	tm := now
 	for i := 1; i < 10; i++ {
 		le := newEvent(lg, LevelInfo, "hello test "+strconv.Itoa(i))
-		le.When = tm
+		le.Time = tm
 		fw.Write(le)
 		fw.openTime = tm
 		tm = tm.Add(time.Hour)
@@ -648,7 +648,7 @@ func TestFileRotateHourlyOutdated(t *testing.T) {
 	tm := now
 	for i := 1; i < 10; i++ {
 		le := newEvent(lg, LevelInfo, "hello test "+strconv.Itoa(i))
-		le.When = tm
+		le.Time = tm
 		fw.Write(le)
 		fw.openTime = tm
 		if i > 1 && i < 10 {

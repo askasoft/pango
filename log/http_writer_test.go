@@ -15,7 +15,7 @@ PUT pango_logs
 {
 	"mappings": {
 		"properties": {
-			"when": {
+			"time": {
 				"type": "date",
 				"format": "date_time"
 			}
@@ -53,7 +53,7 @@ func TestHTTPWriter(t *testing.T) {
 
 	log := NewLog()
 	log.SetLevel(LevelTrace)
-	log.SetFormat(`json:{"when": %t{2006-01-02T15:04:05.000Z07:00}, "level": %l, "host":%x{HOST}, "version":%x{VERSON}, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
+	log.SetFormat(`json:{"time": %t{2006-01-02T15:04:05.000Z07:00}, "level": %l, "host":%x{HOST}, "version":%x{VERSON}, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
 	log.SetProp("HOST", "localhost")
 	log.SetProp("VERSION", "1.0")
 
@@ -95,7 +95,7 @@ func TestWebhookBatchWriter(t *testing.T) {
 
 	log := NewLog()
 	log.SetLevel(LevelTrace)
-	log.SetFormat(`json:{"create": {}}%n{"when": %t{2006-01-02T15:04:05.000Z07:00}, "level": %l, "host":%x{HOST}, "version":%x{VERSON}, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
+	log.SetFormat(`json:{"create": {}}%n{"time": %t{2006-01-02T15:04:05.000Z07:00}, "level": %l, "host":%x{HOST}, "version":%x{VERSON}, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
 	log.SetProp("HOST", "localhost")
 	log.SetProp("VERSION", "1.0")
 

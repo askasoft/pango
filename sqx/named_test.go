@@ -1,7 +1,6 @@
 package sqx
 
 import (
-	"database/sql"
 	"fmt"
 	"testing"
 )
@@ -279,7 +278,7 @@ func TestNamedQueries(t *testing.T) {
 		tx.Rollback()
 		// looking for Steven after a rollback should fail
 		err = db.Get(&p2, db.Rebind("SELECT * FROM person WHERE email=?"), sl.Email)
-		if err != sql.ErrNoRows {
+		if err != ErrNoRows {
 			t.Errorf("expected no rows error, got %v", err)
 		}
 

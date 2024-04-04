@@ -133,7 +133,7 @@ func (n *NamedStmt) Unsafe() *NamedStmt {
 // A union interface of preparer and binder, required to be able to prepare
 // named statements (as the bindtype must be determined).
 type namedPreparer interface {
-	Preparer
+	Preparerx
 	binder
 }
 
@@ -142,10 +142,12 @@ func prepareNamed(p namedPreparer, query string) (*NamedStmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	stmt, err := Preparex(p, q)
+
+	stmt, err := p.Preparex(q)
 	if err != nil {
 		return nil, err
 	}
+
 	return &NamedStmt{
 		QueryString: q,
 		Params:      args,
@@ -426,7 +428,7 @@ func (binder Binder) compileNamedQuery(qs string) (query string, names []string,
 // returns a new query with a list of args that can be executed by
 // a database.  The return value uses the `?` bindvar.
 func Named(query string, arg any) (string, []any, error) {
-	return BindQuestion.bindNamedMapper(query, arg, getMapper())
+	return BindQuestion.bindNamedMapper(query, arg, NameMapper)
 }
 
 func (binder Binder) bindNamedMapper(query string, arg any, m *ref.Mapper) (string, []any, error) {
@@ -446,10 +448,10 @@ func (binder Binder) bindNamedMapper(query string, arg any, m *ref.Mapper) (stri
 	}
 }
 
-// NamedQuery binds a named query and then runs Query on the result using the
+// namedQuery binds a named query and then runs Query on the result using the
 // provided Ext (sqx.Tx, sqx.Db).  It works with both structs and with
 // map[string]any types.
-func NamedQuery(x Sqx, query string, arg any) (*Rows, error) {
+func namedQuery(x isqx, query string, arg any) (*Rows, error) {
 	q, args, err := x.Binder().bindNamedMapper(query, arg, x.Mapper())
 	if err != nil {
 		return nil, err
@@ -457,10 +459,10 @@ func NamedQuery(x Sqx, query string, arg any) (*Rows, error) {
 	return x.Queryx(q, args...)
 }
 
-// NamedQueryRow binds a named query and then runs Query on the result using the
+// namedQueryRow binds a named query and then runs Query on the result using the
 // provided Ext (sqx.Tx, sqx.Db).  It works with both structs and with
 // map[string]any types.
-func NamedQueryRow(x Sqx, query string, arg any) *Row {
+func namedQueryRow(x isqx, query string, arg any) *Row {
 	q, args, err := x.Binder().bindNamedMapper(query, arg, x.Mapper())
 	if err != nil {
 		return &Row{err: err}
@@ -468,10 +470,10 @@ func NamedQueryRow(x Sqx, query string, arg any) *Row {
 	return x.QueryRowx(q, args...)
 }
 
-// NamedExec uses BindStruct to get a query executable by the driver and
+// namedExec uses BindStruct to get a query executable by the driver and
 // then runs Exec on the result.  Returns an error from the binding
 // or the query execution itself.
-func NamedExec(x Sqx, query string, arg any) (sql.Result, error) {
+func namedExec(x isqx, query string, arg any) (sql.Result, error) {
 	q, args, err := x.Binder().bindNamedMapper(query, arg, x.Mapper())
 	if err != nil {
 		return nil, err

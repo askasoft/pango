@@ -1030,8 +1030,8 @@ func TestUsage(t *testing.T) {
 		if err == nil {
 			t.Errorf("Expecting an error, got nil\n")
 		}
-		if err != sql.ErrNoRows {
-			t.Errorf("Expected sql.ErrNoRows, got %v\n", err)
+		if err != ErrNoRows {
+			t.Errorf("Expected ErrNoRows, got %v\n", err)
 		}
 
 		// The following tests check statement reuse, which was actually a problem
@@ -1287,7 +1287,7 @@ func TestUsage(t *testing.T) {
 		if err != nil {
 			t.Error(err, "in db:", db.DriverName())
 		}
-		db.MapperFunc(defaultNameMap)
+		db.MapperFunc(DefaultNameMap)
 
 		// create a copy and change the mapper, then verify the copy behaves
 		// differently from the original.
@@ -1630,7 +1630,7 @@ func TestBindStruct(t *testing.T) {
 
 	am := tt{"Jason Moiron", 30, "Jason", "Moiron"}
 
-	bq, args, _ := BindQuestion.bindStruct(q1, am, getMapper())
+	bq, args, _ := BindQuestion.bindStruct(q1, am, NameMapper)
 	expect := `INSERT INTO foo (a, b, c, d) VALUES (?, ?, ?, ?)`
 	if bq != expect {
 		t.Errorf("Interpolation of query failed: got `%v`, expected `%v`\n", bq, expect)
@@ -1653,7 +1653,7 @@ func TestBindStruct(t *testing.T) {
 	}
 
 	am2 := tt2{"Hello", "World"}
-	bq, args, _ = BindQuestion.bindStruct("INSERT INTO foo (a, b) VALUES (:field_2, :field_1)", am2, getMapper())
+	bq, args, _ = BindQuestion.bindStruct("INSERT INTO foo (a, b) VALUES (:field_2, :field_1)", am2, NameMapper)
 	expect = `INSERT INTO foo (a, b) VALUES (?, ?)`
 	if bq != expect {
 		t.Errorf("Interpolation of query failed: got `%v`, expected `%v`\n", bq, expect)
@@ -1670,7 +1670,7 @@ func TestBindStruct(t *testing.T) {
 	am3.Field1 = "Hello"
 	am3.Field2 = "World"
 
-	bq, args, err = BindQuestion.bindStruct("INSERT INTO foo (a, b, c) VALUES (:name, :field_1, :field_2)", am3, getMapper())
+	bq, args, err = BindQuestion.bindStruct("INSERT INTO foo (a, b, c) VALUES (:name, :field_1, :field_2)", am3, NameMapper)
 
 	if err != nil {
 		t.Fatal(err)
@@ -1746,13 +1746,13 @@ func BenchmarkBindStruct(b *testing.B) {
 	am := t{"Jason Moiron", 30, "Jason", "Moiron"}
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		BindDollar.bindStruct(q1, am, getMapper())
+		BindDollar.bindStruct(q1, am, NameMapper)
 	}
 }
 
 func TestBindNamedMapper(t *testing.T) {
 	type A map[string]any
-	m := ref.NewMapperFunc("db", NameMapper)
+	m := ref.NewMapperFunc("db", DefaultNameMap)
 	query, args, err := BindDollar.bindNamedMapper(`select :x`, A{
 		"x": "X!",
 	}, m)

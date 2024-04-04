@@ -80,7 +80,7 @@ func (n *NamedStmt) QueryxContext(ctx context.Context, arg any) (*Rows, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Rows{Rows: r, mapper: n.Stmt.mapper, unsafe: n.Stmt.unsafe}, err
+	return &Rows{Rows: r, ext: n.Stmt.ext}, err
 }
 
 // QueryRowxContext this NamedStmt.  Because of limitations with QueryRow, this is
@@ -113,7 +113,7 @@ func (n *NamedStmt) GetContext(ctx context.Context, dest any, arg any) error {
 // provided Ext (sqx.Tx, sqx.Db).  It works with both structs and with
 // map[string]any types.
 func NamedQueryContext(ctx context.Context, e ExtContext, query string, arg any) (*Rows, error) {
-	q, args, err := e.Binder().bindNamedMapper(query, arg, mapperFor(e))
+	q, args, err := e.Binder().bindNamedMapper(query, arg, e.Mapper())
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +124,7 @@ func NamedQueryContext(ctx context.Context, e ExtContext, query string, arg any)
 // then runs Exec on the result.  Returns an error from the binding
 // or the query execution itself.
 func NamedExecContext(ctx context.Context, e ExtContext, query string, arg any) (sql.Result, error) {
-	q, args, err := e.Binder().bindNamedMapper(query, arg, mapperFor(e))
+	q, args, err := e.Binder().bindNamedMapper(query, arg, e.Mapper())
 	if err != nil {
 		return nil, err
 	}

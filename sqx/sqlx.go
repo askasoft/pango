@@ -6,10 +6,15 @@ import (
 	"fmt"
 
 	"reflect"
-	"sync"
 
 	"github.com/askasoft/pango/ref"
 	"github.com/askasoft/pango/str"
+)
+
+var (
+	ErrConnDone = sql.ErrConnDone
+	ErrNoRows   = sql.ErrNoRows
+	ErrTxDone   = sql.ErrTxDone
 )
 
 // Although the NameMapper is convenient, in practice it should not
@@ -21,38 +26,15 @@ import (
 // it uses str.SnakeCase to lowercase struct field names.  It can be set
 // to whatever you want, but it is encouraged to be set before sqx is used
 // as name-to-field mappings are cached after first use on a type.
-var NameMapper = defaultNameMap
-var origMapper = reflect.ValueOf(NameMapper)
+var NameMapper = ref.NewMapperFunc("db", DefaultNameMap)
 
-// Rather than creating on init, this is created when necessary so that
-// importers have time to customize the NameMapper.
-var mpr *ref.Mapper
-
-// mprMu protects mpr.
-var mprMu sync.Mutex
-
-// defaultNameMap use str.SnakeCase() to map struct's field name to column name
+// DefaultNameMap use str.SnakeCase() to map struct's field name to column name
 // Example:
 //
 //	ID -> id
 //	ZipCode -> zip_code
-func defaultNameMap(s string) string {
+func DefaultNameMap(s string) string {
 	return str.SnakeCase(s)
-}
-
-// getMapper returns a valid mapper using the configured NameMapper func.
-func getMapper() *ref.Mapper {
-	mprMu.Lock()
-	defer mprMu.Unlock()
-
-	if mpr == nil {
-		mpr = ref.NewMapperFunc("db", NameMapper)
-	} else if origMapper != reflect.ValueOf(NameMapper) {
-		// if NameMapper has changed, create a new mapper
-		mpr = ref.NewMapperFunc("db", NameMapper)
-		origMapper = reflect.ValueOf(NameMapper)
-	}
-	return mpr
 }
 
 // isScannable takes the reflect.Type and the actual dest value and returns
@@ -70,26 +52,7 @@ func isScannable(t reflect.Type) bool {
 
 	// it's not important that we use the right mapper for this particular object,
 	// we're only concerned on how many exported fields this struct has
-	return len(getMapper().TypeMap(t).Index) == 0
-}
-
-// ColScanner is an interface used by MapScan and SliceScan
-type ColScanner interface {
-	Columns() ([]string, error)
-	Scan(dest ...any) error
-	Err() error
-}
-
-// Queryer is an interface used by Get and Select
-type Queryer interface {
-	Query(query string, args ...any) (*sql.Rows, error)
-	Queryx(query string, args ...any) (*Rows, error)
-	QueryRowx(query string, args ...any) *Row
-}
-
-// Execer is an interface used by MustExec
-type Execer interface {
-	Exec(query string, args ...any) (sql.Result, error)
+	return len(NameMapper.TypeMap(t).Index) == 0
 }
 
 type unsafer interface {
@@ -103,6 +66,46 @@ type mapper interface {
 // Binder is an interface for something which can bind queries (Tx, DB)
 type binder interface {
 	Binder() Binder
+}
+
+// ColScanner is an interface used by MapScan and SliceScan
+type ColScanner interface {
+	Columns() ([]string, error)
+	Scan(dest ...any) error
+	Err() error
+}
+
+// Queryer is an interface used by Get and Select
+type Queryer interface {
+	Query(query string, args ...any) (*sql.Rows, error)
+}
+
+type Selector interface {
+	Get(dest any, query string, args ...any) error
+	Select(dest any, query string, args ...any) error
+}
+
+type Queryerx interface {
+	Queryer
+	Queryx(query string, args ...any) (*Rows, error)
+	QueryRowx(query string, args ...any) *Row
+}
+
+// Execer is an interface used by MustExec
+type Execer interface {
+	Exec(query string, args ...any) (sql.Result, error)
+}
+
+type Preparer interface {
+	Prepare(query string) (*sql.Stmt, error)
+}
+
+type Preparerx interface {
+	Preparex(query string) (*Stmt, error)
+}
+
+// Bind is an interface for something which can bind queries (Tx, DB)
+type Bind interface {
 	Rebind(string) string
 	BindNamed(string, any) (string, []any, error)
 }
@@ -110,16 +113,17 @@ type binder interface {
 // Sqx is a union interface which can bind, query, and exec, used by
 // NamedQuery and NamedExec.
 type Sqx interface {
-	binder
-	unsafer
-	mapper
-	Queryer
+	Bind
+	Queryerx
+	Selector
 	Execer
 }
 
-// Preparer is an interface used by Preparex.
-type Preparer interface {
-	Prepare(query string) (*sql.Stmt, error)
+type isqx interface {
+	binder
+	unsafer
+	mapper
+	Sqx
 }
 
 // determine if any of our extensions are unsafe
@@ -128,13 +132,6 @@ func isUnsafe(i any) bool {
 		return us.IsUnsafe()
 	}
 	return false
-}
-
-func mapperFor(i any) *ref.Mapper {
-	if mp, ok := i.(mapper); ok {
-		return mp.Mapper()
-	}
-	return getMapper()
 }
 
 type ext struct {
@@ -180,6 +177,11 @@ func (ext *ext) Mapper() *ref.Mapper {
 	return ext.mapper
 }
 
+// SupportRetuning check sql driver support "RETUNING"
+func (ext *ext) SupportLastInsertID() bool {
+	return ext.binder != BindDollar
+}
+
 var _scannerInterface = reflect.TypeOf((*sql.Scanner)(nil)).Elem()
 
 // Row is a reimplementation of sql.Row in order to gain access to the underlying
@@ -221,7 +223,7 @@ func (r *Row) Scan(dest ...any) error {
 		if err := r.rows.Err(); err != nil {
 			return err
 		}
-		return sql.ErrNoRows
+		return ErrNoRows
 	}
 	err := r.rows.Scan(dest...)
 	if err != nil {
@@ -266,7 +268,7 @@ type DB struct {
 // NewDB returns a new sqx DB wrapper for a pre-existing *sql.DB.  The
 // driverName of the original database is required for named query support.
 func NewDB(db *sql.DB, driverName string) *DB {
-	return &DB{DB: db, ext: ext{driverName: driverName, binder: GetBinder(driverName), quoter: GetQuoter(driverName), mapper: getMapper()}}
+	return &DB{DB: db, ext: ext{driverName: driverName, binder: GetBinder(driverName), quoter: GetQuoter(driverName), mapper: NameMapper}}
 }
 
 // Open is the same as sql.Open, but returns an *sqx.DB instead.
@@ -311,19 +313,19 @@ func (db *DB) BindNamed(query string, arg any) (string, []any, error) {
 // NamedQuery using this DB.
 // Any named placeholder parameters are replaced with fields from arg.
 func (db *DB) NamedQuery(query string, arg any) (*Rows, error) {
-	return NamedQuery(db, query, arg)
+	return namedQuery(db, query, arg)
 }
 
 // NamedQueryRow using this DB.
 // Any named placeholder parameters are replaced with fields from arg.
 func (db *DB) NamedQueryRow(query string, arg any) *Row {
-	return NamedQueryRow(db, query, arg)
+	return namedQueryRow(db, query, arg)
 }
 
 // NamedExec using this DB.
 // Any named placeholder parameters are replaced with fields from arg.
 func (db *DB) NamedExec(query string, arg any) (sql.Result, error) {
-	return NamedExec(db, query, arg)
+	return namedExec(db, query, arg)
 }
 
 // Select using this DB.
@@ -383,7 +385,11 @@ func (db *DB) MustExec(query string, args ...any) sql.Result {
 
 // Preparex returns an sqx.Stmt instead of a sql.Stmt
 func (db *DB) Preparex(query string) (*Stmt, error) {
-	return Preparex(db, query)
+	s, err := db.Prepare(query)
+	if err != nil {
+		return nil, err
+	}
+	return &Stmt{Stmt: s, ext: db.ext}, err
 }
 
 // PrepareNamed returns an sqx.NamedStmt
@@ -426,19 +432,19 @@ func (tx *Tx) BindNamed(query string, arg any) (string, []any, error) {
 // NamedQuery within a transaction.
 // Any named placeholder parameters are replaced with fields from arg.
 func (tx *Tx) NamedQuery(query string, arg any) (*Rows, error) {
-	return NamedQuery(tx, query, arg)
+	return namedQuery(tx, query, arg)
 }
 
 // NamedQueryRow within a transaction.
 // Any named placeholder parameters are replaced with fields from arg.
 func (tx *Tx) NamedQueryRow(query string, arg any) *Row {
-	return NamedQueryRow(tx, query, arg)
+	return namedQueryRow(tx, query, arg)
 }
 
 // NamedExec a named query within a transaction.
 // Any named placeholder parameters are replaced with fields from arg.
 func (tx *Tx) NamedExec(query string, arg any) (sql.Result, error) {
-	return NamedExec(tx, query, arg)
+	return namedExec(tx, query, arg)
 }
 
 // Select within a transaction.
@@ -479,7 +485,11 @@ func (tx *Tx) MustExec(query string, args ...any) sql.Result {
 
 // Preparex  a statement within a transaction.
 func (tx *Tx) Preparex(query string) (*Stmt, error) {
-	return Preparex(tx, query)
+	s, err := tx.Prepare(query)
+	if err != nil {
+		return nil, err
+	}
+	return &Stmt{Stmt: s, ext: tx.ext}, err
 }
 
 // Stmtx returns a version of the prepared statement which runs within a transaction.  Provided
@@ -673,21 +683,12 @@ func MustConnect(driverName, dataSourceName string) *DB {
 	return db
 }
 
-// Preparex prepares a statement.
-func Preparex(p Preparer, query string) (*Stmt, error) {
-	s, err := p.Prepare(query)
-	if err != nil {
-		return nil, err
-	}
-	return &Stmt{Stmt: s, ext: ext{unsafe: isUnsafe(p), mapper: mapperFor(p)}}, err
-}
-
 // Select executes a query using the provided Queryer, and StructScans each row
 // into dest, which must be a slice.  If the slice elements are scannable, then
 // the result set must have only one column.  Otherwise, StructScan is used.
 // The *sql.Rows are closed automatically.
 // Any placeholder parameters are replaced with supplied args.
-func Select(q Queryer, dest any, query string, args ...any) error {
+func Select(q Queryerx, dest any, query string, args ...any) error {
 	rows, err := q.Queryx(query, args...)
 	if err != nil {
 		return err
@@ -699,10 +700,10 @@ func Select(q Queryer, dest any, query string, args ...any) error {
 
 // Get does a QueryRow using the provided Queryer, and scans the resulting row
 // to dest.  If dest is scannable, the result must only have one column.  Otherwise,
-// StructScan is used.  Get will return sql.ErrNoRows like row.Scan would.
+// StructScan is used.  Get will return ErrNoRows like row.Scan would.
 // Any placeholder parameters are replaced with supplied args.
 // An error is returned if the result set is empty.
-func Get(q Queryer, dest any, query string, args ...any) error {
+func Get(q Queryerx, dest any, query string, args ...any) error {
 	r := q.QueryRowx(query, args...)
 	return r.scanAny(dest, false)
 }
@@ -732,7 +733,7 @@ func (r *Row) scanAny(dest any, structOnly bool) error {
 		return r.err
 	}
 	if r.rows == nil {
-		r.err = sql.ErrNoRows
+		r.err = ErrNoRows
 		return r.err
 	}
 	defer r.rows.Close()
@@ -931,7 +932,7 @@ func scanAll(rows rowsi, dest any, structOnly bool) error {
 		if rs, ok := rows.(*Rows); ok {
 			m = rs.mapper
 		} else {
-			m = getMapper()
+			m = NameMapper
 		}
 
 		fields := m.TraversalsByName(base, columns)

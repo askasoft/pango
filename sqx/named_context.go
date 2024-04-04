@@ -11,7 +11,7 @@ import (
 // A union interface of contextPreparer and binder, required to be able to
 // prepare named statements with context (as the bindtype must be determined).
 type namedPreparerContext interface {
-	PreparerContext
+	PreparerxContext
 	binder
 }
 
@@ -20,7 +20,7 @@ func prepareNamedContext(ctx context.Context, p namedPreparerContext, query stri
 	if err != nil {
 		return nil, err
 	}
-	stmt, err := PreparexContext(ctx, p, q)
+	stmt, err := p.PreparexContext(ctx, q)
 	if err != nil {
 		return nil, err
 	}

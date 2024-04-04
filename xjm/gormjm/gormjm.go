@@ -30,7 +30,7 @@ func (gjm *gjm) CountJobLogs(jid int64, levels ...string) (int64, error) {
 	}
 
 	var cnt int64
-	r := tx.Order("id ASC").Count(&cnt)
+	r := tx.Count(&cnt)
 	return cnt, r.Error
 }
 

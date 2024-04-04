@@ -32,6 +32,11 @@ type PreparerContext interface {
 	PrepareContext(ctx context.Context, query string) (*sql.Stmt, error)
 }
 
+// PreparerxContext is an interface used by PreparexContext.
+type PreparerxContext interface {
+	PreparexContext(ctx context.Context, query string) (*Stmt, error)
+}
+
 // ExecerContext is an interface used by MustExecContext and LoadFileContext
 type ExecerContext interface {
 	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
@@ -61,21 +66,9 @@ func SelectContext(ctx context.Context, q QueryerContext, dest any, query string
 	return scanAll(rows, dest, false)
 }
 
-// PreparexContext prepares a statement.
-//
-// The provided context is used for the preparation of the statement, not for
-// the execution of the statement.
-func PreparexContext(ctx context.Context, p PreparerContext, query string) (*Stmt, error) {
-	s, err := p.PrepareContext(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	return &Stmt{Stmt: s, ext: ext{unsafe: isUnsafe(p), mapper: mapperFor(p)}}, err
-}
-
 // GetContext does a QueryRow using the provided Queryer, and scans the
 // resulting row to dest.  If dest is scannable, the result must only have one
-// column. Otherwise, StructScan is used.  Get will return sql.ErrNoRows like
+// column. Otherwise, StructScan is used.  Get will return ErrNoRows like
 // row.Scan would. Any placeholder parameters are replaced with supplied args.
 // An error is returned if the result set is empty.
 func GetContext(ctx context.Context, q QueryerContext, dest any, query string, args ...any) error {
@@ -128,7 +121,11 @@ func (db *DB) GetContext(ctx context.Context, dest any, query string, args ...an
 // The provided context is used for the preparation of the statement, not for
 // the execution of the statement.
 func (db *DB) PreparexContext(ctx context.Context, query string) (*Stmt, error) {
-	return PreparexContext(ctx, db, query)
+	s, err := db.PrepareContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	return &Stmt{Stmt: s, ext: db.ext}, err
 }
 
 // QueryxContext queries the database and returns an *sqx.Rows.
@@ -234,7 +231,11 @@ func (c *Conn) GetContext(ctx context.Context, dest any, query string, args ...a
 // The provided context is used for the preparation of the statement, not for
 // the execution of the statement.
 func (c *Conn) PreparexContext(ctx context.Context, query string) (*Stmt, error) {
-	return PreparexContext(ctx, c, query)
+	s, err := c.PrepareContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	return &Stmt{Stmt: s, ext: c.ext}, err
 }
 
 // QueryxContext queries the database and returns an *sqx.Rows.
@@ -293,7 +294,11 @@ func (tx *Tx) NamedStmtContext(ctx context.Context, stmt *NamedStmt) *NamedStmt 
 // The provided context is used for the preparation of the statement, not for
 // the execution of the statement.
 func (tx *Tx) PreparexContext(ctx context.Context, query string) (*Stmt, error) {
-	return PreparexContext(ctx, tx, query)
+	s, err := tx.PrepareContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	return &Stmt{Stmt: s, ext: tx.ext}, err
 }
 
 // PrepareNamedContext returns an sqx.NamedStmt

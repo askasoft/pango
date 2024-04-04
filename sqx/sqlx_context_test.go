@@ -771,8 +771,8 @@ func TestUsageContext(t *testing.T) {
 		if err == nil {
 			t.Errorf("Expecting an error, got nil\n")
 		}
-		if err != sql.ErrNoRows {
-			t.Errorf("Expected sql.ErrNoRows, got %v\n", err)
+		if err != ErrNoRows {
+			t.Errorf("Expected ErrNoRows, got %v\n", err)
 		}
 
 		// The following tests check statement reuse, which was actually a problem
@@ -1028,7 +1028,7 @@ func TestUsageContext(t *testing.T) {
 		if err != nil {
 			t.Error(err, "in db:", db.DriverName())
 		}
-		db.MapperFunc(defaultNameMap)
+		db.MapperFunc(DefaultNameMap)
 
 		// create a copy and change the mapper, then verify the copy behaves
 		// differently from the original.

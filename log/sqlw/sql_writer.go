@@ -96,7 +96,7 @@ func (sw *SQLWriter) SetParameter(format string) {
 		switch format[i] {
 		case 't':
 			p = func(le *log.Event) any {
-				return le.When
+				return le.Time
 			}
 		case 'c':
 			p = func(le *log.Event) any {

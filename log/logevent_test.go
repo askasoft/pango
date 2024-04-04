@@ -9,7 +9,7 @@ import (
 
 func TestEventCaller(t *testing.T) {
 	le := newEvent(&logger{}, LevelInfo, "caller")
-	le.When = time.Time{}
+	le.Time = time.Time{}
 	le.CallerDepth(2, false)
 
 	if le.File != "logevent_test.go" {
@@ -25,7 +25,7 @@ func TestEventCaller(t *testing.T) {
 
 func TestEventJsonMarshall(t *testing.T) {
 	le := newEvent(&logger{}, LevelInfo, "caller")
-	le.When = time.Now()
+	le.Time = time.Now()
 	le.CallerDepth(2, false)
 
 	bs, _ := json.Marshal(le)

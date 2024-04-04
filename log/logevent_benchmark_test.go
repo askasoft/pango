@@ -76,7 +76,7 @@ func BenchmarkLogEventNewWithPoolParallel(b *testing.B) {
 			le.Logger = &logger{}
 			le.Level = LevelInfo
 			le.Msg = "simple"
-			le.When = time.Now()
+			le.Time = time.Now()
 			TextFmtSimple.Write(sb, le)
 			eventPool.Put(le)
 		}
@@ -91,7 +91,7 @@ func BenchmarkLogEventNewWithoutPoolParallel(b *testing.B) {
 			le.Logger = &logger{}
 			le.Level = LevelInfo
 			le.Msg = "simple"
-			le.When = time.Now()
+			le.Time = time.Now()
 			TextFmtSimple.Write(sb, le)
 		}
 	})

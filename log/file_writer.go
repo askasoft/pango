@@ -58,7 +58,7 @@ func (fw *FileWriter) Write(le *Event) error {
 	}
 
 	if fw.fileSize > 0 && fw.needRotate(le) {
-		fw.rotate(le.When)
+		fw.rotate(le.Time)
 
 		if err := fw.init(); err != nil {
 			return err
@@ -187,8 +187,8 @@ func (fw *FileWriter) init() error {
 
 func (fw *FileWriter) needRotate(le *Event) bool {
 	return (fw.MaxSize > 0 && fw.fileSize >= fw.MaxSize) ||
-		(fw.MaxHours > 0 && fw.openTime.Hour() != le.When.Hour()) ||
-		(fw.MaxDays > 0 && fw.openTime.Day() != le.When.Day())
+		(fw.MaxHours > 0 && fw.openTime.Hour() != le.Time.Hour()) ||
+		(fw.MaxDays > 0 && fw.openTime.Day() != le.Time.Day())
 }
 
 // DoRotate means it need to write file in new file.

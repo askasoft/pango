@@ -63,7 +63,7 @@ func (gl *GormLogger) printf(lvl log.Level, msg string, data ...any) {
 			Logger: gl.Logger,
 			Level:  lvl,
 			Msg:    fmt.Sprintf(msg, data...),
-			When:   time.Now(),
+			Time:   time.Now(),
 		}
 		le.CallerStop("gorm.io", gl.Logger.GetTraceLevel() >= lvl)
 

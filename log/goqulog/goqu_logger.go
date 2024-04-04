@@ -33,7 +33,7 @@ func (gl *GoquLogger) Printf(format string, v ...any) {
 			Logger: gl.Logger,
 			Level:  lvl,
 			Msg:    fmt.Sprintf(format, v...),
-			When:   time.Now(),
+			Time:   time.Now(),
 		}
 		le.CallerStop("/goqu/", gl.Logger.GetTraceLevel() >= lvl)
 

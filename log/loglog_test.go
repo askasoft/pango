@@ -48,7 +48,7 @@ func (tw *testConcurrentDetectWriter) Write(le *Event) error {
 
 	t := time.Now()
 	if t.After(tw.last.Add(time.Second)) {
-		fmt.Println(le.When, k, c, tw.countAtomic)
+		fmt.Println(le.Time, k, c, tw.countAtomic)
 		tw.last = t
 	}
 

@@ -30,9 +30,9 @@ import (
 // NamedStmt is a prepared statement that executes named queries.  Prepare it
 // how you would execute a NamedQuery, but pass in a struct or map when executing.
 type NamedStmt struct {
+	Stmt        *Stmt
 	Params      []string
 	QueryString string
-	Stmt        *Stmt
 }
 
 // Close closes the named statement.
@@ -89,7 +89,7 @@ func (n *NamedStmt) Queryx(arg any) (*Rows, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Rows{Rows: r, mapper: n.Stmt.mapper, unsafe: n.Stmt.unsafe}, err
+	return &Rows{Rows: r, ext: n.Stmt.ext}, err
 }
 
 // QueryRowx this NamedStmt.  Because of limitations with QueryRow, this is
@@ -116,6 +116,11 @@ func (n *NamedStmt) Select(dest any, arg any) error {
 func (n *NamedStmt) Get(dest any, arg any) error {
 	r := n.QueryRowx(arg)
 	return r.scanAny(dest, false)
+}
+
+// IsUnsafe return unsafe
+func (n *NamedStmt) IsUnsafe() bool {
+	return n.Stmt.IsUnsafe()
 }
 
 // Unsafe creates an unsafe version of the NamedStmt
@@ -417,17 +422,11 @@ func (binder Binder) compileNamedQuery(qs string) (query string, names []string,
 	return rebound.String(), names, err
 }
 
-// BindNamed binds a struct or a map to a query with named parameters.
-// DEPRECATED: use sqx.Named` instead of this, it may be removed in future.
-// func BindNamed(binder int, query string, arg any) (string, []any, error) {
-// 	return bindNamedMapper(binder, query, arg, mapper())
-// }
-
 // Named takes a query using named parameters and an argument and
 // returns a new query with a list of args that can be executed by
 // a database.  The return value uses the `?` bindvar.
 func Named(query string, arg any) (string, []any, error) {
-	return BindQuestion.bindNamedMapper(query, arg, mapper())
+	return BindQuestion.bindNamedMapper(query, arg, getMapper())
 }
 
 func (binder Binder) bindNamedMapper(query string, arg any, m *ref.Mapper) (string, []any, error) {
@@ -451,7 +450,7 @@ func (binder Binder) bindNamedMapper(query string, arg any, m *ref.Mapper) (stri
 // provided Ext (sqx.Tx, sqx.Db).  It works with both structs and with
 // map[string]any types.
 func NamedQuery(x Sqx, query string, arg any) (*Rows, error) {
-	q, args, err := x.Binder().bindNamedMapper(query, arg, mapperFor(x))
+	q, args, err := x.Binder().bindNamedMapper(query, arg, x.Mapper())
 	if err != nil {
 		return nil, err
 	}
@@ -462,7 +461,7 @@ func NamedQuery(x Sqx, query string, arg any) (*Rows, error) {
 // provided Ext (sqx.Tx, sqx.Db).  It works with both structs and with
 // map[string]any types.
 func NamedQueryRow(x Sqx, query string, arg any) *Row {
-	q, args, err := x.Binder().bindNamedMapper(query, arg, mapperFor(x))
+	q, args, err := x.Binder().bindNamedMapper(query, arg, x.Mapper())
 	if err != nil {
 		return &Row{err: err}
 	}
@@ -473,7 +472,7 @@ func NamedQueryRow(x Sqx, query string, arg any) *Row {
 // then runs Exec on the result.  Returns an error from the binding
 // or the query execution itself.
 func NamedExec(x Sqx, query string, arg any) (sql.Result, error) {
-	q, args, err := x.Binder().bindNamedMapper(query, arg, mapperFor(x))
+	q, args, err := x.Binder().bindNamedMapper(query, arg, x.Mapper())
 	if err != nil {
 		return nil, err
 	}

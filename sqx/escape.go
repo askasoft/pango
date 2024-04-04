@@ -57,15 +57,3 @@ func StartsLike(s string, escape ...rune) string {
 func EndsLike(s string, escape ...rune) string {
 	return "%" + EscapeLike(s, escape...)
 }
-
-// Quote quote string 's' with quote string 'q', return (q + s + q)
-func Quote(s string, q string) string {
-	return q + s + q
-}
-
-// QuoteFunc return a quote function with quote string 'q'
-func QuoteFunc(q string) func(string) string {
-	return func(s string) string {
-		return Quote(s, q)
-	}
-}

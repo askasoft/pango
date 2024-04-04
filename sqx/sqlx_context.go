@@ -180,7 +180,7 @@ func (db *DB) BeginTxx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Tx{Tx: tx, driverName: db.driverName, unsafe: db.unsafe, Mapper: db.Mapper}, err
+	return &Tx{Tx: tx, dbx: db.dbx, unsafe: db.unsafe}, err
 }
 
 // Connx returns an *sqx.Conn instead of an *sql.Conn.
@@ -190,7 +190,7 @@ func (db *DB) Connx(ctx context.Context) (*Conn, error) {
 		return nil, err
 	}
 
-	return &Conn{Conn: conn, driverName: db.driverName, unsafe: db.unsafe, Mapper: db.Mapper}, nil
+	return &Conn{Conn: conn, dbx: db.dbx, unsafe: db.unsafe}, nil
 }
 
 // Transactionx start a transaction as a block, return error will rollback, otherwise to commit. Transaction executes an
@@ -212,7 +212,7 @@ func (c *Conn) BeginTxx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Tx{Tx: tx, driverName: c.driverName, unsafe: c.unsafe, Mapper: c.Mapper}, err
+	return &Tx{Tx: tx, dbx: c.dbx, unsafe: c.unsafe}, err
 }
 
 // SelectContext using this Conn.
@@ -251,11 +251,6 @@ func (c *Conn) QueryxContext(ctx context.Context, query string, args ...any) (*R
 func (c *Conn) QueryRowxContext(ctx context.Context, query string, args ...any) *Row {
 	rows, err := c.Conn.QueryContext(ctx, query, args...)
 	return &Row{rows: rows, err: err, unsafe: c.unsafe, Mapper: c.Mapper}
-}
-
-// Rebind a query within a Conn's bindvar type.
-func (c *Conn) Rebind(query string) string {
-	return Rebind(BindType(c.driverName), query)
 }
 
 // Transactionx start a transaction as a block, return error will rollback, otherwise to commit. Transaction executes an

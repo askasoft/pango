@@ -5,20 +5,20 @@ import (
 	"testing"
 )
 
-func oldBindType(driverName string) int {
+func oldBindType(driverName string) Binder {
 	switch driverName {
 	case "postgres", "pgx", "pq-timeouts", "cloudsqlpostgres", "ql":
-		return DOLLAR
+		return BindDollar
 	case "mysql":
-		return QUESTION
+		return BindQuestion
 	case "sqlite3":
-		return QUESTION
+		return BindQuestion
 	case "oci8", "ora", "goracle", "godror":
-		return NAMED
+		return BindColon
 	case "sqlserver":
-		return AT
+		return BindAt
 	}
-	return UNKNOWN
+	return BindUnknown
 }
 
 /*
@@ -54,7 +54,7 @@ func BenchmarkBindSpeed(b *testing.B) {
 		b.StartTimer()
 		for i := 0; i < b.N; i++ {
 			s := oldBindType(testDrivers[seq[i]])
-			if s == UNKNOWN {
+			if s == BindUnknown {
 				b.Error("unknown driver")
 			}
 		}
@@ -69,8 +69,8 @@ func BenchmarkBindSpeed(b *testing.B) {
 		}
 		b.StartTimer()
 		for i := 0; i < b.N; i++ {
-			s := BindType(testDrivers[seq[i]])
-			if s == UNKNOWN {
+			s := GetBinder(testDrivers[seq[i]])
+			if s == BindUnknown {
 				b.Error("unknown driver")
 			}
 		}

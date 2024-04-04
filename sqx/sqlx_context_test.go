@@ -485,7 +485,7 @@ func TestNamedQueryContext(t *testing.T) {
 		// they verify that named queries work if you've changed the db mapper.
 		// This code checks both NamedQuery "ad-hoc" style
 		// queries and NamedStmt queries, which use different code paths internally.
-		old := db.Mapper
+		old := db.mapper
 
 		type JSONPerson struct {
 			FirstName sql.NullString `json:"FIRST"`
@@ -499,7 +499,7 @@ func TestNamedQueryContext(t *testing.T) {
 			Email:     sql.NullString{String: "ben@smith.com", Valid: true},
 		}
 
-		db.Mapper = ref.NewMapperFunc("json", strings.ToUpper)
+		db.mapper = ref.NewMapperFunc("json", strings.ToUpper)
 
 		// prepare queries for case sensitivity to test our ToUpper function.
 		// postgres and sqlite accept "", but mysql uses ``;  since Go's multi-line
@@ -570,7 +570,7 @@ func TestNamedQueryContext(t *testing.T) {
 
 		check(t, rows)
 
-		db.Mapper = old
+		db.mapper = old
 
 		// Test nested structs
 		type Place struct {

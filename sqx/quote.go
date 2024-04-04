@@ -2,6 +2,8 @@ package sqx
 
 import (
 	"sync"
+
+	"github.com/askasoft/pango/str"
 )
 
 type QuoteMarks []rune
@@ -31,10 +33,24 @@ func (quoter Quoter) Marks() QuoteMarks {
 	}
 }
 
+// Quotes quote string 's' in 'ss' with quote marks [2]rune, return (m[0] + s + m[1])
+func (quoter Quoter) Quotes(ss ...string) []string {
+	for i, s := range ss {
+		ss[i] = quoter.Quote(s)
+	}
+	return ss
+}
+
 // Quote quote string 's' with quote marks [2]rune, return (m[0] + s + m[1])
 func (quoter Quoter) Quote(s string) string {
 	qms := quoter.Marks()
-	return string(qms[0]) + s + string(qms[1])
+
+	ss := str.FieldsByte(s, '.')
+	for i, s := range ss {
+		ss[i] = string(qms[0]) + s + string(qms[1])
+	}
+
+	return str.Join(ss, ".")
 }
 
 var quotes sync.Map

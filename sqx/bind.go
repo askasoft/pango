@@ -51,7 +51,7 @@ func BindDriver(driverName string, binder Binder) {
 // FIXME: this should be able to be tolerant of escaped ?'s in queries without
 // losing much speed, and should be to avoid confusion.
 
-// Rebind a query from the default bindtype (QUESTION) to the target bindtype.
+// Rebind a query from the default binder (QUESTION) to the target binder.
 func (binder Binder) Rebind(query string) string {
 	switch binder {
 	case BindQuestion, BindUnknown:

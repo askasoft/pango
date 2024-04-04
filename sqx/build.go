@@ -9,6 +9,26 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
+func Question(n int) string {
+	sb := &strings.Builder{}
+	sb.Grow(n * 2)
+	for i := 0; i < n; i++ {
+		if i > 0 {
+			sb.WriteByte('?')
+		}
+		sb.WriteByte('?')
+	}
+	return sb.String()
+}
+
+func Questions(n int) []string {
+	qs := make([]string, n)
+	for i := 0; i < n; i++ {
+		qs[i] = "?"
+	}
+	return qs
+}
+
 type sqlcmd int
 
 const (
@@ -47,15 +67,15 @@ type Builder struct {
 	limit    int
 }
 
-func (b *Builder) Distinct(cs ...string) *Builder {
+func (b *Builder) Distinct(cols ...string) *Builder {
 	b.command = cselect
 	b.distinct = true
-	return b.Columns(cs...)
+	return b.Columns(cols...)
 }
 
-func (b *Builder) Select(cs ...string) *Builder {
+func (b *Builder) Select(cols ...string) *Builder {
 	b.command = cselect
-	return b.Columns(cs...)
+	return b.Columns(cols...)
 }
 
 func (b *Builder) Delete(tb string) *Builder {
@@ -76,8 +96,8 @@ func (b *Builder) Update(tb string) *Builder {
 	return b
 }
 
-func (b *Builder) Columns(cs ...string) *Builder {
-	b.columns = append(b.columns, cs...)
+func (b *Builder) Columns(cols ...string) *Builder {
+	b.columns = append(b.columns, cols...)
 	return b
 }
 
@@ -116,16 +136,9 @@ func (b *Builder) NotIn(col string, arg any) *Builder {
 }
 
 func (b *Builder) in(op, col string, arg any) *Builder {
-	if v, ok := asSliceForIn(arg); ok {
-		z := v.Len()
-
-		qs := str.Repeat("?,", z)
-		b.wheres = append(b.wheres, col+" "+op+" ("+qs[:len(qs)-1]+")")
-		b.params = appendReflectSlice(b.params, v, z)
-	} else {
-		b.wheres = append(b.wheres, col+" "+op+" (?)")
-		b.params = append(b.params, arg)
-	}
+	sql, args := in(op, col, arg)
+	b.wheres = append(b.wheres, sql)
+	b.params = append(b.params, args...)
 	return b
 }
 
@@ -141,11 +154,11 @@ func (b *Builder) buildSelect() string {
 	if b.distinct {
 		sb.WriteString("DISTINCT ")
 	}
-	for i, c := range b.columns {
+	for i, col := range b.columns {
 		if i > 0 {
 			sb.WriteString(", ")
 		}
-		sb.WriteString(c)
+		sb.WriteString(col)
 	}
 	sb.WriteString(" FROM ")
 	sb.WriteString(b.table)
@@ -189,18 +202,49 @@ func (b *Builder) buildDelete() string {
 }
 
 func (b *Builder) Build() (string, []any) {
+	return b.SQL(), b.params
+}
+
+func (b *Builder) Params() []any {
+	return b.params
+}
+
+func (b *Builder) SQL() string {
 	switch b.command {
 	case cselect:
-		return b.buildSelect(), b.params
+		return b.buildSelect()
 	case cdelete:
-		return b.buildDelete(), b.params
+		return b.buildDelete()
 	case cinsert:
-		return b.buildInsert(), b.params
+		return b.buildInsert()
 	case cupdate:
-		return b.buildUpdate(), b.params
+		return b.buildUpdate()
 	default:
-		return "", b.params
+		return ""
 	}
+}
+
+func In(col string, arg any) (sql string, args []any) {
+	return in("IN", col, arg)
+}
+
+func NotIn(col string, arg any) (sql string, args []any) {
+	return in("NOT IN", col, arg)
+}
+
+func in(op, col string, arg any) (sql string, args []any) {
+	if v, ok := asSliceForIn(arg); ok {
+		z := v.Len()
+
+		qs := str.Repeat("?,", z)
+		sql = col + " " + op + " (" + qs[:len(qs)-1] + ")"
+		args = appendReflectSlice(args, v, z)
+		return
+	}
+
+	sql = col + " " + op + " (?)"
+	args = append(args, arg)
+	return
 }
 
 func asSliceForIn(i any) (v reflect.Value, ok bool) {

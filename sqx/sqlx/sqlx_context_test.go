@@ -10,7 +10,7 @@
 // Set any of these variables to 'skip' to skip them.  Note that for MySQL,
 // the string '?parseTime=True' will be appended to the DSN if it's not there
 // already.
-package sqx
+package sqlx
 
 import (
 	"context"
@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/ref"
+	"github.com/askasoft/pango/sqx"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
@@ -1214,7 +1215,7 @@ func TestInContext(t *testing.T) {
 		//tx.MustExecContext(ctx, tx.Rebind("INSERT INTO place (country, telcode) VALUES (?, ?)"), "Hong Kong", "852")
 		//tx.MustExecContext(ctx, tx.Rebind("INSERT INTO place (country, telcode) VALUES (?, ?)"), "Singapore", "65")
 		telcodes := []int{852, 65}
-		sqb := &Builder{}
+		sqb := &sqx.Builder{}
 		query, args := sqb.Select("*").From("place").In("telcode", telcodes).Order("telcode").Build()
 		query = db.Rebind(query)
 		places := []Place{}

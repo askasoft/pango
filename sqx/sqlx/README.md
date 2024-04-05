@@ -1,10 +1,10 @@
-# sqx
+# sqlx
 
-sqx is a library which provides a set of extensions on go's standard
-`database/sql` library.  The sqx versions of `sql.DB`, `sql.TX`, `sql.Stmt`,
+sqlx is a library which provides a set of extensions on go's standard
+`database/sql` library.  The sqlx versions of `sql.DB`, `sql.TX`, `sql.Stmt`,
 et al. all leave the underlying interfaces untouched, so that their interfaces
 are a superset on the standard ones.  This makes it relatively painless to
-integrate existing codebases using database/sql with sqx.
+integrate existing codebases using database/sql with sqlx.
 
 Major additional concepts are:
 
@@ -14,7 +14,7 @@ Major additional concepts are:
 
 ## install
 
-    go get github.com/askasoft/pango/sqx
+    go get github.com/askasoft/pango/sqlx
 
 ## issues
 
@@ -31,8 +31,8 @@ to give columns distinct names, `rows.Scan` to scan them manually, or
 
 ## usage
 
-Below is an example which shows some common use cases for sqx.  Check 
-[sqlx_test.go](https://github.com/askasoft/pango/sqx/blob/master/sqlx_test.go) for more
+Below is an example which shows some common use cases for sqlx.  Check 
+[sqlx_test.go](https://github.com/askasoft/pango/sqlx/blob/master/sqlx_test.go) for more
 usage.
 
 
@@ -45,7 +45,7 @@ import (
     "log"
     
     _ "github.com/lib/pq"
-    "github.com/askasoft/pango/sqx"
+    "github.com/askasoft/pango/sqlx"
 )
 
 var schema = `
@@ -75,8 +75,8 @@ type Place struct {
 
 func main() {
     // this Pings the database trying to connect
-    // use sqx.Open() for sql.Open() semantics
-    db, err := sqx.Connect("postgres", "user=foo dbname=bar sslmode=disable")
+    // use sqlx.Open() for sql.Open() semantics
+    db, err := sqlx.Connect("postgres", "user=foo dbname=bar sslmode=disable")
     if err != nil {
         log.Fatalln(err)
     }
@@ -139,7 +139,7 @@ func main() {
     // Place{Country:"Singapore", City:sql.NullString{String:"", Valid:false}, TelCode:65}
 
     // Named queries, using `:name` as the bindvar.  Automatic bindvar support
-    // which takes into account the dbtype based on the driverName on sqx.Open/Connect
+    // which takes into account the dbtype based on the driverName on sqlx.Open/Connect
     _, err = db.NamedExec(`INSERT INTO person (first_name,last_name,email) VALUES (:first,:last,:email)`, 
         map[string]any{
             "first": "Bin",

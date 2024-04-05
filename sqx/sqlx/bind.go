@@ -1,4 +1,4 @@
-package sqx
+package sqlx
 
 import (
 	"strconv"

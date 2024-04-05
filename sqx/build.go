@@ -14,7 +14,7 @@ func Question(n int) string {
 	sb.Grow(n * 2)
 	for i := 0; i < n; i++ {
 		if i > 0 {
-			sb.WriteByte('?')
+			sb.WriteByte(',')
 		}
 		sb.WriteByte('?')
 	}
@@ -57,10 +57,10 @@ type Builder struct {
 	command  sqlcmd
 	table    string
 	distinct bool
-	values   string
 	columns  []string
 	joins    []string
 	wheres   []string
+	values   []string
 	params   []any
 	orders   []string
 	offset   int
@@ -127,6 +127,12 @@ func (b *Builder) Where(q string, args ...any) *Builder {
 	return b
 }
 
+func (b *Builder) Set(col string, args ...any) *Builder {
+	b.columns = append(b.columns, col)
+	b.params = append(b.params, args...)
+	return b
+}
+
 func (b *Builder) In(col string, arg any) *Builder {
 	return b.in("IN", col, arg)
 }
@@ -142,14 +148,23 @@ func (b *Builder) in(op, col string, arg any) *Builder {
 	return b
 }
 
-func (b *Builder) Values(q string, args ...any) *Builder {
-	b.values = q
-	b.params = append(b.params, args...)
+func (b *Builder) Values(vals ...string) *Builder {
+	b.values = append(b.values, vals...)
 	return b
+}
+
+func (b *Builder) appendWhere(sb *strings.Builder) {
+	for i, w := range b.wheres {
+		sb.WriteString(str.If(i == 0, " WHERE ", " AND "))
+		sb.WriteByte('(')
+		sb.WriteString(w)
+		sb.WriteByte(')')
+	}
 }
 
 func (b *Builder) buildSelect() string {
 	sb := &strings.Builder{}
+
 	sb.WriteString("SELECT ")
 	if b.distinct {
 		sb.WriteString("DISTINCT ")
@@ -168,10 +183,7 @@ func (b *Builder) buildSelect() string {
 		sb.WriteString(j)
 	}
 
-	for i, w := range b.wheres {
-		sb.WriteString(str.If(i == 0, " WHERE ", " AND "))
-		sb.WriteString(w)
-	}
+	b.appendWhere(sb)
 
 	for i, o := range b.orders {
 		sb.WriteString(str.If(i == 0, " ORDER BY ", ", "))
@@ -190,15 +202,60 @@ func (b *Builder) buildSelect() string {
 }
 
 func (b *Builder) buildUpdate() string {
-	return ""
+	sb := &strings.Builder{}
+
+	sb.WriteString("UPDATE ")
+	sb.WriteString(b.table)
+	sb.WriteString(" SET ")
+	for i, col := range b.columns {
+		if i > 0 {
+			sb.WriteString(", ")
+		}
+		sb.WriteString(col)
+	}
+
+	b.appendWhere(sb)
+
+	return sb.String()
 }
 
 func (b *Builder) buildInsert() string {
-	return ""
+	sb := &strings.Builder{}
+
+	sb.WriteString("INSERT INTO ")
+	sb.WriteString(b.table)
+	if len(b.columns) > 0 {
+		sb.WriteString(" (")
+		for i, col := range b.columns {
+			if i > 0 {
+				sb.WriteString(", ")
+			}
+			sb.WriteString(col)
+		}
+		sb.WriteString(")")
+	}
+
+	sb.WriteString(" VALUES (")
+	for i, val := range b.values {
+		if i > 0 {
+			sb.WriteString(", ")
+		}
+		sb.WriteString(val)
+	}
+	sb.WriteString(")")
+
+	return sb.String()
 }
 
 func (b *Builder) buildDelete() string {
-	return ""
+	sb := &strings.Builder{}
+
+	sb.WriteString("DELETE FROM ")
+	sb.WriteString(b.table)
+
+	b.appendWhere(sb)
+
+	return sb.String()
 }
 
 func (b *Builder) Build() (string, []any) {

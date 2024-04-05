@@ -1,4 +1,4 @@
-package sqx
+package sqlx
 
 import (
 	"database/sql"
@@ -8,6 +8,7 @@ import (
 	"reflect"
 
 	"github.com/askasoft/pango/ref"
+	"github.com/askasoft/pango/sqx"
 	"github.com/askasoft/pango/str"
 )
 
@@ -109,7 +110,7 @@ type Bind interface {
 	BindNamed(string, any) (string, []any, error)
 }
 
-type Sqx interface {
+type Sqlx interface {
 	Sql
 	Supporter
 	Bind
@@ -137,12 +138,12 @@ type binder interface {
 	Binder() Binder
 }
 
-// isqx is a union interface which can bind, query, and exec, used by NamedQuery and NamedExec.
-type isqx interface {
+// isqlx is a union interface which can bind, query, and exec, used by NamedQuery and NamedExec.
+type isqlx interface {
 	binder
 	unsafer
 	mapper
-	Sqx
+	Sqlx
 }
 
 // determine if any of our extensions are unsafe
@@ -156,7 +157,7 @@ func isUnsafe(i any) bool {
 type ext struct {
 	driverName string
 	binder     Binder
-	quoter     Quoter
+	quoter     sqx.Quoter
 	mapper     *ref.Mapper
 	unsafe     bool
 }
@@ -177,7 +178,7 @@ func (ext *ext) Rebind(query string) string {
 }
 
 // Quoter returns the quoter by driverName passed to the Open function for this DB.
-func (ext *ext) Quoter() Quoter {
+func (ext *ext) Quoter() sqx.Quoter {
 	return ext.quoter
 }
 
@@ -287,7 +288,7 @@ type DB struct {
 // NewDB returns a new sqx DB wrapper for a pre-existing *sql.DB.  The
 // driverName of the original database is required for named query support.
 func NewDB(db *sql.DB, driverName string) *DB {
-	return &DB{DB: db, ext: ext{driverName: driverName, binder: GetBinder(driverName), quoter: GetQuoter(driverName), mapper: NameMapper}}
+	return &DB{DB: db, ext: ext{driverName: driverName, binder: GetBinder(driverName), quoter: sqx.GetQuoter(driverName), mapper: NameMapper}}
 }
 
 // Open is the same as sql.Open, but returns an *sqx.DB instead.

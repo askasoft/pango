@@ -10,4 +10,4 @@
 // and more.
 //
 // This is package is forked from github.com/jmoiron/sqlx
-package sqx
+package sqlx

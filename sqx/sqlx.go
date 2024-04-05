@@ -17,6 +17,8 @@ var (
 	ErrTxDone   = sql.ErrTxDone
 )
 
+type Result = sql.Result
+
 // Although the NameMapper is convenient, in practice it should not
 // be relied on except for application code.  If you are writing a library
 // that uses sqx, you should be aware that the name mappings you expect
@@ -37,23 +39,90 @@ func DefaultNameMap(s string) string {
 	return str.SnakeCase(s)
 }
 
-// isScannable takes the reflect.Type and the actual dest value and returns
-// whether or not it's Scannable.  Something is scannable if:
-//   - it is not a struct
-//   - it implements sql.Scanner
-//   - it has no exported fields
-func isScannable(t reflect.Type) bool {
-	if reflect.PtrTo(t).Implements(_scannerInterface) {
-		return true
-	}
-	if t.Kind() != reflect.Struct {
-		return true
-	}
+//------------------------------------------------
+// GO database/sql interface
+//
 
-	// it's not important that we use the right mapper for this particular object,
-	// we're only concerned on how many exported fields this struct has
-	return len(NameMapper.TypeMap(t).Index) == 0
+// Queryer is an interface used by Get and Select
+type Queryer interface {
+	Query(query string, args ...any) (*sql.Rows, error)
 }
+
+// Execer is an interface used by MustExec
+type Execer interface {
+	Exec(query string, args ...any) (sql.Result, error)
+}
+
+type Preparer interface {
+	Prepare(query string) (*sql.Stmt, error)
+}
+
+// Sql the basic interface for sql.DB, sql.Tx
+type Sql interface {
+	Queryer
+	Execer
+	Preparer
+}
+
+//------------------------------------------------
+// sqx interface
+//
+
+// ColScanner is an interface used by MapScan and SliceScan
+type ColScanner interface {
+	Columns() ([]string, error)
+	Scan(dest ...any) error
+	Err() error
+}
+
+type Supporter interface {
+	SupportLastInsertID() bool
+}
+
+type Selector interface {
+	Get(dest any, query string, args ...any) error
+	Select(dest any, query string, args ...any) error
+}
+
+type Queryerx interface {
+	Queryx(query string, args ...any) (*Rows, error)
+	QueryRowx(query string, args ...any) *Row
+}
+
+type NamedQueryer interface {
+	NamedQuery(query string, arg any) (*Rows, error)
+	NamedQueryRow(query string, arg any) *Row
+}
+
+// NamedExecer is an interface used by MustExec
+type NamedExecer interface {
+	NamedExec(query string, arg any) (sql.Result, error)
+}
+
+type Preparerx interface {
+	Preparex(query string) (*Stmt, error)
+}
+
+// Bind is an interface for something which can bind queries (Tx, DB)
+type Bind interface {
+	Rebind(string) string
+	BindNamed(string, any) (string, []any, error)
+}
+
+type Sqx interface {
+	Sql
+	Supporter
+	Bind
+	Selector
+	Queryerx
+	NamedQueryer
+	NamedExecer
+	Preparerx
+}
+
+//------------------------------------------------
+// internal interface
+//
 
 type unsafer interface {
 	IsUnsafe() bool
@@ -68,57 +137,7 @@ type binder interface {
 	Binder() Binder
 }
 
-// ColScanner is an interface used by MapScan and SliceScan
-type ColScanner interface {
-	Columns() ([]string, error)
-	Scan(dest ...any) error
-	Err() error
-}
-
-// Queryer is an interface used by Get and Select
-type Queryer interface {
-	Query(query string, args ...any) (*sql.Rows, error)
-}
-
-type Selector interface {
-	Get(dest any, query string, args ...any) error
-	Select(dest any, query string, args ...any) error
-}
-
-type Queryerx interface {
-	Queryer
-	Queryx(query string, args ...any) (*Rows, error)
-	QueryRowx(query string, args ...any) *Row
-}
-
-// Execer is an interface used by MustExec
-type Execer interface {
-	Exec(query string, args ...any) (sql.Result, error)
-}
-
-type Preparer interface {
-	Prepare(query string) (*sql.Stmt, error)
-}
-
-type Preparerx interface {
-	Preparex(query string) (*Stmt, error)
-}
-
-// Bind is an interface for something which can bind queries (Tx, DB)
-type Bind interface {
-	Rebind(string) string
-	BindNamed(string, any) (string, []any, error)
-}
-
-// Sqx is a union interface which can bind, query, and exec, used by
-// NamedQuery and NamedExec.
-type Sqx interface {
-	Bind
-	Queryerx
-	Selector
-	Execer
-}
-
+// isqx is a union interface which can bind, query, and exec, used by NamedQuery and NamedExec.
 type isqx interface {
 	binder
 	unsafer
@@ -726,6 +745,24 @@ func (r *Row) SliceScan() ([]any, error) {
 // MapScan using this Rows.
 func (r *Row) MapScan(dest map[string]any) error {
 	return MapScan(r, dest)
+}
+
+// isScannable takes the reflect.Type and the actual dest value and returns
+// whether or not it's Scannable.  Something is scannable if:
+//   - it is not a struct
+//   - it implements sql.Scanner
+//   - it has no exported fields
+func isScannable(t reflect.Type) bool {
+	if reflect.PtrTo(t).Implements(_scannerInterface) {
+		return true
+	}
+	if t.Kind() != reflect.Struct {
+		return true
+	}
+
+	// it's not important that we use the right mapper for this particular object,
+	// we're only concerned on how many exported fields this struct has
+	return len(NameMapper.TypeMap(t).Index) == 0
 }
 
 func (r *Row) scanAny(dest any, structOnly bool) error {

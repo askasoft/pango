@@ -32,6 +32,7 @@ import (
 )
 
 /* compile time checks that Db, Tx, Stmt (qStmt) implement expected interfaces */
+var _, _ Sql = &sql.DB{}, &sql.Tx{}
 var _, _ Sqx = &DB{}, &Tx{}
 var _, _ ColScanner = &Row{}, &Rows{}
 var _ Queryer = &qStmt{}

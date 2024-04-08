@@ -10,6 +10,7 @@ import (
 	"github.com/askasoft/pango/fsu"
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/net/httpx"
+	"github.com/askasoft/pango/str"
 )
 
 func SaveLocalFile(xfs XFS, id string, filename string) (*File, error) {
@@ -32,7 +33,8 @@ func SaveUploadedFile(xfs XFS, id string, file *multipart.FileHeader) (*File, er
 		return nil, err
 	}
 
-	return xfs.SaveFile(id, file.Filename, time.Now(), data)
+	fn := str.ToValidUTF8(file.Filename, " ")
+	return xfs.SaveFile(id, fn, time.Now(), data)
 }
 
 func CleanOutdatedFiles(xfs XFS, prefix string, before time.Time, loggers ...log.Logger) {

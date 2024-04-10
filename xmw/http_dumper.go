@@ -25,9 +25,9 @@ type HTTPDumper struct {
 }
 
 // DefaultHTTPDumper create a middleware for xin http dumper
-// Equals: NewHTTPDumper(xin.Logger.Outputer("XHD", log.LevelTrace))
+// Equals: NewHTTPDumper(xin.Logger.Outputer("XHD", log.LevelInfo))
 func DefaultHTTPDumper(xin *xin.Engine) *HTTPDumper {
-	return NewHTTPDumper(xin.Logger.GetOutputer("XHD", log.LevelTrace))
+	return NewHTTPDumper(xin.Logger.GetOutputer("XHD", log.LevelInfo))
 }
 
 // NewHTTPDumper create a middleware for xin http dumper

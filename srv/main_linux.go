@@ -3,12 +3,11 @@ package srv
 import (
 	"flag"
 	"fmt"
+	"io"
 	"os"
 )
 
-func PrintDefaultCommand() {
-	out := flag.CommandLine.Output()
-
+func PrintDefaultCommand(out io.Writer) {
 	fmt.Fprintln(out, "    version             print the version information.")
 	fmt.Fprintln(out, "    help | usage        print the usage information.")
 }
@@ -23,9 +22,9 @@ func PrintUsage(app App) {
 	fmt.Fprintln(out, "Usage: "+app.Name()+" <command> [options]")
 	fmt.Fprintln(out, "  <command>:")
 	if cmd, ok := app.(Cmd); ok {
-		cmd.PrintCommand()
+		cmd.PrintCommand(out)
 	} else {
-		PrintDefaultCommand()
+		PrintDefaultCommand(out)
 	}
 
 	fmt.Fprintln(out, "  <options>:")

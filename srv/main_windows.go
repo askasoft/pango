@@ -3,14 +3,13 @@ package srv
 import (
 	"flag"
 	"fmt"
+	"io"
 	"os"
 
 	"golang.org/x/sys/windows/svc"
 )
 
-func PrintDefaultCommand() {
-	out := flag.CommandLine.Output()
-
+func PrintDefaultCommand(out io.Writer) {
 	fmt.Fprintln(out, "    install             install as windows service.")
 	fmt.Fprintln(out, "    remove              remove installed windows service.")
 	fmt.Fprintln(out, "    start               start the windows service.")
@@ -29,9 +28,9 @@ func PrintUsage(app App) {
 	fmt.Fprintln(out, "Usage: "+app.Name()+".exe <command> [options]")
 	fmt.Fprintln(out, "  <command>:")
 	if cmd, ok := app.(Cmd); ok {
-		cmd.PrintCommand()
+		cmd.PrintCommand(out)
 	} else {
-		PrintDefaultCommand()
+		PrintDefaultCommand(out)
 	}
 
 	fmt.Fprintln(out, "  <options>:")

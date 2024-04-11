@@ -2,6 +2,7 @@ package srv
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"syscall"
@@ -44,7 +45,7 @@ type Cmd interface {
 	Flag()
 
 	// PrintCommand print custom command
-	PrintCommand()
+	PrintCommand(out io.Writer)
 
 	// Exec execute optional command except the internal command
 	// Basic: 'help' 'usage' 'version'

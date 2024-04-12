@@ -35,7 +35,15 @@ func TestHttpDump(t *testing.T) {
 
 	buffer := new(bytes.Buffer)
 	writer := io.MultiWriter(buffer, os.Stdout)
-	router.Use(NewHTTPDumper(writer).Handler())
+	hd := NewHTTPDumper(writer)
+
+	router.Use(func(ctx *xin.Context) {
+		if ctx.Query("enable") == "true" {
+			ctx.Set(HTTPDumpKey, true)
+		}
+		ctx.Next()
+	})
+	router.Use(hd.Handler())
 
 	router.Any("/example", func(c *xin.Context) {
 		c.String(http.StatusOK, c.Request.URL.String())
@@ -72,4 +80,16 @@ func TestHttpDump(t *testing.T) {
 	buffer.Reset()
 	dumpPerformRequest(router, "GET", "/notfound")
 	dumpAssertContains(t, "GET /notfound", buffer.String(), "GET /notfound HTTP/1.1", "HTTP/1.1 404 Not Found")
+
+	hd.Disable(true)
+
+	buffer.Reset()
+	dumpPerformRequest(router, "GET", "/example?a=100")
+	if buffer.String() != "" {
+		t.Error(`http dump is not disabled`)
+	}
+
+	buffer.Reset()
+	dumpPerformRequest(router, "GET", "/example?enable=true")
+	dumpAssertContains(t, "GET /example?enable=true", buffer.String(), "GET /example?enable=true HTTP/1.1", "HTTP/1.1 200 OK")
 }

@@ -15,13 +15,17 @@ import (
 	"github.com/askasoft/pango/xin"
 )
 
+// HTTPDumpKey is the key for dump http saved in context
+const HTTPDumpKey = "X_DUMP"
+
 const dumpTimeFormat = "2006-01-02T15:04:05.000"
 
 // HTTPDumper dump http request and response
 type HTTPDumper struct {
-	outputer  io.Writer
-	disabled  bool
-	maxlength int64
+	Outputer   io.Writer
+	Maxlength  int64
+	DumpCtxKey string // use xin.Context.Set(key, true | false) to enable/disable dump
+	disabled   bool
 }
 
 // DefaultHTTPDumper create a middleware for xin http dumper
@@ -32,17 +36,12 @@ func DefaultHTTPDumper(xin *xin.Engine) *HTTPDumper {
 
 // NewHTTPDumper create a middleware for xin http dumper
 func NewHTTPDumper(outputer io.Writer) *HTTPDumper {
-	return &HTTPDumper{outputer: outputer, maxlength: 1 << 20}
+	return &HTTPDumper{Outputer: outputer, Maxlength: 1 << 20, DumpCtxKey: HTTPDumpKey}
 }
 
 // Disable disable the dumper or not
 func (hd *HTTPDumper) Disable(disabled bool) {
 	hd.disabled = disabled
-}
-
-// SetMaxlength set the maxlength of request/resonse that the dumper should dump
-func (hd *HTTPDumper) SetMaxlength(maxlength int64) {
-	hd.maxlength = maxlength
 }
 
 // Handler returns the xin.HandlerFunc
@@ -52,8 +51,19 @@ func (hd *HTTPDumper) Handler() xin.HandlerFunc {
 
 // Handle process xin request
 func (hd *HTTPDumper) Handle(c *xin.Context) {
-	w := hd.outputer
-	if w == nil || hd.disabled {
+	w := hd.Outputer
+	if w == nil {
+		c.Next()
+		return
+	}
+
+	d := hd.disabled
+	if hd.DumpCtxKey != "" {
+		if v, ok := c.Get(hd.DumpCtxKey); ok {
+			d = !v.(bool)
+		}
+	}
+	if d {
 		c.Next()
 		return
 	}
@@ -61,7 +71,7 @@ func (hd *HTTPDumper) Handle(c *xin.Context) {
 	id := hd.dumpRequest(w, c.Request)
 
 	cw := c.Writer
-	dw := newHttpDumpWriter(c.Writer, hd.maxlength)
+	dw := newHttpDumpWriter(c.Writer, hd.Maxlength)
 	c.Writer = dw
 
 	c.Next()
@@ -70,28 +80,19 @@ func (hd *HTTPDumper) Handle(c *xin.Context) {
 	c.Writer = cw
 }
 
-// SetOutput set the access log output writer
-func (hd *HTTPDumper) SetOutput(w io.Writer) {
-	hd.outputer = w
-}
-
-const eol = "\r\n"
-
 func (hd *HTTPDumper) dumpRequest(w io.Writer, req *http.Request) string {
-	db := (req.ContentLength >= 0 && req.ContentLength <= hd.maxlength)
+	db := (req.ContentLength >= 0 && req.ContentLength <= hd.Maxlength)
 	bs, _ := httputil.DumpRequest(req, db)
 
 	id := fmt.Sprintf("%x", md5.Sum(bs)) //nolint: gosec
 
 	bb := &bytes.Buffer{}
 
-	bb.WriteString(fmt.Sprintf(">>>>>>>> %s %s >>>>>>>>", time.Now().Format(dumpTimeFormat), id))
-	bb.WriteString(eol)
+	bb.WriteString(fmt.Sprintf(">>>>>>>> %s %s >>>>>>>>\r\n", time.Now().Format(dumpTimeFormat), id))
 	if len(bs) > 0 {
 		bb.Write(bs)
 	}
-	bb.WriteString(eol)
-	bb.WriteString(eol)
+	bb.WriteString("\r\n\r\n")
 
 	w.Write(bb.Bytes()) //nolint: errcheck
 
@@ -101,8 +102,7 @@ func (hd *HTTPDumper) dumpRequest(w io.Writer, req *http.Request) string {
 func (hd *HTTPDumper) dumpResponse(w io.Writer, id string, req *http.Request, hdw *httpDumpWriter) {
 	bb := &bytes.Buffer{}
 
-	bb.WriteString(fmt.Sprintf("<<<<<<<< %s %s <<<<<<<<", time.Now().Format(dumpTimeFormat), id))
-	bb.WriteString(eol)
+	bb.WriteString(fmt.Sprintf("<<<<<<<< %s %s <<<<<<<<\r\n", time.Now().Format(dumpTimeFormat), id))
 
 	res := &http.Response{
 		Proto:      req.Proto,
@@ -114,8 +114,7 @@ func (hd *HTTPDumper) dumpResponse(w io.Writer, id string, req *http.Request, hd
 	res.Body = io.NopCloser(hdw.bb)
 	res.Write(bb) //nolint: errcheck
 
-	bb.WriteString(eol)
-	bb.WriteString(eol)
+	bb.WriteString("\r\n\r\n")
 
 	w.Write(bb.Bytes()) //nolint: errcheck
 }

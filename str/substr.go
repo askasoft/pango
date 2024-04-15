@@ -411,6 +411,18 @@ func CutRune(s string, sep rune) (before, after string, found bool) {
 	return s, "", false
 }
 
+// CutFunc slices s around the first instance of the Unicode
+// code point satisfying f(c), returning the text before and after f(c).
+// The found result reports whether f(c) appears in s.
+// If f(c) does not appear in s, cut returns s, "", false.
+func CutFunc(s string, f func(rune) bool) (before, after string, found bool) {
+	if i := IndexFunc(s, f); i >= 0 {
+		_, z := utf8.DecodeRuneInString(s[i:])
+		return s[:i], s[i+z:], true
+	}
+	return s, "", false
+}
+
 // LastCut slices s around the last instance of sep,
 // returning the text before and after sep.
 // The found result reports whether sep appears in s.
@@ -422,7 +434,7 @@ func LastCut(s, sep string) (before, after string, found bool) {
 	return s, "", false
 }
 
-// LastCutByte slices s around the first instance of sep,
+// LastCutByte slices s around the last instance of sep,
 // returning the text before and after sep.
 // The found result reports whether sep appears in s.
 // If sep does not appear in s, cut returns s, "", false.
@@ -433,13 +445,25 @@ func LastCutByte(s string, sep byte) (before, after string, found bool) {
 	return s, "", false
 }
 
-// LastCutRune slices s around the first instance of sep,
+// LastCutRune slices s around the last instance of sep,
 // returning the text before and after sep.
 // The found result reports whether sep appears in s.
 // If sep does not appear in s, cut returns s, "", false.
 func LastCutRune(s string, sep rune) (before, after string, found bool) {
 	if i := LastIndexRune(s, sep); i >= 0 {
 		return s[:i], s[i+RuneLen(sep):], true
+	}
+	return s, "", false
+}
+
+// LastCutFunc slices s around the last instance of the Unicode
+// code point satisfying f(c), returning the text before and after f(c).
+// The found result reports whether f(c) appears in s.
+// If f(c) does not appear in s, cut returns s, "", false.
+func LastCutFunc(s string, f func(rune) bool) (before, after string, found bool) {
+	if i := LastIndexFunc(s, f); i >= 0 {
+		_, z := utf8.DecodeRuneInString(s[i:])
+		return s[:i], s[i+z:], true
 	}
 	return s, "", false
 }

@@ -491,6 +491,33 @@ func TestCutRune(t *testing.T) {
 	}
 }
 
+func TestCutFunc(t *testing.T) {
+	cutTests := []struct {
+		s             string
+		sep           rune
+		before, after string
+		found         bool
+	}{
+		{"abc", 'b', "a", "c", true},
+		{"abc", 'a', "", "bc", true},
+		{"abc", 'c', "ab", "", true},
+		{"abc", 'd', "abc", "", false},
+		{"", 'd', "", "", false},
+	}
+
+	fc := func(c rune) func(rune) bool {
+		return func(r rune) bool {
+			return c == r
+		}
+	}
+
+	for _, tt := range cutTests {
+		if before, after, found := CutFunc(tt.s, fc(tt.sep)); before != tt.before || after != tt.after || found != tt.found {
+			t.Errorf("CutFunc(%q, %q) = %q, %q, %v, want %q, %q, %v", tt.s, tt.sep, before, after, found, tt.before, tt.after, tt.found)
+		}
+	}
+}
+
 func TestLastCut(t *testing.T) {
 	cutTests := []struct {
 		s, sep        string
@@ -552,6 +579,33 @@ func TestLastCutRune(t *testing.T) {
 	for _, tt := range cutTests {
 		if before, after, found := LastCutRune(tt.s, tt.sep); before != tt.before || after != tt.after || found != tt.found {
 			t.Errorf("LastCutRune(%q, %q) = %q, %q, %v, want %q, %q, %v", tt.s, tt.sep, before, after, found, tt.before, tt.after, tt.found)
+		}
+	}
+}
+
+func TestLastCutFunc(t *testing.T) {
+	cutTests := []struct {
+		s             string
+		sep           rune
+		before, after string
+		found         bool
+	}{
+		{"abcabc", 'b', "abca", "c", true},
+		{"abcabc", 'a', "abc", "bc", true},
+		{"abcabc", 'c', "abcab", "", true},
+		{"abcabc", 'd', "abcabc", "", false},
+		{"", 'd', "", "", false},
+	}
+
+	fc := func(c rune) func(rune) bool {
+		return func(r rune) bool {
+			return c == r
+		}
+	}
+
+	for _, tt := range cutTests {
+		if before, after, found := LastCutFunc(tt.s, fc(tt.sep)); before != tt.before || after != tt.after || found != tt.found {
+			t.Errorf("LastCutFunc(%q, %q) = %q, %q, %v, want %q, %q, %v", tt.s, tt.sep, before, after, found, tt.before, tt.after, tt.found)
 		}
 	}
 }

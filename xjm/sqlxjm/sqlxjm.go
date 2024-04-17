@@ -12,7 +12,7 @@ import (
 type sjm struct {
 	db sqlx.Sqlx
 	jt string // job table
-	lt string // lob table
+	lt string // log table
 }
 
 func JM(db sqlx.Sqlx, jobTable, logTable string) xjm.JobManager {

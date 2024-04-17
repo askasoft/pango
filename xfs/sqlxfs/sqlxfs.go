@@ -13,7 +13,7 @@ import (
 	"github.com/askasoft/pango/xfs"
 )
 
-// sfs implements fs.FS interface
+// sfs implements xfs.XFS interface
 type sfs struct {
 	db sqlx.Sqlx
 	tn string // table name

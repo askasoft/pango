@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// gfs implements fs.FS interface
+// gfs implements xfs.XFS interface
 type gfs struct {
 	db *gorm.DB
 	tn string // table name

@@ -11,7 +11,7 @@ import (
 type gjm struct {
 	db *gorm.DB
 	jt string // job table
-	lt string // lob table
+	lt string // log table
 }
 
 func JM(db *gorm.DB, jobTable, logTable string) xjm.JobManager {

@@ -40,7 +40,7 @@ type ChatFunction struct {
 	Parameters map[string]any `json:"parameters,omitempty"`
 }
 
-type ChatCompeletionRequest struct {
+type ChatCompletionRequest struct {
 	// A list of messages comprising the conversation so far.
 	Messages []*ChatMessage `json:"messages,omitempty"`
 
@@ -128,11 +128,11 @@ type ChatCompeletionRequest struct {
 	FunctionCall string `json:"function_call,omitempty"`
 }
 
-func (cc *ChatCompeletionRequest) AddMessage(cm *ChatMessage) {
+func (cc *ChatCompletionRequest) AddMessage(cm *ChatMessage) {
 	cc.Messages = append(cc.Messages, cm)
 }
 
-func (cc *ChatCompeletionRequest) MessageRuneCount() int {
+func (cc *ChatCompletionRequest) MessageRuneCount() int {
 	cnt := 0
 	for _, cm := range cc.Messages {
 		cnt += str.RuneCount(cm.Content)
@@ -140,7 +140,7 @@ func (cc *ChatCompeletionRequest) MessageRuneCount() int {
 	return cnt
 }
 
-func (cc *ChatCompeletionRequest) String() string {
+func (cc *ChatCompletionRequest) String() string {
 	return toJSONIndent(cc)
 }
 
@@ -167,7 +167,7 @@ func (cu *ChatUsage) String() string {
 	return fmt.Sprintf("%d, %d, %d", cu.PromptTokens, cu.CompletionTokens, cu.TotalTokens)
 }
 
-type ChatCompeletionResponse struct {
+type ChatCompletionResponse struct {
 	ID                string        `json:"id,omitempty"`
 	Object            string        `json:"object,omitempty"`
 	Created           int64         `json:"created,omitempty"`
@@ -178,14 +178,14 @@ type ChatCompeletionResponse struct {
 }
 
 // Answer return first choice content
-func (cc *ChatCompeletionResponse) Answer() string {
+func (cc *ChatCompletionResponse) Answer() string {
 	if len(cc.Choices) > 0 {
 		return cc.Choices[0].Message.Content
 	}
 	return ""
 }
 
-func (cc *ChatCompeletionResponse) ChoiceRuneCount() int {
+func (cc *ChatCompletionResponse) ChoiceRuneCount() int {
 	cnt := 0
 	for _, c := range cc.Choices {
 		cnt += str.RuneCount(c.Message.Content)
@@ -193,6 +193,6 @@ func (cc *ChatCompeletionResponse) ChoiceRuneCount() int {
 	return cnt
 }
 
-func (cc *ChatCompeletionResponse) String() string {
+func (cc *ChatCompletionResponse) String() string {
 	return toJSONIndent(cc)
 }

@@ -44,7 +44,7 @@ func TestAzureOpenAICreateChatCompletion(t *testing.T) {
 
 	aoai.Deployment = os.Getenv("AZURE_OPENAI_CHAT_DEPLOYMENT")
 
-	req := &ChatCompeletionRequest{
+	req := &ChatCompletionRequest{
 		Model: "gpt-3.5-turbo",
 		Messages: []*ChatMessage{
 			{Role: RoleUser, Content: "あなたはだれですか？"},

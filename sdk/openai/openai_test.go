@@ -35,7 +35,7 @@ func TestOpenAICreateChatCompletion(t *testing.T) {
 		return
 	}
 
-	req := &ChatCompeletionRequest{
+	req := &ChatCompletionRequest{
 		Model: "gpt-3.5-turbo",
 		Messages: []*ChatMessage{
 			{Role: RoleUser, Content: "あなたはだれですか？"},

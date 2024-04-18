@@ -94,10 +94,10 @@ func (oai *OpenAI) doPost(url string, source, result any) error {
 }
 
 // https://platform.openai.com/docs/api-reference/chat/create
-func (oai *OpenAI) CreateChatCompletion(req *ChatCompeletionRequest) (*ChatCompeletionResponse, error) {
+func (oai *OpenAI) CreateChatCompletion(req *ChatCompletionRequest) (*ChatCompletionResponse, error) {
 	url := oai.endpoint("/chat/completions")
 
-	res := &ChatCompeletionResponse{}
+	res := &ChatCompletionResponse{}
 	err := oai.doPostWithRetry(url, req, res)
 	return res, err
 }

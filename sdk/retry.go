@@ -10,6 +10,14 @@ type RetryableError interface {
 	RetryAfter() time.Duration
 }
 
+func getRetryAfter(err error) time.Duration {
+	if re, ok := err.(RetryableError); ok { //nolint: all
+		return re.RetryAfter()
+	}
+
+	return 0
+}
+
 // RetryForError call api(), if api() returns a RetryableError,
 // sleep until RetryableError.RetryAfter() duration, retry call api().
 // sleep 'sleep' duration, call 'abort()', if abort() returns true, returns the last error.
@@ -29,14 +37,18 @@ func RetryForError(api func() error, retries int, abort func() bool, sleep time.
 			logger.Warnf("Sleep %s for retry #%d: %s", after, i, err.Error())
 		}
 
-		if !sleepForRetry(sleep, after, abort) {
+		if !SleepForRetry(sleep, after, abort) {
 			break
 		}
 	}
 	return
 }
 
-func sleepForRetry(sleep, after time.Duration, abort func() bool) bool {
+// SleepForRetry sleep until 'after' duration elapsed.
+// call 'abort()' every 'sleep' interval, if abort() returns true, returns false.
+// if 'sleep' <= 0, 'sleep' = time.Second.
+// if 'sleep' > 'after', 'sleep' = 'after'.
+func SleepForRetry(sleep, after time.Duration, abort func() bool) bool {
 	if sleep <= 0 {
 		sleep = time.Second
 	}
@@ -52,12 +64,4 @@ func sleepForRetry(sleep, after time.Duration, abort func() bool) bool {
 	}
 
 	return true
-}
-
-func getRetryAfter(err error) time.Duration {
-	if re, ok := err.(RetryableError); ok { //nolint: all
-		return re.RetryAfter()
-	}
-
-	return 0
 }

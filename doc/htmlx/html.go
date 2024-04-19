@@ -60,7 +60,7 @@ func Stringify(n *html.Node) string {
 
 func GetTitle(n *html.Node) string {
 	if h := FindElementNode(n, atom.Head); h != nil {
-		if t := FindElementNode(h, atom.Title); n != nil {
+		if t := FindElementNode(h, atom.Title); t != nil {
 			return Stringify(t)
 		}
 	}

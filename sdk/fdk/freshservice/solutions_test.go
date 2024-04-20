@@ -34,7 +34,7 @@ func TestSolutionAPIs(t *testing.T) {
 		CategoryID:  cat.ID,
 		Name:        "Test Folder",
 		Description: "Test Folder For API Test",
-		Visibility:  FolderVisibilityAgentsOnly,
+		Visibility:  FolderVisibilityAgents,
 	}
 	fol, err := fs.CreateFolder(cf)
 	if err != nil {
@@ -218,7 +218,7 @@ func TestSolutionManyFolders(t *testing.T) {
 			CategoryID:  cat.ID,
 			Name:        fmt.Sprintf("Test Folder %d", i),
 			Description: fmt.Sprintf("Test Folder For API Test %d", i),
-			Visibility:  FolderVisibilityAgentsOnly,
+			Visibility:  FolderVisibilityAgents,
 		}
 		_, err := fs.CreateFolder(cf)
 		if err != nil {
@@ -271,7 +271,7 @@ func TestSolutionManyArticles(t *testing.T) {
 		CategoryID:  cat.ID,
 		Name:        "Test Folder",
 		Description: "Test Folder For API Test",
-		Visibility:  FolderVisibilityAgentsOnly,
+		Visibility:  FolderVisibilityAgents,
 	}
 	fol, err := fs.CreateFolder(cf)
 	if err != nil {

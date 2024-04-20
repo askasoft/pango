@@ -10,7 +10,7 @@ type FolderVisibility int
 const (
 	FolderVisibilityAllUsers      FolderVisibility = 1
 	FolderVisibilityLoggedInUsers FolderVisibility = 2
-	FolderVisibilityAgentsOnly    FolderVisibility = 3
+	FolderVisibilityAgents        FolderVisibility = 3
 	FolderVisibilityDepartments   FolderVisibility = 4
 	FolderVisibilityAgentGroups   FolderVisibility = 5
 	FolderVisibilityContactGroups FolderVisibility = 6
@@ -22,8 +22,8 @@ func (fv FolderVisibility) String() string {
 		return "AllUsers"
 	case FolderVisibilityLoggedInUsers:
 		return "LoggedInUsers"
-	case FolderVisibilityAgentsOnly:
-		return "AgentsOnly"
+	case FolderVisibilityAgents:
+		return "Agents"
 	case FolderVisibilityDepartments:
 		return "Departments"
 	case FolderVisibilityAgentGroups:
@@ -41,8 +41,8 @@ func ParseFolderVisibility(s string) FolderVisibility {
 		return FolderVisibilityAllUsers
 	case "loggedinusers":
 		return FolderVisibilityLoggedInUsers
-	case "agentsonly":
-		return FolderVisibilityAgentsOnly
+	case "agents":
+		return FolderVisibilityAgents
 	case "departments":
 		return FolderVisibilityDepartments
 	case "agentgroups":

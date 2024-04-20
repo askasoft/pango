@@ -85,17 +85,18 @@ func (sjm *sjm) GetJob(jid int64) (*xjm.Job, error) {
 	return job, nil
 }
 
-// FindJob find the latest job by name, default select all columns.
-// cols: columns to select.
-func (sjm *sjm) FindJob(name string, cols ...string) (job *xjm.Job, err error) {
+// FindJob find the latest job by name.
+// status: status to filter.
+func (sjm *sjm) FindJob(name string, asc bool, status ...string) (job *xjm.Job, err error) {
 	sqb := &sqx.Builder{}
 
-	if len(cols) > 0 {
-		sqb.Select(cols...)
-	} else {
-		sqb.Select("*")
+	sqb.Select("*").From(sjm.jt)
+	sqb.Where("name = ?", name)
+	if len(status) > 0 {
+		sqb.In("status", status)
 	}
-	sqb.From(sjm.jt).Where("name = ?", name).Order("id DESC")
+	sqb.Order("id " + str.If(asc, "ASC", "DESC"))
+	sqb.Limit(1)
 
 	sql, args := sqb.Build()
 	sql = sjm.db.Rebind(sql)
@@ -109,17 +110,17 @@ func (sjm *sjm) FindJob(name string, cols ...string) (job *xjm.Job, err error) {
 	return job, err
 }
 
-// FindJobs find jobs by name, default select all columns.
-// cols: columns to select.
-func (sjm *sjm) FindJobs(name string, start, limit int, cols ...string) (jobs []*xjm.Job, err error) {
+// FindJobs find jobs by name.
+// status: status to filter.
+func (sjm *sjm) FindJobs(name string, start, limit int, asc bool, status ...string) (jobs []*xjm.Job, err error) {
 	sqb := &sqx.Builder{}
 
-	if len(cols) > 0 {
-		sqb.Select(cols...)
-	} else {
-		sqb.Select("*")
+	sqb.Select("*").From(sjm.jt).Where("name = ?", name)
+	if len(status) > 0 {
+		sqb.In("status", status)
 	}
-	sqb.From(sjm.jt).Where("name = ?", name).Order("id DESC").Offset(start).Limit(limit)
+	sqb.Order("id " + str.If(asc, "ASC", "DESC"))
+	sqb.Offset(start).Limit(limit)
 
 	sql, args := sqb.Build()
 	sql = sjm.db.Rebind(sql)
@@ -152,15 +153,6 @@ func (sjm *sjm) AppendJob(name, file, param string) (int64, error) {
 	sql += " RETURNING id"
 	err := sjm.db.NamedQueryRow(sql, job).Scan(&job.ID)
 	return job.ID, err
-}
-
-func (sjm *sjm) FindAndAbortJob(name, reason string) error {
-	job, err := sjm.FindJob(name)
-	if err != nil {
-		return err
-	}
-
-	return sjm.AbortJob(job.ID, reason)
 }
 
 func (sjm *sjm) AbortJob(jid int64, reason string) error {

@@ -4,9 +4,9 @@ import (
 	"errors"
 	"time"
 
-	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/xjm"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type gjm struct {
@@ -53,7 +53,7 @@ func (gjm *gjm) GetJobLogs(jid int64, min, max int64, asc bool, limit int, level
 	if limit > 0 {
 		tx = tx.Limit(limit)
 	}
-	tx = tx.Order("id " + str.If(asc, "ASC", "DESC"))
+	tx = tx.Order(clause.OrderByColumn{Column: clause.Column{Name: "id"}, Desc: !asc})
 
 	r := tx.Find(&jls)
 	return jls, r.Error
@@ -76,13 +76,14 @@ func (gjm *gjm) GetJob(jid int64) (*xjm.Job, error) {
 	return job, nil
 }
 
-// FindJob find the latest job by name, default select all columns.
-// cols: columns to select.
-func (gjm *gjm) FindJob(name string, cols ...string) (*xjm.Job, error) {
-	tx := gjm.db.Table(gjm.jt).Where("name = ?", name).Order("id DESC")
-	if len(cols) > 0 {
-		tx = tx.Select(cols)
+// FindJob find the latest job by name.
+// status: status to filter.
+func (gjm *gjm) FindJob(name string, asc bool, status ...string) (*xjm.Job, error) {
+	tx := gjm.db.Table(gjm.jt).Where("name = ?", name)
+	if len(status) > 0 {
+		tx = tx.Where("status IN ?", status)
 	}
+	tx = tx.Order(clause.OrderByColumn{Column: clause.Column{Name: "id"}, Desc: !asc})
 
 	job := &xjm.Job{}
 	r := tx.First(job)
@@ -93,15 +94,15 @@ func (gjm *gjm) FindJob(name string, cols ...string) (*xjm.Job, error) {
 	return job, r.Error
 }
 
-// FindJobs find jobs by name, default select all columns.
-// cols: columns to select.
-func (gjm *gjm) FindJobs(name string, start, limit int, cols ...string) ([]*xjm.Job, error) {
-	jobs := []*xjm.Job{}
-
-	tx := gjm.db.Table(gjm.jt).Where("name = ?", name).Order("id DESC")
-	if len(cols) > 0 {
-		tx = tx.Select(cols)
+// FindJobs find jobs by name.
+// status: status to filter.
+func (gjm *gjm) FindJobs(name string, start, limit int, asc bool, status ...string) (jobs []*xjm.Job, err error) {
+	tx := gjm.db.Table(gjm.jt).Where("name = ?", name)
+	if len(status) > 0 {
+		tx = tx.Where("status IN ?", status)
 	}
+	tx = tx.Order(clause.OrderByColumn{Column: clause.Column{Name: "id"}, Desc: !asc})
+
 	if start > 0 {
 		tx = tx.Offset(start)
 	}
@@ -109,23 +110,14 @@ func (gjm *gjm) FindJobs(name string, start, limit int, cols ...string) ([]*xjm.
 		tx = tx.Limit(limit)
 	}
 
-	r := tx.Find(&jobs)
-	return jobs, r.Error
+	err = tx.Find(&jobs).Error
+	return
 }
 
 func (gjm *gjm) AppendJob(name, file, param string) (int64, error) {
 	job := &xjm.Job{Name: name, File: file, Param: param, Status: xjm.JobStatusPending}
 	r := gjm.db.Table(gjm.jt).Create(job)
 	return job.ID, r.Error
-}
-
-func (gjm *gjm) FindAndAbortJob(name, reason string) error {
-	job, err := gjm.FindJob(name)
-	if err != nil {
-		return err
-	}
-
-	return gjm.AbortJob(job.ID, reason)
 }
 
 func (gjm *gjm) AbortJob(jid int64, reason string) error {

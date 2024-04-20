@@ -6,6 +6,7 @@ import (
 
 	"github.com/askasoft/pango/sqx"
 	"github.com/askasoft/pango/sqx/sqlx"
+	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/xjm"
 )
 
@@ -41,16 +42,21 @@ func (sjm *sjm) CountJobLogs(jid int64, levels ...string) (cnt int64, err error)
 
 // GetJobLogs get job logs
 // set levels to ("I", "W", "E", "F") to filter DEBUG/TRACE logs
-func (sjm *sjm) GetJobLogs(jid int64, start, limit int, levels ...string) (jls []*xjm.JobLog, err error) {
+func (sjm *sjm) GetJobLogs(jid int64, min, max int64, asc bool, limit int, levels ...string) (jls []*xjm.JobLog, err error) {
 	sqb := &sqx.Builder{}
 
 	sqb.Select("*").From(sjm.lt).Where("jid = ?", jid)
 	if len(levels) > 0 {
 		sqb.In("level", levels)
 	}
-	sqb.Offset(start)
+	if min > 0 {
+		sqb.Where("id >= ?", min)
+	}
+	if max > 0 {
+		sqb.Where("id <= ?", max)
+	}
 	sqb.Limit(limit)
-	sqb.Order("id ASC")
+	sqb.Order("id " + str.If(asc, "ASC", "DESC"))
 
 	sql, args := sqb.Build()
 	sql = sjm.db.Rebind(sql)

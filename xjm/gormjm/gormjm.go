@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/xjm"
 	"gorm.io/gorm"
 )
@@ -36,20 +37,23 @@ func (gjm *gjm) CountJobLogs(jid int64, levels ...string) (int64, error) {
 
 // GetJobLogs get job logs
 // set levels to ("I", "W", "E", "F") to filter DEBUG/TRACE logs
-func (gjm *gjm) GetJobLogs(jid int64, start, limit int, levels ...string) ([]*xjm.JobLog, error) {
+func (gjm *gjm) GetJobLogs(jid int64, min, max int64, asc bool, limit int, levels ...string) ([]*xjm.JobLog, error) {
 	var jls []*xjm.JobLog
 
 	tx := gjm.db.Table(gjm.lt).Where("jid = ?", jid)
 	if len(levels) > 0 {
 		tx.Where("level IN ?", levels)
 	}
-	if start > 0 {
-		tx = tx.Offset(start)
+	if min > 0 {
+		tx = tx.Where("id >= ?", min)
+	}
+	if max > 0 {
+		tx = tx.Where("id <= ?", max)
 	}
 	if limit > 0 {
 		tx = tx.Limit(limit)
 	}
-	tx = tx.Order("id ASC")
+	tx = tx.Order("id " + str.If(asc, "ASC", "DESC"))
 
 	r := tx.Find(&jls)
 	return jls, r.Error

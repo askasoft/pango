@@ -18,19 +18,16 @@ type JobManager interface {
 	// GetJob get job detail
 	GetJob(jid int64) (*Job, error)
 
-	// FindJob find the latest job by name, default select all columns.
-	// cols: columns to select.
-	FindJob(name string, cols ...string) (*Job, error)
+	// FindJob find the latest job by name.
+	// status: status to filter.
+	FindJob(name string, asc bool, status ...string) (*Job, error)
 
-	// FindJobs find jobs by name, default select all columns.
-	// cols: columns to select.
-	FindJobs(name string, start, limit int, cols ...string) ([]*Job, error)
+	// FindJobs find jobs by name.
+	// status: status to filter.
+	FindJobs(name string, start, limit int, asc bool, status ...string) ([]*Job, error)
 
 	// AppendJob append a pendding job
 	AppendJob(name, file, param string) (int64, error)
-
-	// FindAndAbortJob find latest running or pendding job to abort
-	FindAndAbortJob(name, reason string) error
 
 	// AbortJob abort the job
 	AbortJob(jid int64, reason string) error

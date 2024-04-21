@@ -73,7 +73,7 @@ type Folder struct {
 	Visibility FolderVisibility `json:"visibility,omitempty"`
 
 	// Approval settings that have been associated with the folder. Key-value pair containing the approval_type, approval_ids and its values.
-	ApprovalSettings map[string]string `json:"approval_settings,omitempty"`
+	ApprovalSettings *ApprovalSetting `json:"approval_settings,omitempty"`
 
 	// ID of the department to which this solution folder is visible. ( Mandatory if visibility is set to '4')
 	DepartmentIDs []int64 `json:"department_ids,omitempty"`

@@ -84,9 +84,6 @@ type Article struct {
 	// Status of the solution article.  ( 1 - draft, 2 - published )
 	Status ArticleStatus `json:"status,omitempty"`
 
-	// Approval status of the article.
-	ApprovalStatus ApprovalStatus `json:"approval_status,omitempty"`
-
 	// Number of upvotes for the solution article
 	ThumbsUp int `json:"thumbs_up,omitempty"`
 
@@ -119,6 +116,11 @@ type Article struct {
 
 	// Date in future when this article would need to be reviewed again.
 	ReviewDate *Time `json:"review_date,omitempty"`
+
+	// Approval status of the article.
+	ApprovalStatus ApprovalStatus `json:"approval_status,omitempty"`
+
+	Approvals []*Approval `json:"approvals,omitempty"`
 
 	CreatedAt *Time `json:"created_at,omitempty"`
 

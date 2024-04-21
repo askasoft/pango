@@ -19,14 +19,10 @@ type WithFiles = fdk.WithFiles
 type Values = fdk.Values
 
 type OrderType string
-type ApprovalStatus int
 
 const (
 	OrderAsc  OrderType = "asc"
 	OrderDesc OrderType = "desc"
-
-	ApprovalStatusApproved ApprovalStatus = 1
-	ApprovalStatusRejected ApprovalStatus = 2
 )
 
 func ParseDate(s string) (*Date, error) {

@@ -153,6 +153,29 @@ func TestSolutionAPIs(t *testing.T) {
 	}
 }
 
+func TestSolutionIterAllArticles(t *testing.T) {
+	fs := testNewFreshservice(t)
+	if fs == nil {
+		return
+	}
+
+	err := fs.IterCategories(nil, func(c *Category) error {
+		fs.Logger.Debugf("Enter Category #%d - %s", c.ID, c.Name)
+
+		return fs.IterCategoryFolders(c.ID, nil, func(f *Folder) error {
+			fs.Logger.Debugf("Enter Folder #%d - %s", f.ID, f)
+
+			return fs.IterFolderArticles(f.ID, nil, func(ai *ArticleInfo) error {
+				fs.Logger.Debugf("Article #%d - %s", ai.ID, ai)
+				return nil
+			})
+		})
+	})
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 func TestSolutionManyCategories(t *testing.T) {
 	fs := testNewFreshservice(t)
 	if fs == nil {

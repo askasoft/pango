@@ -212,7 +212,7 @@ func TestSolutionManyFolders(t *testing.T) {
 	}
 	cat, err := fd.CreateCategory(cc)
 	if err != nil {
-		t.Fatalf("ERROR: %v", err)
+		t.Errorf("ERROR: %v", err)
 	}
 	defer func() {
 		err = fd.DeleteCategory(cat.ID)
@@ -229,7 +229,7 @@ func TestSolutionManyFolders(t *testing.T) {
 		}
 		_, err := fd.CreateFolder(cat.ID, cf)
 		if err != nil {
-			t.Fatalf("ERROR: %v", err)
+			t.Errorf("ERROR: %v", err)
 		}
 	}
 
@@ -239,16 +239,16 @@ func TestSolutionManyFolders(t *testing.T) {
 		return nil
 	})
 	if err != nil {
-		t.Fatalf("ERROR: %v", err)
+		t.Errorf("ERROR: %v", err)
 	}
 	if len(fids) != 101 {
-		t.Fatalf("ERROR: articles=%d", len(fids))
+		t.Errorf("ERROR: articles=%d", len(fids))
 	}
 
 	for _, fid := range fids {
 		fd.DeleteFolder(fid)
 		if err != nil {
-			t.Fatalf("ERROR: %v", err)
+			t.Errorf("ERROR: %v", err)
 		}
 	}
 }
@@ -265,7 +265,7 @@ func TestSolutionManyArticles(t *testing.T) {
 	}
 	cat, err := fd.CreateCategory(cc)
 	if err != nil {
-		t.Fatalf("ERROR: %v", err)
+		t.Errorf("ERROR: %v", err)
 	}
 	defer func() {
 		err = fd.DeleteCategory(cat.ID)
@@ -281,7 +281,7 @@ func TestSolutionManyArticles(t *testing.T) {
 	}
 	fol, err := fd.CreateFolder(cat.ID, cf)
 	if err != nil {
-		t.Fatalf("ERROR: %v", err)
+		t.Errorf("ERROR: %v", err)
 	}
 	defer func() {
 		err = fd.DeleteFolder(fol.ID)
@@ -299,7 +299,7 @@ func TestSolutionManyArticles(t *testing.T) {
 
 		_, err := fd.CreateArticle(fol.ID, ca)
 		if err != nil {
-			t.Fatalf("ERROR: %v", err)
+			t.Errorf("ERROR: %v", err)
 		}
 	}
 
@@ -309,16 +309,16 @@ func TestSolutionManyArticles(t *testing.T) {
 		return nil
 	})
 	if err != nil {
-		t.Fatalf("ERROR: %v", err)
+		t.Errorf("ERROR: %v", err)
 	}
 	if len(aids) != 101 {
-		t.Fatalf("ERROR: articles=%d", len(aids))
+		t.Errorf("ERROR: articles=%d", len(aids))
 	}
 
 	for _, aid := range aids {
 		fd.DeleteArticle(aid)
 		if err != nil {
-			t.Fatalf("ERROR: %v", err)
+			t.Errorf("ERROR: %v", err)
 		}
 	}
 }

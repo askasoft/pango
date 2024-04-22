@@ -189,7 +189,7 @@ func TestSolutionManyCategories(t *testing.T) {
 		}
 		_, err := fs.CreateCategory(cc)
 		if err != nil {
-			t.Fatalf("ERROR: %v", err)
+			t.Errorf("ERROR: %v", err)
 		}
 	}
 
@@ -201,16 +201,16 @@ func TestSolutionManyCategories(t *testing.T) {
 		return nil
 	})
 	if err != nil {
-		t.Fatalf("ERROR: %v", err)
+		t.Errorf("ERROR: %v", err)
 	}
 	if len(cids) != 101 {
-		t.Fatalf("ERROR: categories=%d", len(cids))
+		t.Errorf("ERROR: categories=%d", len(cids))
 	}
 
 	for _, cid := range cids {
 		fs.DeleteCategory(cid)
 		if err != nil {
-			t.Fatalf("ERROR: %v", err)
+			t.Errorf("ERROR: %v", err)
 		}
 	}
 }
@@ -227,7 +227,7 @@ func TestSolutionManyFolders(t *testing.T) {
 	}
 	cat, err := fs.CreateCategory(cc)
 	if err != nil {
-		t.Fatalf("ERROR: %v", err)
+		t.Errorf("ERROR: %v", err)
 	}
 	defer func() {
 		err = fs.DeleteCategory(cat.ID)
@@ -245,7 +245,7 @@ func TestSolutionManyFolders(t *testing.T) {
 		}
 		_, err := fs.CreateFolder(cf)
 		if err != nil {
-			t.Fatalf("ERROR: %v", err)
+			t.Errorf("ERROR: %v", err)
 		}
 	}
 
@@ -255,16 +255,16 @@ func TestSolutionManyFolders(t *testing.T) {
 		return nil
 	})
 	if err != nil {
-		t.Fatalf("ERROR: %v", err)
+		t.Errorf("ERROR: %v", err)
 	}
 	if len(fids) != 101 {
-		t.Fatalf("ERROR: articles=%d", len(fids))
+		t.Errorf("ERROR: articles=%d", len(fids))
 	}
 
 	for _, fid := range fids {
 		fs.DeleteFolder(fid)
 		if err != nil {
-			t.Fatalf("ERROR: %v", err)
+			t.Errorf("ERROR: %v", err)
 		}
 	}
 }
@@ -281,7 +281,7 @@ func TestSolutionManyArticles(t *testing.T) {
 	}
 	cat, err := fs.CreateCategory(cc)
 	if err != nil {
-		t.Fatalf("ERROR: %v", err)
+		t.Errorf("ERROR: %v", err)
 	}
 	defer func() {
 		err = fs.DeleteCategory(cat.ID)
@@ -298,7 +298,7 @@ func TestSolutionManyArticles(t *testing.T) {
 	}
 	fol, err := fs.CreateFolder(cf)
 	if err != nil {
-		t.Fatalf("ERROR: %v", err)
+		t.Errorf("ERROR: %v", err)
 	}
 	defer func() {
 		err = fs.DeleteFolder(fol.ID)
@@ -317,7 +317,7 @@ func TestSolutionManyArticles(t *testing.T) {
 
 		_, err := fs.CreateArticle(ca)
 		if err != nil {
-			t.Fatalf("ERROR: %v", err)
+			t.Errorf("ERROR: %v", err)
 		}
 	}
 
@@ -327,16 +327,16 @@ func TestSolutionManyArticles(t *testing.T) {
 		return nil
 	})
 	if err != nil {
-		t.Fatalf("ERROR: %v", err)
+		t.Errorf("ERROR: %v", err)
 	}
 	if len(aids) != 101 {
-		t.Fatalf("ERROR: articles=%d", len(aids))
+		t.Errorf("ERROR: articles=%d", len(aids))
 	}
 
 	for _, aid := range aids {
 		fs.DeleteArticle(aid)
 		if err != nil {
-			t.Fatalf("ERROR: %v", err)
+			t.Errorf("ERROR: %v", err)
 		}
 	}
 }

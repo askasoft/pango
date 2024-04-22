@@ -24,8 +24,8 @@ type ListTicketsOption struct {
 	RequestID    int64
 	Type         string
 	UpdatedSince Time
-	Include      string // stats, requester, requester_for
-	OrderType    string // asc, desc (default)
+	Include      string    // stats, requester, requester_for
+	OrderType    OrderType // asc, desc (default)
 	Page         int
 	PerPage      int
 }
@@ -42,7 +42,7 @@ func (lto *ListTicketsOption) Values() Values {
 	q.SetString("type", lto.Type)
 	q.SetTime("updated_since", lto.UpdatedSince)
 	q.SetString("include", lto.Include)
-	q.SetString("order_type", lto.OrderType)
+	q.SetString("order_type", string(lto.OrderType))
 	q.SetInt("page", lto.Page)
 	q.SetInt("per_page", lto.PerPage)
 	return q
@@ -311,9 +311,9 @@ func (fs *Freshservice) DeleteConversationAttachment(cid, aid int64) error {
 
 func (fs *Freshservice) ListTicketConversations(tid int64, lco *ListConversationsOption) ([]*Conversation, bool, error) {
 	url := fs.endpoint("/tickets/%d/conversations", tid)
-	conversations := []*Conversation{}
-	next, err := fs.doList(url, lco, &conversations)
-	return conversations, next, err
+	result := &conversationsResult{}
+	next, err := fs.doList(url, lco, result)
+	return result.Conversations, next, err
 }
 
 func (fs *Freshservice) IterTicketConversations(tid int64, lco *ListConversationsOption, icf func(*Conversation) error) error {

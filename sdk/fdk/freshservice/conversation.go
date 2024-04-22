@@ -136,3 +136,7 @@ func (c *Conversation) String() string {
 type conversationResult struct {
 	Conversation *Conversation `json:"conversation,omitempty"`
 }
+
+type conversationsResult struct {
+	Conversations []*Conversation `json:"conversations,omitempty"`
+}

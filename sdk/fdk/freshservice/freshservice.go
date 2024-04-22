@@ -95,16 +95,6 @@ func (fs *Freshservice) SaveFileNoAuth(url string, path string) error {
 	return (*fdk.FDK)(fs).DoSaveFileNoAuth(url, path)
 }
 
-// GetSolutionArticleURL return a permlink for solution article URL
-func (fs *Freshservice) GetSolutionArticleURL(aid int64) string {
-	return fmt.Sprintf("https://%s/support/solutions/articles/%d", fs.Domain, aid)
-}
-
-// GetHelpdeskAttachmentURL return a permlink for helpdesk attachment/avator URL
-func (fs *Freshservice) GetHelpdeskAttachmentURL(aid int64) string {
-	return fmt.Sprintf("https://%s/helpdesk/attachments/%d", fs.Domain, aid)
-}
-
 func (fs *Freshservice) DownloadAttachment(aid int64) ([]byte, error) {
 	url := fs.endpoint("/attachments/%d", aid)
 	return fs.Download(url)
@@ -113,4 +103,24 @@ func (fs *Freshservice) DownloadAttachment(aid int64) ([]byte, error) {
 func (fs *Freshservice) SaveAttachment(aid int64, path string) error {
 	url := fs.endpoint("/attachments/%d", aid)
 	return fs.SaveFile(url, path)
+}
+
+// GetSolutionArticleURL return a permlink for solution article URL
+func (fs *Freshservice) GetSolutionArticleURL(aid int64) string {
+	return GetSolutionArticleURL(fs.Domain, aid)
+}
+
+// GetHelpdeskAttachmentURL return a permlink for helpdesk attachment/avator URL
+func (fs *Freshservice) GetHelpdeskAttachmentURL(aid int64) string {
+	return GetHelpdeskAttachmentURL(fs.Domain, aid)
+}
+
+// GetSolutionArticleURL return a permlink for solution article URL
+func GetSolutionArticleURL(domain string, aid int64) string {
+	return fmt.Sprintf("https://%s/support/solutions/articles/%d", domain, aid)
+}
+
+// GetHelpdeskAttachmentURL return a permlink for helpdesk attachment/avator URL
+func GetHelpdeskAttachmentURL(domain string, aid int64) string {
+	return fmt.Sprintf("https://%s/helpdesk/attachments/%d", domain, aid)
 }

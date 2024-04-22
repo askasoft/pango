@@ -95,16 +95,6 @@ func (fd *Freshdesk) SaveFileNoAuth(url string, path string) error {
 	return (*fdk.FDK)(fd).DoSaveFileNoAuth(url, path)
 }
 
-// GetSolutionArticleURL return a permlink for solution article URL
-func (fd *Freshdesk) GetSolutionArticleURL(aid int64) string {
-	return fmt.Sprintf("https://%s/support/solutions/articles/%d", fd.Domain, aid)
-}
-
-// GetHelpdeskAttachmentURL return a permlink for helpdesk attachment/avator URL
-func (fd *Freshdesk) GetHelpdeskAttachmentURL(aid int64) string {
-	return fmt.Sprintf("https://%s/helpdesk/attachments/%d", fd.Domain, aid)
-}
-
 func (fd *Freshdesk) DeleteAttachment(aid int64) error {
 	url := fd.endpoint("/attachments/%d", aid)
 	return fd.doDelete(url)
@@ -116,4 +106,24 @@ func (fd *Freshdesk) GetJob(jid string) (*Job, error) {
 	job := &Job{}
 	err := fd.doGet(url, job)
 	return job, err
+}
+
+// GetSolutionArticleURL return a permlink for solution article URL
+func (fd *Freshdesk) GetSolutionArticleURL(aid int64) string {
+	return GetSolutionArticleURL(fd.Domain, aid)
+}
+
+// GetHelpdeskAttachmentURL return a permlink for helpdesk attachment/avator URL
+func (fd *Freshdesk) GetHelpdeskAttachmentURL(aid int64) string {
+	return GetHelpdeskAttachmentURL(fd.Domain, aid)
+}
+
+// GetSolutionArticleURL return a permlink for solution article URL
+func GetSolutionArticleURL(domain string, aid int64) string {
+	return fmt.Sprintf("https://%s/support/solutions/articles/%d", domain, aid)
+}
+
+// GetHelpdeskAttachmentURL return a permlink for helpdesk attachment/avator URL
+func GetHelpdeskAttachmentURL(domain string, aid int64) string {
+	return fmt.Sprintf("https://%s/helpdesk/attachments/%d", domain, aid)
 }

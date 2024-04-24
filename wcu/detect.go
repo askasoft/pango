@@ -6,7 +6,6 @@ import (
 	"errors"
 	"io"
 	"mime"
-	"os"
 
 	"github.com/askasoft/pango/cdt"
 )
@@ -66,16 +65,4 @@ func DetectCharsetReader(r io.Reader, html ...bool) (io.Reader, string, error) {
 	}
 
 	return br, cr.Charset, nil
-}
-
-func DetectCharsetFile(filename string) (string, error) {
-	fr, err := os.Open(filename)
-	if err != nil {
-		return "", err
-	}
-	defer fr.Close()
-
-	html := IsHTMLFile(filename)
-	_, cs, err := DetectCharsetReader(fr, html)
-	return cs, err
 }

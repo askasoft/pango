@@ -57,6 +57,19 @@ func IsHTMLFile(filename string) bool {
 	return html
 }
 
+// DetectCharsetFile detect file's charset
+func DetectCharsetFile(filename string) (string, error) {
+	fr, err := os.Open(filename)
+	if err != nil {
+		return "", err
+	}
+	defer fr.Close()
+
+	html := IsHTMLFile(filename)
+	_, cs, err := DetectCharsetReader(fr, html)
+	return cs, err
+}
+
 // DetectAndOpenFile use specified charsets to open file, return (transformed reader, encoding name, error).
 // if charsets is not specified, or specified charset is unsupported,
 // detect the charset of the file, and open a transformed ReadCloser.

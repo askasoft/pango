@@ -108,9 +108,9 @@ func xlsxTextify(zr *zip.Reader, w io.Writer) error {
 }
 
 func xlsxStringsTextify(r io.Reader, w io.Writer) error {
-	xd := xml.NewDecoder(r)
+	var sb strings.Builder
 
-	sb := strings.Builder{}
+	xd := xml.NewDecoder(r)
 
 	xc, xt, xrph := false, false, false
 	for {

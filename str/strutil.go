@@ -359,7 +359,7 @@ func RemoveByte(s string, b byte) string {
 		return s
 	}
 
-	sb := Builder{}
+	var sb Builder
 	for {
 		i := strings.IndexByte(s, b)
 		if i < 0 {
@@ -383,7 +383,7 @@ func RemoveRune(s string, r rune) string {
 
 	n := utf8.RuneLen(r)
 
-	sb := Builder{}
+	var sb Builder
 	for {
 		i := strings.IndexRune(s, r)
 		if i < 0 {
@@ -405,7 +405,7 @@ func RemoveAny(s string, r string) string {
 		return s
 	}
 
-	sb := Builder{}
+	var sb Builder
 	for {
 		i := strings.IndexAny(s, r)
 		if i < 0 {
@@ -429,7 +429,7 @@ func RemoveFunc(s string, f func(r rune) bool) string {
 		return s
 	}
 
-	sb := Builder{}
+	var sb Builder
 	for {
 		i := strings.IndexFunc(s, f)
 		if i < 0 {
@@ -453,8 +453,9 @@ func Remove(s string, r string) string {
 		return s
 	}
 
+	var sb Builder
+
 	n := len(r)
-	sb := Builder{}
 	for {
 		i := strings.Index(s, r)
 		if i < 0 {

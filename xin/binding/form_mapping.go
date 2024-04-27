@@ -195,9 +195,11 @@ func alterFormKey(key string) string {
 		return ""
 	}
 
-	sb := strings.Builder{}
+	var sb strings.Builder
+
 	sb.WriteString(key[:dot])
 	sb.WriteByte('[')
+
 	key = key[dot+1:]
 	for key != "" {
 		dot = strings.IndexByte(key, '.')
@@ -210,6 +212,7 @@ func alterFormKey(key string) string {
 		key = key[dot+1:]
 	}
 	sb.WriteByte(']')
+
 	return sb.String()
 }
 

@@ -10,7 +10,7 @@ func EscapeLike(s string, escape ...rune) string {
 		esc = escape[0]
 	}
 
-	sb := strings.Builder{}
+	var sb strings.Builder
 
 	for _, c := range s {
 		if c == esc {

@@ -38,7 +38,7 @@ func (le *Event) CallerDepth(depth int, trace bool) {
 		_, le.File = path.Split(frame.File)
 		le.Line = frame.Line
 		if next {
-			sb := strings.Builder{}
+			var sb strings.Builder
 			for ; next; frame, next = frames.Next() {
 				sb.WriteString(frame.File)
 				sb.WriteString(":")
@@ -71,7 +71,7 @@ func (le *Event) CallerStop(stop string, trace bool) {
 				_, le.File = path.Split(frame.File)
 				le.Line = frame.Line
 				if trace && next {
-					sb := strings.Builder{}
+					var sb strings.Builder
 					for ; next; frame, next = frames.Next() {
 						sb.WriteString(frame.File)
 						sb.WriteString(":")

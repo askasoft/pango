@@ -6,7 +6,7 @@ import (
 
 type NetError struct {
 	Err        error
-	retryAfter time.Duration
+	RetryAfter time.Duration
 }
 
 func NewNetError(err error, retryAfter ...time.Duration) *NetError {
@@ -14,13 +14,13 @@ func NewNetError(err error, retryAfter ...time.Duration) *NetError {
 		Err: err,
 	}
 	if len(retryAfter) > 0 {
-		ne.retryAfter = retryAfter[0]
+		ne.RetryAfter = retryAfter[0]
 	}
 	return ne
 }
 
-func (ne *NetError) RetryAfter() time.Duration {
-	return ne.retryAfter
+func (ne *NetError) GetRetryAfter() time.Duration {
+	return ne.RetryAfter
 }
 
 func (ne *NetError) Unwrap() error {

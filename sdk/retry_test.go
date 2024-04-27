@@ -19,8 +19,8 @@ type retryTestError struct {
 func (rte *retryTestError) Error() string {
 	s := rte.status
 
-	if rte.retryAfter > 0 {
-		s = fmt.Sprintf("%s (Retry After %s)", s, rte.retryAfter)
+	if rte.RetryAfter > 0 {
+		s = fmt.Sprintf("%s (Retry After %s)", s, rte.RetryAfter)
 	}
 
 	return s
@@ -33,7 +33,7 @@ func TestRetryForError(t *testing.T) {
 		status:     "429 Too Many Requests",
 		statusCode: http.StatusTooManyRequests,
 	}
-	rte.retryAfter = time.Second
+	rte.RetryAfter = time.Second
 
 	called, aborted := 0, 0
 	err := RetryForError(func() error {

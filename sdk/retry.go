@@ -6,16 +6,20 @@ import (
 	"github.com/askasoft/pango/log"
 )
 
-type RetryableError interface {
-	RetryAfter() time.Duration
+type RetryAfter interface {
+	GetRetryAfter() time.Duration
 }
 
 func getRetryAfter(err error) time.Duration {
-	if re, ok := err.(RetryableError); ok { //nolint: all
-		return re.RetryAfter()
+	if re, ok := err.(RetryAfter); ok { //nolint: all
+		return re.GetRetryAfter()
 	}
 
 	return 0
+}
+
+func NeverAbort() bool {
+	return false
 }
 
 // RetryForError call api(), if api() returns a RetryableError,

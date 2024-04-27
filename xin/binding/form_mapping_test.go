@@ -137,7 +137,7 @@ func TestMappingUnknownFieldType(t *testing.T) {
 		be0 := bes[0]
 		assert.Equal(t, "U", be0.Field)
 		assert.Equal(t, []string{"unknown"}, be0.Values)
-		assert.Equal(t, errUnknownType, be0.Cause)
+		assert.Equal(t, errUnknownType, be0.Unwrap())
 	} else {
 		t.Errorf("missing binding errors: %v", err)
 	}

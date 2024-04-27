@@ -7,23 +7,27 @@ import (
 
 // FieldBindError bind error
 type FieldBindError struct {
+	Err    error
 	Field  string
-	Cause  error
 	Values []string
 }
 
 // Error return a string representing the bind error
-func (be *FieldBindError) Error() string {
-	return fmt.Sprintf("FieldBindError: %s: %s - %v", be.Field, be.Cause, be.Values)
+func (fbe *FieldBindError) Error() string {
+	return fmt.Sprintf("FieldBindError: %s: %s - %v", fbe.Field, fbe.Err, fbe.Values)
+}
+
+func (fbe *FieldBindError) Unwrap() error {
+	return fbe.Err
 }
 
 // FieldBindErrors bind errors
 type FieldBindErrors []*FieldBindError
 
 // Error return a string representing the bind errors
-func (bes FieldBindErrors) Error() string {
+func (fbes FieldBindErrors) Error() string {
 	var sb strings.Builder
-	for i, e := range bes {
+	for i, e := range fbes {
 		if i > 0 {
 			sb.WriteRune('\n')
 		}

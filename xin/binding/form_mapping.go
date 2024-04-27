@@ -272,9 +272,9 @@ func setByForm(value reflect.Value, field reflect.StructField, form map[string][
 
 	if err != nil {
 		be = &FieldBindError{
+			Err:    err,
 			Field:  key,
 			Values: vs,
-			Cause:  err,
 		}
 	}
 	return

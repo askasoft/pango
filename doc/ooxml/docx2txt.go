@@ -2,6 +2,7 @@ package ooxml
 
 import (
 	"archive/zip"
+	"bytes"
 	"encoding/xml"
 	"errors"
 	"io"
@@ -112,6 +113,17 @@ func DocxFileTextify(name string, w io.Writer) error {
 	defer zr.Close()
 
 	return extractStringFromDocx(&zr.Reader, w)
+}
+
+func ExtractTextFromDocxBytes(bs []byte) (string, error) {
+	return ExtractTextFromDocxReader(bytes.NewReader(bs), int64(len(bs)))
+}
+
+func ExtractTextFromDocxReader(r io.ReaderAt, size int64) (string, error) {
+	sb := &strings.Builder{}
+	lw := iox.LineWriter(sb)
+	err := DocxReaderTextify(r, size, lw)
+	return sb.String(), err
 }
 
 func DocxReaderTextify(r io.ReaderAt, size int64, w io.Writer) error {

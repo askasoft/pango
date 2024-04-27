@@ -2,6 +2,7 @@ package ooxml
 
 import (
 	"archive/zip"
+	"bytes"
 	"encoding/xml"
 	"errors"
 	"io"
@@ -66,6 +67,17 @@ func PptxFileTexify(name string, w io.Writer) error {
 	defer zr.Close()
 
 	return pptxTextify(&zr.Reader, w)
+}
+
+func ExtractTextFromPptxBytes(bs []byte) (string, error) {
+	return ExtractTextFromPptxReader(bytes.NewReader(bs), int64(len(bs)))
+}
+
+func ExtractTextFromPptxReader(r io.ReaderAt, size int64) (string, error) {
+	sb := &strings.Builder{}
+	lw := iox.LineWriter(sb)
+	err := PptxReaderTexify(r, size, lw)
+	return sb.String(), err
 }
 
 func PptxReaderTexify(r io.ReaderAt, size int64, w io.Writer) error {

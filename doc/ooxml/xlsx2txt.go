@@ -2,6 +2,7 @@ package ooxml
 
 import (
 	"archive/zip"
+	"bytes"
 	"encoding/xml"
 	"errors"
 	"io"
@@ -81,6 +82,17 @@ func XlsxFileTextify(name string, w io.Writer) error {
 	defer zr.Close()
 
 	return xlsxTextify(&zr.Reader, w)
+}
+
+func ExtractTextFromXlsxBytes(bs []byte) (string, error) {
+	return ExtractTextFromXlsxReader(bytes.NewReader(bs), int64(len(bs)))
+}
+
+func ExtractTextFromXlsxReader(r io.ReaderAt, size int64) (string, error) {
+	sb := &strings.Builder{}
+	lw := iox.LineWriter(sb)
+	err := XlsxReaderTextify(r, size, lw)
+	return sb.String(), err
 }
 
 func XlsxReaderTextify(r io.ReaderAt, size int64, w io.Writer) error {

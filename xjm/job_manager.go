@@ -26,6 +26,10 @@ type JobManager interface {
 	// status: status to filter.
 	FindJobs(name string, start, limit int, asc bool, status ...string) ([]*Job, error)
 
+	// IterJobs find jobs by name and iterate.
+	// status: status to filter.
+	IterJobs(it func(job *Job) error, name string, start, limit int, asc bool, status ...string) error
+
 	// AppendJob append a pendding job
 	AppendJob(name, file, param string) (int64, error)
 

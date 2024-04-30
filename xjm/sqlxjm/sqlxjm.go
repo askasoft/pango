@@ -110,9 +110,7 @@ func (sjm *sjm) FindJob(name string, asc bool, status ...string) (job *xjm.Job, 
 	return job, err
 }
 
-// FindJobs find jobs by name.
-// status: status to filter.
-func (sjm *sjm) FindJobs(name string, start, limit int, asc bool, status ...string) (jobs []*xjm.Job, err error) {
+func (sjm *sjm) findJobs(name string, start, limit int, asc bool, status ...string) *sqx.Builder {
 	sqb := &sqx.Builder{}
 
 	sqb.Select("*").From(sjm.jt).Where("name = ?", name)
@@ -122,6 +120,13 @@ func (sjm *sjm) FindJobs(name string, start, limit int, asc bool, status ...stri
 	sqb.Order("id " + str.If(asc, "ASC", "DESC"))
 	sqb.Offset(start).Limit(limit)
 
+	return sqb
+}
+
+// FindJobs find jobs by name.
+// status: status to filter.
+func (sjm *sjm) FindJobs(name string, start, limit int, asc bool, status ...string) (jobs []*xjm.Job, err error) {
+	sqb := sjm.findJobs(name, start, limit, asc, status...)
 	sql, args := sqb.Build()
 	sql = sjm.db.Rebind(sql)
 
@@ -130,6 +135,33 @@ func (sjm *sjm) FindJobs(name string, start, limit int, asc bool, status ...stri
 		return nil, nil
 	}
 	return
+}
+
+// IterJobs find jobs by name and iterate.
+// status: status to filter.
+func (sjm *sjm) IterJobs(it func(*xjm.Job) error, name string, start, limit int, asc bool, status ...string) error {
+	sqb := sjm.findJobs(name, start, limit, asc, status...)
+	sql, args := sqb.Build()
+	sql = sjm.db.Rebind(sql)
+
+	rows, err := sjm.db.Queryx(sql, args...)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		job := &xjm.Job{}
+
+		if err := rows.StructScan(job); err != nil {
+			return err
+		}
+
+		if err := it(job); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (sjm *sjm) AppendJob(name, file, param string) (int64, error) {

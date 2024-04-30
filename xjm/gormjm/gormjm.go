@@ -94,9 +94,7 @@ func (gjm *gjm) FindJob(name string, asc bool, status ...string) (*xjm.Job, erro
 	return job, r.Error
 }
 
-// FindJobs find jobs by name.
-// status: status to filter.
-func (gjm *gjm) FindJobs(name string, start, limit int, asc bool, status ...string) (jobs []*xjm.Job, err error) {
+func (gjm *gjm) findJobs(name string, start, limit int, asc bool, status ...string) *gorm.DB {
 	tx := gjm.db.Table(gjm.jt).Where("name = ?", name)
 	if len(status) > 0 {
 		tx = tx.Where("status IN ?", status)
@@ -109,9 +107,40 @@ func (gjm *gjm) FindJobs(name string, start, limit int, asc bool, status ...stri
 	if limit > 0 {
 		tx = tx.Limit(limit)
 	}
+	return tx
+}
 
+// FindJobs find jobs by name.
+// status: status to filter.
+func (gjm *gjm) FindJobs(name string, start, limit int, asc bool, status ...string) (jobs []*xjm.Job, err error) {
+	tx := gjm.findJobs(name, start, limit, asc, status...)
 	err = tx.Find(&jobs).Error
 	return
+}
+
+// IterJobs find jobs by name and iterate.
+// status: status to filter.
+func (gjm *gjm) IterJobs(it func(*xjm.Job) error, name string, start, limit int, asc bool, status ...string) error {
+	tx := gjm.findJobs(name, start, limit, asc, status...)
+
+	rows, err := tx.Rows()
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		job := &xjm.Job{}
+
+		if err := tx.ScanRows(rows, job); err != nil {
+			return err
+		}
+
+		if err := it(job); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (gjm *gjm) AppendJob(name, file, param string) (int64, error) {

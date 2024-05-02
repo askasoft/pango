@@ -66,7 +66,7 @@ func (gjm *gjm) AddJobLogs(jls []*xjm.JobLog) error {
 
 func (gjm *gjm) GetJob(jid int64) (*xjm.Job, error) {
 	job := &xjm.Job{}
-	r := gjm.db.Table(gjm.jt).Where("id = ?", jid).First(job)
+	r := gjm.db.Table(gjm.jt).Where("id = ?", jid).Take(job)
 	if errors.Is(r.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
@@ -86,7 +86,7 @@ func (gjm *gjm) FindJob(name string, asc bool, status ...string) (*xjm.Job, erro
 	tx = tx.Order(clause.OrderByColumn{Column: clause.Column{Name: "id"}, Desc: !asc})
 
 	job := &xjm.Job{}
-	r := tx.First(job)
+	r := tx.Take(job)
 	if errors.Is(r.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}

@@ -34,17 +34,44 @@ func FindElementNode(n *html.Node, tag atom.Atom) *html.Node {
 	return nil
 }
 
-func FindElementNodes(n *html.Node, tag atom.Atom) (ns []*html.Node) {
-	if n.Type == html.ElementNode && n.DataAtom == tag {
-		ns = append(ns, n)
-		return
+func FindElementNodes(root *html.Node, tag atom.Atom) (ns []*html.Node) {
+	_ = IterElementNodes(root, func(n *html.Node) error {
+		if n.DataAtom == tag {
+			ns = append(ns, n)
+		}
+		return nil
+	})
+	return
+}
+
+func IterElementNodes(n *html.Node, iter func(n *html.Node) error) error {
+	if n.Type == html.ElementNode {
+		if err := iter(n); err != nil {
+			return err
+		}
 	}
 
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		ts := FindElementNodes(c, tag)
-		ns = append(ns, ts...)
+		if err := IterElementNodes(c, iter); err != nil {
+			return err
+		}
 	}
-	return
+
+	return nil
+}
+
+func IterNodes(n *html.Node, iter func(n *html.Node) error) error {
+	if err := iter(n); err != nil {
+		return err
+	}
+
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		if err := IterNodes(c, iter); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func Stringify(n *html.Node) string {
@@ -58,8 +85,26 @@ func Stringify(n *html.Node) string {
 	return str.Strip(sb.String())
 }
 
-func GetTitle(n *html.Node) string {
-	if h := FindElementNode(n, atom.Head); h != nil {
+func FindNodeAttr(n *html.Node, k string) *html.Attribute {
+	for _, a := range n.Attr {
+		if a.Key == k {
+			return &a
+		}
+	}
+	return nil
+}
+
+func FindAndGetHtmlLang(doc *html.Node) string {
+	if h := FindElementNode(doc, atom.Html); h != nil {
+		if a := FindNodeAttr(h, "lang"); a != nil {
+			return str.ToLower(a.Val)
+		}
+	}
+	return ""
+}
+
+func FindAndGetHeadTitle(doc *html.Node) string {
+	if h := FindElementNode(doc, atom.Head); h != nil {
 		if t := FindElementNode(h, atom.Title); t != nil {
 			return Stringify(t)
 		}
@@ -67,8 +112,8 @@ func GetTitle(n *html.Node) string {
 	return ""
 }
 
-func GetMetas(n *html.Node) map[string]string {
-	if h := FindElementNode(n, atom.Head); h != nil {
+func FindAndGetHeadMetas(doc *html.Node) map[string]string {
+	if h := FindElementNode(doc, atom.Head); h != nil {
 		ns := FindElementNodes(h, atom.Meta)
 		if len(ns) > 0 {
 			mm := make(map[string]string, len(ns))

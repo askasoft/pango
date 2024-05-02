@@ -53,7 +53,26 @@ func TestParseHTMLFile(t *testing.T) {
 	f(doc, "")
 }
 
-func TestGetTitle(t *testing.T) {
+func TestFindAndGetHtmlLang(t *testing.T) {
+	cs := []string{"utf-8.html", "shift-jis.html"}
+
+	w := "ja"
+
+	for i, c := range cs {
+		fn := testFilename(c)
+		doc, err := ParseHTMLFile(fn)
+		if err != nil {
+			t.Fatalf("[%d] Failed to ParseHTMLFile(%q): %v", i, c, err)
+		}
+
+		a := FindAndGetHtmlLang(doc)
+		if w != a {
+			t.Errorf("[%d] FindAndGetHtmlLang(%q):\nACTUAL: %q\n  WANT: %q\n", i, c, a, w)
+		}
+	}
+}
+
+func TestFindAndGetHeadTitle(t *testing.T) {
 	cs := []string{"utf-8.html", "shift-jis.html"}
 
 	w := "タイトル"
@@ -65,14 +84,14 @@ func TestGetTitle(t *testing.T) {
 			t.Fatalf("[%d] Failed to ParseHTMLFile(%q): %v", i, c, err)
 		}
 
-		a := GetTitle(doc)
+		a := FindAndGetHeadTitle(doc)
 		if w != a {
-			t.Errorf("[%d] GetTitle(%q):\nACTUAL: %q\n  WANT: %q\n", i, c, a, w)
+			t.Errorf("[%d] FindAndGetHeadTitle(%q):\nACTUAL: %q\n  WANT: %q\n", i, c, a, w)
 		}
 	}
 }
 
-func TestGetMetas(t *testing.T) {
+func TestFindAndGetMetas(t *testing.T) {
 	cs := []string{"utf-8.html", "shift-jis.html"}
 
 	w := map[string]string{
@@ -87,9 +106,9 @@ func TestGetMetas(t *testing.T) {
 			t.Fatalf("[%d] Failed to ParseHTMLFile(%q): %v", i, c, err)
 		}
 
-		a := GetMetas(doc)
+		a := FindAndGetHeadMetas(doc)
 		if !reflect.DeepEqual(w, a) {
-			t.Errorf("[%d] GetMetas(%q):\nACTUAL: %v\n  WANT: %v\n", i, c, a, w)
+			t.Errorf("[%d] FindAndGetHeadMetas(%q):\nACTUAL: %v\n  WANT: %v\n", i, c, a, w)
 		}
 	}
 }

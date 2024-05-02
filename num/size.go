@@ -41,17 +41,19 @@ func CustomSize(format string, size float64, base float64, units []string) strin
 	return fmt.Sprintf(format, size, unit)
 }
 
-// HumanSizeWithPrecision allows the size to be in any precision,
-// instead of 4 digit precision used in HumanSize.
-func HumanSizeWithPrecision(size float64, precision int) string {
-	size, unit := getSizeAndUnit(size, KB, sizeUnits)
-	return fmt.Sprintf("%.*g %s", precision, size, unit)
-}
-
 // HumanSize returns a human-readable approximation of a size
-// capped at 4 valid numbers (eg. "2.746 MB", "796 KB").
-func HumanSize(size float64) string {
-	return HumanSizeWithPrecision(size, 4)
+// with specified precision digit numbers (default: 2) (eg. "2.75 MB", "796 KB").
+func HumanSize(size float64, precision ...int) string {
+	size, unit := getSizeAndUnit(size, KB, sizeUnits)
+
+	p := 2
+	if len(precision) > 0 {
+		p = precision[0]
+	}
+
+	hs := FtoaWithDigits(size, p)
+
+	return hs + " " + unit
 }
 
 // ParseSize returns an integer from a human-readable size using windows specification (KB = 1024B).

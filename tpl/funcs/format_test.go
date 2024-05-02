@@ -31,7 +31,7 @@ func TestHumanSize(t *testing.T) {
 		w string
 		e error
 	}{
-		{1234, "1.205 KB", nil},
+		{1234, "1.21 KB", nil},
 		{2345.0, "2.29 KB", nil},
 		{"1.1", "", errors.New("HumanSize: unknown type for '1.1' (string)")},
 	}

@@ -55,6 +55,8 @@ func TestCommaFloatWithDigits(t *testing.T) {
 		{"1.2", 1.23, 1},
 		{"1.23", 1.23, 2},
 		{"1.23", 1.23, 3},
+		{"1.234", 1.234, 3},
+		{"1.235", 1.2346, 3},
 	}
 
 	for i, c := range cs {
@@ -65,7 +67,7 @@ func TestCommaFloatWithDigits(t *testing.T) {
 	}
 }
 
-func TestCommaFloats(t *testing.T) {
+func TestCommaFloat(t *testing.T) {
 	cs := []struct {
 		w string
 		n float64

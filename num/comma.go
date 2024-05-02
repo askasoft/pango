@@ -91,15 +91,40 @@ func CommaUint(v uint64, c ...string) string {
 // e.g. CommaFloat(834142.32) -> 834,142.32
 // e.g. CommaFloat(834142.32, "_") -> 834_142.32
 func CommaFloat(v float64, c ...string) string {
-	buf := &bytes.Buffer{}
-	if v < 0 {
-		buf.Write([]byte{'-'})
-		v = 0 - v
+	s := strconv.FormatFloat(v, 'f', -1, 64)
+	return CommaString(s, c...)
+}
+
+// CommaFloatWithDigits works like the Commaf but limits the resulting
+// string to the given number of decimal places.
+//
+// e.g. CommaFloatWithDigits(834142.32, 1) -> 834,142.3
+// e.g. CommaFloatWithDigits(834142.32, 1, "_") -> 834_142.3
+func CommaFloatWithDigits(f float64, digits int, c ...string) string {
+	s := FtoaWithDigits(f, digits)
+	return CommaString(s, c...)
+}
+
+// CommaString produces a string form of the given number string in base 10 with
+// commas after every three orders of magnitude.
+//
+// e.g. CommaString("834142.32") -> 834,142.32
+// e.g. CommaString("834142.32", "_") -> 834_142.32
+func CommaString(s string, c ...string) string {
+	if s == "" {
+		return s
 	}
 
 	sep := comma(c...)
 
-	parts := strings.Split(strconv.FormatFloat(v, 'f', -1, 64), ".")
+	var buf bytes.Buffer
+
+	if s[0] == '-' || s[0] == '+' {
+		buf.WriteByte(s[0])
+		s = s[1:]
+	}
+
+	parts := strings.Split(s, ".")
 	pos := 0
 	if len(parts[0])%3 != 0 {
 		pos += len(parts[0]) % 3
@@ -117,13 +142,4 @@ func CommaFloat(v float64, c ...string) string {
 		buf.WriteString(parts[1])
 	}
 	return buf.String()
-}
-
-// CommaFloatWithDigits works like the Commaf but limits the resulting
-// string to the given number of decimal places.
-//
-// e.g. CommaFloatWithDigits(834142.32, 1) -> 834,142.3
-// e.g. CommaFloatWithDigits(834142.32, 1, "_") -> 834_142.3
-func CommaFloatWithDigits(f float64, decimals int, c ...string) string {
-	return stripTrailingDigits(CommaFloat(f, c...), decimals)
 }

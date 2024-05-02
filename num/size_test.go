@@ -4,7 +4,86 @@ import (
 	"testing"
 )
 
-func TestHumanSize(t *testing.T) {
+func TestHumanSizeMinus(t *testing.T) {
+	cs := []struct {
+		w string
+		n float64
+	}{
+		{"1 KB", 1024},
+		{"1 MB", 1024 * 1024},
+		{"1 MB", 1048576},
+		{"2 MB", 2 * MB},
+		{"3.42 GB", 3.42 * GB},
+		{"12.3456 GB", 12.3456 * GB},
+		{"120.3456 GB", 120.3456 * GB},
+		{"123.456 GB", 123.456 * GB},
+		{"234.56 GB", 234.56 * GB},
+		{"5.372 TB", 5.372 * TB},
+		{"2.22 PB", 2.22 * PB},
+		{"1048576 YB", KB * KB * KB * KB * KB * PB},
+	}
+
+	for i, c := range cs {
+		a := HumanSize(c.n, -1)
+		if a != c.w {
+			t.Errorf("[%d] HumanSize(%f, -1) = %v, want %v", i, c.n, a, c.w)
+		}
+	}
+}
+
+func TestHumanSize0(t *testing.T) {
+	cs := []struct {
+		w string
+		n float64
+	}{
+		{"1 KB", 1024},
+		{"1 MB", 1024 * 1024},
+		{"1 MB", 1048576},
+		{"2 MB", 2 * MB},
+		{"3 GB", 3.42 * GB},
+		{"12 GB", 12.3456 * GB},
+		{"120 GB", 120.3456 * GB},
+		{"123 GB", 123.456 * GB},
+		{"235 GB", 234.56 * GB},
+		{"5 TB", 5.372 * TB},
+		{"2 PB", 2.22 * PB},
+		{"1048576 YB", KB * KB * KB * KB * KB * PB},
+	}
+
+	for i, c := range cs {
+		a := HumanSize(c.n, 0)
+		if a != c.w {
+			t.Errorf("[%d] HumanSize(%f, 0) = %v, want %v", i, c.n, a, c.w)
+		}
+	}
+}
+
+func TestHumanSize1(t *testing.T) {
+	cs := []struct {
+		w string
+		n float64
+	}{
+		{"1 KB", 1024},
+		{"1 MB", 1024 * 1024},
+		{"1 MB", 1048576},
+		{"2 MB", 2 * MB},
+		{"3.4 GB", 3.42 * GB},
+		{"12.3 GB", 12.3456 * GB},
+		{"123.5 GB", 123.456 * GB},
+		{"5.4 TB", 5.372 * TB},
+		{"2.2 PB", 2.22 * PB},
+		{"1048576 YB", KB * KB * KB * KB * KB * PB},
+	}
+
+	for i, c := range cs {
+		a := HumanSize(c.n, 1)
+		if a != c.w {
+			t.Errorf("[%d] HumanSize(%f, 1) = %v, want %v", i, c.n, a, c.w)
+		}
+	}
+}
+
+func TestHumanSize2(t *testing.T) {
 	cs := []struct {
 		w string
 		n float64
@@ -15,15 +94,16 @@ func TestHumanSize(t *testing.T) {
 		{"2 MB", 2 * MB},
 		{"3.42 GB", 3.42 * GB},
 		{"12.35 GB", 12.3456 * GB},
-		{"5.372 TB", 5.372 * TB},
+		{"123.46 GB", 123.456 * GB},
+		{"5.37 TB", 5.372 * TB},
 		{"2.22 PB", 2.22 * PB},
-		{"1.049e+06 YB", KB * KB * KB * KB * KB * PB},
+		{"1048576 YB", KB * KB * KB * KB * KB * PB},
 	}
 
 	for i, c := range cs {
-		a := HumanSize(c.n)
+		a := HumanSize(c.n, 2)
 		if a != c.w {
-			t.Errorf("[%d] HumanSize(%f) = %v, want %v", i, c.n, a, c.w)
+			t.Errorf("[%d] HumanSize(%f, 2) = %v, want %v", i, c.n, a, c.w)
 		}
 	}
 }

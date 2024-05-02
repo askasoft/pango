@@ -21,7 +21,7 @@
 
 <h2>Format</h2>
 <p>Comma:      1,234</p>
-<p>HumanSize:  1.205 KB</p>
+<p>HumanSize:  1.21 KB</p>
 <p>JSON:       {"Message":"Hello world!","Title":"Admin Page"}</p>
 
 <h2>Math</h2>

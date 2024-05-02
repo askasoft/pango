@@ -23,12 +23,12 @@ func BenchmarkFtoaRegexTrailing(b *testing.B) {
 
 func BenchmarkStripTrailingZeros(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		stripTrailingZeros("2.00000")
-		stripTrailingZeros("2.0000")
-		stripTrailingZeros("2.000")
-		stripTrailingZeros("2.00")
-		stripTrailingZeros("2.0")
-		stripTrailingZeros("2")
+		StripTrailingZeros("2.00000")
+		StripTrailingZeros("2.0000")
+		StripTrailingZeros("2.000")
+		StripTrailingZeros("2.00")
+		StripTrailingZeros("2.0")
+		StripTrailingZeros("2")
 	}
 }
 

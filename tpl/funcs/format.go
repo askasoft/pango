@@ -38,15 +38,15 @@ func Comma(n any, c ...string) (string, error) {
 }
 
 // HumanSize returns a human-readable approximation of a size
-// capped at 4 valid numbers (eg. "2.746 MB", "796 KB").
-func HumanSize(n any) (string, error) {
+// with specified precision digit numbers (default: 2) (eg. "2.75 MB", "796 KB").
+func HumanSize(n any, p ...int) (string, error) {
 	v := reflect.ValueOf(n)
 
 	switch v.Kind() {
 	case reflect.Int8, reflect.Uint8, reflect.Int, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return num.HumanSize(float64(v.Int())), nil
+		return num.HumanSize(float64(v.Int()), p...), nil
 	case reflect.Float32, reflect.Float64:
-		return num.HumanSize(v.Float()), nil
+		return num.HumanSize(v.Float(), p...), nil
 	default:
 		return "", fmt.Errorf("HumanSize: unknown type for '%v' (%T)", n, n)
 	}

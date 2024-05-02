@@ -1,6 +1,7 @@
 package num
 
 import (
+	"fmt"
 	"strconv"
 )
 
@@ -62,11 +63,33 @@ func Atof(s string, n ...float64) float64 {
 
 // Ftoa converts a float to a string with no trailing zeros.
 func Ftoa(f float64) string {
-	return stripTrailingZeros(strconv.FormatFloat(f, 'f', 6, 64))
+	return StripTrailingZeros(strconv.FormatFloat(f, 'f', 6, 64))
 }
 
 // FtoaWithDigits converts a float to a string but limits the resulting string
 // to the given number of decimal places, and no trailing zeros.
 func FtoaWithDigits(f float64, digits int) string {
-	return stripTrailingZeros(stripTrailingDigits(strconv.FormatFloat(f, 'f', 6, 64), digits))
+	switch {
+	case digits < 0:
+		return Ftoa(f)
+	case digits > 0:
+		return StripTrailingZeros(fmt.Sprintf("%.*f", digits, f))
+	default:
+		return fmt.Sprintf("%.0f", f)
+	}
+}
+
+func StripTrailingZeros(s string) string {
+	i := len(s) - 1
+	for i > 0 {
+		if s[i] == '.' {
+			i--
+			break
+		}
+		if s[i] != '0' {
+			break
+		}
+		i--
+	}
+	return s[:i+1]
 }

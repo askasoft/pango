@@ -14,24 +14,24 @@ import (
 type GormLogger struct {
 	Logger                   log.Logger
 	Level                    log.Level
+	ErrorSQLLevel            log.Level
 	SlowSQLLevel             log.Level
 	SlowThreshold            time.Duration
 	TraceRecordNotFoundError bool
 	ParameterizedQueries     bool
 }
 
-func NewGormLogger(logger log.Logger, slowSQL time.Duration, levels ...log.Level) *GormLogger {
+func NewGormLogger(logger log.Logger, slowSQL ...time.Duration) *GormLogger {
 	gl := &GormLogger{
 		Logger:        logger,
 		Level:         log.LevelDebug,
+		ErrorSQLLevel: log.LevelWarn,
 		SlowSQLLevel:  log.LevelWarn,
-		SlowThreshold: slowSQL,
+		SlowThreshold: time.Second,
 	}
-	if len(levels) > 0 {
-		gl.Level = levels[0]
-	}
-	if len(levels) > 1 {
-		gl.SlowSQLLevel = levels[1]
+
+	if len(slowSQL) > 0 {
+		gl.SlowThreshold = slowSQL[0]
 	}
 
 	return gl
@@ -73,16 +73,13 @@ func (gl *GormLogger) printf(lvl log.Level, msg string, data ...any) {
 
 // Trace print sql message
 func (gl *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (string, int64), err error) {
-	if !gl.Logger.IsErrorEnabled() {
-		return
-	}
-
 	elapsed := time.Since(begin)
+
 	switch {
-	case err != nil && (!errors.Is(err, gorm.ErrRecordNotFound) || gl.TraceRecordNotFoundError):
+	case err != nil && (!errors.Is(err, gorm.ErrRecordNotFound) || gl.TraceRecordNotFoundError) && gl.Logger.IsLevelEnabled(gl.ErrorSQLLevel):
 		sql, rows := fc()
-		gl.printf(log.LevelError, "%s [%d: %v] %s", err, rows, elapsed, sql)
-	case gl.SlowThreshold != 0 && elapsed > gl.SlowThreshold && gl.Logger.IsWarnEnabled():
+		gl.printf(gl.ErrorSQLLevel, "%s [%d: %v] %s", err, rows, elapsed, sql)
+	case gl.SlowThreshold != 0 && elapsed > gl.SlowThreshold && gl.Logger.IsLevelEnabled(gl.SlowSQLLevel):
 		sql, rows := fc()
 		gl.printf(gl.SlowSQLLevel, "SLOW >= %v [%d: %v] %s", gl.SlowThreshold, rows, elapsed, sql)
 	case gl.Logger.IsLevelEnabled(gl.Level):

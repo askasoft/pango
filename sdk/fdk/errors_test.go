@@ -1,4 +1,4 @@
-package openai
+package fdk
 
 import (
 	"encoding/json"
@@ -10,8 +10,8 @@ import (
 var _ sdk.Retryable = &ErrorResult{}
 
 func TestErrorResultUnmarshall(t *testing.T) {
-	body := `{"error":{"code":502,"message":"Bad gateway.","param":null,"type":"cf_bad_gateway"}}`
-	want := `502 Bad Gateway - cf_bad_gateway/502: Bad gateway.`
+	body := `{"code":"xxx","message":"Bad message."}`
+	want := `502 Bad Gateway - xxx/Bad message.`
 
 	er := &ErrorResult{
 		Status:     "502 Bad Gateway",

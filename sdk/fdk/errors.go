@@ -25,11 +25,11 @@ type ErrorResult struct {
 	Message     string   `json:"message,omitempty"`
 	Description string   `json:"description,omitempty"`
 	Errors      []*Error `json:"errors,omitempty"`
-	retryAfter  time.Duration
+	RetryAfter  time.Duration
 }
 
-func (er *ErrorResult) RetryAfter() time.Duration {
-	return er.retryAfter
+func (er *ErrorResult) GetRetryAfter() time.Duration {
+	return er.RetryAfter
 }
 
 func (er *ErrorResult) Detail() string {
@@ -61,8 +61,8 @@ func (er *ErrorResult) Detail() string {
 func (er *ErrorResult) Error() string {
 	es := er.Status
 
-	if er.retryAfter > 0 {
-		es = fmt.Sprintf("%s (Retry After %s)", es, er.retryAfter)
+	if er.RetryAfter > 0 {
+		es = fmt.Sprintf("%s (Retry After %s)", es, er.RetryAfter)
 	}
 
 	detail := er.Detail()

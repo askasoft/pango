@@ -49,16 +49,19 @@ type ErrorResult struct {
 	StatusCode int          `json:"-"` // http status code
 	Status     string       `json:"-"` // http status
 	Detail     *ErrorDetail `json:"error,omitempty"`
-
-	retryAfter time.Duration
+	RetryAfter time.Duration
 }
 
-func (er *ErrorResult) RetryAfter() time.Duration {
-	return er.retryAfter
+func (er *ErrorResult) GetRetryAfter() time.Duration {
+	return er.RetryAfter
 }
 
 func (er *ErrorResult) Error() string {
 	es := er.Status
+
+	if er.RetryAfter > 0 {
+		es = fmt.Sprintf("%s (Retry After %s)", es, er.RetryAfter)
+	}
 
 	if er.Detail != nil {
 		es = es + " - " + er.Detail.String()

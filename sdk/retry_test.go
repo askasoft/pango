@@ -9,6 +9,8 @@ import (
 	"github.com/askasoft/pango/log"
 )
 
+var _ Retryable = NewNetError(nil)
+
 type retryTestError struct {
 	NetError
 

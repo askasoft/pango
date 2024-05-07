@@ -14,6 +14,7 @@ func SelectRender(args ...any) (any, error) {
 type SelectRenderer struct {
 	Name     string
 	List     Iterator
+	Empty    string
 	Values   []string
 	Disabled bool
 	Multiple bool
@@ -45,6 +46,9 @@ func (sr *SelectRenderer) Render(sb *strings.Builder, args ...any) error {
 
 	TagStart(sb, "select", a)
 
+	if sr.Empty != "" {
+		sr.writeOption(sb, "", sr.Empty)
+	}
 	if sr.List != nil {
 		it := sr.List
 		for it.Next() {

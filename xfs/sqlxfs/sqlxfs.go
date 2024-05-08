@@ -3,6 +3,7 @@ package sqlxfs
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"io/fs"
 	"path/filepath"
 	"time"
@@ -103,6 +104,43 @@ func (sfs *sfs) ReadFile(id string) ([]byte, error) {
 	}
 
 	return f.Data, nil
+}
+
+func (sfs *sfs) CopyFile(src, dst string) error {
+	sql := fmt.Sprintf("INSERT INTO %s (id, name, ext, time, size, data) SELECT ?, name, ext, time, size, data FROM %s WHERE id = ?", sfs.tn, sfs.tn)
+	sql = sfs.db.Rebind(sql)
+
+	r, err := sfs.db.Exec(sql, dst, src)
+	if err != nil {
+		return err
+	}
+
+	ra, err := r.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if ra == 0 {
+		return fs.ErrNotExist
+	}
+	return nil
+}
+
+func (sfs *sfs) MoveFile(src, dst string) error {
+	sql := sfs.db.Rebind("UPDATE " + sfs.tn + " SET id = ? WHERE id = ?")
+
+	r, err := sfs.db.Exec(sql, dst, src)
+	if err != nil {
+		return err
+	}
+
+	ra, err := r.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if ra == 0 {
+		return fs.ErrNotExist
+	}
+	return nil
 }
 
 func (sfs *sfs) DeleteFile(id string) error {

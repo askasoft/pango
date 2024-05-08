@@ -2,6 +2,7 @@ package gormfs
 
 import (
 	"errors"
+	"fmt"
 	"io/fs"
 	"path/filepath"
 	"time"
@@ -72,6 +73,29 @@ func (gfs *gfs) ReadFile(id string) ([]byte, error) {
 		return nil, r.Error
 	}
 	return f.Data, nil
+}
+
+func (gfs *gfs) CopyFile(src, dst string) error {
+	sql := fmt.Sprintf("INSERT INTO %s (id, name, ext, time, size, data) SELECT ?, name, ext, time, size, data FROM %s WHERE id = ?", gfs.tn, gfs.tn)
+	r := gfs.db.Exec(sql, dst, src)
+	if r.Error != nil {
+		return r.Error
+	}
+	if r.RowsAffected == 0 {
+		return fs.ErrNotExist
+	}
+	return nil
+}
+
+func (gfs *gfs) MoveFile(src, dst string) error {
+	r := gfs.db.Table(gfs.tn).Where("id = ?", src).Update("id", dst)
+	if r.Error != nil {
+		return r.Error
+	}
+	if r.RowsAffected == 0 {
+		return fs.ErrNotExist
+	}
+	return nil
 }
 
 func (gfs *gfs) DeleteFile(id string) error {

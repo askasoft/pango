@@ -18,6 +18,12 @@ type XFS interface {
 	// ReadFile read file data
 	ReadFile(fid string) ([]byte, error)
 
+	// CopyFile copy file `src` to `dst`
+	CopyFile(src, dst string) error
+
+	// MoveFile move file `src` to `dst`
+	MoveFile(src, dst string) error
+
 	// DeleteFile delete file by id
 	DeleteFile(id string) error
 

@@ -16,6 +16,7 @@ type ChecksRenderer struct {
 	List     List[string, string]
 	Values   []string
 	Disabled bool
+	Ordered  bool
 }
 
 func (cr *ChecksRenderer) TagName() string {
@@ -34,12 +35,30 @@ func (cr *ChecksRenderer) Render(sb *strings.Builder, args ...any) error {
 	}
 
 	a.Class("ui-checks")
+	if cr.Ordered {
+		a.Class("ordered")
+	}
 
 	TagStart(sb, "div", a)
 
 	if cr.List != nil {
-		for it := cr.List.Iterator(); it.Next(); {
-			cr.writeCheckbox(sb, it.Key(), it.Value(), asg.Contains(cr.Values, it.Key()))
+		if cr.Ordered {
+			for _, k := range cr.Values {
+				if v, ok := cr.List.Get(k); ok {
+					cr.writeCheckbox(sb, k, v, true)
+				}
+			}
+			sb.WriteString("<hr>")
+
+			for it := cr.List.Iterator(); it.Next(); {
+				if !asg.Contains(cr.Values, it.Key()) {
+					cr.writeCheckbox(sb, it.Key(), it.Value(), false)
+				}
+			}
+		} else {
+			for it := cr.List.Iterator(); it.Next(); {
+				cr.writeCheckbox(sb, it.Key(), it.Value(), asg.Contains(cr.Values, it.Key()))
+			}
 		}
 	}
 

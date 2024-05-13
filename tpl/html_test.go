@@ -2,6 +2,7 @@ package tpl
 
 import (
 	"embed"
+	"os"
 	"strings"
 	"testing"
 
@@ -17,6 +18,8 @@ func testNewHtmlTpls() *HTMLTemplates {
 func testHtmlPage(t *testing.T, ht *HTMLTemplates, page string, ctx any) {
 	fexp := "testdata/" + page + ".html.exp"
 	fout := "testdata/" + page + ".html.out"
+
+	os.Remove(fout)
 
 	sb := &strings.Builder{}
 	err := ht.Render(sb, page, ctx)

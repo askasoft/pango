@@ -1,6 +1,7 @@
 package tpl
 
 import (
+	"os"
 	"strings"
 	"testing"
 
@@ -16,6 +17,8 @@ func testNewTextTpls() *TextTemplates {
 func testTextPage(t *testing.T, tt *TextTemplates, page string, ctx any) {
 	fexp := "testdata/" + page + ".txt.exp"
 	fout := "testdata/" + page + ".txt.out"
+
+	os.Remove(fout)
 
 	sb := &strings.Builder{}
 	err := tt.Render(sb, page, ctx)

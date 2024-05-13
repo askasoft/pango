@@ -11,7 +11,7 @@ func RadiosRender(args ...any) (any, error) {
 
 type RadiosRenderer struct {
 	Name     string
-	List     Iterator
+	List     List[string, string]
 	Value    string
 	Disabled bool
 }
@@ -32,8 +32,7 @@ func (rr *RadiosRenderer) Render(sb *strings.Builder, args ...any) error {
 	TagStart(sb, "div", a)
 
 	if rr.List != nil {
-		it := rr.List
-		for it.Next() {
+		for it := rr.List.Iterator(); it.Next(); {
 			rr.writeRadio(sb, it.Key(), it.Value(), it.Key() == rr.Value)
 		}
 	}

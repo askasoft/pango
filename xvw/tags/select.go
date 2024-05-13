@@ -13,7 +13,7 @@ func SelectRender(args ...any) (any, error) {
 
 type SelectRenderer struct {
 	Name     string
-	List     Iterator
+	List     List[string, string]
 	Empty    string
 	Values   []string
 	Disabled bool
@@ -49,9 +49,9 @@ func (sr *SelectRenderer) Render(sb *strings.Builder, args ...any) error {
 	if sr.Empty != "" {
 		sr.writeOption(sb, "", sr.Empty)
 	}
+
 	if sr.List != nil {
-		it := sr.List
-		for it.Next() {
+		for it := sr.List.Iterator(); it.Next(); {
 			sr.writeOption(sb, it.Key(), it.Value())
 		}
 	}

@@ -13,7 +13,7 @@ func ChecksRender(args ...any) (any, error) {
 
 type ChecksRenderer struct {
 	Name     string
-	List     Iterator
+	List     List[string, string]
 	Values   []string
 	Disabled bool
 }
@@ -38,8 +38,7 @@ func (cr *ChecksRenderer) Render(sb *strings.Builder, args ...any) error {
 	TagStart(sb, "div", a)
 
 	if cr.List != nil {
-		it := cr.List
-		for it.Next() {
+		for it := cr.List.Iterator(); it.Next(); {
 			cr.writeCheckbox(sb, it.Key(), it.Value(), asg.Contains(cr.Values, it.Key()))
 		}
 	}

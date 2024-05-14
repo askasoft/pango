@@ -215,12 +215,11 @@ func (sjm *sjm) AbortJob(jid int64, reason string) error {
 	return nil
 }
 
-func (sjm *sjm) CompleteJob(jid int64, result string) error {
+func (sjm *sjm) CompleteJob(jid int64) error {
 	sqb := &sqx.Builder{}
 
 	sqb.Update(sjm.jt)
 	sqb.Set("status = ?", xjm.JobStatusCompleted)
-	sqb.Set("result = ?", result)
 	sqb.Set("error = ?", "")
 	sqb.Set("updated_at = ?", time.Now())
 	sqb.Where("id = ?", jid)
@@ -304,6 +303,33 @@ func (sjm *sjm) RunningJob(jid, rid int64, state string) error {
 
 	sqb.Update(sjm.jt)
 	sqb.Set("state = ?", state)
+	sqb.Set("updated_at = ?", time.Now())
+	sqb.Where("id = ?", jid)
+	sqb.Where("rid = ?", rid)
+
+	sql, args := sqb.Build()
+	sql = sjm.db.Rebind(sql)
+
+	r, err := sjm.db.Exec(sql, args...)
+	if err != nil {
+		return err
+	}
+
+	c, err := r.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if c != 1 {
+		return xjm.ErrJobMissing
+	}
+	return nil
+}
+
+func (sjm *sjm) AddJobResult(jid, rid int64, result string) error {
+	sqb := &sqx.Builder{}
+
+	sqb.Update(sjm.jt)
+	sqb.Set("result = result || ?", result)
 	sqb.Set("updated_at = ?", time.Now())
 	sqb.Where("id = ?", jid)
 	sqb.Where("rid = ?", rid)

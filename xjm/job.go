@@ -17,10 +17,10 @@ var (
 )
 
 type Job struct {
-	ID        int64     `gorm:"not null;primaryKey;autoIncrement" uri:"id" form:"id" json:"id,omitempty"`
-	RID       int64     `gorm:"column:rid;not null" form:"rid" json:"rid,omitempty"` // job runner id
+	ID        int64     `gorm:"not null;primaryKey;autoIncrement" json:"id,omitempty"`
+	RID       int64     `gorm:"column:rid;not null" json:"rid,omitempty"`
 	Name      string    `gorm:"size:250;not null;index" json:"name,omitempty"`
-	Status    string    `gorm:"size:1;not null" form:"status" json:"status,omitempty"`
+	Status    string    `gorm:"size:1;not null" json:"status,omitempty"`
 	File      string    `gorm:"not null" json:"file,omitempty"`
 	Param     string    `gorm:"not null" json:"param,omitempty"`
 	State     string    `gorm:"not null" form:"state" json:"state,omitempty"`

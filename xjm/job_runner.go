@@ -78,14 +78,18 @@ func (jr *JobRunner) Running(state string) error {
 	return jr.jmr.RunningJob(jr.jid, jr.rid, state)
 }
 
+func (jr *JobRunner) AddResult(result string) error {
+	return jr.jmr.AddJobResult(jr.jid, jr.rid, result)
+}
+
 func (jr *JobRunner) Abort(reason string) error {
 	err := jr.jmr.AbortJob(jr.jid, reason)
 	jr.Log.Flush()
 	return err
 }
 
-func (jr *JobRunner) Complete(result string) error {
-	err := jr.jmr.CompleteJob(jr.jid, result)
+func (jr *JobRunner) Complete() error {
+	err := jr.jmr.CompleteJob(jr.jid)
 	jr.Log.Flush()
 	return err
 }

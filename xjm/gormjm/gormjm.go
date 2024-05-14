@@ -2,6 +2,7 @@ package gormjm
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/askasoft/pango/xjm"
@@ -164,11 +165,11 @@ func (gjm *gjm) AbortJob(jid int64, reason string) error {
 	return nil
 }
 
-func (gjm *gjm) CompleteJob(jid int64, result string) error {
-	job := &xjm.Job{Status: xjm.JobStatusCompleted, Result: result}
+func (gjm *gjm) CompleteJob(jid int64) error {
+	job := &xjm.Job{Status: xjm.JobStatusCompleted}
 
 	tx := gjm.db.Table(gjm.jt).Where("id = ?", jid)
-	r := tx.Select("status", "result", "error").Updates(job)
+	r := tx.Select("status", "error").Updates(job)
 	if r.Error != nil {
 		return r.Error
 	}
@@ -206,6 +207,18 @@ func (gjm *gjm) PingJob(jid, rid int64) error {
 func (gjm *gjm) RunningJob(jid, rid int64, state string) error {
 	tx := gjm.db.Table(gjm.jt).Where("id = ? AND rid = ?", jid, rid)
 	r := tx.Update("state", state)
+	if r.Error != nil {
+		return r.Error
+	}
+	if r.RowsAffected != 1 {
+		return xjm.ErrJobMissing
+	}
+	return nil
+}
+
+func (gjm *gjm) AddJobResult(jid, rid int64, result string) error {
+	sql := fmt.Sprintf("UPDATE %s SET result = result || ?, updated_at = ? WHERE id = ? AND rid = ?", gjm.jt)
+	r := gjm.db.Exec(sql, result, time.Now(), jid, rid)
 	if r.Error != nil {
 		return r.Error
 	}

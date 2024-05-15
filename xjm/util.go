@@ -7,24 +7,32 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
-func Encode(v any) string {
+func Encode(v any) (string, error) {
 	if v == nil {
-		return ""
+		return "", nil
 	}
 
 	if s, ok := v.(string); ok {
-		return s
+		return s, nil
 	}
 
 	if bs, ok := v.([]byte); ok {
-		return base64.StdEncoding.EncodeToString(bs)
+		return base64.StdEncoding.EncodeToString(bs), nil
 	}
 
 	bs, err := json.Marshal(v)
 	if err != nil {
+		return "", err
+	}
+	return str.UnsafeString(bs), nil
+}
+
+func MustEncode(v any) string {
+	s, err := Encode(v)
+	if err != nil {
 		panic(err)
 	}
-	return str.UnsafeString(bs)
+	return s
 }
 
 func Decode(p string, v any) error {
@@ -50,17 +58,17 @@ func Decode(p string, v any) error {
 	return json.Unmarshal(str.UnsafeBytes(p), v)
 }
 
+func MustDecode(p string, v any) {
+	err := Decode(p, v)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func toString(o any) string {
 	bs, err := json.MarshalIndent(o, "", "  ")
 	if err != nil {
 		return err.Error()
 	}
 	return string(bs)
-}
-
-func toMap(o string) (m map[string]any) {
-	if o != "" {
-		_ = json.Unmarshal(str.UnsafeBytes(o), &m)
-	}
-	return
 }

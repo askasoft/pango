@@ -49,11 +49,3 @@ func (j *Job) IsRunning() bool {
 func (j *Job) String() string {
 	return toString(j)
 }
-
-func (j *Job) Params() (m map[string]any) {
-	return toMap(j.Param)
-}
-
-func (j *Job) Results() (m map[string]any) {
-	return toMap(j.Result)
-}

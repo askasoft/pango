@@ -26,7 +26,7 @@ type Job struct {
 	State     string    `gorm:"not null" form:"state" json:"state,omitempty"`
 	Result    string    `gorm:"not null" json:"result,omitempty"`
 	Error     string    `gorm:"not null" json:"error,omitempty"`
-	CreatedAt time.Time `gorm:"<-:create;not null" json:"created_at,omitempty"`
+	CreatedAt time.Time `gorm:"not null;<-:create" json:"created_at,omitempty"`
 	UpdatedAt time.Time `gorm:"not null" json:"updated_at,omitempty"`
 }
 

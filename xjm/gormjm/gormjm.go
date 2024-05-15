@@ -24,7 +24,6 @@ func JM(db *gorm.DB, jobTable, logTable string) xjm.JobManager {
 	}
 }
 
-// CountJobLogs count job logs
 func (gjm *gjm) CountJobLogs(jid int64, levels ...string) (int64, error) {
 	tx := gjm.db.Table(gjm.lt).Where("jid = ?", jid)
 	if len(levels) > 0 {
@@ -36,8 +35,6 @@ func (gjm *gjm) CountJobLogs(jid int64, levels ...string) (int64, error) {
 	return cnt, r.Error
 }
 
-// GetJobLogs get job logs
-// set levels to ("I", "W", "E", "F") to filter DEBUG/TRACE logs
 func (gjm *gjm) GetJobLogs(jid int64, min, max int64, asc bool, limit int, levels ...string) ([]*xjm.JobLog, error) {
 	var jls []*xjm.JobLog
 
@@ -111,16 +108,12 @@ func (gjm *gjm) findJobs(name string, start, limit int, asc bool, status ...stri
 	return tx
 }
 
-// FindJobs find jobs by name.
-// status: status to filter.
 func (gjm *gjm) FindJobs(name string, start, limit int, asc bool, status ...string) (jobs []*xjm.Job, err error) {
 	tx := gjm.findJobs(name, start, limit, asc, status...)
 	err = tx.Find(&jobs).Error
 	return
 }
 
-// IterJobs find jobs by name and iterate.
-// status: status to filter.
 func (gjm *gjm) IterJobs(it func(*xjm.Job) error, name string, start, limit int, asc bool, status ...string) error {
 	tx := gjm.findJobs(name, start, limit, asc, status...)
 

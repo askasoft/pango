@@ -24,7 +24,6 @@ func JM(db sqlx.Sqlx, jobTable, logTable string) xjm.JobManager {
 	}
 }
 
-// CountJobLogs count job logs
 func (sjm *sjm) CountJobLogs(jid int64, levels ...string) (cnt int64, err error) {
 	sqb := &sqx.Builder{}
 
@@ -40,8 +39,6 @@ func (sjm *sjm) CountJobLogs(jid int64, levels ...string) (cnt int64, err error)
 	return
 }
 
-// GetJobLogs get job logs
-// set levels to ("I", "W", "E", "F") to filter DEBUG/TRACE logs
 func (sjm *sjm) GetJobLogs(jid int64, min, max int64, asc bool, limit int, levels ...string) (jls []*xjm.JobLog, err error) {
 	sqb := &sqx.Builder{}
 
@@ -85,8 +82,6 @@ func (sjm *sjm) GetJob(jid int64) (*xjm.Job, error) {
 	return job, nil
 }
 
-// FindJob find the latest job by name.
-// status: status to filter.
 func (sjm *sjm) FindJob(name string, asc bool, status ...string) (job *xjm.Job, err error) {
 	sqb := &sqx.Builder{}
 
@@ -123,8 +118,6 @@ func (sjm *sjm) findJobs(name string, start, limit int, asc bool, status ...stri
 	return sqb
 }
 
-// FindJobs find jobs by name.
-// status: status to filter.
 func (sjm *sjm) FindJobs(name string, start, limit int, asc bool, status ...string) (jobs []*xjm.Job, err error) {
 	sqb := sjm.findJobs(name, start, limit, asc, status...)
 	sql, args := sqb.Build()
@@ -137,8 +130,6 @@ func (sjm *sjm) FindJobs(name string, start, limit int, asc bool, status ...stri
 	return
 }
 
-// IterJobs find jobs by name and iterate.
-// status: status to filter.
 func (sjm *sjm) IterJobs(it func(*xjm.Job) error, name string, start, limit int, asc bool, status ...string) error {
 	sqb := sjm.findJobs(name, start, limit, asc, status...)
 	sql, args := sqb.Build()

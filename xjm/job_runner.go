@@ -12,18 +12,20 @@ type JobRunner struct {
 	jmr JobManager
 	jlw *JobLogWriter
 
-	jid int64 // Job ID
-	rid int64 // Runner ID
+	jnm string // Job Name
+	jid int64  // Job ID
+	rid int64  // Runner ID
 
 	pingAt    time.Time
 	PingAfter time.Duration // Ping after duration
 }
 
 // NewJobRunner create a JobRunner
-func NewJobRunner(jmr JobManager, jid, rid int64, logger ...log.Logger) *JobRunner {
+func NewJobRunner(jmr JobManager, jnm string, jid, rid int64, logger ...log.Logger) *JobRunner {
 	jr := &JobRunner{
 		Log:       log.NewLog(),
 		jmr:       jmr,
+		jnm:       jnm,
 		jid:       jid,
 		rid:       rid,
 		PingAfter: time.Second,
@@ -39,6 +41,10 @@ func NewJobRunner(jmr JobManager, jid, rid int64, logger ...log.Logger) *JobRunn
 	}
 
 	return jr
+}
+
+func (jr *JobRunner) JobName() string {
+	return jr.jnm
 }
 
 func (jr *JobRunner) JobID() int64 {

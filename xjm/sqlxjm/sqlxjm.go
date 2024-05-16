@@ -25,7 +25,7 @@ func JM(db sqlx.Sqlx, jobTable, logTable string) xjm.JobManager {
 }
 
 func (sjm *sjm) CountJobLogs(jid int64, levels ...string) (cnt int64, err error) {
-	sqb := &sqx.Builder{}
+	sqb := sqx.Builder{}
 
 	sqb.Select("COUNT(1)").From(sjm.lt).Where("jid = ?", jid)
 	if len(levels) > 0 {
@@ -40,7 +40,7 @@ func (sjm *sjm) CountJobLogs(jid int64, levels ...string) (cnt int64, err error)
 }
 
 func (sjm *sjm) GetJobLogs(jid int64, min, max int64, asc bool, limit int, levels ...string) (jls []*xjm.JobLog, err error) {
-	sqb := &sqx.Builder{}
+	sqb := sqx.Builder{}
 
 	sqb.Select("*").From(sjm.lt).Where("jid = ?", jid)
 	if len(levels) > 0 {
@@ -83,7 +83,7 @@ func (sjm *sjm) GetJob(jid int64) (*xjm.Job, error) {
 }
 
 func (sjm *sjm) FindJob(name string, asc bool, status ...string) (job *xjm.Job, err error) {
-	sqb := &sqx.Builder{}
+	sqb := sqx.Builder{}
 
 	sqb.Select("*").From(sjm.jt)
 	sqb.Where("name = ?", name)
@@ -158,7 +158,7 @@ func (sjm *sjm) IterJobs(it func(*xjm.Job) error, name string, start, limit int,
 func (sjm *sjm) AppendJob(name, file, param string) (int64, error) {
 	job := &xjm.Job{Name: name, File: file, Param: param, Status: xjm.JobStatusPending, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 
-	sqb := &sqx.Builder{}
+	sqb := sqx.Builder{}
 
 	sqb.Insert(sjm.jt)
 	sqb.Columns("rid", "name", "status", "file", "param", "state", "result", "error", "created_at", "updated_at")
@@ -179,7 +179,7 @@ func (sjm *sjm) AppendJob(name, file, param string) (int64, error) {
 }
 
 func (sjm *sjm) AbortJob(jid int64, reason string) error {
-	sqb := &sqx.Builder{}
+	sqb := sqx.Builder{}
 
 	sqb.Update(sjm.jt)
 	sqb.Set("status = ?", xjm.JobStatusAborted)
@@ -207,7 +207,7 @@ func (sjm *sjm) AbortJob(jid int64, reason string) error {
 }
 
 func (sjm *sjm) CompleteJob(jid int64) error {
-	sqb := &sqx.Builder{}
+	sqb := sqx.Builder{}
 
 	sqb.Update(sjm.jt)
 	sqb.Set("status = ?", xjm.JobStatusCompleted)
@@ -234,7 +234,7 @@ func (sjm *sjm) CompleteJob(jid int64) error {
 }
 
 func (sjm *sjm) CheckoutJob(jid, rid int64) error {
-	sqb := &sqx.Builder{}
+	sqb := sqx.Builder{}
 
 	sqb.Update(sjm.jt)
 	sqb.Set("rid = ?", rid)
@@ -263,7 +263,7 @@ func (sjm *sjm) CheckoutJob(jid, rid int64) error {
 }
 
 func (sjm *sjm) PingJob(jid, rid int64) error {
-	sqb := &sqx.Builder{}
+	sqb := sqx.Builder{}
 
 	sqb.Update(sjm.jt)
 	sqb.Set("updated_at = ?", time.Now())
@@ -290,7 +290,7 @@ func (sjm *sjm) PingJob(jid, rid int64) error {
 }
 
 func (sjm *sjm) RunningJob(jid, rid int64, state string) error {
-	sqb := &sqx.Builder{}
+	sqb := sqx.Builder{}
 
 	sqb.Update(sjm.jt)
 	sqb.Set("state = ?", state)
@@ -317,7 +317,7 @@ func (sjm *sjm) RunningJob(jid, rid int64, state string) error {
 }
 
 func (sjm *sjm) AddJobResult(jid, rid int64, result string) error {
-	sqb := &sqx.Builder{}
+	sqb := sqx.Builder{}
 
 	sqb.Update(sjm.jt)
 	sqb.Set("result = result || ?", result)
@@ -344,7 +344,7 @@ func (sjm *sjm) AddJobResult(jid, rid int64, result string) error {
 }
 
 func (sjm *sjm) ReappendJobs(before time.Time) (int64, error) {
-	sqb := &sqx.Builder{}
+	sqb := sqx.Builder{}
 
 	sqb.Update(sjm.jt)
 	sqb.Set("rid = ?", 0)
@@ -366,7 +366,7 @@ func (sjm *sjm) ReappendJobs(before time.Time) (int64, error) {
 }
 
 func (sjm *sjm) StartJobs(limit int, run func(*xjm.Job)) error {
-	sqb := &sqx.Builder{}
+	sqb := sqx.Builder{}
 
 	sqb.Select("*")
 	sqb.From(sjm.jt)
@@ -395,12 +395,12 @@ func (sjm *sjm) StartJobs(limit int, run func(*xjm.Job)) error {
 }
 
 func (sjm *sjm) CleanOutdatedJobs(before time.Time) (jobs int64, logs int64, err error) {
-	sqb := &sqx.Builder{}
+	sqb := sqx.Builder{}
 	sqb.Select("id").From(sjm.jt)
 	sqb.Where("updated_at < ?", before)
 	sqb.In("status", xjm.JobAbortedCompleted)
 
-	sqa := &sqx.Builder{}
+	sqa := sqx.Builder{}
 	sqa.Delete(sjm.lt)
 	sqa.Where("jid IN ("+sqb.SQL()+")", sqb.Params()...)
 

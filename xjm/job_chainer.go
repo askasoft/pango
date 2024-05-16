@@ -23,7 +23,7 @@ type JobChainer interface {
 	// CreateJobChain create a job chain
 	CreateJobChain(name, states string) (int64, error)
 
-	// UpcateJobChain update the job chain
+	// UpcateJobChain update the job chain, ignore empty status, states
 	UpdateJobChain(cid int64, status string, states ...string) error
 
 	// CleanOutdatedJobChains delete outdated job chains

@@ -101,13 +101,20 @@ func (gjc *gjc) CreateJobChain(name, states string) (int64, error) {
 }
 
 func (gjc *gjc) UpdateJobChain(cid int64, status string, states ...string) error {
-	jc := &xjm.JobChain{Status: status}
+	jc := &xjm.JobChain{}
 
 	cols := make([]string, 0, 2)
-	cols = append(cols, "status")
+	if status != "" {
+		jc.Status = status
+		cols = append(cols, "status")
+	}
 	if len(states) > 0 {
 		jc.States = states[0]
 		cols = append(cols, "states")
+	}
+
+	if len(cols) == 0 {
+		return nil
 	}
 
 	tx := gjc.db.Table(gjc.tb).Where("id = ?", cid)

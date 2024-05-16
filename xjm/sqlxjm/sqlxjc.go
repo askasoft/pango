@@ -37,7 +37,7 @@ func (sjc *sjc) GetJobChain(cid int64) (*xjm.JobChain, error) {
 }
 
 func (sjc *sjc) FindJobChain(name string, asc bool, status ...string) (jc *xjm.JobChain, err error) {
-	sqb := &sqx.Builder{}
+	sqb := sqx.Builder{}
 
 	sqb.Select("*").From(sjc.tb)
 	sqb.Where("name = ?", name)
@@ -112,7 +112,7 @@ func (sjc *sjc) IterJobChains(it func(*xjm.JobChain) error, name string, start, 
 func (sjc *sjc) CreateJobChain(name, states string) (int64, error) {
 	jc := &xjm.JobChain{Name: name, States: states, Status: xjm.JobStatusPending, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 
-	sqb := &sqx.Builder{}
+	sqb := sqx.Builder{}
 
 	sqb.Insert(sjc.tb)
 	sqb.Columns("name", "status", "states", "created_at", "updated_at")
@@ -133,14 +133,20 @@ func (sjc *sjc) CreateJobChain(name, states string) (int64, error) {
 }
 
 func (sjc *sjc) UpdateJobChain(cid int64, status string, states ...string) error {
-	sqb := &sqx.Builder{}
+	if status == "" && len(states) == 0 {
+		return nil
+	}
+
+	sqb := sqx.Builder{}
 
 	sqb.Update(sjc.tb)
-	sqb.Set("status = ?", status)
-	sqb.Set("updated_at = ?", time.Now())
+	if status != "" {
+		sqb.Set("status = ?", status)
+	}
 	if len(states) > 0 {
 		sqb.Set("states = ?", states[0])
 	}
+	sqb.Set("updated_at = ?", time.Now())
 	sqb.Where("id = ?", cid)
 
 	sql, args := sqb.Build()
@@ -162,7 +168,7 @@ func (sjc *sjc) UpdateJobChain(cid int64, status string, states ...string) error
 }
 
 func (sjc *sjc) CleanOutdatedJobChains(before time.Time) (cnt int64, err error) {
-	sqb := &sqx.Builder{}
+	sqb := sqx.Builder{}
 	sqb.Delete(sjc.tb)
 	sqb.Where("updated_at < ?", before)
 	sqb.In("status", xjm.JobChainAbortedCompleted)

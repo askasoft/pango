@@ -22,12 +22,11 @@ var (
 // IsIntType return true if v is an integer
 func IsIntType(v any) bool {
 	switch v.(type) {
-	case int, int8, int16, int32, int64:
-	case uint, uint8, uint16, uint32, uint64:
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
 		return true
+	default:
+		return false
 	}
-
-	return false
 }
 
 // IsFloatType return true if v is a float
@@ -35,9 +34,9 @@ func IsFloatType(v any) bool {
 	switch v.(type) {
 	case float32, float64:
 		return true
+	default:
+		return false
 	}
-
-	return false
 }
 
 // IsComplexType return true if v is a complex
@@ -45,17 +44,22 @@ func IsComplexType(v any) bool {
 	switch v.(type) {
 	case complex64, complex128:
 		return true
+	default:
+		return false
 	}
-
-	return false
 }
 
-// IsArrayType return true if v is a map
+// IsArrayType return true if v is a array
 func IsArrayType(v any) bool {
-	return reflect.TypeOf(v).Kind() == reflect.Array
+	return v != nil && reflect.TypeOf(v).Kind() == reflect.Array
 }
 
 // IsMapType return true if v is a map
 func IsMapType(v any) bool {
-	return reflect.TypeOf(v).Kind() == reflect.Map
+	return v != nil && reflect.TypeOf(v).Kind() == reflect.Map
+}
+
+// IsPtrType return true if v is a ptr
+func IsPtrType(v any) bool {
+	return v != nil && reflect.TypeOf(v).Kind() == reflect.Ptr
 }

@@ -163,10 +163,9 @@ func (gjm *gjm) AbortJob(jid int64, reason string) error {
 }
 
 func (gjm *gjm) CompleteJob(jid int64) error {
-	job := &xjm.Job{Status: xjm.JobStatusCompleted}
+	job := &xjm.Job{ID: jid, Status: xjm.JobStatusCompleted}
 
-	tx := gjm.db.Table(gjm.jt).Where("id = ?", jid)
-	r := tx.Select("status", "error").Updates(job)
+	r := gjm.db.Table(gjm.jt).Select("status", "error").Updates(job)
 	if r.Error != nil {
 		return r.Error
 	}
@@ -177,9 +176,10 @@ func (gjm *gjm) CompleteJob(jid int64) error {
 }
 
 func (gjm *gjm) CheckoutJob(jid, rid int64) error {
-	job := &xjm.Job{RID: rid, Status: xjm.JobStatusRunning, Error: ""}
+	job := &xjm.Job{RID: rid, Status: xjm.JobStatusRunning}
 
-	r := gjm.db.Table(gjm.jt).Select("rid", "status", "error").Where("id = ? AND status <> ?", jid, xjm.JobStatusRunning).Updates(job)
+	tx := gjm.db.Table(gjm.jt).Where("id = ? AND status <> ?", jid, xjm.JobStatusRunning)
+	r := tx.Select("rid", "status", "error").Updates(job)
 	if r.Error != nil {
 		return r.Error
 	}
@@ -226,7 +226,7 @@ func (gjm *gjm) AddJobResult(jid, rid int64, result string) error {
 }
 
 func (gjm *gjm) ReappendJobs(before time.Time) (int64, error) {
-	job := &xjm.Job{RID: 0, Status: xjm.JobStatusPending, Error: ""}
+	job := &xjm.Job{Status: xjm.JobStatusPending}
 
 	tx := gjm.db.Table(gjm.jt).Where("status = ? AND updated_at < ?", xjm.JobStatusRunning, before)
 	r := tx.Select("rid", "status", "error").Updates(job)

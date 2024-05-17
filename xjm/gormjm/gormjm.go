@@ -74,10 +74,11 @@ func (gjm *gjm) GetJob(jid int64) (*xjm.Job, error) {
 	return job, nil
 }
 
-// FindJob find the latest job by name.
-// status: status to filter.
 func (gjm *gjm) FindJob(name string, asc bool, status ...string) (*xjm.Job, error) {
-	tx := gjm.db.Table(gjm.jt).Where("name = ?", name)
+	tx := gjm.db.Table(gjm.jt)
+	if name != "" {
+		tx = tx.Where("name = ?", name)
+	}
 	if len(status) > 0 {
 		tx = tx.Where("status IN ?", status)
 	}
@@ -93,7 +94,10 @@ func (gjm *gjm) FindJob(name string, asc bool, status ...string) (*xjm.Job, erro
 }
 
 func (gjm *gjm) findJobs(name string, start, limit int, asc bool, status ...string) *gorm.DB {
-	tx := gjm.db.Table(gjm.jt).Where("name = ?", name)
+	tx := gjm.db.Table(gjm.jt)
+	if name != "" {
+		tx = tx.Where("name = ?", name)
+	}
 	if len(status) > 0 {
 		tx = tx.Where("status IN ?", status)
 	}

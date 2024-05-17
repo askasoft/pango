@@ -18,16 +18,19 @@ type JobManager interface {
 	// GetJob get job detail
 	GetJob(jid int64) (*Job, error)
 
-	// FindJob find the latest job by name.
-	// status: status to filter.
+	// FindJob find a job
+	// name: name to filter (optional)
+	// status: status to filter (optional)
 	FindJob(name string, asc bool, status ...string) (*Job, error)
 
-	// FindJobs find jobs by name.
-	// status: status to filter.
+	// FindJobs find jobs
+	// name: name to filter (optional)
+	// status: status to filter (optional)
 	FindJobs(name string, start, limit int, asc bool, status ...string) ([]*Job, error)
 
-	// IterJobs find jobs by name and iterate.
-	// status: status to filter.
+	// IterJobs find jobs and iterate
+	// name: name to filter (optional)
+	// status: status to filter (optional)
 	IterJobs(it func(job *Job) error, name string, start, limit int, asc bool, status ...string) error
 
 	// AppendJob append a pendding job

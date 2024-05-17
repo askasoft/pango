@@ -34,7 +34,10 @@ func (gjc *gjc) GetJobChain(cid int64) (*xjm.JobChain, error) {
 }
 
 func (gjc *gjc) FindJobChain(name string, asc bool, status ...string) (*xjm.JobChain, error) {
-	tx := gjc.db.Table(gjc.tb).Where("name = ?", name)
+	tx := gjc.db.Table(gjc.tb)
+	if name != "" {
+		tx = tx.Where("name = ?", name)
+	}
 	if len(status) > 0 {
 		tx = tx.Where("status IN ?", status)
 	}
@@ -50,7 +53,10 @@ func (gjc *gjc) FindJobChain(name string, asc bool, status ...string) (*xjm.JobC
 }
 
 func (gjc *gjc) findJobChains(name string, start, limit int, asc bool, status ...string) *gorm.DB {
-	tx := gjc.db.Table(gjc.tb).Where("name = ?", name)
+	tx := gjc.db.Table(gjc.tb)
+	if name != "" {
+		tx = tx.Where("name = ?", name)
+	}
 	if len(status) > 0 {
 		tx = tx.Where("status IN ?", status)
 	}

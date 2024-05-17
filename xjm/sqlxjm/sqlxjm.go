@@ -86,7 +86,9 @@ func (sjm *sjm) FindJob(name string, asc bool, status ...string) (job *xjm.Job, 
 	sqb := sqx.Builder{}
 
 	sqb.Select("*").From(sjm.jt)
-	sqb.Where("name = ?", name)
+	if name != "" {
+		sqb.Where("name = ?", name)
+	}
 	if len(status) > 0 {
 		sqb.In("status", status)
 	}
@@ -108,7 +110,10 @@ func (sjm *sjm) FindJob(name string, asc bool, status ...string) (job *xjm.Job, 
 func (sjm *sjm) findJobs(name string, start, limit int, asc bool, status ...string) *sqx.Builder {
 	sqb := &sqx.Builder{}
 
-	sqb.Select("*").From(sjm.jt).Where("name = ?", name)
+	sqb.Select("*").From(sjm.jt)
+	if name != "" {
+		sqb.Where("name = ?", name)
+	}
 	if len(status) > 0 {
 		sqb.In("status", status)
 	}

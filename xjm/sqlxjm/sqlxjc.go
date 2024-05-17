@@ -40,7 +40,9 @@ func (sjc *sjc) FindJobChain(name string, asc bool, status ...string) (jc *xjm.J
 	sqb := sqx.Builder{}
 
 	sqb.Select("*").From(sjc.tb)
-	sqb.Where("name = ?", name)
+	if name != "" {
+		sqb.Where("name = ?", name)
+	}
 	if len(status) > 0 {
 		sqb.In("status", status)
 	}
@@ -62,7 +64,10 @@ func (sjc *sjc) FindJobChain(name string, asc bool, status ...string) (jc *xjm.J
 func (sjc *sjc) findJobChains(name string, start, limit int, asc bool, status ...string) *sqx.Builder {
 	sqb := &sqx.Builder{}
 
-	sqb.Select("*").From(sjc.tb).Where("name = ?", name)
+	sqb.Select("*").From(sjc.tb)
+	if name != "" {
+		sqb.Where("name = ?", name)
+	}
 	if len(status) > 0 {
 		sqb.In("status", status)
 	}

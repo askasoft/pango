@@ -5,7 +5,7 @@ import (
 )
 
 type JobChainer interface {
-	// GetJobChain get job chain detail
+	// GetJobChain get a job chain
 	GetJobChain(cid int64) (*JobChain, error)
 
 	// FindJobChain find a job chain
@@ -28,6 +28,9 @@ type JobChainer interface {
 
 	// UpcateJobChain update the job chain, ignore empty status, states
 	UpdateJobChain(cid int64, status string, states ...string) error
+
+	// DeleteJobChains delete job chains
+	DeleteJobChains(cids ...int64) (int64, error)
 
 	// CleanOutdatedJobChains delete outdated job chains
 	CleanOutdatedJobChains(before time.Time) (int64, error)

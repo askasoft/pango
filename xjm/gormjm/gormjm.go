@@ -248,6 +248,22 @@ func (gjm *gjm) StartJobs(limit int, run func(*xjm.Job)) error {
 	return nil
 }
 
+func (gjm *gjm) DeleteJobs(jids ...int64) (jobs int64, logs int64, err error) {
+	if len(jids) == 0 {
+		return
+	}
+
+	r := gjm.db.Table(gjm.lt).Where("jid IN ?", jids).Delete(&xjm.JobLog{})
+	logs, err = r.RowsAffected, r.Error
+	if err != nil {
+		return
+	}
+
+	r = gjm.db.Table(gjm.jt).Where("id IN ?", jids).Delete(&xjm.Job{})
+	jobs, err = r.RowsAffected, r.Error
+	return
+}
+
 func (gjm *gjm) CleanOutdatedJobs(before time.Time) (jobs int64, logs int64, err error) {
 	jss := xjm.JobAbortedCompleted
 	where := "jid IN (SELECT id FROM " + gjm.jt + " WHERE status IN ? AND updated_at < ?)"

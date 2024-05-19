@@ -133,6 +133,16 @@ func (gjc *gjc) UpdateJobChain(cid int64, status string, states ...string) error
 	return nil
 }
 
+func (gjc *gjc) DeleteJobChains(cids ...int64) (cnt int64, err error) {
+	if len(cids) == 0 {
+		return
+	}
+
+	r := gjc.db.Table(gjc.tb).Where("id IN ?", cids).Delete(&xjm.JobChain{})
+	cnt, err = r.RowsAffected, r.Error
+	return
+}
+
 func (gjc *gjc) CleanOutdatedJobChains(before time.Time) (cnt int64, err error) {
 	jss := xjm.JobChainAbortedCompleted
 

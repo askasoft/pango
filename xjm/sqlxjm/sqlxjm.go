@@ -399,6 +399,37 @@ func (sjm *sjm) StartJobs(limit int, run func(*xjm.Job)) error {
 	return nil
 }
 
+func (sjm *sjm) DeleteJobs(jids ...int64) (jobs int64, logs int64, err error) {
+	if len(jids) == 0 {
+		return
+	}
+
+	sqa := sqx.Builder{}
+	sqa.Delete(sjm.lt)
+	sqa.In("jid", jids)
+
+	sql := sjm.db.Rebind(sqa.SQL())
+
+	var r sqlx.Result
+	if r, err = sjm.db.Exec(sql, sqa.Params()...); err != nil {
+		return
+	}
+	if logs, err = r.RowsAffected(); err != nil {
+		return
+	}
+
+	sqb := sqx.Builder{}
+	sqb.Delete(sjm.jt)
+	sqb.In("id", jids)
+
+	sql = sjm.db.Rebind(sqb.SQL())
+	if r, err = sjm.db.Exec(sql, sqb.Params()...); err != nil {
+		return
+	}
+	jobs, err = r.RowsAffected()
+	return
+}
+
 func (sjm *sjm) CleanOutdatedJobs(before time.Time) (jobs int64, logs int64, err error) {
 	sqb := sqx.Builder{}
 	sqb.Select("id").From(sjm.jt)

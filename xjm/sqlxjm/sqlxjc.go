@@ -172,6 +172,26 @@ func (sjc *sjc) UpdateJobChain(cid int64, status string, states ...string) error
 	return nil
 }
 
+func (sjc *sjc) DeleteJobChains(cids ...int64) (cnt int64, err error) {
+	if len(cids) == 0 {
+		return
+	}
+
+	sqb := sqx.Builder{}
+	sqb.Delete(sjc.tb)
+	sqb.In("id", cids)
+
+	sql := sjc.db.Rebind(sqb.SQL())
+
+	var r sqlx.Result
+	if r, err = sjc.db.Exec(sql, sqb.Params()...); err != nil {
+		return
+	}
+
+	cnt, err = r.RowsAffected()
+	return
+}
+
 func (sjc *sjc) CleanOutdatedJobChains(before time.Time) (cnt int64, err error) {
 	sqb := sqx.Builder{}
 	sqb.Delete(sjc.tb)

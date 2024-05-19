@@ -60,6 +60,9 @@ type JobManager interface {
 	// StartJobs start to run jobs
 	StartJobs(limit int, run func(*Job)) error
 
+	// DeleteJobs delete jobs
+	DeleteJobs(jids ...int64) (int64, int64, error)
+
 	// CleanOutdatedJobs delete outdated jobs
 	CleanOutdatedJobs(before time.Time) (int64, int64, error)
 }

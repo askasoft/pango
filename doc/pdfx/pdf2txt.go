@@ -9,13 +9,19 @@ import (
 
 // sudo apt install poppler-utils
 
-func ExtractTextFromPdfFile(name string) (string, error) {
+func ExtractTextFromPdfFile(ctx context.Context, name string) (string, error) {
 	bw := &bytes.Buffer{}
-	err := ExtractStringFromPdfFile(name, bw)
+	err := ExtractStringFromPdfFile(ctx, name, bw)
 	return bw.String(), err
 }
 
-func ExtractStringFromPdfFile(name string, w io.Writer) error {
+func ExtractTextFromPdfReader(ctx context.Context, r io.Reader) (string, error) {
+	bw := &bytes.Buffer{}
+	err := ExtractStringFromPdfReader(ctx, r, bw)
+	return bw.String(), err
+}
+
+func ExtractStringFromPdfFile(ctx context.Context, name string, w io.Writer) error {
 	// See "man pdftotext" for more options.
 	args := []string{
 		"-layout",  // Maintain (as best as possible) the original physical layout of the text
@@ -24,14 +30,13 @@ func ExtractStringFromPdfFile(name string, w io.Writer) error {
 		"-",        // The output file (stdout)
 	}
 
-	cmd := exec.CommandContext(context.Background(), "pdftotext", args...)
-
+	cmd := exec.CommandContext(ctx, "pdftotext", args...)
 	cmd.Stdout = w
 
 	return cmd.Run()
 }
 
-func ExtractStringFromPdfReader(r io.Reader, w io.Writer) error {
+func ExtractStringFromPdfReader(ctx context.Context, r io.Reader, w io.Writer) error {
 	// See "man pdftotext" for more options.
 	args := []string{
 		"-layout",  // Maintain (as best as possible) the original physical layout of the text
@@ -40,7 +45,7 @@ func ExtractStringFromPdfReader(r io.Reader, w io.Writer) error {
 		"-",        // The output file (stdout)
 	}
 
-	cmd := exec.CommandContext(context.Background(), "pdftotext", args...)
+	cmd := exec.CommandContext(ctx, "pdftotext", args...)
 	cmd.Stdin = r
 	cmd.Stdout = w
 

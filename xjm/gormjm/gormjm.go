@@ -58,8 +58,12 @@ func (gjm *gjm) GetJobLogs(jid int64, min, max int64, asc bool, limit int, level
 }
 
 func (gjm *gjm) AddJobLogs(jls []*xjm.JobLog) error {
-	r := gjm.db.Table(gjm.lt).Create(jls)
-	return r.Error
+	return gjm.db.Table(gjm.lt).Create(jls).Error
+}
+
+func (gjm *gjm) AddJobLog(jid int64, time time.Time, level string, message string) error {
+	jlg := &xjm.JobLog{JID: jid, Time: time, Level: level, Message: message}
+	return gjm.db.Table(gjm.lt).Create(jlg).Error
 }
 
 func (gjm *gjm) GetJob(jid int64) (*xjm.Job, error) {

@@ -2,6 +2,17 @@ package xjm
 
 import (
 	"time"
+
+	"github.com/askasoft/pango/log"
+)
+
+var (
+	JobLogLevelFatal = log.LevelFatal.Prefix()
+	JobLogLevelError = log.LevelError.Prefix()
+	JobLogLevelWarn  = log.LevelWarn.Prefix()
+	JobLogLevelInfo  = log.LevelInfo.Prefix()
+	JobLogLevelDebug = log.LevelDebug.Prefix()
+	JobLogLevelTrace = log.LevelTrace.Prefix()
 )
 
 type JobLog struct {

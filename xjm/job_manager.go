@@ -15,6 +15,9 @@ type JobManager interface {
 	// AddJobLogs append job logs
 	AddJobLogs([]*JobLog) error
 
+	// AddJobLog append a job log
+	AddJobLog(jid int64, time time.Time, level string, message string) error
+
 	// GetJob get job detail
 	GetJob(jid int64) (*Job, error)
 

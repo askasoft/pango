@@ -68,6 +68,22 @@ func (sjm *sjm) AddJobLogs(jls []*xjm.JobLog) error {
 	return err
 }
 
+func (sjm *sjm) AddJobLog(jid int64, time time.Time, level string, message string) error {
+	sqb := sqx.Builder{}
+
+	sqb.Insert(sjm.jt)
+	sqb.Set("jid", jid)
+	sqb.Set("time", time)
+	sqb.Set("level", level)
+	sqb.Set("message", message)
+
+	sql, args := sqb.Build()
+	sql = sjm.db.Rebind(sql)
+
+	_, err := sjm.db.Exec(sql, args...)
+	return err
+}
+
 func (sjm *sjm) GetJob(jid int64) (*xjm.Job, error) {
 	s := sjm.db.Rebind("SELECT * FROM " + sjm.jt + " WHERE id = ?")
 

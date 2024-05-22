@@ -18,7 +18,7 @@ type JobManager interface {
 	// AddJobLog append a job log
 	AddJobLog(jid int64, time time.Time, level string, message string) error
 
-	// GetJob get job detail
+	// GetJob get a job
 	GetJob(jid int64) (*Job, error)
 
 	// FindJob find a job
@@ -42,7 +42,7 @@ type JobManager interface {
 	// AbortJob abort the job
 	AbortJob(jid int64, reason string) error
 
-	// CompleteJob complete the job
+	// CompleteJob change job status from running to completed
 	CompleteJob(jid int64) error
 
 	// CheckoutJob checkout the job to the running status

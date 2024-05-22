@@ -167,9 +167,9 @@ func (gjm *gjm) AbortJob(jid int64, reason string) error {
 }
 
 func (gjm *gjm) CompleteJob(jid int64) error {
-	job := &xjm.Job{ID: jid, Status: xjm.JobStatusCompleted}
+	job := &xjm.Job{Status: xjm.JobStatusCompleted}
 
-	r := gjm.db.Table(gjm.jt).Select("status", "error").Updates(job)
+	r := gjm.db.Table(gjm.jt).Where("id = ? AND status = ?", jid, xjm.JobStatusRunning).Select("status", "error").Updates(job)
 	if r.Error != nil {
 		return r.Error
 	}

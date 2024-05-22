@@ -235,6 +235,7 @@ func (sjm *sjm) CompleteJob(jid int64) error {
 	sqb.Set("error = ?", "")
 	sqb.Set("updated_at = ?", time.Now())
 	sqb.Where("id = ?", jid)
+	sqb.Where("status = ?", xjm.JobStatusRunning)
 
 	sql, args := sqb.Build()
 	sql = sjm.db.Rebind(sql)

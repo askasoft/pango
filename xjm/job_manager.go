@@ -51,8 +51,8 @@ type JobManager interface {
 	// PingJob update the job updated_at to now
 	PingJob(jid, rid int64) error
 
-	// RunningJob update the running job state
-	RunningJob(jid, rid int64, state string) error
+	// SetJobState update the running job state
+	SetJobState(jid, rid int64, state string) error
 
 	// AddJobResult append result to the running job
 	AddJobResult(jid, rid int64, result string) error

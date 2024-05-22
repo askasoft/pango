@@ -205,7 +205,7 @@ func (gjm *gjm) PingJob(jid, rid int64) error {
 	return nil
 }
 
-func (gjm *gjm) RunningJob(jid, rid int64, state string) error {
+func (gjm *gjm) SetJobState(jid, rid int64, state string) error {
 	tx := gjm.db.Table(gjm.jt).Where("id = ? AND rid = ?", jid, rid)
 	r := tx.Update("state", state)
 	if r.Error != nil {

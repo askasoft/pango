@@ -310,7 +310,7 @@ func (sjm *sjm) PingJob(jid, rid int64) error {
 	return nil
 }
 
-func (sjm *sjm) RunningJob(jid, rid int64, state string) error {
+func (sjm *sjm) SetJobState(jid, rid int64, state string) error {
 	sqb := sqx.Builder{}
 
 	sqb.Update(sjm.jt)

@@ -81,7 +81,7 @@ func (jr *JobRunner) PingAborted() bool {
 }
 
 func (jr *JobRunner) Running(state string) error {
-	return jr.jmr.RunningJob(jr.jid, jr.rid, state)
+	return jr.jmr.SetJobState(jr.jid, jr.rid, state)
 }
 
 func (jr *JobRunner) AddResult(result string) error {

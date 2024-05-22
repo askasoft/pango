@@ -24,14 +24,30 @@ func (fbe *FieldBindError) Unwrap() error {
 // FieldBindErrors bind errors
 type FieldBindErrors []*FieldBindError
 
+func (fbes FieldBindErrors) As(err any) bool {
+	if pp, ok := err.(**FieldBindErrors); ok {
+		*pp = &fbes
+		return true
+	}
+	return false
+}
+
+func (fbes FieldBindErrors) Unwrap() []error {
+	errs := make([]error, len(fbes))
+	for i, fbe := range fbes {
+		errs[i] = fbe
+	}
+	return errs
+}
+
 // Error return a string representing the bind errors
 func (fbes FieldBindErrors) Error() string {
 	var sb strings.Builder
-	for i, e := range fbes {
+	for i, fbe := range fbes {
 		if i > 0 {
 			sb.WriteRune('\n')
 		}
-		sb.WriteString(e.Error())
+		sb.WriteString(fbe.Error())
 	}
 	return sb.String()
 }

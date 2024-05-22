@@ -1,7 +1,6 @@
 package vad
 
 import (
-	"bytes"
 	"fmt"
 	"reflect"
 	"strings"
@@ -11,9 +10,6 @@ const (
 	fieldErrMsg = "Key: '%s' Error:Field validation for '%s' failed on the '%s' tag"
 )
 
-// ValidationErrorsTranslations is the translation return type
-type ValidationErrorsTranslations map[string]string
-
 // InvalidValidationError describes an invalid argument passed to
 // `Struct`, `StructExcept`, StructPartial` or `Field`
 type InvalidValidationError struct {
@@ -22,11 +18,9 @@ type InvalidValidationError struct {
 
 // Error returns InvalidValidationError message
 func (e *InvalidValidationError) Error() string {
-
 	if e.Type == nil {
 		return "validator: (nil)"
 	}
-
 	return "validator: (nil " + e.Type.String() + ")"
 }
 
@@ -34,29 +28,39 @@ func (e *InvalidValidationError) Error() string {
 // for use in custom error messages post validation.
 type ValidationErrors []FieldError
 
+func (ves ValidationErrors) As(err any) bool {
+	if pp, ok := err.(**ValidationErrors); ok {
+		*pp = &ves
+		return true
+	}
+	return false
+}
+
+func (ves ValidationErrors) Unwrap() []error {
+	errs := make([]error, len(ves))
+	for i, fe := range ves {
+		errs[i] = fe
+	}
+	return errs
+}
+
 // Error is intended for use in development + debugging and not intended to be a production error message.
 // It allows ValidationErrors to subscribe to the Error interface.
 // All information to create an error message specific to your application is contained within
 // the FieldError found within the ValidationErrors array
-func (ve ValidationErrors) Error() string {
-
-	buff := bytes.NewBufferString("")
-
-	var fe *fieldError
-
-	for i := 0; i < len(ve); i++ {
-
-		fe = ve[i].(*fieldError)
-		buff.WriteString(fe.Error())
-		buff.WriteString("\n")
+func (ves ValidationErrors) Error() string {
+	sb := strings.Builder{}
+	for i, fe := range ves {
+		if i > 0 {
+			sb.WriteRune('\n')
+		}
+		sb.WriteString(fe.Error())
 	}
-
-	return strings.TrimSpace(buff.String())
+	return sb.String()
 }
 
 // FieldError contains all functions to get error details
 type FieldError interface {
-
 	// Tag returns the validation tag that failed. if the
 	// validation was an alias, this will return the
 	// alias name and not the underlying tag that failed.

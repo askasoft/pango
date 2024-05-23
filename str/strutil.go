@@ -215,15 +215,15 @@ func PascalCase(s string) string {
 	return sb.String()
 }
 
-// SnakeCase returns a copy of the string s with snake case c (default _).
-func SnakeCase(s string, c ...rune) string {
+// SnakeCase returns a copy of the string s with snake case.
+func SnakeCase(s string) string {
+	return SnakeCaseWithRune(s, '_')
+}
+
+// SnakeCaseWithRune returns a copy of the string s with snake case rune d.
+func SnakeCaseWithRune(s string, d rune) string {
 	if s == "" {
 		return s
-	}
-
-	d := '_'
-	if len(c) > 0 {
-		d = c[0]
 	}
 
 	uc := 0

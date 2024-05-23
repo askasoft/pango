@@ -1289,7 +1289,7 @@ func TestUsage(t *testing.T) {
 		if err != nil {
 			t.Error(err, "in db:", db.DriverName())
 		}
-		db.MapperFunc(DefaultNameMap)
+		db.MapperFunc(str.SnakeCase)
 
 		// create a copy and change the mapper, then verify the copy behaves
 		// differently from the original.
@@ -1754,7 +1754,7 @@ func BenchmarkBindStruct(b *testing.B) {
 
 func TestBindNamedMapper(t *testing.T) {
 	type A map[string]any
-	m := ref.NewMapperFunc("db", DefaultNameMap)
+	m := ref.NewMapperFunc("db", str.SnakeCase)
 	query, args, err := BindDollar.bindNamedMapper(`select :x`, A{
 		"x": "X!",
 	}, m)

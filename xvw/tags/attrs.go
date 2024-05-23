@@ -34,7 +34,7 @@ func (a Attrs) Add(k string, v string) {
 
 func (a Attrs) Data(k string, v string) {
 	if v != "" {
-		k = "data-" + str.SnakeCase(k, '-')
+		k = "data-" + str.SnakeCaseWithRune(k, '-')
 		a.Set(k, v)
 	}
 }

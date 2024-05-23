@@ -26,19 +26,10 @@ type Result = sql.Result
 // can be overridden by your user's application.
 
 // NameMapper is used to map column names to struct field names.  By default,
-// it uses str.SnakeCase to lowercase struct field names.  It can be set
+// it uses str.SnakeCase to snakecase struct field names.  It can be set
 // to whatever you want, but it is encouraged to be set before sqx is used
 // as name-to-field mappings are cached after first use on a type.
-var NameMapper = ref.NewMapperFunc("db", DefaultNameMap)
-
-// DefaultNameMap use str.SnakeCase() to map struct's field name to column name
-// Example:
-//
-//	ID -> id
-//	ZipCode -> zip_code
-func DefaultNameMap(s string) string {
-	return str.SnakeCase(s)
-}
+var NameMapper = ref.NewMapperFunc("db", str.SnakeCase)
 
 //------------------------------------------------
 // GO database/sql interface

@@ -24,6 +24,7 @@ import (
 
 	"github.com/askasoft/pango/ref"
 	"github.com/askasoft/pango/sqx"
+	"github.com/askasoft/pango/str"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
@@ -1029,7 +1030,7 @@ func TestUsageContext(t *testing.T) {
 		if err != nil {
 			t.Error(err, "in db:", db.DriverName())
 		}
-		db.MapperFunc(DefaultNameMap)
+		db.MapperFunc(str.SnakeCase)
 
 		// create a copy and change the mapper, then verify the copy behaves
 		// differently from the original.

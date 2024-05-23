@@ -51,15 +51,20 @@ func IsComplexType(v any) bool {
 
 // IsArrayType return true if v is a array
 func IsArrayType(v any) bool {
-	return v != nil && reflect.TypeOf(v).Kind() == reflect.Array
+	return reflect.TypeOf(v).Kind() == reflect.Array
+}
+
+// IsSliceType return true if v is a array
+func IsSliceType(v any) bool {
+	return reflect.TypeOf(v).Kind() == reflect.Slice
 }
 
 // IsMapType return true if v is a map
 func IsMapType(v any) bool {
-	return v != nil && reflect.TypeOf(v).Kind() == reflect.Map
+	return reflect.TypeOf(v).Kind() == reflect.Map
 }
 
 // IsPtrType return true if v is a ptr
 func IsPtrType(v any) bool {
-	return v != nil && reflect.TypeOf(v).Kind() == reflect.Ptr
+	return reflect.TypeOf(v).Kind() == reflect.Ptr
 }

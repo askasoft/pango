@@ -8,6 +8,10 @@ import (
 )
 
 func SetProperty(o any, k string, v any) (err error) {
+	if !IsPtrType(o) {
+		return fmt.Errorf("%T is not a pointer", o)
+	}
+
 	defer func() {
 		if er := recover(); er != nil {
 			err = fmt.Errorf("SetProperty(%v, %q, %v): %v", o, k, v, er)

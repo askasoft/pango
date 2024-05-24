@@ -84,26 +84,43 @@ func TestCapitalize(t *testing.T) {
 func TestCamelCase(t *testing.T) {
 	var tests = []StringTest{
 		{"", ""},
+		{"abcAbc", "abcAbc"},
 		{"abc_abc", "abcAbc"},
+		{"abc__abc", "abcAbc"},
+		{"_abc_abc", "abcAbc"},
+		{"_Abc__abc", "abcAbc"},
 		{"ABC", "abc"},
+		{"abcABC", "abcAbc"},
+		{"AbcABC", "abcAbc"},
+		{"ABcABC", "abcAbc"},
+		{"ABcAbC", "abcAbC"},
 		{"Хлеб", "хлеб"},
 		{"Хлеб-Хлеб", "хлебХлеб"},
 	}
 
 	runStringTests(t, func(s string) string { return CamelCase(s) }, "CamelCase", tests)
+	runStringTests(t, func(s string) string { return CamelCase(CamelCase(s)) }, "CamelCase2", tests)
 }
 
 func TestPascalCase(t *testing.T) {
 	var tests = []StringTest{
 		{"", ""},
+		{"AbcAbc", "AbcAbc"},
 		{"abc_abc", "AbcAbc"},
 		{"abc__abc", "AbcAbc"},
+		{"_abc_abc", "AbcAbc"},
+		{"_abc__abc", "AbcAbc"},
 		{"ABC", "Abc"},
+		{"abcABC", "AbcAbc"},
+		{"AbcABC", "AbcAbc"},
+		{"ABcABC", "AbcAbc"},
+		{"ABcAbC", "AbcAbC"},
 		{"хлеб", "Хлеб"},
 		{"хлеб-Хлеб", "ХлебХлеб"},
 	}
 
 	runStringTests(t, func(s string) string { return PascalCase(s) }, "PascalCase", tests)
+	runStringTests(t, func(s string) string { return PascalCase(PascalCase(s)) }, "PascalCase2", tests)
 }
 
 func TestSnakeCase(t *testing.T) {
@@ -124,6 +141,7 @@ func TestSnakeCase(t *testing.T) {
 	}
 
 	runStringTests(t, func(s string) string { return SnakeCase(s) }, "SnakeCase", tests)
+	runStringTests(t, func(s string) string { return SnakeCase(SnakeCase(s)) }, "SnakeCase2", tests)
 }
 
 func TestStrip(t *testing.T) {

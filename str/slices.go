@@ -9,16 +9,16 @@ import (
 
 // ToLowers lowercase all string in the string array ss.
 func ToLowers(ss []string) []string {
-	for i := 0; i < len(ss); i++ {
-		ss[i] = strings.ToLower(ss[i])
+	for i, s := range ss {
+		ss[i] = strings.ToLower(s)
 	}
 	return ss
 }
 
 // ToUppers uppercase all string in the string array ss.
 func ToUppers(ss []string) []string {
-	for i := 0; i < len(ss); i++ {
-		ss[i] = strings.ToUpper(ss[i])
+	for i, s := range ss {
+		ss[i] = strings.ToUpper(s)
 	}
 	return ss
 }
@@ -30,26 +30,24 @@ func Strips(ss []string) []string {
 
 // StripLefts left strip all string in the string array ss.
 func StripLefts(ss []string) []string {
-	cnt := len(ss)
-	for i := 0; i < cnt; i++ {
-		ss[i] = StripLeft(ss[i])
+	for i, s := range ss {
+		ss[i] = StripLeft(s)
 	}
 	return ss
 }
 
 // StripRights right strip all string in the string array ss.
 func StripRights(ss []string) []string {
-	cnt := len(ss)
-	for i := 0; i < cnt; i++ {
-		ss[i] = StripRight(ss[i])
+	for i, s := range ss {
+		ss[i] = StripRight(s)
 	}
 	return ss
 }
 
 // TrimSpaces trim every string in the string array.
 func TrimSpaces(ss []string) []string {
-	for i := 0; i < len(ss); i++ {
-		ss[i] = strings.TrimSpace(ss[i])
+	for i, s := range ss {
+		ss[i] = strings.TrimSpace(s)
 	}
 	return ss
 }

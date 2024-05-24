@@ -162,25 +162,57 @@ func CamelCase(s string) string {
 		return s
 	}
 
-	uc := false
+	last, next := true, false
 
 	var sb strings.Builder
-	sb.Grow(len(s))
 
-	for _, r := range s {
+	for i, r := range s {
 		if r == '_' || r == '-' {
-			uc = true
+			next = true
+			if sb.Cap() == 0 {
+				sb.Grow(len(s))
+				sb.WriteString(s[:i])
+			}
 			continue
 		}
 
-		if uc {
-			sb.WriteRune(unicode.ToUpper(r))
-			uc = false
+		if next {
+			last, next = true, false
+
+			if i == 0 && unicode.IsLower(r) {
+				continue
+			}
+
+			if sb.Len() == 0 {
+				r = unicode.ToLower(r)
+			} else {
+				r = unicode.ToUpper(r)
+			}
+			sb.WriteRune(r)
+			continue
+		}
+
+		if last {
+			last = unicode.IsUpper(r)
+			if last {
+				r = unicode.ToLower(r)
+				if sb.Cap() == 0 {
+					sb.Grow(len(s))
+					sb.WriteString(s[:i])
+				}
+			}
 		} else {
-			sb.WriteRune(unicode.ToLower(r))
+			last = unicode.IsUpper(r)
+		}
+		if sb.Cap() > 0 {
+			sb.WriteRune(r)
 		}
 	}
-	return sb.String()
+
+	if sb.Cap() > 0 {
+		return sb.String()
+	}
+	return s
 }
 
 // PascalCase returns a copy of the string s with pascal case.
@@ -189,30 +221,51 @@ func PascalCase(s string) string {
 		return s
 	}
 
-	uc := false
+	last, next := false, true
 
 	var sb strings.Builder
-	sb.Grow(len(s))
 
-	for _, r := range s {
+	for i, r := range s {
 		if r == '_' || r == '-' {
-			uc = true
+			next = true
+			if sb.Cap() == 0 {
+				sb.Grow(len(s))
+				sb.WriteString(s[:i])
+			}
 			continue
 		}
 
-		if uc {
+		if next {
+			last, next = true, false
+
+			if i == 0 && unicode.IsUpper(r) {
+				continue
+			}
 			sb.WriteRune(unicode.ToUpper(r))
-			uc = false
 			continue
 		}
 
-		if sb.Len() == 0 {
-			sb.WriteRune(unicode.ToUpper(r))
+		if last {
+			last = unicode.IsUpper(r)
+			if last {
+				r = unicode.ToLower(r)
+				if sb.Cap() == 0 {
+					sb.Grow(len(s))
+					sb.WriteString(s[:i])
+				}
+			}
 		} else {
-			sb.WriteRune(unicode.ToLower(r))
+			last = unicode.IsUpper(r)
+		}
+		if sb.Cap() > 0 {
+			sb.WriteRune(r)
 		}
 	}
-	return sb.String()
+
+	if sb.Cap() > 0 {
+		return sb.String()
+	}
+	return s
 }
 
 // SnakeCase returns a copy of the string s with snake case.
@@ -266,6 +319,12 @@ func SnakeCaseWithRune(s string, d rune) string {
 // and trailing white space removed, as defined by Unicode.
 func Strip(s string) string {
 	return strings.TrimSpace(s)
+}
+
+// TrimAny returns a slice of the string s, with all leading
+// and trailing cutset removed.
+func TrimAny(s string, cutset string) string {
+	return strings.TrimRight(strings.TrimLeft(s, cutset), cutset)
 }
 
 var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}

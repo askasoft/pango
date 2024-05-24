@@ -11,7 +11,7 @@ func TestToLowers(t *testing.T) {
 		s []string
 		w []string
 	}{
-		{[]string{" A "}, []string{" a "}},
+		{[]string{" A ", " B "}, []string{" a ", " b "}},
 	}
 
 	for i, c := range cs {
@@ -27,7 +27,7 @@ func TestToUppers(t *testing.T) {
 		s []string
 		w []string
 	}{
-		{[]string{" a "}, []string{" A "}},
+		{[]string{" a ", " b "}, []string{" A ", " B "}},
 	}
 
 	for i, c := range cs {
@@ -43,7 +43,7 @@ func TestTrimSpaces(t *testing.T) {
 		s []string
 		w []string
 	}{
-		{[]string{" a "}, []string{"a"}},
+		{[]string{" a ", " b "}, []string{"a", "b"}},
 	}
 
 	for i, c := range cs {

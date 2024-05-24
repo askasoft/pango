@@ -49,6 +49,8 @@ func utcMilli(msec int64) time.Time {
 	return time.Unix(msec/1e3, (msec%1e3)*1e6).UTC()
 }
 
+var timeFormats = []string{time.RFC3339, "2006-01-02 15:04:05", "2006-01-02", "15:04:05"}
+
 func ToTime(v any) (time.Time, error) {
 	if v == nil {
 		return time.Time{}, nil
@@ -59,7 +61,15 @@ func ToTime(v any) (time.Time, error) {
 		if s == "" {
 			return time.Time{}, nil
 		}
-		return time.Parse(time.RFC3339, s)
+
+		tf := timeFormats[0]
+		for _, f := range timeFormats {
+			if len(f) == len(s) {
+				tf = f
+				break
+			}
+		}
+		return time.ParseInLocation(tf, s, time.Local)
 	case int8:
 		return utcMilli(int64(s)), nil
 	case int16:

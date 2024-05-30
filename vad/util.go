@@ -212,7 +212,7 @@ BEGIN:
 }
 
 func split2(param string) (string, string) {
-	ps := str.FieldsAny(param, " ~:～：")
+	ps := str.FieldsAny(param, " ~～")
 	if len(ps) != 2 {
 		panic("vad: Invalid btw(between) expression")
 	}

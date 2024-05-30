@@ -28,7 +28,6 @@ type Address struct {
 var validate *vad.Validate
 
 func main() {
-
 	validate = vad.New()
 
 	validateStruct()
@@ -36,7 +35,6 @@ func main() {
 }
 
 func validateStruct() {
-
 	address := &Address{
 		Street: "Eavesdown Docks",
 		Planet: "Persphone",
@@ -55,7 +53,6 @@ func validateStruct() {
 	// returns nil or ValidationErrors ( []FieldError )
 	err := validate.Struct(user)
 	if err != nil {
-
 		// this check is only needed when your code could produce
 		// an invalid value for validation such as interface with nil
 		// value most including myself do not usually have code like this.
@@ -65,7 +62,6 @@ func validateStruct() {
 		}
 
 		for _, err := range err.(vad.ValidationErrors) {
-
 			fmt.Println(err.Namespace())
 			fmt.Println(err.Field())
 			fmt.Println(err.StructNamespace())
@@ -87,7 +83,6 @@ func validateStruct() {
 }
 
 func validateVariable() {
-
 	myEmail := "joeybloggs.gmail.com"
 
 	errs := validate.Var(myEmail, "required,email")

@@ -8,20 +8,19 @@ import (
 
 // Test ...
 type Test struct {
-	Array []string          `validate:"required,gt=0,dive,required"`
-	Map   map[string]string `validate:"required,gt=0,dive,keys,keymax,endkeys,required,max=1000"`
+	Array []string          `validate:"required,dive,required"`
+	Map   map[string]string `validate:"required,dive,keys,keymax,endkeys,required,maxlen=1000"`
 }
 
 // use a single instance of Validate, it caches struct info
 var validate *vad.Validate
 
 func main() {
-
 	validate = vad.New()
 
 	// registering alias so we can see the differences between
 	// map key, value validation errors
-	validate.RegisterAlias("keymax", "max=10")
+	validate.RegisterAlias("keymax", "maxlen=10")
 
 	var test Test
 

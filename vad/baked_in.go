@@ -75,10 +75,10 @@ var (
 		"excluded_without":              excludedWithout,
 		"excluded_without_all":          excludedWithoutAll,
 		"isdefault":                     isDefault,
-		"len":                           isLengthEq,
-		"minlen":                        isLengthGte,
-		"maxlen":                        isLengthLte,
-		"btwlen":                        isLengthBtw,
+		"len":                           isLen,
+		"minlen":                        isMinLen,
+		"maxlen":                        isMaxLen,
+		"btwlen":                        isBtwLen,
 		"min":                           isGte,
 		"max":                           isLte,
 		"eq":                            isEq,
@@ -225,7 +225,7 @@ func isOneOf(fl FieldLevel) bool {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		v = strconv.FormatUint(field.Uint(), 10)
 	default:
-		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+		panic(fmt.Sprintf("oneof: bad field type %T", field.Interface()))
 	}
 	for i := 0; i < len(vals); i++ {
 		if vals[i] == v {
@@ -259,7 +259,7 @@ func isUnique(fl FieldLevel) bool {
 
 		sf, ok := elem.FieldByName(param)
 		if !ok {
-			panic(fmt.Sprintf("Bad field name %s", param))
+			panic(fmt.Sprintf("unique: bad field name %s", param))
 		}
 
 		sfTyp := sf.Type
@@ -280,7 +280,7 @@ func isUnique(fl FieldLevel) bool {
 		}
 		return field.Len() == m.Len()
 	default:
-		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+		panic(fmt.Sprintf("unique: bad field type %T", field.Interface()))
 	}
 }
 
@@ -341,7 +341,7 @@ func isLongitude(fl FieldLevel) bool {
 	case reflect.Float64:
 		v = strconv.FormatFloat(field.Float(), 'f', -1, 64)
 	default:
-		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+		panic(fmt.Sprintf("longitude: bad field type %T", field.Interface()))
 	}
 
 	return IsLongitude(v)
@@ -364,7 +364,7 @@ func isLatitude(fl FieldLevel) bool {
 	case reflect.Float64:
 		v = strconv.FormatFloat(field.Float(), 'f', -1, 64)
 	default:
-		panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+		panic(fmt.Sprintf("latitude: bad field type %T", field.Interface()))
 	}
 
 	return IsLatitude(v)
@@ -994,10 +994,6 @@ func isEq(fl FieldLevel) bool {
 	case reflect.String:
 		return field.String() == param
 
-	case reflect.Slice, reflect.Map, reflect.Array:
-		p := asInt(param)
-		return int64(field.Len()) == p
-
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		p := asIntFromType(field.Type(), param)
 		return field.Int() == p
@@ -1013,9 +1009,16 @@ func isEq(fl FieldLevel) bool {
 	case reflect.Bool:
 		p := asBool(param)
 		return field.Bool() == p
+
+	case reflect.Struct:
+		if field.Type() == timeType {
+			p := asTime(param)
+			t := field.Interface().(time.Time)
+			return t.Equal(p)
+		}
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	panic(fmt.Sprintf("eq: bad field type %T", field.Interface()))
 }
 
 // isPostcodeByIso3166Alpha2 validates by value which is country code in iso 3166 alpha 2
@@ -1048,7 +1051,7 @@ func isPostcodeByIso3166Alpha2Field(fl FieldLevel) bool {
 	}
 
 	if kind != reflect.String {
-		panic(fmt.Sprintf("Bad field type %T", currentField.Interface()))
+		panic(fmt.Sprintf("postcode_iso3166_alpha2_field: bad field type %T", currentField.Interface()))
 	}
 
 	reg, found := postCodeRegexDict[currentField.String()]
@@ -1103,7 +1106,7 @@ func isFile(fl FieldLevel) bool {
 		return !fileInfo.IsDir()
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	panic(fmt.Sprintf("file: bad field type %T", field.Interface()))
 }
 
 // isE164 is the validation function for validating if the current field's value is a valid e.164 formatted phone number.
@@ -1395,8 +1398,8 @@ func requiredWithoutAll(fl FieldLevel) bool {
 	return hasValue(fl)
 }
 
-// isLengthEq is the validation function for validating if the current field's value is equal to the param's value.
-func isLengthEq(fl FieldLevel) bool {
+// isLen is the validation function for validating if the current field's value is equal to the param's value.
+func isLen(fl FieldLevel) bool {
 	field := fl.Field()
 	param := fl.Param()
 
@@ -1410,11 +1413,11 @@ func isLengthEq(fl FieldLevel) bool {
 		return int64(field.Len()) == p
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	panic(fmt.Sprintf("len: bad field type %T", field.Interface()))
 }
 
-// isLengthLte is the validation function for validating if the current field's value is less than or equal to the param's value.
-func isLengthLte(fl FieldLevel) bool {
+// isMaxLen is the validation function for validating if the current field's value is less than or equal to the param's value.
+func isMaxLen(fl FieldLevel) bool {
 	field := fl.Field()
 	param := fl.Param()
 
@@ -1428,11 +1431,11 @@ func isLengthLte(fl FieldLevel) bool {
 		return int64(field.Len()) <= p
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	panic(fmt.Sprintf("maxlen: bad field type %T", field.Interface()))
 }
 
-// isLengthGte is the validation function for validating if the current field's length or rune count is greater than or equal to the param's value.
-func isLengthGte(fl FieldLevel) bool {
+// isMinLen is the validation function for validating if the current field's length or rune count is greater than or equal to the param's value.
+func isMinLen(fl FieldLevel) bool {
 	field := fl.Field()
 	param := fl.Param()
 
@@ -1446,11 +1449,11 @@ func isLengthGte(fl FieldLevel) bool {
 		return int64(field.Len()) >= p
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	panic(fmt.Sprintf("minlen: bad field type %T", field.Interface()))
 }
 
-// isLengthBtw is the validation function for validating if the current field's length or rune count is between the param's value.
-func isLengthBtw(fl FieldLevel) bool {
+// isBtwLen is the validation function for validating if the current field's length or rune count is between the param's value.
+func isBtwLen(fl FieldLevel) bool {
 	field := fl.Field()
 	param := fl.Param()
 
@@ -1466,7 +1469,7 @@ func isLengthBtw(fl FieldLevel) bool {
 		return l >= p1 && l <= p2
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	panic(fmt.Sprintf("btwlen: bad field type %T", field.Interface()))
 }
 
 // isGteField is the validation function for validating if the current field's value is greater than or equal to the field specified by the param's value.
@@ -1553,6 +1556,9 @@ func isGte(fl FieldLevel) bool {
 	param := fl.Param()
 
 	switch field.Kind() {
+	case reflect.String:
+		return field.String() >= param
+
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		p := asIntFromType(field.Type(), param)
 		return field.Int() >= p
@@ -1573,7 +1579,7 @@ func isGte(fl FieldLevel) bool {
 		}
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	panic(fmt.Sprintf("gte: bad field type %T", field.Interface()))
 }
 
 // isGt is the validation function for validating if the current field's value is greater than the param's value.
@@ -1583,12 +1589,7 @@ func isGt(fl FieldLevel) bool {
 
 	switch field.Kind() {
 	case reflect.String:
-		p := asInt(param)
-		return int64(utf8.RuneCountInString(field.String())) > p
-
-	case reflect.Slice, reflect.Map, reflect.Array:
-		p := asInt(param)
-		return int64(field.Len()) > p
+		return field.String() > param
 
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		p := asIntFromType(field.Type(), param)
@@ -1610,7 +1611,7 @@ func isGt(fl FieldLevel) bool {
 		}
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	panic(fmt.Sprintf("gt: bad field type %T", field.Interface()))
 }
 
 // isLteField is the validation function for validating if the current field's value is less than or equal to the field specified by the param's value.
@@ -1697,6 +1698,9 @@ func isLte(fl FieldLevel) bool {
 	param := fl.Param()
 
 	switch field.Kind() {
+	case reflect.String:
+		return field.String() <= param
+
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		p := asIntFromType(field.Type(), param)
 		return field.Int() <= p
@@ -1711,13 +1715,13 @@ func isLte(fl FieldLevel) bool {
 
 	case reflect.Struct:
 		if field.Type() == timeType {
-			now := time.Now().UTC()
+			p := asTime(param)
 			t := field.Interface().(time.Time)
-			return t.Before(now) || t.Equal(now)
+			return t.Before(p) || t.Equal(p)
 		}
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	panic(fmt.Sprintf("lte: bad field type %T", field.Interface()))
 }
 
 // isLt is the validation function for validating if the current field's value is less than the param's value.
@@ -1727,8 +1731,7 @@ func isLt(fl FieldLevel) bool {
 
 	switch field.Kind() {
 	case reflect.String:
-		p := asInt(param)
-		return int64(utf8.RuneCountInString(field.String())) < p
+		return field.String() < param
 
 	case reflect.Slice, reflect.Map, reflect.Array:
 		p := asInt(param)
@@ -1754,7 +1757,7 @@ func isLt(fl FieldLevel) bool {
 		}
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	panic(fmt.Sprintf("lt: bad field type %T", field.Interface()))
 }
 
 // isBtw is the validation function for validating if the current field's value is between the param's value "min max".
@@ -1763,6 +1766,10 @@ func isBtw(fl FieldLevel) bool {
 	param := fl.Param()
 
 	switch field.Kind() {
+	case reflect.String:
+		p1, p2 := split2(param)
+		return field.String() >= p1 && field.String() <= p2
+
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		p1, p2 := asInt2FromType(field.Type(), param)
 		i := field.Int()
@@ -1786,7 +1793,7 @@ func isBtw(fl FieldLevel) bool {
 		}
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	panic(fmt.Sprintf("btw: bad field type %T", field.Interface()))
 }
 
 // isTCP4AddrResolvable is the validation function for validating if the field's value is a resolvable tcp4 address.
@@ -1927,7 +1934,7 @@ func isDir(fl FieldLevel) bool {
 		return fileInfo.IsDir()
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	panic(fmt.Sprintf("dir: bad field type %T", field.Interface()))
 }
 
 // isJSON is the validation function for validating if the current field's value is a valid json string.
@@ -1939,7 +1946,7 @@ func isJSON(fl FieldLevel) bool {
 		return json.Valid([]byte(val))
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	panic(fmt.Sprintf("json: bad field type %T", field.Interface()))
 }
 
 // isJWT is the validation function for validating if the current field's value is a valid JWT string.
@@ -1977,7 +1984,7 @@ func isLowercase(fl FieldLevel) bool {
 		return field.String() == strings.ToLower(field.String())
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	panic(fmt.Sprintf("lowercase: bad field type %T", field.Interface()))
 }
 
 // isUppercase is the validation function for validating if the current field's value is an uppercase string.
@@ -1991,7 +1998,7 @@ func isUppercase(fl FieldLevel) bool {
 		return field.String() == strings.ToUpper(field.String())
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	panic(fmt.Sprintf("uppercase: bad field type %T", field.Interface()))
 }
 
 // isDatetime is the validation function for validating if the current field's value is a valid datetime string.
@@ -2001,11 +2008,10 @@ func isDatetime(fl FieldLevel) bool {
 
 	if field.Kind() == reflect.String {
 		_, err := time.Parse(param, field.String())
-
 		return err == nil
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	panic(fmt.Sprintf("datetime: bad field type %T", field.Interface()))
 }
 
 // isTimeZone is the validation function for validating if the current field's value is a valid time zone string.
@@ -2027,7 +2033,7 @@ func isTimeZone(fl FieldLevel) bool {
 		return err == nil
 	}
 
-	panic(fmt.Sprintf("Bad field type %T", field.Interface()))
+	panic(fmt.Sprintf("timezone: bad field type %T", field.Interface()))
 }
 
 // isSwiftCode is the validation function for validating if the current field's value is a valid Business Identifier Code (SWIFT code), defined in ISO 9362

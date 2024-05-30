@@ -304,7 +304,7 @@ func IsMagnetURI(s string) bool {
 
 // IsDNSName will validate the given string as a DNS name
 func IsDNSName(s string) bool {
-	if s == "" || len(str.Replace(s, ".", "", -1)) > 255 {
+	if s == "" || len(s)-str.CountByte(s, '.') > 255 {
 		// constraints already violated
 		return false
 	}

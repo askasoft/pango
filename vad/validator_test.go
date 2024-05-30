@@ -3146,7 +3146,7 @@ func TestInterfaceErrValidation(t *testing.T) {
 	AssertError(t, errs, "ExternalCMD.Data.Name", "ExternalCMD.Data.Name", "Name", "Name", "required")
 
 	type TestMapStructPtr struct {
-		Errs map[int]any `validate:"gt=0,dive,len=2"`
+		Errs map[int]any `validate:"minlen=1,dive,len=2"`
 	}
 
 	mip := map[int]any{0: &Inner{"ok"}, 3: nil, 4: &Inner{"ok"}}
@@ -3161,7 +3161,7 @@ func TestInterfaceErrValidation(t *testing.T) {
 	AssertError(t, errs, "TestMapStructPtr.Errs[3]", "TestMapStructPtr.Errs[3]", "Errs[3]", "Errs[3]", "len")
 
 	type TestMultiDimensionalStructs struct {
-		Errs [][]any `validate:"gt=0,dive,dive"`
+		Errs [][]any `validate:"minlen=1,dive,dive"`
 	}
 
 	var errStructArray [][]any
@@ -3182,7 +3182,7 @@ func TestInterfaceErrValidation(t *testing.T) {
 	AssertError(t, errs, "TestMultiDimensionalStructs.Errs[1][2].Name", "TestMultiDimensionalStructs.Errs[1][2].Name", "Name", "Name", "required")
 
 	type TestMultiDimensionalStructsPtr2 struct {
-		Errs [][]*Inner `validate:"gt=0,dive,dive,required"`
+		Errs [][]*Inner `validate:"minlen=1,dive,dive,required"`
 	}
 
 	var errStructPtr2Array [][]*Inner
@@ -3267,7 +3267,7 @@ func TestMapDiveValidation(t *testing.T) {
 	}
 
 	type TestMapStruct struct {
-		Errs map[int]Inner `validate:"gt=0,dive"`
+		Errs map[int]Inner `validate:"minlen=1,dive"`
 	}
 
 	mi := map[int]Inner{0: {"ok"}, 3: {""}, 4: {"ok"}}
@@ -3301,7 +3301,7 @@ func TestMapDiveValidation(t *testing.T) {
 	AssertError(t, errs, "TestMapInterface.Errs[1].Name", "TestMapInterface.Errs[1].Name", "Name", "Name", "required")
 
 	type TestMapTimeStruct struct {
-		Errs map[int]*time.Time `validate:"gt=0,dive,required"`
+		Errs map[int]*time.Time `validate:"minlen=1,dive,required"`
 	}
 
 	t1 := time.Now().UTC()
@@ -3319,7 +3319,7 @@ func TestMapDiveValidation(t *testing.T) {
 	AssertError(t, errs, "TestMapTimeStruct.Errs[4]", "TestMapTimeStruct.Errs[4]", "Errs[4]", "Errs[4]", "required")
 
 	type TestMapStructPtr struct {
-		Errs map[int]*Inner `validate:"gt=0,dive,required"`
+		Errs map[int]*Inner `validate:"minlen=1,dive,required"`
 	}
 
 	mip := map[int]*Inner{0: {"ok"}, 3: nil, 4: {"ok"}}
@@ -3334,7 +3334,7 @@ func TestMapDiveValidation(t *testing.T) {
 	AssertError(t, errs, "TestMapStructPtr.Errs[3]", "TestMapStructPtr.Errs[3]", "Errs[3]", "Errs[3]", "required")
 
 	type TestMapStructPtr2 struct {
-		Errs map[int]*Inner `validate:"gt=0,dive,omitempty,required"`
+		Errs map[int]*Inner `validate:"minlen=1,dive,omitempty,required"`
 	}
 
 	mip2 := map[int]*Inner{0: {"ok"}, 3: nil, 4: {"ok"}}
@@ -3406,7 +3406,7 @@ func TestArrayDiveValidation(t *testing.T) {
 	assertPanicMatches(t, func() { _ = validate.Struct(bd) }, "dive error! can't dive on a non slice or map")
 
 	type Test struct {
-		Errs []string `validate:"gt=0,dive,required"`
+		Errs []string `validate:"minlen=1,dive,required"`
 	}
 
 	test := &Test{
@@ -3428,7 +3428,7 @@ func TestArrayDiveValidation(t *testing.T) {
 	AssertError(t, errs, "Test.Errs[2]", "Test.Errs[2]", "Errs[2]", "Errs[2]", "required")
 
 	type TestMultiDimensional struct {
-		Errs [][]string `validate:"gt=0,dive,dive,required"`
+		Errs [][]string `validate:"minlen=1,dive,dive,required"`
 	}
 
 	var errArray [][]string
@@ -3453,7 +3453,7 @@ func TestArrayDiveValidation(t *testing.T) {
 	}
 
 	type TestMultiDimensionalStructs struct {
-		Errs [][]Inner `validate:"gt=0,dive,dive"`
+		Errs [][]Inner `validate:"minlen=1,dive,dive"`
 	}
 
 	var errStructArray [][]Inner
@@ -3474,7 +3474,7 @@ func TestArrayDiveValidation(t *testing.T) {
 	AssertError(t, errs, "TestMultiDimensionalStructs.Errs[1][2].Name", "TestMultiDimensionalStructs.Errs[1][2].Name", "Name", "Name", "required")
 
 	type TestMultiDimensionalStructsPtr struct {
-		Errs [][]*Inner `validate:"gt=0,dive,dive"`
+		Errs [][]*Inner `validate:"minlen=1,dive,dive"`
 	}
 
 	var errStructPtrArray [][]*Inner
@@ -3501,7 +3501,7 @@ func TestArrayDiveValidation(t *testing.T) {
 	assertNotEqual(t, s, "")
 
 	type TestMultiDimensionalStructsPtr2 struct {
-		Errs [][]*Inner `validate:"gt=0,dive,dive,required"`
+		Errs [][]*Inner `validate:"minlen=1,dive,dive,required"`
 	}
 
 	var errStructPtr2Array [][]*Inner
@@ -3525,7 +3525,7 @@ func TestArrayDiveValidation(t *testing.T) {
 	AssertError(t, errs, "TestMultiDimensionalStructsPtr2.Errs[2][2]", "TestMultiDimensionalStructsPtr2.Errs[2][2]", "Errs[2][2]", "Errs[2][2]", "required")
 
 	type TestMultiDimensionalStructsPtr3 struct {
-		Errs [][]*Inner `validate:"gt=0,dive,dive,omitempty"`
+		Errs [][]*Inner `validate:"minlen=1,dive,dive,omitempty"`
 	}
 
 	var errStructPtr3Array [][]*Inner
@@ -3548,7 +3548,7 @@ func TestArrayDiveValidation(t *testing.T) {
 	AssertError(t, errs, "TestMultiDimensionalStructsPtr3.Errs[2][1].Name", "TestMultiDimensionalStructsPtr3.Errs[2][1].Name", "Name", "Name", "required")
 
 	type TestMultiDimensionalTimeTime struct {
-		Errs [][]*time.Time `validate:"gt=0,dive,dive,required"`
+		Errs [][]*time.Time `validate:"minlen=1,dive,dive,required"`
 	}
 
 	var errTimePtr3Array [][]*time.Time
@@ -3573,7 +3573,7 @@ func TestArrayDiveValidation(t *testing.T) {
 	AssertError(t, errs, "TestMultiDimensionalTimeTime.Errs[2][2]", "TestMultiDimensionalTimeTime.Errs[2][2]", "Errs[2][2]", "Errs[2][2]", "required")
 
 	type TestMultiDimensionalTimeTime2 struct {
-		Errs [][]*time.Time `validate:"gt=0,dive,dive,required"`
+		Errs [][]*time.Time `validate:"minlen=1,dive,dive,required"`
 	}
 
 	var errTimeArray [][]*time.Time
@@ -3766,7 +3766,7 @@ func TestLongitudeValidation(t *testing.T) {
 		}
 	}
 
-	assertPanicMatches(t, func() { _ = validate.Var(true, "longitude") }, "Bad field type bool")
+	assertPanicMatches(t, func() { _ = validate.Var(true, "longitude") }, "longitude: bad field type bool")
 }
 
 func TestLatitudeValidation(t *testing.T) {
@@ -3808,7 +3808,7 @@ func TestLatitudeValidation(t *testing.T) {
 		}
 	}
 
-	assertPanicMatches(t, func() { _ = validate.Var(true, "latitude") }, "Bad field type bool")
+	assertPanicMatches(t, func() { _ = validate.Var(true, "latitude") }, "latitude: bad field type bool")
 }
 
 func TestDataURIValidation(t *testing.T) {
@@ -4634,7 +4634,6 @@ func TestIsNeValidation(t *testing.T) {
 	i := 3
 	j = 2
 	k = 1.5434
-	arr := []string{"test"}
 	now := time.Now().UTC()
 
 	errs = validate.Var(s, "ne=abcd")
@@ -4649,14 +4648,9 @@ func TestIsNeValidation(t *testing.T) {
 	errs = validate.Var(k, "ne=1.543")
 	assertEqual(t, errs, nil)
 
-	errs = validate.Var(arr, "ne=2")
+	// Tests for time.Time type.
+	errs = validate.Var(now, "ne=00:00:00")
 	assertEqual(t, errs, nil)
-
-	errs = validate.Var(arr, "ne=1")
-	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "ne")
-
-	assertPanicMatches(t, func() { _ = validate.Var(now, "ne=now") }, "Bad field type time.Time")
 
 	// Tests for time.Duration type.
 
@@ -4887,8 +4881,7 @@ func TestIsEqValidation(t *testing.T) {
 	i := 1
 	j = 1
 	k = 1.543
-	arr := []string{"test"}
-	now := time.Now().UTC()
+	tm, _ := time.ParseInLocation("2006-01-02 15:04:05", "2020-01-02 03:04:05", time.Local)
 
 	errs = validate.Var(s, "eq=abcd")
 	assertEqual(t, errs, nil)
@@ -4902,14 +4895,9 @@ func TestIsEqValidation(t *testing.T) {
 	errs = validate.Var(k, "eq=1.543")
 	assertEqual(t, errs, nil)
 
-	errs = validate.Var(arr, "eq=1")
+	// Tests for time.Time type.
+	errs = validate.Var(tm, "eq=2020-01-02 03:04:05")
 	assertEqual(t, errs, nil)
-
-	errs = validate.Var(arr, "eq=2")
-	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "eq")
-
-	assertPanicMatches(t, func() { _ = validate.Var(now, "eq=now") }, "Bad field type time.Time")
 
 	// Tests for time.Duration type.
 
@@ -5019,7 +5007,7 @@ func TestOneOfValidation(t *testing.T) {
 
 	assertPanicMatches(t, func() {
 		_ = validate.Var(3.14, "oneof=red green")
-	}, "Bad field type float64")
+	}, "oneof: bad field type float64")
 }
 
 func TestBase64Validation(t *testing.T) {
@@ -5122,7 +5110,7 @@ func TestFileValidation(t *testing.T) {
 
 	assertPanicMatches(t, func() {
 		_ = validate.Var(6, "file")
-	}, "Bad field type int")
+	}, "file: bad field type int")
 }
 
 func TestBitcoinAddressValidation(t *testing.T) {
@@ -6485,16 +6473,12 @@ func TestBadParams(t *testing.T) {
 func TestLength(t *testing.T) {
 	validate := New()
 	i := true
-	assertPanicMatches(t, func() { _ = validate.Var(i, "len") }, "Bad field type bool")
+	assertPanicMatches(t, func() { _ = validate.Var(i, "len") }, "len: bad field type bool")
 }
 
 func TestIsGt(t *testing.T) {
 	var errs error
 	validate := New()
-
-	myMap := map[string]string{}
-	errs = validate.Var(myMap, "gt=0")
-	assertNotEqual(t, errs, nil)
 
 	f := 1.23
 	errs = validate.Var(f, "gt=5")
@@ -6507,7 +6491,7 @@ func TestIsGt(t *testing.T) {
 	AssertError(t, errs, "", "", "", "", "gt")
 
 	i := true
-	assertPanicMatches(t, func() { _ = validate.Var(i, "gt") }, "Bad field type bool")
+	assertPanicMatches(t, func() { _ = validate.Var(i, "gt") }, "gt: bad field type bool")
 
 	tm := time.Now().UTC()
 	tm = tm.Add(time.Hour * 24)
@@ -6592,7 +6576,7 @@ func TestIsGte(t *testing.T) {
 	validate := New()
 
 	i := true
-	assertPanicMatches(t, func() { _ = validate.Var(i, "gte") }, "Bad field type bool")
+	assertPanicMatches(t, func() { _ = validate.Var(i, "gte") }, "gte: bad field type bool")
 
 	t1 := time.Now().UTC()
 	t1 = t1.Add(time.Hour * 24)
@@ -6908,7 +6892,7 @@ func TestIsLt(t *testing.T) {
 	AssertError(t, errs, "", "", "", "", "lt")
 
 	i := true
-	assertPanicMatches(t, func() { _ = validate.Var(i, "lt") }, "Bad field type bool")
+	assertPanicMatches(t, func() { _ = validate.Var(i, "lt") }, "lt: bad field type bool")
 
 	t1 := time.Now().UTC().Add(-time.Hour)
 
@@ -6994,7 +6978,7 @@ func TestIsLte(t *testing.T) {
 	validate := New()
 
 	i := true
-	assertPanicMatches(t, func() { _ = validate.Var(i, "lte") }, "Bad field type bool")
+	assertPanicMatches(t, func() { _ = validate.Var(i, "lte") }, "lte: bad field type bool")
 
 	t1 := time.Now().UTC().Add(-time.Hour)
 
@@ -8558,7 +8542,7 @@ func TestArrayStructNamespace(t *testing.T) {
 		Name string `json:"name" validate:"required"`
 	}
 	var input struct {
-		Children []child `json:"children" validate:"required,gt=0,dive"`
+		Children []child `json:"children" validate:"required,minlen=1,dive"`
 	}
 	input.Children = []child{{"ok"}, {""}}
 
@@ -8586,7 +8570,7 @@ func TestMapStructNamespace(t *testing.T) {
 		Name string `json:"name" validate:"required"`
 	}
 	var input struct {
-		Children map[int]child `json:"children" validate:"required,gt=0,dive"`
+		Children map[int]child `json:"children" validate:"required,minlen=1,dive"`
 	}
 	input.Children = map[int]child{
 		0: {Name: "ok"},
@@ -9038,7 +9022,7 @@ func TestUniqueValidation(t *testing.T) {
 			}
 		}
 	}
-	assertPanicMatches(t, func() { _ = validate.Var(1.0, "unique") }, "Bad field type float64")
+	assertPanicMatches(t, func() { _ = validate.Var(1.0, "unique") }, "unique: bad field type float64")
 }
 
 func TestUniqueValidationStructSlice(t *testing.T) {
@@ -9081,7 +9065,7 @@ func TestUniqueValidationStructSlice(t *testing.T) {
 			}
 		}
 	}
-	assertPanicMatches(t, func() { _ = validate.Var(testStructs, "unique=C") }, "Bad field name C")
+	assertPanicMatches(t, func() { _ = validate.Var(testStructs, "unique=C") }, "unique: bad field name C")
 }
 
 func TestUniqueValidationStructPtrSlice(t *testing.T) {
@@ -9124,14 +9108,14 @@ func TestUniqueValidationStructPtrSlice(t *testing.T) {
 			}
 		}
 	}
-	assertPanicMatches(t, func() { _ = validate.Var(testStructs, "unique=C") }, "Bad field name C")
+	assertPanicMatches(t, func() { _ = validate.Var(testStructs, "unique=C") }, "unique: bad field name C")
 }
 
 func TestKeys(t *testing.T) {
 	type Test struct {
-		Test1 map[string]string `validate:"gt=0,dive,keys,eq=testkey,endkeys,eq=testval" json:"test1"`
-		Test2 map[int]int       `validate:"gt=0,dive,keys,eq=3,endkeys,eq=4"             json:"test2"`
-		Test3 map[int]int       `validate:"gt=0,dive,keys,eq=3,endkeys"                  json:"test3"`
+		Test1 map[string]string `validate:"minlen=1,dive,keys,eq=testkey,endkeys,eq=testval" json:"test1"`
+		Test2 map[int]int       `validate:"minlen=1,dive,keys,eq=3,endkeys,eq=4"             json:"test2"`
+		Test3 map[int]int       `validate:"minlen=1,dive,keys,eq=3,endkeys"                  json:"test3"`
 	}
 
 	var tst Test
@@ -9140,9 +9124,9 @@ func TestKeys(t *testing.T) {
 	err := validate.Struct(tst)
 	assertNotEqual(t, err, nil)
 	assertEqual(t, len(err.(ValidationErrors)), 3)
-	AssertError(t, err.(ValidationErrors), "Test.Test1", "Test.Test1", "Test1", "Test1", "gt")
-	AssertError(t, err.(ValidationErrors), "Test.Test2", "Test.Test2", "Test2", "Test2", "gt")
-	AssertError(t, err.(ValidationErrors), "Test.Test3", "Test.Test3", "Test3", "Test3", "gt")
+	AssertError(t, err.(ValidationErrors), "Test.Test1", "Test.Test1", "Test1", "Test1", "minlen")
+	AssertError(t, err.(ValidationErrors), "Test.Test2", "Test.Test2", "Test2", "Test2", "minlen")
+	AssertError(t, err.(ValidationErrors), "Test.Test3", "Test.Test3", "Test3", "Test3", "minlen")
 
 	tst.Test1 = map[string]string{
 		"testkey": "testval",
@@ -9175,7 +9159,7 @@ func TestKeys(t *testing.T) {
 	AssertDeepError(t, errs, "Test.Test2[10]", "Test.Test2[10]", "Test2[10]", "Test2[10]", "eq", "eq")
 
 	type Test2 struct {
-		NestedKeys map[[1]string]string `validate:"gt=0,dive,keys,dive,eq=innertestkey,endkeys,eq=outertestval"`
+		NestedKeys map[[1]string]string `validate:"minlen=1,dive,keys,dive,eq=innertestkey,endkeys,eq=outertestval"`
 	}
 
 	var tst2 Test2
@@ -9183,7 +9167,7 @@ func TestKeys(t *testing.T) {
 	err = validate.Struct(tst2)
 	assertNotEqual(t, err, nil)
 	assertEqual(t, len(err.(ValidationErrors)), 1)
-	AssertError(t, err.(ValidationErrors), "Test2.NestedKeys", "Test2.NestedKeys", "NestedKeys", "NestedKeys", "gt")
+	AssertError(t, err.(ValidationErrors), "Test2.NestedKeys", "Test2.NestedKeys", "NestedKeys", "NestedKeys", "minlen")
 
 	tst2.NestedKeys = map[[1]string]string{
 		{"innertestkey"}: "outertestval",
@@ -9297,7 +9281,7 @@ func TestKeysCustomValidation(t *testing.T) {
 
 func TestKeyOrs(t *testing.T) {
 	type Test struct {
-		Test1 map[string]string `validate:"gt=0,dive,keys,eq=testkey|eq=testkeyok,endkeys,eq=testval" json:"test1"`
+		Test1 map[string]string `validate:"minlen=1,dive,keys,eq=testkey|eq=testkeyok,endkeys,eq=testval" json:"test1"`
 	}
 
 	var tst Test
@@ -9306,7 +9290,7 @@ func TestKeyOrs(t *testing.T) {
 	err := validate.Struct(tst)
 	assertNotEqual(t, err, nil)
 	assertEqual(t, len(err.(ValidationErrors)), 1)
-	AssertError(t, err.(ValidationErrors), "Test.Test1", "Test.Test1", "Test1", "Test1", "gt")
+	AssertError(t, err.(ValidationErrors), "Test.Test1", "Test.Test1", "Test1", "Test1", "minlen")
 
 	tst.Test1 = map[string]string{
 		"testkey": "testval",
@@ -9330,7 +9314,7 @@ func TestKeyOrs(t *testing.T) {
 	validate.RegisterAlias("okkey", "eq=testkey|eq=testkeyok")
 
 	type Test2 struct {
-		Test1 map[string]string `validate:"gt=0,dive,keys,okkey,endkeys,eq=testval" json:"test1"`
+		Test1 map[string]string `validate:"minlen=1,dive,keys,okkey,endkeys,eq=testval" json:"test1"`
 	}
 
 	var tst2 Test2
@@ -9338,7 +9322,7 @@ func TestKeyOrs(t *testing.T) {
 	err = validate.Struct(tst2)
 	assertNotEqual(t, err, nil)
 	assertEqual(t, len(err.(ValidationErrors)), 1)
-	AssertError(t, err.(ValidationErrors), "Test2.Test1", "Test2.Test1", "Test1", "Test1", "gt")
+	AssertError(t, err.(ValidationErrors), "Test2.Test1", "Test2.Test1", "Test1", "Test1", "minlen")
 
 	tst2.Test1 = map[string]string{
 		"testkey": "testval",
@@ -9405,7 +9389,7 @@ func TestDirValidation(t *testing.T) {
 
 	assertPanicMatches(t, func() {
 		_ = validate.Var(2, "dir")
-	}, "Bad field type int")
+	}, "dir: bad field type int")
 }
 
 func TestStartsWithValidation(t *testing.T) {
@@ -10331,7 +10315,7 @@ func TestJSONValidation(t *testing.T) {
 
 	assertPanicMatches(t, func() {
 		_ = validate.Var(2, "json")
-	}, "Bad field type int")
+	}, "json: bad field type int")
 }
 
 func TestJWTValidation(t *testing.T) {
@@ -10434,7 +10418,7 @@ func TestLowercaseValidation(t *testing.T) {
 
 	assertPanicMatches(t, func() {
 		_ = validate.Var(2, "lowercase")
-	}, "Bad field type int")
+	}, "lowercase: bad field type int")
 }
 
 func TestUppercaseValidation(t *testing.T) {
@@ -10471,7 +10455,7 @@ func TestUppercaseValidation(t *testing.T) {
 
 	assertPanicMatches(t, func() {
 		_ = validate.Var(2, "uppercase")
-	}, "Bad field type int")
+	}, "uppercase: bad field type int")
 }
 
 func TestDatetimeValidation(t *testing.T) {
@@ -10508,7 +10492,7 @@ func TestDatetimeValidation(t *testing.T) {
 
 	assertPanicMatches(t, func() {
 		_ = validate.Var(2, "datetime")
-	}, "Bad field type int")
+	}, "datetime: bad field type int")
 }
 
 func TestTimeZoneValidation(t *testing.T) {
@@ -10549,7 +10533,7 @@ func TestTimeZoneValidation(t *testing.T) {
 
 	assertPanicMatches(t, func() {
 		_ = validate.Var(2, "timezone")
-	}, "Bad field type int")
+	}, "timezone: bad field type int")
 }
 
 func TestDurationType(t *testing.T) {

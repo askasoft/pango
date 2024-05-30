@@ -21,7 +21,7 @@ func validateMap() {
 	// Every rule will be applied to the item of the data that the offset of rule is pointing to.
 	// So if you have a field "email": "omitempty,required,email", the validator will apply these
 	// rules to offset of email in user data
-	rules := map[string]any{"name": "required,min=8,max=32", "email": "omitempty,required,email"}
+	rules := map[string]any{"name": "required,minlen=8,maxlen=32", "email": "omitempty,required,email"}
 
 	// ValidateMap will return map[string]error.
 	// The offset of every item in errs is the name of invalid field and the value
@@ -55,12 +55,12 @@ func validateNestedMap() {
 	// Rules must be set as the structure as the data itself. If you want to dive into the
 	// map, just declare its rules as a map
 	rules := map[string]any{
-		"name":  "min=4,max=32",
+		"name":  "minlen=4,maxlen=32",
 		"email": "required,email",
 		"details": map[string]any{
 			"family_members": map[string]any{
-				"father_name": "required,min=4,max=32",
-				"mother_name": "required,min=4,max=32",
+				"father_name": "required,minlen=4,maxlen=32",
+				"mother_name": "required,minlen=4,maxlen=32",
 			},
 			"salary": "number",
 		},
@@ -68,7 +68,9 @@ func validateNestedMap() {
 
 	if len(validate.ValidateMap(data, rules)) == 0 {
 		// Data is valid
+		fmt.Println("OK")
+	} else {
+		// Data is invalid
+		fmt.Println("NG")
 	}
-
-	// Data is invalid
 }

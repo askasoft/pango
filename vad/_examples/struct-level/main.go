@@ -30,7 +30,6 @@ type Address struct {
 var validate *vad.Validate
 
 func main() {
-
 	validate = vad.New()
 
 	// register function to get tag name from json tags.
@@ -67,7 +66,6 @@ func main() {
 	// returns InvalidValidationError for bad validation input, nil or ValidationErrors ( []FieldError )
 	err := validate.Struct(user)
 	if err != nil {
-
 		// this check is only needed when your code could produce
 		// an invalid value for validation such as interface with nil
 		// value most including myself do not usually have code like this.
@@ -77,7 +75,6 @@ func main() {
 		}
 
 		for _, err := range err.(vad.ValidationErrors) {
-
 			fmt.Println(err.Namespace()) // can differ when a custom TagNameFunc is registered or
 			fmt.Println(err.Field())     // by passing alt name to ReportError like below
 			fmt.Println(err.StructNamespace())
@@ -108,7 +105,6 @@ func main() {
 // hooks right into validator and you can combine with validation tags and still have a
 // common error output format.
 func UserStructLevelValidation(sl vad.StructLevel) {
-
 	user := sl.Current().Interface().(User)
 
 	if len(user.FirstName) == 0 && len(user.LastName) == 0 {

@@ -92,7 +92,6 @@ type Validate struct {
 // in essence only parsing your validation tags once per struct type.
 // Using multiple instances neglects the benefit of caching.
 func New() *Validate {
-
 	tc := new(tagCache)
 	tc.m.Store(make(map[string]*cTag))
 
@@ -114,15 +113,14 @@ func New() *Validate {
 
 	// must copy validators for separate validations to be used in each instance
 	for k, val := range bakedInValidators {
-
 		switch k {
 		// these require that even if the value is nil that the validation should run, omitempty still overrides this behaviour
 		case requiredIfTag, requiredUnlessTag, requiredWithTag, requiredWithAllTag, requiredWithoutTag, requiredWithoutAllTag,
 			excludedWithTag, excludedWithAllTag, excludedWithoutTag, excludedWithoutAllTag:
-			_ = v.registerValidation(k, wrapFunc(val), true, true)
+			v.registerValidation(k, wrapFunc(val), true, true)
 		default:
 			// no need to error check here, baked in will always be valid
-			_ = v.registerValidation(k, wrapFunc(val), true, false)
+			v.registerValidation(k, wrapFunc(val), true, false)
 		}
 	}
 
@@ -193,27 +191,27 @@ func (v *Validate) RegisterTagNameFunc(fn TagNameFunc) {
 // NOTES:
 // - if the key already exists, the previous validation function will be replaced.
 // - this method is not thread-safe it is intended that these all be registered prior to any validation
-func (v *Validate) RegisterValidation(tag string, fn Func, callValidationEvenIfNull ...bool) error {
-	return v.RegisterValidationCtx(tag, wrapFunc(fn), callValidationEvenIfNull...)
+func (v *Validate) RegisterValidation(tag string, fn Func, callValidationEvenIfNull ...bool) {
+	v.RegisterValidationCtx(tag, wrapFunc(fn), callValidationEvenIfNull...)
 }
 
 // RegisterValidationCtx does the same as RegisterValidation on accepts a FuncCtx validation
 // allowing context.Context validation support.
-func (v *Validate) RegisterValidationCtx(tag string, fn FuncCtx, callValidationEvenIfNull ...bool) error {
+func (v *Validate) RegisterValidationCtx(tag string, fn FuncCtx, callValidationEvenIfNull ...bool) {
 	var nilCheckable bool
 	if len(callValidationEvenIfNull) > 0 {
 		nilCheckable = callValidationEvenIfNull[0]
 	}
-	return v.registerValidation(tag, fn, false, nilCheckable)
+	v.registerValidation(tag, fn, false, nilCheckable)
 }
 
-func (v *Validate) registerValidation(tag string, fn FuncCtx, bakedIn bool, nilCheckable bool) error {
+func (v *Validate) registerValidation(tag string, fn FuncCtx, bakedIn bool, nilCheckable bool) {
 	if len(tag) == 0 {
-		return errors.New("function Key cannot be empty")
+		panic("tag cannot be empty")
 	}
 
 	if fn == nil {
-		return errors.New("function cannot be empty")
+		panic("function cannot be empty")
 	}
 
 	_, ok := restrictedTags[tag]
@@ -221,7 +219,6 @@ func (v *Validate) registerValidation(tag string, fn FuncCtx, bakedIn bool, nilC
 		panic(fmt.Sprintf(restrictedTagErr, tag))
 	}
 	v.validations[tag] = internalValidationFuncWrapper{fn: fn, runValidatinOnNil: nilCheckable}
-	return nil
 }
 
 // RegisterAlias registers a mapping of a single validation tag that
@@ -230,7 +227,6 @@ func (v *Validate) registerValidation(tag string, fn FuncCtx, bakedIn bool, nilC
 //
 // NOTE: this function is not thread-safe it is intended that these all be registered prior to any validation
 func (v *Validate) RegisterAlias(alias, tags string) {
-
 	_, ok := restrictedTags[alias]
 
 	if ok || strings.ContainsAny(alias, restrictedTagChars) {
@@ -254,7 +250,6 @@ func (v *Validate) RegisterStructValidation(fn StructLevelFunc, types ...any) {
 // NOTE:
 // - this method is not thread-safe it is intended that these all be registered prior to any validation
 func (v *Validate) RegisterStructValidationCtx(fn StructLevelFuncCtx, types ...any) {
-
 	if v.structLevelFuncs == nil {
 		v.structLevelFuncs = make(map[reflect.Type]StructLevelFuncCtx)
 	}
@@ -273,7 +268,6 @@ func (v *Validate) RegisterStructValidationCtx(fn StructLevelFuncCtx, types ...a
 //
 // NOTE: this method is not thread-safe it is intended that these all be registered prior to any validation
 func (v *Validate) RegisterCustomTypeFunc(fn CustomTypeFunc, types ...any) {
-
 	if v.customFuncs == nil {
 		v.customFuncs = make(map[reflect.Type]CustomTypeFunc)
 	}

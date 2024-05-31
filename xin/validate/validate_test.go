@@ -241,9 +241,7 @@ func TestValidatorEngine(t *testing.T) {
 	engine, ok := v.Engine().(*vad.Validate)
 	assert.True(t, ok)
 
-	err := engine.RegisterValidation("notone", notOne)
-	// Check that we can register custom validation without error
-	assert.Nil(t, err)
+	engine.RegisterValidation("notone", notOne)
 
 	// Create an instance which will fail validation
 	withOne := structCustomValidation{Integer: 1}

@@ -707,7 +707,7 @@ func TestNilValidator(t *testing.T) {
 	}
 
 	assertPanicMatches(t, func() { val.RegisterCustomTypeFunc(ValidateCustomType, MadeUpCustomType{}) }, "runtime error: invalid memory address or nil pointer dereference")
-	assertPanicMatches(t, func() { _ = val.RegisterValidation("something", fn) }, "runtime error: invalid memory address or nil pointer dereference")
+	assertPanicMatches(t, func() { val.RegisterValidation("something", fn) }, "runtime error: invalid memory address or nil pointer dereference")
 	assertPanicMatches(t, func() { _ = val.Var(ts.Test, "required") }, "runtime error: invalid memory address or nil pointer dereference")
 	assertPanicMatches(t, func() { _ = val.VarWithValue("test", ts.Test, "required") }, "runtime error: invalid memory address or nil pointer dereference")
 	assertPanicMatches(t, func() { _ = val.Struct(ts) }, "runtime error: invalid memory address or nil pointer dereference")
@@ -6372,8 +6372,7 @@ func TestValidateByTagAndValue(t *testing.T) {
 		return fl.Parent().String() == fl.Field().String()
 	}
 
-	errs = validate.RegisterValidation("isequaltestfunc", fn)
-	assertEqual(t, errs, nil)
+	validate.RegisterValidation("isequaltestfunc", fn)
 
 	errs = validate.VarWithValue(val, field, "isequaltestfunc")
 	assertEqual(t, errs, nil)
@@ -6396,22 +6395,17 @@ func TestAddFunctions(t *testing.T) {
 
 	validate := New()
 
-	errs := validate.RegisterValidation("new", fn)
-	assertEqual(t, errs, nil)
+	validate.RegisterValidation("new", fn)
 
-	errs = validate.RegisterValidation("", fn)
-	assertNotEqual(t, errs, nil)
+	assertPanicMatches(t, func() { validate.RegisterValidation("", fn) }, "tag cannot be empty")
 
-	errs = validate.RegisterValidation("new", nil)
-	assertNotEqual(t, errs, nil)
+	assertPanicMatches(t, func() { validate.RegisterValidation("new", nil) }, "function cannot be empty")
 
-	errs = validate.RegisterValidation("new", fn)
-	assertEqual(t, errs, nil)
+	validate.RegisterValidation("new", fn)
 
-	errs = validate.RegisterValidationCtx("new", fnCtx)
-	assertEqual(t, errs, nil)
+	validate.RegisterValidationCtx("new", fnCtx)
 
-	assertPanicMatches(t, func() { _ = validate.RegisterValidation("dive", fn) }, "Tag 'dive' either contains restricted characters or is the same as a restricted tag needed for normal operation")
+	assertPanicMatches(t, func() { validate.RegisterValidation("dive", fn) }, "Tag 'dive' either contains restricted characters or is the same as a restricted tag needed for normal operation")
 }
 
 func TestChangeTag(t *testing.T) {
@@ -8605,40 +8599,35 @@ func TestFieldLevelName(t *testing.T) {
 
 		return name
 	})
-	err := validate.RegisterValidation("custom1", func(fl FieldLevel) bool {
+	validate.RegisterValidation("custom1", func(fl FieldLevel) bool {
 		res1 = fl.FieldName()
 		alt1 = fl.StructFieldName()
 		return true
 	})
-	assertEqual(t, err, nil)
 
-	err = validate.RegisterValidation("custom2", func(fl FieldLevel) bool {
+	validate.RegisterValidation("custom2", func(fl FieldLevel) bool {
 		res2 = fl.FieldName()
 		alt2 = fl.StructFieldName()
 		return true
 	})
-	assertEqual(t, err, nil)
 
-	err = validate.RegisterValidation("custom3", func(fl FieldLevel) bool {
+	validate.RegisterValidation("custom3", func(fl FieldLevel) bool {
 		res3 = fl.FieldName()
 		alt3 = fl.StructFieldName()
 		return true
 	})
-	assertEqual(t, err, nil)
 
-	err = validate.RegisterValidation("custom4", func(fl FieldLevel) bool {
+	validate.RegisterValidation("custom4", func(fl FieldLevel) bool {
 		res4 = fl.FieldName()
 		alt4 = fl.StructFieldName()
 		return true
 	})
-	assertEqual(t, err, nil)
 
-	err = validate.RegisterValidation("custom5", func(fl FieldLevel) bool {
+	validate.RegisterValidation("custom5", func(fl FieldLevel) bool {
 		res5 = fl.FieldName()
 		alt5 = fl.StructFieldName()
 		return true
 	})
-	assertEqual(t, err, nil)
 
 	test := Test{
 		String: "test",
@@ -8680,8 +8669,7 @@ func TestValidateStructRegisterCtx(t *testing.T) {
 	var tst Test
 
 	validate := New()
-	err := validate.RegisterValidationCtx("val", fnCtx)
-	assertEqual(t, err, nil)
+	validate.RegisterValidationCtx("val", fnCtx)
 
 	validate.RegisterStructValidationCtx(slFn, Test{})
 
@@ -9226,7 +9214,7 @@ func TestKeysCustomValidation(t *testing.T) {
 	}
 
 	validate := New()
-	err := validate.RegisterValidation("lang_code", func(fl FieldLevel) bool {
+	validate.RegisterValidation("lang_code", func(fl FieldLevel) bool {
 		validLangCodes := map[LangCode]struct{}{
 			"en": {},
 			"es": {},
@@ -9236,7 +9224,6 @@ func TestKeysCustomValidation(t *testing.T) {
 		_, ok := validLangCodes[fl.Field().Interface().(LangCode)]
 		return ok
 	})
-	assertEqual(t, err, nil)
 
 	label := Label{
 		"en":  "Good morning!",
@@ -9246,7 +9233,7 @@ func TestKeysCustomValidation(t *testing.T) {
 		"xxx": "",
 	}
 
-	err = validate.Struct(TestMapStructPtr{label})
+	err := validate.Struct(TestMapStructPtr{label})
 	assertNotEqual(t, err, nil)
 
 	errs := err.(ValidationErrors)
@@ -10188,8 +10175,7 @@ func TestAbilityToValidateNils(t *testing.T) {
 		return fl.Field().Kind() == reflect.Ptr && fl.Field().IsNil()
 	}
 
-	err := val.RegisterValidation("nil", fn, true)
-	assertEqual(t, err, nil)
+	val.RegisterValidation("nil", fn, true)
 
 	errs := val.Struct(ts)
 	assertEqual(t, errs, nil)
@@ -10259,7 +10245,7 @@ func TestGetTag(t *testing.T) {
 	}
 
 	val := New()
-	_ = val.RegisterValidation("mytag", func(fl FieldLevel) bool {
+	val.RegisterValidation("mytag", func(fl FieldLevel) bool {
 		tag = fl.GetTag()
 		return true
 	})

@@ -182,6 +182,7 @@ var (
 		"lowercase":                     isLowercase,
 		"uppercase":                     isUppercase,
 		"datetime":                      isDatetime,
+		"duration":                      isDuration,
 		"timezone":                      isTimeZone,
 		"postcode_iso3166_alpha2":       isPostcodeByIso3166Alpha2,
 		"postcode_iso3166_alpha2_field": isPostcodeByIso3166Alpha2Field,
@@ -2012,6 +2013,18 @@ func isDatetime(fl FieldLevel) bool {
 	}
 
 	panic(fmt.Sprintf("datetime: bad field type %T", field.Interface()))
+}
+
+// isDuration is the validation function for validating if the current field's value is a valid duration string.
+func isDuration(fl FieldLevel) bool {
+	field := fl.Field()
+
+	if field.Kind() == reflect.String {
+		_, err := time.ParseDuration(field.String())
+		return err == nil
+	}
+
+	panic(fmt.Sprintf("duration: bad field type %T", field.Interface()))
 }
 
 // isTimeZone is the validation function for validating if the current field's value is a valid time zone string.

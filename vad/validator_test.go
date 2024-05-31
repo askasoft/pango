@@ -10481,6 +10481,41 @@ func TestDatetimeValidation(t *testing.T) {
 	}, "datetime: bad field type int")
 }
 
+func TestDurationValidation(t *testing.T) {
+	tests := []struct {
+		value    string `validate:"duration"`
+		tag      string
+		expected bool
+	}{
+		{"600s", `duration`, true},
+		{"2008d", `duration`, false},
+	}
+
+	validate := New()
+	for i, test := range tests {
+		errs := validate.Var(test.value, test.tag)
+
+		if test.expected {
+			if !assertIsEqual(errs, nil) {
+				t.Fatalf("Index: %d duration failed Error: %s", i, errs)
+			}
+		} else {
+			if assertIsEqual(errs, nil) {
+				t.Fatalf("Index: %d duration failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "duration" {
+					t.Fatalf("Index: %d duration failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+
+	assertPanicMatches(t, func() {
+		_ = validate.Var(2, "duration")
+	}, "duration: bad field type int")
+}
+
 func TestTimeZoneValidation(t *testing.T) {
 	tests := []struct {
 		value    string `validate:"timezone"`

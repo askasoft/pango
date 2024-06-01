@@ -17,6 +17,7 @@ type SMTPWriter struct {
 
 	Host     string
 	Port     int
+	Insecure bool
 	Username string
 	Password string
 	From     string
@@ -111,7 +112,9 @@ func (sw *SMTPWriter) initSender() {
 	}
 	sw.sender.Helo = "localhost"
 	sw.sender.Timeout = sw.Timeout
-	sw.sender.TLSConfig = &tls.Config{ServerName: sw.Host, InsecureSkipVerify: true} //nolint: gosec
+	if sw.Insecure {
+		sw.sender.TLSConfig = &tls.Config{ServerName: sw.Host, InsecureSkipVerify: true} //nolint: gosec
+	}
 }
 
 func (sw *SMTPWriter) initEmail() (err error) {

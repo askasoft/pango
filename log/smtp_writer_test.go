@@ -61,6 +61,7 @@ func TestSmtpWriter(t *testing.T) {
 	sw := &SMTPWriter{
 		Host:     host,
 		Port:     port,
+		Insecure: true,
 		Username: user,
 		Password: pass,
 		From:     sf,

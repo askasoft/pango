@@ -133,6 +133,13 @@ func (b *Builder) Set(col string, args ...any) *Builder {
 	return b
 }
 
+func (b *Builder) Into(col string, args ...any) *Builder {
+	b.columns = append(b.columns, col)
+	b.params = append(b.params, args...)
+	b.values = append(b.values, "?")
+	return b
+}
+
 func (b *Builder) In(col string, arg any) *Builder {
 	return b.in("IN", col, arg)
 }

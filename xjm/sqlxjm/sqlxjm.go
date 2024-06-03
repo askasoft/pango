@@ -71,11 +71,11 @@ func (sjm *sjm) AddJobLogs(jls []*xjm.JobLog) error {
 func (sjm *sjm) AddJobLog(jid int64, time time.Time, level string, message string) error {
 	sqb := sqx.Builder{}
 
-	sqb.Insert(sjm.jt)
-	sqb.Set("jid", jid)
-	sqb.Set("time", time)
-	sqb.Set("level", level)
-	sqb.Set("message", message)
+	sqb.Insert(sjm.lt)
+	sqb.Into("jid", jid)
+	sqb.Into("time", time)
+	sqb.Into("level", level)
+	sqb.Into("message", message)
 
 	sql, args := sqb.Build()
 	sql = sjm.db.Rebind(sql)

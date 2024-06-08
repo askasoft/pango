@@ -64,7 +64,7 @@ func (jr *JobRunner) Checkout() error {
 }
 
 func (jr *JobRunner) Ping() error {
-	if jr.pingAt.Add(jr.PingAfter).After(time.Now()) {
+	if time.Since(jr.pingAt) < jr.PingAfter {
 		return nil
 	}
 
@@ -74,10 +74,6 @@ func (jr *JobRunner) Ping() error {
 
 	jr.pingAt = time.Now()
 	return nil
-}
-
-func (jr *JobRunner) PingAborted() bool {
-	return jr.Ping() != nil
 }
 
 func (jr *JobRunner) Running(state string) error {

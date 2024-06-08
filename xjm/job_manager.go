@@ -42,10 +42,10 @@ type JobManager interface {
 	// AbortJob abort the job
 	AbortJob(jid int64, reason string) error
 
-	// CompleteJob change job status from running to completed
+	// CompleteJob update job status to completed
 	CompleteJob(jid int64) error
 
-	// CheckoutJob checkout the job to the running status
+	// CheckoutJob change job status from pending to running
 	CheckoutJob(jid, rid int64) error
 
 	// PingJob update the job updated_at to now

@@ -41,8 +41,8 @@ type PageRenderer struct {
 	//  i: pager info label
 	//  s: limit size select
 	//  >: </ul>
-	//  I: pager info text   (float left)
-	//  S: limit size select (float right)
+	//  I: pager info text
+	//  S: limit size select
 	Style string
 }
 
@@ -69,7 +69,7 @@ func (pr *PageRenderer) Render(sb *strings.Builder, args ...any) error {
 	}
 
 	if pr.Style == "" {
-		pr.Style = tbs.GetText(pr.Locale, "pager.style", "IS<FP#NL>")
+		pr.Style = tbs.GetText(pr.Locale, "pager.style", "I<FP#NL>S")
 	}
 	if pr.LinkSize == 0 {
 		pr.LinkSize = num.Atoi(tbs.GetText(pr.Locale, "pager.link-size", "5"))

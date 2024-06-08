@@ -18,14 +18,15 @@ func getRetryAfter(err error) time.Duration {
 	return 0
 }
 
-func NeverAbort() bool {
-	return false
+func NeverAbort() error {
+	return nil
 }
 
-// RetryForError call api(), if api() returns a Retryable error,
-// sleep until Retryable.GetRetryAfter() duration, retry call api().
-// sleep 'sleep' duration, call 'abort()', if abort() returns true, returns the last error.
-func RetryForError(api func() error, retries int, abort func() bool, sleep time.Duration, logger log.Logger) (err error) {
+// RetryForError loop max `retries` count to call api().
+// returns the error if api() returns a non Retryable error.
+// returns the error if abort() returns error.
+// call SleepForRetry(sleep, after, abort), if api() returns a Retryable error.
+func RetryForError(api func() error, retries int, abort func() error, sleep time.Duration, logger log.Logger) (err error) {
 	for i := 1; ; i++ {
 		err = api()
 		if err == nil || i > retries {
@@ -41,18 +42,18 @@ func RetryForError(api func() error, retries int, abort func() bool, sleep time.
 			logger.Warnf("Sleep %s for retry #%d: %s", after, i, err.Error())
 		}
 
-		if !SleepForRetry(sleep, after, abort) {
+		if err = SleepForRetry(sleep, after, abort); err != nil {
 			break
 		}
 	}
 	return
 }
 
-// SleepForRetry sleep until 'after' duration elapsed.
-// call 'abort()' every 'sleep' interval, if abort() returns true, returns false.
+// SleepForRetry loop to sleep(`sleep`) until 'after' duration elapsed.
+// call 'abort()' every 'sleep' interval, if abort() returns error, returns it.
 // if 'sleep' <= 0, 'sleep' = time.Second.
 // if 'sleep' > 'after', 'sleep' = 'after'.
-func SleepForRetry(sleep, after time.Duration, abort func() bool) bool {
+func SleepForRetry(sleep, after time.Duration, abort func() error) (err error) {
 	if sleep <= 0 {
 		sleep = time.Second
 	}
@@ -61,11 +62,12 @@ func SleepForRetry(sleep, after time.Duration, abort func() bool) bool {
 	}
 
 	for te := time.Now().Add(after); te.After(time.Now()); {
-		if abort != nil && abort() {
-			return false
+		if abort != nil {
+			if err = abort(); err != nil {
+				return
+			}
 		}
 		time.Sleep(sleep)
 	}
-
-	return true
+	return
 }

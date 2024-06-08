@@ -21,7 +21,7 @@ type AzureOpenAI struct {
 
 	MaxRetries    int
 	RetryAfter    time.Duration
-	AbortOnRetry  func() bool
+	AbortOnRetry  func() error
 	AbortInterval time.Duration
 }
 

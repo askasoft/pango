@@ -1,6 +1,7 @@
 package sdk
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"testing"
@@ -28,7 +29,7 @@ func (rte *retryTestError) Error() string {
 	return s
 }
 
-func TestRetryForError(t *testing.T) {
+func TestRetryForErrorLoop(t *testing.T) {
 	w := "429 Too Many Requests (Retry After 1s)"
 
 	rte := &retryTestError{
@@ -41,9 +42,9 @@ func TestRetryForError(t *testing.T) {
 	err := RetryForError(func() error {
 		called++
 		return rte
-	}, 2, func() bool {
+	}, 2, func() error {
 		aborted++
-		return false
+		return nil
 	}, time.Millisecond*250, log.NewLog())
 
 	if err.Error() != w {
@@ -54,5 +55,37 @@ func TestRetryForError(t *testing.T) {
 	}
 	if aborted != 8 {
 		t.Errorf("aborted = %d, want %d", aborted, 8)
+	}
+}
+
+func TestRetryForErrorAbort(t *testing.T) {
+	w := errors.New("abort")
+
+	rte := &retryTestError{
+		status:     "429 Too Many Requests",
+		statusCode: http.StatusTooManyRequests,
+	}
+	rte.RetryAfter = time.Second
+
+	called, aborted := 0, 0
+	err := RetryForError(func() error {
+		called++
+		return rte
+	}, 2, func() error {
+		aborted++
+		if aborted == 2 {
+			return w
+		}
+		return nil
+	}, time.Millisecond*250, log.NewLog())
+
+	if err != w {
+		t.Errorf("Error(): %v, want %v", err, w)
+	}
+	if called != 1 {
+		t.Errorf("called = %d, want %d", called, 1)
+	}
+	if aborted != 2 {
+		t.Errorf("aborted = %d, want %d", aborted, 2)
 	}
 }

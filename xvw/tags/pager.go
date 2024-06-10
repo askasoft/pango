@@ -117,8 +117,7 @@ func (pr *PageRenderer) Render(sb *strings.Builder, args ...any) error {
 				}
 			case 's':
 				if pr.Total > 0 {
-					err := pr.writePagerLimits(sb)
-					if err != nil {
+					if err := pr.writePagerLimits(sb); err != nil {
 						return err
 					}
 				}
@@ -131,11 +130,8 @@ func (pr *PageRenderer) Render(sb *strings.Builder, args ...any) error {
 					pr.writeOuterInfosEmpty(sb)
 				}
 			case 'S':
-				if pr.Total > 0 {
-					err := pr.writeOuterLimits(sb)
-					if err != nil {
-						return err
-					}
+				if err := pr.writeOuterLimits(sb); err != nil {
+					return err
 				}
 			}
 		}
@@ -394,9 +390,11 @@ func (pr *PageRenderer) writePagerLimits(sb *strings.Builder) error {
 	return err
 }
 
-func (pr *PageRenderer) writeOuterLimits(sb *strings.Builder) error {
+func (pr *PageRenderer) writeOuterLimits(sb *strings.Builder) (err error) {
 	sb.WriteString(`<div class="limits">`)
-	err := pr.writeLimitsSelect(sb)
+	if pr.Total > 0 {
+		err = pr.writeLimitsSelect(sb)
+	}
 	sb.WriteString("</div>")
-	return err
+	return
 }

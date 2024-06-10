@@ -8,9 +8,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/askasoft/pango/bol"
 	"github.com/askasoft/pango/num"
 	"github.com/askasoft/pango/ref"
 	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/tmu"
 	"github.com/askasoft/pango/tpl/funcs"
 )
 
@@ -117,6 +119,8 @@ func Functions() FuncMap {
 		"Atoi": num.Atoi,
 		"Atol": num.Atol,
 		"Atof": num.Atof,
+		"Atob": bol.Atob,
+		"Atod": tmu.Atod,
 
 		// collection
 		"Strings":  funcs.Strings,

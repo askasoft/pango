@@ -9,7 +9,7 @@ import (
 )
 
 // AuthUserKey is the key for user credential authenticated saved in context
-const AuthUserKey = "XMW_USER"
+const AuthUserKey = "X_AUTH_USER"
 
 type AuthUser interface {
 	GetUsername() string

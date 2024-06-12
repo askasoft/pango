@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	TokenAttrKey    = "XMW_TOKEN"
+	TokenAttrKey    = "X_TOKEN"
 	TokenParamName  = "_token_"
-	TokenHeaderName = "X-MW-TOKEN" //nolint: gosec
+	TokenHeaderName = "X-CSRF-TOKEN" //nolint: gosec
 	TokenCookieName = "X_TOKEN"
 )
 
@@ -30,6 +30,7 @@ type TokenProtector struct {
 	CookieHttpOnly bool
 	CookieSameSite http.SameSite
 	AbortStatus    int
+	AbortFunc      func(*xin.Context)
 
 	methods *stringSet
 }
@@ -47,9 +48,11 @@ func NewTokenProtector(secret string) *TokenProtector {
 		CookieMaxAge:   time.Hour * 24 * 30, // 30 days
 		CookieHttpOnly: true,
 		CookieSameSite: http.SameSiteStrictMode,
-		AbortStatus:    http.StatusForbidden,
+		AbortStatus:    http.StatusBadRequest,
 		methods:        newStringSet(http.MethodDelete, http.MethodPatch, http.MethodPost, http.MethodPut),
 	}
+
+	tp.AbortFunc = tp.failed
 	return tp
 }
 
@@ -79,12 +82,16 @@ func (tp *TokenProtector) Handle(c *xin.Context) {
 	ms := tp.methods
 	if ms != nil && ms.Contains(c.Request.Method) {
 		if !tp.validate(c) {
-			c.AbortWithStatus(tp.AbortStatus)
+			tp.AbortFunc(c)
 			return
 		}
 	}
 
 	c.Next()
+}
+
+func (tp *TokenProtector) failed(c *xin.Context) {
+	c.AbortWithStatus(tp.AbortStatus)
 }
 
 func (tp *TokenProtector) validate(c *xin.Context) bool {

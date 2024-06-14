@@ -586,8 +586,7 @@ func TestRingBufferSetPanic(t *testing.T) {
 func TestRingBufferEach(t *testing.T) {
 	list := NewRingBuffer[string]()
 	list.Adds("a", "b", "c")
-	index := 0
-	list.Each(func(value string) {
+	list.Each(func(index int, value string) bool {
 		switch index {
 		case 0:
 			if av, ev := value, "a"; av != ev {
@@ -604,7 +603,7 @@ func TestRingBufferEach(t *testing.T) {
 		default:
 			t.Errorf("Too many")
 		}
-		index++
+		return true
 	})
 }
 

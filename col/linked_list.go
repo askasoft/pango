@@ -229,16 +229,24 @@ func (ll *LinkedList) Values() []T {
 }
 
 // Each call f for each item in the list
-func (ll *LinkedList) Each(f func(T)) {
+func (ll *LinkedList) Each(f func(int, T) bool) {
+	i := 0
 	for ln := ll.head; ln != nil; ln = ln.next {
-		f(ln.value)
+		if !f(i, ln.value) {
+			return
+		}
+		i++
 	}
 }
 
 // ReverseEach call f for each item in the list with reverse order
-func (ll *LinkedList) ReverseEach(f func(T)) {
+func (ll *LinkedList) ReverseEach(f func(int, T) bool) {
+	i := ll.len - 1
 	for ln := ll.tail; ln != nil; ln = ln.prev {
-		f(ln.value)
+		if !f(i, ln.value) {
+			return
+		}
+		i--
 	}
 }
 

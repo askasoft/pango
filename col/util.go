@@ -57,7 +57,8 @@ func CopyMap(dst, src Map) {
 		return
 	}
 
-	src.Each(func(k K, v V) {
+	src.Each(func(k K, v V) bool {
 		dst.Set(k, v)
+		return true
 	})
 }

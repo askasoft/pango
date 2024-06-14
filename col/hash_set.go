@@ -255,9 +255,13 @@ func (hs *HashSet) Values() []T {
 }
 
 // Each Call f for each item in the set
-func (hs *HashSet) Each(f func(T)) {
+func (hs *HashSet) Each(f func(int, T) bool) {
+	i := 0
 	for k := range hs.hash {
-		f(k)
+		if !f(i, k) {
+			return
+		}
+		i++
 	}
 }
 

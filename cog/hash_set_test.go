@@ -64,7 +64,7 @@ func TestHashSetLazyInit(t *testing.T) {
 	}
 	{
 		hs := &HashSet[int]{}
-		hs.Each(func(v int) {})
+		hs.Each(func(i, v int) bool { return true })
 	}
 	{
 		hs := &HashSet[int]{}

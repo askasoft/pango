@@ -244,16 +244,20 @@ func (al *ArrayList) Values() []T {
 }
 
 // Each call f for each item in the list
-func (al *ArrayList) Each(f func(T)) {
-	for _, v := range al.data {
-		f(v)
+func (al *ArrayList) Each(f func(int, T) bool) {
+	for i, v := range al.data {
+		if !f(i, v) {
+			return
+		}
 	}
 }
 
 // ReverseEach call f for each item in the list with reverse order
-func (al *ArrayList) ReverseEach(f func(T)) {
+func (al *ArrayList) ReverseEach(f func(int, T) bool) {
 	for i := al.Len() - 1; i >= 0; i-- {
-		f(al.data[i])
+		if !f(i, al.data[i]) {
+			return
+		}
 	}
 }
 

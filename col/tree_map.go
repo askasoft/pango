@@ -214,16 +214,20 @@ func (tm *TreeMap) Removes(ks ...K) {
 }
 
 // Each call f for each item in the map
-func (tm *TreeMap) Each(f func(k K, v V)) {
+func (tm *TreeMap) Each(f func(k K, v V) bool) {
 	for tn := tm.head(); tn != nil; tn = tn.next() {
-		f(tn.key, tn.value)
+		if !f(tn.key, tn.value) {
+			return
+		}
 	}
 }
 
 // ReverseEach call f for each item in the map with reverse order
-func (tm *TreeMap) ReverseEach(f func(k K, v V)) {
+func (tm *TreeMap) ReverseEach(f func(k K, v V) bool) {
 	for tn := tm.tail(); tn != nil; tn = tn.prev() {
-		f(tn.key, tn.value)
+		if !f(tn.key, tn.value) {
+			return
+		}
 	}
 }
 

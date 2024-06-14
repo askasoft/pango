@@ -240,16 +240,24 @@ func (ts *TreeSet) Values() []T {
 }
 
 // Each call f for each item in the set
-func (ts *TreeSet) Each(f func(v T)) {
+func (ts *TreeSet) Each(f func(int, T) bool) {
+	i := 0
 	for tn := ts.head(); tn != nil; tn = tn.next() {
-		f(tn.value)
+		if !f(i, tn.value) {
+			return
+		}
+		i++
 	}
 }
 
 // ReverseEach call f for each item in the set with reverse order
-func (ts *TreeSet) ReverseEach(f func(v T)) {
+func (ts *TreeSet) ReverseEach(f func(int, T) bool) {
+	i := ts.len - 1
 	for tn := ts.tail(); tn != nil; tn = tn.prev() {
-		f(tn.value)
+		if !f(i, tn.value) {
+			return
+		}
+		i--
 	}
 }
 

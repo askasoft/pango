@@ -246,35 +246,57 @@ func (rb *RingBuffer[T]) Values() []T {
 }
 
 // Each call f for each item in the RingBuffer
-func (rb *RingBuffer[T]) Each(f func(T)) {
+func (rb *RingBuffer[T]) Each(f func(int, T) bool) {
 	if rb.head <= rb.tail {
+		n := 0
 		for i := rb.head; i <= rb.tail; i++ {
-			f(rb.data[i])
+			if !f(n, rb.data[i]) {
+				return
+			}
+			n++
 		}
 	} else {
 		l := len(rb.data)
+		n := 0
 		for i := rb.head; i < l; i++ {
-			f(rb.data[i])
+			if !f(n, rb.data[i]) {
+				return
+			}
+			n++
 		}
 		for i := 0; i <= rb.tail; i++ {
-			f(rb.data[i])
+			if !f(n, rb.data[i]) {
+				return
+			}
+			n++
 		}
 	}
 }
 
 // ReverseEach call f for each item in the RingBuffer with reverse order
-func (rb *RingBuffer[T]) ReverseEach(f func(T)) {
+func (rb *RingBuffer[T]) ReverseEach(f func(int, T) bool) {
 	if rb.head <= rb.tail {
+		n := len(rb.data) - 1
 		for i := rb.tail; i >= rb.head; i-- {
-			f(rb.data[i])
+			if !f(n, rb.data[i]) {
+				return
+			}
+			n--
 		}
 	} else {
 		l := len(rb.data)
+		n := l - 1
 		for i := rb.tail; i >= 0; i-- {
-			f(rb.data[i])
+			if !f(n, rb.data[i]) {
+				return
+			}
+			n--
 		}
 		for i := l - 1; i >= rb.head; i-- {
-			f(rb.data[i])
+			if !f(n, rb.data[i]) {
+				return
+			}
+			n--
 		}
 	}
 }

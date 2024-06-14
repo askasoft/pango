@@ -294,8 +294,7 @@ func TestLinkedHashSetEach(t *testing.T) {
 	lset := NewLinkedHashSet()
 	lset.Adds("a", "b", "c")
 	lset.Adds("a", "b", "c")
-	index := 0
-	lset.Each(func(value T) {
+	lset.Each(func(index int, value T) bool {
 		switch index {
 		case 0:
 			if av, ev := value, "a"; av != ev {
@@ -312,7 +311,7 @@ func TestLinkedHashSetEach(t *testing.T) {
 		default:
 			t.Errorf("Too many")
 		}
-		index++
+		return true
 	})
 }
 

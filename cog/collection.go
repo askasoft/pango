@@ -75,7 +75,7 @@ type Collection[T any] interface {
 	// Values returns a slice contains all the items of the collection
 	Values() []T
 
-	Eachable[T]
+	Eachable[int, T]
 }
 
 // Set a set interface
@@ -85,7 +85,7 @@ type Set[T any] Collection[T]
 type List[T any] interface {
 	Collection[T]
 
-	ReverseEachable[T]
+	ReverseEachable[int, T]
 
 	Iterable[T]
 
@@ -192,14 +192,14 @@ type Map[K any, V any] interface {
 	// Entries returns the key-value pair slice
 	Entries() []P[K, V]
 
-	Eachable2[K, V]
+	Eachable[K, V]
 }
 
 // IterableMap a iterable map interface
 type IterableMap[K any, V any] interface {
 	Map[K, V]
 
-	ReverseEachable2[K, V]
+	ReverseEachable[K, V]
 
 	Iterable2[K, V]
 }

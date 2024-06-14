@@ -152,16 +152,18 @@ func jsonMarshalCol[T any](c Collection[T]) (res []byte, err error) {
 	}
 
 	res = append(res, '[')
-	c.Each(func(v T) {
+	c.Each(func(_ int, v T) bool {
 		var bs []byte
 		bs, err = json.Marshal(v)
 		if err != nil {
-			return
+			return false
 		}
 		res = append(res, bs...)
 		res = append(res, ',')
+		return true
 	})
 	res[len(res)-1] = ']'
+
 	return
 }
 
@@ -171,17 +173,19 @@ func jsonMarshalMap[K any, V any](m Map[K, V]) (res []byte, err error) {
 	}
 
 	res = append(res, '{')
-	m.Each(func(k K, v V) {
+	m.Each(func(k K, v V) bool {
 		var bs []byte
 		s := fmt.Sprintf("%v", k)
 		res = append(res, fmt.Sprintf("%q:", s)...)
 		bs, err = json.Marshal(v)
 		if err != nil {
-			return
+			return false
 		}
 		res = append(res, bs...)
 		res = append(res, ',')
+		return true
 	})
 	res[len(res)-1] = '}'
+
 	return
 }

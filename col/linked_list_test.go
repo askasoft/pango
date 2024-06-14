@@ -411,8 +411,7 @@ func TestLinkedListSetPanic(t *testing.T) {
 func TestLinkedListEach(t *testing.T) {
 	list := NewLinkedList()
 	list.Adds("a", "b", "c")
-	index := 0
-	list.Each(func(value T) {
+	list.Each(func(index int, value T) bool {
 		switch index {
 		case 0:
 			if av, ev := value, "a"; av != ev {
@@ -429,7 +428,7 @@ func TestLinkedListEach(t *testing.T) {
 		default:
 			t.Errorf("Too many")
 		}
-		index++
+		return true
 	})
 }
 

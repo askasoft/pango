@@ -205,9 +205,11 @@ func (hm *HashMap[K, V]) Entries() []P[K, V] {
 }
 
 // Each call f for each item(k,v) in the map
-func (hm *HashMap[K, V]) Each(f func(k K, v V)) {
+func (hm *HashMap[K, V]) Each(f func(K, V) bool) {
 	for k, v := range hm.hash {
-		f(k, v)
+		if !f(k, v) {
+			return
+		}
 	}
 }
 

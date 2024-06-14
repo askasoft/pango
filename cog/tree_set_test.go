@@ -175,8 +175,7 @@ func TestTreeSetEach(t *testing.T) {
 	tset := NewTreeSet(CompareString)
 	tset.Adds("a", "b", "c")
 	tset.Adds("a", "b", "c")
-	index := 0
-	tset.Each(func(value string) {
+	tset.Each(func(index int, value string) bool {
 		switch index {
 		case 0:
 			if av, ev := value, "a"; av != ev {
@@ -193,7 +192,7 @@ func TestTreeSetEach(t *testing.T) {
 		default:
 			t.Errorf("Too many")
 		}
-		index++
+		return true
 	})
 }
 

@@ -444,8 +444,7 @@ func TestArrayListSetPanic(t *testing.T) {
 func TestArrayListEach(t *testing.T) {
 	list := NewArrayList[string]()
 	list.Adds("a", "b", "c")
-	index := 0
-	list.Each(func(value string) {
+	list.Each(func(index int, value string) bool {
 		switch index {
 		case 0:
 			if av, ev := value, "a"; av != ev {
@@ -462,7 +461,7 @@ func TestArrayListEach(t *testing.T) {
 		default:
 			t.Errorf("Too many")
 		}
-		index++
+		return true
 	})
 }
 

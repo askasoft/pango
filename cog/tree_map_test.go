@@ -261,7 +261,7 @@ func TestTreeMapEach(t *testing.T) {
 	m.Set("a", 1)
 	m.Set("b", 2)
 	count := 0
-	m.Each(func(key string, value int) {
+	m.Each(func(key string, value int) bool {
 		count++
 		if actualValue, expectedValue := count, value; actualValue != expectedValue {
 			t.Errorf("Got %v expected %v", actualValue, expectedValue)
@@ -282,6 +282,7 @@ func TestTreeMapEach(t *testing.T) {
 		default:
 			t.Errorf("Too many")
 		}
+		return true
 	})
 }
 

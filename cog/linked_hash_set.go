@@ -242,16 +242,24 @@ func (ls *LinkedHashSet[T]) Values() []T {
 }
 
 // Each call f for each item in the set
-func (ls *LinkedHashSet[T]) Each(f func(T)) {
+func (ls *LinkedHashSet[T]) Each(f func(int, T) bool) {
+	i := 0
 	for ln := ls.head; ln != nil; ln = ln.next {
-		f(ln.value)
+		if !f(i, ln.value) {
+			return
+		}
+		i++
 	}
 }
 
 // ReverseEach call f for each item in the set with reverse order
-func (ls *LinkedHashSet[T]) ReverseEach(f func(T)) {
+func (ls *LinkedHashSet[T]) ReverseEach(f func(int, T) bool) {
+	i := ls.Len() - 1
 	for ln := ls.tail; ln != nil; ln = ln.prev {
-		f(ln.value)
+		if !f(i, ln.value) {
+			return
+		}
+		i--
 	}
 }
 

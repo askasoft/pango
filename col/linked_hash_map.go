@@ -201,14 +201,16 @@ func (lm *LinkedHashMap) Entries() []P {
 }
 
 // Each call f for each item in the map
-func (lm *LinkedHashMap) Each(f func(k K, v V)) {
+func (lm *LinkedHashMap) Each(f func(K, V) bool) {
 	for ln := lm.head; ln != nil; ln = ln.next {
-		f(ln.key, ln.value)
+		if !f(ln.key, ln.value) {
+			return
+		}
 	}
 }
 
 // ReverseEach call f for each item in the map with reverse order
-func (lm *LinkedHashMap) ReverseEach(f func(k K, v V)) {
+func (lm *LinkedHashMap) ReverseEach(f func(K, V) bool) {
 	for ln := lm.tail; ln != nil; ln = ln.prev {
 		f(ln.key, ln.value)
 	}

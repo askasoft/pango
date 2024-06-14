@@ -3,16 +3,16 @@
 
 package cog
 
-// Eachable a value each interface for collection
-type Eachable[T any] interface {
-	// Each call f for each item in the collection
-	Each(f func(value T))
+// Eachable a key/value each interface for collection
+type Eachable[K any, V any] interface {
+	// Each call f for each key/value in the collection
+	Each(f func(key K, value V) bool)
 }
 
-// ReverseEachable a value each interface for collection
-type ReverseEachable[T any] interface {
-	// ReverseEach call f for each item in the collection with reverse order
-	ReverseEach(f func(value T))
+// ReverseEachable a key/value reverse each interface for collection
+type ReverseEachable[K any, V any] interface {
+	// ReverseEach call f for each key/value in the collection with reverse order
+	ReverseEach(f func(key K, value V) bool)
 }
 
 // Iterable a value iterable interface for collection
@@ -46,18 +46,6 @@ type Iterator[T any] interface {
 	// Reset resets the iterator to its initial state (one-before-first/one-after-last)
 	// Call Next()/Prev() to fetch the first/last item if any.
 	Reset()
-}
-
-// Eachable2 a key/value each interface for collection
-type Eachable2[K any, V any] interface {
-	// Each call f for each key/value in the collection
-	Each(f func(key K, value V))
-}
-
-// ReverseEachable2 a key/value reverse each interface for collection
-type ReverseEachable2[K any, V any] interface {
-	// ReverseEach call f for each key/value in the collection with reverse order
-	ReverseEach(f func(key K, value V))
 }
 
 // Iterable2 a key/value iterable interface for collection

@@ -620,7 +620,7 @@ func TestLinkedHashMapEach(t *testing.T) {
 	m.Set("a", 2)
 	m.Set("b", 3)
 	count := 0
-	m.Each(func(key string, value int) {
+	m.Each(func(key string, value int) bool {
 		count++
 		if av, ev := count, value; av != ev {
 			t.Errorf("Got %v expected %v", av, ev)
@@ -641,6 +641,7 @@ func TestLinkedHashMapEach(t *testing.T) {
 		default:
 			t.Errorf("Too many")
 		}
+		return true
 	})
 }
 

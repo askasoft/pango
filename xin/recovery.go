@@ -32,7 +32,7 @@ func defaultRecover(c *Context, err any) {
 }
 
 func loggerRecover(c *Context, err any) {
-	c.Logger.Errorf("Panic: %v", err)
+	c.Logger.Errorf("Panic (//%s%s): %v", c.Request.Host, c.Request.URL, err)
 }
 
 func doRecovery(c *Context, err any, r RecoveryFunc) {

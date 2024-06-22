@@ -26,14 +26,20 @@ var _ driver.Valuer = (*pqx.Vector)(nil)
 
 type GormVectorTest struct {
 	gorm.Model
-	Embedding pqx.Vector `gorm:"type:vector(3)"`
+	Embedding *pqx.Vector `gorm:"type:vector(3)"`
 }
 
 func createTestItems(t *testing.T, db *gorm.DB) {
+	vecs := []pqx.Vector{
+		{1, 1, 1},
+		{2, 2, 2},
+		{1, 1, 2},
+	}
 	items := []GormVectorTest{
-		{Embedding: pqx.Vector([]float64{1, 1, 1})},
-		{Embedding: pqx.Vector([]float64{2, 2, 2})},
-		{Embedding: pqx.Vector([]float64{1, 1, 2})},
+		{Embedding: &vecs[0]},
+		{Embedding: &vecs[1]},
+		{Embedding: &vecs[2]},
+		{},
 	}
 
 	result := db.Create(items)

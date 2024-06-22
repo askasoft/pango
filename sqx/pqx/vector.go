@@ -19,18 +19,22 @@ func (v Vector) Slice() []float64 {
 
 // String returns a string representation of the vector.
 func (v Vector) String() string {
-	var sb strings.Builder
+	if n := len(v); n > 0 {
+		// There will be at least two brackets, N bytes of values,
+		// and N-1 bytes of delimiters.
+		b := make([]byte, 1, 1+2*n)
+		b[0] = '['
 
-	sb.WriteString("[")
-	for i := 0; i < len(v); i++ {
-		if i > 0 {
-			sb.WriteString(",")
+		b = strconv.AppendFloat(b, v[0], 'f', -1, 64)
+		for i := 1; i < n; i++ {
+			b = append(b, ',')
+			b = strconv.AppendFloat(b, v[i], 'f', -1, 64)
 		}
-		sb.WriteString(strconv.FormatFloat(float64(v[i]), 'f', -1, 32))
-	}
-	sb.WriteString("]")
 
-	return sb.String()
+		return str.UnsafeString(append(b, ']'))
+	}
+
+	return "[]"
 }
 
 // Parse parses a string representation of a vector.
@@ -68,5 +72,8 @@ func (v *Vector) Scan(src any) (err error) {
 
 // Value implements the driver.Valuer interface.
 func (v Vector) Value() (driver.Value, error) {
+	if v == nil {
+		return nil, nil
+	}
 	return v.String(), nil
 }

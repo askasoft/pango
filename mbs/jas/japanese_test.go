@@ -1,4 +1,4 @@
-package mbs
+package jas
 
 import (
 	"fmt"
@@ -78,6 +78,56 @@ var (
 	zenkaku      = zenkakuMark + zenkakuAyatu + zenkakuAnamayara + zenkakuKasataha + zenkakuWaou
 	zenkakuRunes = []rune(zenkaku)
 )
+
+func specialZ(c rune) rune {
+	switch c {
+	case '“', '”', '″':
+		return '＂'
+	case '〜':
+		return '～'
+	case '’':
+		return '＇'
+	case '\u00a0':
+		return '\u3000'
+	case '￥':
+		return '＼'
+	case 'ー', '‐', '−':
+		return '－'
+	default:
+		return c
+	}
+}
+
+func testPrint(t *testing.T, name, zens, hans string, fz2h func(c rune) rune, fh2z func(c rune) rune) {
+	zen := []rune(zens)
+	han := []rune(hans)
+
+	if len(zen) != len(han) {
+		t.Errorf("[%s] len(%q) != len(%q)", name, zen, han)
+		return
+	}
+
+	fmt.Println("// " + name)
+	for i := 0; i < len(zen) && i < len(han); i++ {
+		z := zen[i]
+		h := han[i]
+
+		if fh2z != nil && fz2h != nil {
+			z2h := fz2h(z)
+			h2z := fh2z(h)
+
+			if h != z2h {
+				t.Errorf("[%s] %q != %q", name, h, z2h)
+			}
+
+			sz := specialZ(z)
+			if sz != h2z {
+				t.Errorf("[%s] %q != %q", name, sz, h2z)
+			}
+		}
+		fmt.Printf("'\\u%04X': '\\u%04X', // %s => %s\n", z, h, string(z), string(h))
+	}
+}
 
 func testJapan(t *testing.T, name, zen, han string) {
 	testPrint(t, name, zen, han, nil, nil)

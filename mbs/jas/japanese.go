@@ -1,8 +1,11 @@
-package mbs
+package jas
 
 import (
 	"strings"
 	"unicode/utf8"
+
+	"github.com/askasoft/pango/mbs"
+	"github.com/askasoft/pango/str"
 )
 
 // http://www.asahi-net.or.jp/~ax2s-kmtn/ref/unicode/uff00.html
@@ -19,7 +22,7 @@ var (
 	}
 
 	// h2zMark 半角: ｡｢｣､･ﾞﾟ
-	h2zMark = reverse(z2hMark)
+	h2zMark = mbs.Reverse(z2hMark)
 
 	// z2hAyatu 全角: ァィゥェォャュョッー
 	z2hAyatu = map[rune]rune{
@@ -36,7 +39,7 @@ var (
 	}
 
 	// h2zAyatu 半角: ｧｨｩｪｫｬｭｮｯｰ
-	h2zAyatu = reverse(z2hAyatu)
+	h2zAyatu = mbs.Reverse(z2hAyatu)
 
 	// z2hAnamayara 全角: アイエオナニヌネノマミムメモヤユヨラリルレロン
 	z2hAnamayara = map[rune]rune{
@@ -66,7 +69,7 @@ var (
 	}
 
 	// h2zAnamayara 半角: ｱｲｴｵﾅﾆﾇﾈﾉﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾝ
-	h2zAnamayara = reverse(z2hAnamayara)
+	h2zAnamayara = mbs.Reverse(z2hAnamayara)
 
 	// z2hKasataha 全角　かさたは　行: カキクケコサシスセソタチツテトハヒフヘホウ
 	z2hKasataha = map[rune]rune{
@@ -94,7 +97,7 @@ var (
 	}
 
 	// h2zKasataha 半角　かさたは　行: ｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾊﾋﾌﾍﾎｳ
-	h2zKasataha = reverse(z2hKasataha)
+	h2zKasataha = mbs.Reverse(z2hKasataha)
 
 	// z2hWaou 全角　わ　行: ワヲ
 	z2hWaou = map[rune]rune{
@@ -103,13 +106,13 @@ var (
 	}
 
 	// h2zWaou 半角　わ　行: ﾜｦ
-	h2zWaou = reverse(z2hWaou)
+	h2zWaou = mbs.Reverse(z2hWaou)
 
 	// z2h 全角
-	z2h = merge(z2hMark, z2hAyatu, z2hAnamayara, z2hKasataha, z2hWaou)
+	z2h = mbs.Merge(z2hMark, z2hAyatu, z2hAnamayara, z2hKasataha, z2hWaou)
 
 	// h2z 半角
-	h2z = merge(h2zMark, h2zAyatu, h2zAnamayara, h2zKasataha, h2zWaou)
+	h2z = mbs.Merge(h2zMark, h2zAyatu, h2zAnamayara, h2zKasataha, h2zWaou)
 
 	// z2hDaku 全角　濁文字: ガギグゲゴザジズゼゾダヂヅデドバビブベボヴヷヸヹヺ
 	z2hDaku = map[rune]rune{
@@ -141,7 +144,7 @@ var (
 	}
 
 	// h2zDaku 半角　濁文字: ｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾊﾋﾌﾍﾎｳﾜｦ
-	h2zDaku = reverse(z2hDaku)
+	h2zDaku = mbs.Reverse(z2hDaku)
 
 	// jaZenkakuHandakuRunes 全角　半濁文字: パピプペポ
 	z2hHandaku = map[rune]rune{
@@ -153,7 +156,7 @@ var (
 	}
 
 	// h2zHandaku 半角　半濁文字: ﾊﾋﾌﾍﾎ
-	h2zHandaku = reverse(z2hHandaku)
+	h2zHandaku = mbs.Reverse(z2hHandaku)
 )
 
 // ToZenkakuRune convert the rune c to zenkaku
@@ -161,7 +164,7 @@ func ToZenkakuRune(c rune) rune {
 	if r, ok := h2z[c]; ok {
 		return r
 	}
-	return ToFullRune(c)
+	return mbs.ToFullRune(c)
 }
 
 // ToHankakuRune convert the rune c to hankaku
@@ -169,7 +172,7 @@ func ToHankakuRune(c rune) rune {
 	if r, ok := z2h[c]; ok {
 		return r
 	}
-	return ToASCIIRune(c)
+	return mbs.ToASCIIRune(c)
 }
 
 // ToZenkakuDakuRune convert the rune c to zenkaku Daku
@@ -210,16 +213,36 @@ func IsHankakuKatakanaRune(c rune) bool {
 	return c >= '\uFF61' && c <= '\uFF9F'
 }
 
+func IsHankakuKatakanaSpaceRune(c rune) bool {
+	return c == ' ' || (c >= '\uFF61' && c <= '\uFF9F')
+}
+
 // IsZenkakuKatakanaRune return true if c is Zenkaku Katakana rune
 // https://ja.wikipedia.org/wiki/片仮名_(Unicodeのブロック)
 func IsZenkakuKatakanaRune(c rune) bool {
 	return c >= '\u30A1' && c <= '\u30FC'
 }
 
+func IsZenkakuKatakanaSpaceRune(c rune) bool {
+	return c == '　' || (c >= '\u30A1' && c <= '\u30FC')
+}
+
+func IsZenkakuKatakanaSpacesRune(c rune) bool {
+	return c == ' ' || c == '　' || (c >= '\u30A1' && c <= '\u30FC')
+}
+
 // IsZenkakuHiraganaRune return true if c is Zenkaku Hiragana rune
 // https://ja.wikipedia.org/wiki/平仮名_(Unicodeのブロック)
 func IsZenkakuHiraganaRune(c rune) bool {
 	return c >= '\u3041' && c <= '\u309F'
+}
+
+func IsZenkakuHiraganaSpaceRune(c rune) bool {
+	return c == '　' || (c >= '\u3041' && c <= '\u309F')
+}
+
+func IsZenkakuHiraganaSpacesRune(c rune) bool {
+	return c == ' ' || c == '　' || (c >= '\u3041' && c <= '\u309F')
 }
 
 // IsHankakuRune return true if c is Hankaku rune
@@ -238,44 +261,17 @@ func IsZenkakuRune(c rune) bool {
 
 // IsHankakuKatakana return true if s is HankakuKatakana string
 func IsHankakuKatakana(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	for _, c := range s {
-		if !IsHankakuKatakanaRune(c) {
-			return false
-		}
-	}
-	return true
+	return str.ChecksFunc(s, IsHankakuKatakanaRune)
 }
 
 // IsHankakuKatakanaSpace return true if s is HankakuKatakana or space string
 func IsHankakuKatakanaSpace(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	for _, c := range s {
-		if c != ' ' && !IsHankakuKatakanaRune(c) {
-			return false
-		}
-	}
-	return true
+	return str.ChecksFunc(s, IsHankakuKatakanaSpaceRune)
 }
 
 // IsHankaku return true if s is Hankaku string
 func IsHankaku(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	for _, c := range s {
-		if !IsHankakuRune(c) {
-			return false
-		}
-	}
-	return true
+	return str.ChecksFunc(s, IsHankakuRune)
 }
 
 // IsZenkaku return true if s is Zenkaku string
@@ -283,97 +279,37 @@ func IsZenkaku(s string) bool {
 	if s == "" {
 		return false
 	}
-
-	for _, c := range s {
-		if !IsZenkakuRune(c) {
-			return false
-		}
-	}
-	return true
+	return !str.ContainsFunc(s, IsHankakuRune)
 }
 
 // IsZenkakuKatakana return true if s is ZenkakuKatakana string
 func IsZenkakuKatakana(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	for _, c := range s {
-		if !IsZenkakuKatakanaRune(c) {
-			return false
-		}
-	}
-	return true
+	return str.ChecksFunc(s, IsZenkakuKatakanaRune)
 }
 
 // IsZenkakuKatakanaSpace return true if s is Zenkaku Katakana or Space string
 func IsZenkakuKatakanaSpace(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	for _, c := range s {
-		if c != '　' && !IsZenkakuKatakanaRune(c) {
-			return false
-		}
-	}
-	return true
+	return str.ChecksFunc(s, IsZenkakuKatakanaSpaceRune)
 }
 
 // IsZenkakuKatakanaSpaces return true if s is Zenkaku Katakana or Space (Zenkaku or Hankaku) string
 func IsZenkakuKatakanaSpaces(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	for _, c := range s {
-		if c != ' ' && c != '　' && !IsZenkakuKatakanaRune(c) {
-			return false
-		}
-	}
-	return true
+	return str.ChecksFunc(s, IsZenkakuKatakanaSpacesRune)
 }
 
 // IsZenkakuHiragana return true if s is ZenkakuHiragana string
 func IsZenkakuHiragana(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	for _, c := range s {
-		if !IsZenkakuHiraganaRune(c) {
-			return false
-		}
-	}
-	return true
+	return str.ChecksFunc(s, IsZenkakuHiraganaRune)
 }
 
 // IsZenkakuHiraganaSpace return true if s is Zenkaku Hiragana or Space string
 func IsZenkakuHiraganaSpace(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	for _, c := range s {
-		if c != '　' && !IsZenkakuHiraganaRune(c) {
-			return false
-		}
-	}
-	return true
+	return str.ChecksFunc(s, IsZenkakuHiraganaSpaceRune)
 }
 
 // IsZenkakuHiraganaSpaces return true if s is Zenkaku Hiragana or Space(Zenkaku or Hankaku) string
 func IsZenkakuHiraganaSpaces(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	for _, c := range s {
-		if c != ' ' && c != '　' && !IsZenkakuHiraganaRune(c) {
-			return false
-		}
-	}
-	return true
+	return str.ChecksFunc(s, IsZenkakuHiraganaSpacesRune)
 }
 
 // ToZenkaku convert the string from hankaku to Zenkaku
@@ -384,7 +320,7 @@ func ToZenkaku(s string) string {
 
 	sz := len(s)
 
-	sb := &strings.Builder{}
+	var sb strings.Builder
 	sb.Grow(sz)
 
 	var c rune
@@ -436,7 +372,7 @@ func ToHankaku(s string) string {
 		return s
 	}
 
-	sb := &strings.Builder{}
+	var sb strings.Builder
 	for _, c := range s {
 		if IsHankakuRune(c) {
 			sb.WriteRune(c)

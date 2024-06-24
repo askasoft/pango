@@ -1,9 +1,10 @@
 package mbs
 
 import (
-	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/askasoft/pango/str"
 )
 
 // https://en.wikipedia.org/wiki/Halfwidth_and_Fullwidth_Forms_(Unicode_block)
@@ -117,7 +118,7 @@ var (
 	}
 
 	// m2s multi-byte rune to single-byte rune
-	m2s = merge(reverse(s2m), map[rune]rune{
+	m2s = Merge(Reverse(s2m), map[rune]rune{
 		// non-breaking space
 		//'\u00A0': '\u0020', //   =>
 		// Symbol
@@ -136,29 +137,6 @@ var (
 		'\u30FC': '\u002D', // ー => -
 	})
 )
-
-func merge(ms ...map[rune]rune) map[rune]rune {
-	sz := 0
-	for _, m := range ms {
-		sz += len(m)
-	}
-
-	mm := make(map[rune]rune, sz)
-	for _, m := range ms {
-		for k, v := range m {
-			mm[k] = v
-		}
-	}
-	return mm
-}
-
-func reverse(m map[rune]rune) map[rune]rune {
-	rm := make(map[rune]rune, len(m))
-	for k, v := range m {
-		rm[v] = k
-	}
-	return rm
-}
 
 // ToASCIIRune convert multi ascii rune c to single ascii rune
 func ToASCIIRune(c rune) rune {
@@ -184,67 +162,17 @@ func ToFullRune(c rune) rune {
 
 // ToASCII convert the string from multi byte to single byte ascii
 func ToASCII(s string) string {
-	if s == "" {
-		return s
-	}
-
-	sb := &strings.Builder{}
-	for i, c := range s {
-		r := ToASCIIRune(c)
-		if r != c {
-			if sb.Len() == 0 {
-				sb.Grow(len(s))
-				sb.WriteString(s[:i])
-			}
-			sb.WriteRune(r)
-			continue
-		}
-
-		if sb.Len() > 0 {
-			sb.WriteRune(c)
-		}
-	}
-
-	if sb.Len() > 0 {
-		return sb.String()
-	}
-
-	return s
+	return str.ReplaceFunc(s, ToASCIIRune)
 }
 
 // ToFullWidth convert the string from single ascii to multi ascii
 func ToFullWidth(s string) string {
-	if s == "" {
-		return s
-	}
-
-	sb := &strings.Builder{}
-	for i, c := range s {
-		r := ToFullRune(c)
-		if r != c {
-			if sb.Len() == 0 {
-				sb.Grow(len(s))
-				sb.WriteString(s[:i])
-			}
-			sb.WriteRune(r)
-			continue
-		}
-
-		if sb.Len() > 0 {
-			sb.WriteRune(c)
-		}
-	}
-
-	if sb.Len() > 0 {
-		return sb.String()
-	}
-
-	return s
+	return str.ReplaceFunc(s, ToFullRune)
 }
 
-// IsHalfRune checks if the rune c is unicode half-width char.
+// IsHalfWidthRune checks if the rune c is unicode half-width char.
 // \u0000-\u00FF\uFF61-\uFFDF\uFFE8-\uFFEE
-func IsHalfRune(c rune) bool {
+func IsHalfWidthRune(c rune) bool {
 	if c <= unicode.MaxASCII ||
 		(c >= '\uFF61' && c <= '\uFFDF') ||
 		(c >= '\uFFE8' && c <= '\uFFEF') {
@@ -253,58 +181,28 @@ func IsHalfRune(c rune) bool {
 	return false
 }
 
+func IsFullWidthRune(c rune) bool {
+	return !IsHalfWidthRune(c)
+}
+
 // HasHalfWidth checks if the string contains any unicode half-width chars.
 func HasHalfWidth(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	for _, c := range s {
-		if IsHalfRune(c) {
-			return true
-		}
-	}
-
-	return false
+	return str.ContainsFunc(s, IsHalfWidthRune)
 }
 
 // IsHalfWidth checks if the string contains half-width chars only.
 func IsHalfWidth(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	for _, c := range s {
-		if !IsHalfRune(c) {
-			return false
-		}
-	}
-
-	return true
+	return str.ChecksFunc(s, IsHalfWidthRune)
 }
 
 // HasFullWidth checks if the string contains any full-width chars.
 func HasFullWidth(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	for _, c := range s {
-		if !IsHalfRune(c) {
-			return true
-		}
-	}
-
-	return false
+	return str.ContainsFunc(s, IsFullWidthRune)
 }
 
 // IsFullWidth checks if the string contains full-width chars only.
 func IsFullWidth(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	return !IsHalfWidth(s)
+	return str.ChecksFunc(s, IsFullWidthRune)
 }
 
 // IsVariableWidth checks if the string contains a mixture of full and half-width chars.

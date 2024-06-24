@@ -529,3 +529,47 @@ func Remove(s string, r string) string {
 		s = s[i+n:]
 	}
 }
+
+// ChecksFunc return false if s ==” or any rune with f(r) is false
+func ChecksFunc(s string, f func(rune) bool) bool {
+	if s == "" {
+		return false
+	}
+
+	for _, c := range s {
+		if !f(c) {
+			return false
+		}
+	}
+	return true
+}
+
+// ReplaceFunc replace all runes with function `f`
+func ReplaceFunc(s string, f func(rune) rune) string {
+	if s == "" {
+		return s
+	}
+
+	var sb strings.Builder
+	for i, c := range s {
+		r := f(c)
+		if r != c {
+			if sb.Len() == 0 {
+				sb.Grow(len(s))
+				sb.WriteString(s[:i])
+			}
+			sb.WriteRune(r)
+			continue
+		}
+
+		if sb.Len() > 0 {
+			sb.WriteRune(c)
+		}
+	}
+
+	if sb.Len() > 0 {
+		return sb.String()
+	}
+
+	return s
+}

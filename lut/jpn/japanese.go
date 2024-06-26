@@ -1,10 +1,11 @@
-package jas
+package jpn
 
 import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/askasoft/pango/mbs"
+	"github.com/askasoft/pango/lut"
+	"github.com/askasoft/pango/mag"
 	"github.com/askasoft/pango/str"
 )
 
@@ -22,7 +23,7 @@ var (
 	}
 
 	// h2zMark 半角: ｡｢｣､･ﾞﾟ
-	h2zMark = mbs.Reverse(z2hMark)
+	h2zMark = mag.Reverse(z2hMark)
 
 	// z2hAyatu 全角: ァィゥェォャュョッー
 	z2hAyatu = map[rune]rune{
@@ -39,7 +40,7 @@ var (
 	}
 
 	// h2zAyatu 半角: ｧｨｩｪｫｬｭｮｯｰ
-	h2zAyatu = mbs.Reverse(z2hAyatu)
+	h2zAyatu = mag.Reverse(z2hAyatu)
 
 	// z2hAnamayara 全角: アイエオナニヌネノマミムメモヤユヨラリルレロン
 	z2hAnamayara = map[rune]rune{
@@ -69,7 +70,7 @@ var (
 	}
 
 	// h2zAnamayara 半角: ｱｲｴｵﾅﾆﾇﾈﾉﾏﾐﾑﾒﾓﾔﾕﾖﾗﾘﾙﾚﾛﾝ
-	h2zAnamayara = mbs.Reverse(z2hAnamayara)
+	h2zAnamayara = mag.Reverse(z2hAnamayara)
 
 	// z2hKasataha 全角　かさたは　行: カキクケコサシスセソタチツテトハヒフヘホウ
 	z2hKasataha = map[rune]rune{
@@ -97,7 +98,7 @@ var (
 	}
 
 	// h2zKasataha 半角　かさたは　行: ｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾊﾋﾌﾍﾎｳ
-	h2zKasataha = mbs.Reverse(z2hKasataha)
+	h2zKasataha = mag.Reverse(z2hKasataha)
 
 	// z2hWaou 全角　わ　行: ワヲ
 	z2hWaou = map[rune]rune{
@@ -106,13 +107,13 @@ var (
 	}
 
 	// h2zWaou 半角　わ　行: ﾜｦ
-	h2zWaou = mbs.Reverse(z2hWaou)
+	h2zWaou = mag.Reverse(z2hWaou)
 
 	// z2h 全角
-	z2h = mbs.Merge(z2hMark, z2hAyatu, z2hAnamayara, z2hKasataha, z2hWaou)
+	z2h = mag.Merge(z2hMark, z2hAyatu, z2hAnamayara, z2hKasataha, z2hWaou)
 
 	// h2z 半角
-	h2z = mbs.Merge(h2zMark, h2zAyatu, h2zAnamayara, h2zKasataha, h2zWaou)
+	h2z = mag.Merge(h2zMark, h2zAyatu, h2zAnamayara, h2zKasataha, h2zWaou)
 
 	// z2hDaku 全角　濁文字: ガギグゲゴザジズゼゾダヂヅデドバビブベボヴヷヸヹヺ
 	z2hDaku = map[rune]rune{
@@ -144,7 +145,7 @@ var (
 	}
 
 	// h2zDaku 半角　濁文字: ｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄﾊﾋﾌﾍﾎｳﾜｦ
-	h2zDaku = mbs.Reverse(z2hDaku)
+	h2zDaku = mag.Reverse(z2hDaku)
 
 	// jaZenkakuHandakuRunes 全角　半濁文字: パピプペポ
 	z2hHandaku = map[rune]rune{
@@ -156,7 +157,7 @@ var (
 	}
 
 	// h2zHandaku 半角　半濁文字: ﾊﾋﾌﾍﾎ
-	h2zHandaku = mbs.Reverse(z2hHandaku)
+	h2zHandaku = mag.Reverse(z2hHandaku)
 )
 
 // ToZenkakuRune convert the rune c to zenkaku
@@ -164,7 +165,7 @@ func ToZenkakuRune(c rune) rune {
 	if r, ok := h2z[c]; ok {
 		return r
 	}
-	return mbs.ToFullRune(c)
+	return lut.ToFullRune(c)
 }
 
 // ToHankakuRune convert the rune c to hankaku
@@ -172,7 +173,7 @@ func ToHankakuRune(c rune) rune {
 	if r, ok := z2h[c]; ok {
 		return r
 	}
-	return mbs.ToASCIIRune(c)
+	return lut.ToASCIIRune(c)
 }
 
 // ToZenkakuDakuRune convert the rune c to zenkaku Daku

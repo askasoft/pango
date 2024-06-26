@@ -1,9 +1,10 @@
-package mbs
+package lut
 
 import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/askasoft/pango/mag"
 	"github.com/askasoft/pango/str"
 )
 
@@ -118,7 +119,7 @@ var (
 	}
 
 	// m2s multi-byte rune to single-byte rune
-	m2s = Merge(Reverse(s2m), map[rune]rune{
+	m2s = mag.Merge(mag.Reverse(s2m), map[rune]rune{
 		// non-breaking space
 		//'\u00A0': '\u0020', //   =>
 		// Symbol

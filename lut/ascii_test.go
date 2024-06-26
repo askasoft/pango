@@ -1,4 +1,4 @@
-package mbs
+package lut
 
 import (
 	"fmt"

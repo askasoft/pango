@@ -1,4 +1,4 @@
-package jas
+package jpn
 
 import (
 	"fmt"

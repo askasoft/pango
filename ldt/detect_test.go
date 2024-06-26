@@ -74,7 +74,7 @@ func TestDetectLang(t *testing.T) {
 // Test detect with empty options and supported language and script
 func TestDetectWithOptionsEmptySupportedLang(t *testing.T) {
 	want := Info{Epo, 0.5}
-	got := DetectWithOptions("La viro amas hundojn. Hundo estas la plej bona amiko de viro", Options{})
+	got := DetectWithOptions("La viro amas hundojn. Hundo estas la plej bona amiko de viro", Options{Detectors: AllDetectors()})
 	if got.Lang != want.Lang || got.Confidence-want.Confidence >= 0.1 {
 		t.Fatalf("want %v %v got %v %v", want.Lang, want.Confidence, got.Lang, got.Confidence)
 	}
@@ -82,25 +82,22 @@ func TestDetectWithOptionsEmptySupportedLang(t *testing.T) {
 
 // Test detect with empty options and nonsupported script(Balinese)
 func TestDetectWithOptionsEmptyNonSupportedLang(t *testing.T) {
-	want := Info{UNKNOWN, 0}
-	got := DetectWithOptions("ᬅᬓ᭄ᬱᬭᬯ᭄ᬬᬜ᭄ᬚᬦ", Options{})
+	want := Info{}
+	got := DetectWithOptions("ᬅᬓ᭄ᬱᬭᬯ᭄ᬬᬜ᭄ᬚᬦ", Options{Detectors: AllDetectors()})
 	if got.Lang != want.Lang || got.Confidence-want.Confidence >= 0.1 {
 		t.Fatalf("want %v %v got %v %v", want.Lang, want.Confidence, got.Lang, got.Confidence)
 	}
 }
 
-func TestDetectWithOptionsWithBlacklist(t *testing.T) {
+func TestDetectWithOptionsWithExcludes(t *testing.T) {
 	text := "האקדמיה ללשון העברית"
 
 	//All languages with Hebrew text blacklisted ... returns correct script but invalid language
 	options1 := Options{
-		Blacklist: map[Lang]bool{
-			Heb: true,
-			Ydd: true,
-		},
+		Excludes: []Lang{Heb, Ydd},
 	}
 
-	want := Info{UNKNOWN, 0}
+	want := Info{}
 	got := DetectWithOptions(text, options1)
 	if got.Lang != want.Lang || got.Confidence-want.Confidence >= 0.1 {
 		t.Fatalf("Want %v %v got %v %v", LangToString(want.Lang), want.Confidence, LangToString(got.Lang), got.Confidence)
@@ -109,9 +106,7 @@ func TestDetectWithOptionsWithBlacklist(t *testing.T) {
 	text = "Tu me manques"
 	want = Info{Ilo, 0}
 	options3 := Options{
-		Blacklist: map[Lang]bool{
-			Kur: true,
-		},
+		Excludes: []Lang{Kur},
 	}
 	got = DetectWithOptions(text, options3)
 	if got.Lang != want.Lang || got.Confidence-want.Confidence >= 0.1 {
@@ -119,14 +114,12 @@ func TestDetectWithOptionsWithBlacklist(t *testing.T) {
 	}
 }
 
-func TestWithOptionsWithWhitelist(t *testing.T) {
+func TestWithOptionsWithIncludes(t *testing.T) {
 	text := "Mi ne scias!"
 	want := Info{Epo, 1}
 	options2 := Options{
-		Whitelist: map[Lang]bool{
-			Epo: true,
-			Ukr: true,
-		},
+		Detectors: []Detector{&LatinDetector{}},
+		Includes:  []Lang{Epo, Ukr},
 	}
 	got := DetectWithOptions(text, options2)
 	if got.Lang != want.Lang || want.Confidence != got.Confidence {
@@ -137,23 +130,25 @@ func TestWithOptionsWithWhitelist(t *testing.T) {
 func TestDetectLangWithOptions(t *testing.T) {
 	text := "All evil come from a single cause ... man's inability to sit still in a room"
 	want := Eng
-	//without blacklist
+
+	// without excludes
 	got := DetectLangWithOptions(text, Options{})
 	if want != got {
 		t.Fatalf("want %s got %s", LangToString(want), LangToString(got))
 	}
 
-	//with blacklist
+	// with excludes
 	options := Options{
-		Blacklist: map[Lang]bool{
-			Jav: true,
-			Tgl: true,
-			Nld: true,
-			Uzb: true,
-			Swe: true,
-			Nob: true,
-			Ceb: true,
-			Ilo: true,
+		Detectors: []Detector{&LatinDetector{}},
+		Excludes: []Lang{
+			Jav,
+			Tgl,
+			Nld,
+			Uzb,
+			Swe,
+			Nob,
+			Ceb,
+			Ilo,
 		},
 	}
 

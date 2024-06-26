@@ -4,24 +4,19 @@ import (
 	"sort"
 )
 
-// Detect language and script of the given text.
+// Detect detects the language info of the given text.
 func Detect(text string) Info {
 	return DetectWithOptions(text, Options{})
 }
 
-// DetectLang detects only the language by a given text.
+// DetectLang detects only the language of the given text.
 func DetectLang(text string) Lang {
 	return Detect(text).Lang
 }
 
-// DetectLangWithOptions detects only the language of the given text with the provided options.
-func DetectLangWithOptions(text string, options Options) Lang {
-	return DetectWithOptions(text, options).Lang
-}
-
-// DetectWithOptions detects the language and script of the given text with the provided options.
+// DetectWithOptions detects the language info of the given text with the provided options.
 func DetectWithOptions(text string, options Options) Info {
-	detector := detect(text)
+	detector := detect(text, options.Detectors)
 	if detector != nil {
 		lang, confidence := detector.Detect(text, options)
 		return Info{
@@ -33,27 +28,28 @@ func DetectWithOptions(text string, options Options) Info {
 	return Info{}
 }
 
+// DetectLangWithOptions detects only the language of the given text with the provided options.
+func DetectLangWithOptions(text string, options Options) Lang {
+	return DetectWithOptions(text, options).Lang
+}
+
 type langDistance struct {
 	lang Lang
 	dist int
 }
 
-func detectLangInProfiles(text string, options Options, langProfileList langProfileList) (Lang, float64) {
+func detectLangInProfiles(text string, options Options, langProfileList langProfileList, confidence float64) (Lang, float64) {
 	trigrams := getTrigramsWithPositions(text)
 
-	langDistances := []langDistance{}
+	langDistances := make([]langDistance, 0, len(langProfileList))
 
 	for lang, langTrigrams := range langProfileList {
-		if len(options.Whitelist) != 0 {
-			//Skip non-whitelisted languages.
-			if _, ok := options.Whitelist[lang]; !ok {
-				continue
-			}
-		} else if len(options.Blacklist) != 0 {
-			//skip blacklisted languages.
-			if _, ok := options.Blacklist[lang]; ok {
-				continue
-			}
+		if options.exclude(lang) { // skip excluded languages.
+			continue
+		}
+
+		if !options.include(lang) { // skip non-included languages.
+			continue
 		}
 
 		dist := calculateDistance(langTrigrams, trigrams)
@@ -62,9 +58,9 @@ func detectLangInProfiles(text string, options Options, langProfileList langProf
 
 	switch len(langDistances) {
 	case 0:
-		return UNKNOWN, 0
+		return Unknown, 0
 	case 1:
-		return langDistances[0].lang, 1
+		return langDistances[0].lang, confidence
 	default:
 		return calculateConfidence(langDistances, trigrams)
 	}
@@ -81,8 +77,10 @@ func calculateConfidence(langDistances []langDistance, trigrams map[string]int) 
 	if score1 == 0 {
 		// If score1 is 0, score2 is 0 as well, because array is sorted.
 		// Therefore there is no language to return.
-		return UNKNOWN, 0
-	} else if score2 == 0 {
+		return Unknown, 0
+	}
+
+	if score2 == 0 {
 		// If score2 is 0, return first language, to prevent division by zero in the rate formula.
 		// In this case confidence is calculated by another formula.
 		// At this point there are two options:

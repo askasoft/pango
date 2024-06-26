@@ -5,7 +5,7 @@ type Lang int
 
 // Aka ...
 const (
-	UNKNOWN Lang = iota
+	Unknown Lang = iota
 	Afr
 	Aka
 	Amh
@@ -185,7 +185,7 @@ func CodeToLang(code string) Lang {
 		return val
 	}
 
-	return UNKNOWN
+	return Unknown
 }
 
 // Iso6391 returns ISO 639-1 code of Lang as a string.

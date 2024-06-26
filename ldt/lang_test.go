@@ -88,7 +88,7 @@ func TestCodeToLang(t *testing.T) {
 		"yor": Yor,
 		"zho": Zho,
 		"zul": Zul,
-		"xxx": UNKNOWN,
+		"xxx": Unknown,
 	}
 
 	for codeStr, lang := range tests {

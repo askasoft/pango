@@ -20,7 +20,7 @@ Installation:
     go get -u github.com/askasoft/pango
 ```
 
-Simple usage example:
+### Simple usage example:
 ```go
 package main
 
@@ -36,7 +36,7 @@ func main() {
 }
 ```
 
-## Blacklisting and whitelisting
+### With Options:
 ```go
 package main
 
@@ -47,27 +47,22 @@ import (
 )
 
 func main() {
-	//Blacklist
+	// Excludes
 	options := ldt.Options{
-		Blacklist: map[ldt.Lang]bool{
-			ldt.Ydd: true,
-		},
+		Excludes: []ldt.Lang{ldt.Ydd},
 	}
 
 	info := ldt.DetectWithOptions("האקדמיה ללשון העברית", options)
 
-	fmt.Println("Language:", info.Lang.String(), "Script:", ldt.Scripts[info.Script])
+	fmt.Println("Language:", info.Lang.String())
 
-	//Whitelist
+	// Includes
 	options1 := ldt.Options{
-		Whitelist: map[ldt.Lang]bool{
-			ldt.Epo: true,
-			ldt.Ukr: true,
-		},
+		Includes: []ldt.Lang{ldt.Epo, ldt.Ukr},
 	}
 
 	info = ldt.DetectWithOptions("Mi ne scias", options1)
-	fmt.Println("Language:", info.Lang.String(), " Script:", ldt.Scripts[info.Script])
+	fmt.Println("Language:", info.Lang.String())
 }
 ```
 

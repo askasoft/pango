@@ -6,7 +6,7 @@ import (
 
 type checker func(r rune) bool
 
-type detector interface {
+type Detector interface {
 	Count(string) bool
 	Detect(string, Options) (Lang, float64)
 	Chars() int
@@ -51,7 +51,7 @@ func (sc *scriptCounter) Words() int {
 	return sc.words
 }
 
-type Detectors []detector
+type Detectors []Detector
 
 func (ds Detectors) Len() int {
 	return len(ds)
@@ -73,7 +73,7 @@ func (ds Detectors) Swap(i, j int) {
 	ds[i], ds[j] = ds[j], ds[i]
 }
 
-func (ds Detectors) Best() detector {
+func (ds Detectors) Best() Detector {
 	if len(ds) == 0 {
 		return nil
 	}
@@ -88,30 +88,36 @@ func (ds Detectors) Best() detector {
 	return ds[m]
 }
 
-// detect returns only the detector of the given text.
-func detect(text string) detector {
-	detectors := Detectors{
-		&latinDetector{},
-		&cyrillicDetector{},
-		&arabicDetector{},
-		&devanagariDetector{},
-		&ethiopicDetector{},
-		&hebrewDetector{},
-		&bengaliDetector{},
-		&georgianDetector{},
-		&greekDetector{},
-		&kannadaDetector{},
-		&tamilDetector{},
-		&thaiDetector{},
-		&gujaratiDetector{},
-		&gurmukhiDetector{},
-		&teluguDetector{},
-		&malayalamDetector{},
-		&oriyaDetector{},
-		&myanmarDetector{},
-		&khmerDetector{},
-		&sinhalaDetector{},
-		&cjkDetector{},
+func AllDetectors() Detectors {
+	return Detectors{
+		&LatinDetector{},
+		&CyrillicDetector{},
+		&ArabicDetector{},
+		&DevanagariDetector{},
+		&EthiopicDetector{},
+		&HebrewDetector{},
+		&BengaliDetector{},
+		&GeorgianDetector{},
+		&GreekDetector{},
+		&KannadaDetector{},
+		&TamilDetector{},
+		&ThaiDetector{},
+		&GujaratiDetector{},
+		&GurmukhiDetector{},
+		&TeluguDetector{},
+		&MalayalamDetector{},
+		&OriyaDetector{},
+		&MyanmarDetector{},
+		&KhmerDetector{},
+		&SinhalaDetector{},
+		&CJKDetector{},
+	}
+}
+
+// detect returns only the Detector of the given text.
+func detect(text string, detectors []Detector) Detector {
+	if len(detectors) == 0 {
+		detectors = AllDetectors()
 	}
 
 	ss := strings.FieldsFunc(text, isStopChar)
@@ -123,255 +129,255 @@ func detect(text string) detector {
 		}
 	}
 
-	return detectors.Best()
+	return Detectors(detectors).Best()
 }
 
-type latinDetector struct {
+type LatinDetector struct {
 	scriptCounter
 }
 
-func (ld *latinDetector) Count(s string) bool {
+func (ld *LatinDetector) Count(s string) bool {
 	return ld.count(s, isLatin)
 }
 
-func (ld *latinDetector) Detect(text string, options Options) (Lang, float64) {
-	return detectLangInProfiles(text, options, latinLangs)
+func (ld *LatinDetector) Detect(text string, options Options) (Lang, float64) {
+	return detectLangInProfiles(text, options, latinLangs, ld.confidence())
 }
 
-type cyrillicDetector struct {
+type CyrillicDetector struct {
 	scriptCounter
 }
 
-func (cd *cyrillicDetector) Count(s string) bool {
+func (cd *CyrillicDetector) Count(s string) bool {
 	return cd.count(s, isCyrillic)
 }
 
-func (cd *cyrillicDetector) Detect(text string, options Options) (Lang, float64) {
-	return detectLangInProfiles(text, options, cyrillicLangs)
+func (cd *CyrillicDetector) Detect(text string, options Options) (Lang, float64) {
+	return detectLangInProfiles(text, options, cyrillicLangs, cd.confidence())
 }
 
-type arabicDetector struct {
+type ArabicDetector struct {
 	scriptCounter
 }
 
-func (ad *arabicDetector) Count(s string) bool {
+func (ad *ArabicDetector) Count(s string) bool {
 	return ad.count(s, isArabic)
 }
 
-func (ad *arabicDetector) Detect(text string, options Options) (Lang, float64) {
-	return detectLangInProfiles(text, options, arabicLangs)
+func (ad *ArabicDetector) Detect(text string, options Options) (Lang, float64) {
+	return detectLangInProfiles(text, options, arabicLangs, ad.confidence())
 }
 
-type devanagariDetector struct {
+type DevanagariDetector struct {
 	scriptCounter
 }
 
-func (dd *devanagariDetector) Count(s string) bool {
+func (dd *DevanagariDetector) Count(s string) bool {
 	return dd.count(s, isDevanagari)
 }
 
-func (dd *devanagariDetector) Detect(text string, options Options) (Lang, float64) {
-	return detectLangInProfiles(text, options, devanagariLangs)
+func (dd *DevanagariDetector) Detect(text string, options Options) (Lang, float64) {
+	return detectLangInProfiles(text, options, devanagariLangs, dd.confidence())
 }
 
-type hebrewDetector struct {
+type HebrewDetector struct {
 	scriptCounter
 }
 
-func (hd *hebrewDetector) Count(s string) bool {
+func (hd *HebrewDetector) Count(s string) bool {
 	return hd.count(s, isHebrew)
 }
 
-func (hd *hebrewDetector) Detect(text string, options Options) (Lang, float64) {
-	return detectLangInProfiles(text, options, hebrewLangs)
+func (hd *HebrewDetector) Detect(text string, options Options) (Lang, float64) {
+	return detectLangInProfiles(text, options, hebrewLangs, hd.confidence())
 }
 
-type ethiopicDetector struct {
+type EthiopicDetector struct {
 	scriptCounter
 }
 
-func (ed *ethiopicDetector) Count(s string) bool {
+func (ed *EthiopicDetector) Count(s string) bool {
 	return ed.count(s, isEthiopic)
 }
 
-func (ed *ethiopicDetector) Detect(text string, options Options) (Lang, float64) {
-	return detectLangInProfiles(text, options, ethiopicLangs)
+func (ed *EthiopicDetector) Detect(text string, options Options) (Lang, float64) {
+	return detectLangInProfiles(text, options, ethiopicLangs, ed.confidence())
 }
 
-type bengaliDetector struct {
+type BengaliDetector struct {
 	scriptCounter
 }
 
-func (bd *bengaliDetector) Count(s string) bool {
+func (bd *BengaliDetector) Count(s string) bool {
 	return bd.count(s, isBengali)
 }
 
-func (bd *bengaliDetector) Detect(text string, options Options) (Lang, float64) {
+func (bd *BengaliDetector) Detect(text string, options Options) (Lang, float64) {
 	return Ben, bd.confidence()
 }
 
-type georgianDetector struct {
+type GeorgianDetector struct {
 	scriptCounter
 }
 
-func (gd *georgianDetector) Count(s string) bool {
+func (gd *GeorgianDetector) Count(s string) bool {
 	return gd.count(s, isGeorgian)
 }
 
-func (gd *georgianDetector) Detect(text string, options Options) (Lang, float64) {
+func (gd *GeorgianDetector) Detect(text string, options Options) (Lang, float64) {
 	return Kat, gd.confidence()
 }
 
-type greekDetector struct {
+type GreekDetector struct {
 	scriptCounter
 }
 
-func (gd *greekDetector) Count(s string) bool {
+func (gd *GreekDetector) Count(s string) bool {
 	return gd.count(s, isGreek)
 }
 
-func (gd *greekDetector) Detect(text string, options Options) (Lang, float64) {
+func (gd *GreekDetector) Detect(text string, options Options) (Lang, float64) {
 	return Ell, gd.confidence()
 }
 
-type gujaratiDetector struct {
+type GujaratiDetector struct {
 	scriptCounter
 }
 
-func (gd *gujaratiDetector) Count(s string) bool {
+func (gd *GujaratiDetector) Count(s string) bool {
 	return gd.count(s, isGujarati)
 }
 
-func (gd *gujaratiDetector) Detect(text string, options Options) (Lang, float64) {
+func (gd *GujaratiDetector) Detect(text string, options Options) (Lang, float64) {
 	return Guj, gd.confidence()
 }
 
-type gurmukhiDetector struct {
+type GurmukhiDetector struct {
 	scriptCounter
 }
 
-func (gd *gurmukhiDetector) Count(s string) bool {
+func (gd *GurmukhiDetector) Count(s string) bool {
 	return gd.count(s, isGurmukhi)
 }
 
-func (gd *gurmukhiDetector) Detect(text string, options Options) (Lang, float64) {
+func (gd *GurmukhiDetector) Detect(text string, options Options) (Lang, float64) {
 	return Pan, gd.confidence()
 }
 
-type kannadaDetector struct {
+type KannadaDetector struct {
 	scriptCounter
 }
 
-func (kd *kannadaDetector) Count(s string) bool {
+func (kd *KannadaDetector) Count(s string) bool {
 	return kd.count(s, isKannada)
 }
 
-func (kd *kannadaDetector) Detect(text string, options Options) (Lang, float64) {
+func (kd *KannadaDetector) Detect(text string, options Options) (Lang, float64) {
 	return Kan, kd.confidence()
 }
 
-type khmerDetector struct {
+type KhmerDetector struct {
 	scriptCounter
 }
 
-func (kd *khmerDetector) Count(s string) bool {
+func (kd *KhmerDetector) Count(s string) bool {
 	return kd.count(s, isKhmer)
 }
 
-func (kd *khmerDetector) Detect(text string, options Options) (Lang, float64) {
+func (kd *KhmerDetector) Detect(text string, options Options) (Lang, float64) {
 	return Khm, kd.confidence()
 }
 
-type malayalamDetector struct {
+type MalayalamDetector struct {
 	scriptCounter
 }
 
-func (md *malayalamDetector) Count(s string) bool {
+func (md *MalayalamDetector) Count(s string) bool {
 	return md.count(s, isMalayalam)
 }
 
-func (md *malayalamDetector) Detect(text string, options Options) (Lang, float64) {
+func (md *MalayalamDetector) Detect(text string, options Options) (Lang, float64) {
 	return Mal, md.confidence()
 }
 
-type myanmarDetector struct {
+type MyanmarDetector struct {
 	scriptCounter
 }
 
-func (md *myanmarDetector) Count(s string) bool {
+func (md *MyanmarDetector) Count(s string) bool {
 	return md.count(s, isMyanmar)
 }
 
-func (md *myanmarDetector) Detect(text string, options Options) (Lang, float64) {
+func (md *MyanmarDetector) Detect(text string, options Options) (Lang, float64) {
 	return Mya, md.confidence()
 }
 
-type oriyaDetector struct {
+type OriyaDetector struct {
 	scriptCounter
 }
 
-func (od *oriyaDetector) Count(s string) bool {
+func (od *OriyaDetector) Count(s string) bool {
 	return od.count(s, isOriya)
 }
 
-func (od *oriyaDetector) Detect(text string, options Options) (Lang, float64) {
+func (od *OriyaDetector) Detect(text string, options Options) (Lang, float64) {
 	return Ori, od.confidence()
 }
 
-type sinhalaDetector struct {
+type SinhalaDetector struct {
 	scriptCounter
 }
 
-func (sd *sinhalaDetector) Count(s string) bool {
+func (sd *SinhalaDetector) Count(s string) bool {
 	return sd.count(s, isSinhala)
 }
 
-func (sd *sinhalaDetector) Detect(text string, options Options) (Lang, float64) {
+func (sd *SinhalaDetector) Detect(text string, options Options) (Lang, float64) {
 	return Sin, sd.confidence()
 }
 
-type tamilDetector struct {
+type TamilDetector struct {
 	scriptCounter
 }
 
-func (td *tamilDetector) Count(s string) bool {
+func (td *TamilDetector) Count(s string) bool {
 	return td.count(s, isTamil)
 }
 
-func (td *tamilDetector) Detect(text string, options Options) (Lang, float64) {
+func (td *TamilDetector) Detect(text string, options Options) (Lang, float64) {
 	return Tam, td.confidence()
 }
 
-type thaiDetector struct {
+type ThaiDetector struct {
 	scriptCounter
 }
 
-func (td *thaiDetector) Count(s string) bool {
+func (td *ThaiDetector) Count(s string) bool {
 	return td.count(s, isThai)
 }
 
-func (td *thaiDetector) Detect(text string, options Options) (Lang, float64) {
+func (td *ThaiDetector) Detect(text string, options Options) (Lang, float64) {
 	return Tha, td.confidence()
 }
 
-type teluguDetector struct {
+type TeluguDetector struct {
 	scriptCounter
 }
 
-func (td *teluguDetector) Count(s string) bool {
+func (td *TeluguDetector) Count(s string) bool {
 	return td.count(s, isTelugu)
 }
 
-func (td *teluguDetector) Detect(text string, options Options) (Lang, float64) {
+func (td *TeluguDetector) Detect(text string, options Options) (Lang, float64) {
 	return Tel, td.confidence()
 }
 
-type cjkDetector struct {
+type CJKDetector struct {
 	scriptCounter
 	c, j, k int
 }
 
-func (cjk *cjkDetector) Count(s string) bool {
+func (cjk *CJKDetector) Count(s string) bool {
 	cjk.total++
 
 	chars := 0
@@ -398,7 +404,7 @@ func (cjk *cjkDetector) Count(s string) bool {
 	return false
 }
 
-func (cjk *cjkDetector) Detect(text string, options Options) (Lang, float64) {
+func (cjk *CJKDetector) Detect(text string, options Options) (Lang, float64) {
 	var confidence float64
 	if cjk.total > 0 {
 		confidence = float64(cjk.words) / float64(cjk.total)

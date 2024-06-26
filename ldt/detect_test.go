@@ -2,7 +2,7 @@ package ldt
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"os"
 	"testing"
 	"unicode"
@@ -15,7 +15,7 @@ func TestDetect(t *testing.T) {
 		"अनुच्छेद १: सबहि लोकानि आजादे जम्मेला आओर ओखिनियो के बराबर सम्मान आओर अघ्कार प्राप्त हवे। ओखिनियो के पास समझ-बूझ आओर अंत:करण के आवाज होखता आओर हुनको के दोसरा के साथ भाईचारे के बेवहार करे के होखला": {Bho, unicode.Devanagari, 1},
 		"ኢትዮጵያ አፍሪቃ ውስጥ ናት":         {Amh, unicode.Ethiopic, 1},
 		"لغتي العربية ليست كما يجب": {Arb, unicode.Arabic, 1},
-		"我爱你": {Cmn, unicode.Han, 1},
+		"我爱你": {Zho, unicode.Han, 1},
 		"আমি তোমাকে ভালোবাস ": {Ben, unicode.Bengali, 1},
 		"울란바토르": {Kor, unicode.Hangul, 1},
 		"ყველა ადამიანი იბადება თავისუფალი და თანასწორი თავისი ღირსებითა და უფლებებით":        {Kat, unicode.Georgian, 1},
@@ -31,8 +31,8 @@ func TestDetect(t *testing.T) {
 		"အားလုံးလူသားတွေအခမဲ့နှင့်ဂုဏ်သိက္ခာနှင့်လူ့အခွင့်အရေးအတွက်တန်းတူဖွားမြင်ကြသည်။": {Mya, unicode.Myanmar, 1},
 		"වෙලාව කියද?":                        {Sin, unicode.Sinhala, 1},
 		"ពួកម៉ាកខ្ញុំពីរនាក់នេះ":             {Khm, unicode.Khmer, 1},
-		"其疾如風、其徐如林、侵掠如火、不動如山、難知如陰、動如雷震。":     {Cmn, unicode.Han, 1},
-		"知彼知己、百戰不殆。不知彼而知己、一勝一負。不知彼不知己、毎戰必殆。": {Cmn, unicode.Han, 1},
+		"其疾如風、其徐如林、侵掠如火、不動如山、難知如陰、動如雷震。":     {Zho, unicode.Han, 1},
+		"知彼知己、百戰不殆。不知彼而知己、一勝一負。不知彼不知己、毎戰必殆。": {Zho, unicode.Han, 1},
 		"支那の上海の或町です。":                        {Jpn, _HiraganaKatakana, 1},
 		"或日の暮方の事である。":                        {Jpn, _HiraganaKatakana, 1},
 		"今日は":                                {Jpn, _HiraganaKatakana, 1},
@@ -173,7 +173,7 @@ func TestWithMultipleExamples(t *testing.T) {
 
 	defer examplesFile.Close()
 
-	byteValue, err := ioutil.ReadAll(examplesFile)
+	byteValue, err := io.ReadAll(examplesFile)
 	if err != nil {
 		t.Fatal("Error reading testdata/examples.json")
 	}

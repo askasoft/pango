@@ -54,7 +54,7 @@ func detectLangBaseOnScript(text string, options Options, script *unicode.RangeT
 	case unicode.Arabic:
 		return detectLangInProfiles(text, options, arabicLangs)
 	case unicode.Han:
-		return Cmn, 1
+		return Zho, 1
 	case unicode.Bengali:
 		return Ben, 1
 	case unicode.Hangul:

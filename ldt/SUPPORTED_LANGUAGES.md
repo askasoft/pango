@@ -9,7 +9,7 @@ Natural language detection implemented in Go.
 | Esperanto      | epo       | Epo |
 | English        | eng       | Eng |
 | Russian        | rus       | Rus |
-| Mandarin       | cmn       | Cmn |
+| Chinese        | zho       | Zho |
 | Spanish        | spa       | Spa |
 | Portuguese     | por       | Por |
 | Italian        | ita       | Ita |

@@ -16,7 +16,6 @@ const (
 	Bul
 	Ceb
 	Ces
-	Cmn
 	Dan
 	Deu
 	Ell
@@ -88,6 +87,7 @@ const (
 	Vie
 	Ydd
 	Yor
+	Zho
 	Zul
 )
 
@@ -105,7 +105,6 @@ func CodeToLang(code string) Lang {
 		"bul": Bul,
 		"ceb": Ceb,
 		"ces": Ces,
-		"cmn": Cmn,
 		"dan": Dan,
 		"deu": Deu,
 		"ell": Ell,
@@ -177,6 +176,7 @@ func CodeToLang(code string) Lang {
 		"vie": Vie,
 		"ydd": Ydd,
 		"yor": Yor,
+		"zho": Zho,
 		"zul": Zul,
 	}
 
@@ -209,7 +209,6 @@ func LangToStringShort(lang Lang) string {
 		Bul: "bg",
 		Ceb: "", // No iso 639-1 code
 		Ces: "cs",
-		Cmn: "zh", // No iso 639-1, but http://www.loc.gov/standards/iso639-2/faq.html#24
 		Dan: "da",
 		Deu: "de",
 		Ell: "el",
@@ -281,6 +280,7 @@ func LangToStringShort(lang Lang) string {
 		Vie: "vi",
 		Ydd: "", // No iso639-1
 		Yor: "yo",
+		Zho: "zh", // No iso 639-1, but http://www.loc.gov/standards/iso639-2/faq.html#24
 		Zul: "zu",
 	}
 
@@ -312,7 +312,6 @@ func LangToString(lang Lang) string {
 		Bul: "bul",
 		Ceb: "ceb",
 		Ces: "ces",
-		Cmn: "cmn",
 		Dan: "dan",
 		Deu: "deu",
 		Ell: "ell",
@@ -384,6 +383,7 @@ func LangToString(lang Lang) string {
 		Vie: "vie",
 		Ydd: "ydd",
 		Yor: "yor",
+		Zho: "zho",
 		Zul: "zul",
 	}
 
@@ -416,7 +416,6 @@ var Langs = map[Lang]string{
 	Bul: "Bulgarian",
 	Ceb: "Cebuano",
 	Ces: "Czech",
-	Cmn: "Mandarin",
 	Dan: "Danish",
 	Deu: "German",
 	Ell: "Greek",
@@ -488,6 +487,7 @@ var Langs = map[Lang]string{
 	Vie: "Vietnamese",
 	Ydd: "Yiddish",
 	Yor: "Yoruba",
+	Zho: "Chinese",
 	Zul: "Zulu",
 }
 

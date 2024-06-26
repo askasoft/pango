@@ -15,7 +15,6 @@ func TestCodeToLang(t *testing.T) {
 		"bul": Bul,
 		"ceb": Ceb,
 		"ces": Ces,
-		"cmn": Cmn,
 		"dan": Dan,
 		"deu": Deu,
 		"ell": Ell,
@@ -87,6 +86,7 @@ func TestCodeToLang(t *testing.T) {
 		"vie": Vie,
 		"ydd": Ydd,
 		"yor": Yor,
+		"zho": Zho,
 		"zul": Zul,
 		"xxx": -1,
 	}
@@ -112,7 +112,6 @@ func TestLangToString(t *testing.T) {
 		Bul: "bul",
 		Ceb: "ceb",
 		Ces: "ces",
-		Cmn: "cmn",
 		Dan: "dan",
 		Deu: "deu",
 		Ell: "ell",
@@ -184,6 +183,7 @@ func TestLangToString(t *testing.T) {
 		Vie: "vie",
 		Ydd: "ydd",
 		Yor: "yor",
+		Zho: "zho",
 		Zul: "zul",
 		-1:  "",
 	}
@@ -209,7 +209,6 @@ func TestLangToStringShort(t *testing.T) {
 		Bul: "bg",
 		Ceb: "",
 		Ces: "cs",
-		Cmn: "zh",
 		Dan: "da",
 		Deu: "de",
 		Ell: "el",
@@ -281,6 +280,7 @@ func TestLangToStringShort(t *testing.T) {
 		Vie: "vi",
 		Ydd: "",
 		Yor: "yo",
+		Zho: "zh",
 		Zul: "zu",
 		-1:  "",
 	}

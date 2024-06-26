@@ -606,3 +606,36 @@ func TestReverse(t *testing.T) {
 
 	Reverse[[]string](nil)
 }
+
+var minMaxTests = []struct {
+	name string
+	s    []int
+	min  int
+	max  int
+}{
+	{"nil", nil, -1, -1},
+	{"one", []int{1}, 0, 0},
+	{"two", []int{1, 2}, 0, 1},
+}
+
+func lessInts(a []int, i, j int) bool {
+	return a[i] < a[j]
+}
+
+func TestMin(t *testing.T) {
+	for _, c := range minMaxTests {
+		a := Min(c.s, lessInts)
+		if c.min != a {
+			t.Errorf("[%s] Min(%v) = %v, WANT %v", c.name, c.s, a, c.min)
+		}
+	}
+}
+
+func TestMax(t *testing.T) {
+	for _, c := range minMaxTests {
+		a := Max(c.s, lessInts)
+		if c.max != a {
+			t.Errorf("[%s] Max(%v) = %v, WANT %v", c.name, c.s, a, c.max)
+		}
+	}
+}

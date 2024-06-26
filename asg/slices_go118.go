@@ -216,3 +216,33 @@ func Reverse[T any](a []T) {
 		a[i], a[j] = a[j], a[i]
 	}
 }
+
+func Min[T any](a []T, less func(a []T, i, j int) bool) int {
+	if len(a) == 0 {
+		return -1
+	}
+
+	m := 0
+	for i := 1; i < len(a); i++ {
+		if less(a, i, m) {
+			m = i
+		}
+	}
+
+	return m
+}
+
+func Max[T any](a []T, less func(a []T, i, j int) bool) int {
+	if len(a) == 0 {
+		return -1
+	}
+
+	m := 0
+	for i := 1; i < len(a); i++ {
+		if less(a, m, i) {
+			m = i
+		}
+	}
+
+	return m
+}

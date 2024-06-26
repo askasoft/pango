@@ -40,6 +40,9 @@ issues:
     - linters:
         - revive
       text: "exported:"
+    - path: ldt/lang\.go
+      linters:
+        - misspell
     - path: _test\.go
       linters: # security is not make sense in tests
         - deadcode

@@ -2,7 +2,6 @@ package ldt
 
 import (
 	"sort"
-	"unicode"
 )
 
 // Detect language and script of the given text.
@@ -22,74 +21,16 @@ func DetectLangWithOptions(text string, options Options) Lang {
 
 // DetectWithOptions detects the language and script of the given text with the provided options.
 func DetectWithOptions(text string, options Options) Info {
-	script := DetectScript(text)
-	if script != nil {
-		lang, confidence := detectLangBaseOnScript(text, options, script)
+	detector := detect(text)
+	if detector != nil {
+		lang, confidence := detector.Detect(text, options)
 		return Info{
 			Lang:       lang,
-			Script:     script,
 			Confidence: confidence,
 		}
 	}
 
-	return Info{
-		Lang:       -1,
-		Script:     nil,
-		Confidence: 0,
-	}
-}
-
-func detectLangBaseOnScript(text string, options Options, script *unicode.RangeTable) (Lang, float64) {
-	switch script {
-	case unicode.Latin:
-		return detectLangInProfiles(text, options, latinLangs)
-	case unicode.Cyrillic:
-		return detectLangInProfiles(text, options, cyrillicLangs)
-	case unicode.Devanagari:
-		return detectLangInProfiles(text, options, devanagariLangs)
-	case unicode.Hebrew:
-		return detectLangInProfiles(text, options, hebrewLangs)
-	case unicode.Ethiopic:
-		return detectLangInProfiles(text, options, ethiopicLangs)
-	case unicode.Arabic:
-		return detectLangInProfiles(text, options, arabicLangs)
-	case unicode.Han:
-		return Zho, 1
-	case unicode.Bengali:
-		return Ben, 1
-	case unicode.Hangul:
-		return Kor, 1
-	case unicode.Georgian:
-		return Kat, 1
-	case unicode.Greek:
-		return Ell, 1
-	case unicode.Kannada:
-		return Kan, 1
-	case unicode.Tamil:
-		return Tam, 1
-	case unicode.Thai:
-		return Tha, 1
-	case unicode.Gujarati:
-		return Guj, 1
-	case unicode.Gurmukhi:
-		return Pan, 1
-	case unicode.Telugu:
-		return Tel, 1
-	case unicode.Malayalam:
-		return Mal, 1
-	case unicode.Oriya:
-		return Ori, 1
-	case unicode.Myanmar:
-		return Mya, 1
-	case unicode.Sinhala:
-		return Sin, 1
-	case unicode.Khmer:
-		return Khm, 1
-	case _HiraganaKatakana:
-		return Jpn, 1
-	default:
-		return -1, 0
-	}
+	return Info{}
 }
 
 type langDistance struct {
@@ -121,7 +62,7 @@ func detectLangInProfiles(text string, options Options, langProfileList langProf
 
 	switch len(langDistances) {
 	case 0:
-		return -1, 0
+		return UNKNOWN, 0
 	case 1:
 		return langDistances[0].lang, 1
 	default:
@@ -140,7 +81,7 @@ func calculateConfidence(langDistances []langDistance, trigrams map[string]int) 
 	if score1 == 0 {
 		// If score1 is 0, score2 is 0 as well, because array is sorted.
 		// Therefore there is no language to return.
-		return -1, 0
+		return UNKNOWN, 0
 	} else if score2 == 0 {
 		// If score2 is 0, return first language, to prevent division by zero in the rate formula.
 		// In this case confidence is calculated by another formula.

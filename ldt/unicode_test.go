@@ -2,29 +2,24 @@ package ldt
 
 import (
 	"testing"
-	"unicode"
 )
 
-func TestDetectScript(t *testing.T) {
-	tests := map[string]*unicode.RangeTable{
-		"123456789-=?":  nil,
-		"Hello, world!": unicode.Latin,
-		"Привет всем!":  unicode.Cyrillic,
-		"ქართული ენა მსოფლიო ":         unicode.Georgian,
-		"県見夜上温国阪題富販":                   unicode.Han,
-		" ككل حوالي 1.6، ومعظم الناس ": unicode.Arabic,
-		"हिमालयी वन चिड़िया (जूथेरा सालिमअली) चिड़िया की एक प्रजाति है": unicode.Devanagari,
-		"היסטוריה והתפתחות של האלפבית העברי":                            unicode.Hebrew,
-		"የኢትዮጵያ ፌዴራላዊ ዴሞክራሲያዊሪፐብሊክ":                                     unicode.Ethiopic,
-		"Привет! Текст на русском with some English.":                   unicode.Cyrillic,
-		"Russian word любовь means love.":                               unicode.Latin,
-		"আমি ভালো আছি, ধন্যবাদ!":                                        unicode.Bengali,
+func TestIsStopChar(t *testing.T) {
+	tests := map[rune]bool{
+		//Space
+		'\t': true, '\n': true, '\v': true, '\r': true, '\f': true, 0x85: true, 0xA0: true,
+		//Digits
+		'0': true, '1': true, '2': true, '3': true, '5': true, '6': true, '9': true,
+		//Punct
+		';': true, '!': true, '"': true,
+		//Symbol
+		'`': true,
 	}
 
-	for text, want := range tests {
-		got := DetectScript(text)
-		if want != got {
-			t.Fatalf("%s want %s got %s", text, Scripts[want], Scripts[got])
+	for r, want := range tests {
+		got := isStopChar(r)
+		if got != want {
+			t.Fatalf("%v want %t got %t", r, want, got)
 		}
 	}
 }
@@ -81,7 +76,7 @@ func TestIsBengali(t *testing.T) {
 	}
 }
 
-func TestIsHiraganaKatakana(t *testing.T) {
+func TestIsKana(t *testing.T) {
 	tests := map[rune]bool{
 		'カ': true, 'Ґ': false,
 		'ｴ': true, 'ᄁ': false,
@@ -90,7 +85,7 @@ func TestIsHiraganaKatakana(t *testing.T) {
 	}
 
 	for r, want := range tests {
-		got := isHiraganaKatakana(r)
+		got := isKana(r)
 		if want != got {
 			t.Fatalf("%#U want %t got %t", r, want, got)
 		}

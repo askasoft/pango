@@ -32,7 +32,7 @@ import (
 
 func main() {
 	info := ldt.Detect("Foje funkcias kaj foje ne funkcias")
-	fmt.Println("Language:", info.Lang.String(), " Script:", ldt.Scripts[info.Script], " Confidence: ", info.Confidence)
+	fmt.Println("Language:", info.Lang.String(), " Confidence: ", info.Confidence)
 }
 ```
 

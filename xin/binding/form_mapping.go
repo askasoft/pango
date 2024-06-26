@@ -226,15 +226,14 @@ func setByForm(value reflect.Value, field reflect.StructField, form map[string][
 	}
 
 	if ok {
+		if opt.strip {
+			vs = str.RemoveEmpties(str.Strips(vs))
+		}
 		if opt.lower {
 			vs = str.ToLowers(vs)
 		}
 		if opt.upper {
 			vs = str.ToUppers(vs)
-		}
-		if opt.strip {
-			vs = str.RemoveEmpties(str.Strips(vs))
-			ok = (len(vs) > 0)
 		}
 	}
 

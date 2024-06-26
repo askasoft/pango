@@ -241,10 +241,6 @@ func TestMappingSlice(t *testing.T) {
 	err := mappingByPtr(&s, formSource{}, "form")
 	assert.NoError(t, err)
 	assert.Equal(t, []int{9}, s.Slice)
-
-	err = mappingByPtr(&s, formSource{"slice": {""}}, "form")
-	assert.NoError(t, err)
-	assert.Equal(t, []int{9}, s.Slice)
 	assert.Equal(t, []string{"A"}, s.Lslice)
 	assert.Equal(t, []string{"a"}, s.Uslice)
 

@@ -90,6 +90,7 @@ func (ds Detectors) Best() Detector {
 
 func AllDetectors() Detectors {
 	return Detectors{
+		&CJKDetector{},
 		&LatinDetector{},
 		&CyrillicDetector{},
 		&ArabicDetector{},
@@ -110,7 +111,6 @@ func AllDetectors() Detectors {
 		&MyanmarDetector{},
 		&KhmerDetector{},
 		&SinhalaDetector{},
-		&CJKDetector{},
 	}
 }
 
@@ -378,9 +378,7 @@ type CJKDetector struct {
 }
 
 func (cjk *CJKDetector) Count(s string) bool {
-	cjk.total++
-
-	chars := 0
+	chars, ncjk := 0, 0
 	for _, c := range s {
 		switch {
 		case isHan(c):
@@ -392,29 +390,45 @@ func (cjk *CJKDetector) Count(s string) bool {
 		case isHangul(c):
 			cjk.k++
 			chars++
+		default:
+			ncjk++
 		}
+	}
+
+	if ncjk > 0 {
+		cjk.total++
 	}
 
 	if chars > 0 {
 		cjk.words += chars
 		cjk.chars += chars
 		cjk.total += chars
+		return ncjk == 0
 	}
 
 	return false
 }
 
 func (cjk *CJKDetector) Detect(text string, options Options) (Lang, float64) {
+	if cjk.words == 0 {
+		return Unknown, 0
+	}
+
 	var confidence float64
 	if cjk.total > 0 {
 		confidence = float64(cjk.words) / float64(cjk.total)
 	}
 
-	if cjk.j > 0 || cjk.k > 0 {
-		if cjk.j > cjk.k {
+	// If at least 5% of characters are Japanese(Katakana or Hiragana) then it's likely to be Japanese language
+	// See https://github.com/greyblake/whatlang-rs/issues/88
+	if cjk.k > cjk.j {
+		if cjk.k*100/cjk.total > 5 {
+			return Kor, confidence
+		}
+	} else if cjk.j > 0 {
+		if cjk.j*100/cjk.total > 5 {
 			return Jpn, confidence
 		}
-		return Kor, confidence
 	}
 	return Zho, confidence
 }

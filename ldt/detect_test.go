@@ -12,7 +12,7 @@ func TestDetect(t *testing.T) {
 		s string
 		w Info
 	}{
-		{"愛している I Love You.", Info{Jpn, 0.5}},
+		{"愛している I Love You.", Info{Jpn, 0.6}},
 		{"Además de todo lo anteriormente dicho, también encontramos...", Info{Spa, 0.6}},
 		{"बहुत बहुत (धन्यवाद / शुक्रिया)!", Info{Hin, 0.7}},
 		{"अनुच्छेद १, सबहि लोकानि आजादे जम्मेला आओर ओखिनियो के बराबर सम्मान आओर अघ्कार प्राप्त हवे। ओखिनियो के पास समझ-बूझ आओर अंत,करण के आवाज होखता आओर हुनको के दोसरा के साथ भाईचारे के बेवहार करे के होखला", Info{Bho, 1}},

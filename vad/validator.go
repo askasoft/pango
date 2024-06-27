@@ -154,16 +154,14 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 		}
 
 	case reflect.Struct:
-
 		typ = current.Type()
-
 		if typ != timeType {
-
 			if ct != nil {
-
 				if ct.typeof == typeStructOnly {
 					goto CONTINUE
-				} else if ct.typeof == typeIsDefault {
+				}
+
+				if ct.typeof == typeIsDefault {
 					// set Field Level fields
 					v.slflParent = parent
 					v.flField = current
@@ -233,16 +231,14 @@ OUTER:
 		}
 
 		switch ct.typeof {
-
 		case typeOmitEmpty:
-
 			// set Field Level fields
 			v.slflParent = parent
 			v.flField = current
 			v.cf = cf
 			v.ct = ct
 
-			if !hasValue(v) {
+			if isEmpty(v) {
 				return
 			}
 
@@ -253,19 +249,15 @@ OUTER:
 			return
 
 		case typeDive:
-
 			ct = ct.next
 
-			// traverse slice or map here
-			// or panic ;)
+			// traverse slice or map here or panic ;)
 			switch kind {
 			case reflect.Slice, reflect.Array:
-
 				var i64 int64
 				reusableCF := &cField{}
 
 				for i := 0; i < current.Len(); i++ {
-
 					i64 = int64(i)
 
 					v.misc = append(v.misc[0:0], cf.name...)
@@ -278,7 +270,6 @@ OUTER:
 					if cf.namesEqual {
 						reusableCF.altName = reusableCF.name
 					} else {
-
 						v.misc = append(v.misc[0:0], cf.altName...)
 						v.misc = append(v.misc, '[')
 						v.misc = strconv.AppendInt(v.misc, i64, 10)
@@ -290,12 +281,10 @@ OUTER:
 				}
 
 			case reflect.Map:
-
 				var pv string
 				reusableCF := &cField{}
 
 				for _, key := range current.MapKeys() {
-
 					pv = fmt.Sprintf("%v", key.Interface())
 
 					v.misc = append(v.misc[0:0], cf.name...)
@@ -336,11 +325,8 @@ OUTER:
 			return
 
 		case typeOr:
-
 			v.misc = v.misc[0:0]
-
 			for {
-
 				// set Field Level fields
 				v.slflParent = parent
 				v.flField = current
@@ -348,10 +334,8 @@ OUTER:
 				v.ct = ct
 
 				if ct.fn(ctx, v) {
-
 					// drain rest of the 'or' values, then continue or leave
 					for {
-
 						ct = ct.next
 
 						if ct == nil {
@@ -383,7 +367,6 @@ OUTER:
 					}
 
 					if ct.hasAlias {
-
 						v.errs = append(v.errs,
 							&fieldError{
 								v:              v.v,
@@ -399,9 +382,7 @@ OUTER:
 								typ:            typ,
 							},
 						)
-
 					} else {
-
 						tVal := string(v.misc)[1:]
 
 						v.errs = append(v.errs,
@@ -428,7 +409,6 @@ OUTER:
 			}
 
 		default:
-
 			// set Field Level fields
 			v.slflParent = parent
 			v.flField = current
@@ -436,7 +416,6 @@ OUTER:
 			v.ct = ct
 
 			if !ct.fn(ctx, v) {
-
 				v.str1 = string(append(ns, cf.altName...))
 
 				if v.v.hasTagNameFunc {
@@ -466,5 +445,4 @@ OUTER:
 			ct = ct.next
 		}
 	}
-
 }

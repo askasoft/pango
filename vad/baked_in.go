@@ -1211,6 +1211,18 @@ func isDefault(fl FieldLevel) bool {
 	return !hasValue(fl)
 }
 
+// isEmpty is the validation function for validating if the current field's value is not the default static value.
+// check recursively if the field is a pointer.
+func isEmpty(fl FieldLevel) bool {
+	field := fl.Field()
+	switch field.Kind() {
+	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
+		return field.IsNil()
+	default:
+		return !field.IsValid() || field.Interface() == reflect.Zero(field.Type()).Interface()
+	}
+}
+
 // hasValue is the validation function for validating if the current field's value is not the default static value.
 func hasValue(fl FieldLevel) bool {
 	field := fl.Field()

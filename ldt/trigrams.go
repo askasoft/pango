@@ -20,56 +20,55 @@ func toTrigramChar(ch rune) rune {
 }
 
 func getTrigramsWithPositions(text string) map[string]int {
-	counterMap := count(text)
-	trigrams := make([]trigram, len(counterMap))
+	counters := count(text)
+	trigrams := make([]trigram, len(counters))
 
 	i := 0
-	for tg, count := range counterMap {
+	for tg, count := range counters {
 		trigrams[i] = trigram{tg, count}
 		i++
 	}
 
+	// Sort in descending order by number of occurrences and trigrams
 	sort.SliceStable(trigrams, func(i, j int) bool {
-		if trigrams[i].count == trigrams[j].count {
-			return strings.Compare(trigrams[i].trigram, trigrams[j].trigram) < 0
+		a := trigrams[i]
+		b := trigrams[j]
+		if a.count == b.count {
+			return strings.Compare(a.trigram, a.trigram) > 0
 		}
-		return trigrams[i].count < trigrams[j].count
+		return a.count > b.count
 	})
 
-	trigramsWithPositions := map[string]int{}
+	size := textTrigramSize
+	if len(trigrams) < size {
+		size = len(trigrams)
+	}
 
-	j := 0
-	for i := len(trigrams) - 1; i >= 0; i-- {
-		trigramsWithPositions[trigrams[i].trigram] = j
-		j++
+	trigramsWithPositions := make(map[string]int, size)
+
+	for i := 0; i < size; i++ {
+		trigramsWithPositions[trigrams[i].trigram] = i
 	}
 	return trigramsWithPositions
 }
 
 func count(text string) map[string]int {
-	var r1, r2, r3 rune
-	trigrams := map[string]int{}
 	var txt []rune
-
 	for _, r := range text {
 		txt = append(txt, unicode.ToLower(toTrigramChar(r)))
 	}
 	txt = append(txt, ' ')
+
+	var r1, r2, r3 rune
+	trigrams := map[string]int{}
 
 	r1 = ' '
 	r2 = txt[0]
 	for i := 1; i < len(txt); i++ {
 		r3 = txt[i]
 		if !(r2 == ' ' && (r1 == ' ' || r3 == ' ')) {
-			trigram := []rune{}
-			trigram = append(trigram, r1)
-			trigram = append(trigram, r2)
-			trigram = append(trigram, r3)
-			if trigrams[string(trigram)] == 0 {
-				trigrams[string(trigram)] = 1
-			} else {
-				trigrams[string(trigram)]++
-			}
+			trigram := string([]rune{r1, r2, r3})
+			trigrams[trigram]++
 		}
 		r1 = r2
 		r2 = r3

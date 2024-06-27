@@ -7,16 +7,23 @@ import (
 	"testing"
 )
 
+func fabs(n float64) float64 {
+	if n < 0 {
+		return -n
+	}
+	return n
+}
+
 func TestDetect(t *testing.T) {
 	tests := []struct {
 		s string
 		w Info
 	}{
 		{"愛している I Love You.", Info{Jpn, 0.6}},
-		{"Además de todo lo anteriormente dicho, también encontramos...", Info{Spa, 0.6}},
+		{"Además de todo lo anteriormente dicho, también encontramos...", Info{Spa, 0.5}},
 		{"बहुत बहुत (धन्यवाद / शुक्रिया)!", Info{Hin, 0.7}},
 		{"अनुच्छेद १, सबहि लोकानि आजादे जम्मेला आओर ओखिनियो के बराबर सम्मान आओर अघ्कार प्राप्त हवे। ओखिनियो के पास समझ-बूझ आओर अंत,करण के आवाज होखता आओर हुनको के दोसरा के साथ भाईचारे के बेवहार करे के होखला", Info{Bho, 1}},
-		{"ኢትዮጵያ አፍሪቃ ውስጥ ናት", Info{Amh, 1}},
+		{"ኢትዮጵያ አፍሪቃ ውስጥ ናት", Info{Amh, 0.1}},
 		{"لغتي العربية ليست كما يجب", Info{Arb, 1}},
 		{"我爱你", Info{Zho, 1}},
 		{"আমি তোমাকে ভালোবাস ", Info{Ben, 1}},
@@ -47,7 +54,7 @@ func TestDetect(t *testing.T) {
 	for i, c := range tests {
 		a := Detect(c.s)
 
-		if c.w.Lang != a.Lang || a.Confidence-c.w.Confidence >= 0.1 {
+		if c.w.Lang != a.Lang || fabs(a.Confidence-c.w.Confidence) >= 0.1 {
 			t.Errorf("#%d Detect(%q) = %v %v, WANT %v %v", i, c.s, LangToString(a.Lang), a.Confidence, LangToString(c.w.Lang), c.w.Confidence)
 		}
 	}
@@ -73,9 +80,9 @@ func TestDetectLang(t *testing.T) {
 
 // Test detect with empty options and supported language and script
 func TestDetectWithOptionsEmptySupportedLang(t *testing.T) {
-	want := Info{Epo, 0.5}
+	want := Info{Epo, 0.6}
 	got := DetectWithOptions("La viro amas hundojn. Hundo estas la plej bona amiko de viro", Options{Detectors: AllDetectors()})
-	if got.Lang != want.Lang || got.Confidence-want.Confidence >= 0.1 {
+	if got.Lang != want.Lang || fabs(got.Confidence-want.Confidence) >= 0.1 {
 		t.Fatalf("want %v %v got %v %v", want.Lang, want.Confidence, got.Lang, got.Confidence)
 	}
 }
@@ -84,7 +91,7 @@ func TestDetectWithOptionsEmptySupportedLang(t *testing.T) {
 func TestDetectWithOptionsEmptyNonSupportedLang(t *testing.T) {
 	want := Info{}
 	got := DetectWithOptions("ᬅᬓ᭄ᬱᬭᬯ᭄ᬬᬜ᭄ᬚᬦ", Options{Detectors: AllDetectors()})
-	if got.Lang != want.Lang || got.Confidence-want.Confidence >= 0.1 {
+	if got.Lang != want.Lang || fabs(got.Confidence-want.Confidence) >= 0.1 {
 		t.Fatalf("want %v %v got %v %v", want.Lang, want.Confidence, got.Lang, got.Confidence)
 	}
 }
@@ -99,17 +106,17 @@ func TestDetectWithOptionsWithExcludes(t *testing.T) {
 
 	want := Info{}
 	got := DetectWithOptions(text, options1)
-	if got.Lang != want.Lang || got.Confidence-want.Confidence >= 0.1 {
+	if got.Lang != want.Lang || fabs(got.Confidence-want.Confidence) >= 0.1 {
 		t.Fatalf("Want %v %v got %v %v", LangToString(want.Lang), want.Confidence, LangToString(got.Lang), got.Confidence)
 	}
 
 	text = "Tu me manques"
-	want = Info{Ilo, 0}
+	want = Info{Ilo, 0.1}
 	options3 := Options{
 		Excludes: []Lang{Kur},
 	}
 	got = DetectWithOptions(text, options3)
-	if got.Lang != want.Lang || got.Confidence-want.Confidence >= 0.1 {
+	if got.Lang != want.Lang || fabs(got.Confidence-want.Confidence) >= 0.1 {
 		t.Fatalf("Want %v %v got %v %v", LangToString(want.Lang), want.Confidence, LangToString(got.Lang), got.Confidence)
 	}
 }

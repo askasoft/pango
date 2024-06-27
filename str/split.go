@@ -190,3 +190,27 @@ func FieldsRune(s string, r rune) []string {
 	}
 	return a
 }
+
+// FieldsFuncIter splits the string s at each rune of Unicode code points c satisfying f(c)
+// and call iter(s). stop split if iter(s) returns false.
+func FieldsFuncIter(s string, f func(rune) bool, iter func(string) bool) {
+	if s == "" {
+		return
+	}
+
+	b := 0
+	for i, c := range s {
+		if f(c) {
+			if i > b {
+				if !iter(s[b:i]) {
+					return
+				}
+			}
+			b = i + utf8.RuneLen(c)
+		}
+	}
+
+	if b < len(s) {
+		iter(s[b:])
+	}
+}

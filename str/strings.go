@@ -152,7 +152,7 @@ func Fields(s string) []string {
 	return strings.Fields(s)
 }
 
-// FieldsFunc splits the string s at each run of Unicode code points c satisfying f(c)
+// FieldsFunc splits the string s at each rune of Unicode code points c satisfying f(c)
 // and returns an array of slices of s. If all code points in s satisfy f(c) or the
 // string is empty, an empty slice is returned.
 // FieldsFunc makes no guarantees about the order in which it calls f(c).

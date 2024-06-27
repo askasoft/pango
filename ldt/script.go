@@ -1,8 +1,6 @@
 package ldt
 
-import (
-	"strings"
-)
+import "github.com/askasoft/pango/str"
 
 type checker func(r rune) bool
 
@@ -53,15 +51,20 @@ func (sc *scriptCounter) Words() int {
 
 type Detectors []Detector
 
+func (ds Detectors) Counts(s string) bool {
+	for _, d := range ds {
+		if d.Count(s) {
+			break
+		}
+	}
+	return true
+}
+
 func (ds Detectors) Len() int {
 	return len(ds)
 }
 
 func (ds Detectors) Less(i, j int) bool {
-	return lessDetectors(ds, i, j)
-}
-
-func lessDetectors(ds Detectors, i, j int) bool {
 	a, b := ds[i], ds[j]
 	if a.Words() == b.Words() {
 		return a.Chars() < b.Chars()
@@ -115,21 +118,14 @@ func AllDetectors() Detectors {
 }
 
 // detect returns only the Detector of the given text.
-func detect(text string, detectors []Detector) Detector {
+func detect(text string, detectors Detectors) Detector {
 	if len(detectors) == 0 {
 		detectors = AllDetectors()
 	}
 
-	ss := strings.FieldsFunc(text, isStopChar)
-	for _, s := range ss {
-		for _, d := range detectors {
-			if d.Count(s) {
-				break
-			}
-		}
-	}
+	str.FieldsFuncIter(text, isStopChar, detectors.Counts)
 
-	return Detectors(detectors).Best()
+	return detectors.Best()
 }
 
 type LatinDetector struct {

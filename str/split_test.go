@@ -144,3 +144,29 @@ func TestFieldsRune(t *testing.T) {
 		}
 	}
 }
+
+func TestFieldsFuncIter(t *testing.T) {
+	cs := []struct {
+		w []string
+		s string
+		b rune
+	}{
+		{[]string{}, "", 'c'},
+		{[]string{"http://a", "b", "c"}, "http://a.b.c", '.'},
+		{[]string{"http:", "a.b.c"}, "http://a.b.c/", '/'},
+		{[]string{"http://一", "二", "三"}, "http://一.二.三", '.'},
+		{[]string{"http://一", "二", "三"}, "http://一。二。三", '。'},
+	}
+
+	for i, c := range cs {
+		a := []string{}
+		FieldsFuncIter(c.s, func(r rune) bool { return c.b == r }, func(s string) bool {
+			a = append(a, s)
+			return true
+		})
+
+		if !reflect.DeepEqual(a, c.w) {
+			t.Errorf("[%d] FieldsFuncIter(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+		}
+	}
+}

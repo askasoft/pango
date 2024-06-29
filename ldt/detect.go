@@ -40,22 +40,22 @@ type langDistance struct {
 	dist int
 }
 
-func detectLangInProfiles(text string, options Options, langProfileList langProfileList, confidence float64) (Lang, float64) {
+func detectLangInProfiles(text string, options Options, langProfiles []langProfile, confidence float64) (Lang, float64) {
 	trigrams := getTrigramsWithPositions(text)
 
-	langDistances := make([]langDistance, 0, len(langProfileList))
+	langDistances := make([]langDistance, 0, len(langProfiles))
 
-	for lang, langTrigrams := range langProfileList {
-		if options.exclude(lang) { // skip excluded languages.
+	for _, lp := range langProfiles {
+		if options.exclude(lp.lang) { // skip excluded languages.
 			continue
 		}
 
-		if !options.include(lang) { // skip non-included languages.
+		if !options.include(lp.lang) { // skip non-included languages.
 			continue
 		}
 
-		dist := calculateDistance(langTrigrams, trigrams)
-		langDistances = append(langDistances, langDistance{lang, dist})
+		dist := calculateDistance(lp.trigrams, trigrams)
+		langDistances = append(langDistances, langDistance{lp.lang, dist})
 	}
 
 	switch len(langDistances) {

@@ -12,6 +12,25 @@ type trigram struct {
 	count   int
 }
 
+type trigrams []trigram
+
+func (ts trigrams) Len() int {
+	return len(ts)
+}
+
+func (ts trigrams) Swap(i, j int) {
+	ts[i], ts[j] = ts[j], ts[i]
+}
+
+func (ts trigrams) Less(i, j int) bool {
+	a := ts[i]
+	b := ts[j]
+	if a.count == b.count {
+		return strings.Compare(a.trigram, b.trigram) > 0
+	}
+	return a.count > b.count
+}
+
 // convert punctuations and digits to space.
 func toTrigramChar(ch rune) rune {
 	if isStopChar(ch) {
@@ -22,7 +41,7 @@ func toTrigramChar(ch rune) rune {
 
 func getTrigramsWithPositions(text string) map[string]int {
 	counters := count(text)
-	trigrams := make([]trigram, len(counters))
+	trigrams := make(trigrams, len(counters))
 
 	i := 0
 	for tg, count := range counters {
@@ -31,14 +50,7 @@ func getTrigramsWithPositions(text string) map[string]int {
 	}
 
 	// Sort in descending order by number of occurrences and trigrams
-	sort.SliceStable(trigrams, func(i, j int) bool {
-		a := trigrams[i]
-		b := trigrams[j]
-		if a.count == b.count {
-			return strings.Compare(a.trigram, a.trigram) > 0
-		}
-		return a.count > b.count
-	})
+	sort.Stable(trigrams)
 
 	// we're interested only in the first 600 (2 * MAX_TRIGRAM_DISTANCE)
 	size := textTrigramSize
@@ -47,7 +59,6 @@ func getTrigramsWithPositions(text string) map[string]int {
 	}
 
 	trigramsWithPositions := make(map[string]int, size)
-
 	for i := 0; i < size; i++ {
 		trigramsWithPositions[trigrams[i].trigram] = i
 	}

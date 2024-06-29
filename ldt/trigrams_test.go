@@ -16,8 +16,9 @@ func TestCount(t *testing.T) {
 		got := count(key)
 
 		for key1, value1 := range value {
-			if got[key1] != value1 {
-				t.Fatalf("%s got %d want %d", key1, got[key1], value1)
+			a := got[key1]
+			if a != value1 {
+				t.Fatalf("%s got %d want %d", key1, a, value1)
 			}
 		}
 	}

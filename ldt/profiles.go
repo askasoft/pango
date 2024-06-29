@@ -1,11 +1,13 @@
 package ldt
 
-// langProfileList ...
-type langProfileList map[Lang][]string
+type langProfile struct {
+	lang     Lang
+	trigrams []string
+}
 
 // LatinLangs ...
-var latinLangs = langProfileList{
-	Spa: []string{
+var latinLangs = []langProfile{
+	{Spa, []string{
 		" de",
 		"os ",
 		"de ",
@@ -306,8 +308,8 @@ var latinLangs = langProfileList{
 		"r a",
 		"isf",
 		"ote",
-	},
-	Eng: []string{
+	}},
+	{Eng, []string{
 		" th",
 		"the",
 		" an",
@@ -608,8 +610,8 @@ var latinLangs = langProfileList{
 		"n w",
 		"omm",
 		"r s",
-	},
-	Por: []string{
+	}},
+	{Por, []string{
 		"os ",
 		"de ",
 		" de",
@@ -910,8 +912,8 @@ var latinLangs = langProfileList{
 		" ni",
 		"ico",
 		"rot",
-	},
-	Ind: []string{
+	}},
+	{Ind, []string{
 		"an ",
 		"ang",
 		" da",
@@ -1212,8 +1214,8 @@ var latinLangs = langProfileList{
 		"aba",
 		"ses",
 		"m m",
-	},
-	Fra: []string{
+	}},
+	{Fra, []string{
 		" de",
 		"es ",
 		"de ",
@@ -1514,8 +1516,8 @@ var latinLangs = langProfileList{
 		"tec",
 		"s m",
 		"abl",
-	},
-	Deu: []string{
+	}},
+	{Deu, []string{
 		"en ",
 		"er ",
 		"der",
@@ -1816,8 +1818,8 @@ var latinLangs = langProfileList{
 		"g v",
 		"t z",
 		"err",
-	},
-	Jav: []string{
+	}},
+	{Jav, []string{
 		"ng ",
 		"an ",
 		"ang",
@@ -2118,8 +2120,8 @@ var latinLangs = langProfileList{
 		"umr",
 		"k l",
 		"oma",
-	},
-	Vie: []string{
+	}},
+	{Vie, []string{
 		"ng ",
 		"̣c ",
 		"́c ",
@@ -2420,8 +2422,8 @@ var latinLangs = langProfileList{
 		"am ",
 		"c m",
 		"an ",
-	},
-	Ita: []string{
+	}},
+	{Ita, []string{
 		" di",
 		"to ",
 		" de",
@@ -2722,8 +2724,8 @@ var latinLangs = langProfileList{
 		"opo",
 		"ve ",
 		"eve",
-	},
-	Tur: []string{
+	}},
+	{Tur, []string{
 		" ve",
 		" ha",
 		"ve ",
@@ -3024,8 +3026,8 @@ var latinLangs = langProfileList{
 		"büt",
 		"anl",
 		" bü",
-	},
-	Pol: []string{
+	}},
+	{Pol, []string{
 		" pr",
 		"nie",
 		" i ",
@@ -3326,8 +3328,8 @@ var latinLangs = langProfileList{
 		"e s",
 		" ta",
 		"ki ",
-	},
-	Orm: []string{
+	}},
+	{Orm, []string{
 		"aa ",
 		"an ",
 		"uu ",
@@ -3628,8 +3630,8 @@ var latinLangs = langProfileList{
 		"bee",
 		"u f",
 		"uun",
-	},
-	Ron: []string{
+	}},
+	{Ron, []string{
 		" de",
 		"și ",
 		" și",
@@ -3930,8 +3932,8 @@ var latinLangs = langProfileList{
 		"nvă",
 		"a ș",
 		"cti",
-	},
-	Hau: []string{
+	}},
+	{Hau, []string{
 		"da ",
 		" da",
 		"in ",
@@ -4232,8 +4234,8 @@ var latinLangs = langProfileList{
 		"tab",
 		"afi",
 		"sab",
-	},
-	Hrv: []string{
+	}},
+	{Hrv, []string{
 		" pr",
 		" i ",
 		"je ",
@@ -4534,8 +4536,8 @@ var latinLangs = langProfileList{
 		" sk",
 		" me",
 		"ven",
-	},
-	Nld: []string{
+	}},
+	{Nld, []string{
 		"en ",
 		"de ",
 		"an ",
@@ -4836,8 +4838,8 @@ var latinLangs = langProfileList{
 		"g i",
 		"d z",
 		"oep",
-	},
-	Kur: []string{
+	}},
+	{Kur, []string{
 		" he",
 		" û ",
 		"ên ",
@@ -5138,8 +5140,8 @@ var latinLangs = langProfileList{
 		"mên",
 		"ûn ",
 		"e a",
-	},
-	Yor: []string{
+	}},
+	{Yor, []string{
 		"ti ",
 		" ní",
 		"ó̩ ",
@@ -5440,8 +5442,8 @@ var latinLangs = langProfileList{
 		"gbá",
 		"ò̩n",
 		"ó̩g",
-	},
-	Uzb: []string{
+	}},
+	{Uzb, []string{
 		"lar",
 		"ish",
 		"an ",
@@ -5742,8 +5744,8 @@ var latinLangs = langProfileList{
 		"i y",
 		"uri",
 		"ror",
-	},
-	Ibo: []string{
+	}},
+	{Ibo, []string{
 		"a n",
 		"e n",
 		"ke ",
@@ -6044,8 +6046,8 @@ var latinLangs = langProfileList{
 		" di",
 		" nn",
 		"i ị",
-	},
-	Ceb: []string{
+	}},
+	{Ceb, []string{
 		"sa ",
 		" sa",
 		"ng ",
@@ -6346,8 +6348,8 @@ var latinLangs = langProfileList{
 		"nab",
 		"osy",
 		"dan",
-	},
-	Tgl: []string{
+	}},
+	{Tgl, []string{
 		"ng ",
 		"ang",
 		" pa",
@@ -6648,8 +6650,8 @@ var latinLangs = langProfileList{
 		"ayu",
 		" al",
 		"iyo",
-	},
-	Hun: []string{
+	}},
+	{Hun, []string{
 		" sz",
 		" a ",
 		"en ",
@@ -6950,8 +6952,8 @@ var latinLangs = langProfileList{
 		"m l",
 		" es",
 		"nyo",
-	},
-	Azj: []string{
+	}},
+	{Azj, []string{
 		" və",
 		"və ",
 		"ər ",
@@ -7252,8 +7254,8 @@ var latinLangs = langProfileList{
 		"zam",
 		"tam",
 		"təh",
-	},
-	Ces: []string{
+	}},
+	{Ces, []string{
 		" pr",
 		" a ",
 		"ní ",
@@ -7554,8 +7556,8 @@ var latinLangs = langProfileList{
 		"ího",
 		"vin",
 		"odi",
-	},
-	Mlg: []string{
+	}},
+	{Mlg, []string{
 		"ny ",
 		"na ",
 		"ana",
@@ -7856,8 +7858,8 @@ var latinLangs = langProfileList{
 		"fiv",
 		"rov",
 		"vel",
-	},
-	Nya: []string{
+	}},
+	{Nya, []string{
 		"ndi",
 		"ali",
 		"a k",
@@ -8158,8 +8160,8 @@ var latinLangs = langProfileList{
 		"ha ",
 		"map",
 		"emb",
-	},
-	Kin: []string{
+	}},
+	{Kin, []string{
 		"ra ",
 		" ku",
 		" mu",
@@ -8460,8 +8462,8 @@ var latinLangs = langProfileList{
 		"rya",
 		"uka",
 		"afi",
-	},
-	Zul: []string{
+	}},
+	{Zul, []string{
 		"nge",
 		"oku",
 		"lo ",
@@ -8762,8 +8764,8 @@ var latinLangs = langProfileList{
 		"ubu",
 		"mba",
 		" am",
-	},
-	Swe: []string{
+	}},
+	{Swe, []string{
 		" oc",
 		"och",
 		"ch ",
@@ -9064,8 +9066,8 @@ var latinLangs = langProfileList{
 		"vär",
 		"mt ",
 		"ap ",
-	},
-	Som: []string{
+	}},
+	{Som, []string{
 		" ka",
 		"ay ",
 		"ka ",
@@ -9366,8 +9368,8 @@ var latinLangs = langProfileList{
 		" ya",
 		"xay",
 		"a j",
-	},
-	Ilo: []string{
+	}},
+	{Ilo, []string{
 		"ti ",
 		"iti",
 		"an ",
@@ -9668,8 +9670,8 @@ var latinLangs = langProfileList{
 		"ura",
 		"d n",
 		"y i",
-	},
-	Uig: []string{
+	}},
+	{Uig, []string{
 		"ish",
 		" he",
 		"ini",
@@ -9970,8 +9972,8 @@ var latinLangs = langProfileList{
 		"lim",
 		"hki",
 		"dik",
-	},
-	Hat: []string{
+	}},
+	{Hat, []string{
 		"ou ",
 		"an ",
 		" li",
@@ -10272,8 +10274,8 @@ var latinLangs = langProfileList{
 		"era",
 		"fan",
 		"dev",
-	},
-	Aka: []string{
+	}},
+	{Aka, []string{
 		"sɛ ",
 		"a a",
 		" sɛ",
@@ -10574,8 +10576,8 @@ var latinLangs = langProfileList{
 		"wɔd",
 		"dwa",
 		"nsi",
-	},
-	Sna: []string{
+	}},
+	{Sna, []string{
 		"wa ",
 		"a k",
 		"ana",
@@ -10876,8 +10878,8 @@ var latinLangs = langProfileList{
 		"go ",
 		"yew",
 		"pam",
-	},
-	Afr: []string{
+	}},
+	{Afr, []string{
 		"ie ",
 		"die",
 		"en ",
@@ -11178,8 +11180,8 @@ var latinLangs = langProfileList{
 		"sel",
 		"ern",
 		"ste",
-	},
-	Fin: []string{
+	}},
+	{Fin, []string{
 		"en ",
 		"ise",
 		"ja ",
@@ -11480,8 +11482,8 @@ var latinLangs = langProfileList{
 		"äli",
 		"va ",
 		" om",
-	},
-	Run: []string{
+	}},
+	{Run, []string{
 		"ra ",
 		"we ",
 		"wa ",
@@ -11782,8 +11784,8 @@ var latinLangs = langProfileList{
 		"eny",
 		"uki",
 		"bos",
-	},
-	Tuk: []string{
+	}},
+	{Tuk, []string{
 		"lar",
 		" we",
 		"we ",
@@ -12084,8 +12086,8 @@ var latinLangs = langProfileList{
 		"ez ",
 		"umu",
 		"mum",
-	},
-	Dan: []string{
+	}},
+	{Dan, []string{
 		"er ",
 		"og ",
 		" og",
@@ -12386,8 +12388,8 @@ var latinLangs = langProfileList{
 		"gt ",
 		"t v",
 		"t b",
-	},
-	Nob: []string{
+	}},
+	{Nob, []string{
 		"er ",
 		" og",
 		"og ",
@@ -12688,8 +12690,8 @@ var latinLangs = langProfileList{
 		"d d",
 		" hv",
 		"rav",
-	},
-	Nno: []string{
+	}},
+	{Nno, []string{
 		" og",
 		"og ",
 		" de",
@@ -12990,8 +12992,8 @@ var latinLangs = langProfileList{
 		" un",
 		"ad ",
 		" be",
-	},
-	Lit: []string{
+	}},
+	{Lit, []string{
 		"as ",
 		"ir ",
 		" ir",
@@ -13292,8 +13294,8 @@ var latinLangs = langProfileList{
 		"oci",
 		"pat",
 		"cia",
-	},
-	Slv: []string{
+	}},
+	{Slv, []string{
 		" pr",
 		"in ",
 		" in",
@@ -13594,8 +13596,8 @@ var latinLangs = langProfileList{
 		"dol",
 		"ker",
 		"r s",
-	},
-	Epo: []string{
+	}},
+	{Epo, []string{
 		"aj ",
 		" la",
 		"la ",
@@ -13896,8 +13898,8 @@ var latinLangs = langProfileList{
 		"j h",
 		"pli",
 		"j m",
-	},
-	Lav: []string{
+	}},
+	{Lav, []string{
 		"as ",
 		"ība",
 		" un",
@@ -14198,8 +14200,8 @@ var latinLangs = langProfileList{
 		"rie",
 		"oši",
 		"dro",
-	},
-	Est: []string{
+	}},
+	{Est, []string{
 		"sel",
 		"ja ",
 		" ja",
@@ -14500,11 +14502,11 @@ var latinLangs = langProfileList{
 		"jal",
 		"iig",
 		"ite",
-	},
+	}},
 }
 
-var cyrillicLangs = langProfileList{
-	Rus: []string{
+var cyrillicLangs = []langProfile{
+	{Rus, []string{
 		" пр",
 		" и ",
 		"рав",
@@ -14805,8 +14807,8 @@ var cyrillicLangs = langProfileList{
 		"соц",
 		"еди",
 		"олн",
-	},
-	Ukr: []string{
+	}},
+	{Ukr, []string{
 		"на ",
 		" пр",
 		" і ",
@@ -15107,8 +15109,8 @@ var cyrillicLangs = langProfileList{
 		"о у",
 		"о о",
 		"і о",
-	},
-	Srp: []string{
+	}},
+	{Srp, []string{
 		" пр",
 		" и ",
 		"рав",
@@ -15409,8 +15411,8 @@ var cyrillicLangs = langProfileList{
 		"јућ",
 		"њен",
 		"гла",
-	},
-	Azj: []string{
+	}},
+	{Azj, []string{
 		" вә",
 		"вә ",
 		"әр ",
@@ -15711,8 +15713,8 @@ var cyrillicLangs = langProfileList{
 		" ни",
 		"и т",
 		" ха",
-	},
-	Bel: []string{
+	}},
+	{Bel, []string{
 		" і ",
 		" пр",
 		"пра",
@@ -16013,8 +16015,8 @@ var cyrillicLangs = langProfileList{
 		"асо",
 		"сно",
 		"ейн",
-	},
-	Bul: []string{
+	}},
+	{Bul, []string{
 		" на",
 		"на ",
 		" пр",
@@ -16315,8 +16317,8 @@ var cyrillicLangs = langProfileList{
 		"оят",
 		"нео",
 		"чре",
-	},
-	Tuk: []string{
+	}},
+	{Tuk, []string{
 		" би",
 		"лар",
 		" ве",
@@ -16617,8 +16619,8 @@ var cyrillicLangs = langProfileList{
 		"сиз",
 		"емм",
 		"ек ",
-	},
-	Mkd: []string{
+	}},
+	{Mkd, []string{
 		" на",
 		"на ",
 		" пр",
@@ -16919,11 +16921,11 @@ var cyrillicLangs = langProfileList{
 		"пот",
 		"слу",
 		"кви",
-	},
+	}},
 }
 
-var arabicLangs = langProfileList{
-	Arb: []string{
+var arabicLangs = []langProfile{
+	{Arb, []string{
 		" ال",
 		"ية ",
 		" في",
@@ -17224,8 +17226,8 @@ var arabicLangs = langProfileList{
 		"وية",
 		"ولي",
 		"لزو",
-	},
-	Urd: []string{
+	}},
+	{Urd, []string{
 		"ور ",
 		" او",
 		"اور",
@@ -17526,8 +17528,8 @@ var arabicLangs = langProfileList{
 		" عم",
 		"ت م",
 		" بچ",
-	},
-	Skr: []string{
+	}},
+	{Skr, []string{
 		"تے ",
 		"اں ",
 		" تے",
@@ -17828,8 +17830,8 @@ var arabicLangs = langProfileList{
 		"ذری",
 		"ں پ",
 		"لی ",
-	},
-	Uig: []string{
+	}},
+	{Uig, []string{
 		" ئا",
 		" ھە",
 		"ىنى",
@@ -18130,8 +18132,8 @@ var arabicLangs = langProfileList{
 		"ئىج",
 		"نام",
 		"تەر",
-	},
-	Pes: []string{
+	}},
+	{Pes, []string{
 		" و ",
 		" حق",
 		" با",
@@ -18432,11 +18434,11 @@ var arabicLangs = langProfileList{
 		"دد ",
 		" شخ",
 		"شخص",
-	},
+	}},
 }
 
-var devanagariLangs = langProfileList{
-	Hin: []string{
+var devanagariLangs = []langProfile{
+	{Hin, []string{
 		"के ",
 		"प्र",
 		"और ",
@@ -18737,8 +18739,8 @@ var devanagariLangs = langProfileList{
 		"ाह ",
 		"ी म",
 		"े ज",
-	},
-	Mar: []string{
+	}},
+	{Mar, []string{
 		"्या",
 		"या ",
 		"त्य",
@@ -19039,8 +19041,8 @@ var devanagariLangs = langProfileList{
 		"तो ",
 		"जिक",
 		"े म",
-	},
-	Mai: []string{
+	}},
+	{Mai, []string{
 		"ाक ",
 		" आ ",
 		"प्र",
@@ -19341,8 +19343,8 @@ var devanagariLangs = langProfileList{
 		"्थि",
 		"केओ",
 		"राज",
-	},
-	Bho: []string{
+	}},
+	{Bho, []string{
 		" के",
 		"के ",
 		"ार ",
@@ -19643,8 +19645,8 @@ var devanagariLangs = langProfileList{
 		"कि ",
 		"याह",
 		"्थि",
-	},
-	Nep: []string{
+	}},
+	{Nep, []string{
 		"को ",
 		" र ",
 		"कार",
@@ -19945,11 +19947,11 @@ var devanagariLangs = langProfileList{
 		"उने",
 		"रण ",
 		"विक",
-	},
+	}},
 }
 
-var ethiopicLangs = langProfileList{
-	Amh: []string{
+var ethiopicLangs = []langProfile{
+	{Amh, []string{
 		"፡መብ",
 		"ሰው፡",
 		"ት፡አ",
@@ -20250,8 +20252,8 @@ var ethiopicLangs = langProfileList{
 		"ርናሽ",
 		"ናሽና",
 		"ሽናል",
-	},
-	Tir: []string{
+	}},
+	{Tir, []string{
 		" መሰ",
 		" ሰብ",
 		"ሰብ ",
@@ -20552,11 +20554,11 @@ var ethiopicLangs = langProfileList{
 		"ዜግነ",
 		"ላውን",
 		" ድሕ",
-	},
+	}},
 }
 
-var hebrewLangs = langProfileList{
-	Heb: []string{
+var hebrewLangs = []langProfile{
+	{Heb, []string{
 		"ות ",
 		"ים ",
 		"כל ",
@@ -20857,8 +20859,8 @@ var hebrewLangs = langProfileList{
 		"נשו",
 		"הגב",
 		"ד ו",
-	},
-	Ydd: []string{
+	}},
+	{Ydd, []string{
 		" פֿ",
 		"ון ",
 		"ער ",
@@ -21159,5 +21161,5 @@ var hebrewLangs = langProfileList{
 		"פֿי",
 		"ײן ",
 		"ם ט",
-	},
+	}},
 }

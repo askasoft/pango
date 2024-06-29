@@ -16,12 +16,14 @@ func DetectLang(text string) Lang {
 
 // DetectWithOptions detects the language info of the given text with the provided options.
 func DetectWithOptions(text string, options Options) Info {
-	detector := detect(text, options.Detectors)
-	if detector != nil {
-		lang, confidence := detector.Detect(text, options)
-		return Info{
-			Lang:       lang,
-			Confidence: confidence,
+	if len(text) > 0 {
+		detector := detect(text, options.Detectors)
+		if detector != nil {
+			lang, confidence := detector.Detect(text, options)
+			return Info{
+				Lang:       lang,
+				Confidence: confidence,
+			}
 		}
 	}
 

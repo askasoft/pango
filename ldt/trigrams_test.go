@@ -25,7 +25,7 @@ func TestCount(t *testing.T) {
 
 func TestToTrigramChar(t *testing.T) {
 	tests := map[rune]rune{
-		'a': 'a', 'z': 'z', 'A': 'A', 'Z': 'Z', 'Ж': 'Ж', 'ß': 'ß',
+		'a': 'a', 'z': 'z', 'A': 'a', 'Z': 'z', 'Ж': 'ж', 'ß': 'ß',
 		//punctuation, digits, ... etc
 		'\t': ' ', '\n': ' ', ' ': ' ', '.': ' ', '0': ' ', '9': ' ', ',': ' ', '@': ' ',
 		'[': ' ', ']': ' ', '^': ' ', '\\': ' ', '`': ' ', '|': ' ', '{': ' ', '}': ' ', '~': ' '}
@@ -33,7 +33,7 @@ func TestToTrigramChar(t *testing.T) {
 	for r, want := range tests {
 		got := toTrigramChar(r)
 		if got != want {
-			t.Fatalf("%q got %q want %q", r, got, want)
+			t.Errorf("%q got %q want %q", r, got, want)
 		}
 	}
 }

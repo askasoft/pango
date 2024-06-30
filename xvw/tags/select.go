@@ -13,7 +13,7 @@ func SelectRender(args ...any) (any, error) {
 
 type SelectRenderer struct {
 	Name     string
-	List     List[string, string]
+	List     List
 	Empty    string
 	Values   []string
 	Disabled bool
@@ -22,6 +22,10 @@ type SelectRenderer struct {
 
 func (sr *SelectRenderer) TagName() string {
 	return "Select"
+}
+
+func (sr *SelectRenderer) SetList(list any) {
+	sr.List = AsList(list)
 }
 
 func (sr *SelectRenderer) SetValue(val string) {
@@ -51,9 +55,10 @@ func (sr *SelectRenderer) Render(sb *strings.Builder, args ...any) error {
 	}
 
 	if sr.List != nil {
-		for it := sr.List.Iterator(); it.Next(); {
-			sr.writeOption(sb, it.Key(), it.Value())
-		}
+		sr.List.Each(func(k, v string) bool {
+			sr.writeOption(sb, k, v)
+			return true
+		})
 	}
 
 	TagClose(sb, "select")

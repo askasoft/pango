@@ -11,13 +11,17 @@ func RadiosRender(args ...any) (any, error) {
 
 type RadiosRenderer struct {
 	Name     string
-	List     List[string, string]
+	List     List
 	Value    string
 	Disabled bool
 }
 
 func (rr *RadiosRenderer) TagName() string {
 	return "Radios"
+}
+
+func (rr *RadiosRenderer) SetList(list any) {
+	rr.List = AsList(list)
 }
 
 func (rr *RadiosRenderer) Render(sb *strings.Builder, args ...any) error {
@@ -32,9 +36,10 @@ func (rr *RadiosRenderer) Render(sb *strings.Builder, args ...any) error {
 	TagStart(sb, "div", a)
 
 	if rr.List != nil {
-		for it := rr.List.Iterator(); it.Next(); {
-			rr.writeRadio(sb, it.Key(), it.Value(), it.Key() == rr.Value)
-		}
+		rr.List.Each(func(k, v string) bool {
+			rr.writeRadio(sb, k, v)
+			return true
+		})
 	}
 
 	TagClose(sb, "div")
@@ -42,7 +47,7 @@ func (rr *RadiosRenderer) Render(sb *strings.Builder, args ...any) error {
 	return nil
 }
 
-func (rr *RadiosRenderer) writeRadio(sb *strings.Builder, key, text string, checked bool) {
+func (rr *RadiosRenderer) writeRadio(sb *strings.Builder, key, text string) {
 	TagStart(sb, "label")
 
 	a := Attrs{
@@ -51,7 +56,7 @@ func (rr *RadiosRenderer) writeRadio(sb *strings.Builder, key, text string, chec
 		"value": key,
 	}
 
-	if checked {
+	if key == rr.Value {
 		a.Set("checked", "")
 	}
 	if rr.Disabled {

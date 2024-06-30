@@ -13,7 +13,7 @@ func ChecksRender(args ...any) (any, error) {
 
 type ChecksRenderer struct {
 	Name     string
-	List     List[string, string]
+	List     List
 	Values   []string
 	Disabled bool
 	Ordered  bool
@@ -21,6 +21,10 @@ type ChecksRenderer struct {
 
 func (cr *ChecksRenderer) TagName() string {
 	return "Checks"
+}
+
+func (cr *ChecksRenderer) SetList(list any) {
+	cr.List = AsList(list)
 }
 
 func (cr *ChecksRenderer) SetValue(val string) {
@@ -50,15 +54,17 @@ func (cr *ChecksRenderer) Render(sb *strings.Builder, args ...any) error {
 			}
 			sb.WriteString("<hr>")
 
-			for it := cr.List.Iterator(); it.Next(); {
-				if !asg.Contains(cr.Values, it.Key()) {
-					cr.writeCheckbox(sb, it.Key(), it.Value(), false)
+			cr.List.Each(func(k, v string) bool {
+				if !asg.Contains(cr.Values, k) {
+					cr.writeCheckbox(sb, k, v, false)
 				}
-			}
+				return true
+			})
 		} else {
-			for it := cr.List.Iterator(); it.Next(); {
-				cr.writeCheckbox(sb, it.Key(), it.Value(), asg.Contains(cr.Values, it.Key()))
-			}
+			cr.List.Each(func(k, v string) bool {
+				cr.writeCheckbox(sb, k, v, asg.Contains(cr.Values, k))
+				return true
+			})
 		}
 	}
 

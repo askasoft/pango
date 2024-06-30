@@ -1,4 +1,4 @@
 package pango
 
 // Version the current pango version.
-const Version = "v1.0.21"
+const Version = "v1.0.22"

@@ -165,13 +165,13 @@ func TestJapanConvert(t *testing.T) {
 			e := han.String()
 			a := ToHankaku(s)
 			if a != e {
-				t.Errorf("ToHankaku(%q) = %q, want %q", s, a, e)
+				t.Fatalf("ToHankaku(%q) = %q, want %q", s, a, e)
 			}
 
 			e = zen.String()
 			a = ToZenkaku(s)
 			if a != e {
-				t.Errorf("ToZenkaku(%q) = %q, want %q", s, a, e)
+				t.Fatalf("ToZenkaku(%q) = %q, want %q", s, a, e)
 			}
 		}
 	}

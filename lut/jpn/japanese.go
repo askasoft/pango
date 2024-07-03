@@ -9,6 +9,7 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
+// https://ja.wikipedia.org/wiki/ブロック_(Unicode)
 // http://www.asahi-net.or.jp/~ax2s-kmtn/ref/unicode/uff00.html
 var (
 	// z2hMark 全角: 。「」、・゛゜
@@ -210,22 +211,24 @@ func ToHankakuHandakuRune(c rune) rune {
 
 // IsHankakuKatakanaRune return true if c is Hankaku Katakana rune
 // http://charset.7jp.net/jis0201.html
+// https://www.asahi-net.or.jp/~ax2s-kmtn/ref/unicode/uff00.html
 func IsHankakuKatakanaRune(c rune) bool {
 	return c >= '\uFF61' && c <= '\uFF9F'
 }
 
 func IsHankakuKatakanaSpaceRune(c rune) bool {
-	return c == ' ' || (c >= '\uFF61' && c <= '\uFF9F')
+	return c == ' ' || IsHankakuKatakanaRune(c)
 }
 
 // IsZenkakuKatakanaRune return true if c is Zenkaku Katakana rune
 // https://ja.wikipedia.org/wiki/片仮名_(Unicodeのブロック)
+// https://ja.wikipedia.org/wiki/片仮名拡張
 func IsZenkakuKatakanaRune(c rune) bool {
-	return c >= '\u30A1' && c <= '\u30FC'
+	return (c >= '\u30A0' && c <= '\u30FF') || (c >= '\u31F0' && c <= '\u31FF')
 }
 
 func IsZenkakuKatakanaSpaceRune(c rune) bool {
-	return c == '　' || (c >= '\u30A1' && c <= '\u30FC')
+	return c == '　' || IsZenkakuKatakanaRune(c)
 }
 
 func IsZenkakuKatakanaSpacesRune(c rune) bool {
@@ -239,11 +242,11 @@ func IsZenkakuHiraganaRune(c rune) bool {
 }
 
 func IsZenkakuHiraganaSpaceRune(c rune) bool {
-	return c == '　' || (c >= '\u3041' && c <= '\u309F')
+	return c == '　' || IsZenkakuHiraganaRune(c)
 }
 
 func IsZenkakuHiraganaSpacesRune(c rune) bool {
-	return c == ' ' || c == '　' || (c >= '\u3041' && c <= '\u309F')
+	return c == ' ' || c == '　' || IsZenkakuHiraganaRune(c)
 }
 
 // IsHankakuRune return true if c is Hankaku rune

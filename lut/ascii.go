@@ -120,8 +120,7 @@ var (
 
 	// m2s multi-byte rune to single-byte rune
 	m2s = mag.Merge(mag.Reverse(s2m), map[rune]rune{
-		// non-breaking space
-		//'\u00A0': '\u0020', //   =>
+		// '\u00A0': '\u0020', //   =>  // non-breaking space
 		// Symbol
 		'\uFFE5': '\u005C', // ￥ => \
 		'\uFF61': '\u002E', // ｡ => .
@@ -135,6 +134,7 @@ var (
 		'\u2033': '\u0022', // ″ => "
 		'\u2212': '\u002D', // − => -
 		'\u301C': '\u007E', // 〜 => ~
+		'\u30A0': '\u003D', // ゠ => =  // KATAKANA-HIRAGANA DOUBLE HYPHEN
 		'\u30FC': '\u002D', // ー => -
 	})
 )
@@ -172,6 +172,7 @@ func ToFullWidth(s string) string {
 }
 
 // IsHalfWidthRune checks if the rune c is unicode half-width char.
+// https://www.asahi-net.or.jp/~ax2s-kmtn/ref/unicode/uff00.html
 // \u0000-\u00FF\uFF61-\uFFDF\uFFE8-\uFFEE
 func IsHalfWidthRune(c rune) bool {
 	if c <= unicode.MaxASCII ||

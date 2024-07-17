@@ -109,7 +109,7 @@ func (tf *Textifier) Textify(n *html.Node) error {
 			return tf.hbrDeep(n, 6)
 		case atom.Title:
 			return tf.title(n)
-		case atom.Body, atom.Div, atom.P, atom.Table:
+		case atom.Body, atom.Table:
 			return tf.wbrDeep(n)
 		case atom.Thead:
 			return tf.thead(n)
@@ -129,6 +129,8 @@ func (tf *Textifier) Textify(n *html.Node) error {
 			return tf.wbrDeep(n)
 		case atom.Dd:
 			return tf.dd(n)
+		case atom.Div, atom.P:
+			return tf.rbrDeep(n)
 		case atom.Code, atom.Pre, atom.Textarea, atom.Xmp:
 			return tf.rawDeep(n)
 		default:
@@ -181,9 +183,6 @@ func (tf *Textifier) wbrDeep(n *html.Node) error {
 }
 
 func (tf *Textifier) title(n *html.Node) error {
-	if err := tf.eol(); err != nil {
-		return err
-	}
 	s := Stringify(n)
 	if _, err := iox.WriteString(tf.w, s); err != nil {
 		return err

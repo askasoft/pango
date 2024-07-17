@@ -189,12 +189,12 @@ type CompactWriter struct {
 
 // SpaceCompactor return a space compact writer
 func SpaceCompactWriter(w io.Writer) *CompactWriter {
-	return &CompactWriter{w: w, f: unicode.IsSpace, r: ' '}
+	return NewCompactWriter(w, unicode.IsSpace, ' ')
 }
 
 // NewCompactWriter return a compact writer
 func NewCompactWriter(w io.Writer, f func(rune) bool, r rune) *CompactWriter {
-	return &CompactWriter{w: w, f: unicode.IsSpace, r: r, c: true}
+	return &CompactWriter{w: w, f: f, r: r, c: true}
 }
 
 func (cw *CompactWriter) Reset(c bool) {

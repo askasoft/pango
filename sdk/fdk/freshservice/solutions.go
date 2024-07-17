@@ -67,15 +67,19 @@ func (sao *SearchArticlesOption) Values() Values {
 func (fs *Freshservice) CreateCategory(category *Category) (*Category, error) {
 	url := fs.endpoint("/solutions/categories")
 	result := &categoryResult{}
-	err := fs.doPost(url, category, result)
-	return result.Category, err
+	if err := fs.doPost(url, category, result); err != nil {
+		return nil, err
+	}
+	return result.Category, nil
 }
 
 func (fs *Freshservice) UpdateCategory(cid int64, category *Category) (*Category, error) {
 	url := fs.endpoint("/solutions/categories/%d", cid)
 	result := &categoryResult{}
-	err := fs.doPut(url, category, result)
-	return result.Category, err
+	if err := fs.doPut(url, category, result); err != nil {
+		return nil, err
+	}
+	return result.Category, nil
 }
 
 func (fs *Freshservice) GetCategory(cid int64) (*Category, error) {
@@ -129,15 +133,19 @@ func (fs *Freshservice) DeleteCategory(cid int64) error {
 func (fs *Freshservice) CreateFolder(folder *Folder) (*Folder, error) {
 	url := fs.endpoint("/solutions/folders")
 	result := &folderResult{}
-	err := fs.doPost(url, folder, result)
-	return result.Foler, err
+	if err := fs.doPost(url, folder, result); err != nil {
+		return nil, err
+	}
+	return result.Foler, nil
 }
 
 func (fs *Freshservice) UpdateFolder(fid int64, folder *Folder) (*Folder, error) {
 	url := fs.endpoint("/solutions/folders/%d", fid)
 	result := &folderResult{}
-	err := fs.doPut(url, folder, result)
-	return result.Foler, err
+	if err := fs.doPut(url, folder, result); err != nil {
+		return nil, err
+	}
+	return result.Foler, nil
 }
 
 func (fs *Freshservice) GetFolder(fid int64) (*Folder, error) {
@@ -196,22 +204,28 @@ func (fs *Freshservice) DeleteFolder(fid int64) error {
 func (fs *Freshservice) CreateArticle(article *Article) (*Article, error) {
 	url := fs.endpoint("/solutions/articles")
 	result := &articleResult{}
-	err := fs.doPost(url, article, result)
-	return result.Article, err
+	if err := fs.doPost(url, article, result); err != nil {
+		return nil, err
+	}
+	return result.Article, nil
 }
 
 func (fs *Freshservice) SendArticleToApproval(aid int64) (*Article, error) {
 	url := fs.endpoint("/solutions/articles/%d/send_for_approval", aid)
 	result := &articleResult{}
-	err := fs.doPut(url, nil, result)
-	return result.Article, err
+	if err := fs.doPut(url, nil, result); err != nil {
+		return nil, err
+	}
+	return result.Article, nil
 }
 
 func (fs *Freshservice) UpdateArticle(aid int64, article *Article) (*Article, error) {
 	url := fs.endpoint("/solutions/articles/%d", aid)
 	result := &articleResult{}
-	err := fs.doPut(url, article, result)
-	return result.Article, err
+	if err := fs.doPut(url, article, result); err != nil {
+		return nil, err
+	}
+	return result.Article, nil
 }
 
 func (fs *Freshservice) GetArticle(aid int64) (*Article, error) {

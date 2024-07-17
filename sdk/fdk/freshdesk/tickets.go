@@ -83,8 +83,10 @@ type ListConversationsOption = PageOption
 func (fd *Freshdesk) CreateTicket(ticket *Ticket) (*Ticket, error) {
 	url := fd.endpoint("/tickets")
 	result := &Ticket{}
-	err := fd.doPost(url, ticket, result)
-	return result, err
+	if err := fd.doPost(url, ticket, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // GetTicket Get a Ticket
@@ -197,8 +199,10 @@ func (fd *Freshdesk) IterFilterTickets(fto *FilterTicketsOption, itf func(*Ticke
 func (fd *Freshdesk) UpdateTicket(tid int64, ticket *Ticket) (*Ticket, error) {
 	url := fd.endpoint("/tickets/%d", tid)
 	result := &Ticket{}
-	err := fd.doPut(url, ticket, result)
-	return result, err
+	if err := fd.doPut(url, ticket, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // BulkUpdateTickets returns job id
@@ -218,8 +222,10 @@ func (fd *Freshdesk) BulkUpdateTickets(tids []int64, properties *TicketPropertie
 func (fd *Freshdesk) ForwardTicket(tid int64, tf *TicketForward) (*ForwardResult, error) {
 	url := fd.endpoint("/tickets/%d/forward", tid)
 	result := &ForwardResult{}
-	err := fd.doPost(url, tf, result)
-	return result, err
+	if err := fd.doPost(url, tf, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // MergeTickets
@@ -334,23 +340,29 @@ func (fd *Freshdesk) IterTicketConversations(tid int64, lco *ListConversationsOp
 func (fd *Freshdesk) CreateReply(tid int64, reply *Reply) (*Reply, error) {
 	url := fd.endpoint("/tickets/%d/reply", tid)
 	result := &Reply{}
-	err := fd.doPost(url, reply, result)
-	return result, err
+	if err := fd.doPost(url, reply, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (fd *Freshdesk) CreateNote(tid int64, note *Note) (*Note, error) {
 	url := fd.endpoint("/tickets/%d/notes", tid)
 	result := &Note{}
-	err := fd.doPost(url, note, result)
-	return result, err
+	if err := fd.doPost(url, note, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // UpdateConversation only public & private notes can be edited.
 func (fd *Freshdesk) UpdateConversation(cid int64, conversation *Conversation) (*Conversation, error) {
 	url := fd.endpoint("/conversations/%d", cid)
 	result := &Conversation{}
-	err := fd.doPut(url, conversation, result)
-	return result, err
+	if err := fd.doPut(url, conversation, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // DeleteConversation delete a conversation (Incoming Reply can not be deleted)

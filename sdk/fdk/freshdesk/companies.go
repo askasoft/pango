@@ -12,8 +12,10 @@ type ListCompaniesOption = PageOption
 func (fd *Freshdesk) CreateCompany(company *Company) (*Company, error) {
 	url := fd.endpoint("/companies")
 	result := &Company{}
-	err := fd.doPost(url, company, result)
-	return result, err
+	if err := fd.doPost(url, company, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (fd *Freshdesk) GetCompany(cid int64) (*Company, error) {
@@ -74,8 +76,10 @@ func (fd *Freshdesk) SearchCompanies(name string) ([]*Company, error) {
 func (fd *Freshdesk) UpdateCompany(cid int64, company *Company) (*Company, error) {
 	url := fd.endpoint("/companies/%d", cid)
 	result := &Company{}
-	err := fd.doPut(url, company, result)
-	return result, err
+	if err := fd.doPut(url, company, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (fd *Freshdesk) DeleteCompany(cid int64) error {

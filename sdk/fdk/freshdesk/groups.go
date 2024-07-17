@@ -15,8 +15,10 @@ func (fd *Freshdesk) GetGroup(gid int64) (*Group, error) {
 func (fd *Freshdesk) CreateGroup(group *Group) (*Group, error) {
 	url := fd.endpoint("/groups")
 	result := &Group{}
-	err := fd.doPost(url, group, result)
-	return result, err
+	if err := fd.doPost(url, group, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (fd *Freshdesk) ListGroups(lgo *ListGroupsOption) ([]*Group, bool, error) {
@@ -58,8 +60,10 @@ func (fd *Freshdesk) IterGroups(lgo *ListGroupsOption, igf func(*Group) error) e
 func (fd *Freshdesk) UpdateGroup(gid int64, group *Group) (*Group, error) {
 	url := fd.endpoint("/groups/%d", gid)
 	result := &Group{}
-	err := fd.doPut(url, group, result)
-	return result, err
+	if err := fd.doPut(url, group, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (fd *Freshdesk) DeleteGroup(gid int64) error {

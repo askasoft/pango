@@ -84,15 +84,19 @@ func (fd *Freshdesk) IterAgents(lao *ListAgentsOption, iaf func(*Agent) error) e
 func (fd *Freshdesk) CreateAgent(agent *AgentRequest) (*Agent, error) {
 	url := fd.endpoint("/agents")
 	result := &Agent{}
-	err := fd.doPost(url, agent, result)
-	return result, err
+	if err := fd.doPost(url, agent, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (fd *Freshdesk) UpdateAgent(aid int64, agent *AgentRequest) (*Agent, error) {
 	url := fd.endpoint("/agents/%d", aid)
 	result := &Agent{}
-	err := fd.doPut(url, agent, result)
-	return result, err
+	if err := fd.doPut(url, agent, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (fd *Freshdesk) DeleteAgent(aid int64) error {

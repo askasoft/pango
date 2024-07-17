@@ -65,8 +65,10 @@ func (fao *FilterAgentsOption) Values() Values {
 func (fs *Freshservice) CreateAgent(agent *Agent) (*Agent, error) {
 	url := fs.endpoint("/agents")
 	result := &agentResult{}
-	err := fs.doPost(url, agent, result)
-	return result.Agent, err
+	if err := fs.doPost(url, agent, result); err != nil {
+		return nil, err
+	}
+	return result.Agent, nil
 }
 
 func (fs *Freshservice) GetAgent(id int64) (*Agent, error) {
@@ -186,8 +188,10 @@ func (fs *Freshservice) IterFilterAgents(fao *FilterAgentsOption, iaf func(*Agen
 func (fs *Freshservice) UpdateAgent(id int64, agent *Agent) (*Agent, error) {
 	url := fs.endpoint("/agents/%d", id)
 	result := &agentResult{}
-	err := fs.doPut(url, agent, result)
-	return result.Agent, err
+	if err := fs.doPut(url, agent, result); err != nil {
+		return nil, err
+	}
+	return result.Agent, nil
 }
 
 // Deactivate a Agent
@@ -209,16 +213,20 @@ func (fs *Freshservice) ForgetAgent(id int64) error {
 func (fs *Freshservice) ReactivateAgent(id int64) (*Agent, error) {
 	url := fs.endpoint("/agents/%d/reactivate", id)
 	result := &agentResult{}
-	err := fs.doPut(url, nil, result)
-	return result.Agent, err
+	if err := fs.doPut(url, nil, result); err != nil {
+		return nil, err
+	}
+	return result.Agent, nil
 }
 
 // Convert a particular agent into a requester.
 func (fs *Freshservice) ConvertAgentToRequester(id int64) (*Agent, error) {
 	url := fs.endpoint("/agents/%d/convert_to_requester", id)
 	result := &agentResult{}
-	err := fs.doPut(url, nil, result)
-	return result.Agent, err
+	if err := fs.doPut(url, nil, result); err != nil {
+		return nil, err
+	}
+	return result.Agent, nil
 }
 
 func (fs *Freshservice) GetAgentFields() ([]*AgentField, error) {

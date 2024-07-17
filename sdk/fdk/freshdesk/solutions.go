@@ -19,29 +19,37 @@ type ListArticlesOption = PageOption
 func (fd *Freshdesk) CreateCategory(category *Category) (*Category, error) {
 	url := fd.endpoint("/solutions/categories")
 	result := &Category{}
-	err := fd.doPost(url, category, result)
-	return result, err
+	if err := fd.doPost(url, category, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (fd *Freshdesk) CreateCategoryTranslated(cid int64, lang string, category *Category) (*Category, error) {
 	url := fd.endpoint("/solutions/categories/%d/%s", cid, lang)
 	result := &Category{}
-	err := fd.doPost(url, category, result)
-	return result, err
+	if err := fd.doPost(url, category, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (fd *Freshdesk) UpdateCategory(cid int64, category *Category) (*Category, error) {
 	url := fd.endpoint("/solutions/categories/%d", cid)
 	result := &Category{}
-	err := fd.doPut(url, category, result)
-	return result, err
+	if err := fd.doPut(url, category, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (fd *Freshdesk) UpdateCategoryTranslated(cid int64, lang string, category *Category) (*Category, error) {
 	url := fd.endpoint("/solutions/categories/%d/%s", cid, lang)
 	result := &Category{}
-	err := fd.doPut(url, category, result)
-	return result, err
+	if err := fd.doPut(url, category, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (fd *Freshdesk) GetCategory(cid int64) (*Category, error) {
@@ -138,29 +146,37 @@ func (fd *Freshdesk) DeleteCategory(cid int64) error {
 func (fd *Freshdesk) CreateFolder(cid int64, folder *Folder) (*Folder, error) {
 	url := fd.endpoint("/solutions/categories/%d/folders", cid)
 	result := &Folder{}
-	err := fd.doPost(url, folder, result)
-	return result, err
+	if err := fd.doPost(url, folder, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (fd *Freshdesk) CreateFolderTranslated(fid int64, lang string, folder *Folder) (*Folder, error) {
 	url := fd.endpoint("/solutions/folders/%d/%s", fid, lang)
 	result := &Folder{}
-	err := fd.doPost(url, folder, result)
-	return result, err
+	if err := fd.doPost(url, folder, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (fd *Freshdesk) UpdateFolder(fid int64, folder *Folder) (*Folder, error) {
 	url := fd.endpoint("/solutions/folders/%d", fid)
 	result := &Folder{}
-	err := fd.doPut(url, folder, result)
-	return result, err
+	if err := fd.doPut(url, folder, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (fd *Freshdesk) UpdateFolderTranslated(fid int64, lang string, folder *Folder) (*Folder, error) {
 	url := fd.endpoint("/solutions/folders/%d/%s", fid, lang)
 	result := &Folder{}
-	err := fd.doPut(url, folder, result)
-	return result, err
+	if err := fd.doPut(url, folder, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (fd *Freshdesk) GetFolder(fid int64) (*Folder, error) {
@@ -329,29 +345,37 @@ func (fd *Freshdesk) DeleteFolder(fid int64) error {
 func (fd *Freshdesk) CreateArticle(fid int64, article *Article) (*Article, error) {
 	url := fd.endpoint("/solutions/folders/%d/articles", fid)
 	result := &Article{}
-	err := fd.doPost(url, article, result)
-	return result, err
+	if err := fd.doPost(url, article, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (fd *Freshdesk) CreateArticleTranslated(aid int64, lang string, article *Article) (*Article, error) {
 	url := fd.endpoint("/solutions/articles/%d/%s", aid, lang)
 	result := &Article{}
-	err := fd.doPost(url, article, result)
-	return result, err
+	if err := fd.doPost(url, article, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (fd *Freshdesk) UpdateArticle(aid int64, article *Article) (*Article, error) {
 	url := fd.endpoint("/solutions/articles/%d", aid)
 	result := &Article{}
-	err := fd.doPut(url, article, result)
-	return result, err
+	if err := fd.doPut(url, article, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (fd *Freshdesk) UpdateArticleTranslated(aid int64, lang string, article *Article) (*Article, error) {
 	url := fd.endpoint("/solutions/articles/%d/%s", aid, lang)
 	result := &Article{}
-	err := fd.doPut(url, article, result)
-	return result, err
+	if err := fd.doPut(url, article, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (fd *Freshdesk) GetArticle(aid int64) (*Article, error) {

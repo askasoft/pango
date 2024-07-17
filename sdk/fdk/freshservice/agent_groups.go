@@ -6,8 +6,10 @@ package freshservice
 func (fs *Freshservice) CreateAgentGroup(ag *AgentGroup) (*AgentGroup, error) {
 	url := fs.endpoint("/groups")
 	result := &agentGroupResult{}
-	err := fs.doPost(url, ag, result)
-	return result.Group, err
+	if err := fs.doPost(url, ag, result); err != nil {
+		return nil, err
+	}
+	return result.Group, nil
 }
 
 func (fs *Freshservice) GetAgentGroup(id int64) (*AgentGroup, error) {
@@ -56,8 +58,10 @@ func (fs *Freshservice) IterAgentGroups(lago *ListAgentGroupsOption, iagf func(*
 func (fs *Freshservice) UpdateAgentGroup(id int64, ag *AgentGroup) (*AgentGroup, error) {
 	url := fs.endpoint("/groups/%d", id)
 	result := &agentGroupResult{}
-	err := fs.doPut(url, ag, result)
-	return result.Group, err
+	if err := fs.doPut(url, ag, result); err != nil {
+		return nil, err
+	}
+	return result.Group, nil
 }
 
 func (fs *Freshservice) DeleteAgentGroup(id int64) error {

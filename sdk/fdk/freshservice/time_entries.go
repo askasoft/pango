@@ -15,8 +15,10 @@ type ListTimeEntriesOption = PageOption
 func (fs *Freshservice) CreateTimeEntry(tid int64, tm *TimeEntry) (*TimeEntry, error) {
 	url := fs.endpoint("/tickets/%d/time_entries", tid)
 	result := &timeEntryResult{}
-	err := fs.doPost(url, tm, result)
-	return result.TimeEntry, err
+	if err := fs.doPost(url, tm, result); err != nil {
+		return nil, err
+	}
+	return result.TimeEntry, nil
 }
 
 // View a Time Entry
@@ -75,8 +77,10 @@ func (fs *Freshservice) IterTicketTimeEntries(tid int64, lteo *ListTimeEntriesOp
 func (fs *Freshservice) UpdateTimeEntry(tid, teid int64, tm *TimeEntry) (*TimeEntry, error) {
 	url := fs.endpoint("/tickets/%d/time_entries/%d", tid, teid)
 	result := &timeEntryResult{}
-	err := fs.doPut(url, tm, result)
-	return result.TimeEntry, err
+	if err := fs.doPut(url, tm, result); err != nil {
+		return nil, err
+	}
+	return result.TimeEntry, nil
 }
 
 func (fs *Freshservice) DeleteTimeEntry(tid, teid int64) error {

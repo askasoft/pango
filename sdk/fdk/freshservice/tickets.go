@@ -72,8 +72,10 @@ type ListConversationsOption = PageOption
 func (fs *Freshservice) CreateTicket(ticket *Ticket) (*Ticket, error) {
 	url := fs.endpoint("/tickets")
 	result := &ticketResult{}
-	err := fs.doPost(url, ticket, result)
-	return result.Ticket, err
+	if err := fs.doPost(url, ticket, result); err != nil {
+		return nil, err
+	}
+	return result.Ticket, nil
 }
 
 // GetTicket Get a Ticket
@@ -224,8 +226,10 @@ func (fs *Freshservice) IterTickets(lto *ListTicketsOption, itf func(*Ticket) er
 func (fs *Freshservice) UpdateTicket(tid int64, ticket *Ticket) (*Ticket, error) {
 	url := fs.endpoint("/tickets/%d", tid)
 	result := &ticketResult{}
-	err := fs.doPut(url, ticket, result)
-	return result.Ticket, err
+	if err := fs.doPut(url, ticket, result); err != nil {
+		return nil, err
+	}
+	return result.Ticket, nil
 }
 
 func (fs *Freshservice) DeleteTicket(tid int64) error {
@@ -255,8 +259,10 @@ func (fs *Freshservice) Restore(tid int64) error {
 func (fs *Freshservice) CreateChildTicket(tid int64, ticket *Ticket) (*Ticket, error) {
 	url := fs.endpoint("/tickets/%d/create_child_ticket", tid)
 	result := &ticketResult{}
-	err := fs.doPost(url, ticket, result)
-	return result.Ticket, err
+	if err := fs.doPost(url, ticket, result); err != nil {
+		return nil, err
+	}
+	return result.Ticket, nil
 }
 
 func (fs *Freshservice) GetTicketFields() ([]*TicketField, error) {
@@ -279,15 +285,19 @@ func (fs *Freshservice) GetTicketActivities(tid int64) ([]*TicketActivity, error
 func (fs *Freshservice) CreateReply(tid int64, reply *Reply) (*Conversation, error) {
 	url := fs.endpoint("/tickets/%d/reply", tid)
 	result := &conversationResult{}
-	err := fs.doPost(url, reply, result)
-	return result.Conversation, err
+	if err := fs.doPost(url, reply, result); err != nil {
+		return nil, err
+	}
+	return result.Conversation, nil
 }
 
 func (fs *Freshservice) CreateNote(tid int64, note *Note) (*Conversation, error) {
 	url := fs.endpoint("/tickets/%d/notes", tid)
 	result := &conversationResult{}
-	err := fs.doPost(url, note, result)
-	return result.Conversation, err
+	if err := fs.doPost(url, note, result); err != nil {
+		return nil, err
+	}
+	return result.Conversation, nil
 }
 
 // Update a Conversation
@@ -295,8 +305,10 @@ func (fs *Freshservice) CreateNote(tid int64, note *Note) (*Conversation, error)
 func (fs *Freshservice) UpdateConversation(cid int64, conversation *Conversation) (*Conversation, error) {
 	url := fs.endpoint("/conversations/%d", cid)
 	result := &conversationResult{}
-	err := fs.doPut(url, conversation, result)
-	return result.Conversation, err
+	if err := fs.doPut(url, conversation, result); err != nil {
+		return nil, err
+	}
+	return result.Conversation, nil
 }
 
 func (fs *Freshservice) DeleteConversation(cid int64) error {

@@ -49,15 +49,19 @@ func (lco *ListContactsOption) Values() Values {
 func (fd *Freshdesk) CreateContact(contact *Contact) (*Contact, error) {
 	url := fd.endpoint("/contacts")
 	result := &Contact{}
-	err := fd.doPost(url, contact, result)
-	return result, err
+	if err := fd.doPost(url, contact, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (fd *Freshdesk) UpdateContact(cid int64, contact *Contact) (*Contact, error) {
 	url := fd.endpoint("/contacts/%d", cid)
 	result := &Contact{}
-	err := fd.doPut(url, contact, result)
-	return result, err
+	if err := fd.doPut(url, contact, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (fd *Freshdesk) GetContact(cid int64) (*Contact, error) {
@@ -163,6 +167,8 @@ func (fd *Freshdesk) GetExportedContactsURL(jid string) (*Job, error) {
 func (fd *Freshdesk) MakeAgent(cid int64, agent *Agent) (*Contact, error) {
 	url := fd.endpoint("/contacts/%d/make_agent", cid)
 	result := &Contact{}
-	err := fd.doPut(url, agent, result)
-	return result, err
+	if err := fd.doPut(url, agent, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }

@@ -40,8 +40,10 @@ func (lteo *ListTimeEntriesOption) Values() Values {
 func (fd *Freshdesk) CreateTimeEntry(tid int64, te *TimeEntry) (*TimeEntry, error) {
 	url := fd.endpoint("/tickets/%d/time_entries", tid)
 	result := &TimeEntry{}
-	err := fd.doPost(url, te, result)
-	return result, err
+	if err := fd.doPost(url, te, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // List All Time Entries
@@ -92,8 +94,10 @@ func (fd *Freshdesk) IterTimeEntries(lteo *ListTimeEntriesOption, itef func(*Tim
 func (fd *Freshdesk) UpdateTimeEntry(teid int64, te *TimeEntry) (*TimeEntry, error) {
 	url := fd.endpoint("/time_entries/%d", teid)
 	result := &TimeEntry{}
-	err := fd.doPut(url, te, result)
-	return result, err
+	if err := fd.doPut(url, te, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 // Start/Stop Timer
@@ -101,8 +105,10 @@ func (fd *Freshdesk) UpdateTimeEntry(teid int64, te *TimeEntry) (*TimeEntry, err
 func (fd *Freshdesk) ToggleTimer(teid int64) (*TimeEntry, error) {
 	url := fd.endpoint("/time_entries/%d/toggle_timer", teid)
 	result := &TimeEntry{}
-	err := fd.doPut(url, nil, result)
-	return result, err
+	if err := fd.doPut(url, nil, result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (fd *Freshdesk) DeleteTimeEntry(teid int64) error {

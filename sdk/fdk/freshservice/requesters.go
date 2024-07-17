@@ -59,8 +59,10 @@ func (lro *ListRequestersOption) Values() Values {
 func (fs *Freshservice) CreateRequesterGroup(rg *RequesterGroup) (*RequesterGroup, error) {
 	url := fs.endpoint("/requester_groups")
 	result := &requesterGroupResult{}
-	err := fs.doPost(url, rg, result)
-	return result.RequesterGroup, err
+	if err := fs.doPost(url, rg, result); err != nil {
+		return nil, err
+	}
+	return result.RequesterGroup, nil
 }
 
 func (fs *Freshservice) GetRequesterGroup(id int64) (*RequesterGroup, error) {
@@ -111,8 +113,10 @@ func (fs *Freshservice) IterRequesterGroups(lrgo *ListRequesterGroupsOption, irg
 func (fs *Freshservice) UpdateRequesterGroup(id int64, rg *RequesterGroup) (*RequesterGroup, error) {
 	url := fs.endpoint("/requester_groups/%d", id)
 	result := &requesterGroupResult{}
-	err := fs.doPut(url, rg, result)
-	return result.RequesterGroup, err
+	if err := fs.doPut(url, rg, result); err != nil {
+		return nil, err
+	}
+	return result.RequesterGroup, nil
 }
 
 // Delete Requester Group
@@ -181,8 +185,10 @@ func (fs *Freshservice) IterRequesterGroupMembers(rgid int64, lrgmo *ListRequest
 func (fs *Freshservice) CreateRequester(requester *Requester) (*Requester, error) {
 	url := fs.endpoint("/requesters")
 	result := &requesterResult{}
-	err := fs.doPost(url, requester, result)
-	return result.Requester, err
+	if err := fs.doPost(url, requester, result); err != nil {
+		return nil, err
+	}
+	return result.Requester, nil
 }
 
 func (fs *Freshservice) GetRequester(id int64) (*Requester, error) {
@@ -264,8 +270,10 @@ func (fs *Freshservice) GetRequesterFields() ([]*RequesterField, error) {
 func (fs *Freshservice) UpdateRequester(id int64, requester *Requester) (*Requester, error) {
 	url := fs.endpoint("/requesters/%d", id)
 	result := &requesterResult{}
-	err := fs.doPut(url, requester, result)
-	return result.Requester, err
+	if err := fs.doPut(url, requester, result); err != nil {
+		return nil, err
+	}
+	return result.Requester, nil
 }
 
 // Deactivate a Requester
@@ -286,16 +294,20 @@ func (fs *Freshservice) ForgetRequester(id int64) error {
 func (fs *Freshservice) ConvertRequesterToAgent(id int64) (*Agent, error) {
 	url := fs.endpoint("/requesters/%d/convert_to_agent", id)
 	result := &agentResult{}
-	err := fs.doPut(url, nil, result)
-	return result.Agent, err
+	if err := fs.doPut(url, nil, result); err != nil {
+		return nil, err
+	}
+	return result.Agent, nil
 }
 
 // Merge secondary requesters into a primary requester.
 func (fs *Freshservice) MergeRequesters(id int64, ids ...int64) (*Requester, error) {
 	url := fs.endpoint("/requesters/%d/merge?secondary_requesters=%s", id, str.JoinInt64s(ids, ","))
 	result := &requesterResult{}
-	err := fs.doPut(url, nil, result)
-	return result.Requester, err
+	if err := fs.doPut(url, nil, result); err != nil {
+		return nil, err
+	}
+	return result.Requester, nil
 }
 
 // Reactivate a Requester
@@ -303,6 +315,8 @@ func (fs *Freshservice) MergeRequesters(id int64, ids ...int64) (*Requester, err
 func (fs *Freshservice) ReactivateRequester(id int64) (*Requester, error) {
 	url := fs.endpoint("/requesters/%d/reactivate", id)
 	result := &requesterResult{}
-	err := fs.doPut(url, nil, result)
-	return result.Requester, err
+	if err := fs.doPut(url, nil, result); err != nil {
+		return nil, err
+	}
+	return result.Requester, nil
 }

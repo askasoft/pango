@@ -9,10 +9,10 @@ import (
 	"github.com/askasoft/pango/xin"
 )
 
-func ExampleHTTPGziper() {
+func ExampleResponseCompressor() {
 	router := xin.Default()
 
-	router.Use(DefaultHTTPGziper().Handler())
+	router.Use(DefaultResponseCompressor().Handler())
 	router.GET("/", func(c *xin.Context) {
 		c.String(200, strings.Repeat("This is a Test!\n", 1000))
 	})

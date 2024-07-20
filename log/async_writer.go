@@ -3,6 +3,8 @@ package log
 import (
 	"sync"
 	"time"
+
+	"github.com/askasoft/pango/log/internal"
 )
 
 // NewAsyncWriter create a async writer and start go routine
@@ -63,7 +65,7 @@ func (aw *AsyncWriter) Stop() {
 
 func (aw *AsyncWriter) write(le *Event) {
 	if err := aw.writer.Write(le); err != nil {
-		perror(err)
+		internal.Perror(err)
 	}
 }
 

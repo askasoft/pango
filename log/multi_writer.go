@@ -1,5 +1,7 @@
 package log
 
+import "github.com/askasoft/pango/log/internal"
+
 // NewMultiWriter create a multi writer
 func NewMultiWriter(ws ...Writer) *MultiWriter {
 	return &MultiWriter{Writers: ws}
@@ -15,7 +17,7 @@ func (mw *MultiWriter) Write(le *Event) error {
 	for _, w := range mw.Writers {
 		err := w.Write(le)
 		if err != nil {
-			perror(err)
+			internal.Perror(err)
 		}
 	}
 	return nil

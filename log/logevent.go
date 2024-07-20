@@ -89,7 +89,7 @@ func (le *Event) CallerStop(stop string, trace bool) {
 	}
 }
 
-func newEvent(logger Logger, lvl Level, msg string) *Event {
+func NewEvent(logger Logger, lvl Level, msg string) *Event {
 	le := &Event{
 		Logger: logger,
 		Level:  lvl,

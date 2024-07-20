@@ -290,7 +290,7 @@ func (l *logger) Write(le Event) {
 func (l *logger) _log(lvl Level, v ...any) {
 	if l.IsLevelEnabled(lvl) {
 		s := l._printv(v...)
-		le := newEvent(l, lvl, s)
+		le := NewEvent(l, lvl, s)
 		l.log.write(le)
 	}
 }
@@ -298,7 +298,7 @@ func (l *logger) _log(lvl Level, v ...any) {
 func (l *logger) _logf(lvl Level, f string, v ...any) {
 	if l.IsLevelEnabled(lvl) {
 		s := l._printf(f, v...)
-		le := newEvent(l, lvl, s)
+		le := NewEvent(l, lvl, s)
 		l.log.write(le)
 	}
 }

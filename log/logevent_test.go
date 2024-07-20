@@ -8,7 +8,7 @@ import (
 )
 
 func TestEventCaller(t *testing.T) {
-	le := newEvent(&logger{}, LevelInfo, "caller")
+	le := NewEvent(&logger{}, LevelInfo, "caller")
 	le.Time = time.Time{}
 	le.CallerDepth(2, false)
 
@@ -24,7 +24,7 @@ func TestEventCaller(t *testing.T) {
 }
 
 func TestEventJsonMarshall(t *testing.T) {
-	le := newEvent(&logger{}, LevelInfo, "caller")
+	le := NewEvent(&logger{}, LevelInfo, "caller")
 	le.Time = time.Now()
 	le.CallerDepth(2, false)
 

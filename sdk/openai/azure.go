@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/log/httplog"
 	"github.com/askasoft/pango/sdk"
 )
 
@@ -39,14 +40,14 @@ func (aoai *AzureOpenAI) call(req *http.Request) (res *http.Response, err error)
 		log.Debugf("%s %s", req.Method, req.URL)
 	}
 
-	rid := log.TraceHttpRequest(aoai.Logger, req)
+	rid := httplog.TraceHttpRequest(aoai.Logger, req)
 
 	res, err = client.Do(req)
 	if err != nil {
 		return res, sdk.NewNetError(err, aoai.RetryAfter)
 	}
 
-	log.TraceHttpResponse(aoai.Logger, res, rid)
+	httplog.TraceHttpResponse(aoai.Logger, res, rid)
 	return res, nil
 }
 

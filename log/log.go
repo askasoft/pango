@@ -21,11 +21,6 @@
 //	log.Debug("hello")
 package log
 
-import (
-	"fmt"
-	"os"
-)
-
 //--------------------------------------------------------------------
 // package functions
 //
@@ -225,13 +220,4 @@ func Trace(v ...any) {
 // Tracef format and log a message at trace level.
 func Tracef(f string, v ...any) {
 	_log.logger._logf(LevelTrace, f, v...)
-}
-
-func perror(err error) {
-	fmt.Fprintln(os.Stderr, err.Error())
-}
-
-func perrorf(format string, a ...any) {
-	fmt.Fprintf(os.Stderr, format, a...)
-	fmt.Fprintln(os.Stderr)
 }

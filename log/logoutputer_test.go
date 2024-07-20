@@ -2,12 +2,27 @@ package log
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
+	"path"
+	"runtime"
+	"strings"
 	"testing"
 
 	golog "log"
 )
+
+func testGetCaller(offset int) (string, int, string) {
+	rpc := make([]uintptr, 1)
+	n := runtime.Callers(2, rpc)
+	if n > 0 {
+		frames := runtime.CallersFrames(rpc)
+		frame, _ := frames.Next()
+		_, ffun := path.Split(frame.Function)
+		_, file := path.Split(frame.File)
+		line := frame.Line + offset
+		return file, line, ffun
+	}
+	return "???", 0, "???"
+}
 
 func TestGoLogOutputGlobal(t *testing.T) {
 	fmt.Println("\n\n--------------- TestGoLogOutputGlobal ---------------------")
@@ -18,98 +33,85 @@ func TestGoLogOutputGlobal(t *testing.T) {
 
 func TestGoLogOutputNewLog(t *testing.T) {
 	fmt.Println("\n\n--------------- TestGoLogOutputNewLog ---------------------")
-	log := NewLog()
-	log.SetWriter(NewConsoleWriter())
-	golog.SetOutput(log.GetOutputer("std", LevelInfo))
+
+	lg := NewLog()
+	lg.SetWriter(NewConsoleWriter())
+	golog.SetOutput(lg.GetOutputer("std", LevelInfo))
 	golog.Print("hello", "golog")
 }
 
-func TestGoLogFileCallerGlobal(t *testing.T) {
-	path := "TestGoLogFileCallerGlobal/filetest"
-	dir := filepath.Dir(path)
-	os.RemoveAll(dir)
-	defer os.RemoveAll(dir)
+func TestGoLogCallerGlobal(t *testing.T) {
+	sb := &strings.Builder{}
 
 	SetFormatter(NewTextFormatter("%l %S:%L %F() - %m"))
-	SetWriter(&FileWriter{Path: path})
+	SetWriter(&StreamWriter{Output: sb})
+
 	golog.SetFlags(0)
 	golog.SetOutput(GetOutputer("golog", LevelInfo, 3))
 	file, line, ffun := testGetCaller(1)
 	golog.Print("hello", "golog")
 	Close()
 
-	bs, _ := os.ReadFile(path + ".log")
-	a := string(bs)
+	a := sb.String()
 	w := fmt.Sprintf("INFO %s:%d %s() - hellogolog\n", file, line, ffun)
 	if a != w {
-		t.Errorf("%q = %v\n, want = %v", path, a, w)
+		t.Errorf("output = %v\n, want = %v", a, w)
 	}
 }
 
-func TestGoLogFileCallerNewLog(t *testing.T) {
-	path := "TestGoLogFileCallerNewLog/filetest"
-	dir := filepath.Dir(path)
-	os.RemoveAll(dir)
-	defer os.RemoveAll(dir)
+func TestGoLogCallerNewLog(t *testing.T) {
+	sb := &strings.Builder{}
 
-	log := NewLog()
-	log.SetFormatter(NewTextFormatter("%l %S:%L %F() - %m"))
-	log.SetWriter(&FileWriter{Path: path})
+	lg := NewLog()
+	lg.SetFormat("%l %S:%L %F() - %m")
+	lg.SetWriter(&StreamWriter{Output: sb})
+
 	golog.SetFlags(0)
-	golog.SetOutput(log.GetOutputer("std", LevelInfo, 3))
+	golog.SetOutput(lg.GetOutputer("std", LevelInfo, 3))
 	file, line, ffun := testGetCaller(1)
 	golog.Print("hello", "golog")
-	log.Close()
+	lg.Close()
 
-	bs, _ := os.ReadFile(path + ".log")
-	a := string(bs)
+	a := sb.String()
 	w := fmt.Sprintf("INFO %s:%d %s() - hellogolog\n", file, line, ffun)
 	if a != w {
-		t.Errorf("%q = %v\n, want = %v", path, a, w)
+		t.Errorf("output = %v\n, want = %v", a, w)
 	}
 }
 
-func TestIoWriterFileCallerGlobal(t *testing.T) {
-	path := "TestIoWriterFileCallerGlobal/filetest"
-	dir := filepath.Dir(path)
-	os.RemoveAll(dir)
-	defer os.RemoveAll(dir)
+func TestIoWriterCallerGlobal(t *testing.T) {
+	sb := &strings.Builder{}
 
-	SetFormatter(NewTextFormatter("%l %S:%L %F() - %m%n"))
-	SetWriter(&FileWriter{Path: path})
+	SetFormat("%l %S:%L %F() - %m%n")
+	SetWriter(&StreamWriter{Output: sb})
 
 	iow := GetOutputer("iow", LevelInfo)
 	file, line, ffun := testGetCaller(1)
 	iow.Write(([]byte)("hello writer"))
 	Close()
 
-	bs, _ := os.ReadFile(path + ".log")
-	a := string(bs)
+	a := sb.String()
 	w := fmt.Sprintf("INFO %s:%d %s() - hello writer"+EOL, file, line, ffun)
 	if a != w {
-		t.Errorf("%q = %v\n, want = %v", path, a, w)
+		t.Errorf("output = %v\n, want = %v", a, w)
 	}
 }
 
 func TestIoWriterFileCallerNewLog(t *testing.T) {
-	path := "TestIoWriterFileCallerNewLog/filetest"
-	dir := filepath.Dir(path)
-	os.RemoveAll(dir)
-	defer os.RemoveAll(dir)
+	sb := &strings.Builder{}
 
-	log := NewLog()
-	log.SetFormatter(NewTextFormatter("%l %S:%L %F() - %m%n"))
-	log.SetWriter(&FileWriter{Path: path})
+	lg := NewLog()
+	lg.SetFormat("%l %S:%L %F() - %m%n")
+	lg.SetWriter(&StreamWriter{Output: sb})
 
-	iow := log.GetOutputer("iow", LevelInfo)
+	iow := lg.GetOutputer("iow", LevelInfo)
 	file, line, ffun := testGetCaller(1)
 	iow.Write(([]byte)("hello writer"))
-	log.Close()
+	lg.Close()
 
-	bs, _ := os.ReadFile(path + ".log")
-	a := string(bs)
+	a := sb.String()
 	w := fmt.Sprintf("INFO %s:%d %s() - hello writer"+EOL, file, line, ffun)
 	if a != w {
-		t.Errorf("%q = %v\n, want = %v", path, a, w)
+		t.Errorf("output = %v\n, want = %v", a, w)
 	}
 }

@@ -1,4 +1,4 @@
-package sqlw
+package sqlog
 
 import (
 	"database/sql"

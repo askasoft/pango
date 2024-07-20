@@ -1,29 +1,22 @@
-// Copyright 2014 beego Author. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-package log
+package smtplog
 
 import (
+	"fmt"
 	"net"
 	"os"
 	"strconv"
 	"testing"
 
 	"github.com/askasoft/pango/iox"
+	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/net/netutil"
 	"github.com/askasoft/pango/str"
 )
+
+func skipTest(t *testing.T, msg string) {
+	fmt.Println(msg)
+	t.Skip(msg)
+}
 
 func TestSmtpWriter(t *testing.T) {
 	host := os.Getenv("SMTP_HOST")
@@ -57,7 +50,7 @@ func TestSmtpWriter(t *testing.T) {
 		return
 	}
 
-	log := NewLog()
+	lg := log.NewLog()
 	sw := &SMTPWriter{
 		Host:     host,
 		Port:     port,
@@ -68,7 +61,7 @@ func TestSmtpWriter(t *testing.T) {
 		Tos:      sts,
 	}
 	sw.SetSubject("%t [%l] %m")
-	log.SetWriter(sw)
+	lg.SetWriter(sw)
 
 	sw.initSender()
 	f := os.Stdout
@@ -81,5 +74,5 @@ func TestSmtpWriter(t *testing.T) {
 		)
 	}
 
-	log.Fatal("smtp log fatal test!")
+	lg.Fatal("smtp log fatal test!")
 }

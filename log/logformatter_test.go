@@ -24,7 +24,7 @@ func assertFormatEvent(t *testing.T, lf Formatter, le *Event, want string) {
 
 func TestTextFormatSimple(t *testing.T) {
 	tf := TextFmtSimple
-	le := newEvent(&logger{}, LevelInfo, "simple")
+	le := NewEvent(&logger{}, LevelInfo, "simple")
 	le.Time = time.Time{}
 
 	assertFormatEvent(t, tf, le, `[I] simple`+EOL)
@@ -32,7 +32,7 @@ func TestTextFormatSimple(t *testing.T) {
 
 func TestTextFormatDefault(t *testing.T) {
 	tf := TextFmtDefault
-	le := newEvent(&logger{name: "TEXT"}, LevelInfo, "default")
+	le := NewEvent(&logger{name: "TEXT"}, LevelInfo, "default")
 	le.Time = time.Time{}
 	le.CallerDepth(2, false)
 
@@ -42,7 +42,7 @@ func TestTextFormatDefault(t *testing.T) {
 
 func TestTextFormatDate(t *testing.T) {
 	tf := NewTextFormatter("%t - %m")
-	le := newEvent(&logger{}, LevelInfo, "date")
+	le := NewEvent(&logger{}, LevelInfo, "date")
 	le.Time = time.Time{}
 
 	assertFormatEvent(t, tf, le, `0001-01-01T00:00:00.000 - date`)
@@ -52,7 +52,7 @@ func TestTextFormatProp(t *testing.T) {
 	tf := NewTextFormatter("%x{a} %x{-}")
 	lg := NewLog().GetLogger("")
 	lg.SetProp("a", "av")
-	le := newEvent(lg, LevelInfo, "prop")
+	le := NewEvent(lg, LevelInfo, "prop")
 	le.Time = time.Time{}
 
 	assertFormatEvent(t, tf, le, `av `)
@@ -66,7 +66,7 @@ func TestTextFormatProps1(t *testing.T) {
 	lg.SetProp("c", "cv")
 	lg.SetProp("n", 11)
 	lg.SetProp("x", nil)
-	le := newEvent(lg, LevelInfo, "props")
+	le := NewEvent(lg, LevelInfo, "props")
 	le.Time = time.Time{}
 
 	w := `a=av b=bv c=cv n=11 x=`
@@ -86,7 +86,7 @@ func TestTextFormatProps2(t *testing.T) {
 	lg.SetProp("c", "cv")
 	lg.SetProp("n", 11)
 	lg.SetProp("x", nil)
-	le := newEvent(lg, LevelInfo, "props")
+	le := NewEvent(lg, LevelInfo, "props")
 	le.Time = time.Time{}
 
 	w := `a=av,b=bv,c=cv,n=11,x=`
@@ -100,7 +100,7 @@ func TestTextFormatProps2(t *testing.T) {
 
 func TestNewTextFormatSimple(t *testing.T) {
 	tf := NewTextFormatter("SIMPLE")
-	le := newEvent(&logger{}, LevelInfo, "simple")
+	le := NewEvent(&logger{}, LevelInfo, "simple")
 	le.Time = time.Time{}
 
 	assertFormatEvent(t, tf, le, `[I] simple`+EOL)
@@ -108,7 +108,7 @@ func TestNewTextFormatSimple(t *testing.T) {
 
 func TestNewTextFormatSubject(t *testing.T) {
 	tf := NewTextFormatter("SUBJECT")
-	le := newEvent(&logger{}, LevelInfo, "subject")
+	le := NewEvent(&logger{}, LevelInfo, "subject")
 	le.Time = time.Time{}
 
 	assertFormatEvent(t, tf, le, `[INFO] subject`)
@@ -116,7 +116,7 @@ func TestNewTextFormatSubject(t *testing.T) {
 
 func TestNewTextFormatDefault(t *testing.T) {
 	tf := NewTextFormatter("DEFAULT")
-	le := newEvent(&logger{name: "TEXT"}, LevelInfo, "default")
+	le := NewEvent(&logger{name: "TEXT"}, LevelInfo, "default")
 	le.Time = time.Time{}
 	le.CallerDepth(2, false)
 
@@ -126,7 +126,7 @@ func TestNewTextFormatDefault(t *testing.T) {
 
 func TestNewLogFormatTextDefault(t *testing.T) {
 	tf := NewLogFormatter("text:DEFAULT")
-	le := newEvent(&logger{name: "TEXT"}, LevelInfo, "default")
+	le := NewEvent(&logger{name: "TEXT"}, LevelInfo, "default")
 	le.Time = time.Time{}
 	le.CallerDepth(2, false)
 
@@ -136,7 +136,7 @@ func TestNewLogFormatTextDefault(t *testing.T) {
 
 func TestJSONFormatDefault(t *testing.T) {
 	jf := JSONFmtDefault
-	le := newEvent(&logger{name: "JSON"}, LevelInfo, "default")
+	le := NewEvent(&logger{name: "JSON"}, LevelInfo, "default")
 	le.Time = time.Now()
 	le.CallerDepth(2, false)
 
@@ -151,7 +151,7 @@ func TestJSONFormatProp(t *testing.T) {
 	lg := log.GetLogger("")
 	lg.SetProp("a", "av")
 	log.SetProp("n", 11)
-	le := newEvent(lg, LevelInfo, "prop")
+	le := NewEvent(lg, LevelInfo, "prop")
 	le.Time = time.Time{}
 
 	assertFormatEvent(t, jf, le, `{"a":"av", "n":11, "-":null}`)
@@ -166,7 +166,7 @@ func TestJSONFormatProps(t *testing.T) {
 	lg.SetProp("c", "cv")
 	log.SetProp("n", 11)
 	log.SetProp("x", nil)
-	le := newEvent(lg, LevelInfo, "props")
+	le := NewEvent(lg, LevelInfo, "props")
 	le.Time = time.Time{}
 
 	assertFormatEvent(t, jf, le, `{"m":{"a":"av","b":"bv","c":"cv","n":11,"x":null}}`)
@@ -174,7 +174,7 @@ func TestJSONFormatProps(t *testing.T) {
 
 func TestNewJSONFormatDefault(t *testing.T) {
 	jf := NewJSONFormatter("DEFAULT")
-	le := newEvent(&logger{name: "JSON"}, LevelInfo, "default")
+	le := NewEvent(&logger{name: "JSON"}, LevelInfo, "default")
 	le.Time = time.Now()
 	le.CallerDepth(2, false)
 
@@ -185,7 +185,7 @@ func TestNewJSONFormatDefault(t *testing.T) {
 
 func TestNewLogFormatJSONDefault(t *testing.T) {
 	jf := NewLogFormatter("json:DEFAULT")
-	le := newEvent(&logger{name: "JSON"}, LevelInfo, "default")
+	le := NewEvent(&logger{name: "JSON"}, LevelInfo, "default")
 	le.Time = time.Now()
 	le.CallerDepth(2, false)
 

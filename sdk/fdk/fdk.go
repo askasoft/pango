@@ -8,6 +8,7 @@ import (
 
 	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/log/httplog"
 	"github.com/askasoft/pango/num"
 	"github.com/askasoft/pango/sdk"
 )
@@ -59,14 +60,14 @@ func (fdk *FDK) call(req *http.Request) (res *http.Response, err error) {
 		log.Debugf("%s %s", req.Method, req.URL)
 	}
 
-	rid := log.TraceHttpRequest(fdk.Logger, req)
+	rid := httplog.TraceHttpRequest(fdk.Logger, req)
 
 	res, err = client.Do(req)
 	if err != nil {
 		return res, sdk.NewNetError(err, fdk.RetryAfter)
 	}
 
-	log.TraceHttpResponse(fdk.Logger, res, rid)
+	httplog.TraceHttpResponse(fdk.Logger, res, rid)
 	return res, nil
 }
 

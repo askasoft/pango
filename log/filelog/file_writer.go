@@ -1,4 +1,4 @@
-package log
+package filelog
 
 import (
 	"compress/gzip"
@@ -9,24 +9,26 @@ import (
 	"strings"
 	"time"
 
+	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/log/internal"
 	"github.com/askasoft/pango/num"
 )
 
 // FileWriter implements Writer.
 // It writes messages and rotate by file size limit, daily, hourly.
 type FileWriter struct {
-	LogFilter
-	LogFormatter
+	log.LogFilter
+	log.LogFormatter
 
-	Path      string // Log file path name
-	DirPerm   uint32 // Log dir permission
-	FilePerm  uint32 // Log file permission
-	MaxSplit  int    // Max split files
-	MaxSize   int64  // Rotate at size
-	MaxDays   int    // Max daily files
-	MaxHours  int    // Max hourly files
-	Gzip      bool   // Compress rotated log files
-	SyncLevel Level  // Call File.Sync() if level <= SyncLevel
+	Path      string    // Log file path name
+	DirPerm   uint32    // Log dir permission
+	FilePerm  uint32    // Log file permission
+	MaxSplit  int       // Max split files
+	MaxSize   int64     // Rotate at size
+	MaxDays   int       // Max daily files
+	MaxHours  int       // Max hourly files
+	Gzip      bool      // Compress rotated log files
+	SyncLevel log.Level // Call File.Sync() if level <= SyncLevel
 
 	dir      string
 	prefix   string
@@ -39,7 +41,7 @@ type FileWriter struct {
 
 // SetSyncLevel set the sync level
 func (fw *FileWriter) SetSyncLevel(lvl string) {
-	fw.SyncLevel = ParseLevel(lvl)
+	fw.SyncLevel = log.ParseLevel(lvl)
 }
 
 // SetMaxSize set the MaxSize
@@ -48,7 +50,7 @@ func (fw *FileWriter) SetMaxSize(maxSize string) {
 }
 
 // Write write logger message into file.
-func (fw *FileWriter) Write(le *Event) error {
+func (fw *FileWriter) Write(le *log.Event) error {
 	if fw.Reject(le) {
 		return nil
 	}
@@ -87,7 +89,7 @@ func (fw *FileWriter) sync() {
 	if file != nil {
 		err := file.Sync()
 		if err != nil {
-			perrorf("FileWriter('%s'): Sync(): %v", fw.Path, err)
+			internal.Perrorf("FileWriter('%s'): Sync(): %v", fw.Path, err)
 		}
 	}
 }
@@ -104,7 +106,7 @@ func (fw *FileWriter) Close() {
 	if file != nil {
 		err := file.Close()
 		if err != nil {
-			perrorf("FileWriter('%s'): Close(): %v", fw.Path, err)
+			internal.Perrorf("FileWriter('%s'): Close(): %v", fw.Path, err)
 		}
 		fw.file = nil
 	}
@@ -185,7 +187,7 @@ func (fw *FileWriter) init() error {
 	return nil
 }
 
-func (fw *FileWriter) needRotate(le *Event) bool {
+func (fw *FileWriter) needRotate(le *log.Event) bool {
 	return (fw.MaxSize > 0 && fw.fileSize >= fw.MaxSize) ||
 		(fw.MaxHours > 0 && fw.openTime.Hour() != le.Time.Hour()) ||
 		(fw.MaxDays > 0 && fw.openTime.Day() != le.Time.Day())
@@ -224,7 +226,7 @@ func (fw *FileWriter) rotate(tm time.Time) {
 
 	// close file before rename
 	if err := fw.file.Close(); err != nil {
-		perrorf("FileWriter('%s'): Close(): %v", fw.Path, err)
+		internal.Perrorf("FileWriter('%s'): Close(): %v", fw.Path, err)
 		return
 	}
 	fw.file = nil
@@ -232,7 +234,7 @@ func (fw *FileWriter) rotate(tm time.Time) {
 	// Rename the file to its new found name
 	// even if occurs error, we MUST guarantee to restart new logger
 	if err := os.Rename(fw.Path, path); err != nil {
-		perrorf("FileWriter('%s'): Rename(-> '%s'): %v", fw.Path, path, err)
+		internal.Perrorf("FileWriter('%s'): Rename(-> '%s'): %v", fw.Path, path, err)
 		return
 	}
 
@@ -276,13 +278,13 @@ func (fw *FileWriter) nextFile(pre string) string {
 					if os.IsNotExist(err) {
 						break
 					} else if err != nil {
-						perrorf("FileWriter('%s'): Remove('%s'): %v", fw.Path, pg, err)
+						internal.Perrorf("FileWriter('%s'): Remove('%s'): %v", fw.Path, pg, err)
 					}
 				} else {
 					break
 				}
 			} else if err != nil {
-				perrorf("FileWriter('%s'): Remove('%s'): %v", fw.Path, p, err)
+				internal.Perrorf("FileWriter('%s'): Remove('%s'): %v", fw.Path, p, err)
 			}
 		}
 	}
@@ -294,7 +296,7 @@ func (fw *FileWriter) compressFile(src string) {
 
 	f, err := os.Open(src)
 	if err != nil {
-		perrorf("FileWriter('%s'): Open('%s'): %v", fw.Path, src, err)
+		internal.Perrorf("FileWriter('%s'): Open('%s'): %v", fw.Path, src, err)
 		return
 	}
 	defer f.Close()
@@ -303,7 +305,7 @@ func (fw *FileWriter) compressFile(src string) {
 	// a previous attempt to compress the log file.
 	gzf, err := os.OpenFile(dst, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, os.FileMode(fw.FilePerm))
 	if err != nil {
-		perrorf("FileWriter('%s'): OpenFile('%s'): %v", fw.Path, dst, err)
+		internal.Perrorf("FileWriter('%s'): OpenFile('%s'): %v", fw.Path, dst, err)
 		return
 	}
 	defer gzf.Close()
@@ -311,21 +313,21 @@ func (fw *FileWriter) compressFile(src string) {
 	gz := gzip.NewWriter(gzf)
 
 	if _, err := io.Copy(gz, f); err != nil {
-		perrorf("FileWriter('%s'): gzip('%s'): %v", fw.Path, dst, err)
+		internal.Perrorf("FileWriter('%s'): gzip('%s'): %v", fw.Path, dst, err)
 		return
 	}
 	if err := gz.Close(); err != nil {
-		perrorf("FileWriter('%s'): gzip.Close('%s'): %v", fw.Path, dst, err)
+		internal.Perrorf("FileWriter('%s'): gzip.Close('%s'): %v", fw.Path, dst, err)
 		return
 	}
 	if err := gzf.Close(); err != nil {
-		perrorf("FileWriter('%s'): Close('%s'): %v", fw.Path, dst, err)
+		internal.Perrorf("FileWriter('%s'): Close('%s'): %v", fw.Path, dst, err)
 		return
 	}
 
 	f.Close()
 	if err := os.Remove(src); err != nil {
-		perrorf("FileWriter('%s'): Remove('%s'): %v", fw.Path, src, err)
+		internal.Perrorf("FileWriter('%s'): Remove('%s'): %v", fw.Path, src, err)
 	}
 }
 
@@ -339,14 +341,14 @@ func (fw *FileWriter) deleteOutdatedFiles() {
 
 	f, err := os.Open(fw.dir)
 	if err != nil {
-		perrorf("FileWriter('%s'): Open('%s'): %v", fw.Path, fw.dir, err)
+		internal.Perrorf("FileWriter('%s'): Open('%s'): %v", fw.Path, fw.dir, err)
 		return
 	}
 	defer f.Close()
 
 	des, err := f.ReadDir(-1)
 	if err != nil {
-		perrorf("FileWriter('%s'): ReadDir('%s'): %v", fw.Path, fw.dir, err)
+		internal.Perrorf("FileWriter('%s'): ReadDir('%s'): %v", fw.Path, fw.dir, err)
 		return
 	}
 
@@ -361,7 +363,7 @@ func (fw *FileWriter) deleteOutdatedFiles() {
 			if strings.HasPrefix(name, fw.prefix) {
 				path := filepath.Join(fw.dir, fi.Name())
 				if err := os.Remove(path); err != nil {
-					perrorf("FileWriter('%s'): Remove('%s'): %v", fw.Path, path, err)
+					internal.Perrorf("FileWriter('%s'): Remove('%s'): %v", fw.Path, path, err)
 				}
 			}
 		}
@@ -369,7 +371,7 @@ func (fw *FileWriter) deleteOutdatedFiles() {
 }
 
 func init() {
-	RegisterWriter("file", func() Writer {
+	log.RegisterWriter("file", func() log.Writer {
 		return &FileWriter{}
 	})
 }

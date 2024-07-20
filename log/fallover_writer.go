@@ -1,5 +1,7 @@
 package log
 
+import "github.com/askasoft/pango/log/internal"
+
 // NewFailoverWriter create a failover writer
 func NewFailoverWriter(w Writer, bufSize int) *FailoverWriter {
 	fw := &FailoverWriter{writer: w}
@@ -20,7 +22,7 @@ func (fw *FailoverWriter) Write(le *Event) error {
 	if err == nil {
 		err = fw.writer.Write(le)
 		if err != nil {
-			perror(err)
+			internal.Perror(err)
 		}
 	}
 
@@ -35,7 +37,7 @@ func (fw *FailoverWriter) Write(le *Event) error {
 func (fw *FailoverWriter) flush() error {
 	for le, ok := fw.evtbuf.Peek(); ok; le, ok = fw.evtbuf.Peek() {
 		if err := fw.writer.Write(le); err != nil {
-			perror(err)
+			internal.Perror(err)
 			return err
 		}
 		fw.evtbuf.Poll()

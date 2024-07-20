@@ -2,8 +2,6 @@ package log
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"reflect"
 	"sort"
 	"strings"
@@ -12,16 +10,12 @@ import (
 	"time"
 )
 
-// Test syncwriter
-func TestSyncWriteFile(t *testing.T) {
-	path := "TestSyncWrite/filetest.log"
-	dir := filepath.Dir(path)
-	os.RemoveAll(dir)
-	defer os.RemoveAll(dir)
+func TestSyncWriter(t *testing.T) {
+	sb := &strings.Builder{}
 
 	log := NewLog()
 	log.SetFormatter(TextFmtSimple)
-	log.SetWriter(NewSyncWriter(&FileWriter{Path: path}))
+	log.SetWriter(NewSyncWriter(&StreamWriter{Output: sb}))
 
 	// test concurrent write
 	wg := sync.WaitGroup{}
@@ -52,8 +46,7 @@ func TestSyncWriteFile(t *testing.T) {
 	wg.Wait()
 
 	// read actual log
-	bs, _ := os.ReadFile(path)
-	as := strings.Split(strings.TrimSuffix(string(bs), EOL), EOL)
+	as := strings.Split(strings.TrimSuffix(sb.String(), EOL), EOL)
 	sort.Strings(as)
 
 	// expected data
@@ -65,6 +58,6 @@ func TestSyncWriteFile(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(as, es) {
-		t.Errorf("TestSyncWriteFile\n expect: %q, actual %q", es, as)
+		t.Errorf("TestSyncWriter\n expect: %q, actual %q", es, as)
 	}
 }

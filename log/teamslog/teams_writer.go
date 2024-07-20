@@ -1,19 +1,20 @@
-package log
+package teamslog
 
 import (
 	"fmt"
 	"net/url"
 	"time"
 
+	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/sdk/teams"
 	"github.com/askasoft/pango/str"
 )
 
 // TeamsWriter implements log Writer Interface and send log message to teams.
 type TeamsWriter struct {
-	LogFilter
-	LogFormatter
-	SubFormatter
+	log.LogFilter
+	log.LogFormatter
+	log.SubFormatter
 
 	Webhook string
 	Timeout time.Duration
@@ -40,7 +41,7 @@ func (tw *TeamsWriter) SetTimeout(timeout string) error {
 }
 
 // Write send log message to teams
-func (tw *TeamsWriter) Write(le *Event) (err error) {
+func (tw *TeamsWriter) Write(le *log.Event) (err error) {
 	if tw.Reject(le) {
 		return
 	}
@@ -62,7 +63,7 @@ func (tw *TeamsWriter) Write(le *Event) (err error) {
 }
 
 // format format log event to (message)
-func (tw *TeamsWriter) format(le *Event) (sub, msg string) {
+func (tw *TeamsWriter) format(le *log.Event) (sub, msg string) {
 	sbs := tw.SubFormat(le)
 	sub = str.UnsafeString(sbs)
 
@@ -81,7 +82,7 @@ func (tw *TeamsWriter) Close() {
 }
 
 func init() {
-	RegisterWriter("teams", func() Writer {
+	log.RegisterWriter("teams", func() log.Writer {
 		return &TeamsWriter{}
 	})
 }

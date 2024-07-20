@@ -1,4 +1,4 @@
-package logwatchtest
+package logtest
 
 import (
 	"fmt"
@@ -11,8 +11,8 @@ import (
 
 	"github.com/askasoft/pango/fsu"
 	"github.com/askasoft/pango/fsw"
-	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/log"
+	_ "github.com/askasoft/pango/log/filelog"
 )
 
 const (
@@ -132,7 +132,7 @@ func testLogConfigFile1toFile2(t *testing.T, async1, async2 string) {
 
 	bs, _ := os.ReadFile(logfile1)
 	a := string(bs)
-	w := "ERROR - This is error." + iox.EOL
+	w := "ERROR - This is error." + eol
 	if a != w {
 		t.Errorf(`%q = %v, want %v`, logfile1, a, w)
 	}
@@ -178,14 +178,14 @@ func testLogConfigFile1toFile2(t *testing.T, async1, async2 string) {
 
 	bs, _ = os.ReadFile(logfile1)
 	a = string(bs)
-	w = "ERROR - This is error." + iox.EOL + "ERROR - This is error." + iox.EOL + "ERROR - This is ERROR." + iox.EOL
+	w = "ERROR - This is error." + eol + "ERROR - This is error." + eol + "ERROR - This is ERROR." + eol
 	if a != w {
 		t.Errorf(`%q = %v, want %v`, logfile1, a, w)
 	}
 
 	bs, _ = os.ReadFile(logfile2)
 	a = string(bs)
-	w = "WARN - This is WARN." + iox.EOL + "ERROR - This is ERROR." + iox.EOL
+	w = "WARN - This is WARN." + eol + "ERROR - This is ERROR." + eol
 	if a != w {
 		t.Errorf(`%q = %v, want %v`, logfile2, a, w)
 	}

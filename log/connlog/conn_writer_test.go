@@ -1,4 +1,4 @@
-package log
+package connlog
 
 import (
 	"bufio"
@@ -10,6 +10,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/askasoft/pango/log"
 )
 
 func testConnTCPServer(sigChan chan string, finChan chan string, revChan chan string) {
@@ -73,11 +75,11 @@ func TestConnWriter(t *testing.T) {
 	go testConnTCPServer(sigChan, finChan, revChan)
 
 	time.Sleep(time.Second)
-	log := NewLog()
+	lg := log.NewLog()
 
 	cw := &ConnWriter{Addr: "localhost:9999"}
-	log.SetWriter(cw)
-	log.SetFormatter(NewTextFormatter("%m%n"))
+	lg.SetWriter(cw)
+	lg.SetFormat("%m%n")
 
 	ss := []string{
 		"Hello Trace",
@@ -89,23 +91,23 @@ func TestConnWriter(t *testing.T) {
 	}
 
 	i := 0
-	log.Trace(ss[i])
+	lg.Trace(ss[i])
 	i++
-	log.Debug(ss[i])
+	lg.Debug(ss[i])
 	i++
-	log.Info(ss[i])
+	lg.Info(ss[i])
 	time.Sleep(time.Millisecond * 500)
 
 	// https://gosamples.dev/broken-pipe/
-	log.Info(strings.Repeat("!missing! ", 1000))
+	lg.Info(strings.Repeat("!missing! ", 1000))
 	time.Sleep(time.Millisecond * 500)
 
 	i++
-	log.Warn(ss[i])
+	lg.Warn(ss[i])
 	i++
-	log.Error(ss[i])
+	lg.Error(ss[i])
 	i++
-	log.Fatal(ss[i])
+	lg.Fatal(ss[i])
 	time.Sleep(time.Millisecond * 500)
 
 	sigChan <- "done"

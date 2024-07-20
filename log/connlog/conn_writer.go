@@ -1,17 +1,20 @@
-package log
+package connlog
 
 import (
 	"fmt"
 	"io"
 	"net"
 	"time"
+
+	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/log/internal"
 )
 
 // ConnWriter implements Writer.
 // it writes messages in keep-live tcp connection.
 type ConnWriter struct {
-	LogFilter
-	LogFormatter
+	log.LogFilter
+	log.LogFormatter
 
 	Net     string
 	Addr    string
@@ -31,7 +34,7 @@ func (cw *ConnWriter) SetTimeout(timeout string) error {
 }
 
 // Write write logger message to connection.
-func (cw *ConnWriter) Write(le *Event) (err error) {
+func (cw *ConnWriter) Write(le *log.Event) (err error) {
 	if cw.Reject(le) {
 		return
 	}
@@ -72,7 +75,7 @@ func (cw *ConnWriter) Close() {
 	if cw.conn != nil {
 		err := cw.conn.Close()
 		if err != nil {
-			perrorf("ConnWriter(%s:%s): Close(): %v", cw.Net, cw.Addr, err)
+			internal.Perrorf("ConnWriter(%s:%s): Close(): %v", cw.Net, cw.Addr, err)
 		}
 		cw.conn = nil
 	}
@@ -107,11 +110,11 @@ func (cw *ConnWriter) dial() error {
 	return nil
 }
 
-func newConnWriter() Writer {
+func newConnWriter() log.Writer {
 	return &ConnWriter{Net: "tcp", Timeout: time.Second * 2}
 }
 
 func init() {
-	RegisterWriter("conn", newConnWriter)
-	RegisterWriter("tcp", newConnWriter)
+	log.RegisterWriter("conn", newConnWriter)
+	log.RegisterWriter("tcp", newConnWriter)
 }

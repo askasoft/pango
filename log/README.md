@@ -1,7 +1,8 @@
  Pango Log
 =====================================================================
 
-A Go Log library like Log4j. It can use many log writers. This package is inspired by https://github.com/pandafw/panda/tree/master/panda-core/src/main/java/panda/log .
+A Go Log library like Log4j. It can use many log writers. 
+This package is inspired by https://github.com/pandafw/panda/tree/master/panda-core/src/main/java/panda/log .
 
 
 ### How to install?
@@ -27,18 +28,18 @@ import (
 Then init a Log (example with console writer)
 
 ```golang
-	log := log.NewLog()
-	log.SetWriter(log.NewSyncWriter(&log.StreamWriter{Color:true}))
+log := log.NewLog()
+log.SetWriter(log.NewSyncWriter(&log.StreamWriter{Color:true}))
 ```
 
 Use it like this:
 
 ```golang
-	log.Trace("trace")
-	log.Debug("debug")
-	log.Info("info")
-	log.Warn("warning")
-	log.Fatal("fatal")
+log.Trace("trace")
+log.Debug("debug")
+log.Info("info")
+log.Warn("warning")
+log.Fatal("fatal")
 ```
 
 #### File writer
@@ -46,8 +47,15 @@ Use it like this:
 Configure file writer like this:
 
 ```golang
+import (
+	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/log/filelog"
+)
+
+func main() {
 	log := log.NewLog()
-	log.SetWriter(log.NewSyncWriter(&log.FileWriter{Path:"test.log"}))
+	log.SetWriter(log.NewSyncWriter(&filelog.FileWriter{Path:"test.log"}))
+}
 ```
 
 #### Conn writer
@@ -55,9 +63,16 @@ Configure file writer like this:
 Configure like this:
 
 ```golang
+import (
+	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/log/filelog"
+)
+
+func main() {
 	log := log.NewLog()
-	log.SetWriter(log.NewSyncWriter(&log.ConnWriter{Net:"tcp",Addr:":7020"}))
+	log.SetWriter(log.NewSyncWriter(&connlog.ConnWriter{Net:"tcp",Addr:":7020"}))
 	log.Info("info")
+}
 ```
 
 #### Slack writer
@@ -65,13 +80,20 @@ Configure like this:
 Configure like this:
 
 ```golang
+import (
+	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/log/slacklog"
+)
+
+func main() {
 	log := log.NewLog()
-	log.SetWriter(log.NewSyncWriter(&log.SlackWriter{
+	log.SetWriter(log.NewSyncWriter(&slacklog.SlackWriter{
 		Webhook: "https://hooks.slack.com/services/...",
 		Channel: "alert",
 		Username: "gotest",
 	}))
 	log.Error("error")
+}
 ```
 
 #### SMTP writer
@@ -79,8 +101,14 @@ Configure like this:
 Configure like this:
 
 ```golang
+import (
+	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/log/smtplog"
+)
+
+func main() {
 	log := log.NewLog()
-	log.SetWriter(log.NewSyncWriter(&log.SMTPWriter{
+	log.SetWriter(log.NewSyncWriter(&smtplog.SMTPWriter{
 		Host: "smtp.gmail.com",
 		Port: 587,
 		Username: "pangotest@gmail.com",
@@ -89,6 +117,7 @@ Configure like this:
 		Tos: []string{"someone@gmail.com"},
 	}))
 	log.Fatal("oh my god!")
+}
 ```
 
 #### Teams writer
@@ -96,11 +125,18 @@ Configure like this:
 Configure like this:
 
 ```golang
+import (
+	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/log/teamslog"
+)
+
+func main() {
 	log := log.NewLog()
-	log.SetWriter(log.NewSyncWriter(&log.TeamsWriter{
+	log.SetWriter(log.NewSyncWriter(&teamslog.TeamsWriter{
 		Webhook: "https://xxx.webhook.office.com/webhookb2/...",
 	}))
 	log.Error("error")
+}
 ```
 
 #### HTTP writer
@@ -108,8 +144,14 @@ Configure like this:
 Configure like this:
 
 ```golang
+import (
+	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/log/httplog"
+)
+
+func main() {
 	log := log.NewLog()
-	hw := &log.HTTPWriter{
+	hw := &httplog.HTTPWriter{
 		URL: "http://localhost:9200/pango_logs/_doc",
 		ContentType: "application/json",
 		Timeout: time.Second*5,
@@ -118,6 +160,7 @@ Configure like this:
 
 	log.SetWriter(log.NewSyncWriter(hw))
 	log.Fatal("fatal error!")
+}
 ```
 
 #### HTTP batch writer
@@ -125,8 +168,14 @@ Configure like this:
 Configure like this:
 
 ```golang
+import (
+	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/log/httplog"
+)
+
+func main() {
 	log := log.NewLog()
-	hw := &log.HTTPWriter{
+	hw := &httplog.HTTPWriter{
 		URL: "http://localhost:9200/pango_logs/_bulk",
 		ContentType: "application/json",
 		Timeout: time.Second*5,
@@ -141,6 +190,7 @@ Configure like this:
 
 	log.SetWriter(log.NewSyncWriter(hw))
 	log.Fatal("fatal error!")
+}
 ```
 
 #### Multiple writer
@@ -148,6 +198,13 @@ Configure like this:
 Configure like this:
 
 ```golang
+import (
+	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/log/filelog"
+	"github.com/askasoft/pango/log/httplog"
+)
+
+func main() {
 	log := log.NewLog()
 	fw := &log.FileWriter{Path:"test.log"}
 	hw := &log.HTTPWriter{
@@ -157,6 +214,7 @@ Configure like this:
 	}
 	log.SetWriter(log.NewSyncWriter(log.NewMultiWriter(fw, hw)))
 	log.Fatal("fatal error!")
+}
 ```
 
 
@@ -165,6 +223,12 @@ Configure like this:
 Configure like this:
 
 ```golang
+import (
+	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/log/httplog"
+)
+
+func main() {
 	log := log.NewLog()
 	hw := &log.HTTPWriter{
 		URL: "http://localhost:9200/pango_logs/_doc",
@@ -173,21 +237,32 @@ Configure like this:
 	}
 	log.SetWriter(log.NewAsyncWriter(hw, 1000))
 	log.Fatal("fatal error!")
+}
 ```
 
 
 ### Configure from ini file
 
 ```golang
+import (
+	"github.com/askasoft/pango/log"
+	_ "github.com/askasoft/pango/log/connlog"
+	_ "github.com/askasoft/pango/log/filelog"
+	_ "github.com/askasoft/pango/log/httplog"
+	_ "github.com/askasoft/pango/log/slacklog"
+	_ "github.com/askasoft/pango/log/smtplog"
+	_ "github.com/askasoft/pango/log/teamslog"
+)
+
+func main() {
 	log := log.NewLog()
 	log.Config("log.ini")
+}
 ```
 
 #### log.ini
 
 ```ini
-# log configuration #
-
 ### log async ###
 # > 0 : do asynchronize wrap 
 # < 0 : do synchronize wrap
@@ -195,11 +270,11 @@ Configure like this:
 async = 1000
 
 ### global log format ###
-#format=json:{"level":%l, "file":%S, "func":%F, "msg": %m}%n
-format=text:%l %S %F() - %m%n%T
+#format = json:{"level":%l, "file":%S, "func":%F, "msg": %m}%n
+format = text:%l %S %F() - %m%n%T
 
 ### log writer ###
-writer = stdout, stderr, tcp, dailyfile, slack, smtp, webhook
+writer = stdout, stderr, tcp, dailyfile, slack, smtp, opensearch
 
 ### log level ###
 [level]

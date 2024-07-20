@@ -2,8 +2,6 @@ package log
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"reflect"
 	"sort"
 	"strconv"
@@ -33,15 +31,12 @@ func TestAsyncWriteConsole(t *testing.T) {
 	log.Close()
 }
 
-func TestAsyncWriteFile(t *testing.T) {
-	path := "TestAsyncWrite/filetest.log"
-	dir := filepath.Dir(path)
-	os.RemoveAll(dir)
-	defer os.RemoveAll(dir)
+func TestAsyncWriter(t *testing.T) {
+	sb := &strings.Builder{}
 
-	log := NewLog()
-	log.SetFormatter(TextFmtSimple)
-	log.SetWriter(NewAsyncWriter(&FileWriter{Path: path}, 10))
+	lg := NewLog()
+	lg.SetFormat("[%p] %m%n")
+	lg.SetWriter(NewAsyncWriter(&StreamWriter{Output: sb}, 10))
 
 	wg := sync.WaitGroup{}
 	for i := 1; i < 10; i++ {
@@ -49,17 +44,16 @@ func TestAsyncWriteFile(t *testing.T) {
 		go func(n int) {
 			time.Sleep(time.Microsecond * 10)
 			for i := 1; i < 10; i++ {
-				log.Info(n, i)
+				lg.Info(n, i)
 			}
 			wg.Done()
 		}(i)
 	}
 	wg.Wait()
-	log.Close()
+	lg.Close()
 
 	// read actual log
-	bs, _ := os.ReadFile(path)
-	as := strings.Split(strings.TrimSuffix(string(bs), EOL), EOL)
+	as := strings.Split(strings.TrimSuffix(sb.String(), EOL), EOL)
 	sort.Strings(as)
 
 	// expected data
@@ -71,6 +65,6 @@ func TestAsyncWriteFile(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(as, es) {
-		t.Errorf("TestAsyncWriteFile\n expect: %q, actual %q", es, as)
+		t.Errorf("TestAsyncWriter\n expect: %q, actual %q", es, as)
 	}
 }

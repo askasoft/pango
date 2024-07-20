@@ -1,19 +1,20 @@
-package log
+package slacklog
 
 import (
 	"fmt"
 	"net/url"
 	"time"
 
+	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/sdk/slack"
 	"github.com/askasoft/pango/str"
 )
 
 // SlackWriter implements log Writer Interface and send log message to slack.
 type SlackWriter struct {
-	LogFilter
-	LogFormatter
-	SubFormatter
+	log.LogFilter
+	log.LogFormatter
+	log.SubFormatter
 
 	Webhook string
 	Timeout time.Duration
@@ -40,7 +41,7 @@ func (sw *SlackWriter) SetTimeout(timeout string) error {
 }
 
 // Write send log message to slack
-func (sw *SlackWriter) Write(le *Event) (err error) {
+func (sw *SlackWriter) Write(le *log.Event) (err error) {
 	if sw.Reject(le) {
 		return
 	}
@@ -65,7 +66,7 @@ func (sw *SlackWriter) Write(le *Event) (err error) {
 }
 
 // format format log event to (subject, message)
-func (sw *SlackWriter) format(le *Event) (sub, msg string) {
+func (sw *SlackWriter) format(le *log.Event) (sub, msg string) {
 	sbs := sw.SubFormat(le)
 	sub = str.UnsafeString(sbs)
 	sub = slack.EscapeString(sub)
@@ -76,19 +77,19 @@ func (sw *SlackWriter) format(le *Event) (sub, msg string) {
 	return
 }
 
-func (sw *SlackWriter) getIconEmoji(lvl Level) string {
+func (sw *SlackWriter) getIconEmoji(lvl log.Level) string {
 	switch lvl {
-	case LevelFatal:
+	case log.LevelFatal:
 		return ":boom:"
-	case LevelError:
+	case log.LevelError:
 		return ":fire:"
-	case LevelWarn:
+	case log.LevelWarn:
 		return ":warning:"
-	case LevelInfo:
+	case log.LevelInfo:
 		return ":droplet:"
-	case LevelDebug:
+	case log.LevelDebug:
 		return ":bug:"
-	case LevelTrace:
+	case log.LevelTrace:
 		return ":ant:"
 	default:
 		return ":ghost:"
@@ -104,7 +105,7 @@ func (sw *SlackWriter) Close() {
 }
 
 func init() {
-	RegisterWriter("slack", func() Writer {
+	log.RegisterWriter("slack", func() log.Writer {
 		return &SlackWriter{}
 	})
 }

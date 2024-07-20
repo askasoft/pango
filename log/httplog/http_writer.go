@@ -1,4 +1,4 @@
-package log
+package httplog
 
 import (
 	"crypto/tls"
@@ -8,14 +8,16 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/iox"
+	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/log/internal"
 	"github.com/askasoft/pango/str"
 )
 
 // HTTPWriter implements log Writer Interface and batch send log messages to webhook.
 type HTTPWriter struct {
-	LogFilter
-	LogFormatter
-	BatchWriter
+	log.LogFilter
+	log.LogFormatter
+	log.BatchWriter
 
 	URL         string // request URL
 	Method      string // http method
@@ -49,7 +51,7 @@ func (hw *HTTPWriter) SetTimeout(timeout string) error {
 }
 
 // Write cache log message, flush if needed
-func (hw *HTTPWriter) Write(le *Event) error {
+func (hw *HTTPWriter) Write(le *log.Event) error {
 	if hw.Reject(le) {
 		return nil
 	}
@@ -70,9 +72,9 @@ func (hw *HTTPWriter) Write(le *Event) error {
 	return hw.write(le)
 }
 
-func (hw *HTTPWriter) write(le *Event) error {
+func (hw *HTTPWriter) write(le *log.Event) error {
 	hw.initClient()
-	hw.Format(le, JSONFmtDefault)
+	hw.Format(le, log.JSONFmtDefault)
 	return hw.send()
 }
 
@@ -82,7 +84,7 @@ func (hw *HTTPWriter) flush() error {
 	hw.Buffer.Reset()
 	for it := hw.EventBuffer.Iterator(); it.Next(); {
 		le := it.Value()
-		lf := hw.GetFormatter(le, JSONFmtDefault)
+		lf := hw.GetFormatter(le, log.JSONFmtDefault)
 		lf.Write(&hw.Buffer, le)
 	}
 
@@ -148,7 +150,7 @@ func (hw *HTTPWriter) Flush() {
 	if err := hw.flush(); err == nil {
 		hw.EventBuffer.Clear()
 	} else {
-		perror(err)
+		internal.Perror(err)
 	}
 }
 
@@ -158,7 +160,7 @@ func (hw *HTTPWriter) Close() {
 }
 
 func init() {
-	RegisterWriter("http", func() Writer {
+	log.RegisterWriter("http", func() log.Writer {
 		return &HTTPWriter{}
 	})
 }

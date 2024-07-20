@@ -1,19 +1,21 @@
-package log
+package smtplog
 
 import (
 	"crypto/tls"
 	"fmt"
 	"time"
 
+	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/log/internal"
 	"github.com/askasoft/pango/net/email"
 	"github.com/askasoft/pango/str"
 )
 
 // SMTPWriter implements log Writer Interface and send log message.
 type SMTPWriter struct {
-	LogFilter
-	LogFormatter
-	SubFormatter
+	log.LogFilter
+	log.LogFormatter
+	log.SubFormatter
 
 	Host     string
 	Port     int
@@ -50,7 +52,7 @@ func (sw *SMTPWriter) SetTimeout(timeout string) error {
 }
 
 // Write send log message to smtp server.
-func (sw *SMTPWriter) Write(le *Event) (err error) {
+func (sw *SMTPWriter) Write(le *log.Event) (err error) {
 	if sw.Reject(le) {
 		return
 	}
@@ -89,13 +91,12 @@ func (sw *SMTPWriter) Write(le *Event) (err error) {
 }
 
 // format format log event to (subject, message)
-func (sw *SMTPWriter) format(le *Event) (sub, msg string) {
+func (sw *SMTPWriter) format(le *log.Event) (sub, msg string) {
 	sbs := sw.SubFormat(le)
 	sub = str.UnsafeString(sbs)
 
 	mbs := sw.Format(le)
 	msg = str.UnsafeString(mbs)
-
 	return
 }
 
@@ -151,14 +152,14 @@ func (sw *SMTPWriter) Flush() {
 func (sw *SMTPWriter) Close() {
 	if sw.sender != nil {
 		if err := sw.sender.Close(); err != nil {
-			perrorf("SMTPWriter(%s:%d): Close(): %v", sw.Host, sw.Port, err)
+			internal.Perrorf("SMTPWriter(%s:%d): Close(): %v", sw.Host, sw.Port, err)
 		}
 		sw.sender = nil
 	}
 }
 
 func init() {
-	RegisterWriter("smtp", func() Writer {
+	log.RegisterWriter("smtp", func() log.Writer {
 		return &SMTPWriter{}
 	})
 }

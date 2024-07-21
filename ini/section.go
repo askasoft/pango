@@ -9,7 +9,8 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/bol"
-	"github.com/askasoft/pango/cog"
+	"github.com/askasoft/pango/cog/linkedhashmap"
+	"github.com/askasoft/pango/cog/linkedlist"
 	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/num"
 )
@@ -20,9 +21,9 @@ type Entry struct {
 	Comments []string
 }
 
-type EntryList = cog.LinkedList[*Entry]
+type EntryList = linkedlist.LinkedList[*Entry]
 
-type EntriesMap = cog.LinkedHashMap[string, *EntryList]
+type EntriesMap = linkedhashmap.LinkedHashMap[string, *EntryList]
 
 // Section ini section
 type Section struct {
@@ -107,7 +108,7 @@ func (sec *Section) Add(key string, value string, comments ...string) *Entry {
 // Set set a key/value entry to the section
 func (sec *Section) Set(key string, value string, comments ...string) *Entry {
 	e := &Entry{Value: value, Comments: comments}
-	es := cog.NewLinkedList(e)
+	es := linkedlist.NewLinkedList(e)
 	sec.entries.Set(key, es)
 	return e
 }
@@ -209,7 +210,7 @@ func (sec *Section) GetDuration(key string, defs ...time.Duration) time.Duration
 	return 0
 }
 
-func (sec *Section) toStrings(es *cog.LinkedList[*Entry]) []string {
+func (sec *Section) toStrings(es *EntryList) []string {
 	ss := make([]string, 0, es.Len())
 	for it := es.Iterator(); it.Next(); {
 		ss = append(ss, it.Value().Value)

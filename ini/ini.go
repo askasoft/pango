@@ -17,12 +17,12 @@ import (
 	"unicode"
 
 	"github.com/askasoft/pango/bye"
-	"github.com/askasoft/pango/cog"
+	"github.com/askasoft/pango/cog/linkedhashmap"
 	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/str"
 )
 
-type Sections = cog.LinkedHashMap[string, *Section]
+type Sections = linkedhashmap.LinkedHashMap[string, *Section]
 
 // Ini INI file reader / writer
 type Ini struct {

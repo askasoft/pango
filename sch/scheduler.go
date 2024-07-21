@@ -3,14 +3,15 @@ package sch
 import (
 	"sync"
 
-	"github.com/askasoft/pango/cog"
+	"github.com/askasoft/pango/cmp"
+	"github.com/askasoft/pango/cog/treemap"
 	"github.com/askasoft/pango/log"
 )
 
 // Scheduler task scheduler
 type Scheduler struct {
 	Logger log.Logger
-	tasks  *cog.TreeMap[string, *Task]
+	tasks  *treemap.TreeMap[string, *Task]
 	mutex  sync.Mutex
 }
 
@@ -25,7 +26,7 @@ func (s *Scheduler) AddTask(task *Task) {
 	defer s.mutex.Unlock()
 
 	if s.tasks == nil {
-		s.tasks = cog.NewTreeMap[string, *Task](cog.CompareString)
+		s.tasks = treemap.NewTreeMap[string, *Task](cmp.CompareString)
 	}
 	s.tasks.Set(task.Name, task)
 }

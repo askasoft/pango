@@ -155,14 +155,15 @@ Implements [List](#list), [Iterator](#iterator) interfaces.
 package main
 
 import (
-	"github.com/askasoft/pango/cog"
+	"github.com/askasoft/pango/cmp"
+	"github.com/askasoft/pango/cog/arraylist"
 )
 
 func main() {
-	list := cog.NewArrayList[string]()
+	list := arraylist.NewArrayList[string]()
 	list.Add("a")                         // ["a"]
 	list.Adds("c", "b")                   // ["a","c","b"]
-	list.Sort(cog.LessString)             // ["a","b","c"]
+	list.Sort(cmp.LessString)             // ["a","b","c"]
 	_ = list.Get(0)                       // "a"
 	_ = list.Get(100)                     // panic
 	_ = list.Contain("a")                 // true
@@ -191,14 +192,15 @@ Implements [List](#list), [Iterator](#iterator) interfaces.
 package main
 
 import (
-	"github.com/askasoft/pango/cog"
+	"github.com/askasoft/pango/cmp"
+	"github.com/askasoft/pango/cog/linkedlist"
 )
 
 func main() {
-	list := cog.NewLinkedList[string]()
+	list := linkedlist.NewLinkedList[string]()
 	list.Add("a")                         // ["a"]
 	list.Adds("c", "b")                   // ["a","c","b"]
-	list.Sort(cog.LessString)             // ["a","b","c"]
+	list.Sort(cmp.LessString)             // ["a","b","c"]
 	_ = list.Get(0)                       // "a"
 	_ = list.Get(100)                     // panic
 	_ = list.Contain("a")                 // true
@@ -237,11 +239,11 @@ Implements [Set](#set) interfaces.
 package main
 
 import (
-	"github.com/askasoft/pango/cog"
+	"github.com/askasoft/pango/cog/hashset"
 )
 
 func main() {
-	set := cog.NewHashSet[int]()
+	set := hashset.NewHashSet[int]()
 	set.Add(1)              // 1
 	set.Adds(2, 2, 3, 4, 5) // 3, 1, 2, 4, 5 (random order, duplicates ignored)
 	set.Remove(4)           // 5, 3, 2, 1 (random order)
@@ -266,11 +268,11 @@ Implements [Set](#set), [Iterator](#iterator) interfaces.
 package main
 
 import (
-	"github.com/askasoft/pango/cog"
+	"github.com/askasoft/pango/cog/linkedhashset"
 )
 
 func main() {
-	set := cog.NewLinkedHashSet[int]()
+	set := linkedhashset.NewLinkedHashSet[int]()
 	set.Add(5)              // 5
 	set.Adds(4, 4, 3, 2, 1) // 5, 4, 3, 2, 1 (in insertion-order, duplicates ignored)
 	set.Add(4)              // 5, 4, 3, 2, 1 (duplicates ignored, insertion-order unchanged)
@@ -296,11 +298,12 @@ Implements [Set](#set), [Iterator](#iterator) interfaces.
 package main
 
 import (
-	"github.com/askasoft/pango/cog"
+	"github.com/askasoft/pango/cmp"
+	"github.com/askasoft/pango/cog/treeset"
 )
 
 func main() {
-	set := cog.NewTreeSet(cog.CompareInt)
+	set := treeset.NewTreeSet(cmp.CompareInt)
 	set.Add(1)              // 1
 	set.Adds(2, 2, 3, 4, 5) // 1, 2, 3, 4, 5 (in order, duplicates ignored)
 	set.Remove(4)           // 1, 2, 3, 5 (in order)
@@ -383,11 +386,11 @@ Implements [Map](#map) interfaces.
 package main
 
 import (
-	"github.com/askasoft/pango/cog"
+	"github.com/askasoft/pango/cog/hashmap"
 )
 
 func main() {
-	m := cog.NewHashMap[int, string]()
+	m := hashmap.NewHashMap[int, string]()
 	m.Set(1, "x")   // 1->x
 	m.Set(2, "b")   // 2->b, 1->x (random order)
 	m.Set(1, "a")   // 2->b, 1->a (random order)
@@ -412,11 +415,11 @@ Implements [Map](#map), [Iterator](#iterator) interfaces.
 package main
 
 import (
-	"github.com/askasoft/pango/cog"
+	"github.com/askasoft/pango/cog/linkedhashmap"
 )
 
 func main() {
-	m := cog.NewLinkedHashMap[int, string]()
+	m := linkedhashmap.NewLinkedHashMap[int, string]()
 	m.Set(2, "b")   // 2->b
 	m.Set(1, "x")   // 2->b, 1->x (insertion-order)
 	m.Set(1, "a")   // 2->b, 1->a (insertion-order)
@@ -441,11 +444,12 @@ Implements [Map](#map), [Iterator2](#iterator2) interfaces.
 package main
 
 import (
-	"github.com/askasoft/pango/cog"
+	"github.com/askasoft/pango/cmp"
+	"github.com/askasoft/pango/cog/treemap"
 )
 
 func main() {
-	m := cog.NewTreeMap[int, string](cog.CompareInt)
+	m := treemap.NewTreeMap[int, string](cmp.CompareInt)
 	m.Set(1, "x")   // 1->x
 	m.Set(2, "b")   // 1->x, 2->b (in order)
 	m.Set(1, "a")   // 1->a, 2->b (in order)
@@ -510,7 +514,7 @@ for it := list.Iterator(); it.Prev(); {
  Compare
 -----------------------------------------------------------------------
 
-Various helper functions used by [Collection](colcontainercollection) package.
+Various helper functions used by sortable collections.
 
 ### Comparator
 
@@ -531,7 +535,7 @@ Comparator signature:
 type Compare[T any] func(a, b T) int
 ```
 
-All common comparators for builtin types are included in the package:
+All common comparators for builtin types are included in the [cmp](../cmp/) package:
 
 ```go
 func CompareString(a, b string) int
@@ -558,7 +562,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/askasoft/pango/cog"
+	"github.com/askasoft/pango/cog/treeset"
 )
 
 type User struct {
@@ -584,7 +588,7 @@ func byID(a, b any) int {
 }
 
 func main() {
-	set := cog.NewTreeSet(byID)
+	set := treeset.NewTreeSet(byID)
 
 	set.Add(User{2, "Second"})
 	set.Add(User{3, "Third"})
@@ -613,7 +617,7 @@ Comparator signature:
 type Less[T any] func(a, b T) bool
 ```
 
-All common comparators for builtin types are included in the package:
+All common comparators for builtin types are included in the [cmp](../cmp/) package:
 
 ```go
 func LessString(a, b string) bool

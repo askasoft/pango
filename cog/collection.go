@@ -5,6 +5,36 @@ package cog
 
 import "fmt"
 
+// Compare will make type assertion (see CompareString(a,b) for example),
+// which will panic if a or b are not of the asserted type.
+//
+// Should return a int:
+//
+//	negative , if a < b
+//	zero     , if a == b
+//	positive , if a > b
+type Compare[T any] func(a, b T) int
+
+// Less will make type assertion (see LessString(a,b) for example),
+// which will panic if a or b are not of the asserted type.
+//
+// Should return a bool:
+//
+//	true , if a < b
+//	false, if a >= b
+type Less[T any] func(a, b T) bool
+
+type SortIF[T any] interface {
+	// Len returns the length of the collection.
+	Len() int
+
+	// Get returns the value at the specified index in this list
+	Get(index int) T
+
+	// Swap swaps values of two items at the given index.
+	Swap(i, j int)
+}
+
 // Sortable a value each interface for collection
 type Sortable[T any] interface {
 	// Sorts this container according to the order induced by the specified Comparator.

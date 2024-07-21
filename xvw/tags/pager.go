@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/askasoft/pango/cog"
+	"github.com/askasoft/pango/cog/linkedhashmap"
 	"github.com/askasoft/pango/num"
 	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/tbs"
@@ -365,7 +365,7 @@ func (pr *PageRenderer) writeLimitsSelect(sb *strings.Builder) error {
 	tlist := tbs.GetText(pr.Locale, "pager.limits.text", `%s Items`)
 	slist := str.Fields(tbs.GetText(pr.Locale, "pager.limits.list", "20 50 100"))
 
-	olist := &cog.LinkedHashMap[string, string]{}
+	olist := &linkedhashmap.LinkedHashMap[string, string]{}
 	for _, s := range slist {
 		olist.Set(s, fmt.Sprintf(tlist, s))
 	}

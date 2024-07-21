@@ -4,21 +4,21 @@
 package ccg
 
 import (
-	"github.com/askasoft/pango/cog"
+	"github.com/askasoft/pango/cog/ringbuffer"
 )
 
 // UnboundedChan unbounded channel
 type UnboundedChan[T any] struct {
-	In  chan<- T           // channel for write
-	Out <-chan T           // channel for read
-	rb  *cog.RingBuffer[T] // buffer
+	In  chan<- T                  // channel for write
+	Out <-chan T                  // channel for read
+	rb  *ringbuffer.RingBuffer[T] // buffer
 }
 
 // NewUnboundedChan create a unbounded channel
 func NewUnboundedChan[T any](initCapacity int) UnboundedChan[T] {
 	in := make(chan T, initCapacity)
 	out := make(chan T, initCapacity)
-	rb := cog.NewRingBuffer[T]()
+	rb := ringbuffer.NewRingBuffer[T]()
 
 	ubc := UnboundedChan[T]{
 		In:  in,

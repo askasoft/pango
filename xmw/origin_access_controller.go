@@ -3,7 +3,7 @@ package xmw
 import (
 	"net/http"
 
-	"github.com/askasoft/pango/cog"
+	"github.com/askasoft/pango/cog/hashset"
 	"github.com/askasoft/pango/num"
 	"github.com/askasoft/pango/xin"
 )
@@ -19,7 +19,7 @@ import (
 // if Origins contains the request header 'origin', set the Access-Control-Allow-Origin response header.
 // if the request method is OPTIONS, also set the status code to 200.
 type OriginAccessController struct {
-	AllowOrigins     *cog.HashSet[string]
+	AllowOrigins     *hashset.HashSet[string]
 	AllowCredentials bool
 	AllowMethods     string
 	AllowHeaders     string
@@ -29,7 +29,7 @@ type OriginAccessController struct {
 
 // NewOriginAccessController create a default OriginAccessController
 func NewOriginAccessController(origins ...string) *OriginAccessController {
-	return &OriginAccessController{AllowOrigins: cog.NewHashSet(origins...)}
+	return &OriginAccessController{AllowOrigins: hashset.NewHashSet(origins...)}
 }
 
 // Handler returns the xin.HandlerFunc
@@ -39,7 +39,7 @@ func (ll *OriginAccessController) Handler() xin.HandlerFunc {
 
 // SetAllowOrigins set allow origins
 func (ll *OriginAccessController) SetAllowOrigins(origins ...string) {
-	ll.AllowOrigins = cog.NewHashSet(origins...)
+	ll.AllowOrigins = hashset.NewHashSet(origins...)
 }
 
 // SetAllowMethods set Access-Control-Allow-Methods

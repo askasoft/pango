@@ -3,11 +3,11 @@
 
 package log
 
-import "github.com/askasoft/pango/cog"
+import "github.com/askasoft/pango/cog/ringbuffer"
 
 // EventBuffer a event buffer
 type EventBuffer struct {
-	cog.RingBuffer[*Event]
+	ringbuffer.RingBuffer[*Event]
 	BufSize int
 }
 

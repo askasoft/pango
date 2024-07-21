@@ -5,6 +5,7 @@ import (
 
 	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/cog"
+	"github.com/askasoft/pango/cog/hashmap"
 	"github.com/askasoft/pango/num"
 )
 
@@ -22,7 +23,7 @@ func AsList(o any) List {
 		return intstrcom{ism}
 	}
 	if ssm, ok := o.(map[string]string); ok {
-		return cog.AsHashMap(ssm)
+		return hashmap.AsHashMap(ssm)
 	}
 	if ism, ok := o.(map[int]string); ok {
 		return intstrmap(ism)

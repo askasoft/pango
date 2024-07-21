@@ -8,7 +8,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/askasoft/pango/cog"
+	"github.com/askasoft/pango/cmp"
+	"github.com/askasoft/pango/cog/treemap"
 	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/str"
 )
@@ -90,7 +91,7 @@ func PptxReaderTexify(r io.ReaderAt, size int64, w io.Writer) error {
 }
 
 func pptxTextify(zr *zip.Reader, w io.Writer) error {
-	zfm := cog.NewTreeMap[string, *zip.File](cog.CompareString)
+	zfm := treemap.NewTreeMap[string, *zip.File](cmp.CompareString)
 	for _, zf := range zr.File {
 		if str.StartsWith(zf.Name, "ppt/slides/slide") && str.EndsWith(zf.Name, ".xml") {
 			zfm.Set(zf.Name, zf)

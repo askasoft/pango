@@ -3,12 +3,10 @@
 
 package xmw
 
-import (
-	"github.com/askasoft/pango/cog"
-)
+import "github.com/askasoft/pango/cog/hashset"
 
-type stringSet = cog.HashSet[string]
+type stringSet = hashset.HashSet[string]
 
 func newStringSet(ss ...string) *stringSet {
-	return cog.NewHashSet(ss...)
+	return hashset.NewHashSet(ss...)
 }

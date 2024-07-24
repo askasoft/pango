@@ -491,6 +491,27 @@ func TestCutRune(t *testing.T) {
 	}
 }
 
+func TestCutAny(t *testing.T) {
+	cutTests := []struct {
+		s             string
+		seps          string
+		before, after string
+		found         bool
+	}{
+		{"abc", "zby", "a", "c", true},
+		{"abc", "ab", "", "bc", true},
+		{"abc", "c", "ab", "", true},
+		{"abc", "d", "abc", "", false},
+		{"", "d", "", "", false},
+	}
+
+	for _, tt := range cutTests {
+		if before, after, found := CutAny(tt.s, tt.seps); before != tt.before || after != tt.after || found != tt.found {
+			t.Errorf("CutAny(%q, %q) = %q, %q, %v, want %q, %q, %v", tt.s, tt.seps, before, after, found, tt.before, tt.after, tt.found)
+		}
+	}
+}
+
 func TestCutFunc(t *testing.T) {
 	cutTests := []struct {
 		s             string
@@ -579,6 +600,27 @@ func TestLastCutRune(t *testing.T) {
 	for _, tt := range cutTests {
 		if before, after, found := LastCutRune(tt.s, tt.sep); before != tt.before || after != tt.after || found != tt.found {
 			t.Errorf("LastCutRune(%q, %q) = %q, %q, %v, want %q, %q, %v", tt.s, tt.sep, before, after, found, tt.before, tt.after, tt.found)
+		}
+	}
+}
+
+func TestLastCutAny(t *testing.T) {
+	cutTests := []struct {
+		s             string
+		seps          string
+		before, after string
+		found         bool
+	}{
+		{"abcabc", "zby", "abca", "c", true},
+		{"abcabc", "a", "abc", "bc", true},
+		{"abcabc", "c", "abcab", "", true},
+		{"abcabc", "d", "abcabc", "", false},
+		{"", "d", "", "", false},
+	}
+
+	for _, tt := range cutTests {
+		if before, after, found := LastCutAny(tt.s, tt.seps); before != tt.before || after != tt.after || found != tt.found {
+			t.Errorf("LastCutAny(%q, %q) = %q, %q, %v, want %q, %q, %v", tt.s, tt.seps, before, after, found, tt.before, tt.after, tt.found)
 		}
 	}
 }

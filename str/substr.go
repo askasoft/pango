@@ -411,6 +411,18 @@ func CutRune(s string, sep rune) (before, after string, found bool) {
 	return s, "", false
 }
 
+// CutAny slices s around the first instance of any Unicode code point
+// from chars in s, returning the text before and after separator.
+// The found result reports whether any chars's rune appears in s.
+// If not found, cut returns s, "", false.
+func CutAny(s string, chars string) (before, after string, found bool) {
+	if i := IndexAny(s, chars); i >= 0 {
+		_, z := utf8.DecodeRuneInString(s[i:])
+		return s[:i], s[i+z:], true
+	}
+	return s, "", false
+}
+
 // CutFunc slices s around the first instance of the Unicode
 // code point satisfying f(c), returning the text before and after f(c).
 // The found result reports whether f(c) appears in s.
@@ -452,6 +464,18 @@ func LastCutByte(s string, sep byte) (before, after string, found bool) {
 func LastCutRune(s string, sep rune) (before, after string, found bool) {
 	if i := LastIndexRune(s, sep); i >= 0 {
 		return s[:i], s[i+RuneLen(sep):], true
+	}
+	return s, "", false
+}
+
+// LastCutAny slices s around the last instance of any Unicode code point
+// from chars in s, returning the text before and after separator.
+// The found result reports whether any chars's rune appears in s.
+// If not found, cut returns s, "", false.
+func LastCutAny(s string, chars string) (before, after string, found bool) {
+	if i := LastIndexAny(s, chars); i >= 0 {
+		_, z := utf8.DecodeRuneInString(s[i:])
+		return s[:i], s[i+z:], true
 	}
 	return s, "", false
 }

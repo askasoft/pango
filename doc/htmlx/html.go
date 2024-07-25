@@ -85,10 +85,17 @@ func Stringify(n *html.Node) string {
 	return str.Strip(sb.String())
 }
 
+func HTML(n *html.Node) (string, error) {
+	sb := &strings.Builder{}
+	err := html.Render(sb, n)
+	return sb.String(), err
+}
+
 func FindNodeAttr(n *html.Node, k string) *html.Attribute {
-	for _, a := range n.Attr {
+	for i := 0; i < len(n.Attr); i++ {
+		a := &n.Attr[i]
 		if a.Key == k {
-			return &a
+			return a
 		}
 	}
 	return nil

@@ -2,6 +2,8 @@ package log
 
 import (
 	"fmt"
+
+	"github.com/askasoft/pango/str"
 )
 
 // Logger logger interface
@@ -9,7 +11,6 @@ type Logger interface {
 	GetLogger(name string) Logger
 	GetOutputer(name string, lvl Level, callerDepth ...int) Outputer
 	GetName() string
-	SetName(name string)
 	GetLevel() Level
 	GetTraceLevel() Level
 	GetFormatter() Formatter
@@ -55,7 +56,7 @@ type logger struct {
 func (l *logger) GetLogger(name string) Logger {
 	return &logger{
 		log:   l.log,
-		name:  name,
+		name:  str.IfEmpty(name, "_"),
 		depth: l.log.logger.depth,
 		props: l.props,
 	}
@@ -78,11 +79,6 @@ func (l *logger) GetOutputer(name string, lvl Level, callerDepth ...int) Outpute
 // GetName return the logger's name
 func (l *logger) GetName() string {
 	return l.name
-}
-
-// SetName set the logger's name
-func (l *logger) SetName(name string) {
-	l.name = name
 }
 
 // GetCallerDepth return the logger's depth

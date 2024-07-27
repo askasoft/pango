@@ -3,6 +3,8 @@ package log
 import (
 	"sync"
 	"time"
+
+	"github.com/askasoft/pango/str"
 )
 
 // Log is default logger in application.
@@ -27,6 +29,7 @@ func NewLog() *Log {
 func newLog(depth int) *Log {
 	log := &Log{
 		logger: &logger{
+			name:  "_",
 			depth: depth,
 		},
 		level:  LevelTrace,
@@ -56,7 +59,7 @@ func (log *Log) getLoggerLevel(name string) Level {
 func (log *Log) GetLogger(name string) Logger {
 	return &logger{
 		log:   log,
-		name:  name,
+		name:  str.IfEmpty(name, "_"),
 		depth: log.logger.depth,
 	}
 }
@@ -134,11 +137,6 @@ func (log *Log) GetOutputer(name string, lvl Level, callerDepth ...int) Outputer
 // GetName return the logger's name
 func (log *Log) GetName() string {
 	return log.logger.name
-}
-
-// SetName set the logger's name
-func (log *Log) SetName(name string) {
-	log.logger.name = name
 }
 
 // GetCallerDepth return the logger's depth

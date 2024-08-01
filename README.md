@@ -10,7 +10,7 @@ Pango is a GO development utility library.
 | **Package**                      | **Description**                         |
 | :------------------------------- | :-------------------------------------- |
 | [cog](./cog/)                    | a Generic Collection/Container package  |
-| [col](./col/)                    | a Collection/Container package          |
+| [cog/ccg](./cog/ccg)             | a Generic Concurrent Queue package      |
 | [ini](./ini/)                    | a INI file read/write package           |
 | [iox](./iox/)                    | a IO utility package                    |
 | [log](./log/)                    | a Log like Log4j                        |

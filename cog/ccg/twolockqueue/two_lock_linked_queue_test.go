@@ -1,12 +1,12 @@
 //go:build go1.18
 // +build go1.18
 
-package ccg
+package twolockqueue
 
 import "testing"
 
-func TestCQueueSimple(t *testing.T) {
-	rb := NewCQueue[int]()
+func TestTwoLockQueueSimple(t *testing.T) {
+	rb := NewTwoLockQueue[int]()
 
 	for i := 0; i < 100; i++ {
 		rb.Push(i)
@@ -25,8 +25,8 @@ func TestCQueueSimple(t *testing.T) {
 	}
 }
 
-func TestCQueuePeekEmpty(t *testing.T) {
-	rb := NewCQueue[int]()
+func TestTwoLockQueuePeekEmpty(t *testing.T) {
+	rb := NewTwoLockQueue[int]()
 
 	if _, ok := rb.Peek(); ok {
 		t.Error("should return false when peeking empty queue")
@@ -40,8 +40,8 @@ func TestCQueuePeekEmpty(t *testing.T) {
 	}
 }
 
-func TestCQueuePollEmpty(t *testing.T) {
-	rb := NewCQueue[int]()
+func TestTwoLockQueuePollEmpty(t *testing.T) {
+	rb := NewTwoLockQueue[int]()
 
 	if _, ok := rb.Poll(); ok {
 		t.Error("should return false when removing empty queue")

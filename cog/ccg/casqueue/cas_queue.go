@@ -1,16 +1,16 @@
 //go:build go1.18
 // +build go1.18
 
-package ccg
+package casqueue
 
 import (
 	"sync/atomic"
 	"unsafe"
 )
 
-// CQueue is a lock-free (CAS) unbounded queue.
+// CasQueue is a lock-free (CAS) unbounded queue.
 // https://www.cs.rochester.edu/u/scott/papers/1996_PODC_queues.pdf
-type CQueue[T any] struct {
+type CasQueue[T any] struct {
 	head unsafe.Pointer
 	tail unsafe.Pointer
 }
@@ -20,20 +20,20 @@ type cnode[T any] struct {
 	next unsafe.Pointer
 }
 
-// NewCQueue returns an empty queue.
-func NewCQueue[T any]() *CQueue[T] {
+// NewCasQueue returns an empty queue.
+func NewCasQueue[T any]() *CasQueue[T] {
 	n := unsafe.Pointer(&cnode[T]{})
-	return &CQueue[T]{head: n, tail: n}
+	return &CasQueue[T]{head: n, tail: n}
 }
 
 // IsEmpty returns true if the container length == 0
-func (q *CQueue[T]) IsEmpty() bool {
+func (q *CasQueue[T]) IsEmpty() bool {
 	_, ok := q.Peek()
 	return !ok
 }
 
 // Clear clears the container
-func (q *CQueue[T]) Clear() {
+func (q *CasQueue[T]) Clear() {
 	for {
 		if _, ok := q.Poll(); !ok {
 			return
@@ -42,7 +42,7 @@ func (q *CQueue[T]) Clear() {
 }
 
 // Push adds items of vs to the tail of queue
-func (q *CQueue[T]) Push(vs ...T) {
+func (q *CasQueue[T]) Push(vs ...T) {
 	for _, v := range vs {
 		n := &cnode[T]{data: v}
 		for {
@@ -64,7 +64,7 @@ func (q *CQueue[T]) Push(vs ...T) {
 }
 
 // Peek Retrieves, but does not remove, the head of this queue, or returns (nil, false) if this queue is empty.
-func (q *CQueue[T]) Peek() (T, bool) {
+func (q *CasQueue[T]) Peek() (T, bool) {
 	for {
 		head := load[T](&q.head)
 		tail := load[T](&q.tail)
@@ -86,7 +86,7 @@ func (q *CQueue[T]) Peek() (T, bool) {
 }
 
 // Poll Retrieves and removes the head of this queue, or returns (nil, false) if this queue is empty.
-func (q *CQueue[T]) Poll() (T, bool) {
+func (q *CasQueue[T]) Poll() (T, bool) {
 	for {
 		head := load[T](&q.head)
 		tail := load[T](&q.tail)

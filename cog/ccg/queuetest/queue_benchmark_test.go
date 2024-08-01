@@ -1,12 +1,16 @@
 //go:build go1.18
 // +build go1.18
 
-package ccg
+package queuetest
 
 import (
 	"runtime"
 	"strconv"
 	"testing"
+
+	"github.com/askasoft/pango/cog/ccg/casqueue"
+	"github.com/askasoft/pango/cog/ccg/twolockqueue"
+	"github.com/askasoft/pango/cog/ccg/unboundedchan"
 )
 
 // queue queue interface
@@ -42,15 +46,15 @@ func benchmarkQueue(b *testing.B, name string, q queue[int]) {
 }
 
 func BenchmarkLockFreeQueue(b *testing.B) {
-	benchmarkQueue(b, "lock-free queue", NewCQueue[int]())
+	benchmarkQueue(b, "lock-free queue", casqueue.NewCasQueue[int]())
 }
 
 func BenchmarkTwoLockQueue(b *testing.B) {
-	benchmarkQueue(b, "two-lock queue", NewCQueue[int]())
+	benchmarkQueue(b, "two-lock queue", twolockqueue.NewTwoLockQueue[int]())
 }
 
 func BenchmarkUnboundedChan(b *testing.B) {
-	ubc := NewUnboundedChan[int](1000)
+	ubc := unboundedchan.NewUnboundedChan[int](1000)
 	benchmarkQueue(b, "unbounded chan", ubc)
 	ubc.Close()
 }

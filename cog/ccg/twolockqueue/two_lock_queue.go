@@ -1,14 +1,14 @@
 //go:build go1.18
 // +build go1.18
 
-package ccg
+package twolockqueue
 
 import (
 	"sync"
 )
 
-// LQueue is a concurrent unbounded queue which uses two-Lock concurrent queue qlgorithm.
-type LQueue[T any] struct {
+// TwoLockQueue is a concurrent unbounded queue which uses two-Lock concurrent queue qlgorithm.
+type TwoLockQueue[T any] struct {
 	head  *lnode[T]
 	tail  *lnode[T]
 	hlock sync.Mutex
@@ -20,20 +20,20 @@ type lnode[T any] struct {
 	next *lnode[T]
 }
 
-// NewLQueue returns an empty LQueue.
-func NewLQueue[T any]() *LQueue[T] {
+// NewTwoLockQueue returns an empty TwoLockQueue.
+func NewTwoLockQueue[T any]() *TwoLockQueue[T] {
 	n := &lnode[T]{}
-	return &LQueue[T]{head: n, tail: n}
+	return &TwoLockQueue[T]{head: n, tail: n}
 }
 
 // IsEmpty returns true if the container length == 0
-func (q *LQueue[T]) IsEmpty() bool {
+func (q *TwoLockQueue[T]) IsEmpty() bool {
 	_, ok := q.Peek()
 	return !ok
 }
 
 // Clear clears the container
-func (q *LQueue[T]) Clear() {
+func (q *TwoLockQueue[T]) Clear() {
 	q.tlock.Lock()
 	defer q.tlock.Unlock()
 
@@ -46,7 +46,7 @@ func (q *LQueue[T]) Clear() {
 }
 
 // Push adds items of vs to the tail of queue
-func (q *LQueue[T]) Push(vs ...T) {
+func (q *TwoLockQueue[T]) Push(vs ...T) {
 	q.tlock.Lock()
 	defer q.tlock.Unlock()
 
@@ -58,7 +58,7 @@ func (q *LQueue[T]) Push(vs ...T) {
 }
 
 // Peek Retrieves, but does not remove, the head of this queue, or returns (nil, false) if this queue is empty.
-func (q *LQueue[T]) Peek() (T, bool) {
+func (q *TwoLockQueue[T]) Peek() (T, bool) {
 	q.hlock.Lock()
 	defer q.hlock.Unlock()
 
@@ -72,7 +72,7 @@ func (q *LQueue[T]) Peek() (T, bool) {
 }
 
 // Poll Retrieves and removes the head of this queue, or returns (nil, false) if this queue is empty.
-func (q *LQueue[T]) Poll() (T, bool) {
+func (q *TwoLockQueue[T]) Poll() (T, bool) {
 	q.hlock.Lock()
 	defer q.hlock.Unlock()
 

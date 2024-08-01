@@ -1,12 +1,12 @@
 //go:build go1.18
 // +build go1.18
 
-package ccg
+package casqueue
 
 import "testing"
 
-func TestLQueueSimple(t *testing.T) {
-	rb := NewLQueue[int]()
+func TestCasQueueSimple(t *testing.T) {
+	rb := NewCasQueue[int]()
 
 	for i := 0; i < 100; i++ {
 		rb.Push(i)
@@ -25,8 +25,8 @@ func TestLQueueSimple(t *testing.T) {
 	}
 }
 
-func TestLQueuePeekEmpty(t *testing.T) {
-	rb := NewLQueue[int]()
+func TestCasQueuePeekEmpty(t *testing.T) {
+	rb := NewCasQueue[int]()
 
 	if _, ok := rb.Peek(); ok {
 		t.Error("should return false when peeking empty queue")
@@ -40,8 +40,8 @@ func TestLQueuePeekEmpty(t *testing.T) {
 	}
 }
 
-func TestLQueuePollEmpty(t *testing.T) {
-	rb := NewLQueue[int]()
+func TestCasQueuePollEmpty(t *testing.T) {
+	rb := NewCasQueue[int]()
 
 	if _, ok := rb.Poll(); ok {
 		t.Error("should return false when removing empty queue")

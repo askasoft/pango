@@ -42,6 +42,7 @@ func NewCookieAuth(f FindUserFunc, secret string) *CookieAuth {
 		Cryptor:        cpt.NewAesCBC(secret),
 		FindUser:       f,
 		CookieName:     AuthCookieName,
+		CookiePath:     "/",
 		CookieMaxAge:   time.Minute * 30,
 		CookieSecure:   true,
 		CookieHttpOnly: true,

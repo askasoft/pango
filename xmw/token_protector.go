@@ -45,6 +45,7 @@ func NewTokenProtector(secret string) *TokenProtector {
 		ParamName:      TokenParamName,
 		HeaderName:     TokenHeaderName,
 		CookieName:     TokenCookieName,
+		CookiePath:     "/",
 		CookieMaxAge:   time.Hour * 24 * 30, // 30 days
 		CookieHttpOnly: true,
 		CookieSameSite: http.SameSiteStrictMode,

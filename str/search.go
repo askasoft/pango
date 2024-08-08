@@ -31,7 +31,7 @@ func CountRune(s string, c rune) int {
 	return n
 }
 
-// CountAny counts the number of non-overlapping instances of any character of chars in s.
+// CountAny counts the number of any character of chars in s.
 // If chars is an empty string, Count returns 1 + the number of Unicode code points in s.
 func CountAny(s, chars string) int {
 	// special case
@@ -42,6 +42,17 @@ func CountAny(s, chars string) int {
 	n := 0
 	for _, c := range s {
 		if strings.ContainsRune(chars, c) {
+			n++
+		}
+	}
+	return n
+}
+
+// CountFunc counts the number of character that satisfing f(c) in s.
+func CountFunc(s string, f func(rune) bool) int {
+	n := 0
+	for _, c := range s {
+		if f(c) {
 			n++
 		}
 	}

@@ -2,6 +2,7 @@ package str
 
 import (
 	"testing"
+	"unicode"
 )
 
 func TestCountByte(t *testing.T) {
@@ -58,6 +59,27 @@ func TestCountAny(t *testing.T) {
 		a := CountAny(c.s, c.b)
 		if a != c.w {
 			t.Errorf("[%d] CountAny(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+		}
+	}
+}
+
+func TestCountFunc(t *testing.T) {
+	cs := []struct {
+		w int
+		s string
+		f func(rune) bool
+	}{
+		{0, "12 abc", unicode.IsUpper},
+		{1, "12 abc", unicode.IsSpace},
+		{2, "12 abc", unicode.IsNumber},
+		{3, "12 abc", unicode.IsLower},
+		{1, "12 abc あいう", func(r rune) bool { return r == 'あ' }},
+	}
+
+	for i, c := range cs {
+		a := CountFunc(c.s, c.f)
+		if a != c.w {
+			t.Errorf("[%d] CountFunc(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }

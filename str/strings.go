@@ -232,14 +232,6 @@ func ToValidUTF8(s, replacement string) string {
 	return strings.ToValidUTF8(s, replacement)
 }
 
-// Title returns a copy of the string s with all Unicode letters that begin words
-// mapped to their Unicode title case.
-//
-// BUG(rsc): The rule Title uses for word boundaries does not handle Unicode punctuation properly.
-func Title(s string) string {
-	return strings.Title(s)
-}
-
 // TrimLeftFunc returns a slice of the string s with all leading
 // Unicode code points c satisfying f(c) removed.
 func TrimLeftFunc(s string, f func(rune) bool) string {

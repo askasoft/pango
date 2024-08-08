@@ -7,6 +7,15 @@ import (
 	"github.com/askasoft/pango/num"
 )
 
+// ToValidUTF8s returns a copy of the string s with each run of invalid UTF-8 byte sequences
+// replaced by the replacement string, which may be empty.
+func ToValidUTF8s(ss []string, replacement string) []string {
+	for i, s := range ss {
+		ss[i] = ToValidUTF8(s, replacement)
+	}
+	return ss
+}
+
 // ToLowers lowercase all string in the string array ss.
 func ToLowers(ss []string) []string {
 	for i, s := range ss {

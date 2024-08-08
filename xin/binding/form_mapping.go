@@ -145,10 +145,11 @@ func getStructFieldPrefix(prefix string, field reflect.StructField, tag string) 
 }
 
 type setOptions struct {
-	defaults string
+	valid    bool
 	strip    bool
 	lower    bool
 	upper    bool
+	defaults string
 }
 
 func tryToSetValue(prefix string, value reflect.Value, field reflect.StructField, setter setter, tag string) (isSet bool, err *FieldBindError) {
@@ -173,6 +174,8 @@ func tryToSetValue(prefix string, value reflect.Value, field reflect.StructField
 		switch k {
 		case "default":
 			setOpts.defaults = v
+		case "valid":
+			setOpts.valid = true
 		case "strip":
 			setOpts.strip = true
 		case "lower":
@@ -226,6 +229,9 @@ func setByForm(value reflect.Value, field reflect.StructField, form map[string][
 	}
 
 	if ok {
+		if opt.valid {
+			vs = str.ToValidUTF8s(vs, "")
+		}
 		if opt.strip {
 			vs = str.RemoveEmpties(str.Strips(vs))
 		}

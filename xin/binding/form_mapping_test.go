@@ -235,6 +235,7 @@ func TestMappingSlice(t *testing.T) {
 		Slice  []int    `form:"slice,strip,default=9"`
 		Lslice []string `form:"lslice,lower,default=A"`
 		Uslice []string `form:"uslice,upper,default=a"`
+		Vslice []string `form:"vslice,valid"`
 	}
 
 	// default value
@@ -249,11 +250,12 @@ func TestMappingSlice(t *testing.T) {
 		"slice":  {"3", "", " 4 "},
 		"lslice": {"A", "", " B "},
 		"uslice": {"a", "", " b "},
+		"vslice": {"a", "a\xffb\xC0\xAFc\xff", " b "},
 	}, "form")
 	assert.NoError(t, err)
 	assert.Equal(t, []int{3, 4}, s.Slice)
 	assert.Equal(t, []string{"a", "", " b "}, s.Lslice)
-	assert.Equal(t, []string{"A", "", " B "}, s.Uslice)
+	assert.Equal(t, []string{"a", "abc", " b "}, s.Vslice)
 
 	// error
 	err = mappingByPtr(&s, formSource{"slice": {"wrong"}}, "form")

@@ -19,19 +19,32 @@ func JSON(a any) (template.JS, error) {
 // commas after every three orders of magnitude.
 //
 // e.g. Comma(834142) -> 834,142
+// e.g. Comma(834142.1234, 3) -> 834,142.123
 // e.g. Comma(834142, "_") -> 834_142
-func Comma(n any, c ...string) (string, error) {
-	v := reflect.ValueOf(n)
+func Comma(n any, args ...any) (string, error) {
+	c, d := ",", 0
+	for _, a := range args {
+		switch p := a.(type) {
+		case string:
+			c = p
+		case int:
+			d = p
+		}
+	}
 
+	v := reflect.ValueOf(n)
 	switch v.Kind() {
 	case reflect.Int8, reflect.Uint8:
 		return num.Itoa(int(v.Int())), nil
 	case reflect.Int, reflect.Int16, reflect.Int32, reflect.Int64:
-		return num.CommaInt(v.Int(), c...), nil
+		return num.CommaInt(v.Int(), c), nil
 	case reflect.Uint, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return num.CommaUint(v.Uint(), c...), nil
+		return num.CommaUint(v.Uint(), c), nil
 	case reflect.Float32, reflect.Float64:
-		return num.CommaFloat(v.Float(), c...), nil
+		if d > 0 {
+			return num.CommaFloatWithDigits(v.Float(), d, c), nil
+		}
+		return num.CommaFloat(v.Float(), c), nil
 	default:
 		return "", fmt.Errorf("Comma: unknown type for '%v' (%T)", n, n)
 	}

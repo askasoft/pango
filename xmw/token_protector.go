@@ -39,7 +39,7 @@ type TokenProtector struct {
 // default methods: DELETE, PATCH, POST, PUT
 func NewTokenProtector(secret string) *TokenProtector {
 	tp := &TokenProtector{
-		Cryptor:        cpt.NewAesCBC(secret),
+		Cryptor:        cpt.NewAes128CBC(secret),
 		Expires:        time.Hour * 24,
 		AttrKey:        TokenAttrKey,
 		ParamName:      TokenParamName,
@@ -59,7 +59,7 @@ func NewTokenProtector(secret string) *TokenProtector {
 
 // SetSecret Set the Cryptor secret
 func (tp *TokenProtector) SetSecret(secret string) {
-	tp.Cryptor = cpt.NewAesCBC(secret)
+	tp.Cryptor = cpt.NewAes128CBC(secret)
 }
 
 // SetMethods Set the http methods to protect

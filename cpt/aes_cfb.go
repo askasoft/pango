@@ -4,40 +4,40 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
+	"fmt"
 
 	"github.com/askasoft/pango/str"
 )
 
 type AesCFB struct {
 	key []byte
-	iv  []byte
 }
 
-func NewAesCFB(key string, iv ...string) *AesCFB {
-	ac := &AesCFB{}
+func NewAes128CFB(key string) *AesCFB {
+	return NewAesCFB(key, 128)
+}
 
-	ac.SetKey(key)
+func NewAes192CFB(key string) *AesCFB {
+	return NewAesCFB(key, 192)
+}
 
-	if len(iv) > 0 {
-		ac.iv = []byte(iv[0])
-	} else {
-		ac.iv = ac.key
+func NewAes256CFB(key string) *AesCFB {
+	return NewAesCFB(key, 256)
+}
+
+func NewAesCFB(key string, bits int) *AesCFB {
+	ac := &AesCFB{
+		key: []byte(CutPadKey(key, bits/8)),
 	}
-
 	return ac
 }
 
-func (ac *AesCFB) SetKey(key string) {
-	key = CutPadKey(key, 16)
-	ac.key = []byte(key)
-}
-
-func (ac *AesCFB) SetIV(iv string) {
-	ac.iv = []byte(iv)
+func (ac *AesCFB) iv() []byte {
+	return ac.key[:aes.BlockSize]
 }
 
 func (ac *AesCFB) EncryptString(src string) (string, error) {
-	bs, err := ac.EncryptData(str.UnsafeBytes(src))
+	bs, err := ac.EncryptBytes(str.UnsafeBytes(src))
 	if err != nil {
 		return "", err
 	}
@@ -51,7 +51,7 @@ func (ac *AesCFB) DecryptString(src string) (string, error) {
 		return "", err
 	}
 
-	des, err := ac.DecryptData(bs)
+	des, err := ac.DecryptBytes(bs)
 	if err != nil {
 		return "", err
 	}
@@ -59,27 +59,41 @@ func (ac *AesCFB) DecryptString(src string) (string, error) {
 	return str.UnsafeString(des), nil
 }
 
-func (ac *AesCFB) EncryptData(src []byte) ([]byte, error) {
+func (ac *AesCFB) EncryptBytes(src []byte) (des []byte, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			des = nil
+			err = fmt.Errorf("AesCFB: EncryptBytes: Panic: %v", r)
+		}
+	}()
+
 	c, err := aes.NewCipher(ac.key)
 	if err != nil {
 		return nil, err
 	}
 
-	cfb := cipher.NewCFBEncrypter(c, ac.iv)
-	des := make([]byte, len(src))
+	cfb := cipher.NewCFBEncrypter(c, ac.iv())
+	des = make([]byte, len(src))
 	cfb.XORKeyStream(des, src)
 
 	return des, nil
 }
 
-func (ac *AesCFB) DecryptData(src []byte) ([]byte, error) {
+func (ac *AesCFB) DecryptBytes(src []byte) (des []byte, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			des = nil
+			err = fmt.Errorf("AesCFB: DecryptBytes: Panic: %v", r)
+		}
+	}()
+
 	c, err := aes.NewCipher(ac.key)
 	if err != nil {
 		return nil, err
 	}
 
-	cfb := cipher.NewCFBDecrypter(c, ac.iv)
-	des := make([]byte, len(src))
+	cfb := cipher.NewCFBDecrypter(c, ac.iv())
+	des = make([]byte, len(src))
 	cfb.XORKeyStream(des, src)
 
 	return des, nil

@@ -11,34 +11,33 @@ import (
 
 type AesCBC struct {
 	key []byte
-	iv  []byte
 }
 
-func NewAesCBC(key string, iv ...string) *AesCBC {
-	ac := &AesCBC{}
+func NewAes128CBC(key string) *AesCBC {
+	return NewAesCBC(key, 128)
+}
 
-	ac.SetKey(key)
+func NewAes192CBC(key string) *AesCBC {
+	return NewAesCBC(key, 192)
+}
 
-	if len(iv) > 0 {
-		ac.iv = []byte(iv[0])
-	} else {
-		ac.iv = ac.key
+func NewAes256CBC(key string) *AesCBC {
+	return NewAesCBC(key, 256)
+}
+
+func NewAesCBC(key string, bits int) *AesCBC {
+	ac := &AesCBC{
+		key: []byte(CutPadKey(key, bits/8)),
 	}
-
 	return ac
 }
 
-func (ac *AesCBC) SetKey(key string) {
-	key = CutPadKey(key, 16)
-	ac.key = []byte(key)
-}
-
-func (ac *AesCBC) SetIV(iv string) {
-	ac.iv = []byte(iv)
+func (ac *AesCBC) iv() []byte {
+	return ac.key[:aes.BlockSize]
 }
 
 func (ac *AesCBC) EncryptString(src string) (string, error) {
-	bs, err := ac.EncryptData(str.UnsafeBytes(src))
+	bs, err := ac.EncryptBytes(str.UnsafeBytes(src))
 	if err != nil {
 		return "", err
 	}
@@ -52,7 +51,7 @@ func (ac *AesCBC) DecryptString(src string) (string, error) {
 		return "", err
 	}
 
-	des, err := ac.DecryptData(bs)
+	des, err := ac.DecryptBytes(bs)
 	if err != nil {
 		return "", err
 	}
@@ -60,20 +59,20 @@ func (ac *AesCBC) DecryptString(src string) (string, error) {
 	return str.UnsafeString(des), nil
 }
 
-func (ac *AesCBC) EncryptData(src []byte) (des []byte, err error) {
+func (ac *AesCBC) EncryptBytes(src []byte) (des []byte, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			des = nil
-			err = fmt.Errorf("AesCBC: EncryptData: Panic: %v", r)
+			err = fmt.Errorf("AesCBC: EncryptBytes: Panic: %v", r)
 		}
 	}()
 
-	c, err := aes.NewCipher([]byte(ac.key))
+	c, err := aes.NewCipher(ac.key)
 	if err != nil {
 		return nil, err
 	}
 
-	cbc := cipher.NewCBCEncrypter(c, ac.iv)
+	cbc := cipher.NewCBCEncrypter(c, ac.iv())
 	pad := Pkcs7Pad(src, cbc.BlockSize())
 	des = make([]byte, len(pad))
 	cbc.CryptBlocks(des, pad)
@@ -81,20 +80,20 @@ func (ac *AesCBC) EncryptData(src []byte) (des []byte, err error) {
 	return des, nil
 }
 
-func (ac *AesCBC) DecryptData(src []byte) (des []byte, err error) {
+func (ac *AesCBC) DecryptBytes(src []byte) (des []byte, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			des = nil
-			err = fmt.Errorf("AesCBC: DecryptData: Panic: %v", r)
+			err = fmt.Errorf("AesCBC: DecryptBytes: Panic: %v", r)
 		}
 	}()
 
-	c, err := aes.NewCipher([]byte(ac.key))
+	c, err := aes.NewCipher(ac.key)
 	if err != nil {
 		return nil, err
 	}
 
-	cbc := cipher.NewCBCDecrypter(c, ac.iv)
+	cbc := cipher.NewCBCDecrypter(c, ac.iv())
 	pad := make([]byte, len(src))
 	cbc.CryptBlocks(pad, src)
 

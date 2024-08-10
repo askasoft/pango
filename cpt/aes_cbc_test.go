@@ -6,42 +6,27 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
-func TestAesCBCEncryptString(t *testing.T) {
-	ac := NewAesCBC("1234567890abcde")
-	for i := 1; i < 100; i++ {
-		c := str.RandLetterNumbers(i)
-		o, err := ac.EncryptString(c)
-		if err != nil {
-			t.Fatal(i, err)
-		}
+func TestAesCBCEncrypt(t *testing.T) {
+	bits := []int{128, 192, 256}
+	for _, bit := range bits {
+		ac := NewAesCBC("1234567890abcde", bit)
+		for i := 64; i <= 128; i++ {
+			rs := str.RandLetterNumbers(i)
+			es, err := ac.EncryptString(rs)
+			if err != nil {
+				t.Fatal(i, err)
+			}
 
-		s, err := ac.DecryptString(o)
-		if err != nil {
-			t.Fatal(i, err)
-		}
+			// fmt.Printf("[%d] len(es) = %d\n", i, len(es))
 
-		if s != c {
-			t.Fatalf("[%d] want %q, but %q", i, c, s)
-		}
-	}
-}
+			ds, err := ac.DecryptString(es)
+			if err != nil {
+				t.Fatal(i, err)
+			}
 
-func TestAesCBCEncryptData(t *testing.T) {
-	ac := NewAesCBC("1234567890abcedfg", "0987654321654321")
-	for i := 1; i < 100; i++ {
-		c := str.RandLetterNumbers(i)
-		o, err := ac.EncryptData(str.UnsafeBytes(c))
-		if err != nil {
-			t.Fatal(i, err)
-		}
-
-		s, err := ac.DecryptData(o)
-		if err != nil {
-			t.Fatal(i, err)
-		}
-
-		if string(s) != c {
-			t.Fatalf("[%d] want %q, but %q", i, c, string(s))
+			if ds != rs {
+				t.Fatalf("[%d] want %q, but %q", i, rs, ds)
+			}
 		}
 	}
 }

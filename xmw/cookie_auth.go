@@ -39,7 +39,7 @@ type CookieAuth struct {
 
 func NewCookieAuth(f FindUserFunc, secret string) *CookieAuth {
 	ca := &CookieAuth{
-		Cryptor:        cpt.NewAesCBC(secret),
+		Cryptor:        cpt.NewAes128CBC(secret),
 		FindUser:       f,
 		CookieName:     AuthCookieName,
 		CookiePath:     "/",

@@ -5,8 +5,6 @@ import (
 	"time"
 )
 
-var seed = rand.New(rand.NewSource(time.Now().UnixNano())) //nolint: gosec
-
 // RandNumbers create a random number string
 func RandNumbers(size int) string {
 	return RandString(size, Numbers)
@@ -25,6 +23,8 @@ func RandLetters(size int) string {
 // RandString create a random string by the input chars
 // if chars is omitted, the LetterNumberSymbols is used
 func RandString(size int, chars ...string) string {
+	seed := rand.New(rand.NewSource(time.Now().UnixNano())) //nolint: gosec
+
 	cs := LetterNumberSymbols
 	if len(chars) > 0 {
 		cs = chars[0]

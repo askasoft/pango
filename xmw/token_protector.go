@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/cpt"
+	"github.com/askasoft/pango/cpt/ccpt"
 	"github.com/askasoft/pango/xin"
 )
 
@@ -17,7 +18,7 @@ const (
 
 // TokenProtector token protector for CSRF
 type TokenProtector struct {
-	Cryptor        cpt.Cryptor
+	Cryptor        cpt.Cryptor // cryptor to encode/decode cookie, MUST concurrent safe
 	Expires        time.Duration
 	AttrKey        string
 	ParamName      string
@@ -39,7 +40,7 @@ type TokenProtector struct {
 // default methods: DELETE, PATCH, POST, PUT
 func NewTokenProtector(secret string) *TokenProtector {
 	tp := &TokenProtector{
-		Cryptor:        cpt.NewAes128CBC(secret),
+		Cryptor:        ccpt.NewAes128CBCCryptor(secret),
 		Expires:        time.Hour * 24,
 		AttrKey:        TokenAttrKey,
 		ParamName:      TokenParamName,
@@ -59,7 +60,7 @@ func NewTokenProtector(secret string) *TokenProtector {
 
 // SetSecret Set the Cryptor secret
 func (tp *TokenProtector) SetSecret(secret string) {
-	tp.Cryptor = cpt.NewAes128CBC(secret)
+	tp.Cryptor = ccpt.NewAes128CBCCryptor(secret)
 }
 
 // SetMethods Set the http methods to protect

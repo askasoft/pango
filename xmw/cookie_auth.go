@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/cpt"
+	"github.com/askasoft/pango/cpt/ccpt"
 	"github.com/askasoft/pango/num"
 	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/xin"
@@ -20,7 +21,7 @@ const (
 
 // CookieAuth cookie authenticator
 type CookieAuth struct {
-	Cryptor        cpt.Cryptor
+	Cryptor        cpt.Cryptor // cryptor to encode/decode cookie, MUST concurrent safe
 	FindUser       FindUserFunc
 	CookieName     string
 	CookieMaxAge   time.Duration
@@ -29,6 +30,7 @@ type CookieAuth struct {
 	CookieSecure   bool
 	CookieHttpOnly bool
 	CookieSameSite http.SameSite
+
 	AuthUserKey    string
 	RedirectURL    string
 	OriginURLQuery string
@@ -39,7 +41,7 @@ type CookieAuth struct {
 
 func NewCookieAuth(f FindUserFunc, secret string) *CookieAuth {
 	ca := &CookieAuth{
-		Cryptor:        cpt.NewAes128CBC(secret),
+		Cryptor:        ccpt.NewAes128CBCCryptor(secret),
 		FindUser:       f,
 		CookieName:     AuthCookieName,
 		CookiePath:     "/",
@@ -158,7 +160,6 @@ func (ca *CookieAuth) GetUserPassFromCookie(c *xin.Context) (username, password 
 		if !ok {
 			c.Logger.Warnf("Invalid Cookie Auth %q", auth)
 		}
-
 	}
 	return
 }

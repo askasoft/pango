@@ -8,21 +8,27 @@ import (
 // Ticket
 
 const (
-	TicketIncludeConversations  = "conversations"
-	TicketIncludeRequester      = "requester"
-	TicketIncludeRequestedFor   = "requested_for"
-	TicketIncludeStats          = "stats"
-	TicketIncludeProblem        = "problem"
-	TicketIncludeAssets         = "assets"
-	TicketIncludeChange         = "change"
-	TicketIncludeRelatedTickets = "related_tickets"
+	TicketIncludeStats              = "stats"
+	TicketIncludeRequester          = "requester"
+	TicketIncludeRequestedFor       = "requested_for"
+	TicketIncludeOnboardingContext  = "onboarding_context"
+	TicketIncludeOffboardingContext = "offboarding_context"
+	TicketIncludeConversations      = "conversations"   // old documented
+	TicketIncludeProblem            = "problem"         // old documented
+	TicketIncludeAssets             = "assets"          // old documented
+	TicketIncludeChange             = "change"          // old documented
+	TicketIncludeRelatedTickets     = "related_tickets" // old documented
+
+	TicketTypeIncident       = "Incident"
+	TicketTypeServiceRequest = "Service Request"
 )
 
 type ListTicketsOption struct {
 	Filter       string // The various filters available are new_and_my_open, watching, spam, deleted.
 	WorkspaceID  int64
 	RequestID    int64
-	Type         string
+	Email        string
+	Type         string // Incident, Service Request
 	UpdatedSince Time
 	Include      string    // stats, requester, requester_for
 	OrderType    OrderType // asc, desc (default)
@@ -39,6 +45,7 @@ func (lto *ListTicketsOption) Values() Values {
 	q.SetString("filter", lto.Filter)
 	q.SetInt64("workspace_id", lto.WorkspaceID)
 	q.SetInt64("request_id", lto.RequestID)
+	q.SetString("email", lto.Email)
 	q.SetString("type", lto.Type)
 	q.SetTime("updated_since", lto.UpdatedSince)
 	q.SetString("include", lto.Include)

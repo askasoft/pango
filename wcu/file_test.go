@@ -8,7 +8,7 @@ import (
 
 func TestDetectCharsetFile(t *testing.T) {
 	for i, c := range cs {
-		a, err := DetectCharsetFile(testFilename(c))
+		a, err := DetectCharsetFile(testFilename(c), 1024)
 		if err != nil {
 			t.Fatalf("[%d] Failed to DetectCharsetFile(%q): %v", i, c, err)
 		}
@@ -42,7 +42,7 @@ func TestDetectAndReadFile(t *testing.T) {
 
 	for i, c := range cs {
 		tf := testFilename(c)
-		bs, enc, err := DetectAndReadFile(tf)
+		bs, enc, err := DetectAndReadFile(tf, 1024)
 		if err != nil {
 			t.Fatalf("[%d] Failed to DetectAndReadFile(%q): %v", i, tf, err)
 		}

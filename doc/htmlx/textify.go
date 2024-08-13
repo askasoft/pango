@@ -7,14 +7,13 @@ import (
 
 	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/str"
-	"github.com/askasoft/pango/wcu"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 )
 
-func ExtractTextFromHTMLFile(name string, charsets ...string) (string, error) {
+func ExtractTextFromHTMLFile(name string, detect int, charsets ...string) (string, error) {
 	sb := &strings.Builder{}
-	err := HTMLFileTextify(sb, name, charsets...)
+	err := HTMLFileTextify(sb, name, detect, charsets...)
 	return sb.String(), err
 }
 
@@ -26,18 +25,17 @@ func ExtractTextFromHTMLString(html string) (string, error) {
 
 func ExtractTextFromHTMLNode(node *html.Node) string {
 	sb := &strings.Builder{}
-	_ = Textify(node, sb)
+	_ = Textify(sb, node)
 	return sb.String()
 }
 
-func HTMLFileTextify(w io.Writer, name string, charsets ...string) error {
-	wf, _, err := wcu.DetectAndOpenFile(name, charsets...)
+func HTMLFileTextify(w io.Writer, name string, detect int, charsets ...string) error {
+	doc, err := ParseHTMLFile(name, detect, charsets...)
 	if err != nil {
 		return err
 	}
-	defer wf.Close()
 
-	return HTMLReaderTextify(w, wf)
+	return Textify(w, doc)
 }
 
 func HTMLStringTextify(w io.Writer, html string) error {
@@ -51,7 +49,7 @@ func HTMLReaderTextify(w io.Writer, r io.Reader) error {
 	if err != nil {
 		return err
 	}
-	return Textify(doc, w)
+	return Textify(w, doc)
 }
 
 type Textifier struct {
@@ -322,7 +320,7 @@ func (tf *Textifier) deep(n *html.Node) error {
 	return nil
 }
 
-func Textify(n *html.Node, w io.Writer) error {
+func Textify(w io.Writer, n *html.Node) error {
 	tf := NewTextifier(w)
 	return tf.Textify(n)
 }

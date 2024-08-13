@@ -14,7 +14,7 @@ func TestExtractTextFromHTMLFile(t *testing.T) {
 
 	for i, c := range cs {
 		fn := testFilename(c)
-		a, err := ExtractTextFromHTMLFile(fn)
+		a, err := ExtractTextFromHTMLFile(fn, 1024)
 		if err != nil {
 			t.Fatalf("[%d] Failed to ExtractTextFromHTMLFile(%q): %v", i, c, err)
 		}

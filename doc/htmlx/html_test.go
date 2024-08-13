@@ -25,7 +25,7 @@ func testReadFile(t *testing.T, name string) []byte {
 
 func TestParseHTMLFile(t *testing.T) {
 	fn := testFilename("utf-8.html")
-	doc, err := ParseHTMLFile(fn)
+	doc, err := ParseHTMLFile(fn, 1024)
 	if err != nil {
 		t.Fatalf("Failed to ParseHTMLFile(%q): %v", fn, err)
 	}
@@ -60,7 +60,7 @@ func TestFindAndGetHtmlLang(t *testing.T) {
 
 	for i, c := range cs {
 		fn := testFilename(c)
-		doc, err := ParseHTMLFile(fn)
+		doc, err := ParseHTMLFile(fn, 1024)
 		if err != nil {
 			t.Fatalf("[%d] Failed to ParseHTMLFile(%q): %v", i, c, err)
 		}
@@ -79,7 +79,7 @@ func TestFindAndGetHeadTitle(t *testing.T) {
 
 	for i, c := range cs {
 		fn := testFilename(c)
-		doc, err := ParseHTMLFile(fn)
+		doc, err := ParseHTMLFile(fn, 1024)
 		if err != nil {
 			t.Fatalf("[%d] Failed to ParseHTMLFile(%q): %v", i, c, err)
 		}
@@ -101,7 +101,7 @@ func TestFindAndGetMetas(t *testing.T) {
 
 	for i, c := range cs {
 		fn := testFilename(c)
-		doc, err := ParseHTMLFile(fn)
+		doc, err := ParseHTMLFile(fn, 1024)
 		if err != nil {
 			t.Fatalf("[%d] Failed to ParseHTMLFile(%q): %v", i, c, err)
 		}

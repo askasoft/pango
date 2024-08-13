@@ -10,8 +10,8 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
-func ParseHTMLFile(name string, charsets ...string) (*html.Node, error) {
-	wf, _, err := wcu.DetectAndOpenFile(name, charsets...)
+func ParseHTMLFile(name string, detect int, charsets ...string) (*html.Node, error) {
+	wf, _, err := wcu.DetectAndOpenFile(name, detect, charsets...)
 	if err != nil {
 		return nil, err
 	}

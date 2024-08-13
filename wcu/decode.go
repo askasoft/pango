@@ -40,8 +40,8 @@ func Transform(r io.Reader, charset string) (io.Reader, string, error) {
 }
 
 // DetectAndTransform Detect the chatset from the reader and transform the reader with the detected xcharset.
-func DetectAndTransform(r io.Reader, html ...bool) (io.Reader, string, error) {
-	dr, cs, err := DetectCharsetReader(r, html...)
+func DetectAndTransform(r io.Reader, detect int, html ...bool) (io.Reader, string, error) {
+	dr, cs, err := DetectCharsetReader(r, detect, html...)
 	if err != nil {
 		return dr, cs, err
 	}

@@ -46,7 +46,7 @@ func TestDetectCharsetReader(t *testing.T) {
 	for i, c := range cs {
 		bs := testReadFile(t, c)
 
-		_, a, err := DetectCharsetReader(bytes.NewReader(bs))
+		_, a, err := DetectCharsetReader(bytes.NewReader(bs), 1024)
 		if err != nil {
 			t.Fatalf("[%d] Failed to DetectCharsetReader(%q): %v", i, c, err)
 		}

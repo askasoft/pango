@@ -29,6 +29,7 @@ var recognizers = []recognizer{
 	newRecognizer_utf16le(),
 	newRecognizer_utf32be(),
 	newRecognizer_utf32le(),
+
 	newRecognizer_8859_1_en(),
 	newRecognizer_8859_1_da(),
 	newRecognizer_8859_1_de(),
@@ -53,15 +54,15 @@ var recognizers = []recognizer{
 	newRecognizer_KOI8_R(),
 	newRecognizer_8859_9_tr(),
 
-	newRecognizer_sjis(),
 	newRecognizer_gb_18030(),
+	newRecognizer_big5(),
+	newRecognizer_sjis(),
 	newRecognizer_euc_jp(),
 	newRecognizer_euc_kr(),
-	newRecognizer_big5(),
 
+	newRecognizer_2022CN(),
 	newRecognizer_2022JP(),
 	newRecognizer_2022KR(),
-	newRecognizer_2022CN(),
 
 	newRecognizer_IBM424_he_rtl(),
 	newRecognizer_IBM424_he_ltr(),
@@ -96,23 +97,23 @@ var (
 // DetectBest returns the Result with highest Confidence.
 func (d *Detector) DetectBest(b []byte) (*Result, error) {
 	input := newRecognizerInput(b, d.stripTag)
-	outputChan := make(chan recognizerOutput)
-	for _, r := range d.recognizers {
-		go matchHelper(r, input, outputChan)
-	}
 
-	var output Result
-	for i := 0; i < len(d.recognizers); i++ {
-		o := <-outputChan
-		if output.Confidence < o.Confidence {
-			output = Result(o)
+	var best Result
+	for _, r := range d.recognizers {
+		rout := r.Match(input)
+		if rout.Confidence == 100 {
+			best = Result(rout)
+			return &best, nil
+		}
+		if best.Confidence < rout.Confidence {
+			best = Result(rout)
 		}
 	}
 
-	if output.Confidence == 0 {
+	if best.Confidence == 0 {
 		return nil, ErrNotDetected
 	}
-	return &output, nil
+	return &best, nil
 }
 
 // DetectAll returns all Results which have non-zero Confidence. The Results are sorted by Confidence in descending order.

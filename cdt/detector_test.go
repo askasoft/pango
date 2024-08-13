@@ -1,11 +1,24 @@
 package cdt
 
 import (
-	"io"
-	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/askasoft/pango/fsu"
 )
+
+func testFilename(name string) string {
+	return filepath.Join("testdata", name)
+}
+
+func testReadFile(t *testing.T, name string) []byte {
+	fn := testFilename(name)
+	bs, err := fsu.ReadFile(fn)
+	if err != nil {
+		t.Fatalf("Failed to read file %q: %v", fn, err)
+	}
+	return bs
+}
 
 func TestDetector(t *testing.T) {
 	type file_charset_language struct {
@@ -32,15 +45,8 @@ func TestDetector(t *testing.T) {
 
 	textDetector := NewTextDetector()
 	htmlDetector := NewHtmlDetector()
-	buffer := make([]byte, 32<<10)
 	for _, d := range data {
-		f, err := os.Open(filepath.Join("testdata", d.File))
-		if err != nil {
-			t.Fatal(err)
-		}
-		defer f.Close()
-		size, _ := io.ReadFull(f, buffer)
-		input := buffer[:size]
+		input := testReadFile(t, d.File)
 		var detector = textDetector
 		if d.IsHtml {
 			detector = htmlDetector

@@ -30,7 +30,7 @@ func TestDetectAndDecodeBytes(t *testing.T) {
 	for i, c := range cs {
 		bs := testReadFile(t, c)
 
-		abs, err := DetectAndDecodeBytes(bs)
+		abs, err := DetectAndDecodeBytes(bs, 4096)
 		if err != nil {
 			t.Fatalf("[%d] Failed to DetectAndDecodeBytes(%q): %v", i, c, err)
 		}

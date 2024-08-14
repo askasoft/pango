@@ -20,8 +20,14 @@ func DecodeBytes(src []byte, chatset string) ([]byte, error) {
 }
 
 // DecodeBytes Detect the chatset of the bytes and convert it to UTF-8.
-func DetectAndDecodeBytes(src []byte, html ...bool) ([]byte, error) {
-	cs, err := DetectCharsetBytes(src, html...)
+// detect: the maximum bytes to read for detect, if detect > 0 and detect < len(src).
+func DetectAndDecodeBytes(src []byte, detect int, html ...bool) ([]byte, error) {
+	det := src
+	if detect > 0 && detect < len(src) {
+		det = src[:detect]
+	}
+
+	cs, err := DetectCharsetBytes(det, html...)
 	if err != nil {
 		return src, err
 	}
@@ -39,7 +45,9 @@ func Transform(r io.Reader, charset string) (io.Reader, string, error) {
 	return transform.NewReader(r, enc.NewDecoder()), name, nil
 }
 
-// DetectAndTransform Detect the chatset from the reader and transform the reader with the detected xcharset.
+// DetectAndTransform Detect the chatset from the reader and transform the reader with the detected charset.
+// detect: the maximum bytes to read for detect, if detect <= 0.
+// otherwise read all `r` into buffer and return bytes.Reader.
 func DetectAndTransform(r io.Reader, detect int, html ...bool) (io.Reader, string, error) {
 	dr, cs, err := DetectCharsetReader(r, detect, html...)
 	if err != nil {

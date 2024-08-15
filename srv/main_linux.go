@@ -35,7 +35,7 @@ func PrintUsage(app App) {
 func Main(app App) {
 	flag.CommandLine.Usage = app.Usage
 
-	workdir := flag.String("d", "", "set the working directory.")
+	workdir := flag.String("dir", "", "set the working directory.")
 
 	if cmd, ok := app.(Cmd); ok {
 		cmd.Flag()

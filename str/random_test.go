@@ -21,10 +21,27 @@ func TestRandLetters(t *testing.T) {
 		testRandString(t, "RandLetters", RandLetters, i, Letters)
 	}
 }
+func TestRandUpperLetters(t *testing.T) {
+	for i := 10; i < 100; i++ {
+		testRandString(t, "RandUpperLetters", RandUpperLetters, i, UpperLetters)
+	}
+}
+
+func TestRandLowerLetters(t *testing.T) {
+	for i := 10; i < 100; i++ {
+		testRandString(t, "RandLowerLetters", RandLowerLetters, i, LowerLetters)
+	}
+}
+
+func TestRandSymbols(t *testing.T) {
+	for i := 10; i < 100; i++ {
+		testRandString(t, "RandSymbols", RandSymbols, i, Symbols)
+	}
+}
 
 func TestRandString(t *testing.T) {
 	for i := 10; i < 100; i++ {
-		testRandString(t, "RandString", func(z int) string { return RandString(z) }, i, LetterNumberSymbols)
+		testRandString(t, "RandString", func(z int) string { return RandString(z) }, i, LetterDigitSymbols)
 	}
 }
 

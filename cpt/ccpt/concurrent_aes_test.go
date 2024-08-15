@@ -17,7 +17,7 @@ func TestAesCBCEncrypt(t *testing.T) {
 		tf := func(n int) {
 			defer wg.Done()
 
-			rs := str.RandLetterNumbers(n)
+			rs := str.RandString(n)
 			es, err := c.EncryptString(rs)
 			if err != nil {
 				t.Error(n, err)
@@ -56,7 +56,7 @@ func TestAesCFBEncrypt(t *testing.T) {
 		tf := func(n int) {
 			defer wg.Done()
 
-			rs := str.RandLetterNumbers(n)
+			rs := str.RandString(n)
 			es, err := c.EncryptString(rs)
 			if err != nil {
 				t.Error(n, err)

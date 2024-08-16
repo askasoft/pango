@@ -339,7 +339,7 @@ func IsHash(s string, algorithm string) bool {
 	if len(s) != n {
 		return false
 	}
-	return str.IsAlphaNumber(s)
+	return str.IsLetterNumber(s)
 }
 
 // IsSHA512 checks is a string is a SHA512 hash. Alias for `IsHash(s, "sha512")`

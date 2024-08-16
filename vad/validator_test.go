@@ -7659,21 +7659,36 @@ func TestDecimal(t *testing.T) {
 	assertEqual(t, errs, nil)
 }
 
-func TestAlphaNumeric(t *testing.T) {
+func TestLetter(t *testing.T) {
 	validate := New()
 
-	s := "abcd123"
-	errs := validate.Var(s, "alphanum")
+	s := "abcd"
+	errs := validate.Var(s, "letter")
 	assertEqual(t, errs, nil)
 
-	s = "abc!23"
-	errs = validate.Var(s, "alphanum")
+	s = "abc®"
+	errs = validate.Var(s, "letter")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "alphanum")
+	AssertError(t, errs, "", "", "", "", "letter")
 
-	errs = validate.Var(1, "alphanum")
+	s = "abc÷"
+	errs = validate.Var(s, "letter")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "alphanum")
+	AssertError(t, errs, "", "", "", "", "letter")
+
+	s = "abc1"
+	errs = validate.Var(s, "letter")
+	assertNotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "letter")
+
+	s = "this is a test string"
+	errs = validate.Var(s, "letter")
+	assertNotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "letter")
+
+	errs = validate.Var(1, "letter")
+	assertNotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "letter")
 }
 
 func TestAlpha(t *testing.T) {
@@ -7706,6 +7721,40 @@ func TestAlpha(t *testing.T) {
 	errs = validate.Var(1, "alpha")
 	assertNotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "alpha")
+}
+
+func TestLetterNumber(t *testing.T) {
+	validate := New()
+
+	s := "abcd123"
+	errs := validate.Var(s, "letternum")
+	assertEqual(t, errs, nil)
+
+	s = "abc!23"
+	errs = validate.Var(s, "letternum")
+	assertNotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "letternum")
+
+	errs = validate.Var(1, "letternum")
+	assertNotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "letternum")
+}
+
+func TestAlphaNumber(t *testing.T) {
+	validate := New()
+
+	s := "abcd123"
+	errs := validate.Var(s, "alphanum")
+	assertEqual(t, errs, nil)
+
+	s = "abc!23"
+	errs = validate.Var(s, "alphanum")
+	assertNotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "alphanum")
+
+	errs = validate.Var(1, "alphanum")
+	assertNotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "alphanum")
 }
 
 func TestStructStringValidation(t *testing.T) {
@@ -8436,6 +8485,47 @@ func TestRequiredPtr(t *testing.T) {
 	assertEqual(t, err, nil)
 }
 
+func TestUTFLetterValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"abc", true},
+		{"this is a test string", false},
+		{"这是一个测试字符串", true},
+		{"123", false},
+		{"<>@;.-=", false},
+		{"ひらがな・カタカナ、．漢字", false},
+		{"あいうえおfoobar", true},
+		{"test＠example.com", false},
+		{"1234abcDE", false},
+		{"ｶﾀｶﾅ", true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "utfletter")
+
+		if test.expected {
+			if !assertIsEqual(errs, nil) {
+				t.Fatalf("Index: %d Unicode Letter failed Error: %s", i, errs)
+			}
+		} else {
+			if assertIsEqual(errs, nil) {
+				t.Fatalf("Index: %d Unicode Letter failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "utfletter" {
+					t.Fatalf("Index: %d Unicode Letter failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
 func TestAlphaUnicodeValidation(t *testing.T) {
 	tests := []struct {
 		param    string
@@ -8471,6 +8561,48 @@ func TestAlphaUnicodeValidation(t *testing.T) {
 				val := getError(errs, "", "")
 				if val.Tag() != "alphaunicode" {
 					t.Fatalf("Index: %d Alpha Unicode failed Error: %s", i, errs)
+				}
+			}
+		}
+	}
+}
+
+func TestUTFLetterNumberValidation(t *testing.T) {
+	tests := []struct {
+		param    string
+		expected bool
+	}{
+		{"", false},
+		{"abc", true},
+		{"this is a test string", false},
+		{"这是一个测试字符串", true},
+		{"\u0031\u0032\u0033", true}, // unicode 5
+		{"123", true},
+		{"<>@;.-=", false},
+		{"ひらがな・カタカナ、．漢字", false},
+		{"あいうえおfoobar", true},
+		{"test＠example.com", false},
+		{"1234abcDE", true},
+		{"ｶﾀｶﾅ", true},
+	}
+
+	validate := New()
+
+	for i, test := range tests {
+
+		errs := validate.Var(test.param, "utfletternum")
+
+		if test.expected {
+			if !assertIsEqual(errs, nil) {
+				t.Fatalf("Index: %d Unicode Letter Number failed Error: %s", i, errs)
+			}
+		} else {
+			if assertIsEqual(errs, nil) {
+				t.Fatalf("Index: %d Unicode Letter Number failed Error: %s", i, errs)
+			} else {
+				val := getError(errs, "", "")
+				if val.Tag() != "utfletternum" {
+					t.Fatalf("Index: %d Unicode Letter Number failed Error: %s", i, errs)
 				}
 			}
 		}

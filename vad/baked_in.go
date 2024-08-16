@@ -56,7 +56,11 @@ var (
 	// defines a common or complex set of validation(s) to simplify
 	// adding validation to structs.
 	bakedInAliases = map[string]string{
-		"iscolor": "hexcolor|rgb|rgba|hsl|hsla",
+		"iscolor":         "hexcolor|rgb|rgba|hsl|hsla",
+		"alpha":           "letter",
+		"alphanum":        "letternum",
+		"alphaunicode":    "utfletter",
+		"alphanumunicode": "utfletternum",
 	}
 
 	// bakedInValidators is the default map of ValidationFunc
@@ -102,10 +106,10 @@ var (
 		"ltecsfield":                    isLteCrossStructField,
 		"fieldcontains":                 fieldContains,
 		"fieldexcludes":                 fieldExcludes,
-		"alpha":                         isAlpha,
-		"alphanum":                      isAlphaNumber,
-		"alphaunicode":                  isAlphaUnicode,
-		"alphanumunicode":               isAlphanumUnicode,
+		"letter":                        isLetter,
+		"letternum":                     isLetterNumber,
+		"utfletter":                     isUTFLetter,
+		"utfletternum":                  isUTFLetterNumber,
 		"boolean":                       isBoolean,
 		"decimal":                       isDecimal,
 		"numeric":                       isNumeric,
@@ -1180,24 +1184,24 @@ func isDecimal(fl FieldLevel) bool {
 	}
 }
 
-// isAlphaNumber is the validation function for validating if the current field's value is a valid alphanumeric value.
-func isAlphaNumber(fl FieldLevel) bool {
-	return str.IsAlphaNumber(fl.Field().String())
+// isLetter is the validation function for validating if the current field's value is a valid letter value.
+func isLetter(fl FieldLevel) bool {
+	return str.IsLetter(fl.Field().String())
 }
 
-// isAlpha is the validation function for validating if the current field's value is a valid alpha value.
-func isAlpha(fl FieldLevel) bool {
-	return str.IsAlpha(fl.Field().String())
+// isLetterNumber is the validation function for validating if the current field's value is a valid alphanumeric value.
+func isLetterNumber(fl FieldLevel) bool {
+	return str.IsLetterNumber(fl.Field().String())
 }
 
-// isAlphanumUnicode is the validation function for validating if the current field's value is a valid alphanumeric unicode value.
-func isAlphanumUnicode(fl FieldLevel) bool {
-	return alphaUnicodeNumericRegex.MatchString(fl.Field().String())
+// isUTFLetter is the validation function for validating if the current field's value is a valid alpha unicode value.
+func isUTFLetter(fl FieldLevel) bool {
+	return str.IsUTFLetter(fl.Field().String())
 }
 
-// isAlphaUnicode is the validation function for validating if the current field's value is a valid alpha unicode value.
-func isAlphaUnicode(fl FieldLevel) bool {
-	return alphaUnicodeRegex.MatchString(fl.Field().String())
+// isUTFLetterNumber is the validation function for validating if the current field's value is a valid alphanumeric unicode value.
+func isUTFLetterNumber(fl FieldLevel) bool {
+	return str.IsUTFLetterNumber(fl.Field().String())
 }
 
 // isBoolean is the validation function for validating if the current field's value can be safely converted to a boolean.
@@ -1991,10 +1995,7 @@ func isLowercase(fl FieldLevel) bool {
 	field := fl.Field()
 
 	if field.Kind() == reflect.String {
-		if field.String() == "" {
-			return false
-		}
-		return field.String() == strings.ToLower(field.String())
+		return str.IsLowerCase(fl.Field().String())
 	}
 
 	panic(fmt.Sprintf("lowercase: bad field type %T", field.Interface()))
@@ -2005,10 +2006,7 @@ func isUppercase(fl FieldLevel) bool {
 	field := fl.Field()
 
 	if field.Kind() == reflect.String {
-		if field.String() == "" {
-			return false
-		}
-		return field.String() == strings.ToUpper(field.String())
+		return str.IsUpperCase(fl.Field().String())
 	}
 
 	panic(fmt.Sprintf("uppercase: bad field type %T", field.Interface()))

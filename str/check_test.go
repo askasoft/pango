@@ -93,7 +93,7 @@ func TestIsPrintableASCII(t *testing.T) {
 	}
 }
 
-func TestIsAlpha(t *testing.T) {
+func TestIsLetter(t *testing.T) {
 	t.Parallel()
 
 	cs := []struct {
@@ -145,9 +145,9 @@ func TestIsAlpha(t *testing.T) {
 		{"+1", false},
 	}
 	for i, c := range cs {
-		a := IsAlpha(c.s)
+		a := IsLetter(c.s)
 		if a != c.w {
-			t.Errorf("[%d] IsAlpha(%q) = %v, want %v", i, c.s, a, c.w)
+			t.Errorf("[%d] IsLetter(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }
@@ -212,7 +212,7 @@ func TestIsUTFLetter(t *testing.T) {
 	}
 }
 
-func TestIsAlphaNumber(t *testing.T) {
+func TestIsLetterNumber(t *testing.T) {
 	t.Parallel()
 
 	cs := []struct {
@@ -266,9 +266,9 @@ func TestIsAlphaNumber(t *testing.T) {
 		{"+1", false},
 	}
 	for i, c := range cs {
-		a := IsAlphaNumber(c.s)
+		a := IsLetterNumber(c.s)
 		if a != c.w {
-			t.Errorf("[%d] IsAlphaNumber(%q) = %v, want %v", i, c.s, a, c.w)
+			t.Errorf("[%d] IsLetterNumber(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }

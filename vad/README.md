@@ -105,10 +105,10 @@ Baked-in Validations
 
 | Tag | Description |
 | - | - |
-| alpha | Alpha Only |
-| alphanum | Alphanumeric |
-| alphanumunicode | Alphanumeric Unicode |
-| alphaunicode | Alpha Unicode |
+| letter | Ascii Letter Only |
+| letternum | Ascii Letter or Number |
+| utfletter | Unicode Letter |
+| utfletternum | Unicode Letter or Number |
 | ascii | ASCII |
 | boolean | Boolean |
 | contains | Contains |
@@ -224,4 +224,8 @@ Baked-in Validations
 | Tag | Description |
 | - | - |
 | iscolor | hexcolor\|rgb\|rgba\|hsl\|hsla |
+| alpha | letter |
+| alphanum | letternum |
+| alphaunicode | utfletter |
+| alphanumunicode | utfletternum |
 

@@ -46,8 +46,8 @@ func IsPrintableASCII(s string) bool {
 	return true
 }
 
-// IsAlpha checks if the string contains only letters (a-zA-Z).
-func IsAlpha(s string) bool {
+// IsLetter checks if the string contains only letters (a-zA-Z).
+func IsLetter(s string) bool {
 	if s == "" {
 		return false
 	}
@@ -62,8 +62,8 @@ func IsAlpha(s string) bool {
 	return true
 }
 
-// IsAlphaNumber checks if the string contains only letters and numbers.
-func IsAlphaNumber(s string) bool {
+// IsLetterNumber checks if the string contains only letters and numbers.
+func IsLetterNumber(s string) bool {
 	if s == "" {
 		return false
 	}
@@ -79,7 +79,7 @@ func IsAlphaNumber(s string) bool {
 }
 
 // IsUTFLetter checks if the string contains only unicode letter characters.
-// Similar to IsAlpha but for all languages.
+// Similar to IsLetter but for all languages.
 func IsUTFLetter(s string) bool {
 	if s == "" {
 		return false
@@ -91,7 +91,6 @@ func IsUTFLetter(s string) bool {
 		}
 	}
 	return true
-
 }
 
 // IsNumber checks if the string contains only numbers.
@@ -104,6 +103,36 @@ func IsNumber(s string) bool {
 	for i := 0; i < l; i++ {
 		b := s[i]
 		if b < '0' || b > '9' {
+			return false
+		}
+	}
+	return true
+}
+
+// IsUTFNumber checks if the string contains only unicode number characters.
+// Similar to IsNumber but for all languages.
+func IsUTFNumber(s string) bool {
+	if s == "" {
+		return false
+	}
+
+	for _, c := range s {
+		if !unicode.IsNumber(c) {
+			return false
+		}
+	}
+	return true
+}
+
+// IsUTFLetterNumber checks if the string contains only unicode letter or number characters.
+// Similar to IsLetterNumber but for all languages.
+func IsUTFLetterNumber(s string) bool {
+	if s == "" {
+		return false
+	}
+
+	for _, c := range s {
+		if !unicode.IsLetter(c) && !unicode.IsNumber(c) { //letters && numbers are ok
 			return false
 		}
 	}
@@ -178,21 +207,6 @@ func IsUTFDigit(s string) bool {
 		}
 	}
 	return true
-}
-
-// IsUTFLetterNumber checks if the string contains only unicode letters and numbers.
-func IsUTFLetterNumber(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	for _, c := range s {
-		if !unicode.IsLetter(c) && !unicode.IsNumber(c) { //letters && numbers are ok
-			return false
-		}
-	}
-	return true
-
 }
 
 // IsHexadecimal checks if the string is a hexadecimal number `^(0[xX])?[0-9a-fA-F]+$`.

@@ -54,8 +54,7 @@ func decodeResponse(res *http.Response, obj any, retryAfter time.Duration) error
 	}
 	_ = decoder.Decode(er)
 
-	switch er.StatusCode {
-	case http.StatusTooManyRequests, http.StatusInternalServerError, http.StatusBadGateway, http.StatusServiceUnavailable, http.StatusGatewayTimeout:
+	if er.StatusCode == http.StatusTooManyRequests || (er.StatusCode >= 500 && er.StatusCode <= 599) {
 		er.RetryAfter = retryAfter
 	}
 

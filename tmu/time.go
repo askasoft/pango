@@ -13,3 +13,31 @@ func Atod(s string, defs ...time.Duration) time.Duration {
 	}
 	return 0
 }
+
+var GeneralLayouts = []string{time.RFC3339, "2006-1-2 15:04:05", "2006-1-2", "15:04:05"}
+
+func ParseInLocation(value string, loc *time.Location, layouts ...string) (tt time.Time, err error) {
+	if len(layouts) == 0 {
+		layouts = GeneralLayouts
+	}
+
+	for _, f := range layouts {
+		if tt, err = time.ParseInLocation(f, value, time.Local); err == nil {
+			return //nolint: nilerr
+		}
+	}
+	return
+}
+
+func Parse(value string, layouts ...string) (tt time.Time, err error) {
+	if len(layouts) == 0 {
+		layouts = GeneralLayouts
+	}
+
+	for _, f := range layouts {
+		if tt, err = time.Parse(f, value); err == nil {
+			return //nolint: nilerr
+		}
+	}
+	return
+}

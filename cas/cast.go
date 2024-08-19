@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"time"
+
+	"github.com/askasoft/pango/tmu"
 )
 
 func ToDuration(v any) (time.Duration, error) {
@@ -41,15 +43,14 @@ func ToDuration(v any) (time.Duration, error) {
 		return time.Duration(s), nil
 	case float64:
 		return time.Duration(s), nil
+	default:
+		return 0, fmt.Errorf("cannot cast '%T' to time.Duration", v)
 	}
-	return 0, fmt.Errorf("cannot cast '%v' to time.Duration", v)
 }
 
 func utcMilli(msec int64) time.Time {
 	return time.Unix(msec/1e3, (msec%1e3)*1e6).UTC()
 }
-
-var timeFormats = []string{time.RFC3339, "2006-01-02 15:04:05", "2006-01-02", "15:04:05"}
 
 func ToTime(v any) (time.Time, error) {
 	if v == nil {
@@ -57,19 +58,6 @@ func ToTime(v any) (time.Time, error) {
 	}
 
 	switch s := v.(type) {
-	case string:
-		if s == "" {
-			return time.Time{}, nil
-		}
-
-		tf := timeFormats[0]
-		for _, f := range timeFormats {
-			if len(f) == len(s) {
-				tf = f
-				break
-			}
-		}
-		return time.ParseInLocation(tf, s, time.Local)
 	case int8:
 		return utcMilli(int64(s)), nil
 	case int16:
@@ -94,8 +82,14 @@ func ToTime(v any) (time.Time, error) {
 		return utcMilli(int64(s)), nil
 	case float64:
 		return utcMilli(int64(s)), nil
+	case string:
+		if s == "" {
+			return time.Time{}, nil
+		}
+		return tmu.ParseInLocation(s, time.Local)
+	default:
+		return time.Time{}, fmt.Errorf("cannot cast '%T' to time.Time", v)
 	}
-	return time.Time{}, fmt.Errorf("cannot cast '%v' to time.Time", v)
 }
 
 func ToInt(v any) (int, error) {
@@ -139,8 +133,9 @@ func ToInt(v any) (int, error) {
 		return int(s), nil
 	case float64:
 		return int(s), nil
+	default:
+		return 0, fmt.Errorf("cannot cast '%T' to int", v)
 	}
-	return 0, fmt.Errorf("cannot cast '%v' to int", v)
 }
 
 func ToInt8(v any) (int8, error) {
@@ -184,8 +179,9 @@ func ToInt8(v any) (int8, error) {
 		return int8(s), nil
 	case float64:
 		return int8(s), nil
+	default:
+		return 0, fmt.Errorf("cannot cast '%T' to int8", v)
 	}
-	return 0, fmt.Errorf("cannot cast '%v' to int8", v)
 }
 
 func ToInt16(v any) (int16, error) {
@@ -229,8 +225,9 @@ func ToInt16(v any) (int16, error) {
 		return int16(s), nil
 	case float64:
 		return int16(s), nil
+	default:
+		return 0, fmt.Errorf("cannot cast '%T' to int16", v)
 	}
-	return 0, fmt.Errorf("cannot cast '%v' to int16", v)
 }
 
 func ToInt32(v any) (int32, error) {
@@ -274,8 +271,9 @@ func ToInt32(v any) (int32, error) {
 		return int32(s), nil
 	case float64:
 		return int32(s), nil
+	default:
+		return 0, fmt.Errorf("cannot cast '%T' to int32", v)
 	}
-	return 0, fmt.Errorf("cannot cast '%v' to int32", v)
 }
 
 func ToInt64(v any) (int64, error) {
@@ -319,8 +317,9 @@ func ToInt64(v any) (int64, error) {
 		return int64(s), nil
 	case float64:
 		return int64(s), nil
+	default:
+		return int64(0), fmt.Errorf("cannot cast '%T' to int64", v)
 	}
-	return int64(0), fmt.Errorf("cannot cast '%v' to int64", v)
 }
 
 func ToUint(v any) (uint, error) {
@@ -364,8 +363,9 @@ func ToUint(v any) (uint, error) {
 		return uint(s), nil
 	case float64:
 		return uint(s), nil
+	default:
+		return uint(0), fmt.Errorf("cannot cast '%T' to uint", v)
 	}
-	return uint(0), fmt.Errorf("cannot cast '%v' to uint", v)
 }
 
 func ToUint8(v any) (uint8, error) {
@@ -409,8 +409,9 @@ func ToUint8(v any) (uint8, error) {
 		return uint8(s), nil
 	case float64:
 		return uint8(s), nil
+	default:
+		return uint8(0), fmt.Errorf("cannot cast '%T' to uint", v)
 	}
-	return uint8(0), fmt.Errorf("cannot cast '%v' to uint", v)
 }
 
 func ToUint16(v any) (uint16, error) {
@@ -454,8 +455,9 @@ func ToUint16(v any) (uint16, error) {
 		return uint16(s), nil
 	case float64:
 		return uint16(s), nil
+	default:
+		return uint16(0), fmt.Errorf("cannot cast '%T' to uint16", v)
 	}
-	return uint16(0), fmt.Errorf("cannot cast '%v' to uint16", v)
 }
 
 func ToUint32(v any) (uint32, error) {
@@ -499,8 +501,9 @@ func ToUint32(v any) (uint32, error) {
 		return uint32(s), nil
 	case float64:
 		return uint32(s), nil
+	default:
+		return uint32(0), fmt.Errorf("cannot cast '%T' to uint32", v)
 	}
-	return uint32(0), fmt.Errorf("cannot cast '%v' to uint32", v)
 }
 
 func ToUint64(v any) (uint64, error) {
@@ -544,8 +547,9 @@ func ToUint64(v any) (uint64, error) {
 		return uint64(s), nil
 	case float64:
 		return uint64(s), nil
+	default:
+		return uint64(0), fmt.Errorf("cannot cast '%T' to uint64", v)
 	}
-	return uint64(0), fmt.Errorf("cannot cast '%v' to uint64", v)
 }
 
 func ToFloat32(v any) (float32, error) {
@@ -589,8 +593,9 @@ func ToFloat32(v any) (float32, error) {
 		return float32(s), nil
 	case float64:
 		return float32(s), nil
+	default:
+		return float32(0), fmt.Errorf("cannot cast '%T' to float32", v)
 	}
-	return float32(0), fmt.Errorf("cannot cast '%v' to float32", v)
 }
 
 func ToFloat64(v any) (float64, error) {
@@ -634,8 +639,9 @@ func ToFloat64(v any) (float64, error) {
 		return float64(s), nil
 	case float64:
 		return float64(s), nil
+	default:
+		return float64(0), fmt.Errorf("cannot cast '%T' to float64", v)
 	}
-	return float64(0), fmt.Errorf("cannot cast '%v' to float64", v)
 }
 
 func ToBool(v any) (bool, error) {
@@ -675,8 +681,9 @@ func ToBool(v any) (bool, error) {
 		return s != 0, nil
 	case float64:
 		return s != 0, nil
+	default:
+		return false, fmt.Errorf("cannot cast '%T' to bool", v)
 	}
-	return false, fmt.Errorf("cannot cast '%v' to bool", v)
 }
 
 func ToString(v any) (string, error) {
@@ -718,6 +725,7 @@ func ToString(v any) (string, error) {
 		return strconv.FormatFloat(float64(s), 'f', -1, 32), nil
 	case float64:
 		return strconv.FormatFloat(s, 'f', -1, 64), nil
+	default:
+		return "", fmt.Errorf("cannot cast '%T' to string", v)
 	}
-	return "", fmt.Errorf("cannot cast '%v' to string", v)
 }

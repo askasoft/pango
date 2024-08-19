@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/tmu"
 )
 
 // extractTypeInternal gets the actual underlying type of field value.
@@ -321,8 +322,6 @@ func asBool(param string) bool {
 	return i
 }
 
-var timeFormats = []string{time.RFC3339, "2006-01-02 15:04:05", "2006-01-02", "15:04:05"}
-
 // asTime returns the parameter as a time
 // or panics if it can't convert
 func asTime(param string) time.Time {
@@ -330,15 +329,7 @@ func asTime(param string) time.Time {
 		return time.Now()
 	}
 
-	timeFormat := timeFormats[0]
-	for _, tf := range timeFormats {
-		if len(tf) == len(param) {
-			timeFormat = tf
-			break
-		}
-	}
-
-	t, err := time.ParseInLocation(timeFormat, param, time.Local)
+	t, err := tmu.ParseInLocation(param, time.Local)
 	panicIf(err)
 	return t
 }

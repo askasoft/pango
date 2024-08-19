@@ -35,12 +35,23 @@ func TestToDuration(t *testing.T) {
 }
 
 func TestToTime(t *testing.T) {
+	tm0102, err := time.ParseInLocation("2006-1-2 15:04:05", "2000-01-02 00:00:00", time.Local)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tm_1_2, err := time.ParseInLocation("2006-1-2 15:04:05", "2000-1-2 00:00:00", time.Local)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	cs := []struct {
 		s any
 		w time.Time
 	}{
 		{"", time.Time{}},
 		{"1970-01-01T00:00:01Z", time.Unix(1, 0).UTC()},
+		{"2000-01-02 00:00:00", tm0102},
+		{"2000-1-2 00:00:00", tm_1_2},
 		{int8(100), time.Unix(0, 100000000).UTC()},
 		{int16(200), time.Unix(0, 200000000).UTC()},
 		{int32(300), time.Unix(0, 300000000).UTC()},

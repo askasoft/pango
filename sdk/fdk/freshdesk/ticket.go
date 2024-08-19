@@ -291,6 +291,8 @@ func (t *Ticket) Values() Values {
 	vs.SetInt64("company_id", t.CompanyID)
 	vs.SetInt64("internal_agent_id", t.InternalAgentID)
 	vs.SetInt64("internal_group_id", t.InternalGroupID)
+	vs.SetTimePtr("created_at", t.CreatedAt)
+	vs.SetTimePtr("updated_at", t.UpdatedAt)
 	vs.SetMap("custom_fields", t.CustomFields)
 
 	return vs

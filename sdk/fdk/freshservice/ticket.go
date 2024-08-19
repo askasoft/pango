@@ -300,6 +300,8 @@ func (t *Ticket) Values() Values {
 	vs.SetString("category", t.Category)
 	vs.SetString("sub_category", t.SubCategory)
 	vs.SetString("item_category", t.ItemCategory)
+	vs.SetTimePtr("created_at", t.CreatedAt)
+	vs.SetTimePtr("updated_at", t.UpdatedAt)
 	vs.SetMap("custom_fields", t.CustomFields)
 
 	return vs

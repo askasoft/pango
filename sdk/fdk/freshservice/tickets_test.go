@@ -22,6 +22,7 @@ func TestTicketAPIs(t *testing.T) {
 		return
 	}
 
+	tm1, _ := time.ParseInLocation("2006-1-2 15:04:05", "2000-01-02 10:20:30", time.Local)
 	ot := &Ticket{
 		Name:        "test",
 		Phone:       "09012345678",
@@ -29,12 +30,14 @@ func TestTicketAPIs(t *testing.T) {
 		Description: "description " + time.Now().String(),
 		Status:      TicketStatusOpen,
 		Priority:    TicketPriorityMedium,
+		CreatedAt:   &Time{Time: tm1},
 	}
 
 	ct, err := fs.CreateTicket(ot)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
+	fs.Logger.Debug(ct)
 
 	tu := &Ticket{}
 	tu.Description = `<div>
@@ -42,22 +45,26 @@ func TestTicketAPIs(t *testing.T) {
 <div>問い合わせです。</div>
 <p> 外部 image</p><img src="https://github.com/askasoft/pango/raw/master/logo.png"><br/><br/><br/>
 </div>`
-	tu.AddAttachment("./any.go")
+	tu.AddAttachment("./agent.go")
 
 	ut, err := fs.UpdateTicket(ct.ID, tu)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
+	fs.Logger.Debug(ut)
 
 	err = fs.DeleteTicketAttachment(ut.ID, ut.Attachments[0].ID)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 
+	tm2, _ := time.ParseInLocation("2006-1-2 15:04:05", "2000-01-02 10:20:30", time.Local)
 	nc := &Note{
-		Body:    "create note " + time.Now().String(),
-		Private: true,
+		Body:      "create note " + time.Now().String(),
+		Private:   true,
+		CreatedAt: &Time{Time: tm2},
 	}
+
 	cn, err := fs.CreateNote(ct.ID, nc)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
@@ -67,7 +74,7 @@ func TestTicketAPIs(t *testing.T) {
 	cu := &Conversation{
 		Body: "update note " + time.Now().String(),
 	}
-	cu.AddAttachment("./any.go")
+	cu.AddAttachment("./agent.go")
 	uc, err := fs.UpdateConversation(cn.ID, cu)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)

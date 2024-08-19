@@ -18,6 +18,12 @@ type Note struct {
 
 	// ID of the agent/user who is adding the conversation
 	UserID int64 `json:"user_id,omitempty"`
+
+	// Note creation timestamp
+	CreatedAt *Time `json:"created_at,omitempty"`
+
+	// Note updated timestamp
+	UpdatedAt *Time `json:"updated_at,omitempty"`
 }
 
 func (n *Note) AddAttachment(path string, data ...[]byte) {
@@ -37,6 +43,8 @@ func (n *Note) Values() Values {
 	vs.SetStrings("notify_emails", n.NotifyEmails)
 	vs.SetBool("private", n.Private)
 	vs.SetInt64("user_id", n.UserID)
+	vs.SetTimePtr("created_at", n.CreatedAt)
+	vs.SetTimePtr("updated_at", n.UpdatedAt)
 
 	return vs
 }

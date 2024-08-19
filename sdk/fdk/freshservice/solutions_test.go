@@ -64,13 +64,13 @@ func TestSolutionAPIs(t *testing.T) {
 		}
 	}()
 
-	aad, err := fsu.ReadFile("./any.go")
+	aad, err := fsu.ReadFile("./agent.go")
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 
 	ua := &Article{}
-	ua.AddAttachment("./any.go")
+	ua.AddAttachment("./agent.go")
 	ua, err = fs.UpdateArticle(art.ID, ua)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
@@ -100,7 +100,7 @@ func TestSolutionAPIs(t *testing.T) {
 	}
 
 	ua3 := &Article{}
-	ua3.AddAttachment("./any.go", []byte("any.go"))
+	ua3.AddAttachment("./agent.go", []byte("agent.go"))
 	ua3, err = fs.UpdateArticle(art.ID, ua3)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)

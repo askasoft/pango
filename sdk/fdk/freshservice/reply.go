@@ -18,6 +18,12 @@ type Reply struct {
 
 	// Email address added in the 'bcc' field of the outgoing ticket email.
 	BccEmails []string `json:"bcc_emails,omitempty"`
+
+	// Reply creation timestamp
+	CreatedAt *Time `json:"created_at,omitempty"`
+
+	// Reply updated timestamp
+	UpdatedAt *Time `json:"updated_at,omitempty"`
 }
 
 func (r *Reply) AddAttachment(path string, data ...[]byte) {
@@ -37,6 +43,8 @@ func (r *Reply) Values() Values {
 	vs.SetStrings("cc_emails", r.CcEmails)
 	vs.SetStrings("bcc_emails", r.BccEmails)
 	vs.SetString("body", r.Body)
+	vs.SetTimePtr("created_at", r.CreatedAt)
+	vs.SetTimePtr("updated_at", r.UpdatedAt)
 
 	return vs
 }

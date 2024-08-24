@@ -72,7 +72,7 @@ func TestExtractStringFromPdfReader(t *testing.T) {
 		defer fr.Close()
 
 		bw := &bytes.Buffer{}
-		err = ExtractStringFromPdfReader(context.Background(), fr, bw)
+		err = ExtractStringFromPdfReader(context.Background(), bw, fr)
 		if err != nil {
 			fmt.Printf("[%d] TestExtractStringFromPdfReader(%s): %v\n", i, fn, err)
 			continue

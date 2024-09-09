@@ -6,7 +6,6 @@ import (
 
 	"github.com/askasoft/pango/sqx"
 	"github.com/askasoft/pango/sqx/sqlx"
-	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/xjm"
 )
 
@@ -46,7 +45,7 @@ func (sjc *sjc) FindJobChain(name string, asc bool, status ...string) (jc *xjm.J
 	if len(status) > 0 {
 		sqb.In("status", status)
 	}
-	sqb.Order("id " + str.If(asc, "ASC", "DESC"))
+	sqb.Order("id", !asc)
 	sqb.Limit(1)
 
 	sql, args := sqb.Build()
@@ -71,7 +70,7 @@ func (sjc *sjc) findJobChains(name string, start, limit int, asc bool, status ..
 	if len(status) > 0 {
 		sqb.In("status", status)
 	}
-	sqb.Order("id " + str.If(asc, "ASC", "DESC"))
+	sqb.Order("id", !asc)
 	sqb.Offset(start).Limit(limit)
 
 	return sqb

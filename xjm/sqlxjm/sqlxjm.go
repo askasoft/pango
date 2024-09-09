@@ -6,7 +6,6 @@ import (
 
 	"github.com/askasoft/pango/sqx"
 	"github.com/askasoft/pango/sqx/sqlx"
-	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/xjm"
 )
 
@@ -53,7 +52,7 @@ func (sjm *sjm) GetJobLogs(jid int64, min, max int64, asc bool, limit int, level
 		sqb.Where("id <= ?", max)
 	}
 	sqb.Limit(limit)
-	sqb.Order("id " + str.If(asc, "ASC", "DESC"))
+	sqb.Order("id", !asc)
 
 	sql, args := sqb.Build()
 	sql = sjm.db.Rebind(sql)
@@ -108,7 +107,7 @@ func (sjm *sjm) FindJob(name string, asc bool, status ...string) (job *xjm.Job, 
 	if len(status) > 0 {
 		sqb.In("status", status)
 	}
-	sqb.Order("id " + str.If(asc, "ASC", "DESC"))
+	sqb.Order("id", !asc)
 	sqb.Limit(1)
 
 	sql, args := sqb.Build()
@@ -133,7 +132,7 @@ func (sjm *sjm) findJobs(name string, start, limit int, asc bool, status ...stri
 	if len(status) > 0 {
 		sqb.In("status", status)
 	}
-	sqb.Order("id " + str.If(asc, "ASC", "DESC"))
+	sqb.Order("id", !asc)
 	sqb.Offset(start).Limit(limit)
 
 	return sqb
@@ -392,7 +391,7 @@ func (sjm *sjm) StartJobs(limit int, run func(*xjm.Job)) error {
 	sqb.Select("*")
 	sqb.From(sjm.jt)
 	sqb.Where("status = ?", xjm.JobStatusPending)
-	sqb.Order("id ASC")
+	sqb.Order("id", false)
 	sqb.Limit(limit)
 
 	sql, args := sqb.Build()

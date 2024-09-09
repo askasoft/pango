@@ -106,7 +106,10 @@ func (b *Builder) From(tb string) *Builder {
 	return b
 }
 
-func (b *Builder) Order(order string) *Builder {
+func (b *Builder) Order(order string, desc ...bool) *Builder {
+	if len(desc) > 0 {
+		order += str.If(desc[0], " DESC", " ASC")
+	}
 	b.orders = append(b.orders, order)
 	return b
 }

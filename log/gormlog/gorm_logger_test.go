@@ -10,8 +10,8 @@ import (
 	"gorm.io/gorm"
 )
 
-type GormLoggerTest struct {
-	gorm.Model
+type Schema struct {
+	SchemaName string
 }
 
 // CREATE USER pango PASSWORD 'pango';
@@ -23,7 +23,7 @@ func TestGormLogger(t *testing.T) {
 	logger := log.GetLogger("SQL")
 
 	dsn := "host=127.0.0.1 user=pango password=pango dbname=pango port=5432 sslmode=disable"
-	orm, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+	gdb, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		Logger: &GormLogger{
 			Logger:        logger,
 			SlowThreshold: time.Second,
@@ -35,16 +35,20 @@ func TestGormLogger(t *testing.T) {
 		t.Skip(err)
 	}
 
-	db, err := orm.DB()
+	db, err := gdb.DB()
 	if err != nil {
 		fmt.Println(err)
 		fmt.Println(err)
 	}
 	db.SetConnMaxLifetime(time.Minute)
 
-	// migration
-	err = orm.AutoMigrate(&GormLoggerTest{})
+	schemas := []Schema{}
+	err = gdb.Table("information_schema.schemata").Select("schema_name").Where("schema_name <> ?", "test").Find(&schemas).Error
 	if err != nil {
-		fmt.Println(err)
+		t.Fatal(err)
+	}
+
+	for _, s := range schemas {
+		fmt.Println(s.SchemaName)
 	}
 }

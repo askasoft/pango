@@ -1,14 +1,13 @@
-package goqulog
+package sqlxlog
 
 import (
-	"database/sql"
 	"fmt"
 	"testing"
 	"time"
 
 	"github.com/askasoft/pango/log"
-	"github.com/doug-martin/goqu/v9"
-	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
+	"github.com/askasoft/pango/sqx"
+	"github.com/askasoft/pango/sqx/sqlx"
 	_ "github.com/lib/pq"
 )
 
@@ -20,30 +19,30 @@ type Schema struct {
 // CREATE DATABASE pango WITH OWNER=pango ENCODING='UTF-8';
 // GRANT ALL ON DATABASE pango TO pango;
 
-func TestGoquLogger(t *testing.T) {
+func TestSqlxLogger(t *testing.T) {
 	log := log.NewLog()
 
-	logger := log.GetLogger("SQL")
+	slg := &SqlxLogger{
+		Logger:        log.GetLogger("SQL"),
+		SlowThreshold: time.Second,
+	}
 
 	dsn := "host=127.0.0.1 user=pango password=pango dbname=pango port=5432 sslmode=disable"
-	db, err := sql.Open("postgres", dsn)
+	sdb, err := sqlx.Connect("postgres", dsn, slg.Trace)
 	if err != nil {
 		fmt.Println(err)
 		t.Skip(err)
 	}
 
-	db.SetConnMaxLifetime(time.Minute)
+	sdb.DB().SetConnMaxLifetime(time.Minute)
 
-	if err := db.Ping(); err != nil {
-		fmt.Println(err)
-		t.Skip(err)
-	}
-
-	gd := goqu.Dialect("postgres").DB(db)
-	gd.Logger(NewGoquLogger(logger))
+	sqb := &sqx.Builder{}
+	sqb.Select("schema_name").From("information_schema.schemata").Where("schema_name <> ?", "test")
+	sql, args := sqb.Build()
+	sql = sdb.Rebind(sql)
 
 	schemas := []Schema{}
-	err = gd.From(goqu.S("information_schema").Table("schemata")).Select("schema_name").Where(goqu.C("schema_name").Neq("test")).ScanStructs(&schemas)
+	err = sdb.Select(&schemas, sql, args...)
 	if err != nil {
 		t.Fatal(err)
 	}

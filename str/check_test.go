@@ -65,7 +65,35 @@ func TestIsASCII(t *testing.T) {
 	}
 }
 
-func TestIsPrintableASCII(t *testing.T) {
+func TestIsUTFPrintable(t *testing.T) {
+	t.Parallel()
+
+	cs := []struct {
+		w bool
+		s string
+	}{
+		{false, ""},
+		{true, "ｆｏｏbar"},
+		{true, "ｘｙｚ０９８"},
+		{true, "１２３456"},
+		{true, "ｶﾀｶﾅ"},
+		{true, "foobar"},
+		{true, "0987654321"},
+		{true, "test@example.com"},
+		{true, "1234abcDEF"},
+		{false, "newline\n"},
+		{false, "\x19test\x7F"},
+	}
+
+	for i, c := range cs {
+		a := IsUTFPrintable(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsUTFPrintable(%q) = %v, want %v", i, c.s, a, c.w)
+		}
+	}
+}
+
+func TestIsASCIIPrintable(t *testing.T) {
 	t.Parallel()
 
 	cs := []struct {
@@ -86,9 +114,9 @@ func TestIsPrintableASCII(t *testing.T) {
 	}
 
 	for i, c := range cs {
-		a := IsPrintableASCII(c.s)
+		a := IsASCIIPrintable(c.s)
 		if a != c.w {
-			t.Errorf("[%d] IsPrintableASCII(%q) = %v, want %v", i, c.s, a, c.w)
+			t.Errorf("[%d] IsASCIIPrintable(%q) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }

@@ -124,6 +124,7 @@ Baked-in Validations
 | number | NOT DOCUMENTED IN doc.go |
 | numeric | Numeric |
 | decimal | Decimal |
+| printable | Printable Unicode |
 | printascii | Printable ASCII |
 | startsnotwith | Starts Not With |
 | startswith | Starts With |

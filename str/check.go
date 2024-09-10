@@ -30,8 +30,22 @@ func IsASCII(s string) bool {
 	return true
 }
 
-// IsPrintableASCII checks if the string contains printable ASCII chars only.
-func IsPrintableASCII(s string) bool {
+// IsUTFPrintable checks if the string contains printable chars only.
+func IsUTFPrintable(s string) bool {
+	if s == "" {
+		return false
+	}
+
+	for _, r := range s {
+		if !unicode.IsPrint(r) {
+			return false
+		}
+	}
+	return true
+}
+
+// IsASCIIPrintable checks if the string contains printable ASCII chars only.
+func IsASCIIPrintable(s string) bool {
 	if s == "" {
 		return false
 	}

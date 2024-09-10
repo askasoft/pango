@@ -151,7 +151,8 @@ var (
 		"uuid5":                         isUUIDv5,
 		"ulid":                          isULID,
 		"ascii":                         isASCII,
-		"printascii":                    isPrintableASCII,
+		"printable":                     isUTFPrintable,
+		"printascii":                    isASCIIPrintable,
 		"multibyte":                     hasMultibyte,
 		"datauri":                       isDataURI,
 		"latitude":                      isLatitude,
@@ -385,9 +386,14 @@ func hasMultibyte(fl FieldLevel) bool {
 	return str.HasMultibyte(fl.Field().String())
 }
 
-// isPrintableASCII is the validation function for validating if the field's value is a valid printable ASCII character.
-func isPrintableASCII(fl FieldLevel) bool {
-	return str.IsPrintableASCII(fl.Field().String())
+// isPrintable is the validation function for validating if the field's value is a valid printable character.
+func isUTFPrintable(fl FieldLevel) bool {
+	return str.IsUTFPrintable(fl.Field().String())
+}
+
+// isASCIIPrintable is the validation function for validating if the field's value is a valid printable ASCII character.
+func isASCIIPrintable(fl FieldLevel) bool {
+	return str.IsASCIIPrintable(fl.Field().String())
 }
 
 // isASCII is the validation function for validating if the field's value is a valid ASCII character.

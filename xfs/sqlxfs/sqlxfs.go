@@ -16,11 +16,11 @@ import (
 
 // sfs implements xfs.XFS interface
 type sfs struct {
-	db sqlx.Sqlx
+	db *sqlx.DB
 	tn string // table name
 }
 
-func FS(db sqlx.Sqlx, table string) xfs.XFS {
+func FS(db *sqlx.DB, table string) xfs.XFS {
 	return &sfs{db, table}
 }
 

@@ -4,17 +4,16 @@ import (
 	"errors"
 	"time"
 
-	"github.com/askasoft/pango/sqx"
 	"github.com/askasoft/pango/sqx/sqlx"
 	"github.com/askasoft/pango/xjm"
 )
 
 type sjc struct {
-	db sqlx.Sqlx
+	db *sqlx.DB
 	tb string // jc chain table
 }
 
-func JC(db sqlx.Sqlx, table string) xjm.JobChainer {
+func JC(db *sqlx.DB, table string) xjm.JobChainer {
 	return &sjc{
 		db: db,
 		tb: table,
@@ -36,7 +35,7 @@ func (sjc *sjc) GetJobChain(cid int64) (*xjm.JobChain, error) {
 }
 
 func (sjc *sjc) FindJobChain(name string, asc bool, status ...string) (jc *xjm.JobChain, err error) {
-	sqb := sqx.Builder{}
+	sqb := sjc.db.Builder()
 
 	sqb.Select("*").From(sjc.tb)
 	if name != "" {
@@ -49,7 +48,6 @@ func (sjc *sjc) FindJobChain(name string, asc bool, status ...string) (jc *xjm.J
 	sqb.Limit(1)
 
 	sql, args := sqb.Build()
-	sql = sjc.db.Rebind(sql)
 
 	jc = &xjm.JobChain{}
 	err = sjc.db.Get(jc, sql, args...)
@@ -60,8 +58,8 @@ func (sjc *sjc) FindJobChain(name string, asc bool, status ...string) (jc *xjm.J
 	return jc, err
 }
 
-func (sjc *sjc) findJobChains(name string, start, limit int, asc bool, status ...string) *sqx.Builder {
-	sqb := &sqx.Builder{}
+func (sjc *sjc) findJobChains(name string, start, limit int, asc bool, status ...string) *sqlx.Builder {
+	sqb := sjc.db.Builder()
 
 	sqb.Select("*").From(sjc.tb)
 	if name != "" {
@@ -79,7 +77,6 @@ func (sjc *sjc) findJobChains(name string, start, limit int, asc bool, status ..
 func (sjc *sjc) FindJobChains(name string, start, limit int, asc bool, status ...string) (jcs []*xjm.JobChain, err error) {
 	sqb := sjc.findJobChains(name, start, limit, asc, status...)
 	sql, args := sqb.Build()
-	sql = sjc.db.Rebind(sql)
 
 	err = sjc.db.Select(&jcs, sql, args...)
 	if errors.Is(err, sqlx.ErrNoRows) {
@@ -91,7 +88,6 @@ func (sjc *sjc) FindJobChains(name string, start, limit int, asc bool, status ..
 func (sjc *sjc) IterJobChains(it func(*xjm.JobChain) error, name string, start, limit int, asc bool, status ...string) error {
 	sqb := sjc.findJobChains(name, start, limit, asc, status...)
 	sql, args := sqb.Build()
-	sql = sjc.db.Rebind(sql)
 
 	rows, err := sjc.db.Queryx(sql, args...)
 	if err != nil {
@@ -116,7 +112,7 @@ func (sjc *sjc) IterJobChains(it func(*xjm.JobChain) error, name string, start, 
 func (sjc *sjc) CreateJobChain(name, states string) (int64, error) {
 	jc := &xjm.JobChain{Name: name, States: states, Status: xjm.JobStatusPending, CreatedAt: time.Now(), UpdatedAt: time.Now()}
 
-	sqb := sqx.Builder{}
+	sqb := sjc.db.Builder()
 
 	sqb.Insert(sjc.tb)
 	sqb.Columns("name", "status", "states", "created_at", "updated_at")
@@ -141,7 +137,7 @@ func (sjc *sjc) UpdateJobChain(cid int64, status string, states ...string) error
 		return nil
 	}
 
-	sqb := sqx.Builder{}
+	sqb := sjc.db.Builder()
 
 	sqb.Update(sjc.tb)
 	if status != "" {
@@ -154,7 +150,6 @@ func (sjc *sjc) UpdateJobChain(cid int64, status string, states ...string) error
 	sqb.Where("id = ?", cid)
 
 	sql, args := sqb.Build()
-	sql = sjc.db.Rebind(sql)
 
 	r, err := sjc.db.Exec(sql, args...)
 	if err != nil {
@@ -176,14 +171,14 @@ func (sjc *sjc) DeleteJobChains(cids ...int64) (cnt int64, err error) {
 		return
 	}
 
-	sqb := sqx.Builder{}
+	sqb := sjc.db.Builder()
 	sqb.Delete(sjc.tb)
 	sqb.In("id", cids)
 
-	sql := sjc.db.Rebind(sqb.SQL())
+	sql, args := sqb.Build()
 
 	var r sqlx.Result
-	if r, err = sjc.db.Exec(sql, sqb.Params()...); err != nil {
+	if r, err = sjc.db.Exec(sql, args...); err != nil {
 		return
 	}
 
@@ -192,15 +187,15 @@ func (sjc *sjc) DeleteJobChains(cids ...int64) (cnt int64, err error) {
 }
 
 func (sjc *sjc) CleanOutdatedJobChains(before time.Time) (cnt int64, err error) {
-	sqb := sqx.Builder{}
+	sqb := sjc.db.Builder()
 	sqb.Delete(sjc.tb)
 	sqb.Where("updated_at < ?", before)
 	sqb.In("status", xjm.JobChainAbortedCompleted)
 
-	sql := sjc.db.Rebind(sqb.SQL())
+	sql, args := sqb.Build()
 
 	var r sqlx.Result
-	if r, err = sjc.db.Exec(sql, sqb.Params()...); err != nil {
+	if r, err = sjc.db.Exec(sql, args...); err != nil {
 		return
 	}
 

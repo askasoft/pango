@@ -9,11 +9,11 @@ import (
 )
 
 type sjc struct {
-	db *sqlx.DB
+	db sqlx.Sqlx
 	tb string // jc chain table
 }
 
-func JC(db *sqlx.DB, table string) xjm.JobChainer {
+func JC(db sqlx.Sqlx, table string) xjm.JobChainer {
 	return &sjc{
 		db: db,
 		tb: table,

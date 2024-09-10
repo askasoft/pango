@@ -9,12 +9,12 @@ import (
 )
 
 type sjm struct {
-	db *sqlx.DB
+	db sqlx.Sqlx
 	jt string // job table
 	lt string // log table
 }
 
-func JM(db *sqlx.DB, jobTable, logTable string) xjm.JobManager {
+func JM(db sqlx.Sqlx, jobTable, logTable string) xjm.JobManager {
 	return &sjm{
 		db: db,
 		jt: jobTable,

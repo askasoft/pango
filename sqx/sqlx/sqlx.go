@@ -101,10 +101,15 @@ type Bind interface {
 	BindNamed(string, any) (string, []any, error)
 }
 
+type Build interface {
+	Builder() *Builder
+}
+
 type Sqlx interface {
 	sqx.Sql
 	Supporter
 	Bind
+	Build
 	Selector
 	Queryerx
 	NamedQueryer

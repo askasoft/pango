@@ -30,7 +30,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func MultiExecContext(ctx context.Context, e ExecerContext, query string) {
+func MultiExecContext(ctx context.Context, e ContextExecer, query string) {
 	stmts := strings.Split(query, ";\n")
 	if len(strings.Trim(stmts[len(stmts)-1], " \n\t\r")) == 0 {
 		stmts = stmts[:len(stmts)-1]
@@ -1034,7 +1034,7 @@ func TestUsageContext(t *testing.T) {
 
 		// create a copy and change the mapper, then verify the copy behaves
 		// differently from the original.
-		dbCopy := NewDB(db.DB, db.DriverName())
+		dbCopy := NewDB(db.db, db.DriverName())
 		dbCopy.MapperFunc(strings.ToUpper)
 		err = dbCopy.GetContext(ctx, &rsa, "SELECT * FROM capplace;")
 		if err != nil {
@@ -1117,8 +1117,8 @@ func TestUsageContext(t *testing.T) {
 	})
 }
 
-// tests that sqx will not panic when the wrong driver is passed because
-// of an automatic nil dereference in sqx.Open(), which was fixed.
+// tests that sqlx will not panic when the wrong driver is passed because
+// of an automatic nil dereference in sqlx.Open(), which was fixed.
 func TestDoNotPanicOnConnectContext(t *testing.T) {
 	_, err := ConnectContext(context.Background(), "bogus", "hehe")
 	if err == nil {
@@ -1199,10 +1199,10 @@ func TestIssue197Context(t *testing.T) {
 		}
 
 		var v3, q3 Var3
-		if err = db.QueryRowContext(ctx, `SELECT '{"a": "b"}' AS raw`).Scan(&v3.Raw); err != nil {
+		if err = db.QueryRowxContext(ctx, `SELECT '{"a": "b"}' AS raw`).Scan(&v3.Raw); err != nil {
 			t.Fatal(err)
 		}
-		if err = db.QueryRowContext(ctx, `SELECT '{"c": "d"}' AS raw`).Scan(&q3.Raw); err != nil {
+		if err = db.QueryRowxContext(ctx, `SELECT '{"c": "d"}' AS raw`).Scan(&q3.Raw); err != nil {
 			t.Fatal(err)
 		}
 		t.Fail()

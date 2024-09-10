@@ -1,6 +1,7 @@
 package sqlx
 
 import (
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -15,6 +16,12 @@ const (
 	BindDollar
 	BindColon
 	BindAt
+)
+
+var (
+	PlaceholderDollar = regexp.MustCompile(`\$(\d+)`)
+	PlaceholderColon  = regexp.MustCompile(`:arg(\d+)`)
+	PlaceholderAt     = regexp.MustCompile(`@p(\d+)`)
 )
 
 var binds sync.Map
@@ -82,4 +89,18 @@ func (binder Binder) Rebind(query string) string {
 	}
 
 	return string(append(rqb, query...))
+}
+
+// Placeholder returns the placeholder regexp
+func (binder Binder) Placeholder() *regexp.Regexp {
+	switch binder {
+	case BindDollar:
+		return PlaceholderDollar
+	case BindColon:
+		return PlaceholderColon
+	case BindAt:
+		return PlaceholderAt
+	default:
+		return nil
+	}
 }

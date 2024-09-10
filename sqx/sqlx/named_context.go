@@ -8,14 +8,14 @@ import (
 	"database/sql"
 )
 
-// A union interface of contextPreparer and binder, required to be able to
+// A union interface of ContextPreparerx and binder, required to be able to
 // prepare named statements with context (as the bindtype must be determined).
-type namedPreparerContext interface {
-	PreparerxContext
+type contextNamedPreparerx interface {
+	ContextPreparerx
 	binder
 }
 
-func prepareNamedContext(ctx context.Context, p namedPreparerContext, query string) (*NamedStmt, error) {
+func prepareNamedContext(ctx context.Context, p contextNamedPreparerx, query string) (*NamedStmt, error) {
 	q, args, err := p.Binder().compileNamedQuery(query)
 	if err != nil {
 		return nil, err
@@ -51,9 +51,9 @@ func (n *NamedStmt) QueryContext(ctx context.Context, arg any) (*sql.Rows, error
 	return n.Stmt.QueryContext(ctx, args...)
 }
 
-// QueryRowContext executes a named statement against the database.  Because sqx cannot
-// create a *sql.Row with an error condition pre-set for binding errors, sqx
-// returns a *sqx.Row instead.
+// QueryRowContext executes a named statement against the database.  Because sqlx cannot
+// create a *sql.Row with an error condition pre-set for binding errors, sqlx
+// returns a *sqlx.Row instead.
 // Any named placeholder parameters are replaced with fields from arg.
 func (n *NamedStmt) QueryRowContext(ctx context.Context, arg any) *Row {
 	args, err := bindAnyArgs(n.Params, arg, n.Stmt.mapper)
@@ -110,7 +110,7 @@ func (n *NamedStmt) GetContext(ctx context.Context, dest any, arg any) error {
 }
 
 // NamedQueryContext binds a named query and then runs Query on the result using the
-// provided Ext (sqx.Tx, sqx.Db).  It works with both structs and with
+// provided Ext (sqlx.Tx, sqlx.Db).  It works with both structs and with
 // map[string]any types.
 func NamedQueryContext(ctx context.Context, e ExtContext, query string, arg any) (*Rows, error) {
 	q, args, err := e.Binder().bindNamedMapper(query, arg, e.Mapper())

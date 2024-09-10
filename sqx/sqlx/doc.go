@@ -1,4 +1,4 @@
-// Package sqx provides general purpose extensions to database/sql.
+// Package sqlx provides general purpose extensions to database/sql.
 //
 // It is intended to seamlessly wrap database/sql and provide convenience
 // methods which are useful in the development of database driven applications.

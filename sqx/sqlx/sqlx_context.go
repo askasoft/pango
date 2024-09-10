@@ -20,26 +20,39 @@ func ConnectContext(ctx context.Context, driverName, dataSourceName string) (*DB
 	return db, err
 }
 
-// QueryerContext is an interface used by GetContext and SelectContext
-type QueryerContext interface {
+// ContextPinger is an interface for PingContext()
+type ContextPinger interface {
+	PingContext(ctx context.Context) error
+}
+
+// ContextQueryer is an interface for QueryContext()
+type ContextQueryer interface {
 	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
+}
+
+// ContextPreparer is an interface used by PreparexContext.
+type ContextPreparer interface {
+	PrepareContext(ctx context.Context, query string) (*sql.Stmt, error)
+}
+
+// ContextPreparerx is an interface used by PreparexContext.
+type ContextPreparerx interface {
+	PreparexContext(ctx context.Context, query string) (*Stmt, error)
+}
+
+// ContextExecer is an interface used by MustExecContext and LoadFileContext
+type ContextExecer interface {
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+}
+
+// ContextQueryerx is an interface used by GetContext and SelectContext
+type ContextQueryerx interface {
 	QueryxContext(ctx context.Context, query string, args ...any) (*Rows, error)
 	QueryRowxContext(ctx context.Context, query string, args ...any) *Row
 }
 
-// PreparerContext is an interface used by PreparexContext.
-type PreparerContext interface {
-	PrepareContext(ctx context.Context, query string) (*sql.Stmt, error)
-}
-
-// PreparerxContext is an interface used by PreparexContext.
-type PreparerxContext interface {
-	PreparexContext(ctx context.Context, query string) (*Stmt, error)
-}
-
-// ExecerContext is an interface used by MustExecContext and LoadFileContext
-type ExecerContext interface {
-	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+type Transactionerx interface {
+	Transactionx(ctx context.Context, opts *sql.TxOptions, fc func(tx *Tx) error) error
 }
 
 // ExtContext is a union interface which can bind, query, and exec, with Context
@@ -47,8 +60,9 @@ type ExecerContext interface {
 type ExtContext interface {
 	binder
 	mapper
-	QueryerContext
-	ExecerContext
+	ContextQueryer
+	ContextQueryerx
+	ContextExecer
 }
 
 // SelectContext executes a query using the provided Queryer, and StructScans
@@ -56,7 +70,7 @@ type ExtContext interface {
 // scannable, then the result set must have only one column.  Otherwise,
 // StructScan is used. The *sql.Rows are closed automatically.
 // Any placeholder parameters are replaced with supplied args.
-func SelectContext(ctx context.Context, q QueryerContext, dest any, query string, args ...any) error {
+func SelectContext(ctx context.Context, q ContextQueryerx, dest any, query string, args ...any) error {
 	rows, err := q.QueryxContext(ctx, query, args...)
 	if err != nil {
 		return err
@@ -71,14 +85,14 @@ func SelectContext(ctx context.Context, q QueryerContext, dest any, query string
 // column. Otherwise, StructScan is used.  Get will return ErrNoRows like
 // row.Scan would. Any placeholder parameters are replaced with supplied args.
 // An error is returned if the result set is empty.
-func GetContext(ctx context.Context, q QueryerContext, dest any, query string, args ...any) error {
+func GetContext(ctx context.Context, q ContextQueryerx, dest any, query string, args ...any) error {
 	r := q.QueryRowxContext(ctx, query, args...)
 	return r.scanAny(dest, false)
 }
 
 // MustExecContext execs the query using e and panics if there was an error.
 // Any placeholder parameters are replaced with supplied args.
-func MustExecContext(ctx context.Context, e ExecerContext, query string, args ...any) sql.Result {
+func MustExecContext(ctx context.Context, e ContextExecer, query string, args ...any) sql.Result {
 	res, err := e.ExecContext(ctx, query, args...)
 	if err != nil {
 		panic(err)
@@ -86,7 +100,32 @@ func MustExecContext(ctx context.Context, e ExecerContext, query string, args ..
 	return res
 }
 
-// PrepareNamedContext returns an sqx.NamedStmt
+// PingContext verifies a connection to the database is still alive,
+// establishing a connection if necessary.
+func (db *DB) PingContext(ctx context.Context) error {
+	return db.tracer.TracePingContext(ctx, db.db)
+}
+
+// QueryContext executes a query that returns rows, typically a SELECT.
+// The args are for any placeholder parameters in the query.
+func (db *DB) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
+	return db.tracer.TraceQueryContext(ctx, db.db, query, args...)
+}
+
+// ExecContext executes a query without returning any rows.
+// The args are for any placeholder parameters in the query.
+func (db *DB) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
+	return db.tracer.TraceExecContext(ctx, db.db, query, args...)
+}
+
+// PrepareContext creates a prepared statement for later queries or executions.
+// Multiple queries or executions may be run concurrently from the
+// returned statement.
+func (db *DB) PrepareContext(ctx context.Context, query string) (*sql.Stmt, error) {
+	return db.db.PrepareContext(ctx, query)
+}
+
+// PrepareNamedContext returns an sqlx.NamedStmt
 func (db *DB) PrepareNamedContext(ctx context.Context, query string) (*NamedStmt, error) {
 	return prepareNamedContext(ctx, db, query)
 }
@@ -116,7 +155,7 @@ func (db *DB) GetContext(ctx context.Context, dest any, query string, args ...an
 	return GetContext(ctx, db, dest, query, args...)
 }
 
-// PreparexContext returns an sqx.Stmt instead of a sql.Stmt.
+// PreparexContext returns an sqlx.Stmt instead of a sql.Stmt.
 //
 // The provided context is used for the preparation of the statement, not for
 // the execution of the statement.
@@ -128,24 +167,24 @@ func (db *DB) PreparexContext(ctx context.Context, query string) (*Stmt, error) 
 	return &Stmt{Stmt: s, ext: db.ext}, err
 }
 
-// QueryxContext queries the database and returns an *sqx.Rows.
+// QueryxContext queries the database and returns an *sqlx.Rows.
 // Any placeholder parameters are replaced with supplied args.
 func (db *DB) QueryxContext(ctx context.Context, query string, args ...any) (*Rows, error) {
-	r, err := db.DB.QueryContext(ctx, query, args...)
+	r, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
 	return &Rows{Rows: r, ext: db.ext}, err
 }
 
-// QueryRowxContext queries the database and returns an *sqx.Row.
+// QueryRowxContext queries the database and returns an *sqlx.Row.
 // Any placeholder parameters are replaced with supplied args.
 func (db *DB) QueryRowxContext(ctx context.Context, query string, args ...any) *Row {
-	rows, err := db.DB.QueryContext(ctx, query, args...)
+	rows, err := db.QueryContext(ctx, query, args...)
 	return &Row{rows: rows, err: err, ext: db.ext}
 }
 
-// MustBeginTx starts a transaction, and panics on error.  Returns an *sqx.Tx instead
+// MustBeginTx starts a transaction, and panics on error.  Returns an *sqlx.Tx instead
 // of an *sql.Tx.
 //
 // The provided context is used until the transaction is committed or rolled
@@ -166,7 +205,7 @@ func (db *DB) MustExecContext(ctx context.Context, query string, args ...any) sq
 	return MustExecContext(ctx, db, query, args...)
 }
 
-// BeginTxx begins a transaction and returns an *sqx.Tx instead of an
+// BeginTxx begins a transaction and returns an *sqlx.Tx instead of an
 // *sql.Tx.
 //
 // The provided context is used until the transaction is committed or rolled
@@ -174,16 +213,16 @@ func (db *DB) MustExecContext(ctx context.Context, query string, args ...any) sq
 // transaction. Tx.Commit will return an error if the context provided to
 // BeginxContext is canceled.
 func (db *DB) BeginTxx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) {
-	tx, err := db.DB.BeginTx(ctx, opts)
+	tx, err := db.db.BeginTx(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
 	return &Tx{Tx: tx, ext: db.ext}, err
 }
 
-// Connx returns an *sqx.Conn instead of an *sql.Conn.
+// Connx returns an *sqlx.Conn instead of an *sql.Conn.
 func (db *DB) Connx(ctx context.Context) (*Conn, error) {
-	conn, err := db.DB.Conn(ctx)
+	conn, err := db.db.Conn(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -198,7 +237,7 @@ func (db *DB) Transactionx(ctx context.Context, opts *sql.TxOptions, fc func(tx 
 	return Transactionx(db, ctx, opts, fc)
 }
 
-// BeginTxx begins a transaction and returns an *sqx.Tx instead of an
+// BeginTxx begins a transaction and returns an *sqlx.Tx instead of an
 // *sql.Tx.
 //
 // The provided context is used until the transaction is committed or rolled
@@ -226,7 +265,7 @@ func (c *Conn) GetContext(ctx context.Context, dest any, query string, args ...a
 	return GetContext(ctx, c, dest, query, args...)
 }
 
-// PreparexContext returns an sqx.Stmt instead of a sql.Stmt.
+// PreparexContext returns an sqlx.Stmt instead of a sql.Stmt.
 //
 // The provided context is used for the preparation of the statement, not for
 // the execution of the statement.
@@ -238,7 +277,7 @@ func (c *Conn) PreparexContext(ctx context.Context, query string) (*Stmt, error)
 	return &Stmt{Stmt: s, ext: c.ext}, err
 }
 
-// QueryxContext queries the database and returns an *sqx.Rows.
+// QueryxContext queries the database and returns an *sqlx.Rows.
 // Any placeholder parameters are replaced with supplied args.
 func (c *Conn) QueryxContext(ctx context.Context, query string, args ...any) (*Rows, error) {
 	r, err := c.Conn.QueryContext(ctx, query, args...)
@@ -248,7 +287,7 @@ func (c *Conn) QueryxContext(ctx context.Context, query string, args ...any) (*R
 	return &Rows{Rows: r, ext: c.ext}, err
 }
 
-// QueryRowxContext queries the database and returns an *sqx.Row.
+// QueryRowxContext queries the database and returns an *sqlx.Row.
 // Any placeholder parameters are replaced with supplied args.
 func (c *Conn) QueryRowxContext(ctx context.Context, query string, args ...any) *Row {
 	rows, err := c.Conn.QueryContext(ctx, query, args...)
@@ -263,7 +302,7 @@ func (c *Conn) Transactionx(ctx context.Context, opts *sql.TxOptions, fc func(tx
 }
 
 // StmtxContext returns a version of the prepared statement which runs within a
-// transaction. Provided stmt can be either *sql.Stmt or *sqx.Stmt.
+// transaction. Provided stmt can be either *sql.Stmt or *sqlx.Stmt.
 func (tx *Tx) StmtxContext(ctx context.Context, stmt any) *Stmt {
 	var s *sql.Stmt
 	switch v := stmt.(type) {
@@ -289,7 +328,7 @@ func (tx *Tx) NamedStmtContext(ctx context.Context, stmt *NamedStmt) *NamedStmt 
 	}
 }
 
-// PreparexContext returns an sqx.Stmt instead of a sql.Stmt.
+// PreparexContext returns an sqlx.Stmt instead of a sql.Stmt.
 //
 // The provided context is used for the preparation of the statement, not for
 // the execution of the statement.
@@ -301,7 +340,7 @@ func (tx *Tx) PreparexContext(ctx context.Context, query string) (*Stmt, error) 
 	return &Stmt{Stmt: s, ext: tx.ext}, err
 }
 
-// PrepareNamedContext returns an sqx.NamedStmt
+// PrepareNamedContext returns an sqlx.NamedStmt
 func (tx *Tx) PrepareNamedContext(ctx context.Context, query string) (*NamedStmt, error) {
 	return prepareNamedContext(ctx, tx, query)
 }

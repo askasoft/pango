@@ -60,9 +60,9 @@ func (n *NamedStmt) Query(arg any) (*sql.Rows, error) {
 	return n.Stmt.Query(args...)
 }
 
-// QueryRow executes a named statement against the database.  Because sqx cannot
-// create a *sql.Row with an error condition pre-set for binding errors, sqx
-// returns a *sqx.Row instead.
+// QueryRow executes a named statement against the database.  Because sqlx cannot
+// create a *sql.Row with an error condition pre-set for binding errors, sqlx
+// returns a *sqlx.Row instead.
 // Any named placeholder parameters are replaced with fields from arg.
 func (n *NamedStmt) QueryRow(arg any) *Row {
 	args, err := bindAnyArgs(n.Params, arg, n.Stmt.mapper)
@@ -438,7 +438,7 @@ func (binder Binder) bindNamedMapper(query string, arg any, m *ref.Mapper) (stri
 	case k == reflect.Map && t.Key().Kind() == reflect.String:
 		m, ok := convertMapStringInterface(arg)
 		if !ok {
-			return "", nil, fmt.Errorf("sqx.bindNamedMapper: unsupported map type: %T", arg)
+			return "", nil, fmt.Errorf("sqlx.bindNamedMapper: unsupported map type: %T", arg)
 		}
 		return binder.bindMap(query, m)
 	case k == reflect.Array || k == reflect.Slice:
@@ -449,7 +449,7 @@ func (binder Binder) bindNamedMapper(query string, arg any, m *ref.Mapper) (stri
 }
 
 // namedQuery binds a named query and then runs Query on the result using the
-// provided Ext (sqx.Tx, sqx.Db).  It works with both structs and with
+// provided Ext (sqlx.Tx, sqlx.Db).  It works with both structs and with
 // map[string]any types.
 func namedQuery(x isqlx, query string, arg any) (*Rows, error) {
 	q, args, err := x.Binder().bindNamedMapper(query, arg, x.Mapper())
@@ -460,7 +460,7 @@ func namedQuery(x isqlx, query string, arg any) (*Rows, error) {
 }
 
 // namedQueryRow binds a named query and then runs Query on the result using the
-// provided Ext (sqx.Tx, sqx.Db).  It works with both structs and with
+// provided Ext (sqlx.Tx, sqlx.Db).  It works with both structs and with
 // map[string]any types.
 func namedQueryRow(x isqlx, query string, arg any) *Row {
 	q, args, err := x.Binder().bindNamedMapper(query, arg, x.Mapper())

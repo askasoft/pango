@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"reflect"
 
@@ -22,18 +23,23 @@ type Result = sql.Result
 
 // Although the NameMapper is convenient, in practice it should not
 // be relied on except for application code.  If you are writing a library
-// that uses sqx, you should be aware that the name mappings you expect
+// that uses sqlx, you should be aware that the name mappings you expect
 // can be overridden by your user's application.
 
 // NameMapper is used to map column names to struct field names.  By default,
 // it uses str.SnakeCase to snakecase struct field names.  It can be set
-// to whatever you want, but it is encouraged to be set before sqx is used
+// to whatever you want, but it is encouraged to be set before sqlx is used
 // as name-to-field mappings are cached after first use on a type.
 var NameMapper = ref.NewMapperFunc("db", str.SnakeCase)
 
 //------------------------------------------------
 // GO database/sql interface
 //
+
+// Pinger is an interface for Ping()
+type Pinger interface {
+	Ping() error
+}
 
 // Queryer is an interface used by Get and Select
 type Queryer interface {
@@ -57,7 +63,7 @@ type Sql interface {
 }
 
 //------------------------------------------------
-// sqx interface
+// sqlx interface
 //
 
 // ColScanner is an interface used by MapScan and SliceScan
@@ -66,6 +72,8 @@ type ColScanner interface {
 	Scan(dest ...any) error
 	Err() error
 }
+
+type Trace func(start time.Time, sql string, rows int64, err error)
 
 type Supporter interface {
 	SupportLastInsertID() bool
@@ -112,6 +120,15 @@ type Sqlx interface {
 	Preparerx
 }
 
+type Transactioner interface {
+	Transaction(func(tx *Tx) error) error
+}
+
+type Sqltx interface {
+	Sqlx
+	Transactioner
+}
+
 //------------------------------------------------
 // internal interface
 //
@@ -147,10 +164,11 @@ func isUnsafe(i any) bool {
 
 type ext struct {
 	driverName string
+	unsafe     bool
 	binder     Binder
 	quoter     sqx.Quoter
 	mapper     *ref.Mapper
-	unsafe     bool
+	tracer     tracer
 }
 
 // DriverName returns the driverName passed to the Open function for this DB.
@@ -272,26 +290,36 @@ func (r *Row) Err() error {
 // DB is a wrapper around sql.DB which keeps track of the driverName upon Open,
 // used mostly to automatically bind named queries using the right bindvars.
 type DB struct {
-	*sql.DB
+	db *sql.DB
 	ext
 }
 
-// NewDB returns a new sqx DB wrapper for a pre-existing *sql.DB.  The
+// NewDB returns a new sqlx DB wrapper for a pre-existing *sql.DB.  The
 // driverName of the original database is required for named query support.
-func NewDB(db *sql.DB, driverName string) *DB {
-	return &DB{DB: db, ext: ext{driverName: driverName, binder: GetBinder(driverName), quoter: sqx.GetQuoter(driverName), mapper: NameMapper}}
+func NewDB(db *sql.DB, driverName string, trace ...Trace) *DB {
+	ext := ext{
+		driverName: driverName,
+		binder:     GetBinder(driverName),
+		quoter:     sqx.GetQuoter(driverName),
+		mapper:     NameMapper,
+	}
+	if len(trace) > 0 {
+		ext.tracer = tracer{Bind: ext.binder, Trace: trace[0]}
+	}
+
+	return &DB{db: db, ext: ext}
 }
 
-// Open is the same as sql.Open, but returns an *sqx.DB instead.
-func Open(driverName, dataSourceName string) (*DB, error) {
+// Open is the same as sql.Open, but returns an *sqlx.DB instead.
+func Open(driverName, dataSourceName string, trace ...Trace) (*DB, error) {
 	db, err := sql.Open(driverName, dataSourceName)
 	if err != nil {
 		return nil, err
 	}
-	return NewDB(db, driverName), err
+	return NewDB(db, driverName, trace...), err
 }
 
-// MustOpen is the same as sql.Open, but returns an *sqx.DB instead and panics on error.
+// MustOpen is the same as sql.Open, but returns an *sqlx.DB instead and panics on error.
 func MustOpen(driverName, dataSourceName string) *DB {
 	db, err := Open(driverName, dataSourceName)
 	if err != nil {
@@ -300,7 +328,12 @@ func MustOpen(driverName, dataSourceName string) *DB {
 	return db
 }
 
-// MapperFunc sets a new mapper for this db using the default sqx struct tag
+// DB returns the underlying *sql.DB
+func (db *DB) DB() *sql.DB {
+	return db.db
+}
+
+// MapperFunc sets a new mapper for this db using the default sqlx struct tag
 // and the provided mapper function.
 func (db *DB) MapperFunc(mf func(string) string) {
 	db.mapper = ref.NewMapperFunc("db", mf)
@@ -308,10 +341,10 @@ func (db *DB) MapperFunc(mf func(string) string) {
 
 // Unsafe returns a version of DB which will silently succeed to scan when
 // columns in the SQL result have no fields in the destination struct.
-// sqx.Stmt and sqx.Tx which are created from this DB will inherit its
+// sqlx.Stmt and sqlx.Tx which are created from this DB will inherit its
 // safety behavior.
 func (db *DB) Unsafe() *DB {
-	ndb := &DB{DB: db.DB, ext: db.ext}
+	ndb := &DB{db: db.db, ext: db.ext}
 	ndb.unsafe = true
 	return ndb
 }
@@ -352,7 +385,7 @@ func (db *DB) Get(dest any, query string, args ...any) error {
 	return Get(db, dest, query, args...)
 }
 
-// MustBegin starts a transaction, and panics on error.  Returns an *sqx.Tx instead
+// MustBegin starts a transaction, and panics on error.  Returns an *sqlx.Tx instead
 // of an *sql.Tx.
 func (db *DB) MustBegin() *Tx {
 	tx, err := db.Beginx()
@@ -362,29 +395,29 @@ func (db *DB) MustBegin() *Tx {
 	return tx
 }
 
-// Beginx begins a transaction and returns an *sqx.Tx instead of an *sql.Tx.
+// Beginx begins a transaction and returns an *sqlx.Tx instead of an *sql.Tx.
 func (db *DB) Beginx() (*Tx, error) {
-	tx, err := db.DB.Begin()
+	tx, err := db.db.Begin()
 	if err != nil {
 		return nil, err
 	}
 	return &Tx{Tx: tx, ext: db.ext}, err
 }
 
-// Queryx queries the database and returns an *sqx.Rows.
+// Queryx queries the database and returns an *sqlx.Rows.
 // Any placeholder parameters are replaced with supplied args.
 func (db *DB) Queryx(query string, args ...any) (*Rows, error) {
-	r, err := db.DB.Query(query, args...)
+	r, err := db.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
 	return &Rows{Rows: r, ext: db.ext}, err
 }
 
-// QueryRowx queries the database and returns an *sqx.Row.
+// QueryRowx queries the database and returns an *sqlx.Row.
 // Any placeholder parameters are replaced with supplied args.
 func (db *DB) QueryRowx(query string, args ...any) *Row {
-	rows, err := db.DB.Query(query, args...)
+	rows, err := db.Query(query, args...)
 	return &Row{rows: rows, err: err, ext: db.ext}
 }
 
@@ -394,7 +427,7 @@ func (db *DB) MustExec(query string, args ...any) sql.Result {
 	return MustExec(db, query, args...)
 }
 
-// Preparex returns an sqx.Stmt instead of a sql.Stmt
+// Preparex returns an sqlx.Stmt instead of a sql.Stmt
 func (db *DB) Preparex(query string) (*Stmt, error) {
 	s, err := db.Prepare(query)
 	if err != nil {
@@ -403,7 +436,7 @@ func (db *DB) Preparex(query string) (*Stmt, error) {
 	return &Stmt{Stmt: s, ext: db.ext}, err
 }
 
-// PrepareNamed returns an sqx.NamedStmt
+// PrepareNamed returns an sqlx.NamedStmt
 func (db *DB) PrepareNamed(query string) (*NamedStmt, error) {
 	return prepareNamed(db, query)
 }
@@ -415,13 +448,45 @@ func (db *DB) Transaction(fc func(tx *Tx) error) (err error) {
 	return Transaction(db, fc)
 }
 
+// Ping verifies a connection to the database is still alive,
+// establishing a connection if necessary.
+func (db *DB) Ping() error {
+	return db.tracer.TracePing(db.db)
+}
+
+// Query executes a query that returns rows, typically a SELECT.
+// The args are for any placeholder parameters in the query.
+func (db *DB) Query(query string, args ...any) (*sql.Rows, error) {
+	return db.tracer.TraceQuery(db.db, query, args...)
+}
+
+// Exec executes a query without returning any rows.
+// The args are for any placeholder parameters in the query.
+func (db *DB) Exec(query string, args ...any) (sql.Result, error) {
+	return db.tracer.TraceExec(db.db, query, args...)
+}
+
+func (db *DB) Prepare(query string) (*sql.Stmt, error) {
+	return db.db.Prepare(query)
+}
+
+// Close closes the database and prevents new queries from starting.
+// Close then waits for all queries that have started processing on the server
+// to finish.
+//
+// It is rare to Close a DB, as the DB handle is meant to be
+// long-lived and shared between many goroutines.
+func (db *DB) Close() error {
+	return db.db.Close()
+}
+
 // Conn is a wrapper around sql.Conn with extra functionality
 type Conn struct {
 	*sql.Conn
 	ext
 }
 
-// Tx is an sqx wrapper around sql.Tx with extra functionality
+// Tx is an sqlx wrapper around sql.Tx with extra functionality
 type Tx struct {
 	*sql.Tx
 	ext
@@ -504,7 +569,7 @@ func (tx *Tx) Preparex(query string) (*Stmt, error) {
 }
 
 // Stmtx returns a version of the prepared statement which runs within a transaction.  Provided
-// stmt can be either *sql.Stmt or *sqx.Stmt.
+// stmt can be either *sql.Stmt or *sqlx.Stmt.
 func (tx *Tx) Stmtx(stmt any) *Stmt {
 	var s *sql.Stmt
 	switch v := stmt.(type) {
@@ -529,12 +594,12 @@ func (tx *Tx) NamedStmt(stmt *NamedStmt) *NamedStmt {
 	}
 }
 
-// PrepareNamed returns an sqx.NamedStmt
+// PrepareNamed returns an sqlx.NamedStmt
 func (tx *Tx) PrepareNamed(query string) (*NamedStmt, error) {
 	return prepareNamed(tx, query)
 }
 
-// Stmt is an sqx wrapper around sql.Stmt with extra functionality
+// Stmt is an sqlx wrapper around sql.Stmt with extra functionality
 type Stmt struct {
 	*sql.Stmt
 	ext
@@ -672,8 +737,8 @@ func (r *Rows) StructScan(dest any) error {
 }
 
 // Connect to a database and verify with a ping.
-func Connect(driverName, dataSourceName string) (*DB, error) {
-	db, err := Open(driverName, dataSourceName)
+func Connect(driverName, dataSourceName string, trace ...Trace) (*DB, error) {
+	db, err := Open(driverName, dataSourceName, trace...)
 	if err != nil {
 		return nil, err
 	}
@@ -1012,15 +1077,15 @@ func scanAll(rows rowsi, dest any, structOnly bool) error {
 	return rows.Err()
 }
 
-// FIXME: StructScan was the very first bit of API in sqx, and now unfortunately
+// FIXME: StructScan was the very first bit of API in sqlx, and now unfortunately
 // it doesn't really feel like it's named properly.  There is an incongruency
 // between this and the way that StructScan (which might better be ScanStruct
 // anyway) works on a rows object.
 
-// StructScan all rows from an sql.Rows or an sqx.Rows into the dest slice.
+// StructScan all rows from an sql.Rows or an sqlx.Rows into the dest slice.
 // StructScan will scan in the entire rows result, so if you do not want to
-// allocate structs for the entire result, use Queryx and see sqx.Rows.StructScan.
-// If rows is sqx.Rows, it will use its mapper, otherwise it will use the default.
+// allocate structs for the entire result, use Queryx and see sqlx.Rows.StructScan.
+// If rows is sqlx.Rows, it will use its mapper, otherwise it will use the default.
 func StructScan(rows rowsi, dest any) error {
 	return scanAll(rows, dest, true)
 

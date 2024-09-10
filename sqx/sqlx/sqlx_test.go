@@ -51,6 +51,16 @@ func init() {
 	ConnectAll()
 }
 
+func testTrace(start time.Time, sql string, rows int64, err error) {
+	elapsed := time.Since(start)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v [%d: %v] %s\n", err, rows, elapsed, sql)
+	} else {
+		fmt.Fprintf(os.Stdout, "[%d: %v] %s\n", rows, elapsed, sql)
+	}
+}
+
 // ### init mysql databas
 // ```sql
 // CREATE USER 'pango'@'%' IDENTIFIED BY 'pango';
@@ -71,7 +81,7 @@ func ConnectAll() {
 	mydsn := os.Getenv("SQX_MYSQL_DSN")
 	sqdsn := os.Getenv("SQX_SQLITE_DSN")
 	if sqdsn == "" {
-		sqdsn = "sqx.db3"
+		sqdsn = "sqlx.db3"
 	}
 
 	TestPostgres = pgdsn != ""
@@ -83,7 +93,7 @@ func ConnectAll() {
 	}
 
 	if TestPostgres {
-		pgdb, err = Connect("postgres", pgdsn)
+		pgdb, err = Connect("postgres", pgdsn, testTrace)
 		if err != nil {
 			fmt.Printf("Disabling PG tests: %v\n", err)
 			TestPostgres = false
@@ -93,7 +103,7 @@ func ConnectAll() {
 	}
 
 	if TestMysql {
-		mysqldb, err = Connect("mysql", mydsn)
+		mysqldb, err = Connect("mysql", mydsn, testTrace)
 		if err != nil {
 			fmt.Printf("Disabling MySQL tests: %v\n", err)
 			TestMysql = false
@@ -103,7 +113,7 @@ func ConnectAll() {
 	}
 
 	if TestSqlite {
-		sldb, err = Connect("sqlite3", sqdsn)
+		sldb, err = Connect("sqlite3", sqdsn, testTrace)
 		if err != nil {
 			fmt.Printf("Disabling SQLite: %v\n", err)
 			TestSqlite = false
@@ -222,7 +232,7 @@ type SliceMember struct {
 }
 
 // Note that because of field map caching, we need a new type here
-// if we've used Place already somewhere in sqx
+// if we've used Place already somewhere in sqlx
 type CPlace struct {
 	Country string
 	City    sql.NullString
@@ -1293,7 +1303,7 @@ func TestUsage(t *testing.T) {
 
 		// create a copy and change the mapper, then verify the copy behaves
 		// differently from the original.
-		dbCopy := NewDB(db.DB, db.DriverName())
+		dbCopy := NewDB(db.db, db.DriverName())
 		dbCopy.MapperFunc(strings.ToUpper)
 		err = dbCopy.Get(&rsa, "SELECT * FROM capplace;")
 		if err != nil {
@@ -1380,8 +1390,8 @@ type Product struct {
 	ProductID int
 }
 
-// tests that sqx will not panic when the wrong driver is passed because
-// of an automatic nil dereference in sqx.Open(), which was fixed.
+// tests that sqlx will not panic when the wrong driver is passed because
+// of an automatic nil dereference in sqlx.Open(), which was fixed.
 func TestDoNotPanicOnConnect(t *testing.T) {
 	db, err := Connect("bogus", "hehe")
 	if err == nil {
@@ -1571,10 +1581,10 @@ func TestIssue197(t *testing.T) {
 		}
 
 		var v3, q3 Var3
-		if err = db.QueryRow(`SELECT '{"a": "b"}' AS raw`).Scan(&v3.Raw); err != nil {
+		if err = db.QueryRowx(`SELECT '{"a": "b"}' AS raw`).Scan(&v3.Raw); err != nil {
 			t.Fatal(err)
 		}
-		if err = db.QueryRow(`SELECT '{"c": "d"}' AS raw`).Scan(&q3.Raw); err != nil {
+		if err = db.QueryRowx(`SELECT '{"c": "d"}' AS raw`).Scan(&q3.Raw); err != nil {
 			t.Fatal(err)
 		}
 		t.Fail()

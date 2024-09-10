@@ -39,7 +39,7 @@ func Transaction(db Beginxer, fc func(tx *Tx) error) (err error) {
 		return tx.Commit()
 	}
 
-	return nil
+	return
 }
 
 // Transactionx start a transaction as a block, return error will rollback, otherwise to commit. Transaction executes an
@@ -65,5 +65,5 @@ func Transactionx(db BeginTxxer, ctx context.Context, opts *sql.TxOptions, fc fu
 		return tx.Commit()
 	}
 
-	return nil
+	return
 }

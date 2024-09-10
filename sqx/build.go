@@ -29,6 +29,80 @@ func Questions(n int) []string {
 	return qs
 }
 
+func In(col string, arg any) (sql string, args []any) {
+	return in("IN", col, arg)
+}
+
+func NotIn(col string, arg any) (sql string, args []any) {
+	return in("NOT IN", col, arg)
+}
+
+func in(op, col string, arg any) (sql string, args []any) {
+	if v, ok := asSliceForIn(arg); ok {
+		z := v.Len()
+
+		qs := str.Repeat("?,", z)
+		sql = col + " " + op + " (" + qs[:len(qs)-1] + ")"
+		args = appendReflectSlice(args, v, z)
+		return
+	}
+
+	sql = col + " " + op + " (?)"
+	args = append(args, arg)
+	return
+}
+
+func asSliceForIn(i any) (v reflect.Value, ok bool) {
+	if i == nil {
+		return reflect.Value{}, false
+	}
+
+	v = reflect.ValueOf(i)
+	t := ref.Deref(v.Type())
+
+	// Only expand slices
+	if t.Kind() != reflect.Slice {
+		return reflect.Value{}, false
+	}
+
+	// []byte is a driver.Value type so it should not be expanded
+	if t == reflect.TypeOf([]byte{}) {
+		return reflect.Value{}, false
+
+	}
+
+	return v, true
+}
+
+func appendReflectSlice(args []any, v reflect.Value, vlen int) []any {
+	switch val := v.Interface().(type) {
+	case []any:
+		args = append(args, val...)
+	case []int:
+		for i := range val {
+			args = append(args, val[i])
+		}
+	case []int32:
+		for i := range val {
+			args = append(args, val[i])
+		}
+	case []int64:
+		for i := range val {
+			args = append(args, val[i])
+		}
+	case []string:
+		for i := range val {
+			args = append(args, val[i])
+		}
+	default:
+		for si := 0; si < vlen; si++ {
+			args = append(args, v.Index(si).Interface())
+		}
+	}
+
+	return args
+}
+
 type sqlcmd int
 
 const (
@@ -289,78 +363,4 @@ func (b *Builder) SQL() string {
 	default:
 		return ""
 	}
-}
-
-func In(col string, arg any) (sql string, args []any) {
-	return in("IN", col, arg)
-}
-
-func NotIn(col string, arg any) (sql string, args []any) {
-	return in("NOT IN", col, arg)
-}
-
-func in(op, col string, arg any) (sql string, args []any) {
-	if v, ok := asSliceForIn(arg); ok {
-		z := v.Len()
-
-		qs := str.Repeat("?,", z)
-		sql = col + " " + op + " (" + qs[:len(qs)-1] + ")"
-		args = appendReflectSlice(args, v, z)
-		return
-	}
-
-	sql = col + " " + op + " (?)"
-	args = append(args, arg)
-	return
-}
-
-func asSliceForIn(i any) (v reflect.Value, ok bool) {
-	if i == nil {
-		return reflect.Value{}, false
-	}
-
-	v = reflect.ValueOf(i)
-	t := ref.Deref(v.Type())
-
-	// Only expand slices
-	if t.Kind() != reflect.Slice {
-		return reflect.Value{}, false
-	}
-
-	// []byte is a driver.Value type so it should not be expanded
-	if t == reflect.TypeOf([]byte{}) {
-		return reflect.Value{}, false
-
-	}
-
-	return v, true
-}
-
-func appendReflectSlice(args []any, v reflect.Value, vlen int) []any {
-	switch val := v.Interface().(type) {
-	case []any:
-		args = append(args, val...)
-	case []int:
-		for i := range val {
-			args = append(args, val[i])
-		}
-	case []int32:
-		for i := range val {
-			args = append(args, val[i])
-		}
-	case []int64:
-		for i := range val {
-			args = append(args, val[i])
-		}
-	case []string:
-		for i := range val {
-			args = append(args, val[i])
-		}
-	default:
-		for si := 0; si < vlen; si++ {
-			args = append(args, v.Index(si).Interface())
-		}
-	}
-
-	return args
 }

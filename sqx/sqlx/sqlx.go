@@ -211,6 +211,11 @@ func (ext *ext) SupportLastInsertID() bool {
 	return ext.binder != BindDollar
 }
 
+// Builder returns a new sql builder
+func (ext *ext) Builder() *Builder {
+	return &Builder{bid: ext.binder}
+}
+
 var _scannerInterface = reflect.TypeOf((*sql.Scanner)(nil)).Elem()
 
 // Row is a reimplementation of sql.Row in order to gain access to the underlying

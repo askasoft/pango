@@ -141,6 +141,45 @@ type Builder struct {
 	limit    int
 }
 
+func (b *Builder) Reset() *Builder {
+	b.command = 0
+	b.table = ""
+	b.distinct = false
+	b.columns = b.columns[:0]
+	b.joins = b.joins[:0]
+	b.wheres = b.wheres[:0]
+	b.values = b.values[:0]
+	b.params = b.params[:0]
+	b.orders = b.orders[:0]
+	b.offset = 0
+	b.limit = 0
+
+	return b
+}
+
+func (b *Builder) Build() (string, []any) {
+	return b.SQL(), b.params
+}
+
+func (b *Builder) Params() []any {
+	return b.params
+}
+
+func (b *Builder) SQL() string {
+	switch b.command {
+	case cselect:
+		return b.buildSelect()
+	case cdelete:
+		return b.buildDelete()
+	case cinsert:
+		return b.buildInsert()
+	case cupdate:
+		return b.buildUpdate()
+	default:
+		return ""
+	}
+}
+
 func (b *Builder) Distinct(cols ...string) *Builder {
 	b.command = cselect
 	b.distinct = true
@@ -340,27 +379,4 @@ func (b *Builder) buildDelete() string {
 	b.appendWhere(sb)
 
 	return sb.String()
-}
-
-func (b *Builder) Build() (string, []any) {
-	return b.SQL(), b.params
-}
-
-func (b *Builder) Params() []any {
-	return b.params
-}
-
-func (b *Builder) SQL() string {
-	switch b.command {
-	case cselect:
-		return b.buildSelect()
-	case cdelete:
-		return b.buildDelete()
-	case cinsert:
-		return b.buildInsert()
-	case cupdate:
-		return b.buildUpdate()
-	default:
-		return ""
-	}
 }

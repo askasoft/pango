@@ -9,6 +9,11 @@ type Builder struct {
 	sqb sqx.Builder
 }
 
+func (b *Builder) Reset() *Builder {
+	b.sqb.Reset()
+	return b
+}
+
 func (b *Builder) Build() (string, []any) {
 	return b.SQL(), b.Params()
 }

@@ -54,10 +54,22 @@ func (sl *SqlxLogger) Trace(begin time.Time, sql string, rows int64, err error) 
 
 	switch {
 	case err != nil && (!errors.Is(err, sqlx.ErrNoRows) || sl.TraceErrNoRows) && sl.Logger.IsLevelEnabled(sl.ErrorSQLLevel):
-		sl.printf(sl.ErrorSQLLevel, "%s [%d: %v] %s", err, rows, elapsed, sql)
+		if rows < 0 {
+			sl.printf(sl.ErrorSQLLevel, "%s [%v] %s", err, elapsed, sql)
+		} else {
+			sl.printf(sl.ErrorSQLLevel, "%s [%d: %v] %s", err, rows, elapsed, sql)
+		}
 	case sl.SlowThreshold != 0 && elapsed > sl.SlowThreshold && sl.Logger.IsLevelEnabled(sl.SlowSQLLevel):
-		sl.printf(sl.SlowSQLLevel, "SLOW >= %v [%d: %v] %s", sl.SlowThreshold, rows, elapsed, sql)
+		if rows < 0 {
+			sl.printf(sl.SlowSQLLevel, "SLOW >= %v [%v] %s", sl.SlowThreshold, elapsed, sql)
+		} else {
+			sl.printf(sl.SlowSQLLevel, "SLOW >= %v [%d: %v] %s", sl.SlowThreshold, rows, elapsed, sql)
+		}
 	case sl.Logger.IsLevelEnabled(sl.Level):
-		sl.printf(sl.Level, "[%d: %v] %s", rows, elapsed, sql)
+		if rows < 0 {
+			sl.printf(sl.Level, "[%v] %s", elapsed, sql)
+		} else {
+			sl.printf(sl.Level, "[%d: %v] %s", rows, elapsed, sql)
+		}
 	}
 }

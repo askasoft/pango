@@ -78,13 +78,25 @@ func (gl *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (str
 	switch {
 	case err != nil && (!errors.Is(err, gorm.ErrRecordNotFound) || gl.TraceRecordNotFoundError) && gl.Logger.IsLevelEnabled(gl.ErrorSQLLevel):
 		sql, rows := fc()
-		gl.printf(gl.ErrorSQLLevel, "%s [%d: %v] %s", err, rows, elapsed, sql)
+		if rows < 0 {
+			gl.printf(gl.ErrorSQLLevel, "%s [%v] %s", err, elapsed, sql)
+		} else {
+			gl.printf(gl.ErrorSQLLevel, "%s [%d: %v] %s", err, rows, elapsed, sql)
+		}
 	case gl.SlowThreshold != 0 && elapsed > gl.SlowThreshold && gl.Logger.IsLevelEnabled(gl.SlowSQLLevel):
 		sql, rows := fc()
-		gl.printf(gl.SlowSQLLevel, "SLOW >= %v [%d: %v] %s", gl.SlowThreshold, rows, elapsed, sql)
+		if rows < 0 {
+			gl.printf(gl.SlowSQLLevel, "SLOW >= %v [%v] %s", gl.SlowThreshold, elapsed, sql)
+		} else {
+			gl.printf(gl.SlowSQLLevel, "SLOW >= %v [%d: %v] %s", gl.SlowThreshold, rows, elapsed, sql)
+		}
 	case gl.Logger.IsLevelEnabled(gl.Level):
 		sql, rows := fc()
-		gl.printf(gl.Level, "[%d: %v] %s", rows, elapsed, sql)
+		if rows < 0 {
+			gl.printf(gl.Level, "[%v] %s", elapsed, sql)
+		} else {
+			gl.printf(gl.Level, "[%d: %v] %s", rows, elapsed, sql)
+		}
 	}
 }
 

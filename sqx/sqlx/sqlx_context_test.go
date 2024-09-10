@@ -1,6 +1,3 @@
-//go:build go1.18
-// +build go1.18
-
 // The following environment variables, if set, will be used:
 //
 //   - SQX_SQLITE_DSN
@@ -30,7 +27,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func MultiExecContext(ctx context.Context, e ContextExecer, query string) {
+func MultiExecContext(ctx context.Context, e sqx.ContextExecer, query string) {
 	stmts := strings.Split(query, ";\n")
 	if len(strings.Trim(stmts[len(stmts)-1], " \n\t\r")) == 0 {
 		stmts = stmts[:len(stmts)-1]
@@ -162,7 +159,7 @@ func TestMissingNamesContextContext(t *testing.T) {
 			t.Fatal(err)
 		}
 		// its internal stmt should be marked unsafe
-		if !nstmt.Stmt.unsafe {
+		if !nstmt.stmt.unsafe {
 			t.Error("expected NamedStmt to be unsafe but its underlying stmt did not inherit safety")
 		}
 		pps = []PersonPlus{}

@@ -33,11 +33,11 @@ import (
 )
 
 /* compile time checks that Db, Tx, Stmt (qStmt) implement expected interfaces */
-var _, _ Sql = &sql.DB{}, &sql.Tx{}
+var _, _ sqx.Sql = &sql.DB{}, &sql.Tx{}
 var _, _ Sqlx = &DB{}, &Tx{}
 var _, _ ColScanner = &Row{}, &Rows{}
-var _ Queryer = &qStmt{}
-var _ Execer = &qStmt{}
+var _ sqx.Queryer = &qStmt{}
+var _ sqx.Execer = &qStmt{}
 
 var TestPostgres = true
 var TestSqlite = true
@@ -239,7 +239,7 @@ type CPlace struct {
 	TelCode int
 }
 
-func MultiExec(e Execer, query string) {
+func MultiExec(e sqx.Execer, query string) {
 	stmts := strings.Split(query, ";\n")
 	if len(strings.Trim(stmts[len(stmts)-1], " \n\t\r")) == 0 {
 		stmts = stmts[:len(stmts)-1]
@@ -277,7 +277,7 @@ func RunWithSchema(schema Schema, t *testing.T, test func(db *DB, t *testing.T, 
 }
 
 func loadDefaultFixture(db *DB, _ *testing.T) {
-	tx := db.MustBegin()
+	tx := db.MustBeginx()
 	tx.MustExec(tx.Rebind("INSERT INTO person (first_name, last_name, email) VALUES (?, ?, ?)"), "Jason", "Moiron", "jmoiron@jmoiron.net")
 	tx.MustExec(tx.Rebind("INSERT INTO person (first_name, last_name, email) VALUES (?, ?, ?)"), "John", "Doe", "johndoeDNE@gmail.net")
 	tx.MustExec(tx.Rebind("INSERT INTO place (country, city, telcode) VALUES (?, ?, ?)"), "United States", "New York", "1")
@@ -371,7 +371,7 @@ func TestMissingNames(t *testing.T) {
 			t.Fatal(err)
 		}
 		// its internal stmt should be marked unsafe
-		if !nstmt.Stmt.unsafe {
+		if !nstmt.stmt.unsafe {
 			t.Error("expected NamedStmt to be unsafe but its underlying stmt did not inherit safety")
 		}
 		pps = []PersonPlus{}

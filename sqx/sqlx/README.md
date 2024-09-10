@@ -12,10 +12,6 @@ Major additional concepts are:
 * Named parameter support including prepared statements
 * `Get` and `Select` to go quickly from query to struct/slice
 
-## install
-
-    go get github.com/askasoft/pango/sqlx
-
 ## issues
 
 Row headers can be ambiguous (`SELECT 1 AS a, 2 AS a`), and the result of
@@ -45,7 +41,7 @@ import (
     "log"
     
     _ "github.com/lib/pq"
-    "github.com/askasoft/pango/sqlx"
+    "github.com/askasoft/pango/sqx/sqlx"
 )
 
 var schema = `
@@ -85,7 +81,7 @@ func main() {
     // database drivers;  pq will exec them all, sqlite3 won't, ymmv
     db.MustExec(schema)
     
-    tx := db.MustBegin()
+    tx := db.MustBeginx()
     tx.MustExec("INSERT INTO person (first_name, last_name, email) VALUES ($1, $2, $3)", "Jason", "Moiron", "jmoiron@jmoiron.net")
     tx.MustExec("INSERT INTO person (first_name, last_name, email) VALUES ($1, $2, $3)", "John", "Doe", "johndoeDNE@gmail.net")
     tx.MustExec("INSERT INTO place (country, city, telcode) VALUES ($1, $2, $3)", "United States", "New York", "1")

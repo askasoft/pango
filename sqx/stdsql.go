@@ -10,37 +10,44 @@ import (
 // GO database/sql interface
 //
 
-// Pinger is an interface for Ping()
 type Pinger interface {
 	Ping() error
 }
 
-// Queryer is an interface used by Get and Select
+type ContextPinger interface {
+	PingContext(ctx context.Context) error
+}
+
 type Queryer interface {
 	Query(query string, args ...any) (*sql.Rows, error)
+}
+
+type ContextQueryer interface {
+	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
 }
 
 type RowQueryer interface {
 	QueryRow(query string, args ...any) *sql.Row
 }
 
-// Execer is an interface used by MustExec
+type ContextRowQueryer interface {
+	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
+}
+
 type Execer interface {
 	Exec(query string, args ...any) (sql.Result, error)
 }
 
-// StmtQueryer is an interface used by Get and Select
-type StmtQueryer interface {
-	Query(args ...any) (*sql.Rows, error)
-}
-
-// StmtExecer is an interface used by MustExec
-type StmtExecer interface {
-	Exec(args ...any) (sql.Result, error)
+type ContextExecer interface {
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
 }
 
 type Preparer interface {
 	Prepare(query string) (*sql.Stmt, error)
+}
+
+type ContextPreparer interface {
+	PrepareContext(ctx context.Context, query string) (*sql.Stmt, error)
 }
 
 type Commiter interface {
@@ -49,6 +56,22 @@ type Commiter interface {
 
 type Rollbacker interface {
 	Rollback() error
+}
+
+type StmtQueryer interface {
+	Query(args ...any) (*sql.Rows, error)
+}
+
+type StmtContextQueryer interface {
+	QueryContext(ctx context.Context, args ...any) (*sql.Rows, error)
+}
+
+type StmtExecer interface {
+	Exec(args ...any) (sql.Result, error)
+}
+
+type StmtContextExecer interface {
+	ExecContext(ctx context.Context, args ...any) (sql.Result, error)
 }
 
 // Sql the basic interface for sql.DB, sql.Tx
@@ -72,6 +95,16 @@ type BeginTxer interface {
 // Any placeholder parameters are replaced with supplied args.
 func MustExec(e Execer, query string, args ...any) sql.Result {
 	res, err := e.Exec(query, args...)
+	if err != nil {
+		panic(err)
+	}
+	return res
+}
+
+// MustExecContext execs the query using e and panics if there was an error.
+// Any placeholder parameters are replaced with supplied args.
+func MustExecContext(ctx context.Context, e ContextExecer, query string, args ...any) sql.Result {
+	res, err := e.ExecContext(ctx, query, args...)
 	if err != nil {
 		panic(err)
 	}

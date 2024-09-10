@@ -25,48 +25,48 @@ func prepareNamedContext(ctx context.Context, p contextNamedPreparerx, query str
 		return nil, err
 	}
 	return &NamedStmt{
-		QueryString: q,
-		Params:      args,
-		Stmt:        stmt,
+		stmt:   stmt,
+		query:  q,
+		params: args,
 	}, nil
 }
 
 // ExecContext executes a named statement using the struct passed.
 // Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) ExecContext(ctx context.Context, arg any) (sql.Result, error) {
-	args, err := bindAnyArgs(n.Params, arg, n.Stmt.mapper)
+func (ns *NamedStmt) ExecContext(ctx context.Context, arg any) (sql.Result, error) {
+	args, err := bindAnyArgs(ns.params, arg, ns.stmt.mapper)
 	if err != nil {
 		return *new(sql.Result), err
 	}
-	return n.Stmt.ExecContext(ctx, args...)
+	return ns.stmt.ExecContext(ctx, args...)
 }
 
 // QueryContext executes a named statement using the struct argument, returning rows.
 // Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) QueryContext(ctx context.Context, arg any) (*sql.Rows, error) {
-	args, err := bindAnyArgs(n.Params, arg, n.Stmt.mapper)
+func (ns *NamedStmt) QueryContext(ctx context.Context, arg any) (*sql.Rows, error) {
+	args, err := bindAnyArgs(ns.params, arg, ns.stmt.mapper)
 	if err != nil {
 		return nil, err
 	}
-	return n.Stmt.QueryContext(ctx, args...)
+	return ns.stmt.QueryContext(ctx, args...)
 }
 
 // QueryRowContext executes a named statement against the database.  Because sqlx cannot
 // create a *sql.Row with an error condition pre-set for binding errors, sqlx
 // returns a *sqlx.Row instead.
 // Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) QueryRowContext(ctx context.Context, arg any) *Row {
-	args, err := bindAnyArgs(n.Params, arg, n.Stmt.mapper)
+func (ns *NamedStmt) QueryRowContext(ctx context.Context, arg any) *Row {
+	args, err := bindAnyArgs(ns.params, arg, ns.stmt.mapper)
 	if err != nil {
 		return &Row{err: err}
 	}
-	return n.Stmt.QueryRowxContext(ctx, args...)
+	return ns.stmt.QueryRowxContext(ctx, args...)
 }
 
 // MustExecContext execs a NamedStmt, panicing on error
 // Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) MustExecContext(ctx context.Context, arg any) sql.Result {
-	res, err := n.ExecContext(ctx, arg)
+func (ns *NamedStmt) MustExecContext(ctx context.Context, arg any) sql.Result {
+	res, err := ns.ExecContext(ctx, arg)
 	if err != nil {
 		panic(err)
 	}
@@ -75,25 +75,25 @@ func (n *NamedStmt) MustExecContext(ctx context.Context, arg any) sql.Result {
 
 // QueryxContext using this NamedStmt
 // Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) QueryxContext(ctx context.Context, arg any) (*Rows, error) {
-	r, err := n.QueryContext(ctx, arg)
+func (ns *NamedStmt) QueryxContext(ctx context.Context, arg any) (*Rows, error) {
+	r, err := ns.QueryContext(ctx, arg)
 	if err != nil {
 		return nil, err
 	}
-	return &Rows{Rows: r, ext: n.Stmt.ext}, err
+	return &Rows{Rows: r, ext: ns.stmt.ext}, err
 }
 
 // QueryRowxContext this NamedStmt.  Because of limitations with QueryRow, this is
 // an alias for QueryRow.
 // Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) QueryRowxContext(ctx context.Context, arg any) *Row {
-	return n.QueryRowContext(ctx, arg)
+func (ns *NamedStmt) QueryRowxContext(ctx context.Context, arg any) *Row {
+	return ns.QueryRowContext(ctx, arg)
 }
 
 // SelectContext using this NamedStmt
 // Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) SelectContext(ctx context.Context, dest any, arg any) error {
-	rows, err := n.QueryxContext(ctx, arg)
+func (ns *NamedStmt) SelectContext(ctx context.Context, dest any, arg any) error {
+	rows, err := ns.QueryxContext(ctx, arg)
 	if err != nil {
 		return err
 	}
@@ -104,8 +104,8 @@ func (n *NamedStmt) SelectContext(ctx context.Context, dest any, arg any) error 
 
 // GetContext using this NamedStmt
 // Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) GetContext(ctx context.Context, dest any, arg any) error {
-	r := n.QueryRowxContext(ctx, arg)
+func (ns *NamedStmt) GetContext(ctx context.Context, dest any, arg any) error {
+	r := ns.QueryRowxContext(ctx, arg)
 	return r.scanAny(dest, false)
 }
 

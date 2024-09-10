@@ -30,52 +30,52 @@ import (
 // NamedStmt is a prepared statement that executes named queries.  Prepare it
 // how you would execute a NamedQuery, but pass in a struct or map when executing.
 type NamedStmt struct {
-	Stmt        *Stmt
-	Params      []string
-	QueryString string
+	stmt   *Stmt
+	query  string
+	params []string
 }
 
 // Close closes the named statement.
-func (n *NamedStmt) Close() error {
-	return n.Stmt.Close()
+func (ns *NamedStmt) Close() error {
+	return ns.stmt.Close()
 }
 
 // Exec executes a named statement using the struct passed.
 // Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) Exec(arg any) (sql.Result, error) {
-	args, err := bindAnyArgs(n.Params, arg, n.Stmt.mapper)
+func (ns *NamedStmt) Exec(arg any) (sql.Result, error) {
+	args, err := bindAnyArgs(ns.params, arg, ns.stmt.mapper)
 	if err != nil {
 		return *new(sql.Result), err
 	}
-	return n.Stmt.Exec(args...)
+	return ns.stmt.Exec(args...)
 }
 
 // Query executes a named statement using the struct argument, returning rows.
 // Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) Query(arg any) (*sql.Rows, error) {
-	args, err := bindAnyArgs(n.Params, arg, n.Stmt.mapper)
+func (ns *NamedStmt) Query(arg any) (*sql.Rows, error) {
+	args, err := bindAnyArgs(ns.params, arg, ns.stmt.mapper)
 	if err != nil {
 		return nil, err
 	}
-	return n.Stmt.Query(args...)
+	return ns.stmt.Query(args...)
 }
 
 // QueryRow executes a named statement against the database.  Because sqlx cannot
 // create a *sql.Row with an error condition pre-set for binding errors, sqlx
 // returns a *sqlx.Row instead.
 // Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) QueryRow(arg any) *Row {
-	args, err := bindAnyArgs(n.Params, arg, n.Stmt.mapper)
+func (ns *NamedStmt) QueryRow(arg any) *Row {
+	args, err := bindAnyArgs(ns.params, arg, ns.stmt.mapper)
 	if err != nil {
 		return &Row{err: err}
 	}
-	return n.Stmt.QueryRowx(args...)
+	return ns.stmt.QueryRowx(args...)
 }
 
 // MustExec execs a NamedStmt, panicing on error
 // Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) MustExec(arg any) sql.Result {
-	res, err := n.Exec(arg)
+func (ns *NamedStmt) MustExec(arg any) sql.Result {
+	res, err := ns.Exec(arg)
 	if err != nil {
 		panic(err)
 	}
@@ -84,25 +84,25 @@ func (n *NamedStmt) MustExec(arg any) sql.Result {
 
 // Queryx using this NamedStmt
 // Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) Queryx(arg any) (*Rows, error) {
-	r, err := n.Query(arg)
+func (ns *NamedStmt) Queryx(arg any) (*Rows, error) {
+	r, err := ns.Query(arg)
 	if err != nil {
 		return nil, err
 	}
-	return &Rows{Rows: r, ext: n.Stmt.ext}, err
+	return &Rows{Rows: r, ext: ns.stmt.ext}, err
 }
 
 // QueryRowx this NamedStmt.  Because of limitations with QueryRow, this is
 // an alias for QueryRow.
 // Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) QueryRowx(arg any) *Row {
-	return n.QueryRow(arg)
+func (ns *NamedStmt) QueryRowx(arg any) *Row {
+	return ns.QueryRow(arg)
 }
 
 // Select using this NamedStmt
 // Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) Select(dest any, arg any) error {
-	rows, err := n.Queryx(arg)
+func (ns *NamedStmt) Select(dest any, arg any) error {
+	rows, err := ns.Queryx(arg)
 	if err != nil {
 		return err
 	}
@@ -113,20 +113,20 @@ func (n *NamedStmt) Select(dest any, arg any) error {
 
 // Get using this NamedStmt
 // Any named placeholder parameters are replaced with fields from arg.
-func (n *NamedStmt) Get(dest any, arg any) error {
-	r := n.QueryRowx(arg)
+func (ns *NamedStmt) Get(dest any, arg any) error {
+	r := ns.QueryRowx(arg)
 	return r.scanAny(dest, false)
 }
 
 // IsUnsafe return unsafe
-func (n *NamedStmt) IsUnsafe() bool {
-	return n.Stmt.IsUnsafe()
+func (ns *NamedStmt) IsUnsafe() bool {
+	return ns.stmt.IsUnsafe()
 }
 
 // Unsafe creates an unsafe version of the NamedStmt
-func (n *NamedStmt) Unsafe() *NamedStmt {
-	r := &NamedStmt{Params: n.Params, Stmt: n.Stmt, QueryString: n.QueryString}
-	r.Stmt.unsafe = true
+func (ns *NamedStmt) Unsafe() *NamedStmt {
+	r := &NamedStmt{params: ns.params, stmt: ns.stmt, query: ns.query}
+	r.stmt.unsafe = true
 	return r
 }
 
@@ -149,9 +149,9 @@ func prepareNamed(p namedPreparer, query string) (*NamedStmt, error) {
 	}
 
 	return &NamedStmt{
-		QueryString: q,
-		Params:      args,
-		Stmt:        stmt,
+		stmt:   stmt,
+		query:  q,
+		params: args,
 	}, nil
 }
 

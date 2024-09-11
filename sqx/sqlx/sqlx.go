@@ -225,7 +225,7 @@ func (ext *ext) SupportLastInsertID() bool {
 
 // Builder returns a new sql builder
 func (ext *ext) Builder() *Builder {
-	return &Builder{bid: ext.binder}
+	return &Builder{bid: ext.binder, sqb: sqx.Builder{Quoter: ext.quoter}}
 }
 
 // NewDB returns a new sqlx DB wrapper for a pre-existing *sql.DB.  The

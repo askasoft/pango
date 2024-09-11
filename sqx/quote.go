@@ -41,8 +41,13 @@ func (quoter Quoter) Quotes(ss ...string) []string {
 	return ss
 }
 
-// Quote quote string 's' with quote marks [2]rune, return (m[0] + s + m[1])
+// Quote quote string 's' with quote marks [2]rune.
+// Returns (m[0] + s + m[1]), if 's' does not contains any `('" *)“
 func (quoter Quoter) Quote(s string) string {
+	if str.ContainsAny(s, `('" *)`) {
+		return s
+	}
+
 	qms := quoter.Marks()
 
 	ss := str.FieldsByte(s, '.')

@@ -95,13 +95,23 @@ func (b *Builder) Where(q string, args ...any) *Builder {
 	return b
 }
 
-func (b *Builder) Set(col string, args ...any) *Builder {
-	b.sqb.Set(col, args...)
+func (b *Builder) Setx(col string, val string, args ...any) *Builder {
+	b.sqb.Setx(col, val, args...)
 	return b
 }
 
-func (b *Builder) Into(col string, val any) *Builder {
-	b.sqb.Into(col, val)
+func (b *Builder) Setc(col string, arg any) *Builder {
+	b.sqb.Setc(col, arg)
+	return b
+}
+
+// Names add named columns and values.
+// Example:
+//
+//	sqb.Insert("a").Names("id", "name", "value") // INSERT INTO a (id, name) VALUES (:id, :name)
+//	sqb.Update("a").Names("name", "value").Where("id = :id") // UPDATE a SET name = :name, value = :value WHERE id = :id
+func (b *Builder) Names(cols ...string) *Builder {
+	b.sqb.Names(cols...)
 	return b
 }
 

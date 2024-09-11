@@ -114,12 +114,11 @@ func (sjc *sjc) CreateJobChain(name, states string) (int64, error) {
 
 	sqb := sjc.db.Builder()
 	sqb.Insert(sjc.tb)
-	sqb.Into("name", name)
-	sqb.Into("status", xjm.JobStatusPending)
-	sqb.Into("states", states)
-	sqb.Into("created_at", now)
-	sqb.Into("updated_at", now)
-	sqb.Values(":name", ":status", ":states", ":created_at", ":updated_at")
+	sqb.Setc("name", name)
+	sqb.Setc("status", xjm.JobStatusPending)
+	sqb.Setc("states", states)
+	sqb.Setc("created_at", now)
+	sqb.Setc("updated_at", now)
 
 	if !sjc.db.SupportLastInsertID() {
 		sqb.Returns("id")
@@ -138,12 +137,12 @@ func (sjc *sjc) UpdateJobChain(cid int64, status string, states ...string) error
 
 	sqb.Update(sjc.tb)
 	if status != "" {
-		sqb.Set("status = ?", status)
+		sqb.Setc("status", status)
 	}
 	if len(states) > 0 {
-		sqb.Set("states = ?", states[0])
+		sqb.Setc("states", states[0])
 	}
-	sqb.Set("updated_at = ?", time.Now())
+	sqb.Setc("updated_at", time.Now())
 	sqb.Where("id = ?", cid)
 
 	sql, args := sqb.Build()

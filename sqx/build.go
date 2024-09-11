@@ -128,6 +128,7 @@ func (c sqlcmd) String() string {
 }
 
 type Builder struct {
+	Quoter   Quoter
 	command  sqlcmd
 	table    string
 	distinct bool
@@ -267,16 +268,27 @@ func (b *Builder) Where(q string, args ...any) *Builder {
 	return b
 }
 
-func (b *Builder) Set(col string, args ...any) *Builder {
+func (b *Builder) Setx(col string, val string, args ...any) *Builder {
 	b.columns = append(b.columns, col)
+	b.values = append(b.values, val)
 	b.params = append(b.params, args...)
 	return b
 }
 
-func (b *Builder) Into(col string, val any) *Builder {
-	b.columns = append(b.columns, col)
-	b.params = append(b.params, val)
-	b.values = append(b.values, "?")
+func (b *Builder) Setc(col string, arg any) *Builder {
+	return b.Setx(col, "?", arg)
+}
+
+// Names add named columns and values.
+// Example:
+//
+//	sqb.Insert("a").Names("id", "name", "value") // INSERT INTO a (id, name) VALUES (:id, :name)
+//	sqb.Update("a").Names("name", "value").Where("id = :id") // UPDATE a SET name = :name, value = :value WHERE id = :id
+func (b *Builder) Names(cols ...string) *Builder {
+	for _, col := range cols {
+		b.columns = append(b.columns, col)
+		b.values = append(b.values, ":"+col)
+	}
 	return b
 }
 
@@ -320,10 +332,10 @@ func (b *Builder) buildSelect() string {
 		if i > 0 {
 			sb.WriteString(", ")
 		}
-		sb.WriteString(col)
+		sb.WriteString(b.Quoter.Quote(col))
 	}
 	sb.WriteString(" FROM ")
-	sb.WriteString(b.table)
+	sb.WriteString(b.Quoter.Quote(b.table))
 
 	for _, j := range b.joins {
 		sb.WriteRune(' ')
@@ -352,13 +364,22 @@ func (b *Builder) buildUpdate() string {
 	sb := &strings.Builder{}
 
 	sb.WriteString("UPDATE ")
-	sb.WriteString(b.table)
+	sb.WriteString(b.Quoter.Quote(b.table))
 	sb.WriteString(" SET ")
+
 	for i, col := range b.columns {
 		if i > 0 {
 			sb.WriteString(", ")
 		}
-		sb.WriteString(col)
+
+		sb.WriteString(b.Quoter.Quote(col))
+		sb.WriteString(" = ")
+
+		if i < len(b.values) {
+			sb.WriteString(b.values[i])
+		} else {
+			sb.WriteByte('?')
+		}
 	}
 
 	b.appendWhere(sb)
@@ -371,14 +392,14 @@ func (b *Builder) buildInsert() string {
 	sb := &strings.Builder{}
 
 	sb.WriteString("INSERT INTO ")
-	sb.WriteString(b.table)
+	sb.WriteString(b.Quoter.Quote(b.table))
 	if len(b.columns) > 0 {
 		sb.WriteString(" (")
 		for i, col := range b.columns {
 			if i > 0 {
 				sb.WriteString(", ")
 			}
-			sb.WriteString(col)
+			sb.WriteString(b.Quoter.Quote(col))
 		}
 		sb.WriteString(")")
 	}
@@ -401,7 +422,7 @@ func (b *Builder) buildDelete() string {
 	sb := &strings.Builder{}
 
 	sb.WriteString("DELETE FROM ")
-	sb.WriteString(b.table)
+	sb.WriteString(b.Quoter.Quote(b.table))
 
 	b.appendWhere(sb)
 	b.appendRetuning(sb)
@@ -412,9 +433,7 @@ func (b *Builder) buildDelete() string {
 func (b *Builder) appendWhere(sb *strings.Builder) {
 	for i, w := range b.wheres {
 		sb.WriteString(str.If(i == 0, " WHERE ", " AND "))
-		sb.WriteByte('(')
 		sb.WriteString(w)
-		sb.WriteByte(')')
 	}
 }
 
@@ -425,7 +444,7 @@ func (b *Builder) appendRetuning(sb *strings.Builder) {
 			if i > 0 {
 				sb.WriteString(", ")
 			}
-			sb.WriteString(col)
+			sb.WriteString(b.Quoter.Quote(col))
 		}
 	}
 }

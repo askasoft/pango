@@ -377,3 +377,65 @@ func Transactionx(ctx context.Context, db BeginTxxer, opts *sql.TxOptions, fc fu
 
 	return
 }
+
+// Named takes a query using named parameters and an argument and
+// returns a new query with a list of args that can be executed by
+// a database.  The return value uses the `?` bindvar.
+func Named(query string, arg any) (string, []any, error) {
+	return BindQuestion.bindNamedMapper(query, arg, NameMapper)
+}
+
+// NamedQueryContext binds a named query and then runs Query on the result using the
+// provided Ext (sqlx.Tx, sqlx.Db).  It works with both structs and with
+// map[string]any types.
+func NamedQueryContext(ctx context.Context, e ExtContext, query string, arg any) (*Rows, error) {
+	q, args, err := e.Binder().bindNamedMapper(query, arg, e.Mapper())
+	if err != nil {
+		return nil, err
+	}
+	return e.QueryxContext(ctx, q, args...)
+}
+
+// NamedExecContext uses BindStruct to get a query executable by the driver and
+// then runs Exec on the result.  Returns an error from the binding
+// or the query execution itself.
+func NamedExecContext(ctx context.Context, e ExtContext, query string, arg any) (sql.Result, error) {
+	q, args, err := e.Binder().bindNamedMapper(query, arg, e.Mapper())
+	if err != nil {
+		return nil, err
+	}
+	return e.ExecContext(ctx, q, args...)
+}
+
+// namedQuery binds a named query and then runs Query on the result using the
+// provided Ext (sqlx.Tx, sqlx.Db).  It works with both structs and with
+// map[string]any types.
+func namedQuery(x isqlx, query string, arg any) (*Rows, error) {
+	q, args, err := x.Binder().bindNamedMapper(query, arg, x.Mapper())
+	if err != nil {
+		return nil, err
+	}
+	return x.Queryx(q, args...)
+}
+
+// namedQueryRow binds a named query and then runs Query on the result using the
+// provided Ext (sqlx.Tx, sqlx.Db).  It works with both structs and with
+// map[string]any types.
+func namedQueryRow(x isqlx, query string, arg any) *Row {
+	q, args, err := x.Binder().bindNamedMapper(query, arg, x.Mapper())
+	if err != nil {
+		return &Row{err: err}
+	}
+	return x.QueryRowx(q, args...)
+}
+
+// namedExec uses BindStruct to get a query executable by the driver and
+// then runs Exec on the result.  Returns an error from the binding
+// or the query execution itself.
+func namedExec(x isqlx, query string, arg any) (sql.Result, error) {
+	q, args, err := x.Binder().bindNamedMapper(query, arg, x.Mapper())
+	if err != nil {
+		return nil, err
+	}
+	return x.Exec(q, args...)
+}

@@ -25,7 +25,7 @@ func JM(db sqlx.Sqlx, jobTable, logTable string) xjm.JobManager {
 func (sjm *sjm) CountJobLogs(jid int64, levels ...string) (cnt int64, err error) {
 	sqb := sjm.db.Builder()
 
-	sqb.Select("COUNT(1)").From(sjm.lt).Where("jid = ?", jid)
+	sqb.Count().From(sjm.lt).Where("jid = ?", jid)
 	if len(levels) > 0 {
 		sqb.In("level", levels)
 	}
@@ -39,7 +39,7 @@ func (sjm *sjm) CountJobLogs(jid int64, levels ...string) (cnt int64, err error)
 func (sjm *sjm) GetJobLogs(jid int64, min, max int64, asc bool, limit int, levels ...string) (jls []*xjm.JobLog, err error) {
 	sqb := sjm.db.Builder()
 
-	sqb.Select("*").From(sjm.lt).Where("jid = ?", jid)
+	sqb.Select().From(sjm.lt).Where("jid = ?", jid)
 	if len(levels) > 0 {
 		sqb.In("level", levels)
 	}
@@ -96,7 +96,7 @@ func (sjm *sjm) GetJob(jid int64) (*xjm.Job, error) {
 func (sjm *sjm) FindJob(name string, asc bool, status ...string) (job *xjm.Job, err error) {
 	sqb := sjm.db.Builder()
 
-	sqb.Select("*").From(sjm.jt)
+	sqb.Select().From(sjm.jt)
 	if name != "" {
 		sqb.Where("name = ?", name)
 	}
@@ -120,7 +120,7 @@ func (sjm *sjm) FindJob(name string, asc bool, status ...string) (job *xjm.Job, 
 func (sjm *sjm) findJobs(name string, start, limit int, asc bool, status ...string) *sqlx.Builder {
 	sqb := sjm.db.Builder()
 
-	sqb.Select("*").From(sjm.jt)
+	sqb.Select().From(sjm.jt)
 	if name != "" {
 		sqb.Where("name = ?", name)
 	}
@@ -374,8 +374,7 @@ func (sjm *sjm) ReappendJobs(before time.Time) (int64, error) {
 func (sjm *sjm) StartJobs(limit int, run func(*xjm.Job)) error {
 	sqb := sjm.db.Builder()
 
-	sqb.Select("*")
-	sqb.From(sjm.jt)
+	sqb.Select().From(sjm.jt)
 	sqb.Where("status = ?", xjm.JobStatusPending)
 	sqb.Order("id", false)
 	sqb.Limit(limit)

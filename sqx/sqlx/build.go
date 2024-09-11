@@ -26,13 +26,27 @@ func (b *Builder) Params() []any {
 	return b.sqb.Params()
 }
 
-func (b *Builder) Distinct(cols ...string) *Builder {
-	b.sqb.Distinct(cols...)
+func (b *Builder) Count(cols ...string) *Builder {
+	b.sqb.Count(cols...)
 	return b
 }
 
+func (b *Builder) CountDistinct(cols ...string) *Builder {
+	b.sqb.CountDistinct(cols...)
+	return b
+}
+
+// Select add select columns
+// if `cols` is not specified, default select "*"
 func (b *Builder) Select(cols ...string) *Builder {
 	b.sqb.Select(cols...)
+	return b
+}
+
+// Select add distinct select columns
+// if `cols` is not specified, default select "*"
+func (b *Builder) SelectDistinct(cols ...string) *Builder {
+	b.sqb.SelectDistinct(cols...)
 	return b
 }
 

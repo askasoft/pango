@@ -1214,7 +1214,7 @@ func TestInContext(t *testing.T) {
 		//tx.MustExecContext(ctx, tx.Rebind("INSERT INTO place (country, telcode) VALUES (?, ?)"), "Singapore", "65")
 		telcodes := []int{852, 65}
 		sqb := sqx.Builder{}
-		query, args := sqb.Select("*").From("place").In("telcode", telcodes).Order("telcode", false).Build()
+		query, args := sqb.Select().From("place").In("telcode", telcodes).Order("telcode", false).Build()
 		query = db.Rebind(query)
 		places := []Place{}
 		err := db.SelectContext(ctx, &places, query, args...)

@@ -180,15 +180,37 @@ func (b *Builder) SQL() string {
 	}
 }
 
-func (b *Builder) Distinct(cols ...string) *Builder {
+func (b *Builder) Count(cols ...string) *Builder {
 	b.command = cselect
-	b.distinct = true
+	if len(cols) == 0 {
+		return b.Columns("COUNT(*)")
+	}
+	return b.Columns("COUNT(" + str.Join(cols, ", ") + ")")
+}
+
+func (b *Builder) CountDistinct(cols ...string) *Builder {
+	b.command = cselect
+	if len(cols) == 0 {
+		return b.Columns("COUNT(distinct *)")
+	}
+	return b.Columns("COUNT(distinct " + str.Join(cols, ", ") + ")")
+}
+
+// Select add select columns
+// if `cols` is not specified, default select "*"
+func (b *Builder) Select(cols ...string) *Builder {
+	b.command = cselect
+	if len(cols) == 0 {
+		return b.Columns("*")
+	}
 	return b.Columns(cols...)
 }
 
-func (b *Builder) Select(cols ...string) *Builder {
-	b.command = cselect
-	return b.Columns(cols...)
+// Select add distinct select columns
+// if `cols` is not specified, default select "*"
+func (b *Builder) SelectDistinct(cols ...string) *Builder {
+	b.distinct = true
+	return b.Select(cols...)
 }
 
 func (b *Builder) Delete(tb string) *Builder {

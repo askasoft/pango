@@ -108,7 +108,7 @@ func (ssm *ssm) buildQuery(sq *xsm.SchemaQuery) *sqlx.Builder {
 }
 
 func (ssm *ssm) CountSchemas(sq *xsm.SchemaQuery) (total int, err error) {
-	sqb := ssm.buildQuery(sq).Select("COUNT(1)")
+	sqb := ssm.buildQuery(sq).Count()
 	sql, args := sqb.Build()
 
 	err = ssm.db.Get(&total, sql, args...)

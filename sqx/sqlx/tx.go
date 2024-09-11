@@ -120,6 +120,18 @@ func (tx *Tx) NamedQuery(query string, arg any) (*Rows, error) {
 	return namedQuery(tx, query, arg)
 }
 
+// NamedQueryContext using this Tx.
+// Any named placeholder parameters are replaced with fields from arg.
+func (tx *Tx) NamedQueryContext(ctx context.Context, query string, arg any) (*Rows, error) {
+	return namedQueryContext(ctx, tx, query, arg)
+}
+
+// NamedQueryRowContext within a transaction.
+// Any named placeholder parameters are replaced with fields from arg.
+func (tx *Tx) NamedQueryRowContext(ctx context.Context, query string, arg any) *Row {
+	return namedQueryRowContext(ctx, tx, query, arg)
+}
+
 // NamedQueryRow within a transaction.
 // Any named placeholder parameters are replaced with fields from arg.
 func (tx *Tx) NamedQueryRow(query string, arg any) *Row {
@@ -132,16 +144,26 @@ func (tx *Tx) NamedExec(query string, arg any) (sql.Result, error) {
 	return namedExec(tx, query, arg)
 }
 
-// Select within a transaction.
-// Any placeholder parameters are replaced with supplied args.
-func (tx *Tx) Select(dest any, query string, args ...any) error {
-	return Select(tx, dest, query, args...)
+// NamedExecContext using this Tx.
+// Any named placeholder parameters are replaced with fields from arg.
+func (tx *Tx) NamedExecContext(ctx context.Context, query string, arg any) (sql.Result, error) {
+	return namedExecContext(ctx, tx, query, arg)
 }
 
 // Queryx within a transaction.
 // Any placeholder parameters are replaced with supplied args.
 func (tx *Tx) Queryx(query string, args ...any) (*Rows, error) {
 	r, err := tx.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	return &Rows{Rows: r, ext: tx.ext}, err
+}
+
+// QueryxContext within a transaction and context.
+// Any placeholder parameters are replaced with supplied args.
+func (tx *Tx) QueryxContext(ctx context.Context, query string, args ...any) (*Rows, error) {
+	r, err := tx.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -155,17 +177,11 @@ func (tx *Tx) QueryRowx(query string, args ...any) *Row {
 	return &Row{rows: rows, err: err, ext: tx.ext}
 }
 
-// Get within a transaction.
+// QueryRowxContext within a transaction and context.
 // Any placeholder parameters are replaced with supplied args.
-// An error is returned if the result set is empty.
-func (tx *Tx) Get(dest any, query string, args ...any) error {
-	return Get(tx, dest, query, args...)
-}
-
-// MustExec runs MustExec within a transaction.
-// Any placeholder parameters are replaced with supplied args.
-func (tx *Tx) MustExec(query string, args ...any) sql.Result {
-	return sqx.MustExec(tx, query, args...)
+func (tx *Tx) QueryRowxContext(ctx context.Context, query string, args ...any) *Row {
+	rows, err := tx.QueryContext(ctx, query, args...)
+	return &Row{rows: rows, err: err, ext: tx.ext}
 }
 
 // Preparex  a statement within a transaction.
@@ -175,44 +191,6 @@ func (tx *Tx) Preparex(query string) (*Stmt, error) {
 		return nil, err
 	}
 	return &Stmt{query: query, stmt: s, ext: tx.ext}, err
-}
-
-// Stmtx returns a version of the prepared statement which runs within a transaction.  Provided
-// stmt can be either *sql.Stmt or *sqlx.Stmt.
-func (tx *Tx) Stmtx(stmt any) *Stmt {
-	q, s := getQueryStmt(stmt)
-	return &Stmt{query: q, stmt: tx.Stmt(s), ext: tx.ext}
-}
-
-// NamedStmt returns a version of the prepared statement which runs within a transaction.
-func (tx *Tx) NamedStmt(stmt *NamedStmt) *NamedStmt {
-	return &NamedStmt{
-		stmt:   tx.Stmtx(stmt.stmt),
-		query:  stmt.query,
-		params: stmt.params,
-	}
-}
-
-// PrepareNamed returns an sqlx.NamedStmt
-func (tx *Tx) PrepareNamed(query string) (*NamedStmt, error) {
-	return prepareNamed(tx, query)
-}
-
-// StmtxContext returns a version of the prepared statement which runs within a
-// transaction. Provided stmt can be either *sql.Stmt or *sqlx.Stmt.
-func (tx *Tx) StmtxContext(ctx context.Context, stmt any) *Stmt {
-	q, s := getQueryStmt(stmt)
-	return &Stmt{query: q, stmt: tx.StmtContext(ctx, s), ext: tx.ext}
-}
-
-// NamedStmtContext returns a version of the prepared statement which runs
-// within a transaction.
-func (tx *Tx) NamedStmtContext(ctx context.Context, stmt *NamedStmt) *NamedStmt {
-	return &NamedStmt{
-		stmt:   tx.StmtxContext(ctx, stmt.stmt),
-		query:  stmt.query,
-		params: stmt.params,
-	}
 }
 
 // PreparexContext returns an sqlx.Stmt instead of a sql.Stmt.
@@ -227,31 +205,66 @@ func (tx *Tx) PreparexContext(ctx context.Context, query string) (*Stmt, error) 
 	return &Stmt{query: query, stmt: s, ext: tx.ext}, err
 }
 
+// Stmtx returns a version of the prepared statement which runs within a transaction.  Provided
+// stmt can be either *sql.Stmt or *sqlx.Stmt.
+func (tx *Tx) Stmtx(stmt any) *Stmt {
+	q, s := getQueryStmt(stmt)
+	return &Stmt{query: q, stmt: tx.Stmt(s), ext: tx.ext}
+}
+
+// StmtxContext returns a version of the prepared statement which runs within a
+// transaction. Provided stmt can be either *sql.Stmt or *sqlx.Stmt.
+func (tx *Tx) StmtxContext(ctx context.Context, stmt any) *Stmt {
+	q, s := getQueryStmt(stmt)
+	return &Stmt{query: q, stmt: tx.StmtContext(ctx, s), ext: tx.ext}
+}
+
+// NamedStmt returns a version of the prepared statement which runs within a transaction.
+func (tx *Tx) NamedStmt(stmt *NamedStmt) *NamedStmt {
+	return &NamedStmt{
+		stmt:   tx.Stmtx(stmt.stmt),
+		query:  stmt.query,
+		params: stmt.params,
+	}
+}
+
+// NamedStmtContext returns a version of the prepared statement which runs
+// within a transaction.
+func (tx *Tx) NamedStmtContext(ctx context.Context, stmt *NamedStmt) *NamedStmt {
+	return &NamedStmt{
+		stmt:   tx.StmtxContext(ctx, stmt.stmt),
+		query:  stmt.query,
+		params: stmt.params,
+	}
+}
+
+// PrepareNamed returns an sqlx.NamedStmt
+func (tx *Tx) PrepareNamed(query string) (*NamedStmt, error) {
+	return prepareNamed(tx, query)
+}
+
 // PrepareNamedContext returns an sqlx.NamedStmt
 func (tx *Tx) PrepareNamedContext(ctx context.Context, query string) (*NamedStmt, error) {
 	return prepareNamedContext(ctx, tx, query)
 }
 
-// MustExecContext runs MustExecContext within a transaction.
+// Select within a transaction.
 // Any placeholder parameters are replaced with supplied args.
-func (tx *Tx) MustExecContext(ctx context.Context, query string, args ...any) sql.Result {
-	return sqx.MustExecContext(ctx, tx, query, args...)
-}
-
-// QueryxContext within a transaction and context.
-// Any placeholder parameters are replaced with supplied args.
-func (tx *Tx) QueryxContext(ctx context.Context, query string, args ...any) (*Rows, error) {
-	r, err := tx.QueryContext(ctx, query, args...)
-	if err != nil {
-		return nil, err
-	}
-	return &Rows{Rows: r, ext: tx.ext}, err
+func (tx *Tx) Select(dest any, query string, args ...any) error {
+	return Select(tx, dest, query, args...)
 }
 
 // SelectContext within a transaction and context.
 // Any placeholder parameters are replaced with supplied args.
 func (tx *Tx) SelectContext(ctx context.Context, dest any, query string, args ...any) error {
 	return SelectContext(ctx, tx, dest, query, args...)
+}
+
+// Get within a transaction.
+// Any placeholder parameters are replaced with supplied args.
+// An error is returned if the result set is empty.
+func (tx *Tx) Get(dest any, query string, args ...any) error {
+	return Get(tx, dest, query, args...)
 }
 
 // GetContext within a transaction and context.
@@ -261,15 +274,28 @@ func (tx *Tx) GetContext(ctx context.Context, dest any, query string, args ...an
 	return GetContext(ctx, tx, dest, query, args...)
 }
 
-// QueryRowxContext within a transaction and context.
-// Any placeholder parameters are replaced with supplied args.
-func (tx *Tx) QueryRowxContext(ctx context.Context, query string, args ...any) *Row {
-	rows, err := tx.QueryContext(ctx, query, args...)
-	return &Row{rows: rows, err: err, ext: tx.ext}
+// Create does a QueryRow using the provided Queryer, and scans the resulting row
+// returns the last inserted ID.
+// If the db supports LastInsertId(), return Result.LastInsertId().
+func (tx *Tx) Create(query string, args ...any) (int64, error) {
+	return Create(tx, query, args...)
 }
 
-// NamedExecContext using this Tx.
-// Any named placeholder parameters are replaced with fields from arg.
-func (tx *Tx) NamedExecContext(ctx context.Context, query string, arg any) (sql.Result, error) {
-	return NamedExecContext(ctx, tx, query, arg)
+// Create does a QueryRow using the provided Queryer, and scans the resulting row
+// returns the last inserted ID.
+// If the db supports LastInsertId(), return Result.LastInsertId().
+func (tx *Tx) CreateContext(ctx context.Context, query string, args ...any) (int64, error) {
+	return CreateContext(ctx, tx, query, args...)
+}
+
+// MustExec runs MustExec within a transaction.
+// Any placeholder parameters are replaced with supplied args.
+func (tx *Tx) MustExec(query string, args ...any) sql.Result {
+	return sqx.MustExec(tx, query, args...)
+}
+
+// MustExecContext runs MustExecContext within a transaction.
+// Any placeholder parameters are replaced with supplied args.
+func (tx *Tx) MustExecContext(ctx context.Context, query string, args ...any) sql.Result {
+	return sqx.MustExecContext(ctx, tx, query, args...)
 }

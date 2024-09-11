@@ -100,22 +100,29 @@ func (b *Builder) Set(col string, args ...any) *Builder {
 	return b
 }
 
-func (b *Builder) Into(col string, args ...any) *Builder {
-	b.sqb.Into(col, args...)
+func (b *Builder) Into(col string, val any) *Builder {
+	b.sqb.Into(col, val)
 	return b
 }
 
-func (b *Builder) In(col string, arg any) *Builder {
-	b.sqb.In(col, arg)
+func (b *Builder) In(col string, val any) *Builder {
+	b.sqb.In(col, val)
 	return b
 }
 
-func (b *Builder) NotIn(col string, arg any) *Builder {
-	b.sqb.NotIn(col, arg)
+func (b *Builder) NotIn(col string, val any) *Builder {
+	b.sqb.NotIn(col, val)
 	return b
 }
 
 func (b *Builder) Values(vals ...string) *Builder {
 	b.sqb.Values(vals...)
+	return b
+}
+
+// Returns add RETURNING cols...
+// if `cols` is not specified, RETURNING *
+func (b *Builder) Returns(cols ...string) *Builder {
+	b.sqb.Returns(cols...)
 	return b
 }

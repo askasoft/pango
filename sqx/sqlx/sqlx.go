@@ -40,14 +40,14 @@ type Supporter interface {
 	SupportLastInsertID() bool
 }
 
-type Selector interface {
-	Get(dest any, query string, args ...any) error
-	Select(dest any, query string, args ...any) error
-}
-
 type Queryerx interface {
 	Queryx(query string, args ...any) (*Rows, error)
 	QueryRowx(query string, args ...any) *Row
+}
+
+type ContextQueryerx interface {
+	QueryxContext(ctx context.Context, query string, args ...any) (*Rows, error)
+	QueryRowxContext(ctx context.Context, query string, args ...any) *Row
 }
 
 type NamedQueryer interface {
@@ -55,44 +55,45 @@ type NamedQueryer interface {
 	NamedQueryRow(query string, arg any) *Row
 }
 
-// NamedExecer is an interface used by MustExec
+type ContextNamedQueryer interface {
+	NamedQueryContext(ctx context.Context, query string, arg any) (*Rows, error)
+	NamedQueryRowContext(ctx context.Context, query string, arg any) *Row
+}
+
 type NamedExecer interface {
 	NamedExec(query string, arg any) (sql.Result, error)
+}
+
+type ContextNamedExecer interface {
+	NamedExecContext(ctx context.Context, query string, arg any) (sql.Result, error)
 }
 
 type Preparerx interface {
 	Preparex(query string) (*Stmt, error)
 }
 
-// ContextPreparerx is an interface used by PreparexContext.
 type ContextPreparerx interface {
 	PreparexContext(ctx context.Context, query string) (*Stmt, error)
 }
 
-// Beginxer is an interface used by Transaction
 type Beginxer interface {
 	Beginx() (*Tx, error)
 }
 
-// BeginTxxer is an interface used by Transactionx
 type BeginTxxer interface {
 	BeginTxx(context.Context, *sql.TxOptions) (*Tx, error)
 }
 
-// ContextQueryerx is an interface used by GetContext and SelectContext
-type ContextQueryerx interface {
-	QueryxContext(ctx context.Context, query string, args ...any) (*Rows, error)
-	QueryRowxContext(ctx context.Context, query string, args ...any) *Row
+type Mixer interface {
+	Get(dest any, query string, args ...any) error
+	Select(dest any, query string, args ...any) error
+	Create(query string, args ...any) (int64, error)
 }
 
-// ExtContext is a union interface which can bind, query, and exec, with Context
-// used by NamedQueryContext and NamedExecContext.
-type ExtContext interface {
-	binder
-	mapper
-	sqx.ContextQueryer
-	sqx.ContextExecer
-	ContextQueryerx
+type ContextMixer interface {
+	GetContext(ctx context.Context, dest any, query string, args ...any) error
+	SelectContext(ctx context.Context, dest any, query string, args ...any) error
+	CreateContext(ctx context.Context, query string, args ...any) (int64, error)
 }
 
 // Bind is an interface for something which can bind queries (Tx, DB)
@@ -107,14 +108,20 @@ type Build interface {
 
 type Sqlx interface {
 	sqx.Sql
+	sqx.Sqlc
 	Supporter
 	Bind
 	Build
-	Selector
 	Queryerx
 	NamedQueryer
 	NamedExecer
 	Preparerx
+	Mixer
+	ContextQueryerx
+	ContextNamedQueryer
+	ContextNamedExecer
+	ContextPreparerx
+	ContextMixer
 }
 
 type Transactioner interface {
@@ -152,7 +159,19 @@ type isqlx interface {
 	binder
 	unsafer
 	mapper
-	Sqlx
+	Supporter
+	Queryerx
+	sqx.Execer
+}
+
+// icsqlx is a union interface which can bind, query, and exec, used by NamedQueryContext and NamedExecContext.
+type icsqlx interface {
+	binder
+	unsafer
+	mapper
+	Supporter
+	ContextQueryerx
+	sqx.ContextExecer
 }
 
 type ext struct {
@@ -326,6 +345,50 @@ func GetContext(ctx context.Context, q ContextQueryerx, dest any, query string, 
 	return r.scanAny(dest, false)
 }
 
+// Create does a QueryRow using the provided Queryer, and scans the resulting row
+// returns the last inserted ID.
+// If the db supports LastInsertId(), return Result.LastInsertId().
+func Create(x Sqlx, query string, args ...any) (int64, error) {
+	if x.SupportLastInsertID() {
+		r, err := x.Exec(query, args...)
+		if err != nil {
+			return 0, err
+		}
+		return r.LastInsertId()
+	}
+
+	r := x.QueryRowx(query, args...)
+	if r.Err() != nil {
+		return 0, r.Err()
+	}
+
+	var id int64
+	err := r.Scan(&id)
+	return id, err
+}
+
+// CreateContext does a QueryRow using the provided Queryer, and scans the resulting row
+// returns the last inserted ID.
+// If the db supports LastInsertId(), return Result.LastInsertId().
+func CreateContext(ctx context.Context, x Sqlx, query string, args ...any) (int64, error) {
+	if x.SupportLastInsertID() {
+		r, err := x.ExecContext(ctx, query, args...)
+		if err != nil {
+			return 0, err
+		}
+		return r.LastInsertId()
+	}
+
+	r := x.QueryRowx(query, args...)
+	if r.Err() != nil {
+		return 0, r.Err()
+	}
+
+	var id int64
+	err := r.Scan(&id)
+	return id, err
+}
+
 // Transaction start a transaction as a block, return error will rollback, otherwise to commit. Transaction executes an
 // arbitrary number of commands in fc within a transaction. On success the changes are committed; if an error occurs
 // they are rolled back.
@@ -385,26 +448,26 @@ func Named(query string, arg any) (string, []any, error) {
 	return BindQuestion.bindNamedMapper(query, arg, NameMapper)
 }
 
-// NamedQueryContext binds a named query and then runs Query on the result using the
-// provided Ext (sqlx.Tx, sqlx.Db).  It works with both structs and with
-// map[string]any types.
-func NamedQueryContext(ctx context.Context, e ExtContext, query string, arg any) (*Rows, error) {
-	q, args, err := e.Binder().bindNamedMapper(query, arg, e.Mapper())
-	if err != nil {
-		return nil, err
-	}
-	return e.QueryxContext(ctx, q, args...)
-}
-
-// NamedExecContext uses BindStruct to get a query executable by the driver and
+// namedExec uses BindStruct to get a query executable by the driver and
 // then runs Exec on the result.  Returns an error from the binding
 // or the query execution itself.
-func NamedExecContext(ctx context.Context, e ExtContext, query string, arg any) (sql.Result, error) {
-	q, args, err := e.Binder().bindNamedMapper(query, arg, e.Mapper())
+func namedExec(x isqlx, query string, arg any) (sql.Result, error) {
+	q, args, err := x.Binder().bindNamedMapper(query, arg, x.Mapper())
 	if err != nil {
 		return nil, err
 	}
-	return e.ExecContext(ctx, q, args...)
+	return x.Exec(q, args...)
+}
+
+// namedExecContext uses BindStruct to get a query executable by the driver and
+// then runs Exec on the result.  Returns an error from the binding
+// or the query execution itself.
+func namedExecContext(ctx context.Context, x icsqlx, query string, arg any) (sql.Result, error) {
+	q, args, err := x.Binder().bindNamedMapper(query, arg, x.Mapper())
+	if err != nil {
+		return nil, err
+	}
+	return x.ExecContext(ctx, q, args...)
 }
 
 // namedQuery binds a named query and then runs Query on the result using the
@@ -418,6 +481,17 @@ func namedQuery(x isqlx, query string, arg any) (*Rows, error) {
 	return x.Queryx(q, args...)
 }
 
+// namedQueryContext binds a named query and then runs Query on the result using the
+// provided Ext (sqlx.Tx, sqlx.Db).  It works with both structs and with
+// map[string]any types.
+func namedQueryContext(ctx context.Context, x icsqlx, query string, arg any) (*Rows, error) {
+	q, args, err := x.Binder().bindNamedMapper(query, arg, x.Mapper())
+	if err != nil {
+		return nil, err
+	}
+	return x.QueryxContext(ctx, q, args...)
+}
+
 // namedQueryRow binds a named query and then runs Query on the result using the
 // provided Ext (sqlx.Tx, sqlx.Db).  It works with both structs and with
 // map[string]any types.
@@ -429,13 +503,13 @@ func namedQueryRow(x isqlx, query string, arg any) *Row {
 	return x.QueryRowx(q, args...)
 }
 
-// namedExec uses BindStruct to get a query executable by the driver and
-// then runs Exec on the result.  Returns an error from the binding
-// or the query execution itself.
-func namedExec(x isqlx, query string, arg any) (sql.Result, error) {
+// namedQueryRowContext binds a named query and then runs Query on the result using the
+// provided Ext (sqlx.Tx, sqlx.Db).  It works with both structs and with
+// map[string]any types.
+func namedQueryRowContext(ctx context.Context, x icsqlx, query string, arg any) *Row {
 	q, args, err := x.Binder().bindNamedMapper(query, arg, x.Mapper())
 	if err != nil {
-		return nil, err
+		return &Row{err: err}
 	}
-	return x.Exec(q, args...)
+	return x.QueryRowxContext(ctx, q, args...)
 }

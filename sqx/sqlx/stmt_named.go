@@ -186,14 +186,14 @@ func (ns *NamedStmt) GetContext(ctx context.Context, dest any, arg any) error {
 	return r.scanAny(dest, false)
 }
 
-// A union interface of preparer and binder, required to be able to prepare
-// named statements (as the bindtype must be determined).
-type namedPreparer interface {
+// A union interface of Preparerx and binder, required to be able to
+// prepare named statements (as the bindtype must be determined).
+type iPreparerx interface {
 	Preparerx
 	binder
 }
 
-func prepareNamed(p namedPreparer, query string) (*NamedStmt, error) {
+func prepareNamed(p iPreparerx, query string) (*NamedStmt, error) {
 	q, args, err := p.Binder().compileNamedQuery(query)
 	if err != nil {
 		return nil, err
@@ -213,12 +213,12 @@ func prepareNamed(p namedPreparer, query string) (*NamedStmt, error) {
 
 // A union interface of ContextPreparerx and binder, required to be able to
 // prepare named statements with context (as the bindtype must be determined).
-type contextNamedPreparerx interface {
+type iContextNamedPreparerx interface {
 	ContextPreparerx
 	binder
 }
 
-func prepareNamedContext(ctx context.Context, p contextNamedPreparerx, query string) (*NamedStmt, error) {
+func prepareNamedContext(ctx context.Context, p iContextNamedPreparerx, query string) (*NamedStmt, error) {
 	q, args, err := p.Binder().compileNamedQuery(query)
 	if err != nil {
 		return nil, err

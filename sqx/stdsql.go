@@ -50,11 +50,8 @@ type ContextPreparer interface {
 	PrepareContext(ctx context.Context, query string) (*sql.Stmt, error)
 }
 
-type Commiter interface {
+type Txer interface {
 	Commit() error
-}
-
-type Rollbacker interface {
 	Rollback() error
 }
 
@@ -79,6 +76,13 @@ type Sql interface {
 	Queryer
 	Execer
 	Preparer
+}
+
+// Sqlc the context interface for sql.DB, sql.Tx
+type Sqlc interface {
+	ContextQueryer
+	ContextExecer
+	ContextPreparer
 }
 
 // Beginer is an interface for Begin()

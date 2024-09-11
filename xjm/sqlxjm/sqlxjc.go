@@ -110,26 +110,23 @@ func (sjc *sjc) IterJobChains(it func(*xjm.JobChain) error, name string, start, 
 }
 
 func (sjc *sjc) CreateJobChain(name, states string) (int64, error) {
-	jc := &xjm.JobChain{Name: name, States: states, Status: xjm.JobStatusPending, CreatedAt: time.Now(), UpdatedAt: time.Now()}
+	now := time.Now()
 
 	sqb := sjc.db.Builder()
-
 	sqb.Insert(sjc.tb)
-	sqb.Columns("name", "status", "states", "created_at", "updated_at")
+	sqb.Into("name", name)
+	sqb.Into("status", xjm.JobStatusPending)
+	sqb.Into("states", states)
+	sqb.Into("created_at", now)
+	sqb.Into("updated_at", now)
 	sqb.Values(":name", ":status", ":states", ":created_at", ":updated_at")
 
-	sql := sqb.SQL()
-	if sjc.db.SupportLastInsertID() {
-		r, err := sjc.db.NamedExec(sql, jc)
-		if err != nil {
-			return 0, err
-		}
-		return r.LastInsertId()
+	if !sjc.db.SupportLastInsertID() {
+		sqb.Returns("id")
 	}
 
-	sql += " RETURNING id"
-	err := sjc.db.NamedQueryRow(sql, jc).Scan(&jc.ID)
-	return jc.ID, err
+	sql, args := sqb.Build()
+	return sjc.db.Create(sql, args...)
 }
 
 func (sjc *sjc) UpdateJobChain(cid int64, status string, states ...string) error {

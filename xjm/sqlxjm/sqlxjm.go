@@ -169,26 +169,27 @@ func (sjm *sjm) IterJobs(it func(*xjm.Job) error, name string, start, limit int,
 }
 
 func (sjm *sjm) AppendJob(name, file, param string) (int64, error) {
-	job := &xjm.Job{Name: name, File: file, Param: param, Status: xjm.JobStatusPending, CreatedAt: time.Now(), UpdatedAt: time.Now()}
+	now := time.Now()
 
 	sqb := sjm.db.Builder()
-
 	sqb.Insert(sjm.jt)
-	sqb.Columns("rid", "name", "status", "file", "param", "state", "result", "error", "created_at", "updated_at")
-	sqb.Values(":rid", ":name", ":status", ":file", ":param", ":state", ":result", ":error", ":created_at", ":updated_at")
+	sqb.Into("rid", 0)
+	sqb.Into("name", name)
+	sqb.Into("status", xjm.JobStatusPending)
+	sqb.Into("file", file)
+	sqb.Into("param", param)
+	sqb.Into("state", "")
+	sqb.Into("result", "")
+	sqb.Into("error", "")
+	sqb.Into("created_at", now)
+	sqb.Into("updated_at", now)
 
-	sql := sqb.SQL()
-	if sjm.db.SupportLastInsertID() {
-		r, err := sjm.db.NamedExec(sql, job)
-		if err != nil {
-			return 0, err
-		}
-		return r.LastInsertId()
+	if !sjm.db.SupportLastInsertID() {
+		sqb.Returns("id")
 	}
 
-	sql += " RETURNING id"
-	err := sjm.db.NamedQueryRow(sql, job).Scan(&job.ID)
-	return job.ID, err
+	sql, args := sqb.Build()
+	return sjm.db.Create(sql, args...)
 }
 
 func (sjm *sjm) AbortJob(jid int64, reason string) error {

@@ -181,7 +181,7 @@ func (t *tracer) TraceBeginTx(ctx context.Context, btr sqx.BeginTxer, opts *sql.
 	return tx, err
 }
 
-func (t *tracer) TraceCommit(cr sqx.Commiter) error {
+func (t *tracer) TraceCommit(cr sqx.Txer) error {
 	start := time.Now()
 	err := cr.Commit()
 	if t.Trace != nil {
@@ -190,7 +190,7 @@ func (t *tracer) TraceCommit(cr sqx.Commiter) error {
 	return err
 }
 
-func (t *tracer) TraceRollback(rr sqx.Rollbacker) error {
+func (t *tracer) TraceRollback(rr sqx.Txer) error {
 	start := time.Now()
 	err := rr.Rollback()
 	if t.Trace != nil {

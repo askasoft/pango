@@ -205,10 +205,28 @@ func (db *DB) BindNamed(query string, arg any) (string, []any, error) {
 	return db.binder.bindNamedMapper(query, arg, db.mapper)
 }
 
+// NamedExec using this DB.
+// Any named placeholder parameters are replaced with fields from arg.
+func (db *DB) NamedExec(query string, arg any) (sql.Result, error) {
+	return namedExec(db, query, arg)
+}
+
+// NamedExecContext using this DB.
+// Any named placeholder parameters are replaced with fields from arg.
+func (db *DB) NamedExecContext(ctx context.Context, query string, arg any) (sql.Result, error) {
+	return namedExecContext(ctx, db, query, arg)
+}
+
 // NamedQuery using this DB.
 // Any named placeholder parameters are replaced with fields from arg.
 func (db *DB) NamedQuery(query string, arg any) (*Rows, error) {
 	return namedQuery(db, query, arg)
+}
+
+// NamedQueryContext using this DB.
+// Any named placeholder parameters are replaced with fields from arg.
+func (db *DB) NamedQueryContext(ctx context.Context, query string, arg any) (*Rows, error) {
+	return namedQueryContext(ctx, db, query, arg)
 }
 
 // NamedQueryRow using this DB.
@@ -217,48 +235,26 @@ func (db *DB) NamedQueryRow(query string, arg any) *Row {
 	return namedQueryRow(db, query, arg)
 }
 
-// NamedExec using this DB.
+// NamedQueryRowContext using the DB.
 // Any named placeholder parameters are replaced with fields from arg.
-func (db *DB) NamedExec(query string, arg any) (sql.Result, error) {
-	return namedExec(db, query, arg)
-}
-
-// Select using this DB.
-// Any placeholder parameters are replaced with supplied args.
-func (db *DB) Select(dest any, query string, args ...any) error {
-	return Select(db, dest, query, args...)
-}
-
-// Get using this DB.
-// Any placeholder parameters are replaced with supplied args.
-// An error is returned if the result set is empty.
-func (db *DB) Get(dest any, query string, args ...any) error {
-	return Get(db, dest, query, args...)
-}
-
-// MustBeginx starts a transaction, and panics on error.  Returns an *sqlx.Tx instead
-// of an *sql.Tx.
-func (db *DB) MustBeginx() *Tx {
-	tx, err := db.Beginx()
-	if err != nil {
-		panic(err)
-	}
-	return tx
-}
-
-// Beginx begins a transaction and returns an *sqlx.Tx instead of an *sql.Tx.
-func (db *DB) Beginx() (*Tx, error) {
-	tx, err := db.db.Begin()
-	if err != nil {
-		return nil, err
-	}
-	return &Tx{tx: tx, ext: db.ext}, err
+func (db *DB) NamedQueryRowContext(ctx context.Context, query string, arg any) *Row {
+	return namedQueryRowContext(ctx, db, query, arg)
 }
 
 // Queryx queries the database and returns an *sqlx.Rows.
 // Any placeholder parameters are replaced with supplied args.
 func (db *DB) Queryx(query string, args ...any) (*Rows, error) {
 	r, err := db.Query(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	return &Rows{Rows: r, ext: db.ext}, err
+}
+
+// QueryxContext queries the database and returns an *sqlx.Rows.
+// Any placeholder parameters are replaced with supplied args.
+func (db *DB) QueryxContext(ctx context.Context, query string, args ...any) (*Rows, error) {
+	r, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -272,15 +268,28 @@ func (db *DB) QueryRowx(query string, args ...any) *Row {
 	return &Row{rows: rows, err: err, ext: db.ext}
 }
 
-// MustExec (panic) runs MustExec using this database.
+// QueryRowxContext queries the database and returns an *sqlx.Row.
 // Any placeholder parameters are replaced with supplied args.
-func (db *DB) MustExec(query string, args ...any) sql.Result {
-	return sqx.MustExec(db, query, args...)
+func (db *DB) QueryRowxContext(ctx context.Context, query string, args ...any) *Row {
+	rows, err := db.QueryContext(ctx, query, args...)
+	return &Row{rows: rows, err: err, ext: db.ext}
 }
 
 // Preparex returns an sqlx.Stmt instead of a sql.Stmt
 func (db *DB) Preparex(query string) (*Stmt, error) {
 	s, err := db.Prepare(query)
+	if err != nil {
+		return nil, err
+	}
+	return &Stmt{query: query, stmt: s, ext: db.ext}, err
+}
+
+// PreparexContext returns an sqlx.Stmt instead of a sql.Stmt.
+//
+// The provided context is used for the preparation of the statement, not for
+// the execution of the statement.
+func (db *DB) PreparexContext(ctx context.Context, query string) (*Stmt, error) {
+	s, err := db.PrepareContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -297,22 +306,23 @@ func (db *DB) PrepareNamedContext(ctx context.Context, query string) (*NamedStmt
 	return prepareNamedContext(ctx, db, query)
 }
 
-// NamedQueryContext using this DB.
-// Any named placeholder parameters are replaced with fields from arg.
-func (db *DB) NamedQueryContext(ctx context.Context, query string, arg any) (*Rows, error) {
-	return NamedQueryContext(ctx, db, query, arg)
-}
-
-// NamedExecContext using this DB.
-// Any named placeholder parameters are replaced with fields from arg.
-func (db *DB) NamedExecContext(ctx context.Context, query string, arg any) (sql.Result, error) {
-	return NamedExecContext(ctx, db, query, arg)
+// Select using this DB.
+// Any placeholder parameters are replaced with supplied args.
+func (db *DB) Select(dest any, query string, args ...any) error {
+	return Select(db, dest, query, args...)
 }
 
 // SelectContext using this DB.
 // Any placeholder parameters are replaced with supplied args.
 func (db *DB) SelectContext(ctx context.Context, dest any, query string, args ...any) error {
 	return SelectContext(ctx, db, dest, query, args...)
+}
+
+// Get using this DB.
+// Any placeholder parameters are replaced with supplied args.
+// An error is returned if the result set is empty.
+func (db *DB) Get(dest any, query string, args ...any) error {
+	return Get(db, dest, query, args...)
 }
 
 // GetContext using this DB.
@@ -322,54 +332,27 @@ func (db *DB) GetContext(ctx context.Context, dest any, query string, args ...an
 	return GetContext(ctx, db, dest, query, args...)
 }
 
-// PreparexContext returns an sqlx.Stmt instead of a sql.Stmt.
-//
-// The provided context is used for the preparation of the statement, not for
-// the execution of the statement.
-func (db *DB) PreparexContext(ctx context.Context, query string) (*Stmt, error) {
-	s, err := db.PrepareContext(ctx, query)
+// Create does a QueryRow using the provided Queryer, and scans the resulting row
+// returns the last inserted ID.
+// If the db supports LastInsertId(), return Result.LastInsertId().
+func (db *DB) Create(query string, args ...any) (int64, error) {
+	return Create(db, query, args...)
+}
+
+// Create does a QueryRow using the provided Queryer, and scans the resulting row
+// returns the last inserted ID.
+// If the db supports LastInsertId(), return Result.LastInsertId().
+func (db *DB) CreateContext(ctx context.Context, query string, args ...any) (int64, error) {
+	return CreateContext(ctx, db, query, args...)
+}
+
+// Beginx begins a transaction and returns an *sqlx.Tx instead of an *sql.Tx.
+func (db *DB) Beginx() (*Tx, error) {
+	tx, err := db.db.Begin()
 	if err != nil {
 		return nil, err
 	}
-	return &Stmt{query: query, stmt: s, ext: db.ext}, err
-}
-
-// QueryxContext queries the database and returns an *sqlx.Rows.
-// Any placeholder parameters are replaced with supplied args.
-func (db *DB) QueryxContext(ctx context.Context, query string, args ...any) (*Rows, error) {
-	r, err := db.QueryContext(ctx, query, args...)
-	if err != nil {
-		return nil, err
-	}
-	return &Rows{Rows: r, ext: db.ext}, err
-}
-
-// QueryRowxContext queries the database and returns an *sqlx.Row.
-// Any placeholder parameters are replaced with supplied args.
-func (db *DB) QueryRowxContext(ctx context.Context, query string, args ...any) *Row {
-	rows, err := db.QueryContext(ctx, query, args...)
-	return &Row{rows: rows, err: err, ext: db.ext}
-}
-
-// MustBeginTx starts a transaction, and panics on error.  Returns an *sqlx.Tx instead
-// of an *sql.Tx.
-//
-// The provided context is used until the transaction is committed or rolled
-// back. If the context is canceled, the sql package will roll back the
-// transaction. Tx.Commit will return an error if the context provided to
-// MustBeginContext is canceled.
-func (db *DB) MustBeginTx(ctx context.Context, opts *sql.TxOptions) *Tx {
-	tx, err := db.BeginTxx(ctx, opts)
-	if err != nil {
-		panic(err)
-	}
-	return tx
-}
-
-// MustExecContext (panic) runs MustExec using this database.
-// Any placeholder parameters are replaced with supplied args.
-func (db *DB) MustExecContext(ctx context.Context, query string, args ...any) sql.Result {
-	return sqx.MustExecContext(ctx, db, query, args...)
+	return &Tx{tx: tx, ext: db.ext}, err
 }
 
 // BeginTxx begins a transaction and returns an *sqlx.Tx instead of an
@@ -409,4 +392,41 @@ func (db *DB) Transaction(fc func(tx *Tx) error) (err error) {
 // they are rolled back.
 func (db *DB) Transactionx(ctx context.Context, opts *sql.TxOptions, fc func(tx *Tx) error) (err error) {
 	return Transactionx(ctx, db, opts, fc)
+}
+
+// MustBeginx starts a transaction, and panics on error.  Returns an *sqlx.Tx instead
+// of an *sql.Tx.
+func (db *DB) MustBeginx() *Tx {
+	tx, err := db.Beginx()
+	if err != nil {
+		panic(err)
+	}
+	return tx
+}
+
+// MustBeginTx starts a transaction, and panics on error.  Returns an *sqlx.Tx instead
+// of an *sql.Tx.
+//
+// The provided context is used until the transaction is committed or rolled
+// back. If the context is canceled, the sql package will roll back the
+// transaction. Tx.Commit will return an error if the context provided to
+// MustBeginContext is canceled.
+func (db *DB) MustBeginTx(ctx context.Context, opts *sql.TxOptions) *Tx {
+	tx, err := db.BeginTxx(ctx, opts)
+	if err != nil {
+		panic(err)
+	}
+	return tx
+}
+
+// MustExec (panic) runs MustExec using this database.
+// Any placeholder parameters are replaced with supplied args.
+func (db *DB) MustExec(query string, args ...any) sql.Result {
+	return sqx.MustExec(db, query, args...)
+}
+
+// MustExecContext (panic) runs MustExec using this database.
+// Any placeholder parameters are replaced with supplied args.
+func (db *DB) MustExecContext(ctx context.Context, query string, args ...any) sql.Result {
+	return sqx.MustExecContext(ctx, db, query, args...)
 }

@@ -29,16 +29,16 @@ func Questions(n int) []string {
 	return qs
 }
 
-func In(col string, arg any) (sql string, args []any) {
-	return in("IN", col, arg)
+func In(col string, val any) (sql string, args []any) {
+	return in("IN", col, val)
 }
 
-func NotIn(col string, arg any) (sql string, args []any) {
-	return in("NOT IN", col, arg)
+func NotIn(col string, val any) (sql string, args []any) {
+	return in("NOT IN", col, val)
 }
 
-func in(op, col string, arg any) (sql string, args []any) {
-	if v, ok := asSliceForIn(arg); ok {
+func in(op, col string, val any) (sql string, args []any) {
+	if v, ok := asSliceForIn(val); ok {
 		z := v.Len()
 
 		qs := str.Repeat("?,", z)
@@ -48,7 +48,7 @@ func in(op, col string, arg any) (sql string, args []any) {
 	}
 
 	sql = col + " " + op + " (?)"
-	args = append(args, arg)
+	args = append(args, val)
 	return
 }
 
@@ -137,6 +137,7 @@ type Builder struct {
 	values   []string
 	params   []any
 	orders   []string
+	returns  []string
 	offset   int
 	limit    int
 }
@@ -151,6 +152,7 @@ func (b *Builder) Reset() *Builder {
 	b.values = b.values[:0]
 	b.params = b.params[:0]
 	b.orders = b.orders[:0]
+	b.returns = b.returns[:0]
 	b.offset = 0
 	b.limit = 0
 
@@ -271,23 +273,23 @@ func (b *Builder) Set(col string, args ...any) *Builder {
 	return b
 }
 
-func (b *Builder) Into(col string, args ...any) *Builder {
+func (b *Builder) Into(col string, val any) *Builder {
 	b.columns = append(b.columns, col)
-	b.params = append(b.params, args...)
+	b.params = append(b.params, val)
 	b.values = append(b.values, "?")
 	return b
 }
 
-func (b *Builder) In(col string, arg any) *Builder {
-	return b.in("IN", col, arg)
+func (b *Builder) In(col string, val any) *Builder {
+	return b.in("IN", col, val)
 }
 
-func (b *Builder) NotIn(col string, arg any) *Builder {
-	return b.in("NOT IN", col, arg)
+func (b *Builder) NotIn(col string, val any) *Builder {
+	return b.in("NOT IN", col, val)
 }
 
-func (b *Builder) in(op, col string, arg any) *Builder {
-	sql, args := in(op, col, arg)
+func (b *Builder) in(op, col string, val any) *Builder {
+	sql, args := in(op, col, val)
 	b.wheres = append(b.wheres, sql)
 	b.params = append(b.params, args...)
 	return b
@@ -298,13 +300,13 @@ func (b *Builder) Values(vals ...string) *Builder {
 	return b
 }
 
-func (b *Builder) appendWhere(sb *strings.Builder) {
-	for i, w := range b.wheres {
-		sb.WriteString(str.If(i == 0, " WHERE ", " AND "))
-		sb.WriteByte('(')
-		sb.WriteString(w)
-		sb.WriteByte(')')
+func (b *Builder) Returns(cols ...string) *Builder {
+	if len(cols) == 0 {
+		b.returns = append(b.returns, "*")
+	} else {
+		b.returns = append(b.returns, cols...)
 	}
+	return b
 }
 
 func (b *Builder) buildSelect() string {
@@ -360,6 +362,7 @@ func (b *Builder) buildUpdate() string {
 	}
 
 	b.appendWhere(sb)
+	b.appendRetuning(sb)
 
 	return sb.String()
 }
@@ -389,6 +392,8 @@ func (b *Builder) buildInsert() string {
 	}
 	sb.WriteString(")")
 
+	b.appendRetuning(sb)
+
 	return sb.String()
 }
 
@@ -399,6 +404,28 @@ func (b *Builder) buildDelete() string {
 	sb.WriteString(b.table)
 
 	b.appendWhere(sb)
+	b.appendRetuning(sb)
 
 	return sb.String()
+}
+
+func (b *Builder) appendWhere(sb *strings.Builder) {
+	for i, w := range b.wheres {
+		sb.WriteString(str.If(i == 0, " WHERE ", " AND "))
+		sb.WriteByte('(')
+		sb.WriteString(w)
+		sb.WriteByte(')')
+	}
+}
+
+func (b *Builder) appendRetuning(sb *strings.Builder) {
+	if len(b.returns) > 0 {
+		sb.WriteString(" RETUNING ")
+		for i, col := range b.returns {
+			if i > 0 {
+				sb.WriteString(", ")
+			}
+			sb.WriteString(col)
+		}
+	}
 }

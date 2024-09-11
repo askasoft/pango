@@ -1,8 +1,8 @@
 // The following environment variables, if set, will be used:
 //
-//   - SQX_SQLITE_DSN
-//   - SQX_POSTGRES_DSN
-//   - SQX_MYSQL_DSN
+//   - SQLX_SQLITE_DSN
+//   - SQLX_POSTGRES_DSN
+//   - SQLX_MYSQL_DSN
 //
 // Set any of these variables to 'skip' to skip them.  Note that for MySQL,
 // the string '?parseTime=True' will be appended to the DSN if it's not there
@@ -77,9 +77,9 @@ func testTrace(start time.Time, sql string, rows int64, err error) {
 func ConnectAll() {
 	var err error
 
-	pgdsn := os.Getenv("SQX_POSTGRES_DSN")
-	mydsn := os.Getenv("SQX_MYSQL_DSN")
-	sqdsn := os.Getenv("SQX_SQLITE_DSN")
+	pgdsn := os.Getenv("SQLX_POSTGRES_DSN")
+	mydsn := os.Getenv("SQLX_MYSQL_DSN")
+	sqdsn := os.Getenv("SQLX_SQLITE_DSN")
 	if sqdsn == "" {
 		sqdsn = "sqlx.db3"
 	}
@@ -303,7 +303,7 @@ func TestMissingNames(t *testing.T) {
 			FirstName string `db:"first_name"`
 			LastName  string `db:"last_name"`
 			Email     string
-			//AddedAt time.Time `db:"added_at"`
+			// AddedAt time.Time `db:"added_at"`
 		}
 
 		// test Select first
@@ -1102,7 +1102,7 @@ func TestUsage(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		//fmt.Printf("%#v\n%#v\n%#v\n", placesptr[0], placesptr[1], placesptr[2])
+		// fmt.Printf("%#v\n%#v\n%#v\n", placesptr[0], placesptr[1], placesptr[2])
 
 		// if you have null fields and use SELECT *, you must use sql.Null* in your struct
 		// this test also verifies that you can use either a []Struct{} or a []*Struct{}

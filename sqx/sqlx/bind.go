@@ -32,7 +32,7 @@ func init() {
 		BindDollar:   {"postgres", "pgx", "pq-timeouts", "cloudsqlpostgres", "ql", "nrpostgres", "cockroach"},
 		BindQuestion: {"mysql", "sqlite3", "nrmysql", "nrsqlite3"},
 		BindColon:    {"oci8", "ora", "goracle", "godror"},
-		BindAt:       {"sqlserver"},
+		BindAt:       {"sqlserver", "azuresql"},
 	}
 
 	for bind, drivers := range defaultBinds {

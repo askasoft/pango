@@ -15,7 +15,7 @@ func oldBindType(driverName string) Binder {
 		return BindQuestion
 	case "oci8", "ora", "goracle", "godror":
 		return BindColon
-	case "sqlserver":
+	case "sqlserver", "azuresql":
 		return BindAt
 	}
 	return BindUnknown

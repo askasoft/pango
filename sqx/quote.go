@@ -58,7 +58,7 @@ var quotes sync.Map
 func init() {
 	defaultQuotes := map[Quoter][]string{
 		QuoteMYSQL: {"mysql", "nrmysql"},
-		QuoteMSSQL: {"sqlserver"},
+		QuoteMSSQL: {"sqlserver", "azuresql"},
 	}
 
 	for typ, drivers := range defaultQuotes {

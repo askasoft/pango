@@ -1,8 +1,8 @@
 // The following environment variables, if set, will be used:
 //
-//   - SQX_SQLITE_DSN
-//   - SQX_POSTGRES_DSN
-//   - SQX_MYSQL_DSN
+//   - SQLX_SQLITE_DSN
+//   - SQLX_POSTGRES_DSN
+//   - SQLX_MYSQL_DSN
 //
 // Set any of these variables to 'skip' to skip them.  Note that for MySQL,
 // the string '?parseTime=True' will be appended to the DSN if it's not there
@@ -91,7 +91,7 @@ func TestMissingNamesContextContext(t *testing.T) {
 			FirstName string `db:"first_name"`
 			LastName  string `db:"last_name"`
 			Email     string
-			//AddedAt time.Time `db:"added_at"`
+			// AddedAt time.Time `db:"added_at"`
 		}
 
 		// test Select first
@@ -830,7 +830,7 @@ func TestUsageContext(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		//fmt.Printf("%#v\n%#v\n%#v\n", placesptr[0], placesptr[1], placesptr[2])
+		// fmt.Printf("%#v\n%#v\n%#v\n", placesptr[0], placesptr[1], placesptr[2])
 
 		// if you have null fields and use SELECT *, you must use sql.Null* in your struct
 		// this test also verifies that you can use either a []Struct{} or a []*Struct{}
@@ -1209,9 +1209,9 @@ func TestIssue197Context(t *testing.T) {
 func TestInContext(t *testing.T) {
 	RunWithSchemaContext(context.Background(), defaultSchema, t, func(ctx context.Context, db *DB, t *testing.T) {
 		loadDefaultFixtureContext(ctx, db, t)
-		//tx.MustExecContext(ctx, tx.Rebind("INSERT INTO place (country, city, telcode) VALUES (?, ?, ?)"), "United States", "New York", "1")
-		//tx.MustExecContext(ctx, tx.Rebind("INSERT INTO place (country, telcode) VALUES (?, ?)"), "Hong Kong", "852")
-		//tx.MustExecContext(ctx, tx.Rebind("INSERT INTO place (country, telcode) VALUES (?, ?)"), "Singapore", "65")
+		// tx.MustExecContext(ctx, tx.Rebind("INSERT INTO place (country, city, telcode) VALUES (?, ?, ?)"), "United States", "New York", "1")
+		// tx.MustExecContext(ctx, tx.Rebind("INSERT INTO place (country, telcode) VALUES (?, ?)"), "Hong Kong", "852")
+		// tx.MustExecContext(ctx, tx.Rebind("INSERT INTO place (country, telcode) VALUES (?, ?)"), "Singapore", "65")
 		telcodes := []int{852, 65}
 		sqb := sqx.Builder{}
 		query, args := sqb.Select().From("place").In("telcode", telcodes).Order("telcode", false).Build()

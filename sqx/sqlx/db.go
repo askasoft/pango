@@ -202,7 +202,7 @@ func (db *DB) Unsafe() *DB {
 
 // BindNamed binds a query using the DB driver's bindvar type.
 func (db *DB) BindNamed(query string, arg any) (string, []any, error) {
-	return db.binder.bindNamedMapper(query, arg, db.mapper)
+	return bindNamedMapper(db.binder, query, arg, db.mapper)
 }
 
 // NamedExec using this DB.

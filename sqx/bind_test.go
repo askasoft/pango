@@ -1,4 +1,4 @@
-package sqlx
+package sqx
 
 import (
 	"math/rand"

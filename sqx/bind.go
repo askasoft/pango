@@ -1,4 +1,4 @@
-package sqlx
+package sqx
 
 import (
 	"regexp"
@@ -10,7 +10,6 @@ import (
 
 type Binder int
 
-// Binder types supported by Rebind, BindMap and BindStruct.
 const (
 	BindUnknown Binder = iota
 	BindQuestion

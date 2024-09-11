@@ -194,7 +194,7 @@ type iPreparerx interface {
 }
 
 func prepareNamed(p iPreparerx, query string) (*NamedStmt, error) {
-	q, args, err := p.Binder().compileNamedQuery(query)
+	q, args, err := compileNamedQuery(p.Binder(), query)
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +219,7 @@ type iContextNamedPreparerx interface {
 }
 
 func prepareNamedContext(ctx context.Context, p iContextNamedPreparerx, query string) (*NamedStmt, error) {
-	q, args, err := p.Binder().compileNamedQuery(query)
+	q, args, err := compileNamedQuery(p.Binder(), query)
 	if err != nil {
 		return nil, err
 	}

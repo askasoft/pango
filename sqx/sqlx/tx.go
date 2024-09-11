@@ -111,7 +111,7 @@ func (tx *Tx) Unsafe() *Tx {
 
 // BindNamed binds a query within a transaction's bindvar type.
 func (tx *Tx) BindNamed(query string, arg any) (string, []any, error) {
-	return tx.binder.bindNamedMapper(query, arg, tx.mapper)
+	return bindNamedMapper(tx.binder, query, arg, tx.mapper)
 }
 
 // NamedQuery within a transaction.

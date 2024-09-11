@@ -18,8 +18,8 @@ import (
 // bindStruct binds a named parameter query with fields from a struct argument.
 // The rules for binding field names to parameter names follow the same
 // conventions as for StructScan, including obeying the `db` struct tags.
-func (binder Binder) bindStruct(query string, arg any, m *ref.Mapper) (string, []any, error) {
-	bound, names, err := binder.compileNamedQuery(query)
+func bindStruct(binder Binder, query string, arg any, m *ref.Mapper) (string, []any, error) {
+	bound, names, err := compileNamedQuery(binder, query)
 	if err != nil {
 		return "", []any{}, err
 	}
@@ -34,10 +34,10 @@ func (binder Binder) bindStruct(query string, arg any, m *ref.Mapper) (string, [
 
 // bindArray binds a named parameter query with fields from an array or slice of
 // structs argument.
-func (binder Binder) bindArray(query string, arg any, m *ref.Mapper) (string, []any, error) {
+func bindArray(binder Binder, query string, arg any, m *ref.Mapper) (string, []any, error) {
 	// do the initial binding with QUESTION;  if binder is not question,
 	// we can rebind it at the end.
-	bound, names, err := BindQuestion.compileNamedQuery(query)
+	bound, names, err := compileNamedQuery(BindQuestion, query)
 	if err != nil {
 		return "", nil, err
 	}
@@ -68,8 +68,8 @@ func (binder Binder) bindArray(query string, arg any, m *ref.Mapper) (string, []
 }
 
 // bindMap binds a named parameter query with a map of arguments.
-func (binder Binder) bindMap(query string, args map[string]any) (string, []any, error) {
-	bound, names, err := binder.compileNamedQuery(query)
+func bindMap(binder Binder, query string, args map[string]any) (string, []any, error) {
+	bound, names, err := compileNamedQuery(binder, query)
 	if err != nil {
 		return "", []any{}, err
 	}
@@ -87,7 +87,7 @@ func (binder Binder) bindMap(query string, args map[string]any) (string, []any, 
 var allowedBindRunes = []*unicode.RangeTable{unicode.Letter, unicode.Digit}
 
 // compile a NamedQuery into an unbound query (using the '?' bindvar) and a list of names.
-func (binder Binder) compileNamedQuery(qs string) (query string, names []string, err error) {
+func compileNamedQuery(binder Binder, qs string) (query string, names []string, err error) {
 	names = make([]string, 0, str.CountByte(qs, ':'))
 	rebound := &strings.Builder{}
 	rebound.Grow(len(qs))
@@ -179,7 +179,7 @@ func (binder Binder) compileNamedQuery(qs string) (query string, names []string,
 	return rebound.String(), names, err
 }
 
-func (binder Binder) bindNamedMapper(query string, arg any, m *ref.Mapper) (string, []any, error) {
+func bindNamedMapper(binder Binder, query string, arg any, m *ref.Mapper) (string, []any, error) {
 	t := reflect.TypeOf(arg)
 	k := t.Kind()
 	switch {
@@ -188,11 +188,11 @@ func (binder Binder) bindNamedMapper(query string, arg any, m *ref.Mapper) (stri
 		if !ok {
 			return "", nil, fmt.Errorf("sqlx.bindNamedMapper: unsupported map type: %T", arg)
 		}
-		return binder.bindMap(query, m)
+		return bindMap(binder, query, m)
 	case k == reflect.Array || k == reflect.Slice:
-		return binder.bindArray(query, arg, m)
+		return bindArray(binder, query, arg, m)
 	default:
-		return binder.bindStruct(query, arg, m)
+		return bindStruct(binder, query, arg, m)
 	}
 }
 

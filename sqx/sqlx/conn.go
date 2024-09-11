@@ -128,7 +128,7 @@ func (c *Conn) Conn() *sql.Conn {
 
 // BindNamed binds a query using the DB driver's bindvar type.
 func (c *Conn) BindNamed(query string, arg any) (string, []any, error) {
-	return c.binder.bindNamedMapper(query, arg, c.mapper)
+	return bindNamedMapper(c.binder, query, arg, c.mapper)
 }
 
 // Beginx begins a transaction and returns an *sqlx.Tx instead of an *sql.Tx.

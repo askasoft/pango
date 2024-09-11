@@ -19,6 +19,24 @@ var (
 
 type Result = sql.Result
 
+type Binder = sqx.Binder
+
+const (
+	BindUnknown  = sqx.BindUnknown
+	BindQuestion = sqx.BindQuestion
+	BindDollar   = sqx.BindDollar
+	BindColon    = sqx.BindColon
+	BindAt       = sqx.BindAt
+)
+
+type Quoter = sqx.Quoter
+
+const (
+	QuoteDefault = sqx.QuoteDefault
+	QuoteMYSQL   = sqx.QuoteMYSQL
+	QuoteMSSQL   = sqx.QuoteMSSQL
+)
+
 // Although the NameMapper is convenient, in practice it should not
 // be relied on except for application code.  If you are writing a library
 // that uses sqlx, you should be aware that the name mappings you expect
@@ -178,7 +196,7 @@ type ext struct {
 	driverName string
 	unsafe     bool
 	binder     Binder
-	quoter     sqx.Quoter
+	quoter     Quoter
 	mapper     *ref.Mapper
 	tracer     tracer
 }
@@ -199,7 +217,7 @@ func (ext *ext) Rebind(query string) string {
 }
 
 // Quoter returns the quoter by driverName passed to the Open function for this DB.
-func (ext *ext) Quoter() sqx.Quoter {
+func (ext *ext) Quoter() Quoter {
 	return ext.quoter
 }
 
@@ -233,7 +251,7 @@ func (ext *ext) Builder() *Builder {
 func NewDB(db *sql.DB, driverName string, trace ...Trace) *DB {
 	ext := ext{
 		driverName: driverName,
-		binder:     GetBinder(driverName),
+		binder:     sqx.GetBinder(driverName),
 		quoter:     sqx.GetQuoter(driverName),
 		mapper:     NameMapper,
 	}
@@ -445,14 +463,14 @@ func Transactionx(ctx context.Context, db BeginTxxer, opts *sql.TxOptions, fc fu
 // returns a new query with a list of args that can be executed by
 // a database.  The return value uses the `?` bindvar.
 func Named(query string, arg any) (string, []any, error) {
-	return BindQuestion.bindNamedMapper(query, arg, NameMapper)
+	return bindNamedMapper(BindQuestion, query, arg, NameMapper)
 }
 
 // namedExec uses BindStruct to get a query executable by the driver and
 // then runs Exec on the result.  Returns an error from the binding
 // or the query execution itself.
 func namedExec(x isqlx, query string, arg any) (sql.Result, error) {
-	q, args, err := x.Binder().bindNamedMapper(query, arg, x.Mapper())
+	q, args, err := bindNamedMapper(x.Binder(), query, arg, x.Mapper())
 	if err != nil {
 		return nil, err
 	}
@@ -463,7 +481,7 @@ func namedExec(x isqlx, query string, arg any) (sql.Result, error) {
 // then runs Exec on the result.  Returns an error from the binding
 // or the query execution itself.
 func namedExecContext(ctx context.Context, x icsqlx, query string, arg any) (sql.Result, error) {
-	q, args, err := x.Binder().bindNamedMapper(query, arg, x.Mapper())
+	q, args, err := bindNamedMapper(x.Binder(), query, arg, x.Mapper())
 	if err != nil {
 		return nil, err
 	}
@@ -474,7 +492,7 @@ func namedExecContext(ctx context.Context, x icsqlx, query string, arg any) (sql
 // provided Ext (sqlx.Tx, sqlx.Db).  It works with both structs and with
 // map[string]any types.
 func namedQuery(x isqlx, query string, arg any) (*Rows, error) {
-	q, args, err := x.Binder().bindNamedMapper(query, arg, x.Mapper())
+	q, args, err := bindNamedMapper(x.Binder(), query, arg, x.Mapper())
 	if err != nil {
 		return nil, err
 	}
@@ -485,7 +503,7 @@ func namedQuery(x isqlx, query string, arg any) (*Rows, error) {
 // provided Ext (sqlx.Tx, sqlx.Db).  It works with both structs and with
 // map[string]any types.
 func namedQueryContext(ctx context.Context, x icsqlx, query string, arg any) (*Rows, error) {
-	q, args, err := x.Binder().bindNamedMapper(query, arg, x.Mapper())
+	q, args, err := bindNamedMapper(x.Binder(), query, arg, x.Mapper())
 	if err != nil {
 		return nil, err
 	}
@@ -496,7 +514,7 @@ func namedQueryContext(ctx context.Context, x icsqlx, query string, arg any) (*R
 // provided Ext (sqlx.Tx, sqlx.Db).  It works with both structs and with
 // map[string]any types.
 func namedQueryRow(x isqlx, query string, arg any) *Row {
-	q, args, err := x.Binder().bindNamedMapper(query, arg, x.Mapper())
+	q, args, err := bindNamedMapper(x.Binder(), query, arg, x.Mapper())
 	if err != nil {
 		return &Row{err: err}
 	}
@@ -507,7 +525,7 @@ func namedQueryRow(x isqlx, query string, arg any) *Row {
 // provided Ext (sqlx.Tx, sqlx.Db).  It works with both structs and with
 // map[string]any types.
 func namedQueryRowContext(ctx context.Context, x icsqlx, query string, arg any) *Row {
-	q, args, err := x.Binder().bindNamedMapper(query, arg, x.Mapper())
+	q, args, err := bindNamedMapper(x.Binder(), query, arg, x.Mapper())
 	if err != nil {
 		return &Row{err: err}
 	}

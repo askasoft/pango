@@ -105,6 +105,11 @@ func (fs *Freshservice) SaveAttachment(aid int64, path string) error {
 	return fs.SaveFile(url, path)
 }
 
+// GetAgentTicketURL return a permlink for agent ticket URL
+func (fs *Freshservice) GetAgentTicketURL(tid int64) string {
+	return GetAgentTicketURL(fs.Domain, tid)
+}
+
 // GetSolutionArticleURL return a permlink for solution article URL
 func (fs *Freshservice) GetSolutionArticleURL(aid int64) string {
 	return GetSolutionArticleURL(fs.Domain, aid)
@@ -113,6 +118,11 @@ func (fs *Freshservice) GetSolutionArticleURL(aid int64) string {
 // GetHelpdeskAttachmentURL return a permlink for helpdesk attachment/avator URL
 func (fs *Freshservice) GetHelpdeskAttachmentURL(aid int64) string {
 	return GetHelpdeskAttachmentURL(fs.Domain, aid)
+}
+
+// GetAgentTicketURL return a permlink for agent ticket URL
+func GetAgentTicketURL(domain string, tid int64) string {
+	return fmt.Sprintf("https://%s/a/tickets/%d", domain, tid)
 }
 
 // GetSolutionArticleURL return a permlink for solution article URL

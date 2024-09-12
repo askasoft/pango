@@ -108,6 +108,11 @@ func (fd *Freshdesk) GetJob(jid string) (*Job, error) {
 	return job, err
 }
 
+// GetAgentTicketURL return a permlink for agent ticket URL
+func (fd *Freshdesk) GetAgentTicketURL(tid int64) string {
+	return GetAgentTicketURL(fd.Domain, tid)
+}
+
 // GetSolutionArticleURL return a permlink for solution article URL
 func (fd *Freshdesk) GetSolutionArticleURL(aid int64) string {
 	return GetSolutionArticleURL(fd.Domain, aid)
@@ -116,6 +121,11 @@ func (fd *Freshdesk) GetSolutionArticleURL(aid int64) string {
 // GetHelpdeskAttachmentURL return a permlink for helpdesk attachment/avator URL
 func (fd *Freshdesk) GetHelpdeskAttachmentURL(aid int64) string {
 	return GetHelpdeskAttachmentURL(fd.Domain, aid)
+}
+
+// GetAgentTicketURL return a permlink for agent ticket URL
+func GetAgentTicketURL(domain string, tid int64) string {
+	return fmt.Sprintf("https://%s/a/tickets/%d", domain, tid)
 }
 
 // GetSolutionArticleURL return a permlink for solution article URL

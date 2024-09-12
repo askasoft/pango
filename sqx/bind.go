@@ -8,6 +8,10 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
+type Rebind interface {
+	Rebind(string) string
+}
+
 type Binder int
 
 const (

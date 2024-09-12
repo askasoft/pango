@@ -114,9 +114,7 @@ type ContextMixer interface {
 	CreateContext(ctx context.Context, query string, args ...any) (int64, error)
 }
 
-// Bind is an interface for something which can bind queries (Tx, DB)
-type Bind interface {
-	Rebind(string) string
+type BindNamed interface {
 	BindNamed(string, any) (string, []any, error)
 }
 
@@ -125,10 +123,12 @@ type Build interface {
 }
 
 type Sqlx interface {
+	sqx.Quote
+	sqx.Rebind
 	sqx.Sql
 	sqx.Sqlc
 	Supporter
-	Bind
+	BindNamed
 	Build
 	Queryerx
 	NamedQueryer

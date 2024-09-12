@@ -6,6 +6,10 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
+type Quote interface {
+	Quote(s string) string
+}
+
 type QuoteMarks []rune
 
 var (
@@ -42,9 +46,9 @@ func (quoter Quoter) Quotes(ss ...string) []string {
 }
 
 // Quote quote string 's' with quote marks [2]rune.
-// Returns (m[0] + s + m[1]), if 's' does not contains any `('" *)“
+// Returns (m[0] + s + m[1]), if 's' does not contains any "!\"#$%&'()*+,-/:;<=>?@[\\]^`{|}~" characters.
 func (quoter Quoter) Quote(s string) string {
-	if str.ContainsAny(s, `('" *)`) {
+	if str.ContainsAny(s, " !\"#$%&'()*+,-/:;<=>?@[\\]^`{|}~") {
 		return s
 	}
 

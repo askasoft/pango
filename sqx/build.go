@@ -9,151 +9,35 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
-func Question(n int) string {
-	sb := &strings.Builder{}
-	sb.Grow(n * 2)
-	for i := 0; i < n; i++ {
-		if i > 0 {
-			sb.WriteByte(',')
-		}
-		sb.WriteByte('?')
-	}
-	return sb.String()
-}
-
-func Questions(n int) []string {
-	qs := make([]string, n)
-	for i := 0; i < n; i++ {
-		qs[i] = "?"
-	}
-	return qs
-}
-
-func In(col string, val any) (sql string, args []any) {
-	return in("IN", col, val)
-}
-
-func NotIn(col string, val any) (sql string, args []any) {
-	return in("NOT IN", col, val)
-}
-
-func in(op, col string, val any) (sql string, args []any) {
-	if v, ok := asSliceForIn(val); ok {
-		z := v.Len()
-
-		qs := str.Repeat("?,", z)
-		sql = col + " " + op + " (" + qs[:len(qs)-1] + ")"
-		args = appendReflectSlice(args, v, z)
-		return
-	}
-
-	sql = col + " " + op + " (?)"
-	args = append(args, val)
-	return
-}
-
-func asSliceForIn(i any) (v reflect.Value, ok bool) {
-	if i == nil {
-		return reflect.Value{}, false
-	}
-
-	v = reflect.ValueOf(i)
-	t := ref.Deref(v.Type())
-
-	// Only expand slices
-	if t.Kind() != reflect.Slice {
-		return reflect.Value{}, false
-	}
-
-	// []byte is a driver.Value type so it should not be expanded
-	if t == reflect.TypeOf([]byte{}) {
-		return reflect.Value{}, false
-
-	}
-
-	return v, true
-}
-
-func appendReflectSlice(args []any, v reflect.Value, vlen int) []any {
-	switch val := v.Interface().(type) {
-	case []any:
-		args = append(args, val...)
-	case []int:
-		for i := range val {
-			args = append(args, val[i])
-		}
-	case []int32:
-		for i := range val {
-			args = append(args, val[i])
-		}
-	case []int64:
-		for i := range val {
-			args = append(args, val[i])
-		}
-	case []string:
-		for i := range val {
-			args = append(args, val[i])
-		}
-	default:
-		for si := 0; si < vlen; si++ {
-			args = append(args, v.Index(si).Interface())
-		}
-	}
-
-	return args
-}
-
-type sqlcmd int
-
-const (
-	cselect sqlcmd = 'S'
-	cinsert sqlcmd = 'I'
-	cdelete sqlcmd = 'D'
-	cupdate sqlcmd = 'U'
-)
-
-func (c sqlcmd) String() string {
-	switch c {
-	case cselect:
-		return "SELECT"
-	case cinsert:
-		return "INSERT"
-	case cdelete:
-		return "DELETE"
-	case cupdate:
-		return "UPDATE"
-	default:
-		return "UNKNOWN"
-	}
-}
-
+// Builder a simple sql builder
+// NOTE: the arguments are strict to it's order
 type Builder struct {
 	Quoter   Quoter
 	command  sqlcmd
-	table    string
 	distinct bool
+	table    string
 	columns  []string
+	values   []string
 	joins    []string
 	wheres   []string
-	values   []string
-	params   []any
 	orders   []string
 	returns  []string
+	params   []any
 	offset   int
 	limit    int
 }
 
 func (b *Builder) Reset() *Builder {
 	b.command = 0
-	b.table = ""
 	b.distinct = false
+	b.table = ""
 	b.columns = b.columns[:0]
+	b.values = b.values[:0]
 	b.joins = b.joins[:0]
 	b.wheres = b.wheres[:0]
-	b.values = b.values[:0]
-	b.params = b.params[:0]
 	b.orders = b.orders[:0]
 	b.returns = b.returns[:0]
+	b.params = b.params[:0]
 	b.offset = 0
 	b.limit = 0
 
@@ -161,7 +45,7 @@ func (b *Builder) Reset() *Builder {
 }
 
 func (b *Builder) Build() (string, []any) {
-	return b.SQL(), b.params
+	return b.SQL(), b.Params()
 }
 
 func (b *Builder) Params() []any {
@@ -183,6 +67,7 @@ func (b *Builder) SQL() string {
 	}
 }
 
+// Count shortcut for SELECT COUNT(*)
 func (b *Builder) Count(cols ...string) *Builder {
 	b.command = cselect
 	if len(cols) == 0 {
@@ -191,6 +76,7 @@ func (b *Builder) Count(cols ...string) *Builder {
 	return b.Columns("COUNT(" + str.Join(cols, ", ") + ")")
 }
 
+// Count shortcut for SELECT COUNT(distinct *)
 func (b *Builder) CountDistinct(cols ...string) *Builder {
 	b.command = cselect
 	if len(cols) == 0 {
@@ -234,31 +120,27 @@ func (b *Builder) Update(tb string) *Builder {
 	return b
 }
 
-func (b *Builder) Columns(cols ...string) *Builder {
-	b.columns = append(b.columns, cols...)
-	return b
-}
-
 func (b *Builder) From(tb string) *Builder {
 	b.table = tb
 	return b
 }
 
-func (b *Builder) Order(order string, desc ...bool) *Builder {
-	if len(desc) > 0 {
-		order += str.If(desc[0], " DESC", " ASC")
-	}
-	b.orders = append(b.orders, order)
+func (b *Builder) Columns(cols ...string) *Builder {
+	b.columns = append(b.columns, cols...)
 	return b
 }
 
-func (b *Builder) Offset(offset int) *Builder {
-	b.offset = offset
+func (b *Builder) Values(vals ...string) *Builder {
+	b.values = append(b.values, vals...)
 	return b
 }
 
-func (b *Builder) Limit(limit int) *Builder {
-	b.limit = limit
+// Join specify Join query and conditions
+//
+//	sqb.Join("JOIN emails ON emails.user_id = users.id AND emails.email = ?", "abc@example.org")
+func (b *Builder) Join(query string, args ...any) *Builder {
+	b.joins = append(b.joins, query)
+	b.params = append(b.params, args...)
 	return b
 }
 
@@ -307,8 +189,21 @@ func (b *Builder) in(op, col string, val any) *Builder {
 	return b
 }
 
-func (b *Builder) Values(vals ...string) *Builder {
-	b.values = append(b.values, vals...)
+func (b *Builder) Order(order string, desc ...bool) *Builder {
+	if len(desc) > 0 {
+		order += str.If(desc[0], " DESC", " ASC")
+	}
+	b.orders = append(b.orders, order)
+	return b
+}
+
+func (b *Builder) Offset(offset int) *Builder {
+	b.offset = offset
+	return b
+}
+
+func (b *Builder) Limit(limit int) *Builder {
+	b.limit = limit
 	return b
 }
 
@@ -338,7 +233,7 @@ func (b *Builder) buildSelect() string {
 	sb.WriteString(b.Quoter.Quote(b.table))
 
 	for _, j := range b.joins {
-		sb.WriteRune(' ')
+		sb.WriteByte(' ')
 		sb.WriteString(j)
 	}
 
@@ -447,4 +342,122 @@ func (b *Builder) appendRetuning(sb *strings.Builder) {
 			sb.WriteString(b.Quoter.Quote(col))
 		}
 	}
+}
+
+type sqlcmd int
+
+const (
+	cselect sqlcmd = 'S'
+	cinsert sqlcmd = 'I'
+	cdelete sqlcmd = 'D'
+	cupdate sqlcmd = 'U'
+)
+
+func (c sqlcmd) String() string {
+	switch c {
+	case cselect:
+		return "SELECT"
+	case cinsert:
+		return "INSERT"
+	case cdelete:
+		return "DELETE"
+	case cupdate:
+		return "UPDATE"
+	default:
+		return "UNKNOWN"
+	}
+}
+
+func In(col string, val any) (sql string, args []any) {
+	return in("IN", col, val)
+}
+
+func NotIn(col string, val any) (sql string, args []any) {
+	return in("NOT IN", col, val)
+}
+
+func in(op, col string, val any) (sql string, args []any) {
+	if v, ok := asSliceForIn(val); ok {
+		z := v.Len()
+
+		qs := str.Repeat("?,", z)
+		sql = col + " " + op + " (" + qs[:len(qs)-1] + ")"
+		args = appendReflectSlice(args, v, z)
+		return
+	}
+
+	sql = col + " " + op + " (?)"
+	args = append(args, val)
+	return
+}
+
+func asSliceForIn(i any) (v reflect.Value, ok bool) {
+	if i == nil {
+		return reflect.Value{}, false
+	}
+
+	v = reflect.ValueOf(i)
+	t := ref.Deref(v.Type())
+
+	// Only expand slices
+	if t.Kind() != reflect.Slice {
+		return reflect.Value{}, false
+	}
+
+	// []byte is a driver.Value type so it should not be expanded
+	if t == reflect.TypeOf([]byte{}) {
+		return reflect.Value{}, false
+
+	}
+
+	return v, true
+}
+
+func appendReflectSlice(args []any, v reflect.Value, vlen int) []any {
+	switch val := v.Interface().(type) {
+	case []any:
+		args = append(args, val...)
+	case []int:
+		for i := range val {
+			args = append(args, val[i])
+		}
+	case []int32:
+		for i := range val {
+			args = append(args, val[i])
+		}
+	case []int64:
+		for i := range val {
+			args = append(args, val[i])
+		}
+	case []string:
+		for i := range val {
+			args = append(args, val[i])
+		}
+	default:
+		for si := 0; si < vlen; si++ {
+			args = append(args, v.Index(si).Interface())
+		}
+	}
+
+	return args
+}
+
+func Question(n int) string {
+	sb := &strings.Builder{}
+	sb.Grow(n * 2)
+	for i := 0; i < n; i++ {
+		if i > 0 {
+			sb.WriteByte(',')
+		}
+		sb.WriteByte('?')
+	}
+	return sb.String()
+}
+
+func Questions(n int) []string {
+	qs := make([]string, n)
+	for i := 0; i < n; i++ {
+		qs[i] = "?"
+	}
+	return qs
 }

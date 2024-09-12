@@ -4,6 +4,8 @@ import (
 	"github.com/askasoft/pango/sqx"
 )
 
+// Builder a simple sql builder
+// NOTE: the arguments are strict to it's order
 type Builder struct {
 	bid Binder
 	sqb sqx.Builder
@@ -26,11 +28,13 @@ func (b *Builder) Params() []any {
 	return b.sqb.Params()
 }
 
+// Count shortcut for SELECT COUNT(*)
 func (b *Builder) Count(cols ...string) *Builder {
 	b.sqb.Count(cols...)
 	return b
 }
 
+// Count shortcut for SELECT COUNT(distinct *)
 func (b *Builder) CountDistinct(cols ...string) *Builder {
 	b.sqb.CountDistinct(cols...)
 	return b
@@ -65,28 +69,26 @@ func (b *Builder) Update(tb string) *Builder {
 	return b
 }
 
-func (b *Builder) Columns(cols ...string) *Builder {
-	b.sqb.Columns(cols...)
-	return b
-}
-
 func (b *Builder) From(tb string) *Builder {
 	b.sqb.From(tb)
 	return b
 }
 
-func (b *Builder) Order(order string, desc ...bool) *Builder {
-	b.sqb.Order(order, desc...)
+func (b *Builder) Columns(cols ...string) *Builder {
+	b.sqb.Columns(cols...)
 	return b
 }
 
-func (b *Builder) Offset(offset int) *Builder {
-	b.sqb.Offset(offset)
+func (b *Builder) Values(vals ...string) *Builder {
+	b.sqb.Values(vals...)
 	return b
 }
 
-func (b *Builder) Limit(limit int) *Builder {
-	b.sqb.Limit(limit)
+// Join specify Join query and conditions
+//
+//	sqb.Join("JOIN emails ON emails.user_id = users.id AND emails.email = ?", "abc@example.org")
+func (b *Builder) Join(query string, args ...any) *Builder {
+	b.sqb.Join(query, args...)
 	return b
 }
 
@@ -125,14 +127,24 @@ func (b *Builder) NotIn(col string, val any) *Builder {
 	return b
 }
 
-func (b *Builder) Values(vals ...string) *Builder {
-	b.sqb.Values(vals...)
-	return b
-}
-
 // Returns add RETURNING cols...
 // if `cols` is not specified, RETURNING *
 func (b *Builder) Returns(cols ...string) *Builder {
 	b.sqb.Returns(cols...)
+	return b
+}
+
+func (b *Builder) Order(order string, desc ...bool) *Builder {
+	b.sqb.Order(order, desc...)
+	return b
+}
+
+func (b *Builder) Offset(offset int) *Builder {
+	b.sqb.Offset(offset)
+	return b
+}
+
+func (b *Builder) Limit(limit int) *Builder {
+	b.sqb.Limit(limit)
 	return b
 }

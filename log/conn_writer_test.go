@@ -1,4 +1,4 @@
-package connlog
+package log
 
 import (
 	"bufio"
@@ -10,8 +10,6 @@ import (
 	"sync"
 	"testing"
 	"time"
-
-	"github.com/askasoft/pango/log"
 )
 
 func testConnTCPServer(sigChan chan string, finChan chan string, revChan chan string) {
@@ -75,7 +73,7 @@ func TestConnWriter(t *testing.T) {
 	go testConnTCPServer(sigChan, finChan, revChan)
 
 	time.Sleep(time.Second)
-	lg := log.NewLog()
+	lg := NewLog()
 
 	cw := &ConnWriter{Addr: "localhost:9999"}
 	lg.SetWriter(cw)

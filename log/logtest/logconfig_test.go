@@ -9,8 +9,6 @@ import (
 	"unsafe"
 
 	"github.com/askasoft/pango/log"
-	"github.com/askasoft/pango/log/connlog"
-	"github.com/askasoft/pango/log/filelog"
 	"github.com/askasoft/pango/log/httplog"
 	"github.com/askasoft/pango/log/slacklog"
 	"github.com/askasoft/pango/log/smtplog"
@@ -131,7 +129,7 @@ func assertLogConfig(t *testing.T, lg *log.Log) {
 		}
 
 		writer := testGetLogWriter(aw)
-		w, ok := writer.(*connlog.ConnWriter)
+		w, ok := writer.(*log.ConnWriter)
 		if !ok {
 			t.Fatalf("Not ConnWriter")
 		}
@@ -154,7 +152,7 @@ func assertLogConfig(t *testing.T, lg *log.Log) {
 		}
 
 		writer := testGetLogWriter(aw)
-		w, ok := writer.(*filelog.FileWriter)
+		w, ok := writer.(*log.FileWriter)
 		if !ok {
 			t.Fatalf("Not FileWriter")
 		}

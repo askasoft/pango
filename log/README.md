@@ -49,12 +49,11 @@ Configure file writer like this:
 ```golang
 import (
 	"github.com/askasoft/pango/log"
-	"github.com/askasoft/pango/log/filelog"
 )
 
 func main() {
 	log := log.NewLog()
-	log.SetWriter(log.NewSyncWriter(&filelog.FileWriter{Path:"test.log"}))
+	log.SetWriter(log.NewSyncWriter(&log.FileWriter{Path:"test.log"}))
 }
 ```
 
@@ -65,12 +64,11 @@ Configure like this:
 ```golang
 import (
 	"github.com/askasoft/pango/log"
-	"github.com/askasoft/pango/log/filelog"
 )
 
 func main() {
 	log := log.NewLog()
-	log.SetWriter(log.NewSyncWriter(&connlog.ConnWriter{Net:"tcp",Addr:":7020"}))
+	log.SetWriter(log.NewSyncWriter(&log.ConnWriter{Net:"tcp",Addr:":7020"}))
 	log.Info("info")
 }
 ```
@@ -82,7 +80,7 @@ Configure like this:
 ```golang
 import (
 	"github.com/askasoft/pango/log"
-	"github.com/askasoft/pango/log/slacklog"
+	"github.com/askasoft/pango/log/writers/slacklog"
 )
 
 func main() {
@@ -103,7 +101,7 @@ Configure like this:
 ```golang
 import (
 	"github.com/askasoft/pango/log"
-	"github.com/askasoft/pango/log/smtplog"
+	"github.com/askasoft/pango/log/writers/smtplog"
 )
 
 func main() {
@@ -127,7 +125,7 @@ Configure like this:
 ```golang
 import (
 	"github.com/askasoft/pango/log"
-	"github.com/askasoft/pango/log/teamslog"
+	"github.com/askasoft/pango/log/writers/teamslog"
 )
 
 func main() {
@@ -200,7 +198,6 @@ Configure like this:
 ```golang
 import (
 	"github.com/askasoft/pango/log"
-	"github.com/askasoft/pango/log/filelog"
 	"github.com/askasoft/pango/log/httplog"
 )
 
@@ -246,8 +243,6 @@ func main() {
 ```golang
 import (
 	"github.com/askasoft/pango/log"
-	_ "github.com/askasoft/pango/log/connlog"
-	_ "github.com/askasoft/pango/log/filelog"
 	_ "github.com/askasoft/pango/log/httplog"
 	_ "github.com/askasoft/pango/log/slacklog"
 	_ "github.com/askasoft/pango/log/smtplog"

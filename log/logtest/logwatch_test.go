@@ -12,7 +12,6 @@ import (
 	"github.com/askasoft/pango/fsu"
 	"github.com/askasoft/pango/fsw"
 	"github.com/askasoft/pango/log"
-	_ "github.com/askasoft/pango/log/filelog"
 )
 
 const (

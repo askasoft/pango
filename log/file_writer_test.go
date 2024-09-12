@@ -1,4 +1,4 @@
-package filelog
+package log
 
 import (
 	"bytes"
@@ -7,18 +7,13 @@ import (
 	"io"
 	"math/rand"
 	"os"
-	"path"
-	"runtime"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/askasoft/pango/fsu"
-	"github.com/askasoft/pango/log"
 )
-
-var eol = log.EOL
 
 func TestFileTextFormatSimple(t *testing.T) {
 	testdir := "TestFileTextFormatSimple-" + strconv.Itoa(rand.Int())
@@ -27,15 +22,15 @@ func TestFileTextFormatSimple(t *testing.T) {
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
 
-	lg := log.NewLog()
-	lg.SetFormatter(log.TextFmtSimple)
+	lg := NewLog()
+	lg.SetFormatter(TextFmtSimple)
 	lg.SetWriter(&FileWriter{Path: path})
 	lg.Info("hello")
 	lg.Close()
 
 	// check lastest file
 	bs, _ := os.ReadFile(path + ".log")
-	e := `[I] hello` + eol
+	e := `[I] hello` + EOL
 	a := string(bs)
 	if a != e {
 		t.Errorf("TestFileTextFormatSimple\n expect: %q, actual: %q", e, a)
@@ -49,15 +44,15 @@ func TestFilePropGlobal(t *testing.T) {
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
 
-	log.SetFormat("%l - %x{key} - %m%n%T")
-	log.SetWriter(&FileWriter{Path: path})
-	log.SetProp("key", "val")
-	log.Info("hello")
-	log.Close()
+	SetFormat("%l - %x{key} - %m%n%T")
+	SetWriter(&FileWriter{Path: path})
+	SetProp("key", "val")
+	Info("hello")
+	Close()
 
 	// check lastest file
 	bs, _ := os.ReadFile(path + ".log")
-	e := fmt.Sprintf("INFO - %s - %s%s", "val", "hello", eol)
+	e := fmt.Sprintf("INFO - %s - %s%s", "val", "hello", EOL)
 	a := string(bs)
 	if a != e {
 		t.Errorf("TestFilePropGlobal\n expect: %q, actual: %q", e, a)
@@ -71,7 +66,7 @@ func TestFilePropDefault(t *testing.T) {
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
 
-	lg := log.Default()
+	lg := Default()
 	lg.SetFormat("%l - %x{key} - %m%n%T")
 	lg.SetWriter(&FileWriter{Path: path})
 	lg.SetProp("key", "val")
@@ -80,7 +75,7 @@ func TestFilePropDefault(t *testing.T) {
 
 	// check lastest file
 	bs, _ := os.ReadFile(path + ".log")
-	e := fmt.Sprintf("INFO - %s - %s%s", "val", "hello", eol)
+	e := fmt.Sprintf("INFO - %s - %s%s", "val", "hello", EOL)
 	a := string(bs)
 	if a != e {
 		t.Errorf("TestFilePropDefault\n expect: %q, actual: %q", e, a)
@@ -94,7 +89,7 @@ func TestFilePropNewLog(t *testing.T) {
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
 
-	lg := log.NewLog()
+	lg := NewLog()
 	lg.SetFormat("%l - %X - %m%n%T")
 	lg.SetWriter(&FileWriter{Path: path})
 	lg.SetProp("key1", "val1")
@@ -107,28 +102,14 @@ func TestFilePropNewLog(t *testing.T) {
 
 	// check lastest file
 	bs, _ := os.ReadFile(path + ".log")
-	e1 := fmt.Sprintf("INFO - %s=%s - %s%s", "key1", "val1", "hello", eol) +
-		fmt.Sprintf("INFO - %s=%s %s=%s - %s%s", "key1", "val1", "key2", "val2", "hello", eol)
-	e2 := fmt.Sprintf("INFO - %s=%s - %s%s", "key1", "val1", "hello", eol) +
-		fmt.Sprintf("INFO - %s=%s %s=%s - %s%s", "key2", "val2", "key1", "val1", "hello", eol)
+	e1 := fmt.Sprintf("INFO - %s=%s - %s%s", "key1", "val1", "hello", EOL) +
+		fmt.Sprintf("INFO - %s=%s %s=%s - %s%s", "key1", "val1", "key2", "val2", "hello", EOL)
+	e2 := fmt.Sprintf("INFO - %s=%s - %s%s", "key1", "val1", "hello", EOL) +
+		fmt.Sprintf("INFO - %s=%s %s=%s - %s%s", "key2", "val2", "key1", "val1", "hello", EOL)
 	a := string(bs)
 	if a != e1 && a != e2 {
 		t.Errorf("TestFilePropNewLog\n expect: %q\n actual: %q", e1, a)
 	}
-}
-
-func testGetCaller(offset int) (string, int, string) {
-	rpc := make([]uintptr, 1)
-	n := runtime.Callers(2, rpc)
-	if n > 0 {
-		frames := runtime.CallersFrames(rpc)
-		frame, _ := frames.Next()
-		_, ffun := path.Split(frame.Function)
-		_, file := path.Split(frame.File)
-		line := frame.Line + offset
-		return file, line, ffun
-	}
-	return "???", 0, "???"
 }
 
 func TestFileCallerGlobal(t *testing.T) {
@@ -138,15 +119,15 @@ func TestFileCallerGlobal(t *testing.T) {
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
 
-	log.SetFormat("%l %S:%L %F() - %m%n%T")
-	log.SetWriter(&FileWriter{Path: path})
+	SetFormat("%l %S:%L %F() - %m%n%T")
+	SetWriter(&FileWriter{Path: path})
 	file, line, ffun := testGetCaller(1)
-	log.Info("hello")
-	log.Close()
+	Info("hello")
+	Close()
 
 	// check lastest file
 	bs, _ := os.ReadFile(path + ".log")
-	e := fmt.Sprintf("INFO %s:%d %s() - hello%s", file, line, ffun, eol)
+	e := fmt.Sprintf("INFO %s:%d %s() - hello%s", file, line, ffun, EOL)
 	a := string(bs)
 	if a != e {
 		t.Errorf("TestFileCallerGlobal\n expect: %q, actual: %q", e, a)
@@ -160,7 +141,7 @@ func TestFileCallerNewLog(t *testing.T) {
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
 
-	lg := log.NewLog()
+	lg := NewLog()
 	lg.SetFormat("%l %S:%L %F() - %m%n%T")
 	lg.SetWriter(&FileWriter{Path: path})
 	file, line, ffun := testGetCaller(1)
@@ -169,7 +150,7 @@ func TestFileCallerNewLog(t *testing.T) {
 
 	// check lastest file
 	bs, _ := os.ReadFile(path + ".log")
-	e := fmt.Sprintf("INFO %s:%d %s() - hello%s", file, line, ffun, eol)
+	e := fmt.Sprintf("INFO %s:%d %s() - hello%s", file, line, ffun, EOL)
 	a := string(bs)
 	if a != e {
 		t.Errorf("TestFileCallerNewLog\n expect: %q, actual: %q", e, a)
@@ -183,16 +164,16 @@ func TestFileCallerNewLog2(t *testing.T) {
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
 
-	lg := log.NewLog()
+	lg := NewLog()
 	lg.SetFormat("%l %S:%L %F() - %m%n%T")
 	lg.SetWriter(&FileWriter{Path: path})
 	file, line, ffun := testGetCaller(1)
-	lg.Log(log.LevelInfo, "hello")
+	lg.Log(LevelInfo, "hello")
 	lg.Close()
 
 	// check lastest file
 	bs, _ := os.ReadFile(path + ".log")
-	e := fmt.Sprintf("INFO %s:%d %s() - hello%s", file, line, ffun, eol)
+	e := fmt.Sprintf("INFO %s:%d %s() - hello%s", file, line, ffun, EOL)
 	a := string(bs)
 	if a != e {
 		t.Errorf("TestFileCallerNewLog2\n expect: %q, actual: %q", e, a)
@@ -206,7 +187,7 @@ func TestFileRotateMaxSize(t *testing.T) {
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
 
-	lg := log.NewLog()
+	lg := NewLog()
 	lg.SetFormat("[%p] %m%n")
 	lg.SetWriter(&FileWriter{Path: path, MaxSize: 10})
 	for i := 1; i < 10; i++ {
@@ -218,7 +199,7 @@ func TestFileRotateMaxSize(t *testing.T) {
 	for i := 1; i < 9; i++ {
 		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%03d.log", i))
 		bs, _ := os.ReadFile(sp)
-		e := fmt.Sprintf(`[I] hello test %d%s`, i, eol)
+		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
 		if a != e {
 			t.Errorf("TestFileRotateMaxSize\n expect: %q, actual: %q", e, a)
@@ -227,7 +208,7 @@ func TestFileRotateMaxSize(t *testing.T) {
 
 	// check lastest file
 	bs, _ := os.ReadFile(path)
-	e := fmt.Sprintf(`[I] hello test %d%s`, 9, eol)
+	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
 	if a != e {
 		t.Errorf("TestFileRotateMaxSize\n expect: %q, actual: %q", e, a)
@@ -241,7 +222,7 @@ func TestFileRotateMaxSizeGzip(t *testing.T) {
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
 
-	lg := log.NewLog()
+	lg := NewLog()
 	lg.SetFormat("[%p] %m%n")
 	lg.SetWriter(&FileWriter{Path: path, MaxSize: 10, Gzip: true})
 	for i := 1; i < 10; i++ {
@@ -270,7 +251,7 @@ func TestFileRotateMaxSizeGzip(t *testing.T) {
 			t.Fatalf("TestFileRotateMaxSizeGzip\n failed to read gzip %q, %v", sp, err)
 		}
 
-		e := fmt.Sprintf(`[I] hello test %d%s`, i, eol)
+		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
 		if a != e {
 			t.Errorf("TestFileRotateMaxSizeGzip\n expect: %q, actual: %q", e, a)
@@ -280,7 +261,7 @@ func TestFileRotateMaxSizeGzip(t *testing.T) {
 	// check lastest file
 	bs, _ := os.ReadFile(path)
 
-	e := fmt.Sprintf(`[I] hello test %d%s`, 9, eol)
+	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
 	if a != e {
 		t.Errorf("TestFileRotateMaxSizeGzip\n expect: %q, actual: %q", e, a)
@@ -294,7 +275,7 @@ func TestFileRotateMaxSizeDaily(t *testing.T) {
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
 
-	lg := log.NewLog()
+	lg := NewLog()
 	lg.SetFormat("[%p] %m%n")
 	lg.SetWriter(&FileWriter{Path: path, MaxDays: 100, MaxSize: 10})
 
@@ -309,7 +290,7 @@ func TestFileRotateMaxSizeDaily(t *testing.T) {
 		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%s-%03d.log", now.Format("20060102"), i))
 		bs, _ := os.ReadFile(sp)
 
-		e := fmt.Sprintf(`[I] hello test %d%s`, i, eol)
+		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
 		if a != e {
 			t.Errorf("TestFileRotateMaxSizeDaily\n expect: %q, actual: %q", e, a)
@@ -319,7 +300,7 @@ func TestFileRotateMaxSizeDaily(t *testing.T) {
 	// check lastest file
 	bs, _ := os.ReadFile(path)
 
-	e := fmt.Sprintf(`[I] hello test %d%s`, 9, eol)
+	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
 	if a != e {
 		t.Errorf("TestFileRotateMaxSizeDaily\n expect: %q, actual: %q", e, a)
@@ -333,7 +314,7 @@ func TestFileRotateMaxSplit(t *testing.T) {
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
 
-	lg := log.NewLog()
+	lg := NewLog()
 	lg.SetFormat("[%p] %m%n")
 	lg.SetWriter(&FileWriter{Path: path, MaxSplit: 3, MaxSize: 10})
 	for i := 1; i < 10; i++ {
@@ -356,7 +337,7 @@ func TestFileRotateMaxSplit(t *testing.T) {
 		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%03d.log", i))
 		bs, _ := os.ReadFile(sp)
 
-		e := fmt.Sprintf(`[I] hello test %d%s`, i, eol)
+		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
 		if a != e {
 			t.Errorf("TestFileRotateMaxSplit\n expect: %q, actual: %q", e, a)
@@ -366,7 +347,7 @@ func TestFileRotateMaxSplit(t *testing.T) {
 	// check lastest file
 	bs, _ := os.ReadFile(path)
 
-	e := fmt.Sprintf(`[I] hello test %d%s`, 9, eol)
+	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
 	if a != e {
 		t.Errorf("TestFileRotateMaxSplit\n expect: %q, actual: %q", e, a)
@@ -380,7 +361,7 @@ func TestFileRotateMaxFilesHourly(t *testing.T) {
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
 
-	lg := log.NewLog()
+	lg := NewLog()
 	lg.SetFormat("[%p] %m%n")
 	lg.SetWriter(&FileWriter{Path: path, MaxSplit: 3, MaxSize: 10, MaxHours: 100})
 	now := time.Now()
@@ -404,7 +385,7 @@ func TestFileRotateMaxFilesHourly(t *testing.T) {
 		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%s-%03d.log", now.Format("2006010215"), i))
 		bs, _ := os.ReadFile(sp)
 
-		e := fmt.Sprintf(`[I] hello test %d%s`, i, eol)
+		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
 		if a != e {
 			t.Errorf("TestFileRotateMaxFilesHourly\n expect: %q, actual: %q", e, a)
@@ -414,7 +395,7 @@ func TestFileRotateMaxFilesHourly(t *testing.T) {
 	// check lastest file
 	bs, _ := os.ReadFile(path)
 
-	e := fmt.Sprintf(`[I] hello test %d%s`, 9, eol)
+	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
 	if a != e {
 		t.Errorf("TestFileRotateMaxFilesHourly\n expect: %q, actual: %q", e, a)
@@ -429,13 +410,13 @@ func TestFileRotateDaily(t *testing.T) {
 	defer os.RemoveAll(testdir)
 
 	fw := &FileWriter{Path: path, MaxDays: 100}
-	lg := log.NewLog()
+	lg := NewLog()
 	lg.SetFormat("[%p] %m%n")
 
 	now := time.Now()
 	tm := now
 	for i := 1; i < 10; i++ {
-		le := log.NewEvent(lg, log.LevelInfo, "hello test "+strconv.Itoa(i))
+		le := NewEvent(lg, LevelInfo, "hello test "+strconv.Itoa(i))
 		le.Time = tm
 		fw.Write(le)
 		fw.openTime = tm
@@ -450,7 +431,7 @@ func TestFileRotateDaily(t *testing.T) {
 		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%s.log", tm.Format("20060102")))
 		bs, _ := os.ReadFile(sp)
 
-		e := fmt.Sprintf(`[I] hello test %d%s`, i, eol)
+		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
 		if a != e {
 			t.Errorf("TestFileRotateDaily\n expect: %q, actual: %q", e, a)
@@ -462,7 +443,7 @@ func TestFileRotateDaily(t *testing.T) {
 	// check lastest file
 	bs, _ := os.ReadFile(path)
 
-	e := fmt.Sprintf(`[I] hello test %d%s`, 9, eol)
+	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
 	if a != e {
 		t.Errorf("TestFileRotateDaily\n expect: %q, actual: %q", e, a)
@@ -483,13 +464,13 @@ func TestFileRotateDailyInit(t *testing.T) {
 	os.Chtimes(path, yes, yes)
 
 	fw := &FileWriter{Path: path, MaxDays: 100}
-	lg := log.NewLog()
+	lg := NewLog()
 	lg.SetFormat("[%p] %m%n")
 
 	now := time.Now()
 	tm := now
 	for i := 1; i < 10; i++ {
-		le := log.NewEvent(lg, log.LevelInfo, "hello test "+strconv.Itoa(i))
+		le := NewEvent(lg, LevelInfo, "hello test "+strconv.Itoa(i))
 		le.Time = tm
 		fw.Write(le)
 		fw.openTime = tm
@@ -519,7 +500,7 @@ func TestFileRotateDailyInit(t *testing.T) {
 		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%s.log", tm.Format("20060102")))
 		bs, _ := os.ReadFile(sp)
 
-		e := fmt.Sprintf(`[I] hello test %d%s`, i, eol)
+		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
 		if a != e {
 			t.Errorf("TestFileRotateDailyInit\n expect: %q, actual: %q", e, a)
@@ -531,7 +512,7 @@ func TestFileRotateDailyInit(t *testing.T) {
 	// check lastest file
 	bs, _ := os.ReadFile(path)
 
-	e := fmt.Sprintf(`[I] hello test %d%s`, 9, eol)
+	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
 	if a != e {
 		t.Errorf("TestFileRotateDaily\n expect: %q, actual: %q", e, a)
@@ -546,13 +527,13 @@ func TestFileRotateDailyOutdated(t *testing.T) {
 	defer os.RemoveAll(testdir)
 
 	fw := &FileWriter{Path: path, MaxDays: 3}
-	lg := log.NewLog()
+	lg := NewLog()
 	lg.SetFormat("[%p] %m%n")
 
 	now := time.Now().Add(time.Hour * 24 * -8)
 	tm := now
 	for i := 1; i < 10; i++ {
-		le := log.NewEvent(lg, log.LevelInfo, "hello test "+strconv.Itoa(i))
+		le := NewEvent(lg, LevelInfo, "hello test "+strconv.Itoa(i))
 		le.Time = tm
 		fw.Write(le)
 		fw.openTime = tm
@@ -586,7 +567,7 @@ func TestFileRotateDailyOutdated(t *testing.T) {
 		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%s.log", tm.Format("20060102")))
 		bs, _ := os.ReadFile(sp)
 
-		e := fmt.Sprintf(`[I] hello test %d%s`, i, eol)
+		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
 		if a != e {
 			t.Errorf("TestFileRotateDailyOutdated\n expect: %q, actual: %q", e, a)
@@ -597,7 +578,7 @@ func TestFileRotateDailyOutdated(t *testing.T) {
 
 	// check lastest file
 	bs, _ := os.ReadFile(path)
-	e := fmt.Sprintf(`[I] hello test %d%s`, 9, eol)
+	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
 	if a != e {
 		t.Errorf("TestFileRotateDailyOutdated\n expect: %q, actual: %q", e, a)
@@ -612,13 +593,13 @@ func TestFileRotateHourly(t *testing.T) {
 	defer os.RemoveAll(testdir)
 
 	fw := &FileWriter{Path: path, MaxHours: 100}
-	lg := log.NewLog()
+	lg := NewLog()
 	lg.SetFormat("[%p] %m%n")
 
 	now := time.Now()
 	tm := now
 	for i := 1; i < 10; i++ {
-		le := log.NewEvent(lg, log.LevelInfo, "hello test "+strconv.Itoa(i))
+		le := NewEvent(lg, LevelInfo, "hello test "+strconv.Itoa(i))
 		le.Time = tm
 		fw.Write(le)
 		fw.openTime = tm
@@ -633,7 +614,7 @@ func TestFileRotateHourly(t *testing.T) {
 		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%s.log", tm.Format("2006010215")))
 		bs, _ := os.ReadFile(sp)
 
-		e := fmt.Sprintf(`[I] hello test %d%s`, i, eol)
+		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
 		if a != e {
 			t.Errorf("TestFileRotateHourly\n expect: %q, actual: %q", e, a)
@@ -645,7 +626,7 @@ func TestFileRotateHourly(t *testing.T) {
 	// check lastest file
 	bs, _ := os.ReadFile(path)
 
-	e := fmt.Sprintf(`[I] hello test %d%s`, 9, eol)
+	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
 	if a != e {
 		t.Errorf("TestFileRotateHourly\n expect: %q, actual: %q", e, a)
@@ -660,13 +641,13 @@ func TestFileRotateHourlyOutdated(t *testing.T) {
 	defer os.RemoveAll(testdir)
 
 	fw := &FileWriter{Path: path, MaxHours: 3}
-	lg := log.NewLog()
+	lg := NewLog()
 	lg.SetFormat("[%p] %m%n")
 
 	now := time.Now().Add(time.Hour * -8)
 	tm := now
 	for i := 1; i < 10; i++ {
-		le := log.NewEvent(lg, log.LevelInfo, "hello test "+strconv.Itoa(i))
+		le := NewEvent(lg, LevelInfo, "hello test "+strconv.Itoa(i))
 		le.Time = tm
 		fw.Write(le)
 		fw.openTime = tm
@@ -700,7 +681,7 @@ func TestFileRotateHourlyOutdated(t *testing.T) {
 		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%s.log", tm.Format("2006010215")))
 		bs, _ := os.ReadFile(sp)
 
-		e := fmt.Sprintf(`[I] hello test %d%s`, i, eol)
+		e := fmt.Sprintf(`[I] hello test %d%s`, i, EOL)
 		a := string(bs)
 		if a != e {
 			t.Errorf("TestFileRotateHourlyOutdated\n expect: %q, actual: %q", e, a)
@@ -711,7 +692,7 @@ func TestFileRotateHourlyOutdated(t *testing.T) {
 
 	// check lastest file
 	bs, _ := os.ReadFile(path)
-	e := fmt.Sprintf(`[I] hello test %d%s`, 9, eol)
+	e := fmt.Sprintf(`[I] hello test %d%s`, 9, EOL)
 	a := string(bs)
 	if a != e {
 		t.Errorf("TestFileRotateHourlyOutdated\n expect: %q, actual: %q", e, a)

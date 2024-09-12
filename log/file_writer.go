@@ -1,4 +1,4 @@
-package filelog
+package log
 
 import (
 	"compress/gzip"
@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/log/internal"
 	"github.com/askasoft/pango/num"
 )
@@ -17,18 +16,18 @@ import (
 // FileWriter implements Writer.
 // It writes messages and rotate by file size limit, daily, hourly.
 type FileWriter struct {
-	log.LogFilter
-	log.LogFormatter
+	LogFilter
+	LogFormatter
 
-	Path      string    // Log file path name
-	DirPerm   uint32    // Log dir permission
-	FilePerm  uint32    // Log file permission
-	MaxSplit  int       // Max split files
-	MaxSize   int64     // Rotate at size
-	MaxDays   int       // Max daily files
-	MaxHours  int       // Max hourly files
-	Gzip      bool      // Compress rotated log files
-	SyncLevel log.Level // Call File.Sync() if level <= SyncLevel
+	Path      string // Log file path name
+	DirPerm   uint32 // Log dir permission
+	FilePerm  uint32 // Log file permission
+	MaxSplit  int    // Max split files
+	MaxSize   int64  // Rotate at size
+	MaxDays   int    // Max daily files
+	MaxHours  int    // Max hourly files
+	Gzip      bool   // Compress rotated log files
+	SyncLevel Level  // Call File.Sync() if level <= SyncLevel
 
 	dir      string
 	prefix   string
@@ -41,7 +40,7 @@ type FileWriter struct {
 
 // SetSyncLevel set the sync level
 func (fw *FileWriter) SetSyncLevel(lvl string) {
-	fw.SyncLevel = log.ParseLevel(lvl)
+	fw.SyncLevel = ParseLevel(lvl)
 }
 
 // SetMaxSize set the MaxSize
@@ -50,7 +49,7 @@ func (fw *FileWriter) SetMaxSize(maxSize string) {
 }
 
 // Write write logger message into file.
-func (fw *FileWriter) Write(le *log.Event) error {
+func (fw *FileWriter) Write(le *Event) error {
 	if fw.Reject(le) {
 		return nil
 	}
@@ -187,7 +186,7 @@ func (fw *FileWriter) init() error {
 	return nil
 }
 
-func (fw *FileWriter) needRotate(le *log.Event) bool {
+func (fw *FileWriter) needRotate(le *Event) bool {
 	return (fw.MaxSize > 0 && fw.fileSize >= fw.MaxSize) ||
 		(fw.MaxHours > 0 && fw.openTime.Hour() != le.Time.Hour()) ||
 		(fw.MaxDays > 0 && fw.openTime.Day() != le.Time.Day())
@@ -371,7 +370,7 @@ func (fw *FileWriter) deleteOutdatedFiles() {
 }
 
 func init() {
-	log.RegisterWriter("file", func() log.Writer {
+	RegisterWriter("file", func() Writer {
 		return &FileWriter{}
 	})
 }

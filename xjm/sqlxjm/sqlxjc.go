@@ -10,7 +10,7 @@ import (
 
 type sjc struct {
 	db sqlx.Sqlx
-	tb string // jc chain table
+	tb string // job chain table
 }
 
 func JC(db sqlx.Sqlx, table string) xjm.JobChainer {
@@ -21,10 +21,12 @@ func JC(db sqlx.Sqlx, table string) xjm.JobChainer {
 }
 
 func (sjc *sjc) GetJobChain(cid int64) (*xjm.JobChain, error) {
-	s := sjc.db.Rebind("SELECT * FROM " + sjc.tb + " WHERE id = ?")
+	sqb := sjc.db.Builder()
+	sqb.Select().From(sjc.tb).Where("id = ?", cid)
+	sql, args := sqb.Build()
 
 	jc := &xjm.JobChain{}
-	err := sjc.db.Get(jc, s, cid)
+	err := sjc.db.Get(jc, sql, args...)
 	if errors.Is(err, sqlx.ErrNoRows) {
 		return nil, nil
 	}

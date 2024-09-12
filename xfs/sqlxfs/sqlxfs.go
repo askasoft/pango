@@ -1,7 +1,6 @@
 package sqlxfs
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -17,7 +16,7 @@ import (
 // sfs implements xfs.XFS interface
 type sfs struct {
 	db sqlx.Sqlx
-	tn string // table name
+	tb string // file table
 }
 
 func FS(db sqlx.Sqlx, table string) xfs.XFS {
@@ -36,10 +35,13 @@ func (sfs *sfs) Open(name string) (fs.File, error) {
 
 // FindFile find a file
 func (sfs *sfs) FindFile(id string) (*xfs.File, error) {
-	s := sfs.db.Rebind("SELECT id, name, ext, size, time FROM " + sfs.tn + " WHERE id = ?")
+	sqb := sfs.db.Builder()
+	sqb.Select("id", "name", "ext", "size", "time")
+	sqb.From(sfs.tb).Where("id = ?", id)
+	sql, args := sqb.Build()
 
 	f := &xfs.File{}
-	err := sfs.db.Get(f, s, id)
+	err := sfs.db.Get(f, sql, args...)
 	if err != nil {
 		if errors.Is(err, sqlx.ErrNoRows) {
 			return nil, fs.ErrNotExist
@@ -63,19 +65,27 @@ func (sfs *sfs) SaveFile(id string, filename string, modTime time.Time, data []b
 		Data: data,
 	}
 
-	var r sql.Result
-	var err error
-
-	if _, err = sfs.FindFile(id); err == nil {
-		su := sfs.db.Rebind("UPDATE " + sfs.tn + " SET name = ?, ext = ?, size = ?, time = ?, data = ? WHERE id = ?")
-		ps := []any{fi.Name, fi.Ext, fi.Size, fi.Time, fi.Data, fi.ID}
-		r, err = sfs.db.Exec(su, ps...)
+	sqb := sfs.db.Builder()
+	if _, err := sfs.FindFile(id); err == nil {
+		sqb.Update(sfs.tb)
+		sqb.Setc("name", fi.Name)
+		sqb.Setc("ext", fi.Ext)
+		sqb.Setc("size", fi.Size)
+		sqb.Setc("time", fi.Time)
+		sqb.Setc("data", fi.Data)
+		sqb.Where("id = ?", id)
 	} else {
-		si := sfs.db.Rebind("INSERT INTO " + sfs.tn + " (id, name, ext, size, time, data) VALUES (?, ?, ?, ?, ?, ?)")
-		ps := []any{fi.ID, fi.Name, fi.Ext, fi.Size, fi.Time, fi.Data}
-		r, err = sfs.db.Exec(si, ps...)
+		sqb.Insert(sfs.tb)
+		sqb.Setc("id", fi.ID)
+		sqb.Setc("name", fi.Name)
+		sqb.Setc("ext", fi.Ext)
+		sqb.Setc("size", fi.Size)
+		sqb.Setc("time", fi.Time)
+		sqb.Setc("data", fi.Data)
 	}
+	sql, args := sqb.Build()
 
+	r, err := sfs.db.Exec(sql, args...)
 	if err != nil {
 		return fi, err
 	}
@@ -92,10 +102,12 @@ func (sfs *sfs) SaveFile(id string, filename string, modTime time.Time, data []b
 }
 
 func (sfs *sfs) ReadFile(id string) ([]byte, error) {
-	s := sfs.db.Rebind("SELECT * FROM " + sfs.tn + " WHERE id = ?")
+	sqb := sfs.db.Builder()
+	sqb.Select().From(sfs.tb).Where("id = ?", id)
+	sql, args := sqb.Build()
 
 	f := &xfs.File{}
-	err := sfs.db.Get(f, s, id)
+	err := sfs.db.Get(f, sql, args...)
 	if err != nil {
 		if errors.Is(err, sqlx.ErrNoRows) {
 			return nil, fs.ErrNotExist
@@ -107,7 +119,8 @@ func (sfs *sfs) ReadFile(id string) ([]byte, error) {
 }
 
 func (sfs *sfs) CopyFile(src, dst string) error {
-	sql := fmt.Sprintf("INSERT INTO %s (id, name, ext, time, size, data) SELECT ?, name, ext, time, size, data FROM %s WHERE id = ?", sfs.tn, sfs.tn)
+	tb := sfs.db.Quote(sfs.tb)
+	sql := fmt.Sprintf("INSERT INTO %s (id, name, ext, time, size, data) SELECT ?, name, ext, time, size, data FROM %s WHERE id = ?", tb, tb)
 	sql = sfs.db.Rebind(sql)
 
 	r, err := sfs.db.Exec(sql, dst, src)
@@ -126,9 +139,13 @@ func (sfs *sfs) CopyFile(src, dst string) error {
 }
 
 func (sfs *sfs) MoveFile(src, dst string) error {
-	sql := sfs.db.Rebind("UPDATE " + sfs.tn + " SET id = ? WHERE id = ?")
+	sqb := sfs.db.Builder()
+	sqb.Update(sfs.tb)
+	sqb.Setc("id", dst)
+	sqb.Where("id = ?", src)
+	sql, args := sqb.Build()
 
-	r, err := sfs.db.Exec(sql, dst, src)
+	r, err := sfs.db.Exec(sql, args...)
 	if err != nil {
 		return err
 	}
@@ -144,8 +161,11 @@ func (sfs *sfs) MoveFile(src, dst string) error {
 }
 
 func (sfs *sfs) DeleteFile(id string) error {
-	s := sfs.db.Rebind("DELETE FROM " + sfs.tn + " WHERE id = ?")
-	_, err := sfs.db.Exec(s, id)
+	sqb := sfs.db.Builder()
+	sqb.Delete(sfs.tb).Where("id = ?", id)
+	sql, args := sqb.Build()
+
+	_, err := sfs.db.Exec(sql, args...)
 	return err
 }
 
@@ -167,7 +187,7 @@ func (sfs *sfs) DeletePrefixBefore(prefix string, before time.Time) (int64, erro
 }
 
 func (sfs *sfs) DeleteWhere(where string, args ...any) (int64, error) {
-	s := sfs.db.Rebind("DELETE FROM " + sfs.tn + " WHERE " + where)
+	s := sfs.db.Rebind("DELETE FROM " + sfs.db.Quote(sfs.tb) + " WHERE " + where)
 	r, err := sfs.db.Exec(s, args...)
 	if err != nil {
 		return 0, err
@@ -177,7 +197,7 @@ func (sfs *sfs) DeleteWhere(where string, args ...any) (int64, error) {
 
 // DeleteAll use "DELETE FROM files" to delete all files
 func (sfs *sfs) DeleteAll() (int64, error) {
-	r, err := sfs.db.Exec("DELETE FROM " + sfs.tn)
+	r, err := sfs.db.Exec("DELETE FROM " + sfs.db.Quote(sfs.tb))
 	if err != nil {
 		return 0, err
 	}
@@ -186,6 +206,6 @@ func (sfs *sfs) DeleteAll() (int64, error) {
 
 // Truncate use "TRUNCATE TABLE files" to truncate files
 func (sfs *sfs) Truncate() error {
-	_, err := sfs.db.Exec("TRUNCATE TABLE " + sfs.tn)
+	_, err := sfs.db.Exec("TRUNCATE TABLE " + sfs.db.Quote(sfs.tb))
 	return err
 }

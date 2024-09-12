@@ -80,10 +80,12 @@ func (sjm *sjm) AddJobLog(jid int64, time time.Time, level string, message strin
 }
 
 func (sjm *sjm) GetJob(jid int64) (*xjm.Job, error) {
-	s := sjm.db.Rebind("SELECT * FROM " + sjm.jt + " WHERE id = ?")
+	sqb := sjm.db.Builder()
+	sqb.Select().From(sjm.jt).Where("id = ?", jid)
+	sql, args := sqb.Build()
 
 	job := &xjm.Job{}
-	err := sjm.db.Get(job, s, jid)
+	err := sjm.db.Get(job, sql, args...)
 	if errors.Is(err, sqlx.ErrNoRows) {
 		return nil, nil
 	}

@@ -19,11 +19,17 @@ const (
 	defaultMultipartMemory = 32 << 20 // 32 MB
 )
 
-// AnywhereCIDRs []string{"0.0.0.0/0", "::/0"} used by default TrustedProxies
-var AnywhereCIDRs = []string{"0.0.0.0/0", "::/0"}
+// CIDRs used by TrustedProxies
+var (
+	AnywhereCIDRs = []string{"0.0.0.0/0", "::/0"}
+	IntranetCIDRs = []string{"127.0.0.0/8", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "::1/32"}
+)
 
-var regSafePrefix = regexp.MustCompile("[^a-zA-Z0-9/-]+")
-var regRemoveRepeatedChar = regexp.MustCompile("/{2,}")
+// regex used by redirectTrailingSlash()
+var (
+	regUnsafePrefix  = regexp.MustCompile("[^a-zA-Z0-9/-]+")
+	regRepeatedSlash = regexp.MustCompile("/{2,}")
+)
 
 // HandlerFunc defines the handler used by xin middleware as return value.
 type HandlerFunc func(*Context)
@@ -181,7 +187,7 @@ func New() *Engine {
 	engine.pool.New = func() any {
 		return engine.allocateContext(engine.maxParams)
 	}
-	engine.SetTrustedProxies(AnywhereCIDRs) //nolint: errcheck
+	engine.SetTrustedProxies(IntranetCIDRs) //nolint: errcheck
 	return engine
 }
 
@@ -495,8 +501,8 @@ func redirectTrailingSlash(c *Context) {
 	req := c.Request
 	p := req.URL.Path
 	if prefix := path.Clean(c.Request.Header.Get("X-Forwarded-Prefix")); prefix != "." {
-		prefix = regSafePrefix.ReplaceAllString(prefix, "")
-		prefix = regRemoveRepeatedChar.ReplaceAllString(prefix, "/")
+		prefix = regUnsafePrefix.ReplaceAllString(prefix, "")
+		prefix = regRepeatedSlash.ReplaceAllString(prefix, "/")
 
 		p = prefix + "/" + req.URL.Path
 	}

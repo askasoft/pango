@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/num"
 	"github.com/askasoft/pango/ref"
 	"github.com/askasoft/pango/str"
@@ -96,11 +97,10 @@ func (b *Builder) Select(cols ...string) *Builder {
 	return b.Columns(cols...)
 }
 
-// Select add distinct select columns
-// if `cols` is not specified, default select "*"
-func (b *Builder) SelectDistinct(cols ...string) *Builder {
+// Distinct set distinct keyword only for SELECT
+func (b *Builder) Distinct() *Builder {
 	b.distinct = true
-	return b.Select(cols...)
+	return b
 }
 
 func (b *Builder) Delete(tb string) *Builder {
@@ -171,6 +171,15 @@ func (b *Builder) Names(cols ...string) *Builder {
 	for _, col := range cols {
 		b.columns = append(b.columns, col)
 		b.values = append(b.values, ":"+col)
+	}
+	return b
+}
+
+// Omits remove named columns and values
+func (b *Builder) Omits(cols ...string) *Builder {
+	for _, col := range cols {
+		b.columns = asg.DeleteEqual(b.columns, col)
+		b.values = asg.DeleteEqual(b.values, ":"+col)
 	}
 	return b
 }

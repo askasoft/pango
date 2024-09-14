@@ -397,7 +397,7 @@ func asSliceForIn(i any) (v reflect.Value, ok bool) {
 	}
 
 	v = reflect.ValueOf(i)
-	t := ref.Deref(v.Type())
+	t := ref.DerefType(v.Type())
 
 	// Only expand slices
 	if t.Kind() != reflect.Slice {

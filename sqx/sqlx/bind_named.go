@@ -224,10 +224,7 @@ func bindArgs(names []string, arg any, m *ref.Mapper) ([]any, error) {
 	arglist := make([]any, 0, len(names))
 
 	// grab the indirected value of arg
-	v := reflect.ValueOf(arg)
-	for v.Kind() == reflect.Ptr {
-		v = v.Elem()
-	}
+	v := ref.DerefValue(reflect.ValueOf(arg))
 
 	err := m.TraversalsByNameFunc(v.Type(), names, func(i int, t []int) error {
 		if len(t) == 0 {

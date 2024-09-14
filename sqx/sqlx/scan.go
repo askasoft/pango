@@ -177,7 +177,7 @@ func scanAll(rows iRows, dest any, structOnly bool) error {
 	direct.SetLen(0)
 
 	isPtr := slice.Elem().Kind() == reflect.Ptr
-	base := ref.Deref(slice.Elem())
+	base := ref.DerefType(slice.Elem())
 	scannable := isScannable(base)
 
 	if structOnly && scannable {
@@ -255,7 +255,7 @@ func scanAll(rows iRows, dest any, structOnly bool) error {
 // reflect helpers
 
 func baseType(t reflect.Type, expected reflect.Kind) (reflect.Type, error) {
-	t = ref.Deref(t)
+	t = ref.DerefType(t)
 	if t.Kind() != expected {
 		return nil, fmt.Errorf("expected %s but got %s", expected, t.Kind())
 	}

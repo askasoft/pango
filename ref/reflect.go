@@ -181,7 +181,7 @@ func (m *Mapper) TraversalsByName(t reflect.Type, names []string) [][]int {
 // each name and the struct traversal represented by that name. Panics if t is not
 // a struct or Indirectable to a struct. Returns the first error returned by fn or nil.
 func (m *Mapper) TraversalsByNameFunc(t reflect.Type, names []string, fn func(int, []int) error) error {
-	t = Deref(t)
+	t = DerefType(t)
 	mustBe(t, reflect.Struct)
 	tm := m.TypeMap(t)
 	for i, name := range names {
@@ -206,7 +206,7 @@ func FieldByIndexes(v reflect.Value, indexes []int) reflect.Value {
 		v = reflect.Indirect(v).Field(i)
 		// if this is a pointer and it's nil, allocate a new value and set it
 		if v.Kind() == reflect.Ptr && v.IsNil() {
-			alloc := reflect.New(Deref(v.Type()))
+			alloc := reflect.New(DerefType(v.Type()))
 			v.Set(alloc)
 		}
 		if v.Kind() == reflect.Map && v.IsNil() {
@@ -226,12 +226,20 @@ func FieldByIndexesReadOnly(v reflect.Value, indexes []int) reflect.Value {
 	return v
 }
 
-// Deref is Indirect for reflect.Types
-func Deref(t reflect.Type) reflect.Type {
+// DerefType is Indirect for reflect.Type
+func DerefType(t reflect.Type) reflect.Type {
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
 	}
 	return t
+}
+
+// DerefValue is Indirect for reflect.Value
+func DerefValue(v reflect.Value) reflect.Value {
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+	}
+	return v
 }
 
 // -- helpers & utilities --
@@ -345,7 +353,7 @@ func getMapping(t reflect.Type, tagName string, mapFunc, tagMapFunc mapf) *Struc
 
 	root := &FieldInfo{}
 	queue := []typeQueue{}
-	queue = append(queue, typeQueue{Deref(t), root, ""})
+	queue = append(queue, typeQueue{DerefType(t), root, ""})
 
 QueueLoop:
 	for len(queue) != 0 {
@@ -408,16 +416,16 @@ QueueLoop:
 				fi.Embedded = true
 				fi.Index = apnd(tq.fi.Index, fieldPos)
 				nChildren := 0
-				ft := Deref(f.Type)
+				ft := DerefType(f.Type)
 				if ft.Kind() == reflect.Struct {
 					nChildren = ft.NumField()
 				}
 				fi.Children = make([]*FieldInfo, nChildren)
-				queue = append(queue, typeQueue{Deref(f.Type), &fi, pp})
+				queue = append(queue, typeQueue{DerefType(f.Type), &fi, pp})
 			} else if fi.Zero.Kind() == reflect.Struct || (fi.Zero.Kind() == reflect.Ptr && fi.Zero.Type().Elem().Kind() == reflect.Struct) {
 				fi.Index = apnd(tq.fi.Index, fieldPos)
-				fi.Children = make([]*FieldInfo, Deref(f.Type).NumField())
-				queue = append(queue, typeQueue{Deref(f.Type), &fi, fi.Path})
+				fi.Children = make([]*FieldInfo, DerefType(f.Type).NumField())
+				queue = append(queue, typeQueue{DerefType(f.Type), &fi, fi.Path})
 			}
 
 			fi.Index = apnd(tq.fi.Index, fieldPos)

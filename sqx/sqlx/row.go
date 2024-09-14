@@ -111,7 +111,7 @@ func (r *Row) scanAny(dest any, structOnly bool) error {
 		return errors.New("nil pointer passed to StructScan destination")
 	}
 
-	base := ref.Deref(v.Type())
+	base := ref.DerefType(v.Type())
 	scannable := isScannable(base)
 
 	if structOnly && scannable {

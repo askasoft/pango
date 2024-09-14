@@ -83,13 +83,6 @@ func (s *Stmt) Get(dest any, args ...any) error {
 	return Get(&qStmt{s}, dest, s.query, args...)
 }
 
-// MustExec (panic) using this statement.  Note that the query portion of the error
-// output will be blank, as Stmt does not expose its query.
-// Any placeholder parameters are replaced with supplied args.
-func (s *Stmt) MustExec(args ...any) sql.Result {
-	return sqx.MustExec(&qStmt{s}, s.query, args...)
-}
-
 // Queryx using this statement.
 // Any placeholder parameters are replaced with supplied args.
 func (s *Stmt) Queryx(args ...any) (*Rows, error) {
@@ -115,6 +108,13 @@ func (s *Stmt) SelectContext(ctx context.Context, dest any, args ...any) error {
 // An error is returned if the result set is empty.
 func (s *Stmt) GetContext(ctx context.Context, dest any, args ...any) error {
 	return GetContext(ctx, &qStmt{s}, dest, s.query, args...)
+}
+
+// MustExec (panic) using this statement.  Note that the query portion of the error
+// output will be blank, as Stmt does not expose its query.
+// Any placeholder parameters are replaced with supplied args.
+func (s *Stmt) MustExec(args ...any) sql.Result {
+	return sqx.MustExec(&qStmt{s}, s.query, args...)
 }
 
 // MustExecContext (panic) using this statement.  Note that the query portion of

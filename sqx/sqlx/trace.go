@@ -81,7 +81,7 @@ func (t *tracer) TraceQueryRowContext(ctx context.Context, crqr sqx.ContextRowQu
 	return row
 }
 
-func (t *tracer) TraceStmtQueryContext(ctx context.Context, csqr sqx.StmtContextQueryer, query string, args ...any) (*sql.Rows, error) {
+func (t *tracer) TraceStmtQueryContext(ctx context.Context, csqr sqx.ContextStmtQueryer, query string, args ...any) (*sql.Rows, error) {
 	start := time.Now()
 	rows, err := csqr.QueryContext(ctx, args...)
 	if t.Trace != nil {
@@ -120,7 +120,7 @@ func (t *tracer) TraceExecContext(ctx context.Context, cer sqx.ContextExecer, qu
 	return sqr, err
 }
 
-func (t *tracer) TraceStmtExecContext(ctx context.Context, scer sqx.StmtContextExecer, query string, args ...any) (sql.Result, error) {
+func (t *tracer) TraceStmtExecContext(ctx context.Context, scer sqx.ContextStmtExecer, query string, args ...any) (sql.Result, error) {
 	start := time.Now()
 	sqr, err := scer.ExecContext(ctx, args...)
 	if t.Trace != nil {

@@ -313,7 +313,7 @@ func MustConnect(driverName, dataSourceName string) *DB {
 	return db
 }
 
-// Select executes a query using the provided Queryer, and StructScans each row
+// Select executes a query, and StructScans each row
 // into dest, which must be a slice.  If the slice elements are scannable, then
 // the result set must have only one column.  Otherwise, StructScan is used.
 // The *sql.Rows are closed automatically.
@@ -328,11 +328,26 @@ func Select(q Queryerx, dest any, query string, args ...any) error {
 	return scanAll(rows, dest, false)
 }
 
-// SelectContext executes a query using the provided Queryer, and StructScans
+// NamedSelect executes a query, and StructScans each row
+// into dest, which must be a slice.  If the slice elements are scannable, then
+// the result set must have only one column.  Otherwise, StructScan is used.
+// The *sql.Rows are closed automatically.
+// Any placeholder parameters are replaced with supplied args.
+func NamedSelect(q NamedQueryer, dest any, query string, arg any) error {
+	rows, err := q.NamedQuery(query, arg)
+	if err != nil {
+		return err
+	}
+	// if something happens here, we want to make sure the rows are Closed
+	defer rows.Close()
+	return scanAll(rows, dest, false)
+}
+
+// SelectContext executes a query, and StructScans
 // each row into dest, which must be a slice.  If the slice elements are
 // scannable, then the result set must have only one column.  Otherwise,
 // StructScan is used. The *sql.Rows are closed automatically.
-// Any placeholder parameters are replaced with supplied args.
+// Any placeholder parameters are replaced with supplied arg.
 func SelectContext(ctx context.Context, q ContextQueryerx, dest any, query string, args ...any) error {
 	rows, err := q.QueryxContext(ctx, query, args...)
 	if err != nil {
@@ -343,7 +358,22 @@ func SelectContext(ctx context.Context, q ContextQueryerx, dest any, query strin
 	return scanAll(rows, dest, false)
 }
 
-// Get does a QueryRow using the provided Queryer, and scans the resulting row
+// NamedSelectContext executes a query, and StructScans
+// each row into dest, which must be a slice.  If the slice elements are
+// scannable, then the result set must have only one column.  Otherwise,
+// StructScan is used. The *sql.Rows are closed automatically.
+// Any placeholder parameters are replaced with supplied arg.
+func NamedSelectContext(ctx context.Context, q ContextNamedQueryer, dest any, query string, arg any) error {
+	rows, err := q.NamedQueryContext(ctx, query, arg)
+	if err != nil {
+		return err
+	}
+	// if something happens here, we want to make sure the rows are Closed
+	defer rows.Close()
+	return scanAll(rows, dest, false)
+}
+
+// Get does a QueryRowx() and scans the resulting row
 // to dest.  If dest is scannable, the result must only have one column.  Otherwise,
 // StructScan is used.  Get will return ErrNoRows like row.Scan would.
 // Any placeholder parameters are replaced with supplied args.
@@ -353,7 +383,17 @@ func Get(q Queryerx, dest any, query string, args ...any) error {
 	return r.scanAny(dest, false)
 }
 
-// GetContext does a QueryRow using the provided Queryer, and scans the
+// NamedGet does a NamedQueryRow() and scans the resulting row
+// to dest.  If dest is scannable, the result must only have one column.  Otherwise,
+// StructScan is used.  Get will return ErrNoRows like row.Scan would.
+// Any placeholder parameters are replaced with supplied args.
+// An error is returned if the result set is empty.
+func NamedGet(q NamedQueryer, dest any, query string, arg any) error {
+	r := q.NamedQueryRow(query, arg)
+	return r.scanAny(dest, false)
+}
+
+// GetContext does a QueryRowxContext() and scans the
 // resulting row to dest.  If dest is scannable, the result must only have one
 // column. Otherwise, StructScan is used.  Get will return ErrNoRows like
 // row.Scan would. Any placeholder parameters are replaced with supplied args.
@@ -363,9 +403,18 @@ func GetContext(ctx context.Context, q ContextQueryerx, dest any, query string, 
 	return r.scanAny(dest, false)
 }
 
-// Create does a QueryRow using the provided Queryer, and scans the resulting row
-// returns the last inserted ID.
-// If the db supports LastInsertId(), return Result.LastInsertId().
+// NamedGetContext does a NamedQueryRowContext() and scans the
+// resulting row to dest.  If dest is scannable, the result must only have one
+// column. Otherwise, StructScan is used.  Get will return ErrNoRows like
+// row.Scan would. Any placeholder parameters are replaced with supplied args.
+// An error is returned if the result set is empty.
+func NamedGetContext(ctx context.Context, q ContextNamedQueryer, dest any, query string, arg any) error {
+	r := q.NamedQueryRowContext(ctx, query, arg)
+	return r.scanAny(dest, false)
+}
+
+// Create does a QueryRowx() and scans the resulting row returns the last inserted ID.
+// If the db supports LastInsertId(), do a Exec() and returns Result.LastInsertId().
 func Create(x Sqlx, query string, args ...any) (int64, error) {
 	if x.SupportLastInsertID() {
 		r, err := x.Exec(query, args...)
@@ -385,9 +434,29 @@ func Create(x Sqlx, query string, args ...any) (int64, error) {
 	return id, err
 }
 
-// CreateContext does a QueryRow using the provided Queryer, and scans the resulting row
-// returns the last inserted ID.
-// If the db supports LastInsertId(), return Result.LastInsertId().
+// NamedCreate does a NamedQueryRowx() and scans the resulting row returns the last inserted ID.
+// If the db supports LastInsertId(), do a Exec() return Result.LastInsertId().
+func NamedCreate(x Sqlx, query string, arg any) (int64, error) {
+	if x.SupportLastInsertID() {
+		r, err := x.NamedExec(query, arg)
+		if err != nil {
+			return 0, err
+		}
+		return r.LastInsertId()
+	}
+
+	r := x.NamedQueryRow(query, arg)
+	if r.Err() != nil {
+		return 0, r.Err()
+	}
+
+	var id int64
+	err := r.Scan(&id)
+	return id, err
+}
+
+// CreateContext does a QueryRowxContext() scans the resulting row returns the last inserted ID.
+// If the db supports LastInsertId(), do a Exec() return Result.LastInsertId().
 func CreateContext(ctx context.Context, x Sqlx, query string, args ...any) (int64, error) {
 	if x.SupportLastInsertID() {
 		r, err := x.ExecContext(ctx, query, args...)
@@ -397,7 +466,29 @@ func CreateContext(ctx context.Context, x Sqlx, query string, args ...any) (int6
 		return r.LastInsertId()
 	}
 
-	r := x.QueryRowx(query, args...)
+	r := x.QueryRowxContext(ctx, query, args...)
+	if r.Err() != nil {
+		return 0, r.Err()
+	}
+
+	var id int64
+	err := r.Scan(&id)
+	return id, err
+}
+
+// NamedCreateContext does a NamedQueryRow() and scans the resulting row
+// returns the last inserted ID.
+// If the db supports LastInsertId(), does a NamedExecContext() and returns Result.LastInsertId().
+func NamedCreateContext(ctx context.Context, x Sqlx, query string, arg any) (int64, error) {
+	if x.SupportLastInsertID() {
+		r, err := x.NamedExecContext(ctx, query, arg)
+		if err != nil {
+			return 0, err
+		}
+		return r.LastInsertId()
+	}
+
+	r := x.NamedQueryRowContext(ctx, query, arg)
 	if r.Err() != nil {
 		return 0, r.Err()
 	}

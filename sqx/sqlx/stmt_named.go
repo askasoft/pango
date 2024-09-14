@@ -62,16 +62,6 @@ func (ns *NamedStmt) QueryRow(arg any) *Row {
 	return ns.stmt.QueryRowx(args...)
 }
 
-// MustExec execs a NamedStmt, panicing on error
-// Any named placeholder parameters are replaced with fields from arg.
-func (ns *NamedStmt) MustExec(arg any) sql.Result {
-	res, err := ns.Exec(arg)
-	if err != nil {
-		panic(err)
-	}
-	return res
-}
-
 // Queryx using this NamedStmt
 // Any named placeholder parameters are replaced with fields from arg.
 func (ns *NamedStmt) Queryx(arg any) (*Rows, error) {
@@ -140,16 +130,6 @@ func (ns *NamedStmt) QueryRowContext(ctx context.Context, arg any) *Row {
 	return ns.stmt.QueryRowxContext(ctx, args...)
 }
 
-// MustExecContext execs a NamedStmt, panicing on error
-// Any named placeholder parameters are replaced with fields from arg.
-func (ns *NamedStmt) MustExecContext(ctx context.Context, arg any) sql.Result {
-	res, err := ns.ExecContext(ctx, arg)
-	if err != nil {
-		panic(err)
-	}
-	return res
-}
-
 // QueryxContext using this NamedStmt
 // Any named placeholder parameters are replaced with fields from arg.
 func (ns *NamedStmt) QueryxContext(ctx context.Context, arg any) (*Rows, error) {
@@ -184,6 +164,26 @@ func (ns *NamedStmt) SelectContext(ctx context.Context, dest any, arg any) error
 func (ns *NamedStmt) GetContext(ctx context.Context, dest any, arg any) error {
 	r := ns.QueryRowxContext(ctx, arg)
 	return r.scanAny(dest, false)
+}
+
+// MustExec execs a NamedStmt, panicing on error
+// Any named placeholder parameters are replaced with fields from arg.
+func (ns *NamedStmt) MustExec(arg any) sql.Result {
+	res, err := ns.Exec(arg)
+	if err != nil {
+		panic(err)
+	}
+	return res
+}
+
+// MustExecContext execs a NamedStmt, panicing on error
+// Any named placeholder parameters are replaced with fields from arg.
+func (ns *NamedStmt) MustExecContext(ctx context.Context, arg any) sql.Result {
+	res, err := ns.ExecContext(ctx, arg)
+	if err != nil {
+		panic(err)
+	}
+	return res
 }
 
 // A union interface of Preparerx and binder, required to be able to

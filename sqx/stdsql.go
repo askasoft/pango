@@ -59,7 +59,7 @@ type StmtQueryer interface {
 	Query(args ...any) (*sql.Rows, error)
 }
 
-type StmtContextQueryer interface {
+type ContextStmtQueryer interface {
 	QueryContext(ctx context.Context, args ...any) (*sql.Rows, error)
 }
 
@@ -67,7 +67,7 @@ type StmtExecer interface {
 	Exec(args ...any) (sql.Result, error)
 }
 
-type StmtContextExecer interface {
+type ContextStmtExecer interface {
 	ExecContext(ctx context.Context, args ...any) (sql.Result, error)
 }
 
@@ -109,6 +109,26 @@ func MustExec(e Execer, query string, args ...any) sql.Result {
 // Any placeholder parameters are replaced with supplied args.
 func MustExecContext(ctx context.Context, e ContextExecer, query string, args ...any) sql.Result {
 	res, err := e.ExecContext(ctx, query, args...)
+	if err != nil {
+		panic(err)
+	}
+	return res
+}
+
+// MustStmtExec execs the statement query using e and panics if there was an error.
+// Any placeholder parameters are replaced with supplied args.
+func MustStmtExec(e StmtExecer, args ...any) sql.Result {
+	res, err := e.Exec(args...)
+	if err != nil {
+		panic(err)
+	}
+	return res
+}
+
+// MustStmtExecContext execs the statement query using e and panics if there was an error.
+// Any placeholder parameters are replaced with supplied args.
+func MustStmtExecContext(ctx context.Context, e ContextStmtExecer, query string, args ...any) sql.Result {
+	res, err := e.ExecContext(ctx, args...)
 	if err != nil {
 		panic(err)
 	}

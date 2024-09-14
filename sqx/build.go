@@ -288,7 +288,7 @@ func (b *Builder) buildUpdate() string {
 	}
 
 	b.appendWhere(sb)
-	b.appendRetuning(sb)
+	b.appendReturning(sb)
 
 	return sb.String()
 }
@@ -318,7 +318,7 @@ func (b *Builder) buildInsert() string {
 	}
 	sb.WriteString(")")
 
-	b.appendRetuning(sb)
+	b.appendReturning(sb)
 
 	return sb.String()
 }
@@ -330,7 +330,7 @@ func (b *Builder) buildDelete() string {
 	sb.WriteString(b.Quoter.Quote(b.table))
 
 	b.appendWhere(sb)
-	b.appendRetuning(sb)
+	b.appendReturning(sb)
 
 	return sb.String()
 }
@@ -342,9 +342,9 @@ func (b *Builder) appendWhere(sb *strings.Builder) {
 	}
 }
 
-func (b *Builder) appendRetuning(sb *strings.Builder) {
+func (b *Builder) appendReturning(sb *strings.Builder) {
 	if len(b.returns) > 0 {
-		sb.WriteString(" RETUNING ")
+		sb.WriteString(" RETURNING ")
 		for i, col := range b.returns {
 			if i > 0 {
 				sb.WriteString(", ")

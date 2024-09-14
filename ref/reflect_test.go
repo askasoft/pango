@@ -1,6 +1,7 @@
 package ref
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -38,12 +39,13 @@ func TestBasic(t *testing.T) {
 func TestBasicEmbedded(t *testing.T) {
 	type Foo struct {
 		A int
+		F int
 	}
 
 	type Bar struct {
 		Foo // `db:""` is implied for an embedded struct
 		B   int
-		C   int `db:"-"`
+		X   int `db:"-"`
 	}
 
 	type Baz struct {
@@ -56,19 +58,21 @@ func TestBasicEmbedded(t *testing.T) {
 	z := Baz{}
 	z.A = 1
 	z.B = 2
-	z.C = 4
+	z.X = 9
 	z.Bar.Foo.A = 3
+	z.F = 4
 
 	zv := reflect.ValueOf(z)
 	fields := m.TypeMap(reflect.TypeOf(z))
 
-	if len(fields.Index) != 5 {
-		t.Errorf("Expecting 5 fields")
+	fmt.Println("TestBasicEmbedded:")
+	for _, fi := range fields.Index {
+		fmt.Println(fi)
 	}
 
-	// for _, fi := range fields.Index {
-	// 	log.Println(fi)
-	// }
+	if len(fields.Index) != 6 {
+		t.Errorf("Expecting 6 fields")
+	}
 
 	v := m.FieldByName(zv, "A")
 	if ival(v) != z.A {
@@ -82,14 +86,18 @@ func TestBasicEmbedded(t *testing.T) {
 	if ival(v) != z.Bar.Foo.A {
 		t.Errorf("Expecting %d, got %d", z.Bar.Foo.A, ival(v))
 	}
-	v = m.FieldByName(zv, "Bar.C")
+	v = m.FieldByName(zv, "Bar.F")
+	if ival(v) != z.Bar.Foo.F {
+		t.Errorf("Expecting %d, got %d", z.Bar.Foo.F, ival(v))
+	}
+	v = m.FieldByName(zv, "Bar.X")
 	if _, ok := v.Interface().(int); ok {
-		t.Errorf("Expecting Bar.C to not exist")
+		t.Errorf("Expecting Bar.X to not exist")
 	}
 
-	fi := fields.GetByPath("Bar.C")
+	fi := fields.GetByPath("Bar.X")
 	if fi != nil {
-		t.Errorf("Bar.C should not exist")
+		t.Errorf("Bar.X should not exist")
 	}
 }
 

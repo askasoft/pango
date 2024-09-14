@@ -1,12 +1,17 @@
 package sqlx
 
 import (
+	"reflect"
+
+	"github.com/askasoft/pango/asg"
+	"github.com/askasoft/pango/ref"
 	"github.com/askasoft/pango/sqx"
 )
 
 // Builder a simple sql builder
 // NOTE: the arguments are strict to it's order
 type Builder struct {
+	mpr *ref.Mapper
 	sqb sqx.Builder
 }
 
@@ -46,10 +51,9 @@ func (b *Builder) Select(cols ...string) *Builder {
 	return b
 }
 
-// Select add distinct select columns
-// if `cols` is not specified, default select "*"
-func (b *Builder) SelectDistinct(cols ...string) *Builder {
-	b.sqb.SelectDistinct(cols...)
+// Distinct set distinct keyword only for SELECT
+func (b *Builder) Distinct() *Builder {
+	b.sqb.Distinct()
 	return b
 }
 
@@ -109,10 +113,15 @@ func (b *Builder) Setc(col string, arg any) *Builder {
 // Names add named columns and values.
 // Example:
 //
-//	sqb.Insert("a").Names("id", "name", "value") // INSERT INTO a (id, name) VALUES (:id, :name)
+//	sqb.Insert("a").Names("id", "name", "value") // INSERT INTO a (id, name, value) VALUES (:id, :name,, :value)
 //	sqb.Update("a").Names("name", "value").Where("id = :id") // UPDATE a SET name = :name, value = :value WHERE id = :id
 func (b *Builder) Names(cols ...string) *Builder {
 	b.sqb.Names(cols...)
+	return b
+}
+
+func (b *Builder) Omits(cols ...string) *Builder {
+	b.sqb.Omits(cols...)
 	return b
 }
 
@@ -145,5 +154,66 @@ func (b *Builder) Offset(offset int) *Builder {
 
 func (b *Builder) Limit(limit int) *Builder {
 	b.sqb.Limit(limit)
+	return b
+}
+
+// StructSelect add columns for Struct.
+// Example:
+//
+//	type User struct {
+//		ID    int64
+//		Name  string
+//		Value string
+//	}
+//	u := &User{}
+//	sqb.StructSelect(u) // SELECT id, name, value FROM ...
+func (b *Builder) StructSelect(a any, omits ...string) *Builder {
+	sm := b.mpr.TypeMap(reflect.TypeOf(a))
+	for _, fi := range sm.Index {
+		if !asg.Contains(omits, fi.Name) {
+			b.sqb.Select(fi.Name)
+		}
+	}
+	return b
+}
+
+// StructPrefixSelect add columns for Struct.
+// Example:
+//
+//	type User struct {
+//		ID    int64
+//		Name  string
+//		Value string
+//	}
+//	u := &User{}
+//	sqb.StructPrefixSelect(u, "u.") // SELECT u.id, u.name, value FROM ...
+func (b *Builder) StructPrefixSelect(a any, prefix string, omits ...string) *Builder {
+	sm := b.mpr.TypeMap(reflect.TypeOf(a))
+	for _, fi := range sm.Index {
+		if !asg.Contains(omits, fi.Name) {
+			b.sqb.Select(prefix + fi.Name)
+		}
+	}
+	return b
+}
+
+// StructNames add named columns and values for Struct.
+// Example:
+//
+//	type User struct {
+//		ID    int64
+//		Name  string
+//		Value string
+//	}
+//	u := &User{}
+//	sqb.Insert("users").StructNames(u) // INSERT INTO users (id, name, value) VALUES (:id, :name, :value)
+//	sqb.Update("users").StructNames(u, "id").Where("id = :id") // UPDATE users SET name = :name, value = :value WHERE id = :id
+func (b *Builder) StructNames(a any, omits ...string) *Builder {
+	sm := b.mpr.TypeMap(reflect.TypeOf(a))
+	for _, fi := range sm.Index {
+		if !asg.Contains(omits, fi.Name) {
+			b.sqb.Names(fi.Name)
+		}
+	}
 	return b
 }

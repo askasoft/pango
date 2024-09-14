@@ -7,7 +7,6 @@ import (
 // Builder a simple sql builder
 // NOTE: the arguments are strict to it's order
 type Builder struct {
-	bid Binder
 	sqb sqx.Builder
 }
 
@@ -21,7 +20,7 @@ func (b *Builder) Build() (string, []any) {
 }
 
 func (b *Builder) SQL() string {
-	return b.bid.Rebind(b.sqb.SQL())
+	return b.sqb.SQL()
 }
 
 func (b *Builder) Params() []any {

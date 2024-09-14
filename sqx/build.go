@@ -12,7 +12,8 @@ import (
 // Builder a simple sql builder
 // NOTE: the arguments are strict to it's order
 type Builder struct {
-	Quoter   Quoter
+	Binder
+	Quoter
 	command  sqlcmd
 	distinct bool
 	table    string
@@ -53,18 +54,18 @@ func (b *Builder) Params() []any {
 }
 
 func (b *Builder) SQL() string {
+	s := ""
 	switch b.command {
 	case cselect:
-		return b.buildSelect()
+		s = b.buildSelect()
 	case cdelete:
-		return b.buildDelete()
+		s = b.buildDelete()
 	case cinsert:
-		return b.buildInsert()
+		s = b.buildInsert()
 	case cupdate:
-		return b.buildUpdate()
-	default:
-		return ""
+		s = b.buildUpdate()
 	}
+	return b.Rebind(s)
 }
 
 // Count shortcut for SELECT COUNT(*)

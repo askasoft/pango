@@ -47,7 +47,7 @@ func CountByte(a []byte, b byte) int {
 	n := 0
 	for {
 		i := IndexByte(a, b)
-		if i == -1 {
+		if i < 0 {
 			return n
 		}
 		n++

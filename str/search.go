@@ -12,7 +12,7 @@ func CountByte(s string, b byte) int {
 	n := 0
 	for {
 		i := IndexByte(s, b)
-		if i == -1 {
+		if i < 0 {
 			return n
 		}
 		n++

@@ -106,7 +106,7 @@ func parseSize(size string, uMap unitMap) (int64, error) {
 // Parses the human-readable size string into the amount it represents.
 func parseSizeF(size string, uMap unitMap) (float64, error) {
 	sep := strings.LastIndexAny(size, "01234567890. ")
-	if sep == -1 {
+	if sep < 0 {
 		// There should be at least a digit.
 		return badSize(size)
 	}

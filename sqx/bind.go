@@ -1,10 +1,16 @@
 package sqx
 
 import (
+	"database/sql/driver"
+	"fmt"
+	"reflect"
 	"regexp"
 	"strconv"
+	"strings"
 	"sync"
+	"time"
 
+	"github.com/askasoft/pango/cas"
 	"github.com/askasoft/pango/str"
 )
 
@@ -106,4 +112,119 @@ func (binder Binder) Rebind(query string) string {
 	rqb = append(rqb, query...)
 
 	return str.UnsafeString(rqb)
+}
+
+// Explain generate SQL string with given parameters, the generated SQL is expected to be used in logger, execute it might introduce a SQL injection vulnerability
+func (binder Binder) Explain(sql string, args ...any) string {
+	if len(args) == 0 {
+		return sql
+	}
+
+	vars := make([]string, len(args))
+	for i, v := range args {
+		vars[i] = convert(v)
+	}
+
+	rep := binder.Placeholder()
+
+	if rep == nil {
+		var idx int
+		var sb strings.Builder
+
+		for _, v := range str.UnsafeBytes(sql) {
+			if v == '?' {
+				if len(vars) > idx {
+					sb.WriteString(vars[idx])
+					idx++
+					continue
+				}
+			}
+			sb.WriteByte(v)
+		}
+
+		return sb.String()
+	}
+
+	sql = rep.ReplaceAllStringFunc(sql, func(p string) string {
+		i := str.IndexAny(p, "123456789")
+		if i >= 0 {
+			n, _ := strconv.Atoi(p[i:])
+
+			// position var start from 1 ($1, $2)
+			if n > 0 && n <= len(vars) {
+				return vars[n-1]
+			}
+		}
+		return p
+	})
+
+	return sql
+}
+
+const (
+	tmFmtWithMS = "2006-01-02 15:04:05.999"
+	tmFmtZero   = "0000-00-00 00:00:00"
+	nullStr     = "NULL"
+)
+
+// A list of Go types that should be converted to SQL primitives
+var convertibleTypes = []reflect.Type{reflect.TypeOf(time.Time{}), reflect.TypeOf(false), reflect.TypeOf([]byte{})}
+
+func convert(v any) string {
+	switch v := v.(type) {
+	case string:
+		return "'" + strings.ReplaceAll(v, "'", "''") + "'"
+	case []byte:
+		if s := str.UnsafeString(v); str.IsUTFPrintable(s) {
+			return "'" + strings.ReplaceAll(s, "'", "''") + "'"
+		}
+		return "'" + "<binary>" + "'"
+	case bool, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64:
+		s, _ := cas.ToString(v)
+		return s
+	case time.Time:
+		if v.IsZero() {
+			return "'" + tmFmtZero + "'"
+		}
+		return "'" + v.Format(tmFmtWithMS) + "'"
+	case *time.Time:
+		if v != nil {
+			if v.IsZero() {
+				return "'" + tmFmtZero + "'"
+			}
+			return "'" + v.Format(tmFmtWithMS) + "'"
+		}
+		return nullStr
+	case driver.Valuer:
+		rv := reflect.ValueOf(v)
+		if v != nil && rv.IsValid() && ((rv.Kind() == reflect.Ptr && !rv.IsNil()) || rv.Kind() != reflect.Ptr) {
+			r, _ := v.Value()
+			return convert(r)
+		}
+		return nullStr
+	case fmt.Stringer:
+		rv := reflect.ValueOf(v)
+		if v != nil && rv.IsValid() && ((rv.Kind() == reflect.Ptr && !rv.IsNil()) || rv.Kind() != reflect.Ptr) {
+			return "'" + strings.ReplaceAll(fmt.Sprintf("%v", v), "'", "''") + "'"
+		}
+		return nullStr
+	default:
+		rv := reflect.ValueOf(v)
+		if v == nil || !rv.IsValid() || rv.Kind() == reflect.Ptr && rv.IsNil() {
+			return nullStr
+		}
+		if valuer, ok := v.(driver.Valuer); ok {
+			v, _ = valuer.Value()
+			return convert(v)
+		}
+		if rv.Kind() == reflect.Ptr && !rv.IsZero() {
+			return convert(reflect.Indirect(rv).Interface())
+		}
+		for _, t := range convertibleTypes {
+			if rv.Type().ConvertibleTo(t) {
+				return convert(rv.Convert(t).Interface())
+			}
+		}
+		return "'" + strings.ReplaceAll(fmt.Sprint(v), "'", "''") + "'"
+	}
 }

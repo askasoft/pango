@@ -77,6 +77,7 @@ func (sr *SqlReader) ReadSql() (string, error) {
 				}
 			} else {
 				sb.WriteRune('-')
+				sb.WriteRune(c)
 			}
 		} else if c == '\'' {
 			sb.WriteRune(c)

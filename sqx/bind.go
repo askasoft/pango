@@ -7,10 +7,10 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/askasoft/pango/cas"
+	"github.com/askasoft/pango/mag"
 	"github.com/askasoft/pango/str"
 )
 
@@ -34,35 +34,40 @@ var (
 	PlaceholderAt     = regexp.MustCompile(`@p(\d+)`)
 )
 
-var binds sync.Map
+var binders map[string]Binder
 
 func init() {
-	defaultBinds := map[Binder][]string{
+	defaultBinders := map[Binder][]string{
 		BindDollar:   {"postgres", "pgx", "pq-timeouts", "cloudsqlpostgres", "ql", "nrpostgres", "cockroach"},
 		BindQuestion: {"mysql", "sqlite3", "nrmysql", "nrsqlite3"},
 		BindColon:    {"oci8", "ora", "goracle", "godror"},
 		BindAt:       {"sqlserver", "azuresql"},
 	}
 
-	for bind, drivers := range defaultBinds {
+	binders = make(map[string]Binder)
+	for binder, drivers := range defaultBinders {
 		for _, driver := range drivers {
-			BindDriver(driver, bind)
+			binders[driver] = binder
 		}
 	}
 }
 
 // GetBinder returns the binder for a given database given a drivername.
 func GetBinder(driverName string) Binder {
-	itype, ok := binds.Load(driverName)
+	binder, ok := binders[driverName]
 	if !ok {
 		return BindUnknown
 	}
-	return itype.(Binder)
+	return binder
 }
 
 // BindDriver sets the Binder for driverName to binder.
 func BindDriver(driverName string, binder Binder) {
-	binds.Store(driverName, binder)
+	nbs := make(map[string]Binder)
+	mag.Copy(nbs, binders)
+
+	nbs[driverName] = binder
+	binders = nbs
 }
 
 // Placeholder returns the placeholder regexp

@@ -1,8 +1,7 @@
 package sqx
 
 import (
-	"sync"
-
+	"github.com/askasoft/pango/mag"
 	"github.com/askasoft/pango/str"
 )
 
@@ -62,31 +61,36 @@ func (quoter Quoter) Quote(s string) string {
 	return str.Join(ss, ".")
 }
 
-var quotes sync.Map
+var quoters map[string]Quoter
 
 func init() {
-	defaultQuotes := map[Quoter][]string{
+	defaultQuoters := map[Quoter][]string{
 		QuoteMYSQL: {"mysql", "nrmysql"},
 		QuoteMSSQL: {"sqlserver", "azuresql"},
 	}
 
-	for typ, drivers := range defaultQuotes {
+	quoters = make(map[string]Quoter)
+	for quoter, drivers := range defaultQuoters {
 		for _, driver := range drivers {
-			QuoteDriver(driver, typ)
+			quoters[driver] = quoter
 		}
 	}
 }
 
 // GetQuoteer returns the quoter for a given database given a drivername.
 func GetQuoter(driverName string) Quoter {
-	quoter, ok := quotes.Load(driverName)
+	quoter, ok := quoters[driverName]
 	if !ok {
 		return QuoteDefault
 	}
-	return quoter.(Quoter)
+	return quoter
 }
 
 // QuoteDriver sets the Quoter for driverName to quoter.
 func QuoteDriver(driverName string, quoter Quoter) {
-	quotes.Store(driverName, quoter)
+	nqs := make(map[string]Quoter)
+	mag.Copy(nqs, quoters)
+
+	nqs[driverName] = quoter
+	quoters = nqs
 }

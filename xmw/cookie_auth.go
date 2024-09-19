@@ -128,7 +128,7 @@ func (ca *CookieAuth) buildRedirectURL(c *xin.Context) string {
 		return ""
 	}
 
-	if str.EqualFold(c.GetHeader("X-Requested-With"), "XMLHttpRequest") {
+	if xin.IsAjax(c) {
 		return ""
 	}
 

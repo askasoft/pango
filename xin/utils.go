@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
+
+	"github.com/askasoft/pango/str"
 )
 
 // BindKey indicates a default bind key.
@@ -26,6 +28,11 @@ func MustBind(val any) HandlerFunc {
 			c.Set(BindKey, obj)
 		}
 	}
+}
+
+// IsAjax check http header X-Requested-With == "XMLHttpRequest"
+func IsAjax(c *Context) bool {
+	return str.EqualFold(c.GetHeader("X-Requested-With"), "XMLHttpRequest")
 }
 
 // Next is a xin.HandlerFunc just call c.Next().

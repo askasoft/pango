@@ -12,11 +12,11 @@ import (
 type RequestLimiter struct {
 	MaxBodySize  int64
 	DrainBody    bool // drain request body if we are under apache, otherwise the apache will return 502 Bad Gateway
-	BodyTooLarge func(c *xin.Context, maxBodySize int64)
+	BodyTooLarge func(c *xin.Context)
 }
 
 // NewRequestLimiter create a default RequestLimiter middleware
-func NewRequestLimiter(maxBodySize int64, bodyTooLarge ...func(c *xin.Context, maxBodySize int64)) *RequestLimiter {
+func NewRequestLimiter(maxBodySize int64, bodyTooLarge ...func(c *xin.Context)) *RequestLimiter {
 	rl := &RequestLimiter{MaxBodySize: maxBodySize}
 	if len(bodyTooLarge) > 0 {
 		rl.BodyTooLarge = bodyTooLarge[0]
@@ -59,9 +59,9 @@ func (rl *RequestLimiter) Handle(c *xin.Context) {
 
 			btl := rl.BodyTooLarge
 			if btl != nil {
-				btl(c, rl.MaxBodySize)
+				btl(c)
 			} else {
-				c.String(http.StatusBadRequest, mbe.Error())
+				c.String(http.StatusRequestEntityTooLarge, mbe.Error())
 				c.Abort()
 			}
 		}

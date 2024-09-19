@@ -25,8 +25,8 @@ func TestRequestLimiter(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	val := w.Result().StatusCode
-	exp := http.StatusBadRequest
+	exp := http.StatusRequestEntityTooLarge
 	if val != exp {
-		t.Errorf("%v = %q, want %q", req.URL.String(), val, exp)
+		t.Errorf("%v = %d, want %d", req.URL.String(), val, exp)
 	}
 }

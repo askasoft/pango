@@ -9,72 +9,19 @@ type Quote interface {
 	Quote(s string) string
 }
 
-type QuoteMarks []rune
+type Quoter []rune
 
 var (
-	QuoteMarksDefault = QuoteMarks{'"', '"'}
-	QuoteMarksMSSQL   = QuoteMarks{'[', ']'}
-	QuoteMarksMYSQL   = QuoteMarks{'`', '`'}
+	QuoteDefault   = Quoter{'"', '"'}
+	QuoteBackticks = Quoter{'`', '`'}
+	QuoteBrackets  = Quoter{'[', ']'}
 )
 
-type Quoter int
-
-const (
-	QuoteDefault Quoter = iota
-	QuoteMYSQL
-	QuoteMSSQL
-)
-
-func (quoter Quoter) Marks() QuoteMarks {
-	switch quoter {
-	case QuoteMYSQL:
-		return QuoteMarksMYSQL
-	case QuoteMSSQL:
-		return QuoteMarksMSSQL
-	default:
-		return QuoteMarksDefault
-	}
-}
-
-// Quotes quote string 's' in 'ss' with quote marks [2]rune, return (m[0] + s + m[1])
-func (quoter Quoter) Quotes(ss ...string) []string {
-	for i, s := range ss {
-		ss[i] = quoter.Quote(s)
-	}
-	return ss
-}
-
-// Quote quote string 's' with quote marks [2]rune.
-// Returns (m[0] + s + m[1]), if 's' does not contains any "!\"#$%&'()*+,-/:;<=>?@[\\]^`{|}~" characters.
-func (quoter Quoter) Quote(s string) string {
-	if str.ContainsAny(s, " !\"#$%&'()*+,-/:;<=>?@[\\]^`{|}~") {
-		return s
-	}
-
-	qms := quoter.Marks()
-
-	ss := str.FieldsByte(s, '.')
-	for i, s := range ss {
-		ss[i] = string(qms[0]) + s + string(qms[1])
-	}
-
-	return str.Join(ss, ".")
-}
-
-var quoters map[string]Quoter
-
-func init() {
-	defaultQuoters := map[Quoter][]string{
-		QuoteMYSQL: {"mysql", "nrmysql"},
-		QuoteMSSQL: {"sqlserver", "azuresql"},
-	}
-
-	quoters = make(map[string]Quoter)
-	for quoter, drivers := range defaultQuoters {
-		for _, driver := range drivers {
-			quoters[driver] = quoter
-		}
-	}
+var quoters = map[string]Quoter{
+	"mysql":     QuoteBackticks,
+	"nrmysql":   QuoteBackticks,
+	"sqlserver": QuoteBrackets,
+	"azuresql":  QuoteBrackets,
 }
 
 // GetQuoteer returns the quoter for a given database given a drivername.
@@ -93,4 +40,32 @@ func QuoteDriver(driverName string, quoter Quoter) {
 
 	nqs[driverName] = quoter
 	quoters = nqs
+}
+
+// Quotes quote string 's' in 'ss' with quote marks [2]rune, return (m[0] + s + m[1])
+func (quoter Quoter) Quotes(ss ...string) []string {
+	for i, s := range ss {
+		ss[i] = quoter.Quote(s)
+	}
+	return ss
+}
+
+// Quote quote string 's' with quotes [2]rune.
+// Returns (quoter[0] + s + quoter[1]), if 's' does not contains any "!\"#$%&'()*+,-/:;<=>?@[\\]^`{|}~" characters.
+func (quoter Quoter) Quote(s string) string {
+	if str.ContainsAny(s, " !\"#$%&'()*+,-/:;<=>?@[\\]^`{|}~") {
+		return s
+	}
+
+	qs := quoter
+	if len(qs) == 0 {
+		qs = QuoteDefault
+	}
+
+	ss := str.FieldsByte(s, '.')
+	for i, s := range ss {
+		ss[i] = string(qs[0]) + s + string(qs[1])
+	}
+
+	return str.Join(ss, ".")
 }

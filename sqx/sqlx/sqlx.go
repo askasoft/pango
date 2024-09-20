@@ -31,10 +31,10 @@ const (
 
 type Quoter = sqx.Quoter
 
-const (
-	QuoteDefault = sqx.QuoteDefault
-	QuoteMYSQL   = sqx.QuoteMYSQL
-	QuoteMSSQL   = sqx.QuoteMSSQL
+var (
+	QuoteDefault   = sqx.QuoteDefault
+	QuoteBackticks = sqx.QuoteBackticks
+	QuoteBrackets  = sqx.QuoteBrackets
 )
 
 // Although the NameMapper is convenient, in practice it should not

@@ -185,11 +185,11 @@ func (b *Builder) Omits(cols ...string) *Builder {
 }
 
 func (b *Builder) In(col string, val any) *Builder {
-	return b.in("IN", col, val)
+	return b.in("IN", b.Quote(col), val)
 }
 
 func (b *Builder) NotIn(col string, val any) *Builder {
-	return b.in("NOT IN", col, val)
+	return b.in("NOT IN", b.Quote(col), val)
 }
 
 func (b *Builder) in(op, col string, val any) *Builder {
@@ -199,10 +199,13 @@ func (b *Builder) in(op, col string, val any) *Builder {
 	return b
 }
 
-func (b *Builder) Order(order string, desc ...bool) *Builder {
+func (b *Builder) Order(col string, desc ...bool) *Builder {
+	order := b.Quote(col)
+
 	if len(desc) > 0 {
 		order += str.If(desc[0], " DESC", " ASC")
 	}
+
 	b.orders = append(b.orders, order)
 	return b
 }

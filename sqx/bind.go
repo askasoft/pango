@@ -34,22 +34,24 @@ var (
 	PlaceholderAt     = regexp.MustCompile(`@p(\d+)`)
 )
 
-var binders map[string]Binder
-
-func init() {
-	defaultBinders := map[Binder][]string{
-		BindDollar:   {"postgres", "pgx", "pq-timeouts", "cloudsqlpostgres", "ql", "nrpostgres", "cockroach"},
-		BindQuestion: {"mysql", "sqlite3", "nrmysql", "nrsqlite3"},
-		BindColon:    {"oci8", "ora", "goracle", "godror"},
-		BindAt:       {"sqlserver", "azuresql"},
-	}
-
-	binders = make(map[string]Binder)
-	for binder, drivers := range defaultBinders {
-		for _, driver := range drivers {
-			binders[driver] = binder
-		}
-	}
+var binders = map[string]Binder{
+	"postgres":         BindDollar,
+	"pgx":              BindDollar,
+	"pq-timeouts":      BindDollar,
+	"cloudsqlpostgres": BindDollar,
+	"ql":               BindDollar,
+	"nrpostgres":       BindDollar,
+	"cockroach":        BindDollar,
+	"mysql":            BindQuestion,
+	"sqlite3":          BindQuestion,
+	"nrmysql":          BindQuestion,
+	"nrsqlite3":        BindQuestion,
+	"oci8":             BindColon,
+	"ora":              BindColon,
+	"goracle":          BindColon,
+	"godror":           BindColon,
+	"sqlserver":        BindAt,
+	"azuresql":         BindAt,
 }
 
 // GetBinder returns the binder for a given database given a drivername.

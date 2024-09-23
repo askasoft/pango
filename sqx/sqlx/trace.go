@@ -90,11 +90,19 @@ func (t *tracer) TraceStmtQueryContext(ctx context.Context, csqr sqx.ContextStmt
 	return rows, err
 }
 
+func (t *tracer) getRowsAffected(sqr sql.Result) int64 {
+	cnt := int64(-1)
+	if sqr != nil {
+		cnt, _ = sqr.RowsAffected()
+	}
+	return cnt
+}
+
 func (t *tracer) TraceExec(er sqx.Execer, query string, args ...any) (sql.Result, error) {
 	start := time.Now()
 	sqr, err := er.Exec(query, args...)
 	if t.Trace != nil {
-		cnt, _ := sqr.RowsAffected()
+		cnt := t.getRowsAffected(sqr)
 		t.Trace(start, t.ExplainSQL(query, args...), cnt, err)
 	}
 	return sqr, err
@@ -104,7 +112,7 @@ func (t *tracer) TraceStmtExec(ser sqx.StmtExecer, query string, args ...any) (s
 	start := time.Now()
 	sqr, err := ser.Exec(args...)
 	if t.Trace != nil {
-		cnt, _ := sqr.RowsAffected()
+		cnt := t.getRowsAffected(sqr)
 		t.Trace(start, t.ExplainSQL(query, args...), cnt, err)
 	}
 	return sqr, err
@@ -114,7 +122,7 @@ func (t *tracer) TraceExecContext(ctx context.Context, cer sqx.ContextExecer, qu
 	start := time.Now()
 	sqr, err := cer.ExecContext(ctx, query, args...)
 	if t.Trace != nil {
-		cnt, _ := sqr.RowsAffected()
+		cnt := t.getRowsAffected(sqr)
 		t.Trace(start, t.ExplainSQL(query, args...), cnt, err)
 	}
 	return sqr, err
@@ -124,7 +132,7 @@ func (t *tracer) TraceStmtExecContext(ctx context.Context, scer sqx.ContextStmtE
 	start := time.Now()
 	sqr, err := scer.ExecContext(ctx, args...)
 	if t.Trace != nil {
-		cnt, _ := sqr.RowsAffected()
+		cnt := t.getRowsAffected(sqr)
 		t.Trace(start, t.ExplainSQL(query, args...), cnt, err)
 	}
 	return sqr, err

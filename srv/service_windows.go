@@ -122,7 +122,7 @@ func installService(name, display, description string) error {
 		Description: description,
 		StartType:   mgr.StartAutomatic,
 	}
-	s, err = m.CreateService(name, exepath, cfg, "-d", filepath.Dir(exepath))
+	s, err = m.CreateService(name, exepath, cfg, "-dir", filepath.Dir(exepath))
 	if err != nil {
 		return err
 	}

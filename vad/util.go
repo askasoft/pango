@@ -2,6 +2,7 @@ package vad
 
 import (
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -210,6 +211,17 @@ BEGIN:
 
 	// if got here there was more namespace, cannot go any deeper
 	panic("Invalid field namespace")
+}
+
+var splitParamsRegex = regexp.MustCompile(`'[^']*'|\S+`)
+
+// `'[^']*'|\S+`
+func splits(param string) []string {
+	vals := splitParamsRegex.FindAllString(param, -1)
+	for i := 0; i < len(vals); i++ {
+		vals[i] = strings.Replace(vals[i], "'", "", -1)
+	}
+	return vals
 }
 
 func split2(param string) (string, string) {

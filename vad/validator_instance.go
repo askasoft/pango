@@ -92,18 +92,12 @@ type Validate struct {
 // in essence only parsing your validation tags once per struct type.
 // Using multiple instances neglects the benefit of caching.
 func New() *Validate {
-	tc := new(tagCache)
-	tc.m.Store(make(map[string]*cTag))
-
-	sc := new(structCache)
-	sc.m.Store(make(map[reflect.Type]*cStruct))
-
 	v := &Validate{
 		tagName:     defaultTagName,
 		aliases:     make(map[string]string, len(bakedInAliases)),
 		validations: make(map[string]internalValidationFuncWrapper, len(bakedInValidators)),
-		tagCache:    tc,
-		structCache: sc,
+		tagCache:    &tagCache{tmap: map[string]*cTag{}},
+		structCache: &structCache{smap: map[reflect.Type]*cStruct{}},
 	}
 
 	// must copy alias validators for separate validations to be used in each validator instance

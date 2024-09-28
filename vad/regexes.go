@@ -32,13 +32,12 @@ const (
 const (
 	e164RegexString                  = "^\\+[1-9]?[0-9]{7,14}$"
 	uLIDRegexString                  = "^[A-HJKMNP-TV-Z0-9]{26}$"
-	hostnameRegexStringRFC952        = `^[a-zA-Z]([a-zA-Z0-9\-]+[\.]?)*[a-zA-Z0-9]$`                                                                      // https://tools.ietf.org/html/rfc952
-	hostnameRegexStringRFC1123       = `^([a-zA-Z0-9]{1}[a-zA-Z0-9_-]{0,62}){1}(\.[a-zA-Z0-9_]{1}[a-zA-Z0-9_-]{0,62})*?$`                                 // accepts hostname starting with a digit https://tools.ietf.org/html/rfc1123
-	fqdnRegexStringRFC1123           = `^([a-zA-Z0-9]{1}[a-zA-Z0-9_-]{0,62})(\.[a-zA-Z0-9_]{1}[a-zA-Z0-9_-]{0,62})*?(\.[a-zA-Z]{1}[a-zA-Z0-9]{0,62})\.?$` // same as hostnameRegexStringRFC1123 but must contain a non numerical TLD (possibly ending with '.')
-	btcAddressRegexString            = `^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$`                                                                                // bitcoin address
-	btcAddressUpperRegexStringBech32 = `^BC1[02-9AC-HJ-NP-Z]{7,76}$`                                                                                      // bitcoin bech32 address https://en.bitcoin.it/wiki/Bech32
-	btcAddressLowerRegexStringBech32 = `^bc1[02-9ac-hj-np-z]{7,76}$`                                                                                      // bitcoin bech32 address https://en.bitcoin.it/wiki/Bech32
-	splitParamsRegexString           = `'[^']*'|\S+`
+	hostnameRegexStringRFC952        = `^[a-zA-Z]([a-zA-Z0-9\-]+[\.]?)*[a-zA-Z0-9]$`                                                                                                                                         // https://tools.ietf.org/html/rfc952
+	hostnameRegexStringRFC1123       = `^([a-zA-Z0-9]{1}[a-zA-Z0-9_-]{0,62}){1}(\.[a-zA-Z0-9_]{1}[a-zA-Z0-9_-]{0,62})*?$`                                                                                                    // accepts hostname starting with a digit https://tools.ietf.org/html/rfc1123
+	fqdnRegexStringRFC1123           = `^([a-zA-Z0-9]{1}[a-zA-Z0-9_-]{0,62})(\.[a-zA-Z0-9_]{1}[a-zA-Z0-9_-]{0,62})*?(\.[a-zA-Z]{1}[a-zA-Z0-9]{0,62})\.?$`                                                                    // same as hostnameRegexStringRFC1123 but must contain a non numerical TLD (possibly ending with '.')
+	btcAddressRegexString            = `^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$`                                                                                                                                                   // bitcoin address
+	btcAddressUpperRegexStringBech32 = `^BC1[02-9AC-HJ-NP-Z]{7,76}$`                                                                                                                                                         // bitcoin bech32 address https://en.bitcoin.it/wiki/Bech32
+	btcAddressLowerRegexStringBech32 = `^bc1[02-9ac-hj-np-z]{7,76}$`                                                                                                                                                         // bitcoin bech32 address https://en.bitcoin.it/wiki/Bech32
 	semverRegexString                = `^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$` // numbered capture groups https://semver.org/
 	dnsRegexStringRFC1035Label       = "^[a-z]([-a-z0-9]*[a-z0-9]){0,62}$"
 )
@@ -81,7 +80,6 @@ var (
 	btcAddressRegex            = regexp.MustCompile(btcAddressRegexString)
 	btcUpperAddressRegexBech32 = regexp.MustCompile(btcAddressUpperRegexStringBech32)
 	btcLowerAddressRegexBech32 = regexp.MustCompile(btcAddressLowerRegexStringBech32)
-	splitParamsRegex           = regexp.MustCompile(splitParamsRegexString)
 	semverRegex                = regexp.MustCompile(semverRegexString)
 	dnsRegexRFC1035Label       = regexp.MustCompile(dnsRegexStringRFC1035Label)
 )

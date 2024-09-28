@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"strings"
 	"sync"
-	"sync/atomic"
 )
 
 type tagType uint8
@@ -30,42 +29,42 @@ const (
 
 type structCache struct {
 	lock sync.Mutex
-	m    atomic.Value // map[reflect.Type]*cStruct
+	smap map[reflect.Type]*cStruct
 }
 
 func (sc *structCache) Get(key reflect.Type) (c *cStruct, found bool) {
-	c, found = sc.m.Load().(map[reflect.Type]*cStruct)[key]
+	c, found = sc.smap[key]
 	return
 }
 
 func (sc *structCache) Set(key reflect.Type, value *cStruct) {
-	m := sc.m.Load().(map[reflect.Type]*cStruct)
-	nm := make(map[reflect.Type]*cStruct, len(m)+1)
-	for k, v := range m {
+	om := sc.smap
+	nm := make(map[reflect.Type]*cStruct, len(om)+1)
+	for k, v := range om {
 		nm[k] = v
 	}
 	nm[key] = value
-	sc.m.Store(nm)
+	sc.smap = nm
 }
 
 type tagCache struct {
 	lock sync.Mutex
-	m    atomic.Value // map[string]*cTag
+	tmap map[string]*cTag
 }
 
 func (tc *tagCache) Get(key string) (c *cTag, found bool) {
-	c, found = tc.m.Load().(map[string]*cTag)[key]
+	c, found = tc.tmap[key]
 	return
 }
 
 func (tc *tagCache) Set(key string, value *cTag) {
-	m := tc.m.Load().(map[string]*cTag)
-	nm := make(map[string]*cTag, len(m)+1)
-	for k, v := range m {
+	om := tc.tmap
+	nm := make(map[string]*cTag, len(om)+1)
+	for k, v := range om {
 		nm[k] = v
 	}
 	nm[key] = value
-	tc.m.Store(nm)
+	tc.tmap = om
 }
 
 type cStruct struct {
@@ -99,19 +98,23 @@ type cTag struct {
 }
 
 func (v *Validate) extractStructCache(current reflect.Value, sName string) *cStruct {
-	v.structCache.lock.Lock()
-	defer v.structCache.lock.Unlock() // leave as defer! because if inner panics, it will never get unlocked otherwise!
-
 	typ := current.Type()
 
 	// could have been multiple trying to access, but once first is done this ensures struct
 	// isn't parsed again.
-	cs, ok := v.structCache.Get(typ)
-	if ok {
+	if cs, ok := v.structCache.Get(typ); ok {
 		return cs
 	}
 
-	cs = &cStruct{name: sName, fields: make([]*cField, 0), fn: v.structLevelFuncs[typ]}
+	v.structCache.lock.Lock()
+	defer v.structCache.lock.Unlock() // leave as defer! because if inner panics, it will never get unlocked otherwise!
+
+	// get again to prevent duplicated parse
+	if cs, ok := v.structCache.Get(typ); ok {
+		return cs
+	}
+
+	cs := &cStruct{name: sName, fields: make([]*cField, 0), fn: v.structLevelFuncs[typ]}
 
 	numFields := current.NumField()
 
@@ -297,18 +300,19 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 
 func (v *Validate) fetchCacheTag(tag string) *cTag {
 	// find cached tag
-	ctag, found := v.tagCache.Get(tag)
-	if !found {
-		v.tagCache.lock.Lock()
-		defer v.tagCache.lock.Unlock()
-
-		// could have been multiple trying to access, but once first is done this ensures tag
-		// isn't parsed again.
-		ctag, found = v.tagCache.Get(tag)
-		if !found {
-			ctag, _ = v.parseFieldTagsRecursive(tag, "", "", false)
-			v.tagCache.Set(tag, ctag)
-		}
+	if ct, ok := v.tagCache.Get(tag); ok {
+		return ct
 	}
-	return ctag
+
+	v.tagCache.lock.Lock()
+	defer v.tagCache.lock.Unlock()
+
+	// get again to prevent duplicated parse
+	if ct, ok := v.tagCache.Get(tag); ok {
+		return ct
+	}
+
+	ct, _ := v.parseFieldTagsRecursive(tag, "", "", false)
+	v.tagCache.Set(tag, ct)
+	return ct
 }

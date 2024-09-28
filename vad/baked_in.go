@@ -12,7 +12,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 	"unicode/utf8"
 
@@ -198,27 +197,8 @@ var (
 	}
 )
 
-var oneofValsCache = map[string][]string{}
-var oneofValsCacheRWLock = sync.RWMutex{}
-
-func parseOneOfParam2(s string) []string {
-	oneofValsCacheRWLock.RLock()
-	vals, ok := oneofValsCache[s]
-	oneofValsCacheRWLock.RUnlock()
-	if !ok {
-		oneofValsCacheRWLock.Lock()
-		vals = splitParamsRegex.FindAllString(s, -1)
-		for i := 0; i < len(vals); i++ {
-			vals[i] = strings.Replace(vals[i], "'", "", -1)
-		}
-		oneofValsCache[s] = vals
-		oneofValsCacheRWLock.Unlock()
-	}
-	return vals
-}
-
 func isOneOf(fl FieldLevel) bool {
-	vals := parseOneOfParam2(fl.Param())
+	vs := splits(fl.Param())
 
 	field := fl.Field()
 
@@ -233,8 +213,8 @@ func isOneOf(fl FieldLevel) bool {
 	default:
 		panic(fmt.Sprintf("oneof: bad field type %T", field.Interface()))
 	}
-	for i := 0; i < len(vals); i++ {
-		if vals[i] == v {
+	for _, o := range vs {
+		if o == v {
 			return true
 		}
 	}
@@ -1050,13 +1030,12 @@ func isPostcodeByIso3166Alpha2(fl FieldLevel) bool {
 // example: `postcode_iso3166_alpha2_field=CountryCode`
 func isPostcodeByIso3166Alpha2Field(fl FieldLevel) bool {
 	field := fl.Field()
-	params := parseOneOfParam2(fl.Param())
+	param := fl.Param()
 
-	if len(params) != 1 {
+	if param == "" {
 		return false
 	}
-
-	currentField, kind, _, found := fl.GetStructFieldOKAdvanced2(fl.Parent(), params[0])
+	currentField, kind, _, found := fl.GetStructFieldOKAdvanced2(fl.Parent(), param)
 	if !found {
 		return false
 	}
@@ -1303,7 +1282,7 @@ func requireCheckFieldValue(fl FieldLevel, param string, value string, defaultNo
 // requiredIf is the validation function
 // The field under validation must be present and not empty only if all the other specified fields are equal to the value following with the specified field.
 func requiredIf(fl FieldLevel) bool {
-	params := parseOneOfParam2(fl.Param())
+	params := splits(fl.Param())
 	if len(params)%2 != 0 {
 		panic(fmt.Sprintf("Bad param number for required_if %s", fl.FieldName()))
 	}
@@ -1318,7 +1297,7 @@ func requiredIf(fl FieldLevel) bool {
 // requiredUnless is the validation function
 // The field under validation must be present and not empty only unless all the other specified fields are equal to the value following with the specified field.
 func requiredUnless(fl FieldLevel) bool {
-	params := parseOneOfParam2(fl.Param())
+	params := splits(fl.Param())
 	if len(params)%2 != 0 {
 		panic(fmt.Sprintf("Bad param number for required_unless %s", fl.FieldName()))
 	}
@@ -1334,7 +1313,7 @@ func requiredUnless(fl FieldLevel) bool {
 // excludedWith is the validation function
 // The field under validation must not be present or is empty if any of the other specified fields are present.
 func excludedWith(fl FieldLevel) bool {
-	params := parseOneOfParam2(fl.Param())
+	params := splits(fl.Param())
 	for _, param := range params {
 		if !requireCheckFieldKind(fl, param, true) {
 			return !hasValue(fl)
@@ -1346,7 +1325,7 @@ func excludedWith(fl FieldLevel) bool {
 // requiredWith is the validation function
 // The field under validation must be present and not empty only if any of the other specified fields are present.
 func requiredWith(fl FieldLevel) bool {
-	params := parseOneOfParam2(fl.Param())
+	params := splits(fl.Param())
 	for _, param := range params {
 		if !requireCheckFieldKind(fl, param, true) {
 			return hasValue(fl)
@@ -1358,7 +1337,7 @@ func requiredWith(fl FieldLevel) bool {
 // excludedWithAll is the validation function
 // The field under validation must not be present or is empty if all of the other specified fields are present.
 func excludedWithAll(fl FieldLevel) bool {
-	params := parseOneOfParam2(fl.Param())
+	params := splits(fl.Param())
 	for _, param := range params {
 		if requireCheckFieldKind(fl, param, true) {
 			return true
@@ -1370,7 +1349,7 @@ func excludedWithAll(fl FieldLevel) bool {
 // requiredWithAll is the validation function
 // The field under validation must be present and not empty only if all of the other specified fields are present.
 func requiredWithAll(fl FieldLevel) bool {
-	params := parseOneOfParam2(fl.Param())
+	params := splits(fl.Param())
 	for _, param := range params {
 		if requireCheckFieldKind(fl, param, true) {
 			return true
@@ -1400,7 +1379,7 @@ func requiredWithout(fl FieldLevel) bool {
 // excludedWithoutAll is the validation function
 // The field under validation must not be present or is empty when all of the other specified fields are not present.
 func excludedWithoutAll(fl FieldLevel) bool {
-	params := parseOneOfParam2(fl.Param())
+	params := splits(fl.Param())
 	for _, param := range params {
 		if !requireCheckFieldKind(fl, param, true) {
 			return true
@@ -1412,7 +1391,7 @@ func excludedWithoutAll(fl FieldLevel) bool {
 // requiredWithoutAll is the validation function
 // The field under validation must be present and not empty only when all of the other specified fields are not present.
 func requiredWithoutAll(fl FieldLevel) bool {
-	params := parseOneOfParam2(fl.Param())
+	params := splits(fl.Param())
 	for _, param := range params {
 		if !requireCheckFieldKind(fl, param, true) {
 			return true
@@ -1421,7 +1400,7 @@ func requiredWithoutAll(fl FieldLevel) bool {
 	return hasValue(fl)
 }
 
-// isLen is the validation function for validating if the current field's value is equal to the param's value.
+// isLen is the validation function for validating if the current field's length or rune count is equal to the param's value.
 func isLen(fl FieldLevel) bool {
 	field := fl.Field()
 	param := fl.Param()
@@ -1439,7 +1418,7 @@ func isLen(fl FieldLevel) bool {
 	panic(fmt.Sprintf("len: bad field type %T", field.Interface()))
 }
 
-// isMaxLen is the validation function for validating if the current field's value is less than or equal to the param's value.
+// isMaxLen is the validation function for validating if the current field's length or rune count is less than or equal to the param's value.
 func isMaxLen(fl FieldLevel) bool {
 	field := fl.Field()
 	param := fl.Param()

@@ -8,39 +8,65 @@ import (
 )
 
 // sudo apt install poppler-utils
+// Usage: pdftotext [options] <PDF-file> [<text-file>]
+//   -f <int>             : first page to convert
+//   -l <int>             : last page to convert
+//   -r <fp>              : resolution, in DPI (default is 72)
+//   -x <int>             : x-coordinate of the crop area top left corner
+//   -y <int>             : y-coordinate of the crop area top left corner
+//   -W <int>             : width of crop area in pixels (default is 0)
+//   -H <int>             : height of crop area in pixels (default is 0)
+//   -layout              : maintain original physical layout
+//   -fixed <fp>          : assume fixed-pitch (or tabular) text
+//   -raw                 : keep strings in content stream order
+//   -nodiag              : discard diagonal text
+//   -htmlmeta            : generate a simple HTML file, including the meta information
+//   -tsv                 : generate a simple TSV file, including the meta information for bounding boxes
+//   -enc <string>        : output text encoding name
+//   -listenc             : list available encodings
+//   -eol <string>        : output end-of-line convention (unix, dos, or mac)
+//   -nopgbrk             : don't insert page breaks between pages
+//   -bbox                : output bounding box for each word and page size to html. Sets -htmlmeta
+//   -bbox-layout         : like -bbox but with extra layout bounding box data.  Sets -htmlmeta
+//   -cropbox             : use the crop box rather than media box
+//   -colspacing <fp>     : how much spacing we allow after a word before considering adjacent text to be a new column, as a fraction of the font size (default is 0.7, old releases had a 0.3 default)
+//   -opw <string>        : owner password (for encrypted files)
+//   -upw <string>        : user password (for encrypted files)
+//   -q                   : don't print any messages or errors
+//   -v                   : print copyright and version info
+//   -h                   : print usage information
+//   -help                : print usage information
+//   --help               : print usage information
+//   -?                   : print usage information
 
-func ExtractTextFromPdfFile(ctx context.Context, name string) (string, error) {
+func ExtractTextFromPdfFile(ctx context.Context, name string, opts ...string) (string, error) {
 	bw := &bytes.Buffer{}
 	err := ExtractStringFromPdfFile(ctx, bw, name)
 	return bw.String(), err
 }
 
-func ExtractTextFromPdfReader(ctx context.Context, r io.Reader) (string, error) {
+func ExtractTextFromPdfReader(ctx context.Context, r io.Reader, opts ...string) (string, error) {
 	bw := &bytes.Buffer{}
 	err := ExtractStringFromPdfReader(ctx, bw, r)
 	return bw.String(), err
 }
 
-func buildPdfToTextArgs(input string) []string {
-	// See "man pdftotext" for more options.
-	args := []string{
-		"-layout",  // Maintain (as best as possible) the original physical layout of the text
-		"-nopgbrk", // Don't insert page breaks (form feed characters) between pages
-		input,      // The input file (-: stdin)
-		"-",        // The output file (stdout)
+func buildPdfToTextArgs(input string, opts ...string) []string {
+	if len(opts) == 0 {
+		opts = []string{"-layout"}
 	}
-	return args
+	return append(opts, input, "-")
 }
 
-func ExtractStringFromPdfFile(ctx context.Context, w io.Writer, name string) error {
-	args := buildPdfToTextArgs(name)
+func ExtractStringFromPdfFile(ctx context.Context, w io.Writer, name string, opts ...string) error {
+	args := buildPdfToTextArgs(name, opts...)
 	cmd := exec.CommandContext(ctx, "pdftotext", args...)
 	cmd.Stdout = w
 	return cmd.Run()
 }
 
-func ExtractStringFromPdfReader(ctx context.Context, w io.Writer, r io.Reader) error {
-	args := buildPdfToTextArgs("-")
+func ExtractStringFromPdfReader(ctx context.Context, w io.Writer, r io.Reader, opts ...string) error {
+	args := buildPdfToTextArgs("-", opts...)
 	cmd := exec.CommandContext(ctx, "pdftotext", args...)
 	cmd.Stdin = r
 	cmd.Stdout = w

@@ -6,8 +6,10 @@ import (
 	"encoding/xml"
 	"errors"
 	"io"
+	"strconv"
 	"strings"
 
+	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/cmp"
 	"github.com/askasoft/pango/cog/treemap"
 	"github.com/askasoft/pango/iox"
@@ -53,21 +55,21 @@ import (
 // </p:sld>
 // ```
 
-func ExtractTextFromPptxFile(name string) (string, error) {
+func ExtractTextFromPptxFile(name string, opts ...string) (string, error) {
 	sb := &strings.Builder{}
 	lw := iox.LineWriter(sb)
-	err := PptxFileTexify(name, lw)
+	err := PptxFileTexify(name, lw, opts...)
 	return sb.String(), err
 }
 
-func PptxFileTexify(name string, w io.Writer) error {
+func PptxFileTexify(name string, w io.Writer, opts ...string) error {
 	zr, err := zip.OpenReader(name)
 	if err != nil {
 		return err
 	}
 	defer zr.Close()
 
-	return pptxTextify(&zr.Reader, w)
+	return pptxTextify(&zr.Reader, w, opts...)
 }
 
 func ExtractTextFromPptxBytes(bs []byte) (string, error) {
@@ -90,11 +92,16 @@ func PptxReaderTexify(r io.ReaderAt, size int64, w io.Writer) error {
 	return pptxTextify(zr, w)
 }
 
-func pptxTextify(zr *zip.Reader, w io.Writer) error {
-	zfm := treemap.NewTreeMap[string, *zip.File](cmp.CompareString)
+func pptxTextify(zr *zip.Reader, w io.Writer, opts ...string) error {
+	nopgbrk := asg.Contains(opts, "-nopgbrk")
+
+	zfm := treemap.NewTreeMap[int, *zip.File](cmp.CompareInt)
 	for _, zf := range zr.File {
 		if str.StartsWith(zf.Name, "ppt/slides/slide") && str.EndsWith(zf.Name, ".xml") {
-			zfm.Set(zf.Name, zf)
+			zn := zf.Name[len("ppt/slides/slide") : len(zf.Name)-len(".xml")]
+			if p, err := strconv.Atoi(zn); err == nil {
+				zfm.Set(p, zf)
+			}
 		}
 	}
 
@@ -107,6 +114,12 @@ func pptxTextify(zr *zip.Reader, w io.Writer) error {
 
 		if err := pptxSlideTextify(fr, w); err != nil {
 			return err
+		}
+
+		if !nopgbrk {
+			if _, err := w.Write([]byte{'\f'}); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

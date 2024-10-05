@@ -188,7 +188,7 @@ func docxTextify(r io.Reader, w io.Writer) error {
 				if wp && !wd {
 					sb.WriteRune('\t')
 				}
-			case "br":
+			case "br", "cr":
 				if wp && !wd {
 					sb.WriteRune('\n')
 				}

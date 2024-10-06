@@ -48,15 +48,15 @@ func decodeResponse(res *http.Response, obj any, retryAfter time.Duration) error
 		return nil
 	}
 
-	er := &ErrorResult{
+	re := &ResultError{
 		Status:     res.Status,
 		StatusCode: res.StatusCode,
 	}
-	_ = decoder.Decode(er)
+	_ = decoder.Decode(re)
 
-	if er.StatusCode == http.StatusTooManyRequests || (er.StatusCode >= 500 && er.StatusCode <= 599) {
-		er.RetryAfter = retryAfter
+	if re.StatusCode == http.StatusTooManyRequests || (re.StatusCode >= 500 && re.StatusCode <= 599) {
+		re.RetryAfter = retryAfter
 	}
 
-	return er
+	return re
 }

@@ -6,20 +6,20 @@ import (
 	"time"
 )
 
-type ErrorDetail struct {
+type DetailError struct {
 	Type    string `json:"type,omitempty"`
 	Code    any    `json:"code,omitempty"`
 	Param   any    `json:"param,omitempty"`
 	Message string `json:"message,omitempty"`
 }
 
-func (ed *ErrorDetail) String() string {
+func (de *DetailError) Error() string {
 	var sb strings.Builder
-	if ed.Type != "" {
-		sb.WriteString(ed.Type)
+	if de.Type != "" {
+		sb.WriteString(de.Type)
 	}
-	if ed.Code != nil {
-		s := fmt.Sprint(ed.Code)
+	if de.Code != nil {
+		s := fmt.Sprint(de.Code)
 		if s != "" {
 			if sb.Len() > 0 {
 				sb.WriteByte('/')
@@ -27,8 +27,8 @@ func (ed *ErrorDetail) String() string {
 			sb.WriteString(s)
 		}
 	}
-	if ed.Param != nil {
-		s := fmt.Sprint(ed.Param)
+	if de.Param != nil {
+		s := fmt.Sprint(de.Param)
 		if s != "" {
 			if sb.Len() > 0 {
 				sb.WriteByte('/')
@@ -36,35 +36,35 @@ func (ed *ErrorDetail) String() string {
 			sb.WriteString(s)
 		}
 	}
-	if ed.Message != "" {
+	if de.Message != "" {
 		if sb.Len() > 0 {
 			sb.WriteString(": ")
 		}
-		sb.WriteString(ed.Message)
+		sb.WriteString(de.Message)
 	}
 	return sb.String()
 }
 
-type ErrorResult struct {
+type ResultError struct {
 	StatusCode int          `json:"-"` // http status code
 	Status     string       `json:"-"` // http status
-	Detail     *ErrorDetail `json:"error,omitempty"`
+	Detail     *DetailError `json:"error,omitempty"`
 	RetryAfter time.Duration
 }
 
-func (er *ErrorResult) GetRetryAfter() time.Duration {
-	return er.RetryAfter
+func (re *ResultError) GetRetryAfter() time.Duration {
+	return re.RetryAfter
 }
 
-func (er *ErrorResult) Error() string {
-	es := er.Status
+func (re *ResultError) Error() string {
+	es := re.Status
 
-	if er.RetryAfter > 0 {
-		es = fmt.Sprintf("%s (Retry After %s)", es, er.RetryAfter)
+	if re.RetryAfter > 0 {
+		es = fmt.Sprintf("%s (Retry After %s)", es, re.RetryAfter)
 	}
 
-	if er.Detail != nil {
-		es = es + " - " + er.Detail.String()
+	if re.Detail != nil {
+		es = es + " - " + re.Detail.Error()
 	}
 
 	return es

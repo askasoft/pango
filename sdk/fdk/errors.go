@@ -8,49 +8,49 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
-type Error struct {
+type FieldError struct {
 	Code    string `json:"code,omitempty"`
 	Field   string `json:"field,omitempty"`
 	Message string `json:"message,omitempty"`
 }
 
-func (e *Error) Error() string {
-	return fmt.Sprintf("(%s: %s: %s)", e.Code, e.Field, e.Message)
+func (fe *FieldError) Error() string {
+	return fmt.Sprintf("(%s: %s: %s)", fe.Code, fe.Field, fe.Message)
 }
 
-type ErrorResult struct {
-	StatusCode  int      `json:"-"` // http status code
-	Status      string   `json:"-"` // http status
-	Code        string   `json:"code,omitempty"`
-	Message     string   `json:"message,omitempty"`
-	Description string   `json:"description,omitempty"`
-	Errors      []*Error `json:"errors,omitempty"`
+type ResultError struct {
+	StatusCode  int           `json:"-"` // http status code
+	Status      string        `json:"-"` // http status
+	Code        string        `json:"code,omitempty"`
+	Message     string        `json:"message,omitempty"`
+	Description string        `json:"description,omitempty"`
+	Errors      []*FieldError `json:"errors,omitempty"`
 	RetryAfter  time.Duration
 }
 
-func (er *ErrorResult) GetRetryAfter() time.Duration {
-	return er.RetryAfter
+func (re *ResultError) GetRetryAfter() time.Duration {
+	return re.RetryAfter
 }
 
-func (er *ErrorResult) Detail() string {
+func (re *ResultError) Detail() string {
 	var sb strings.Builder
 
-	if er.Code != "" {
-		sb.WriteString(er.Code)
+	if re.Code != "" {
+		sb.WriteString(re.Code)
 	}
-	if er.Message != "" {
+	if re.Message != "" {
 		if sb.Len() > 0 {
 			sb.WriteByte('/')
 		}
-		sb.WriteString(er.Message)
+		sb.WriteString(re.Message)
 	}
-	if er.Description != "" {
+	if re.Description != "" {
 		if sb.Len() > 0 {
 			sb.WriteByte('/')
 		}
-		sb.WriteString(er.Description)
+		sb.WriteString(re.Description)
 	}
-	for i, e := range er.Errors {
+	for i, e := range re.Errors {
 		sb.WriteString(str.If(i == 0, ": ", ", "))
 		sb.WriteString(e.Error())
 	}
@@ -58,14 +58,14 @@ func (er *ErrorResult) Detail() string {
 	return sb.String()
 }
 
-func (er *ErrorResult) Error() string {
-	es := er.Status
+func (re *ResultError) Error() string {
+	es := re.Status
 
-	if er.RetryAfter > 0 {
-		es = fmt.Sprintf("%s (Retry After %s)", es, er.RetryAfter)
+	if re.RetryAfter > 0 {
+		es = fmt.Sprintf("%s (Retry After %s)", es, re.RetryAfter)
 	}
 
-	detail := er.Detail()
+	detail := re.Detail()
 	if detail != "" {
 		es = es + " - " + detail
 	}

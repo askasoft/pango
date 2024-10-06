@@ -96,9 +96,9 @@ func (fdk *FDK) decodeResponse(res *http.Response, obj any) error {
 		return nil
 	}
 
-	er := &ErrorResult{StatusCode: res.StatusCode, Status: res.Status}
+	re := &ResultError{StatusCode: res.StatusCode, Status: res.Status}
 	if res.StatusCode != http.StatusNotFound {
-		_ = decoder.Decode(er)
+		_ = decoder.Decode(re)
 	}
 
 	switch {
@@ -106,15 +106,15 @@ func (fdk *FDK) decodeResponse(res *http.Response, obj any) error {
 		s := res.Header.Get("Retry-After")
 		n := num.Atoi(s)
 		if n > 0 {
-			er.RetryAfter = time.Second * time.Duration(n)
+			re.RetryAfter = time.Second * time.Duration(n)
 		} else {
-			er.RetryAfter = fdk.RetryAfter
+			re.RetryAfter = fdk.RetryAfter
 		}
 	case res.StatusCode >= 500 && res.StatusCode <= 599:
-		er.RetryAfter = fdk.RetryAfter
+		re.RetryAfter = fdk.RetryAfter
 	}
 
-	return er
+	return re
 }
 
 func (fdk *FDK) DoGet(url string, result any) error {

@@ -13,7 +13,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.23
 	golang.org/x/net v0.29.0
 	golang.org/x/sys v0.25.0
-	golang.org/x/text v0.18.0
+	golang.org/x/text v0.19.0
 	gorm.io/driver/postgres v1.5.9
 	gorm.io/gorm v1.25.12
 )

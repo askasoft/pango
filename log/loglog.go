@@ -35,7 +35,7 @@ func newLog(depth int) *Log {
 		level:  LevelTrace,
 		trace:  LevelError,
 		levels: make(map[string]Level),
-		writer: NewConsoleWriter(),
+		writer: NewStdoutWriter(),
 	}
 	log.logger.log = log
 	return log

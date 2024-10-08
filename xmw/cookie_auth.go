@@ -48,7 +48,7 @@ func NewCookieAuth(f FindUserFunc, secret string) *CookieAuth {
 		CookieMaxAge:   time.Minute * 30,
 		CookieSecure:   true,
 		CookieHttpOnly: true,
-		CookieSameSite: http.SameSiteStrictMode,
+		CookieSameSite: http.SameSiteLaxMode,
 		AuthUserKey:    AuthUserKey,
 		RedirectURL:    "/",
 		OriginURLQuery: AuthRedirectOriginURLQuery,

@@ -1,7 +1,9 @@
-//go:build go1.18
-// +build go1.18
+//go:build go1.21
+// +build go1.21
 
 package asg
+
+import "cmp"
 
 // Anys convert slice 'sa' to []any slice
 func Anys[T any](sa []T) []any {
@@ -217,32 +219,66 @@ func Reverse[T any](a []T) {
 	}
 }
 
-func Min[T any](a []T, less func(a []T, i, j int) bool) int {
-	if len(a) == 0 {
-		return -1
+// Min returns the minimal value in x. It panics if x is empty.
+// For floating-point numbers, Min propagates NaNs (any NaN value in x
+// forces the output to be NaN).
+func Min[T cmp.Ordered](x []T) T {
+	if len(x) < 1 {
+		panic("asg.Min: empty list")
 	}
 
-	m := 0
-	for i := 1; i < len(a); i++ {
-		if less(a, i, m) {
-			m = i
-		}
+	m := x[0]
+	for i := 1; i < len(x); i++ {
+		m = min(m, x[i])
 	}
-
 	return m
 }
 
-func Max[T any](a []T, less func(a []T, i, j int) bool) int {
-	if len(a) == 0 {
-		return -1
+// MinFunc returns the minimal value in x, using cmp to compare elements.
+// It panics if x is empty. If there is more than one minimal element
+// according to the cmp function, MinFunc returns the first one.
+func MinFunc[T any](x []T, cmp func(a, b T) int) T {
+	if len(x) < 1 {
+		panic("asg.MinFunc: empty list")
 	}
 
-	m := 0
-	for i := 1; i < len(a); i++ {
-		if less(a, m, i) {
-			m = i
+	m := x[0]
+	for i := 1; i < len(x); i++ {
+		if cmp(x[i], m) < 0 {
+			m = x[i]
 		}
 	}
+	return m
+}
 
+// Max returns the maximal value in x. It panics if x is empty.
+// For floating-point E, Max propagates NaNs (any NaN value in x
+// forces the output to be NaN).
+func Max[T cmp.Ordered](x []T) T {
+	if len(x) < 1 {
+		panic("asg.Max: empty list")
+	}
+
+	m := x[0]
+	for i := 1; i < len(x); i++ {
+		m = max(m, x[i])
+	}
+	return m
+}
+
+// MaxFunc returns the maximal value in x, using cmp to compare elements.
+// It panics if x is empty. If there is more than one maximal element
+// according to the cmp function, MaxFunc returns the first one.
+func MaxFunc[T any](x []T, cmp func(a, b T) int) T {
+	if len(x) < 1 {
+		panic("asg.MaxFunc: empty list")
+	}
+
+	m := x[0]
+	for i := 1; i < len(x); i++ {
+		if cmp(x[i], m) > 0 {
+			m = x[i]
+		}
+	}
 	return m
 }

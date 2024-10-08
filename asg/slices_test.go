@@ -1,9 +1,10 @@
-//go:build go1.18
-// +build go1.18
+//go:build go1.21
+// +build go1.21
 
 package asg
 
 import (
+	"cmp"
 	"math"
 	"strings"
 	"testing"
@@ -613,29 +614,42 @@ var minMaxTests = []struct {
 	min  int
 	max  int
 }{
-	{"nil", nil, -1, -1},
-	{"one", []int{1}, 0, 0},
-	{"two", []int{1, 2}, 0, 1},
-}
-
-func lessInts(a []int, i, j int) bool {
-	return a[i] < a[j]
+	{"one", []int{1}, 1, 1},
+	{"two", []int{1, 2}, 1, 2},
 }
 
 func TestMin(t *testing.T) {
 	for _, c := range minMaxTests {
-		a := Min(c.s, lessInts)
+		a := Min(c.s)
 		if c.min != a {
 			t.Errorf("[%s] Min(%v) = %v, WANT %v", c.name, c.s, a, c.min)
 		}
 	}
 }
 
+func TestMinFunc(t *testing.T) {
+	for _, c := range minMaxTests {
+		a := MinFunc(c.s, cmp.Compare)
+		if c.min != a {
+			t.Errorf("[%s] MinFunc(%v) = %v, WANT %v", c.name, c.s, a, c.min)
+		}
+	}
+}
+
 func TestMax(t *testing.T) {
 	for _, c := range minMaxTests {
-		a := Max(c.s, lessInts)
+		a := Max(c.s)
 		if c.max != a {
 			t.Errorf("[%s] Max(%v) = %v, WANT %v", c.name, c.s, a, c.max)
+		}
+	}
+}
+
+func TestMaxFunc(t *testing.T) {
+	for _, c := range minMaxTests {
+		a := MaxFunc(c.s, cmp.Compare)
+		if c.max != a {
+			t.Errorf("[%s] MaxFunc(%v) = %v, WANT %v", c.name, c.s, a, c.max)
 		}
 	}
 }

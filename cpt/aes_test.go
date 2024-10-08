@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/ran"
 )
 
 func TestAesCBCEncrypt(t *testing.T) {
@@ -13,7 +13,7 @@ func TestAesCBCEncrypt(t *testing.T) {
 		ae := NewAesCBCEncryptor("1234567890abcde", bit)
 		ad := NewAesCBCDecryptor("1234567890abcde", bit)
 		for i := 64; i <= 128; i++ {
-			rs := str.RandString(i)
+			rs := ran.RandString(i)
 			es, err := ae.EncryptString(rs)
 			if err != nil {
 				t.Fatal(i, err)
@@ -39,7 +39,7 @@ func TestAesCFBEncrypt(t *testing.T) {
 		ae := NewAesCFBEncryptor("1234567890abedefg", bit)
 		ad := NewAesCFBDecryptor("1234567890abedefg", bit)
 		for i := 1; i <= 128; i++ {
-			c := str.RandString(i)
+			c := ran.RandString(i)
 			o, err := ae.EncryptString(c)
 			if err != nil {
 				t.Fatal(i, err)

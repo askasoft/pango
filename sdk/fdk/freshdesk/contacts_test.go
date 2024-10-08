@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/ran"
 )
 
 func TestContactAPIs(t *testing.T) {
@@ -14,7 +14,7 @@ func TestContactAPIs(t *testing.T) {
 	}
 
 	cn := &Contact{
-		Mobile:      str.RandNumbers(11),
+		Mobile:      ran.RandNumbers(11),
 		Description: "create description " + time.Now().String(),
 	}
 	cn.Name = "panda " + cn.Mobile

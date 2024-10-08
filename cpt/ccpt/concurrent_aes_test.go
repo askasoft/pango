@@ -4,7 +4,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/ran"
 )
 
 func TestAesCBCEncrypt(t *testing.T) {
@@ -17,7 +17,7 @@ func TestAesCBCEncrypt(t *testing.T) {
 		tf := func(n int) {
 			defer wg.Done()
 
-			rs := str.RandString(n)
+			rs := ran.RandString(n)
 			es, err := c.EncryptString(rs)
 			if err != nil {
 				t.Error(n, err)
@@ -56,7 +56,7 @@ func TestAesCFBEncrypt(t *testing.T) {
 		tf := func(n int) {
 			defer wg.Done()
 
-			rs := str.RandString(n)
+			rs := ran.RandString(n)
 			es, err := c.EncryptString(rs)
 			if err != nil {
 				t.Error(n, err)

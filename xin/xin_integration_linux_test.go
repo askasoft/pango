@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/ran"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -40,7 +40,7 @@ func testRunUnix(engine *Engine, file string) (err error) {
 func TestUnixSocket(t *testing.T) {
 	router := New()
 
-	unixTestSocket := filepath.Join(os.TempDir(), "xin_unix_test_"+str.RandNumbers(8))
+	unixTestSocket := filepath.Join(os.TempDir(), "xin_unix_test_"+ran.RandNumbers(8))
 
 	defer os.Remove(unixTestSocket)
 

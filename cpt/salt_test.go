@@ -4,13 +4,13 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/ran"
 )
 
 func TestSalt(t *testing.T) {
 	for i := 0; i < 100; i++ {
-		salt := str.RandLetterNumbers(rand.Intn(100) + 1)
-		src := str.RandLetterNumbers(i)
+		salt := ran.RandLetterNumbers(rand.Intn(100) + 1)
+		src := ran.RandLetterNumbers(i)
 
 		salted := Salt(SecretChars, salt, src)
 		if len(src) != len(salted) {

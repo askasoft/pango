@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/askasoft/pango/ran"
 	"github.com/askasoft/pango/str"
 )
 
@@ -49,7 +50,7 @@ func (tr *Tokener) NewToken(secret ...string) *Token {
 	if len(secret) > 0 {
 		t.secret = secret[0]
 	} else {
-		t.secret = str.RandString(tr.secretLength, SecretChars)
+		t.secret = ran.RandString(tr.secretLength, SecretChars)
 	}
 	t.Refresh()
 	return t
@@ -106,7 +107,7 @@ func (t *Token) String() string {
 }
 
 func (t *Token) Refresh() {
-	t.salt = str.RandString(len(t.salt), SecretChars)
+	t.salt = ran.RandString(len(t.salt), SecretChars)
 
 	t.timestamp = time.Now()
 	ts := fmt.Sprintf("%016x", t.timestamp.Unix())

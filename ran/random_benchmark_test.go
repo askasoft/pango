@@ -1,10 +1,12 @@
-package str
+package ran
 
 import (
 	crand "crypto/rand"
 	mrand "math/rand"
 	"testing"
 	"time"
+
+	"github.com/askasoft/pango/str"
 )
 
 func BenchmarkMathGlobalRand(b *testing.B) {
@@ -54,7 +56,7 @@ func BenchmarkRandStrinbByCryptoRead(b *testing.B) {
 }
 
 func MathRandStringRead(size int, chars ...string) string {
-	cs := LetterDigitSymbols
+	cs := str.LetterDigitSymbols
 	if len(chars) > 0 {
 		cs = chars[0]
 	}
@@ -68,11 +70,11 @@ func MathRandStringRead(size int, chars ...string) string {
 		bs[i] = cs[int(bs[i])%n]
 	}
 
-	return UnsafeString(bs)
+	return str.UnsafeString(bs)
 }
 
 func MathRandStringIntn(size int, chars ...string) string {
-	cs := LetterDigitSymbols
+	cs := str.LetterDigitSymbols
 	if len(chars) > 0 {
 		cs = chars[0]
 	}
@@ -83,5 +85,5 @@ func MathRandStringIntn(size int, chars ...string) string {
 		buf[i] = cs[mrand.Intn(n)]
 	}
 
-	return UnsafeString(buf)
+	return str.UnsafeString(buf)
 }

@@ -3,7 +3,7 @@ package freshdesk
 import (
 	"testing"
 
-	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/ran"
 )
 
 func TestAgentAPIs(t *testing.T) {
@@ -13,7 +13,7 @@ func TestAgentAPIs(t *testing.T) {
 	}
 
 	ac := &AgentRequest{
-		Email:       str.RandNumbers(11) + "@" + str.RandLetters(8) + ".com",
+		Email:       ran.RandNumbers(11) + "@" + ran.RandLetters(8) + ".com",
 		TicketScope: AgentTicketScopeGlobal,
 	}
 

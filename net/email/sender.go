@@ -19,6 +19,7 @@ import (
 	"unsafe"
 
 	"github.com/askasoft/pango/iox"
+	"github.com/askasoft/pango/ran"
 	"github.com/askasoft/pango/str"
 )
 
@@ -359,7 +360,7 @@ func (s *Sender) writeMail(w io.Writer, m *Email) (err error) {
 
 	var boundary string
 	if m.HTML || len(m.Attachments) > 0 {
-		boundary = str.RandLetterNumbers(28)
+		boundary = ran.RandLetterNumbers(28)
 		if err = writeHeader(w, "Content-Type", "multipart/mixed; boundary="+boundary); err != nil {
 			return
 		}

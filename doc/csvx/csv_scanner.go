@@ -13,16 +13,16 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
-type CsvReader struct {
-	*csv.Reader
-
-	Header []string
+type CsvScanner struct {
+	cr   *csv.Reader
+	Head []string
+	Line int
 }
 
-// NewReader returns a new Reader that reads from r.
-func NewReader(r io.Reader) *CsvReader {
-	return &CsvReader{
-		Reader: csv.NewReader(r),
+// NewScanner returns a new csv scanner that reads from r.
+func NewScanner(cr *csv.Reader) *CsvScanner {
+	return &CsvScanner{
+		cr: cr,
 	}
 }
 
@@ -44,7 +44,7 @@ func ScanFile(name string, records any) error {
 	return ScanReader(f, records)
 }
 
-// ScanFile read csv data to slice.
+// ScanReader read csv data to slice.
 // Example:
 //
 //	var s1 []*struct{I int, B bool}
@@ -53,58 +53,79 @@ func ScanFile(name string, records any) error {
 //	var S2 []struct{I int, B bool}
 //	ScanReader(r2, &s2)
 func ScanReader(r io.Reader, records any) error {
-	sr, err := iox.SkipBOM(r)
+	br, err := iox.SkipBOM(r)
 	if err != nil {
 		return err
 	}
 
-	cr := NewReader(sr)
-	if err := cr.ReadHeader(); err != nil {
+	cr := csv.NewReader(br)
+	return ScanCsv(cr, records)
+}
+
+// ScanCsv read csv data to slice.
+// Example:
+//
+//	var s1 []*struct{I int, B bool}
+//	ScanCsv(r1, &s1)
+//
+//	var S2 []struct{I int, B bool}
+//	ScanCsv(r2, &s2)
+func ScanCsv(cr *csv.Reader, records any) error {
+	sr := NewScanner(cr)
+	if err := sr.ScanHead(); err != nil {
 		return err
 	}
 
-	return cr.ScanStructs(records)
+	return sr.ScanStructs(records)
 }
 
-// ReadHeader reads one record from csv and treat it as header.
-func (cr *CsvReader) ReadHeader() error {
-	hs, err := cr.Reader.Read()
+// ScanHead reads one record from csv and treat it as header.
+func (cs *CsvScanner) ScanHead() error {
+	cs.Line++
+	hs, err := cs.cr.Read()
 	if err != nil {
 		return err
 	}
 
 	for i, h := range hs {
-		hs[i] = str.PascalCase(str.Strip(h))
+		h = str.Strip(h)
+		if h == "" {
+			return fmt.Errorf("line %d column %d: empty column name", cs.Line, i+1)
+		}
+		hs[i] = str.PascalCase(h)
 	}
-	cr.Header = hs
+	cs.Head = hs
 
 	return nil
 }
 
 // ScanStruct reads one record from csv and scan it to the parameter `rec`.
 // The parameter `rec` should be a pointer to struct.
-func (cr *CsvReader) ScanStruct(rec any) (err error) {
+func (cs *CsvScanner) ScanStruct(rec any) error {
 	if !ref.IsPtrType(rec) {
 		return fmt.Errorf("%T is not a pointer", rec)
 	}
 
-	var record []string
+	cs.Line++
+	record, err := cs.cr.Read()
+	if err != nil {
+		return fmt.Errorf("line %d: %w", cs.Line, err)
+	}
 
-	record, err = cr.Reader.Read()
-	if len(record) > len(cr.Header) {
-		return csv.ErrFieldCount
+	if len(record) > len(cs.Head) {
+		return fmt.Errorf("line %d: %w", cs.Line, csv.ErrFieldCount)
 	}
 
 	for i, s := range record {
-		h := cr.Header[i]
-		if err = ref.SetProperty(rec, h, s); err != nil {
-			return
+		h := cs.Head[i]
+		if err := ref.SetProperty(rec, h, s); err != nil {
+			return fmt.Errorf("line %d column %d: %q data error: %q", cs.Line, i+1, h, s)
 		}
 	}
-	return
+	return nil
 }
 
-func (cr *CsvReader) ScanStructs(recs any) (err error) {
+func (cs *CsvScanner) ScanStructs(recs any) error {
 	pv := reflect.ValueOf(recs)
 	if pv.Kind() != reflect.Pointer {
 		return fmt.Errorf("%T is not a pointer", recs)
@@ -125,9 +146,9 @@ func (cr *CsvReader) ScanStructs(recs any) (err error) {
 		pv := reflect.New(et)
 		p := pv.Interface()
 
-		if err = cr.ScanStruct(p); err != nil {
+		if err := cs.ScanStruct(p); err != nil {
 			if errors.Is(err, io.EOF) {
-				break
+				return nil
 			}
 			return err
 		}
@@ -138,6 +159,4 @@ func (cr *CsvReader) ScanStructs(recs any) (err error) {
 		}
 		sv.Set(reflect.Append(sv, ev))
 	}
-
-	return nil
 }

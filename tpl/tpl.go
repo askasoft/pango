@@ -2,6 +2,7 @@ package tpl
 
 import (
 	"fmt"
+	"html"
 	"io"
 	"io/fs"
 	"os"
@@ -87,6 +88,10 @@ func toTemplateName(root, path, ext string) string {
 // Functions default utility functions for template
 func Functions() FuncMap {
 	return FuncMap{
+		// escape
+		"EscapeHTML":   html.EscapeString,
+		"UnescapeHTML": html.UnescapeString,
+
 		// unescape
 		"HTML":     funcs.HTML,
 		"HTMLAttr": funcs.HTMLAttr,

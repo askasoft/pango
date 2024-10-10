@@ -33,6 +33,8 @@ func TestConvert(t *testing.T) {
 		s any
 		b reflect.Type
 	}{
+		{[]byte{'s', '2', 'b'}, "s2b", TypeBytes},
+		{"b2s", []byte{'b', '2', 's'}, TypeString},
 		{"1.123", 1.123, TypeString},
 		{true, "true", TypeBool},
 		{int(0776), "0776", TypeInt},
@@ -50,7 +52,7 @@ func TestConvert(t *testing.T) {
 		if err != nil {
 			t.Errorf("[%d] Convert(%v, %q) Failed: %v, want %v", i, c.s, c.b, err, c.w)
 		}
-		if a != c.w {
+		if !reflect.DeepEqual(a, c.w) {
 			t.Errorf("[%d] Convert(%v, %q) = %v, want %v", i, c.s, c.b, a, c.w)
 		}
 	}

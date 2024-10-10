@@ -9,6 +9,7 @@ var (
 	TypeString   = reflect.TypeOf("")
 	TypeBool     = reflect.TypeOf(false)
 	TypeByte     = reflect.TypeOf(byte(0))
+	TypeBytes    = reflect.TypeOf([]byte{})
 	TypeRune     = reflect.TypeOf(rune(0))
 	TypeInt      = reflect.TypeOf(int(0))
 	TypeInt32    = reflect.TypeOf(int32(0))

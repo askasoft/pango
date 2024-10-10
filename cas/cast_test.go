@@ -472,6 +472,7 @@ func TestToString(t *testing.T) {
 		{nil, ""},
 		{"", ""},
 		{"1", "1"},
+		{[]byte{'b', 's'}, "bs"},
 		{true, "true"},
 		{time.Second, "1s"},
 		{int8(100), "100"},

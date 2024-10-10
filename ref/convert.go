@@ -78,7 +78,7 @@ func Convert(v any, t reflect.Type) (cv any, err error) {
 				return sv.Convert(t).Interface(), nil
 			}
 
-			err = fmt.Errorf("cannot convert value %v to type %s", v, t.String())
+			err = fmt.Errorf("cannot convert %T to %s", v, t.String())
 		}
 	}
 

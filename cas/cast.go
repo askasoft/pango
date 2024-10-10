@@ -8,724 +8,735 @@ import (
 	"github.com/askasoft/pango/tmu"
 )
 
-func ToDuration(v any) (time.Duration, error) {
+func ToDuration(v any) (d time.Duration, err error) {
 	if v == nil {
-		return 0, nil
+		return
 	}
 
-	switch s := v.(type) {
+	switch o := v.(type) {
 	case string:
-		if s == "" {
-			return 0, nil
+		if o == "" {
+			return
 		}
-		return time.ParseDuration(s)
+		d, err = time.ParseDuration(o)
 	case int8:
-		return time.Duration(s), nil
+		d = time.Duration(o)
 	case int16:
-		return time.Duration(s), nil
+		d = time.Duration(o)
 	case int32:
-		return time.Duration(s), nil
+		d = time.Duration(o)
 	case int64:
-		return time.Duration(s), nil
+		d = time.Duration(o)
 	case int:
-		return time.Duration(s), nil
+		d = time.Duration(o)
 	case uint8:
-		return time.Duration(s), nil
+		d = time.Duration(o)
 	case uint16:
-		return time.Duration(s), nil
+		d = time.Duration(o)
 	case uint32:
-		return time.Duration(s), nil
+		d = time.Duration(o)
 	case uint64:
-		return time.Duration(s), nil
+		d = time.Duration(o)
 	case uint:
-		return time.Duration(s), nil
+		d = time.Duration(o)
 	case float32:
-		return time.Duration(s), nil
+		d = time.Duration(o)
 	case float64:
-		return time.Duration(s), nil
+		d = time.Duration(o)
 	default:
-		return 0, fmt.Errorf("cannot cast '%T' to time.Duration", v)
+		err = fmt.Errorf("cannot cast '%T' to time.Duration", v)
 	}
+	return
 }
 
 func utcMilli(msec int64) time.Time {
 	return time.Unix(msec/1e3, (msec%1e3)*1e6).UTC()
 }
 
-func ToTime(v any) (time.Time, error) {
+func ToTime(v any) (t time.Time, err error) {
 	if v == nil {
-		return time.Time{}, nil
+		return
 	}
 
-	switch s := v.(type) {
-	case int8:
-		return utcMilli(int64(s)), nil
-	case int16:
-		return utcMilli(int64(s)), nil
-	case int32:
-		return utcMilli(int64(s)), nil
-	case int64:
-		return utcMilli(int64(s)), nil
-	case int:
-		return utcMilli(int64(s)), nil
-	case uint8:
-		return utcMilli(int64(s)), nil
-	case uint16:
-		return utcMilli(int64(s)), nil
-	case uint32:
-		return utcMilli(int64(s)), nil
-	case uint64:
-		return utcMilli(int64(s)), nil
-	case uint:
-		return utcMilli(int64(s)), nil
-	case float32:
-		return utcMilli(int64(s)), nil
-	case float64:
-		return utcMilli(int64(s)), nil
+	switch o := v.(type) {
 	case string:
-		if s == "" {
-			return time.Time{}, nil
+		if o == "" {
+			return
 		}
-		return tmu.ParseInLocation(s, time.Local)
+		t, err = tmu.ParseInLocation(o, time.Local)
+	case int8:
+		t = utcMilli(int64(o))
+	case int16:
+		t = utcMilli(int64(o))
+	case int32:
+		t = utcMilli(int64(o))
+	case int64:
+		t = utcMilli(int64(o))
+	case int:
+		t = utcMilli(int64(o))
+	case uint8:
+		t = utcMilli(int64(o))
+	case uint16:
+		t = utcMilli(int64(o))
+	case uint32:
+		t = utcMilli(int64(o))
+	case uint64:
+		t = utcMilli(int64(o))
+	case uint:
+		t = utcMilli(int64(o))
+	case float32:
+		t = utcMilli(int64(o))
+	case float64:
+		t = utcMilli(int64(o))
 	default:
-		return time.Time{}, fmt.Errorf("cannot cast '%T' to time.Time", v)
+		err = fmt.Errorf("cannot cast '%T' to time.Time", v)
 	}
+	return
 }
 
-func ToInt(v any) (int, error) {
+func ToInt(v any) (n int, err error) {
 	if v == nil {
-		return int(0), nil
+		return
 	}
 
-	switch s := v.(type) {
+	switch o := v.(type) {
 	case string:
-		if s == "" {
-			return int(0), nil
+		if o == "" {
+			return
 		}
-		i, err := strconv.ParseInt(s, 0, strconv.IntSize)
-		return int(i), err
+		i, e := strconv.ParseInt(o, 0, strconv.IntSize)
+		n, err = int(i), e
 	case bool:
-		if s {
-			return int(1), nil
+		if o {
+			n = 1
 		}
-		return int(0), nil
 	case int8:
-		return int(s), nil
+		n = int(o)
 	case int16:
-		return int(s), nil
+		n = int(o)
 	case int32:
-		return int(s), nil
+		n = int(o)
 	case int64:
-		return int(s), nil
+		n = int(o)
 	case int:
-		return int(s), nil
+		n = int(o)
 	case uint8:
-		return int(s), nil
+		n = int(o)
 	case uint16:
-		return int(s), nil
+		n = int(o)
 	case uint32:
-		return int(s), nil
+		n = int(o)
 	case uint64:
-		return int(s), nil
+		n = int(o)
 	case uint:
-		return int(s), nil
+		n = int(o)
 	case float32:
-		return int(s), nil
+		n = int(o)
 	case float64:
-		return int(s), nil
+		n = int(o)
 	default:
-		return 0, fmt.Errorf("cannot cast '%T' to int", v)
+		err = fmt.Errorf("cannot cast '%T' to int", v)
 	}
+	return
 }
 
-func ToInt8(v any) (int8, error) {
+func ToInt8(v any) (n int8, err error) {
 	if v == nil {
-		return 0, nil
+		return
 	}
 
-	switch s := v.(type) {
+	switch o := v.(type) {
 	case string:
-		if s == "" {
-			return 0, nil
+		if o == "" {
+			return
 		}
-		i, err := strconv.ParseInt(s, 0, 8)
-		return int8(i), err
+		i, e := strconv.ParseInt(o, 0, 8)
+		n, err = int8(i), e
 	case bool:
-		if s {
-			return int8(1), nil
+		if o {
+			n = 1
 		}
-		return 0, nil
 	case int8:
-		return int8(s), nil
+		n = int8(o)
 	case int16:
-		return int8(s), nil
+		n = int8(o)
 	case int32:
-		return int8(s), nil
+		n = int8(o)
 	case int64:
-		return int8(s), nil
+		n = int8(o)
 	case int:
-		return int8(s), nil
+		n = int8(o)
 	case uint8:
-		return int8(s), nil
+		n = int8(o)
 	case uint16:
-		return int8(s), nil
+		n = int8(o)
 	case uint32:
-		return int8(s), nil
+		n = int8(o)
 	case uint64:
-		return int8(s), nil
+		n = int8(o)
 	case uint:
-		return int8(s), nil
+		n = int8(o)
 	case float32:
-		return int8(s), nil
+		n = int8(o)
 	case float64:
-		return int8(s), nil
+		n = int8(o)
 	default:
-		return 0, fmt.Errorf("cannot cast '%T' to int8", v)
+		err = fmt.Errorf("cannot cast '%T' to int8", v)
 	}
+	return
 }
 
-func ToInt16(v any) (int16, error) {
+func ToInt16(v any) (n int16, err error) {
 	if v == nil {
-		return int16(0), nil
+		return
 	}
 
-	switch s := v.(type) {
+	switch o := v.(type) {
 	case string:
-		if s == "" {
-			return int16(0), nil
+		if o == "" {
+			return
 		}
-		i, err := strconv.ParseInt(s, 0, 16)
-		return int16(i), err
+		i, e := strconv.ParseInt(o, 0, 16)
+		n, err = int16(i), e
 	case bool:
-		if s {
-			return int16(1), nil
+		if o {
+			n = 1
 		}
-		return int16(0), nil
 	case int8:
-		return int16(s), nil
+		n = int16(o)
 	case int16:
-		return int16(s), nil
+		n = int16(o)
 	case int32:
-		return int16(s), nil
+		n = int16(o)
 	case int64:
-		return int16(s), nil
+		n = int16(o)
 	case int:
-		return int16(s), nil
+		n = int16(o)
 	case uint8:
-		return int16(s), nil
+		n = int16(o)
 	case uint16:
-		return int16(s), nil
+		n = int16(o)
 	case uint32:
-		return int16(s), nil
+		n = int16(o)
 	case uint64:
-		return int16(s), nil
+		n = int16(o)
 	case uint:
-		return int16(s), nil
+		n = int16(o)
 	case float32:
-		return int16(s), nil
+		n = int16(o)
 	case float64:
-		return int16(s), nil
+		n = int16(o)
 	default:
-		return 0, fmt.Errorf("cannot cast '%T' to int16", v)
+		err = fmt.Errorf("cannot cast '%T' to int16", v)
 	}
+	return
 }
 
-func ToInt32(v any) (int32, error) {
+func ToInt32(v any) (n int32, err error) {
 	if v == nil {
-		return int32(0), nil
+		return
 	}
 
-	switch s := v.(type) {
+	switch o := v.(type) {
 	case string:
-		if s == "" {
-			return int32(0), nil
+		if o == "" {
+			return
 		}
-		i, err := strconv.ParseInt(s, 0, 32)
-		return int32(i), err
+		i, e := strconv.ParseInt(o, 0, 32)
+		n, err = int32(i), e
 	case bool:
-		if s {
-			return int32(1), nil
+		if o {
+			n = 1
 		}
-		return int32(0), nil
 	case int8:
-		return int32(s), nil
+		n = int32(o)
 	case int16:
-		return int32(s), nil
+		n = int32(o)
 	case int32:
-		return int32(s), nil
+		n = int32(o)
 	case int64:
-		return int32(s), nil
+		n = int32(o)
 	case int:
-		return int32(s), nil
+		n = int32(o)
 	case uint8:
-		return int32(s), nil
+		n = int32(o)
 	case uint16:
-		return int32(s), nil
+		n = int32(o)
 	case uint32:
-		return int32(s), nil
+		n = int32(o)
 	case uint64:
-		return int32(s), nil
+		n = int32(o)
 	case uint:
-		return int32(s), nil
+		n = int32(o)
 	case float32:
-		return int32(s), nil
+		n = int32(o)
 	case float64:
-		return int32(s), nil
+		n = int32(o)
 	default:
-		return 0, fmt.Errorf("cannot cast '%T' to int32", v)
+		err = fmt.Errorf("cannot cast '%T' to int32", v)
 	}
+	return
 }
 
-func ToInt64(v any) (int64, error) {
+func ToInt64(v any) (n int64, err error) {
 	if v == nil {
-		return int64(0), nil
+		return
 	}
 
-	switch s := v.(type) {
+	switch o := v.(type) {
 	case string:
-		if s == "" {
-			return int64(0), nil
+		if o == "" {
+			return
 		}
-		i, err := strconv.ParseInt(s, 0, 64)
-		return int64(i), err
+		n, err = strconv.ParseInt(o, 0, 64)
 	case bool:
-		if s {
-			return int64(1), nil
+		if o {
+			n = 1
 		}
-		return int64(0), nil
 	case int8:
-		return int64(s), nil
+		n = int64(o)
 	case int16:
-		return int64(s), nil
+		n = int64(o)
 	case int32:
-		return int64(s), nil
+		n = int64(o)
 	case int64:
-		return int64(s), nil
+		n = int64(o)
 	case int:
-		return int64(s), nil
+		n = int64(o)
 	case uint8:
-		return int64(s), nil
+		n = int64(o)
 	case uint16:
-		return int64(s), nil
+		n = int64(o)
 	case uint32:
-		return int64(s), nil
+		n = int64(o)
 	case uint64:
-		return int64(s), nil
+		n = int64(o)
 	case uint:
-		return int64(s), nil
+		n = int64(o)
 	case float32:
-		return int64(s), nil
+		n = int64(o)
 	case float64:
-		return int64(s), nil
+		n = int64(o)
 	default:
-		return int64(0), fmt.Errorf("cannot cast '%T' to int64", v)
+		err = fmt.Errorf("cannot cast '%T' to int64", v)
 	}
+	return
 }
 
-func ToUint(v any) (uint, error) {
+func ToUint(v any) (n uint, err error) {
 	if v == nil {
-		return uint(0), nil
+		return
 	}
 
-	switch s := v.(type) {
+	switch o := v.(type) {
 	case string:
-		if s == "" {
-			return uint(0), nil
+		if o == "" {
+			return
 		}
-		i, err := strconv.ParseUint(s, 0, strconv.IntSize)
-		return uint(i), err
+		i, e := strconv.ParseUint(o, 0, strconv.IntSize)
+		n, err = uint(i), e
 	case bool:
-		if s {
-			return uint(1), nil
+		if o {
+			n = 1
 		}
-		return uint(0), nil
 	case int8:
-		return uint(s), nil
+		n = uint(o)
 	case int16:
-		return uint(s), nil
+		n = uint(o)
 	case int32:
-		return uint(s), nil
+		n = uint(o)
 	case int64:
-		return uint(s), nil
+		n = uint(o)
 	case int:
-		return uint(s), nil
+		n = uint(o)
 	case uint8:
-		return uint(s), nil
+		n = uint(o)
 	case uint16:
-		return uint(s), nil
+		n = uint(o)
 	case uint32:
-		return uint(s), nil
+		n = uint(o)
 	case uint64:
-		return uint(s), nil
+		n = uint(o)
 	case uint:
-		return uint(s), nil
+		n = uint(o)
 	case float32:
-		return uint(s), nil
+		n = uint(o)
 	case float64:
-		return uint(s), nil
+		n = uint(o)
 	default:
-		return uint(0), fmt.Errorf("cannot cast '%T' to uint", v)
+		err = fmt.Errorf("cannot cast '%T' to uint", v)
 	}
+	return
 }
 
-func ToUint8(v any) (uint8, error) {
+func ToUint8(v any) (n uint8, err error) {
 	if v == nil {
-		return uint8(0), nil
+		return
 	}
 
-	switch s := v.(type) {
+	switch o := v.(type) {
 	case string:
-		if s == "" {
-			return uint8(0), nil
+		if o == "" {
+			return
 		}
-		i, err := strconv.ParseUint(s, 0, 8)
-		return uint8(i), err
+		i, e := strconv.ParseUint(o, 0, 8)
+		n, err = uint8(i), e
 	case bool:
-		if s {
-			return uint8(1), nil
+		if o {
+			n = 1
 		}
-		return uint8(0), nil
 	case int8:
-		return uint8(s), nil
+		n = uint8(o)
 	case int16:
-		return uint8(s), nil
+		n = uint8(o)
 	case int32:
-		return uint8(s), nil
+		n = uint8(o)
 	case int64:
-		return uint8(s), nil
+		n = uint8(o)
 	case int:
-		return uint8(s), nil
+		n = uint8(o)
 	case uint8:
-		return uint8(s), nil
+		n = uint8(o)
 	case uint16:
-		return uint8(s), nil
+		n = uint8(o)
 	case uint32:
-		return uint8(s), nil
+		n = uint8(o)
 	case uint64:
-		return uint8(s), nil
+		n = uint8(o)
 	case uint:
-		return uint8(s), nil
+		n = uint8(o)
 	case float32:
-		return uint8(s), nil
+		n = uint8(o)
 	case float64:
-		return uint8(s), nil
+		n = uint8(o)
 	default:
-		return uint8(0), fmt.Errorf("cannot cast '%T' to uint", v)
+		err = fmt.Errorf("cannot cast '%T' to uint", v)
 	}
+	return
 }
 
-func ToUint16(v any) (uint16, error) {
+func ToUint16(v any) (n uint16, err error) {
 	if v == nil {
-		return uint16(0), nil
+		return
 	}
 
-	switch s := v.(type) {
+	switch o := v.(type) {
 	case string:
-		if s == "" {
-			return uint16(0), nil
+		if o == "" {
+			return
 		}
-		i, err := strconv.ParseUint(s, 0, 16)
-		return uint16(i), err
+		i, e := strconv.ParseUint(o, 0, 16)
+		n, err = uint16(i), e
 	case bool:
-		if s {
-			return uint16(1), nil
+		if o {
+			n = 1
 		}
-		return uint16(0), nil
 	case int8:
-		return uint16(s), nil
+		n = uint16(o)
 	case int16:
-		return uint16(s), nil
+		n = uint16(o)
 	case int32:
-		return uint16(s), nil
+		n = uint16(o)
 	case int64:
-		return uint16(s), nil
+		n = uint16(o)
 	case int:
-		return uint16(s), nil
+		n = uint16(o)
 	case uint8:
-		return uint16(s), nil
+		n = uint16(o)
 	case uint16:
-		return uint16(s), nil
+		n = uint16(o)
 	case uint32:
-		return uint16(s), nil
+		n = uint16(o)
 	case uint64:
-		return uint16(s), nil
+		n = uint16(o)
 	case uint:
-		return uint16(s), nil
+		n = uint16(o)
 	case float32:
-		return uint16(s), nil
+		n = uint16(o)
 	case float64:
-		return uint16(s), nil
+		n = uint16(o)
 	default:
-		return uint16(0), fmt.Errorf("cannot cast '%T' to uint16", v)
+		err = fmt.Errorf("cannot cast '%T' to uint16", v)
 	}
+	return
 }
 
-func ToUint32(v any) (uint32, error) {
+func ToUint32(v any) (n uint32, err error) {
 	if v == nil {
-		return uint32(0), nil
+		return
 	}
 
-	switch s := v.(type) {
+	switch o := v.(type) {
 	case string:
-		if s == "" {
-			return uint32(0), nil
+		if o == "" {
+			return
 		}
-		i, err := strconv.ParseUint(s, 0, 32)
-		return uint32(i), err
+		i, e := strconv.ParseUint(o, 0, 32)
+		n, err = uint32(i), e
 	case bool:
-		if s {
-			return uint32(1), nil
+		if o {
+			n = 1
 		}
-		return uint32(0), nil
 	case int8:
-		return uint32(s), nil
+		n = uint32(o)
 	case int16:
-		return uint32(s), nil
+		n = uint32(o)
 	case int32:
-		return uint32(s), nil
+		n = uint32(o)
 	case int64:
-		return uint32(s), nil
+		n = uint32(o)
 	case int:
-		return uint32(s), nil
+		n = uint32(o)
 	case uint8:
-		return uint32(s), nil
+		n = uint32(o)
 	case uint16:
-		return uint32(s), nil
+		n = uint32(o)
 	case uint32:
-		return uint32(s), nil
+		n = uint32(o)
 	case uint64:
-		return uint32(s), nil
+		n = uint32(o)
 	case uint:
-		return uint32(s), nil
+		n = uint32(o)
 	case float32:
-		return uint32(s), nil
+		n = uint32(o)
 	case float64:
-		return uint32(s), nil
+		n = uint32(o)
 	default:
-		return uint32(0), fmt.Errorf("cannot cast '%T' to uint32", v)
+		err = fmt.Errorf("cannot cast '%T' to uint32", v)
 	}
+	return
 }
 
-func ToUint64(v any) (uint64, error) {
+func ToUint64(v any) (n uint64, err error) {
 	if v == nil {
-		return uint64(0), nil
+		return
 	}
 
-	switch s := v.(type) {
+	switch o := v.(type) {
 	case string:
-		if s == "" {
-			return uint64(0), nil
+		if o == "" {
+			return
 		}
-		i, err := strconv.ParseUint(s, 0, 64)
-		return uint64(i), err
+		i, e := strconv.ParseUint(o, 0, 64)
+		n, err = uint64(i), e
 	case bool:
-		if s {
-			return uint64(1), nil
+		if o {
+			n = 1
 		}
-		return uint64(0), nil
 	case int8:
-		return uint64(s), nil
+		n = uint64(o)
 	case int16:
-		return uint64(s), nil
+		n = uint64(o)
 	case int32:
-		return uint64(s), nil
+		n = uint64(o)
 	case int64:
-		return uint64(s), nil
+		n = uint64(o)
 	case int:
-		return uint64(s), nil
+		n = uint64(o)
 	case uint8:
-		return uint64(s), nil
+		n = uint64(o)
 	case uint16:
-		return uint64(s), nil
+		n = uint64(o)
 	case uint32:
-		return uint64(s), nil
+		n = uint64(o)
 	case uint64:
-		return uint64(s), nil
+		n = uint64(o)
 	case uint:
-		return uint64(s), nil
+		n = uint64(o)
 	case float32:
-		return uint64(s), nil
+		n = uint64(o)
 	case float64:
-		return uint64(s), nil
+		n = uint64(o)
 	default:
-		return uint64(0), fmt.Errorf("cannot cast '%T' to uint64", v)
+		err = fmt.Errorf("cannot cast '%T' to uint64", v)
 	}
+	return
 }
 
-func ToFloat32(v any) (float32, error) {
+func ToFloat32(v any) (n float32, err error) {
 	if v == nil {
-		return float32(0), nil
+		return
 	}
 
-	switch s := v.(type) {
+	switch o := v.(type) {
 	case string:
-		if s == "" {
-			return float32(0), nil
+		if o == "" {
+			return
 		}
-		i, err := strconv.ParseFloat(s, 32)
-		return float32(i), err
+		i, e := strconv.ParseFloat(o, 32)
+		n, err = float32(i), e
 	case bool:
-		if s {
-			return float32(1), nil
+		if o {
+			n = 1
 		}
-		return float32(0), nil
 	case int8:
-		return float32(s), nil
+		n = float32(o)
 	case int16:
-		return float32(s), nil
+		n = float32(o)
 	case int32:
-		return float32(s), nil
+		n = float32(o)
 	case int64:
-		return float32(s), nil
+		n = float32(o)
 	case int:
-		return float32(s), nil
+		n = float32(o)
 	case uint8:
-		return float32(s), nil
+		n = float32(o)
 	case uint16:
-		return float32(s), nil
+		n = float32(o)
 	case uint32:
-		return float32(s), nil
+		n = float32(o)
 	case uint64:
-		return float32(s), nil
+		n = float32(o)
 	case uint:
-		return float32(s), nil
+		n = float32(o)
 	case float32:
-		return float32(s), nil
+		n = float32(o)
 	case float64:
-		return float32(s), nil
+		n = float32(o)
 	default:
-		return float32(0), fmt.Errorf("cannot cast '%T' to float32", v)
+		err = fmt.Errorf("cannot cast '%T' to float32", v)
 	}
+	return
 }
 
-func ToFloat64(v any) (float64, error) {
+func ToFloat64(v any) (n float64, err error) {
 	if v == nil {
-		return float64(0), nil
+		return
 	}
 
-	switch s := v.(type) {
+	switch o := v.(type) {
 	case string:
-		if s == "" {
-			return float64(0), nil
+		if o == "" {
+			return
 		}
-		i, err := strconv.ParseFloat(s, 64)
-		return float64(i), err
+		n, err = strconv.ParseFloat(o, 64)
 	case bool:
-		if s {
-			return float64(1), nil
+		if o {
+			n = 1
 		}
-		return float64(0), nil
 	case int8:
-		return float64(s), nil
+		n = float64(o)
 	case int16:
-		return float64(s), nil
+		n = float64(o)
 	case int32:
-		return float64(s), nil
+		n = float64(o)
 	case int64:
-		return float64(s), nil
+		n = float64(o)
 	case int:
-		return float64(s), nil
+		n = float64(o)
 	case uint8:
-		return float64(s), nil
+		n = float64(o)
 	case uint16:
-		return float64(s), nil
+		n = float64(o)
 	case uint32:
-		return float64(s), nil
+		n = float64(o)
 	case uint64:
-		return float64(s), nil
+		n = float64(o)
 	case uint:
-		return float64(s), nil
+		n = float64(o)
 	case float32:
-		return float64(s), nil
+		n = float64(o)
 	case float64:
-		return float64(s), nil
+		n = float64(o)
 	default:
-		return float64(0), fmt.Errorf("cannot cast '%T' to float64", v)
+		err = fmt.Errorf("cannot cast '%T' to float64", v)
 	}
+	return
 }
 
-func ToBool(v any) (bool, error) {
+func ToBool(v any) (b bool, err error) {
 	if v == nil {
-		return false, nil
+		return
 	}
 
-	switch s := v.(type) {
+	switch o := v.(type) {
 	case string:
-		if s == "" {
-			return false, nil
+		if o == "" {
+			return
 		}
-		return strconv.ParseBool(s)
+		b, err = strconv.ParseBool(o)
 	case bool:
-		return s, nil
+		b = o
 	case int8:
-		return s != 0, nil
+		b = o != 0
 	case int16:
-		return s != 0, nil
+		b = o != 0
 	case int32:
-		return s != 0, nil
+		b = o != 0
 	case int64:
-		return s != 0, nil
+		b = o != 0
 	case int:
-		return s != 0, nil
+		b = o != 0
 	case uint8:
-		return s != 0, nil
+		b = o != 0
 	case uint16:
-		return s != 0, nil
+		b = o != 0
 	case uint32:
-		return s != 0, nil
+		b = o != 0
 	case uint64:
-		return s != 0, nil
+		b = o != 0
 	case uint:
-		return s != 0, nil
+		b = o != 0
 	case float32:
-		return s != 0, nil
+		b = o != 0
 	case float64:
-		return s != 0, nil
+		b = o != 0
 	default:
-		return false, fmt.Errorf("cannot cast '%T' to bool", v)
+		err = fmt.Errorf("cannot cast '%T' to bool", v)
 	}
+	return
 }
 
-func ToString(v any) (string, error) {
+type stringer interface {
+	String() string
+}
+
+func ToString(v any) (s string, err error) {
 	if v == nil {
-		return "", nil
+		return
 	}
 
-	switch s := v.(type) {
+	switch o := v.(type) {
 	case string:
-		return s, nil
+		s = o
+	case []byte:
+		s = string(o)
 	case bool:
-		if s {
-			return "true", nil
+		if o {
+			s = "true"
+		} else {
+			s = "false"
 		}
-		return "false", nil
-	case time.Duration:
-		return s.String(), nil
 	case int8:
-		return strconv.FormatInt(int64(s), 10), nil
+		s = strconv.FormatInt(int64(o), 10)
 	case int16:
-		return strconv.FormatInt(int64(s), 10), nil
+		s = strconv.FormatInt(int64(o), 10)
 	case int32:
-		return strconv.FormatInt(int64(s), 10), nil
+		s = strconv.FormatInt(int64(o), 10)
 	case int64:
-		return strconv.FormatInt(int64(s), 10), nil
+		s = strconv.FormatInt(int64(o), 10)
 	case int:
-		return strconv.FormatInt(int64(s), 10), nil
+		s = strconv.FormatInt(int64(o), 10)
 	case uint8:
-		return strconv.FormatUint(uint64(s), 10), nil
+		s = strconv.FormatUint(uint64(o), 10)
 	case uint16:
-		return strconv.FormatUint(uint64(s), 10), nil
+		s = strconv.FormatUint(uint64(o), 10)
 	case uint32:
-		return strconv.FormatUint(uint64(s), 10), nil
+		s = strconv.FormatUint(uint64(o), 10)
 	case uint64:
-		return strconv.FormatUint(uint64(s), 10), nil
+		s = strconv.FormatUint(uint64(o), 10)
 	case uint:
-		return strconv.FormatUint(uint64(s), 10), nil
+		s = strconv.FormatUint(uint64(o), 10)
 	case float32:
-		return strconv.FormatFloat(float64(s), 'f', -1, 32), nil
+		s = strconv.FormatFloat(float64(o), 'f', -1, 32)
 	case float64:
-		return strconv.FormatFloat(s, 'f', -1, 64), nil
+		s = strconv.FormatFloat(o, 'f', -1, 64)
 	default:
-		return "", fmt.Errorf("cannot cast '%T' to string", v)
+		if sr, ok := v.(stringer); ok {
+			s = sr.String()
+		} else {
+			err = fmt.Errorf("cannot cast '%T' to string", v)
+		}
 	}
+	return
 }

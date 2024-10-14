@@ -3,6 +3,8 @@ package freshservice
 // ---------------------------------------------------
 // Agent Group
 
+type ListAgentGroupsOption = PageOption
+
 func (fs *Freshservice) CreateAgentGroup(ag *AgentGroup) (*AgentGroup, error) {
 	url := fs.endpoint("/groups")
 	result := &agentGroupResult{}

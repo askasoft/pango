@@ -15,9 +15,6 @@ const (
 	AgentActiveALL   AgentActive = ""
 )
 
-type ListAgentRolesOption = PageOption
-type ListAgentGroupsOption = PageOption
-
 type ListAgentsOption struct {
 	Email             string
 	MobilePhoneNumber string

@@ -8,6 +8,8 @@ import (
 type TicketSource int
 type TicketStatus int
 type TicketPriority int
+type TicketUrgency int
+type TicketImpact int
 
 const (
 	TicketSourceEmail          TicketSource = 1
@@ -30,6 +32,14 @@ const (
 	TicketPriorityMedium TicketPriority = 2
 	TicketPriorityHigh   TicketPriority = 3
 	TicketPriorityUrgent TicketPriority = 4
+
+	TicketUrgencyLow    TicketUrgency = 1
+	TicketUrgencyMedium TicketUrgency = 2
+	TicketUrgencyHigh   TicketUrgency = 3
+
+	TicketImpactLow    TicketImpact = 1
+	TicketImpactMedium TicketImpact = 2
+	TicketImpactHigh   TicketImpact = 3
 
 	TicketFilterNewAndMyOpen = "new_and_my_open"
 	TicketFilterWatching     = "watching"
@@ -151,6 +161,58 @@ func ParseTicketPriority(s string) TicketPriority {
 	}
 }
 
+func (tu TicketUrgency) String() string {
+	switch tu {
+	case TicketUrgencyLow:
+		return "Low"
+	case TicketUrgencyMedium:
+		return "Medium"
+	case TicketUrgencyHigh:
+		return "High"
+	default:
+		return num.Itoa(int(tu))
+	}
+}
+
+func ParseTicketUrgency(s string) TicketUrgency {
+	switch str.ToLower(s) {
+	case "low":
+		return TicketUrgencyLow
+	case "medium":
+		return TicketUrgencyMedium
+	case "high":
+		return TicketUrgencyHigh
+	default:
+		return TicketUrgency(num.Atoi(s))
+	}
+}
+
+func (ti TicketImpact) String() string {
+	switch ti {
+	case TicketImpactLow:
+		return "Low"
+	case TicketImpactMedium:
+		return "Medium"
+	case TicketImpactHigh:
+		return "High"
+	default:
+		return num.Itoa(int(ti))
+	}
+}
+
+func ParseTicketImpact(s string) TicketImpact {
+	switch str.ToLower(s) {
+	case "low":
+		return TicketImpactLow
+	case "medium":
+		return TicketImpactMedium
+	case "high":
+		return TicketImpactHigh
+	default:
+		return TicketImpact(num.Atoi(s))
+	}
+}
+
 type Ticket struct {
 	// Unique ID of the ticket
 	ID int64 `json:"id,omitempty"`
@@ -259,10 +321,10 @@ type Ticket struct {
 	ItemCategory string `json:"item_category,omitempty"`
 
 	// Ticket urgency.
-	Urgency int `json:"urgency,omitempty"`
+	Urgency TicketUrgency `json:"urgency,omitempty"`
 
 	// Ticket impact.
-	Impact int `json:"impact,omitempty"`
+	Impact TicketImpact `json:"impact,omitempty"`
 
 	// Content of the ticket resolution note in plain text
 	ResolutionNotes string `json:"resolution_notes,omitempty"`

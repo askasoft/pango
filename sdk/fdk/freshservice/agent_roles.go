@@ -3,6 +3,8 @@ package freshservice
 // ---------------------------------------------------
 // Agent Role
 
+type ListAgentRolesOption = PageOption
+
 func (fs *Freshservice) GetAgentRole(id int64) (*AgentRole, error) {
 	url := fs.endpoint("/roles/%d", id)
 	result := &agentRoleResult{}

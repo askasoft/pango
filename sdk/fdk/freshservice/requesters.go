@@ -155,7 +155,7 @@ func (fs *Freshservice) ListRequesterGroupMembers(rgid int64, lrgmo *ListRequest
 
 func (fs *Freshservice) IterRequesterGroupMembers(rgid int64, lrgmo *ListRequesterGroupMembersOption, irgmf func(*Requester) error) error {
 	if lrgmo == nil {
-		lrgmo = &ListAgentRolesOption{}
+		lrgmo = &ListRequesterGroupMembersOption{}
 	}
 	if lrgmo.Page < 1 {
 		lrgmo.Page = 1

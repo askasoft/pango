@@ -8,7 +8,6 @@ import (
 type TicketSource int
 type TicketStatus int
 type TicketPriority int
-type TicketFilter string
 
 const (
 	TicketSourceEmail          TicketSource = 1
@@ -28,10 +27,10 @@ const (
 	TicketPriorityHigh   TicketPriority = 3
 	TicketPriorityUrgent TicketPriority = 4
 
-	TicketFilterNewAndMyOpen TicketFilter = "new_and_my_open"
-	TicketFilterWatching     TicketFilter = "watching"
-	TicketFilterSpam         TicketFilter = "spam"
-	TicketFilterDeleted      TicketFilter = "deleted"
+	TicketFilterNewAndMyOpen = "new_and_my_open"
+	TicketFilterWatching     = "watching"
+	TicketFilterSpam         = "spam"
+	TicketFilterDeleted      = "deleted"
 )
 
 func (ts TicketSource) String() string {

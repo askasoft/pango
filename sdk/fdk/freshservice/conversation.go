@@ -90,11 +90,11 @@ type Conversation struct {
 	// ID of the agent/user who is adding the conversation
 	UserID int64 `json:"user_id,omitempty"`
 
+	// The email address from which the reply is sent.
+	FromEmail string `json:"from_email,omitempty"`
+
 	// Email addresses of agents/users who need to be notified about this conversation
 	ToEmails []string `json:"to_emails,omitempty"`
-
-	// The email address from which the reply is sent. By default the global support email will be used.
-	FromEmail string `json:"from_email,omitempty"`
 
 	// Email address added in the 'cc' field of the outgoing ticket email.
 	CcEmails []string `json:"cc_emails,omitempty"`

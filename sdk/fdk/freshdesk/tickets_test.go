@@ -3,18 +3,14 @@ package freshdesk
 import (
 	"testing"
 	"time"
-
-	"github.com/askasoft/pango/log"
 )
 
-func TestTicketTypes(t *testing.T) {
-	var tt WithFiles = &Ticket{}
-	var n WithFiles = &Note{}
-	var r WithFiles = &Reply{}
-	var c WithFiles = &Conversation{}
-
-	log.Trace(tt, n, r, c)
-}
+var (
+	_ WithFiles = &Ticket{}
+	_ WithFiles = &Note{}
+	_ WithFiles = &Reply{}
+	_ WithFiles = &Conversation{}
+)
 
 func TestTicketAPIs(t *testing.T) {
 	fd := testNewFreshdesk(t)
@@ -37,7 +33,7 @@ func TestTicketAPIs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	fd.Logger.Debug(ct)
+	fd.Logger.Info(ct)
 
 	tu := &Ticket{}
 	tu.Description = `<div>
@@ -79,7 +75,7 @@ func TestTicketAPIs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	fd.Logger.Debug(cnu)
+	fd.Logger.Info(cnu)
 
 	// private note
 	nc := &Note{
@@ -90,7 +86,7 @@ func TestTicketAPIs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	fd.Logger.Debug(cn)
+	fd.Logger.Info(cn)
 
 	cu := &Conversation{
 		Body: "private agent update note " + time.Now().String(),
@@ -100,19 +96,19 @@ func TestTicketAPIs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	fd.Logger.Debug(uc)
+	fd.Logger.Info(uc)
 
 	gtc, err := fd.GetTicket(ct.ID, TicketIncludeConversations)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	fd.Logger.Debug(gtc)
+	fd.Logger.Info(gtc)
 
 	gtr, err := fd.GetTicket(ct.ID, TicketIncludeRequester)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	fd.Logger.Debug(gtr)
+	fd.Logger.Info(gtr)
 
 	err = fd.DeleteTicket(ct.ID)
 	if err != nil {
@@ -133,11 +129,11 @@ func TestListTickets(t *testing.T) {
 	}
 
 	for i, t := range ts {
-		fd.Logger.Debugf("%d: #%d [%s] %s", i+1, t.ID, t.CreatedAt.String(), t.Subject)
+		fd.Logger.Infof("%d: #%d [%s] %s", i+1, t.ID, t.CreatedAt.String(), t.Subject)
 	}
 }
 
-func TestIterTickets(t *testing.T) {
+func TestIterTicketsAndConversations(t *testing.T) {
 	fd := testNewFreshdesk(t)
 	if fd == nil {
 		return
@@ -145,10 +141,17 @@ func TestIterTickets(t *testing.T) {
 
 	ltp := &ListTicketsOption{PerPage: 10}
 
-	i := 0
+	i, j := 0, 0
 	err := fd.IterTickets(ltp, func(t *Ticket) error {
 		i++
-		fd.Logger.Debugf("%d: #%d [%s] %s", i, t.ID, t.CreatedAt.String(), t.Subject)
+		fd.Logger.Infof("%d: #%d [%s] %s", i, t.ID, t.CreatedAt.String(), t.Subject)
+
+		j = 0
+		fd.IterTicketConversations(t.ID, nil, func(c *Conversation) error {
+			j++
+			fd.Logger.Infof("#%d [%d]: Income: %v, UID: %d, FROM: %s, TO: %v, CC: %v", t.ID, j, c.Incoming, c.UserID, c.FromEmail, c.ToEmails, c.CcEmails)
+			return nil
+		})
 		return nil
 	})
 	if err != nil {
@@ -171,9 +174,9 @@ func TestFilterTickets(t *testing.T) {
 		t.Fatalf("ERROR: %v", err)
 	}
 
-	fd.Logger.Debugf("Total: %d", total)
+	fd.Logger.Infof("Total: %d", total)
 	for i, t := range ts {
-		fd.Logger.Debugf("%d: #%d [%s] %s", i+1, t.ID, t.CreatedAt.String(), t.Subject)
+		fd.Logger.Infof("%d: #%d [%s] %s", i+1, t.ID, t.CreatedAt.String(), t.Subject)
 	}
 }
 
@@ -190,7 +193,7 @@ func TestIterFilterTickets(t *testing.T) {
 	i := 0
 	err := fd.IterFilterTickets(ftp, func(t *Ticket) error {
 		i++
-		fd.Logger.Debugf("%d: #%d [%s] %s", i, t.ID, t.CreatedAt.String(), t.Subject)
+		fd.Logger.Infof("%d: #%d [%s] %s", i, t.ID, t.CreatedAt.String(), t.Subject)
 		return nil
 	})
 	if err != nil {

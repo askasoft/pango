@@ -80,9 +80,6 @@ type Conversation struct {
 	// Set to true if a particular conversation should appear as being created from outside (i.e., not through web portal)
 	Incoming bool `json:"incoming,omitempty"`
 
-	// Email addresses of agents/users who need to be notified about this conversation
-	ToEmails []string `json:"to_emails,omitempty"`
-
 	// Set to true if the note is private
 	Private bool `json:"private,omitempty"`
 
@@ -104,14 +101,28 @@ type Conversation struct {
 	// ID of the agent who has last edited the conversation
 	LastEditedUserID int64 `json:"last_edited_user_id,omitempty"`
 
-	// Email address
-	NotifiedTos []string `json:"notified_to,omitempty"`
+	// The email address from which the reply is sent.
+	FromEmail string `json:"from_email,omitempty"`
+
+	// Email addresses of agents/users who need to be notified about this conversation
+	ToEmails []string `json:"to_emails,omitempty"`
+
+	// Email address added in the 'cc' field of the outgoing ticket email.
+	CcEmails []string `json:"cc_emails,omitempty"`
+
+	// Email address added in the 'bcc' field of the outgoing ticket email.
+	BccEmails []string `json:"bcc_emails,omitempty"`
 
 	// Conversation creation timestamp
 	CreatedAt *Time `json:"created_at,omitempty"`
 
 	// Conversation updated timestamp
 	UpdatedAt *Time `json:"updated_at,omitempty"`
+
+	// ------------------------------------------------------
+	// response
+
+	NotifiedTos []string `json:"notified_to,omitempty"`
 }
 
 func (c *Conversation) AddAttachment(path string, data ...[]byte) {

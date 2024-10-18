@@ -1,5 +1,20 @@
 package freshdesk
 
+import (
+	"net/url"
+
+	"github.com/askasoft/pango/bol"
+	"github.com/askasoft/pango/num"
+)
+
+type OtherCompany struct {
+	// ID of the primary company to which this contact belongs
+	CompanyID int64 `json:"company_id,omitempty"`
+
+	// Set to true if the contact can see all tickets that are associated with the company to which he belong
+	ViewAllTickets bool `json:"view_all_tickets,omitempty"`
+}
+
 type Contact struct {
 	ID int64 `json:"id,omitempty"`
 
@@ -61,7 +76,7 @@ type Contact struct {
 	UniqueExternalID string `json:"unique_external_id,omitempty"`
 
 	// Additional companies associated with the contact
-	OtherCompanies []int64 `json:"other_companies,omitempty"`
+	OtherCompanies []*OtherCompany `json:"other_companies,omitempty"`
 
 	// IDs of the companies associated with the contact (only used by MergeContact)
 	CompanyIDs int64 `json:"company_ids,omitempty"`
@@ -92,7 +107,6 @@ func (c *Contact) Values() Values {
 	vs.SetStrings("other_emails", c.OtherEmails)
 	vs.SetInt64("company_id", c.CompanyID)
 	vs.SetBool("view_all_tickets", c.ViewAllTickets)
-	vs.SetInt64s("other_companies", c.OtherCompanies)
 	vs.SetString("address", c.Address)
 	vs.SetMap("custom_fields", c.CustomFields)
 	vs.SetString("description", c.Description)
@@ -100,6 +114,12 @@ func (c *Contact) Values() Values {
 	vs.SetString("language", c.Language)
 	vs.SetStrings("tags", c.Tags)
 	vs.SetString("time_zone", c.TimeZone)
+	if len(c.OtherCompanies) > 0 {
+		for _, oc := range c.OtherCompanies {
+			(url.Values)(vs).Add("other_companies[company_id]", num.Ltoa(oc.CompanyID))
+			(url.Values)(vs).Add("other_companies[view_all_tickets]", bol.Btoa(oc.ViewAllTickets))
+		}
+	}
 	return vs
 }
 

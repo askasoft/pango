@@ -23,7 +23,7 @@ func TestContactAPIs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	fd.Logger.Debug(cc)
+	fd.Logger.Info(cc)
 
 	cu := &Contact{}
 	cu.Description = "update description " + time.Now().String()
@@ -33,16 +33,16 @@ func TestContactAPIs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	fd.Logger.Debug(uc)
+	fd.Logger.Info(uc)
 
 	gc, err := fd.GetContact(cc.ID)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	fd.Logger.Debug(gc)
+	fd.Logger.Info(gc)
 
 	err = fd.IterContacts(nil, func(c *Contact) error {
-		fd.Logger.Debug(c)
+		fd.Logger.Info(c)
 		return nil
 	})
 	if err != nil {
@@ -69,5 +69,19 @@ func TestExportContacts(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	fd.Logger.Debug(job)
+	fd.Logger.Info(job)
+}
+
+func TestGetContacts(t *testing.T) {
+	fd := testNewFreshdesk(t)
+	if fd == nil {
+		return
+	}
+
+	c, err := fd.GetContact(2043042684973)
+	if err != nil {
+		t.Fatalf("ERROR: %v", err)
+	}
+
+	fd.Logger.Info(c)
 }

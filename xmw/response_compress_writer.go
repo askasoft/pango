@@ -19,6 +19,7 @@ type compressor interface {
 	io.Writer
 	Reset(w io.Writer)
 	Flush() error
+	Close() error
 }
 
 type responseCompressWriter struct {
@@ -44,7 +45,7 @@ func (rcw *responseCompressWriter) Close() {
 	}
 
 	if rcw.cw != nil {
-		rcw.cw.Flush()
+		rcw.cw.Close()
 		rcw.cw.Reset(io.Discard)
 		rcw.rc.putCompressor(rcw.ae, rcw.cw)
 		rcw.cw = nil

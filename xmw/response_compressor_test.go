@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/xin"
 )
 
@@ -120,6 +121,56 @@ func TestResponseCompressorZlib(t *testing.T) {
 	router.ServeHTTP(w, req)
 
 	assertResponseCompressorEnable(t, w, "deflate", body)
+}
+
+func TestResponseCompressorGzipXdemo(t *testing.T) {
+	hc := &http.Client{Transport: &http.Transport{
+		DisableCompression: true,
+	}}
+
+	req, _ := http.NewRequest("GET", "https://xdemo.aska-soft.com/", nil)
+	req.Header.Add("Accept-Encoding", "gzip")
+
+	res, err := hc.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
+
+	gr, err := gzip.NewReader(res.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = iox.ReadAll(gr)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestResponseCompressorZlibXdemo(t *testing.T) {
+	hc := &http.Client{Transport: &http.Transport{
+		DisableCompression: true,
+	}}
+
+	req, _ := http.NewRequest("GET", "https://xdemo.aska-soft.com/", nil)
+	req.Header.Add("Accept-Encoding", "deflate")
+
+	res, err := hc.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
+
+	zr, err := zlib.NewReader(res.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = iox.ReadAll(zr)
+	if err != nil {
+		t.Error(err)
+	}
 }
 
 func TestResponseCompressorIgnore_HTTP_1_0(t *testing.T) {

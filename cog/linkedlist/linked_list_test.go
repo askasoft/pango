@@ -4,6 +4,7 @@
 package linkedlist
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -11,7 +12,6 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/askasoft/pango/cmp"
 	"github.com/askasoft/pango/cog"
 	"github.com/askasoft/pango/cog/arraylist"
 )
@@ -670,7 +670,7 @@ func TestLinkedListSort(t *testing.T) {
 			l.Add(a[j])
 		}
 
-		l.Sort(cmp.LessInt)
+		l.Sort(cmp.Less[int])
 		sort.Sort(inta(a))
 
 		if !reflect.DeepEqual(a, l.Values()) {

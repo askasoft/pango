@@ -1,9 +1,9 @@
 package sch
 
 import (
+	"cmp"
 	"sync"
 
-	"github.com/askasoft/pango/cmp"
 	"github.com/askasoft/pango/cog/treemap"
 	"github.com/askasoft/pango/log"
 )
@@ -26,7 +26,7 @@ func (s *Scheduler) AddTask(task *Task) {
 	defer s.mutex.Unlock()
 
 	if s.tasks == nil {
-		s.tasks = treemap.NewTreeMap[string, *Task](cmp.CompareString)
+		s.tasks = treemap.NewTreeMap[string, *Task](cmp.Compare[string])
 	}
 	s.tasks.Set(task.Name, task)
 }

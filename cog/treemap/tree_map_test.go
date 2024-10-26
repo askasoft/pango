@@ -4,23 +4,23 @@
 package treemap
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"reflect"
 	"strconv"
 	"testing"
 
-	"github.com/askasoft/pango/cmp"
 	"github.com/askasoft/pango/cog"
 )
 
 func TestTreeMapInterface(t *testing.T) {
-	var _ cog.Map[int, int] = NewTreeMap[int, int](cmp.CompareInt)
-	var _ cog.IterableMap[int, int] = NewTreeMap[int, int](cmp.CompareInt)
+	var _ cog.Map[int, int] = NewTreeMap[int, int](cmp.Compare[int])
+	var _ cog.IterableMap[int, int] = NewTreeMap[int, int](cmp.Compare[int])
 }
 
 func TestTreeMapSet(t *testing.T) {
-	tree := NewTreeMap[int, string](cmp.CompareInt)
+	tree := NewTreeMap[int, string](cmp.Compare[int])
 	tree.Set(5, "e")
 	tree.Set(6, "f")
 	tree.Set(7, "g")
@@ -64,7 +64,7 @@ func TestTreeMapSet(t *testing.T) {
 }
 
 func TestTreeMapDebug(t *testing.T) {
-	tree := NewTreeMap[int, int](cmp.CompareInt)
+	tree := NewTreeMap[int, int](cmp.Compare[int])
 	ev := "(empty)"
 	av := tree.debug()
 	if av != ev {
@@ -73,7 +73,7 @@ func TestTreeMapDebug(t *testing.T) {
 }
 
 func TestTreeMapDelete(t *testing.T) {
-	tree := NewTreeMap[int, string](cmp.CompareInt)
+	tree := NewTreeMap[int, string](cmp.Compare[int])
 	tree.Set(5, "e")
 	tree.Set(6, "f")
 	tree.Set(7, "g")
@@ -160,7 +160,7 @@ func TestTreeMapDelete2(t *testing.T) {
 	//                     └── 1
 
 	for i := 1; i <= 7; i++ {
-		tm := NewTreeMap[int, int](cmp.CompareInt)
+		tm := NewTreeMap[int, int](cmp.Compare[int])
 		for n := 20; n >= 1; n-- {
 			tm.Set(n, n)
 		}
@@ -187,7 +187,7 @@ func TestTreeMapDelete2(t *testing.T) {
 }
 
 func TestTreeMapFloor(t *testing.T) {
-	m := NewTreeMap[int, string](cmp.CompareInt)
+	m := NewTreeMap[int, string](cmp.Compare[int])
 	m.Set(7, "g")
 	m.Set(3, "c")
 	m.Set(1, "a")
@@ -223,7 +223,7 @@ func TestTreeMapFloor(t *testing.T) {
 }
 
 func TestTreeMapCeiling(t *testing.T) {
-	m := NewTreeMap[int, string](cmp.CompareInt)
+	m := NewTreeMap[int, string](cmp.Compare[int])
 	m.Set(7, "g")
 	m.Set(3, "c")
 	m.Set(1, "a")
@@ -259,7 +259,7 @@ func TestTreeMapCeiling(t *testing.T) {
 }
 
 func TestTreeMapEach(t *testing.T) {
-	m := NewTreeMap[string, int](cmp.CompareString)
+	m := NewTreeMap[string, int](cmp.Compare[string])
 	m.Set("c", 3)
 	m.Set("a", 1)
 	m.Set("b", 2)
@@ -290,7 +290,7 @@ func TestTreeMapEach(t *testing.T) {
 }
 
 func TestTreeMapHeadAndTail(t *testing.T) {
-	tree := NewTreeMap[int, string](cmp.CompareInt)
+	tree := NewTreeMap[int, string](cmp.Compare[int])
 
 	if av := tree.Head(); av != nil {
 		t.Errorf("Got %v expected %v", av, nil)
@@ -324,7 +324,7 @@ func TestTreeMapHeadAndTail(t *testing.T) {
 }
 
 func TestTreeMapCeilingAndFloor(t *testing.T) {
-	tree := NewTreeMap[int, string](cmp.CompareInt)
+	tree := NewTreeMap[int, string](cmp.Compare[int])
 
 	if node := tree.Floor(0); node != nil {
 		t.Errorf("Got %v expected %v", node, "<nil>")
@@ -357,7 +357,7 @@ func TestTreeMapCeilingAndFloor(t *testing.T) {
 }
 
 func TestTreeMapIteratorNextOnEmpty(t *testing.T) {
-	m := NewTreeMap[string, string](cmp.CompareString)
+	m := NewTreeMap[string, string](cmp.Compare[string])
 	it := m.Iterator()
 	if it.Next() {
 		t.Errorf("Shouldn't iterate on empty map")
@@ -365,7 +365,7 @@ func TestTreeMapIteratorNextOnEmpty(t *testing.T) {
 }
 
 func TestTreeMapIteratorPrevOnEmpty(t *testing.T) {
-	m := NewTreeMap[string, string](cmp.CompareString)
+	m := NewTreeMap[string, string](cmp.Compare[string])
 	it := m.Iterator()
 	if it.Prev() {
 		t.Errorf("Shouldn't iterate on empty map")
@@ -455,7 +455,7 @@ func testTreeMapIterRemoveHead2Tail(t *testing.T, cmp cog.Compare[int], kvs []co
 }
 
 func TestTreeMapIteratorReset(t *testing.T) {
-	m := NewTreeMap[int, string](cmp.CompareInt)
+	m := NewTreeMap[int, string](cmp.Compare[int])
 	it := m.Iterator()
 	m.Set(3, "c")
 	m.Set(1, "a")
@@ -501,8 +501,8 @@ func assertTreeMapIteratorRemove(t *testing.T, i int, it cog.Iterator2[int, int]
 
 func TestTreeMapIteratorRemove(t *testing.T) {
 	for i := 20; i < 50; i++ {
-		m := NewTreeMap[int, int](cmp.CompareInt)
-		w := NewTreeMap[int, int](cmp.CompareInt)
+		m := NewTreeMap[int, int](cmp.Compare[int])
+		w := NewTreeMap[int, int](cmp.Compare[int])
 
 		for n := 0; n < i; n++ {
 			//fmt.Printf("Add %v\n%v\n\n", n, w.debug())
@@ -566,7 +566,7 @@ func TestTreeMapIteratorRemove(t *testing.T) {
 }
 
 func TestTreeMapIteratorSetValue(t *testing.T) {
-	m := NewTreeMap[int, int](cmp.CompareInt)
+	m := NewTreeMap[int, int](cmp.Compare[int])
 	for i := 1; i <= 100; i++ {
 		m.Set(i, i)
 	}
@@ -693,7 +693,7 @@ func TestTreeMapIterator1(t *testing.T) {
 	//         └── 2
 	//             └── 1
 
-	testTreeMapIterate(t, cmp.CompareInt, kvs, false)
+	testTreeMapIterate(t, cmp.Compare[int], kvs, false)
 }
 
 func TestTreeMapIterator2(t *testing.T) {
@@ -703,13 +703,13 @@ func TestTreeMapIterator2(t *testing.T) {
 		{Key: 2, Value: "b"},
 	}
 
-	testTreeMapIterate(t, cmp.CompareInt, kvs, false)
+	testTreeMapIterate(t, cmp.Compare[int], kvs, false)
 }
 
 func TestTreeMapIterator3(t *testing.T) {
 	kvs := []cog.P[int, string]{{Key: 1, Value: "a"}}
 
-	testTreeMapIterate(t, cmp.CompareInt, kvs, false)
+	testTreeMapIterate(t, cmp.Compare[int], kvs, false)
 }
 
 func TestTreeMapIterator4(t *testing.T) {
@@ -735,7 +735,7 @@ func TestTreeMapIterator4(t *testing.T) {
 	//         │   ┌── 6
 	//         └── 1
 
-	testTreeMapIterate(t, cmp.CompareInt, kvs, true)
+	testTreeMapIterate(t, cmp.Compare[int], kvs, true)
 }
 
 func TestTreeMapMarshal(t *testing.T) {
@@ -762,7 +762,7 @@ func TestTreeMapMarshal(t *testing.T) {
 	}
 
 	for i := 0; i < 10; i++ {
-		original := NewTreeMap[string, string](cmp.CompareString)
+		original := NewTreeMap[string, string](cmp.Compare[string])
 		original.Set("d", "4")
 		original.Set("e", "5")
 		original.Set("c", "3")
@@ -777,7 +777,7 @@ func TestTreeMapMarshal(t *testing.T) {
 		}
 		assert(original, "B", t)
 
-		deserialized := NewTreeMap[string, string](cmp.CompareString)
+		deserialized := NewTreeMap[string, string](cmp.Compare[string])
 		err = json.Unmarshal(serialized, &deserialized)
 		if err != nil {
 			t.Errorf("Got error %v", err)

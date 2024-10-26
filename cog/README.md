@@ -155,7 +155,7 @@ Implements [List](#list), [Iterator](#iterator) interfaces.
 package main
 
 import (
-	"github.com/askasoft/pango/cmp"
+	"cmp"
 	"github.com/askasoft/pango/cog/arraylist"
 )
 
@@ -163,7 +163,7 @@ func main() {
 	list := arraylist.NewArrayList[string]()
 	list.Add("a")                         // ["a"]
 	list.Adds("c", "b")                   // ["a","c","b"]
-	list.Sort(cmp.LessString)             // ["a","b","c"]
+	list.Sort(cmp.Less[string])             // ["a","b","c"]
 	_ = list.Get(0)                       // "a"
 	_ = list.Get(100)                     // panic
 	_ = list.Contain("a")                 // true
@@ -192,7 +192,7 @@ Implements [List](#list), [Iterator](#iterator) interfaces.
 package main
 
 import (
-	"github.com/askasoft/pango/cmp"
+	"cmp"
 	"github.com/askasoft/pango/cog/linkedlist"
 )
 
@@ -200,7 +200,7 @@ func main() {
 	list := linkedlist.NewLinkedList[string]()
 	list.Add("a")                         // ["a"]
 	list.Adds("c", "b")                   // ["a","c","b"]
-	list.Sort(cmp.LessString)             // ["a","b","c"]
+	list.Sort(cmp.Less[string])             // ["a","b","c"]
 	_ = list.Get(0)                       // "a"
 	_ = list.Get(100)                     // panic
 	_ = list.Contain("a")                 // true
@@ -298,12 +298,12 @@ Implements [Set](#set), [Iterator](#iterator) interfaces.
 package main
 
 import (
-	"github.com/askasoft/pango/cmp"
+	"cmp"
 	"github.com/askasoft/pango/cog/treeset"
 )
 
 func main() {
-	set := treeset.NewTreeSet(cmp.CompareInt)
+	set := treeset.NewTreeSet(cmp.Compare[int])
 	set.Add(1)              // 1
 	set.Adds(2, 2, 3, 4, 5) // 1, 2, 3, 4, 5 (in order, duplicates ignored)
 	set.Remove(4)           // 1, 2, 3, 5 (in order)
@@ -444,12 +444,12 @@ Implements [Map](#map), [Iterator2](#iterator2) interfaces.
 package main
 
 import (
-	"github.com/askasoft/pango/cmp"
+	"cmp"
 	"github.com/askasoft/pango/cog/treemap"
 )
 
 func main() {
-	m := treemap.NewTreeMap[int, string](cmp.CompareInt)
+	m := treemap.NewTreeMap[int, string](cmp.Compare[int])
 	m.Set(1, "x")   // 1->x
 	m.Set(2, "b")   // 1->x, 2->b (in order)
 	m.Set(1, "a")   // 1->a, 2->b (in order)
@@ -535,26 +535,6 @@ Comparator signature:
 type Compare[T any] func(a, b T) int
 ```
 
-All common comparators for builtin types are included in the [cmp](../cmp/) package:
-
-```go
-func CompareString(a, b string) int
-func CompareInt(a, b int) int
-func CompareInt8(a, b int8) int
-func CompareInt16(a, b int16) int
-func CompareInt32(a, b int32) int
-func CompareInt64(a, b int64) int
-func CompareUInt(a, b uint) int
-func CompareUInt8(a, b uint8) int
-func CompareUInt16(a, b uint16) int
-func CompareUInt32(a, b uint32) int
-func CompareUInt64(a, b uint64) int
-func CompareFloat32(a, b float32) int
-func CompareFloat64(a, b float64) int
-func CompareByte(a, b byte) int
-func CompareRune(a, b rune) int
-```
-
 Writing custom comparators is easy:
 
 ```go
@@ -611,30 +591,8 @@ Less comparator is defined as:
 //    false: if a >= b
 ```
 
-Comparator signature:
+Less signature:
 
 ```go
 type Less[T any] func(a, b T) bool
 ```
-
-All common comparators for builtin types are included in the [cmp](../cmp/) package:
-
-```go
-func LessString(a, b string) bool
-func LessByte(a, b byte) bool
-func LessRune(a, b rune) bool
-func LessInt(a, b int) bool
-func LessInt8(a, b int8) bool
-func LessInt16(a, b int16) bool
-func LessInt32(a, b int32) bool
-func LessInt64(a, b int64) bool
-func LessUint(a, b uint) bool
-func LessUint8(a, b uint8) bool
-func LessUint16(a, b uint16) bool
-func LessUint32(a, b uint32) bool
-func LessUint64(a, b uint64) bool
-func LessFloat32(a, b float32) bool
-func LessFloat64(a, b float64) bool
-```
-
-

@@ -4,6 +4,7 @@
 package linkedhashset
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -12,7 +13,6 @@ import (
 	"testing"
 
 	"github.com/askasoft/pango/asg"
-	"github.com/askasoft/pango/cmp"
 	"github.com/askasoft/pango/cog"
 	"github.com/askasoft/pango/cog/arraylist"
 )
@@ -556,7 +556,7 @@ func TestLinkedHashSetSort(t *testing.T) {
 			lset.Add(a[j])
 		}
 
-		lset.Sort(cmp.LessInt)
+		lset.Sort(cmp.Less[int])
 		sort.Sort(inta(a))
 
 		if !reflect.DeepEqual(a, lset.Values()) {

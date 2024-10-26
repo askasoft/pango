@@ -2,6 +2,7 @@ package ini
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"reflect"
 	"strings"
@@ -153,6 +154,45 @@ func testLoadFile(t *testing.T, fsrc, fexp, fout string) {
 			t.Errorf(`sec.Map() = %v`, ssm)
 		}
 	}
+}
+
+func TestLoadError(t *testing.T) {
+	cs := []struct {
+		w error
+		s string
+	}{
+		{fmt.Errorf("line %d: invalid section", 3), `
+#1
+[abc
+		`},
+		{fmt.Errorf("line %d: invalid entry", 3), `
+#2
+abc
+		`},
+		{fmt.Errorf("line %d: empty key", 3), `
+#3
+=abc
+		`},
+		{fmt.Errorf("line %d: invalid quoted value", 3), `
+#4
+key="\a"bc"
+		`},
+		{fmt.Errorf("line %d: invalid quoted value", 5), `
+#5
+m=a\
+b
+key="\a"\
+bc"
+		`},
+	}
+
+	for i, c := range cs {
+		a := NewIni().LoadData(strings.NewReader(c.s))
+		if a == nil || a.Error() != c.w.Error() {
+			t.Errorf("[%d] LoadData() = %v, want %v", i, a, c.w)
+		}
+	}
+
 }
 
 func TestIniCopy(t *testing.T) {

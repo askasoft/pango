@@ -6,7 +6,6 @@ package ini
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -272,11 +271,12 @@ func (ini *Ini) LoadData(r io.Reader, multiple ...bool) (err error) {
 		multi = multiple[0]
 	}
 
-	lineContinue := false         // line continue flag
+	linenum := 0                  // current line number
+	linecon := 0                  // line continue counter
 	section := ini.GetSection("") // last section
 
 	var (
-		line     []byte       // line bytes
+		buf      []byte       // line bytes
 		key      string       // last key
 		val      bytes.Buffer // last value
 		comments []string     // last comments
@@ -286,15 +286,15 @@ func (ini *Ini) LoadData(r io.Reader, multiple ...bool) (err error) {
 	for {
 		eof := !scanner.Scan()
 		if eof {
-			line = nil
+			buf = nil
 		} else {
-			line = bytes.TrimSpace(scanner.Bytes())
+			buf = bytes.TrimSpace(scanner.Bytes())
 		}
 
 		// line continuation
-		if lineContinue {
-			if bye.EndsWithByte(line, '\\') {
-				if len(line) == 1 {
+		if linecon > 0 {
+			if bye.EndsWithByte(buf, '\\') {
+				if len(buf) == 1 {
 					// a single '\\' line means EOL
 					if bye.StartsWithByte(val.Bytes(), '"') {
 						qs := quote(ini.EOL)
@@ -303,14 +303,15 @@ func (ini *Ini) LoadData(r io.Reader, multiple ...bool) (err error) {
 						val.WriteString(ini.EOL)
 					}
 				} else {
-					val.Write(line[:len(line)-1])
+					val.Write(buf[:len(buf)-1])
 				}
+				linecon++
 			} else {
-				val.Write(line)
+				val.Write(buf)
 
 				s, err := unquote(val.String())
 				if err != nil {
-					return err
+					return fmt.Errorf("line %d: invalid quoted value", linenum)
 				}
 
 				section.Add(key, s, comments...)
@@ -318,7 +319,9 @@ func (ini *Ini) LoadData(r io.Reader, multiple ...bool) (err error) {
 				key = ""
 				val.Reset()
 				comments = nil
-				lineContinue = false
+
+				linenum += linecon
+				linecon = 0
 			}
 			continue
 		}
@@ -327,8 +330,10 @@ func (ini *Ini) LoadData(r io.Reader, multiple ...bool) (err error) {
 			break
 		}
 
+		linenum++
+
 		// empty line
-		if len(line) == 0 {
+		if len(buf) == 0 {
 			if len(comments) > 0 {
 				if ini.IsEmpty() {
 					global := ini.GetSection("") // global section / no name section
@@ -347,21 +352,21 @@ func (ini *Ini) LoadData(r io.Reader, multiple ...bool) (err error) {
 		}
 
 		// first char
-		c := line[0]
+		c := buf[0]
 
 		// comment
 		if c == ';' || c == '#' {
-			comments = append(comments, string(line))
+			comments = append(comments, string(buf))
 			continue
 		}
 
 		// section
 		if c == '[' {
-			if line[len(line)-1] != ']' {
-				return fmt.Errorf("Invalid section: %s", string(line))
+			if buf[len(buf)-1] != ']' {
+				return fmt.Errorf("line %d: invalid section", linenum)
 			}
 
-			sn := string(line[1 : len(line)-1])
+			sn := string(buf[1 : len(buf)-1])
 			section = ini.GetSection(sn)
 			if section == nil {
 				section = ini.NewSection(sn, comments...)
@@ -371,31 +376,31 @@ func (ini *Ini) LoadData(r io.Reader, multiple ...bool) (err error) {
 		}
 
 		// entry
-		d := bytes.IndexByte(line, '=')
-		if d < 1 {
-			return fmt.Errorf("Invalid entry: %s", string(line))
+		d := bytes.IndexByte(buf, '=')
+		if d < 0 {
+			return fmt.Errorf("line %d: invalid entry", linenum)
 		}
 
 		// entry key
-		k := string(bytes.TrimSpace(line[:d]))
+		k := string(bytes.TrimSpace(buf[:d]))
 		if k == "" {
-			return fmt.Errorf("Invalid entry: %s", string(line))
+			return fmt.Errorf("line %d: empty key", linenum)
 		}
 
 		// entry value
-		v := bytes.TrimSpace(line[d+1:])
+		v := bytes.TrimSpace(buf[d+1:])
 
 		if bye.EndsWithByte(v, '\\') { // line continuation
 			val.Write(v[:len(v)-1])
 			key = k
-			lineContinue = true
+			linecon++
 			continue
 		}
 
 		// add entry
 		s, err := unquote(string(v))
 		if err != nil {
-			return err
+			return fmt.Errorf("line %d: invalid quoted value", linenum)
 		}
 
 		if multi {
@@ -447,13 +452,8 @@ func isQuoted(s string) bool {
 
 func unquote(s string) (string, error) {
 	if isQuoted(s) {
-		us, err := strconv.Unquote(s)
-		if err != nil {
-			err = errors.New("invalid quoted value: " + s)
-		}
-		return us, err
+		return strconv.Unquote(s)
 	}
-
 	return s, nil
 }
 

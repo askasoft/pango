@@ -3,13 +3,13 @@
 
 package linkedlist
 
-import "github.com/askasoft/pango/cmp"
+import "cmp"
 
 func ExampleNewLinkedList() {
 	list := NewLinkedList[string]()
 	list.Add("a")                         // ["a"]
 	list.Adds("c", "b")                   // ["a","c","b"]
-	list.Sort(cmp.LessString)             // ["a","b","c"]
+	list.Sort(cmp.Less[string])           // ["a","b","c"]
 	_ = list.Get(0)                       // "a"  //_ = list.Get(100)  --> panic
 	_ = list.Contains("a", "b", "c")      // true
 	_ = list.Contains("a", "b", "c", "d") // false

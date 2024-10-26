@@ -3,10 +3,10 @@
 
 package treemap
 
-import "github.com/askasoft/pango/cmp"
+import "cmp"
 
 func ExampleTreeMap() {
-	m := NewTreeMap[int, string](cmp.CompareInt)
+	m := NewTreeMap[int, string](cmp.Compare[int])
 	m.Set(1, "x")   // 1->x
 	m.Set(2, "b")   // 1->x, 2->b (in order)
 	m.Set(1, "a")   // 1->a, 2->b (in order)

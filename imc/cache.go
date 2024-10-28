@@ -9,21 +9,21 @@ import (
 	"github.com/askasoft/pango/cas"
 )
 
-type Item struct {
-	Object  any   // Cache Object
+type Item[T any] struct {
+	Object  T     // Cache Object
 	Expires int64 // UnixNano
 }
 
 // Returns true if the item has expired.
-func (item Item) Expired() bool {
+func (item Item[T]) Expired() bool {
 	if item.Expires == 0 {
 		return false
 	}
 	return time.Now().UnixNano() > item.Expires
 }
 
-type Cache struct {
-	*cache
+type Cache[T any] struct {
+	*cache[T]
 }
 
 // Return a new cache with a given default expiration duration and cleanup
@@ -31,8 +31,8 @@ type Cache struct {
 // the items in the cache never expire (by default), and must be deleted
 // manually. If the cleanup interval is less than 1, expired items are not
 // deleted from the cache before calling c.DeleteExpired().
-func New(defaultExpires, cleanupInterval time.Duration) *Cache {
-	items := make(map[string]Item)
+func New[T any](defaultExpires, cleanupInterval time.Duration) *Cache[T] {
+	items := make(map[string]Item[T])
 	return newCacheWithJanitor(defaultExpires, cleanupInterval, items)
 }
 
@@ -51,18 +51,18 @@ func New(defaultExpires, cleanupInterval time.Duration) *Cache {
 // recommended to keep any references to the map around after creating a cache.
 // If need be, the map can be accessed at a later point using c.Items() (subject
 // to the same caveat.)
-func NewFrom(defaultExpires, cleanupInterval time.Duration, items map[string]Item) *Cache {
+func NewFrom[T any](defaultExpires, cleanupInterval time.Duration, items map[string]Item[T]) *Cache[T] {
 	return newCacheWithJanitor(defaultExpires, cleanupInterval, items)
 }
 
-type cache struct {
+type cache[T any] struct {
 	mu      sync.RWMutex
 	de      time.Duration
-	items   map[string]Item
-	janitor *janitor
+	items   map[string]Item[T]
+	janitor *janitor[T]
 }
 
-func (c *cache) expires(ds ...time.Duration) int64 {
+func (c *cache[T]) expires(ds ...time.Duration) int64 {
 	var d time.Duration
 	var e int64
 
@@ -83,19 +83,19 @@ func (c *cache) expires(ds ...time.Duration) int64 {
 // Add an item to the cache, replacing any existing item.
 // If the duration is 0, the cache's default expiration time is used.
 // If it < 0, the item never expires.
-func (c *cache) Set(k string, x any, d ...time.Duration) {
+func (c *cache[T]) Set(k string, x T, d ...time.Duration) {
 	e := c.expires(d...)
 
 	c.mu.Lock()
-	c.items[k] = Item{
+	c.items[k] = Item[T]{
 		Object:  x,
 		Expires: e,
 	}
 	c.mu.Unlock()
 }
 
-func (c *cache) set(k string, x any, e int64) {
-	c.items[k] = Item{
+func (c *cache[T]) set(k string, x T, e int64) {
+	c.items[k] = Item[T]{
 		Object:  x,
 		Expires: e,
 	}
@@ -103,7 +103,7 @@ func (c *cache) set(k string, x any, e int64) {
 
 // Add an item to the cache only if an item doesn't already exist for the given
 // key, or if the existing item has expired. Returns an error otherwise.
-func (c *cache) Add(k string, x any, d ...time.Duration) error {
+func (c *cache[T]) Add(k string, x T, d ...time.Duration) error {
 	c.mu.Lock()
 	_, found := c.get(k)
 	if found {
@@ -119,12 +119,12 @@ func (c *cache) Add(k string, x any, d ...time.Duration) error {
 
 // Replace a new value for the cache key only if it already exists, and the existing
 // item hasn't expired. Returns an error otherwise.
-func (c *cache) Replace(k string, x any, d ...time.Duration) error {
+func (c *cache[T]) Replace(k string, x T, d ...time.Duration) error {
 	c.mu.Lock()
 	_, found := c.get(k)
 	if !found {
 		c.mu.Unlock()
-		return fmt.Errorf("item %s doesn't exist", k)
+		return fmt.Errorf("item '%s' doesn't exist", k)
 	}
 
 	e := c.expires(d...)
@@ -137,7 +137,7 @@ func (c *cache) Replace(k string, x any, d ...time.Duration) error {
 // uint8, uint32, or uint64, float32 or float64 by n. Returns an error if the
 // item's value is not an integer, if it was not found and default value 'x[0]' is not supplied,
 // or if it is not possible to increment it by n.
-func (c *cache) Increment(k string, n any, x ...any) error {
+func (c *cache[T]) Increment(k string, n T, x ...T) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -147,86 +147,15 @@ func (c *cache) Increment(k string, n any, x ...any) error {
 			c.set(k, x[0], c.expires())
 			return nil
 		}
-		return fmt.Errorf("item %s doesn't exist", k)
+		return fmt.Errorf("item '%s' doesn't exist", k)
 	}
 
-	switch s := v.Object.(type) {
-	case int:
-		d, err := cas.ToInt(n)
-		if err != nil {
-			return err
-		}
-		v.Object = s + d
-	case int8:
-		d, err := cas.ToInt8(n)
-		if err != nil {
-			return err
-		}
-		v.Object = s + d
-	case int16:
-		d, err := cas.ToInt16(n)
-		if err != nil {
-			return err
-		}
-		v.Object = s + d
-	case int32:
-		d, err := cas.ToInt32(n)
-		if err != nil {
-			return err
-		}
-		v.Object = s + d
-	case int64:
-		d, err := cas.ToInt64(n)
-		if err != nil {
-			return err
-		}
-		v.Object = s + d
-	case uint:
-		d, err := cas.ToUint(n)
-		if err != nil {
-			return err
-		}
-		v.Object = s + d
-	case uint8:
-		d, err := cas.ToUint8(n)
-		if err != nil {
-			return err
-		}
-		v.Object = s + d
-	case uint16:
-		d, err := cas.ToUint16(n)
-		if err != nil {
-			return err
-		}
-		v.Object = s + d
-	case uint32:
-		d, err := cas.ToUint32(n)
-		if err != nil {
-			return err
-		}
-		v.Object = s + d
-	case uint64:
-		d, err := cas.ToUint64(n)
-		if err != nil {
-			return err
-		}
-		v.Object = s + d
-	case float32:
-		d, err := cas.ToFloat32(n)
-		if err != nil {
-			return err
-		}
-		v.Object = s + d
-	case float64:
-		d, err := cas.ToFloat64(n)
-		if err != nil {
-			return err
-		}
-		v.Object = s + d
-	default:
-		return fmt.Errorf("item '%s' is not number", k)
+	o, err := c.inc(v.Object, n)
+	if err != nil {
+		return fmt.Errorf("item '%s' cannot increment: %w", k, err)
 	}
 
+	v.Object = o.(T)
 	c.items[k] = v
 	return nil
 }
@@ -235,7 +164,7 @@ func (c *cache) Increment(k string, n any, x ...any) error {
 // uint8, uint32, or uint64, float32 or float64 by n. Returns an error if the
 // item's value is not an integer, if it was not found and default value 'x[0]' is not supplied,
 // or if it is not possible to decrement it by n.
-func (c *cache) Decrement(k string, n any, x ...any) error {
+func (c *cache[T]) Decrement(k string, n T, x ...T) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -245,104 +174,193 @@ func (c *cache) Decrement(k string, n any, x ...any) error {
 			c.set(k, x[0], c.expires())
 			return nil
 		}
-		return fmt.Errorf("item %s doesn't exist", k)
+		return fmt.Errorf("item '%s' doesn't exist", k)
 	}
 
-	switch s := v.Object.(type) {
-	case int:
-		d, err := cas.ToInt(n)
-		if err != nil {
-			return err
-		}
-		v.Object = s - d
-	case int8:
-		d, err := cas.ToInt8(n)
-		if err != nil {
-			return err
-		}
-		v.Object = s - d
-	case int16:
-		d, err := cas.ToInt16(n)
-		if err != nil {
-			return err
-		}
-		v.Object = s - d
-	case int32:
-		d, err := cas.ToInt32(n)
-		if err != nil {
-			return err
-		}
-		v.Object = s - d
-	case int64:
-		d, err := cas.ToInt64(n)
-		if err != nil {
-			return err
-		}
-		v.Object = s - d
-	case uint:
-		d, err := cas.ToUint(n)
-		if err != nil {
-			return err
-		}
-		v.Object = s - d
-	case uint8:
-		d, err := cas.ToUint8(n)
-		if err != nil {
-			return err
-		}
-		v.Object = s - d
-	case uint16:
-		d, err := cas.ToUint16(n)
-		if err != nil {
-			return err
-		}
-		v.Object = s - d
-	case uint32:
-		d, err := cas.ToUint32(n)
-		if err != nil {
-			return err
-		}
-		v.Object = s - d
-	case uint64:
-		d, err := cas.ToUint64(n)
-		if err != nil {
-			return err
-		}
-		v.Object = s - d
-	case float32:
-		d, err := cas.ToFloat32(n)
-		if err != nil {
-			return err
-		}
-		v.Object = s - d
-	case float64:
-		d, err := cas.ToFloat64(n)
-		if err != nil {
-			return err
-		}
-		v.Object = s - d
-	default:
-		return fmt.Errorf("item '%s' is not number", k)
+	o, err := c.dec(v.Object, n)
+	if err != nil {
+		return fmt.Errorf("item '%s' cannot decrement: %w", k, err)
 	}
 
+	v.Object = o.(T)
 	c.items[k] = v
 	return nil
 }
 
+func (c *cache[T]) inc(o any, n any) (any, error) {
+	switch s := o.(type) {
+	case int:
+		d, err := cas.ToInt(n)
+		if err != nil {
+			return o, err
+		}
+		return s + d, nil
+	case int8:
+		d, err := cas.ToInt8(n)
+		if err != nil {
+			return o, err
+		}
+		return s + d, nil
+	case int16:
+		d, err := cas.ToInt16(n)
+		if err != nil {
+			return o, err
+		}
+		return s + d, nil
+	case int32:
+		d, err := cas.ToInt32(n)
+		if err != nil {
+			return o, err
+		}
+		return s + d, nil
+	case int64:
+		d, err := cas.ToInt64(n)
+		if err != nil {
+			return o, err
+		}
+		return s + d, nil
+	case uint:
+		d, err := cas.ToUint(n)
+		if err != nil {
+			return o, err
+		}
+		return s + d, nil
+	case uint8:
+		d, err := cas.ToUint8(n)
+		if err != nil {
+			return o, err
+		}
+		return s + d, nil
+	case uint16:
+		d, err := cas.ToUint16(n)
+		if err != nil {
+			return o, err
+		}
+		return s + d, nil
+	case uint32:
+		d, err := cas.ToUint32(n)
+		if err != nil {
+			return o, err
+		}
+		return s + d, nil
+	case uint64:
+		d, err := cas.ToUint64(n)
+		if err != nil {
+			return o, err
+		}
+		return s + d, nil
+	case float32:
+		d, err := cas.ToFloat32(n)
+		if err != nil {
+			return o, err
+		}
+		return s + d, nil
+	case float64:
+		d, err := cas.ToFloat64(n)
+		if err != nil {
+			return o, err
+		}
+		return s + d, nil
+	default:
+		return o, fmt.Errorf("'%T' is not number", o)
+	}
+}
+
+func (c *cache[T]) dec(o any, n any) (any, error) {
+	switch s := o.(type) {
+	case int:
+		d, err := cas.ToInt(n)
+		if err != nil {
+			return o, err
+		}
+		return s - d, nil
+	case int8:
+		d, err := cas.ToInt8(n)
+		if err != nil {
+			return o, err
+		}
+		return s - d, nil
+	case int16:
+		d, err := cas.ToInt16(n)
+		if err != nil {
+			return o, err
+		}
+		return s - d, nil
+	case int32:
+		d, err := cas.ToInt32(n)
+		if err != nil {
+			return o, err
+		}
+		return s - d, nil
+	case int64:
+		d, err := cas.ToInt64(n)
+		if err != nil {
+			return o, err
+		}
+		return s - d, nil
+	case uint:
+		d, err := cas.ToUint(n)
+		if err != nil {
+			return o, err
+		}
+		return s - d, nil
+	case uint8:
+		d, err := cas.ToUint8(n)
+		if err != nil {
+			return o, err
+		}
+		return s - d, nil
+	case uint16:
+		d, err := cas.ToUint16(n)
+		if err != nil {
+			return o, err
+		}
+		return s - d, nil
+	case uint32:
+		d, err := cas.ToUint32(n)
+		if err != nil {
+			return o, err
+		}
+		return s - d, nil
+	case uint64:
+		d, err := cas.ToUint64(n)
+		if err != nil {
+			return o, err
+		}
+		return s - d, nil
+	case float32:
+		d, err := cas.ToFloat32(n)
+		if err != nil {
+			return o, err
+		}
+		return s - d, nil
+	case float64:
+		d, err := cas.ToFloat64(n)
+		if err != nil {
+			return o, err
+		}
+		return s - d, nil
+	default:
+		return o, fmt.Errorf("'%T' is not number", s)
+	}
+}
+
 // Get an item from the cache. Returns the item or nil, and a bool indicating
 // whether the key was found.
-func (c *cache) Get(k string) (any, bool) {
+func (c *cache[T]) Get(k string) (T, bool) {
 	c.mu.RLock()
 	item, found := c.items[k]
 	if !found {
 		c.mu.RUnlock()
-		return nil, false
+		var d T
+		return d, false
 	}
 
 	if item.Expires > 0 {
 		if time.Now().UnixNano() > item.Expires {
 			c.mu.RUnlock()
-			return nil, false
+			var d T
+			return d, false
 		}
 	}
 
@@ -354,18 +372,20 @@ func (c *cache) Get(k string) (any, bool) {
 // It returns the item or nil, the expiration time if one is set (if the item
 // never expires a zero value for time.Time is returned), and a bool indicating
 // whether the key was found.
-func (c *cache) GetWithExpires(k string) (any, time.Time, bool) {
+func (c *cache[T]) GetWithExpires(k string) (T, time.Time, bool) {
 	c.mu.RLock()
 	item, found := c.items[k]
 	if !found {
 		c.mu.RUnlock()
-		return nil, time.Time{}, false
+		var d T
+		return d, time.Time{}, false
 	}
 
 	if item.Expires > 0 {
 		if time.Now().UnixNano() > item.Expires {
 			c.mu.RUnlock()
-			return nil, time.Time{}, false
+			var d T
+			return d, time.Time{}, false
 		}
 
 		// Return the item and the expiration time
@@ -379,29 +399,31 @@ func (c *cache) GetWithExpires(k string) (any, time.Time, bool) {
 	return item.Object, time.Time{}, true
 }
 
-func (c *cache) get(k string) (any, bool) {
+func (c *cache[T]) get(k string) (T, bool) {
 	item, found := c.items[k]
 	if !found {
-		return nil, false
+		var d T
+		return d, false
 	}
 
 	if item.Expires > 0 {
 		if time.Now().UnixNano() > item.Expires {
-			return nil, false
+			var d T
+			return d, false
 		}
 	}
 	return item.Object, true
 }
 
 // Delete an item from the cache. Does nothing if the key is not in the cache.
-func (c *cache) Delete(k string) {
+func (c *cache[T]) Delete(k string) {
 	c.mu.Lock()
 	delete(c.items, k)
 	c.mu.Unlock()
 }
 
 // Delete all expired items from the cache.
-func (c *cache) DeleteExpired() {
+func (c *cache[T]) DeleteExpired() {
 	now := time.Now().UnixNano()
 
 	c.mu.Lock()
@@ -414,11 +436,11 @@ func (c *cache) DeleteExpired() {
 }
 
 // Copies all unexpired items in the cache into a new map and returns it.
-func (c *cache) Items() map[string]Item {
+func (c *cache[T]) Items() map[string]Item[T] {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	m := make(map[string]Item, len(c.items))
+	m := make(map[string]Item[T], len(c.items))
 	now := time.Now().UnixNano()
 	for k, v := range c.items {
 		if v.Expires > 0 {
@@ -433,7 +455,7 @@ func (c *cache) Items() map[string]Item {
 
 // Returns the number of items in the cache. This may include items that have
 // expired, but have not yet been cleaned up.
-func (c *cache) Count() int {
+func (c *cache[T]) Count() int {
 	c.mu.RLock()
 	n := len(c.items)
 	c.mu.RUnlock()
@@ -441,18 +463,18 @@ func (c *cache) Count() int {
 }
 
 // Delete all items from the cache.
-func (c *cache) Clear() {
+func (c *cache[T]) Clear() {
 	c.mu.Lock()
-	c.items = map[string]Item{}
+	c.items = map[string]Item[T]{}
 	c.mu.Unlock()
 }
 
-type janitor struct {
+type janitor[T any] struct {
 	Interval time.Duration
 	stop     chan bool
 }
 
-func (j *janitor) Run(c *cache) {
+func (j *janitor[T]) Run(c *cache[T]) {
 	ticker := time.NewTicker(j.Interval)
 	for {
 		select {
@@ -465,12 +487,12 @@ func (j *janitor) Run(c *cache) {
 	}
 }
 
-func stopJanitor(c *Cache) {
+func stopJanitor[T any](c *Cache[T]) {
 	c.janitor.stop <- true
 }
 
-func runJanitor(c *cache, ci time.Duration) {
-	j := &janitor{
+func runJanitor[T any](c *cache[T], ci time.Duration) {
+	j := &janitor[T]{
 		Interval: ci,
 		stop:     make(chan bool),
 	}
@@ -478,18 +500,18 @@ func runJanitor(c *cache, ci time.Duration) {
 	go j.Run(c)
 }
 
-func newCache(de time.Duration, m map[string]Item) *cache {
+func newCache[T any](de time.Duration, m map[string]Item[T]) *cache[T] {
 	if de == 0 {
 		de = -1
 	}
-	c := &cache{
+	c := &cache[T]{
 		de:    de,
 		items: m,
 	}
 	return c
 }
 
-func newCacheWithJanitor(de time.Duration, ci time.Duration, m map[string]Item) *Cache {
+func newCacheWithJanitor[T any](de time.Duration, ci time.Duration, m map[string]Item[T]) *Cache[T] {
 	c := newCache(de, m)
 
 	// This trick ensures that the janitor goroutine (which--granted it
@@ -497,10 +519,10 @@ func newCacheWithJanitor(de time.Duration, ci time.Duration, m map[string]Item) 
 	// the returned C object from being garbage collected. When it is
 	// garbage collected, the finalizer stops the janitor goroutine, after
 	// which c can be collected.
-	C := &Cache{c}
+	C := &Cache[T]{c}
 	if ci > 0 {
 		runJanitor(c, ci)
-		runtime.SetFinalizer(C, stopJanitor)
+		runtime.SetFinalizer(C, stopJanitor[T])
 	}
 	return C
 }

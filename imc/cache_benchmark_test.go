@@ -18,7 +18,7 @@ func BenchmarkCacheGetNotExpiring(b *testing.B) {
 
 func benchmarkCacheGet(b *testing.B, exp time.Duration) {
 	b.StopTimer()
-	tc := New(exp, 0)
+	tc := New[any](exp, 0)
 	tc.Set("foo", "bar", 0)
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
@@ -79,7 +79,7 @@ func BenchmarkCacheGetConcurrentNotExpiring(b *testing.B) {
 
 func benchmarkCacheGetConcurrent(b *testing.B, exp time.Duration) {
 	b.StopTimer()
-	tc := New(exp, 0)
+	tc := New[any](exp, 0)
 	tc.Set("foo", "bar", 0)
 	wg := new(sync.WaitGroup)
 	workers := runtime.NumCPU()
@@ -135,7 +135,7 @@ func benchmarkCacheGetManyConcurrent(b *testing.B, exp time.Duration) {
 	// in sharded_test.go.
 	b.StopTimer()
 	n := 10000
-	tc := New(exp, 0)
+	tc := New[any](exp, 0)
 	keys := make([]string, n)
 	for i := 0; i < n; i++ {
 		k := "foo" + strconv.Itoa(i)
@@ -167,7 +167,7 @@ func BenchmarkCacheSetNotExpiring(b *testing.B) {
 
 func benchmarkCacheSet(b *testing.B, exp time.Duration) {
 	b.StopTimer()
-	tc := New(exp, 0)
+	tc := New[any](exp, 0)
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		tc.Set("foo", "bar", 0)
@@ -188,7 +188,7 @@ func BenchmarkRWMutexMapSet(b *testing.B) {
 
 func BenchmarkCacheSetDelete(b *testing.B) {
 	b.StopTimer()
-	tc := New(0, 0)
+	tc := New[any](0, 0)
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		tc.Set("foo", "bar", 0)
@@ -213,7 +213,7 @@ func BenchmarkRWMutexMapSetDelete(b *testing.B) {
 
 func BenchmarkCacheSetDeleteSingleLock(b *testing.B) {
 	b.StopTimer()
-	tc := New(0, 0)
+	tc := New[any](0, 0)
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		tc.mu.Lock()
@@ -238,7 +238,7 @@ func BenchmarkRWMutexMapSetDeleteSingleLock(b *testing.B) {
 
 func BenchmarkDeleteExpiredLoop(b *testing.B) {
 	b.StopTimer()
-	tc := New(5*time.Minute, 0)
+	tc := New[any](5*time.Minute, 0)
 	tc.mu.Lock()
 	for i := 0; i < 100000; i++ {
 		tc.set(strconv.Itoa(i), "bar", 0)
@@ -251,7 +251,7 @@ func BenchmarkDeleteExpiredLoop(b *testing.B) {
 }
 
 func TestGetWithExpires(t *testing.T) {
-	tc := New(0, 0)
+	tc := New[any](0, 0)
 
 	a, expiration, found := tc.GetWithExpires("a")
 	if found || a != nil || !expiration.IsZero() {

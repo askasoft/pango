@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/tmu"
 )
 
 var (
@@ -341,44 +342,52 @@ func setWithProperType(val string, value reflect.Value, field reflect.StructFiel
 
 func setIntField(val string, bitSize int, field reflect.Value) error {
 	if val == "" {
-		val = "0"
+		field.SetInt(0)
+		return nil
 	}
-	intVal, err := strconv.ParseInt(val, 10, bitSize)
+
+	n, err := strconv.ParseInt(val, 10, bitSize)
 	if err == nil {
-		field.SetInt(intVal)
+		field.SetInt(n)
 	}
 	return err
 }
 
 func setUintField(val string, bitSize int, field reflect.Value) error {
 	if val == "" {
-		val = "0"
+		field.SetUint(0)
+		return nil
 	}
-	uintVal, err := strconv.ParseUint(val, 10, bitSize)
+
+	n, err := strconv.ParseUint(val, 10, bitSize)
 	if err == nil {
-		field.SetUint(uintVal)
+		field.SetUint(n)
 	}
 	return err
 }
 
 func setBoolField(val string, field reflect.Value) error {
 	if val == "" {
-		val = "false"
+		field.SetBool(false)
+		return nil
 	}
-	boolVal, err := strconv.ParseBool(val)
+
+	b, err := strconv.ParseBool(val)
 	if err == nil {
-		field.SetBool(boolVal)
+		field.SetBool(b)
 	}
 	return err
 }
 
 func setFloatField(val string, bitSize int, field reflect.Value) error {
 	if val == "" {
-		val = "0.0"
+		field.SetFloat(0)
+		return nil
 	}
-	floatVal, err := strconv.ParseFloat(val, bitSize)
+
+	f, err := strconv.ParseFloat(val, bitSize)
 	if err == nil {
-		field.SetFloat(floatVal)
+		field.SetFloat(f)
 	}
 	return err
 }
@@ -388,19 +397,17 @@ func setStringField(val string, field reflect.Value) error {
 	return nil
 }
 
-var timeFormats = []string{time.RFC3339, "2006-01-02 15:04:05", "2006-01-02", "15:04:05"}
-
 func setTimeField(val string, field reflect.StructField, value reflect.Value) error {
 	if val == "" {
 		value.Set(reflect.ValueOf(time.Time{}))
 		return nil
 	}
 
-	timeFormat := field.Tag.Get("time_format")
+	tf := strings.ToLower(field.Tag.Get("time_format"))
 
-	switch tf := strings.ToLower(timeFormat); tf {
+	switch tf {
 	case "unix", "unixnano":
-		tv, err := strconv.ParseInt(val, 10, 64)
+		n, err := strconv.ParseInt(val, 10, 64)
 		if err != nil {
 			return err
 		}
@@ -410,35 +417,35 @@ func setTimeField(val string, field reflect.StructField, value reflect.Value) er
 			d = time.Second
 		}
 
-		t := time.Unix(tv/int64(d), tv%int64(d))
+		t := time.Unix(n/int64(d), n%int64(d))
 		value.Set(reflect.ValueOf(t))
 		return nil
 	}
 
-	l := time.Local
+	loc := time.Local
 	if isUTC, _ := strconv.ParseBool(field.Tag.Get("time_utc")); isUTC {
-		l = time.UTC
+		loc = time.UTC
 	}
 
 	if locTag := field.Tag.Get("time_location"); locTag != "" {
-		loc, err := time.LoadLocation(locTag)
+		tl, err := time.LoadLocation(locTag)
 		if err != nil {
 			return err
 		}
-		l = loc
+		loc = tl
 	}
 
-	if timeFormat == "" {
-		timeFormat = timeFormats[0]
-		for _, tf := range timeFormats {
-			if len(tf) == len(val) {
-				timeFormat = tf
-				break
-			}
+	if tf != "" {
+		t, err := time.ParseInLocation(tf, val, loc)
+		if err != nil {
+			return err
 		}
+
+		value.Set(reflect.ValueOf(t))
+		return nil
 	}
 
-	t, err := time.ParseInLocation(timeFormat, val, l)
+	t, err := tmu.ParseInLocation(val, loc)
 	if err != nil {
 		return err
 	}
@@ -449,8 +456,7 @@ func setTimeField(val string, field reflect.StructField, value reflect.Value) er
 
 func setArray(vals []string, value reflect.Value, field reflect.StructField) error {
 	for i, s := range vals {
-		err := setWithProperType(s, value.Index(i), field)
-		if err != nil {
+		if err := setWithProperType(s, value.Index(i), field); err != nil {
 			return err
 		}
 	}
@@ -459,8 +465,7 @@ func setArray(vals []string, value reflect.Value, field reflect.StructField) err
 
 func setSlice(vals []string, value reflect.Value, field reflect.StructField) error {
 	slice := reflect.MakeSlice(value.Type(), len(vals), len(vals))
-	err := setArray(vals, slice, field)
-	if err != nil {
+	if err := setArray(vals, slice, field); err != nil {
 		return err
 	}
 	value.Set(slice)

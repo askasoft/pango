@@ -3,6 +3,24 @@
 
 package mag
 
+// Keys return the slice of map's key
+func Keys[K comparable, V any](m map[K]V) []K {
+	ks := make([]K, 0, len(m))
+	for k := range m {
+		ks = append(ks, k)
+	}
+	return ks
+}
+
+// Values return the slice of map's value
+func Values[K comparable, V any](m map[K]V) []V {
+	vs := make([]V, 0, len(m))
+	for _, v := range m {
+		vs = append(vs, v)
+	}
+	return vs
+}
+
 // Equal check equal for two map a and b.
 func Equal[K comparable, V comparable](a map[K]V, b map[K]V) bool {
 	if len(a) != len(b) {

@@ -5,8 +5,43 @@ package mag
 
 import (
 	"reflect"
+	"sort"
 	"testing"
 )
+
+func TestKeys(t *testing.T) {
+	cs := []struct {
+		m map[int]string
+		w []int
+	}{
+		{map[int]string{1: "11", 2: "22"}, []int{1, 2}},
+	}
+
+	for i, c := range cs {
+		a := Keys(c.m)
+		sort.Ints(a)
+		if !reflect.DeepEqual(a, c.w) {
+			t.Errorf("[%d] Keys(%v) = %v, want %v", i, c.m, a, c.w)
+		}
+	}
+}
+
+func TestValues(t *testing.T) {
+	cs := []struct {
+		m map[int]string
+		w []string
+	}{
+		{map[int]string{1: "11", 2: "22"}, []string{"11", "22"}},
+	}
+
+	for i, c := range cs {
+		a := Values(c.m)
+		sort.Strings(a)
+		if !reflect.DeepEqual(a, c.w) {
+			t.Errorf("[%d] Values(%v) = %v, want %v", i, c.m, a, c.w)
+		}
+	}
+}
 
 func TestEqual(t *testing.T) {
 	var a, b map[int]int

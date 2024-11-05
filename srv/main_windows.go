@@ -14,35 +14,41 @@ func PrintDefaultCommand(out io.Writer) {
 	fmt.Fprintln(out, "    remove              remove installed windows service.")
 	fmt.Fprintln(out, "    start               start the windows service.")
 	fmt.Fprintln(out, "    stop                stop the windows service.")
-	fmt.Fprintln(out, "    version             print the version information.")
-	fmt.Fprintln(out, "    help | usage        print the usage information.")
 }
 
-func PrintDefaultOptions() {
-	flag.PrintDefaults()
+func PrintDefaultOptions(out io.Writer) {
+	fmt.Fprintln(out, "    -h | -help          print the help message.")
+	fmt.Fprintln(out, "    -v | -version       print the version message.")
+	fmt.Fprintln(out, "    -dir                set the working directory.")
+	fmt.Fprintln(out, "    -name               set the service name.")
 }
 
-func PrintUsage(app App) {
-	out := flag.CommandLine.Output()
+func PrintDefaultUsage(app App) {
+	out := os.Stdout
 
 	fmt.Fprintln(out, "Usage: "+app.Name()+".exe <command> [options]")
+
 	fmt.Fprintln(out, "  <command>:")
-	if cmd, ok := app.(Cmd); ok {
-		cmd.PrintCommand(out)
-	} else {
-		PrintDefaultCommand(out)
-	}
+	PrintDefaultCommand(out)
 
 	fmt.Fprintln(out, "  <options>:")
-	PrintDefaultOptions()
+	PrintDefaultOptions(out)
 }
 
 // Main server main
 func Main(app App) {
-	flag.CommandLine.Usage = app.Usage
+	var (
+		version bool
+		workdir string
+		svcname string
+	)
 
-	workdir := flag.String("dir", "", "set the working directory.")
-	svcname := flag.String("name", app.Name(), "set the service name.")
+	flag.BoolVar(&version, "v", false, "print version message.")
+	flag.BoolVar(&version, "version", false, "print version message.")
+	flag.StringVar(&workdir, "dir", "", "set the working directory.")
+	flag.StringVar(&svcname, "name", app.Name(), "set the service name.")
+
+	flag.CommandLine.Usage = app.Usage
 
 	if cmd, ok := app.(Cmd); ok {
 		cmd.Flag()
@@ -50,7 +56,12 @@ func Main(app App) {
 
 	flag.Parse()
 
-	chdir(*workdir)
+	chdir(workdir)
+
+	if version {
+		fmt.Println(app.Version())
+		os.Exit(0)
+	}
 
 	inService, err := svc.IsWindowsService()
 	if err != nil {
@@ -59,51 +70,46 @@ func Main(app App) {
 	}
 
 	if inService {
-		runService(app, *svcname, false)
+		runService(app, svcname, false)
 		return
 	}
 
 	arg := flag.Arg(0)
 	switch arg {
-	case "help", "usage":
-		flag.CommandLine.SetOutput(os.Stdout)
-		app.Usage()
-	case "version":
-		fmt.Println(app.Version())
 	case "install":
-		err = installService(*svcname, app.DisplayName(), app.Description())
+		err = installService(svcname, app.DisplayName(), app.Description())
 		if err == nil {
-			fmt.Printf("service %q installed\n", *svcname)
+			fmt.Printf("service %q installed\n", svcname)
 		} else {
-			fmt.Fprintf(os.Stderr, "Failed to %s service %q: %v\n", arg, *svcname, err)
+			fmt.Fprintf(os.Stderr, "Failed to %s service %q: %v\n", arg, svcname, err)
 			os.Exit(2)
 		}
 	case "remove":
-		err = removeService(*svcname)
+		err = removeService(svcname)
 		if err == nil {
-			fmt.Printf("service %q removed\n", *svcname)
+			fmt.Printf("service %q removed\n", svcname)
 		} else {
-			fmt.Fprintf(os.Stderr, "Failed to %s service %q: %v\n", arg, *svcname, err)
+			fmt.Fprintf(os.Stderr, "Failed to %s service %q: %v\n", arg, svcname, err)
 			os.Exit(2)
 		}
 	case "start":
-		err = startService(*svcname)
+		err = startService(svcname)
 		if err == nil {
-			fmt.Printf("service %q started\n", *svcname)
+			fmt.Printf("service %q started\n", svcname)
 		} else {
-			fmt.Fprintf(os.Stderr, "Failed to %s service %q: %v\n", arg, *svcname, err)
+			fmt.Fprintf(os.Stderr, "Failed to %s service %q: %v\n", arg, svcname, err)
 			os.Exit(2)
 		}
 	case "stop":
-		err = controlService(*svcname, svc.Stop, svc.Stopped)
+		err = controlService(svcname, svc.Stop, svc.Stopped)
 		if err == nil {
-			fmt.Printf("service %q stoped\n", *svcname)
+			fmt.Printf("service %q stoped\n", svcname)
 		} else {
-			fmt.Fprintf(os.Stderr, "Failed to %s service %q: %v\n", arg, *svcname, err)
+			fmt.Fprintf(os.Stderr, "Failed to %s service %q: %v\n", arg, svcname, err)
 			os.Exit(2)
 		}
 	case "debug":
-		runService(app, *svcname, true)
+		runService(app, svcname, true)
 	case "":
 		runStandalone(app)
 	default:

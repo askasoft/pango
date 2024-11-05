@@ -2,7 +2,6 @@ package srv
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"os/signal"
 	"syscall"
@@ -44,11 +43,7 @@ type Cmd interface {
 	// Flag set custom options
 	Flag()
 
-	// PrintCommand print custom command
-	PrintCommand(out io.Writer)
-
-	// Exec execute optional command except the internal command
-	// Basic: 'help' 'usage' 'version'
+	// Exec execute optional command
 	// Windows only: 'install' 'remove' 'start' 'stop' 'debug'
 	Exec(cmd string)
 }

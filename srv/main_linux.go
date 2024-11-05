@@ -8,34 +8,34 @@ import (
 )
 
 func PrintDefaultCommand(out io.Writer) {
-	fmt.Fprintln(out, "    version             print the version information.")
-	fmt.Fprintln(out, "    help | usage        print the usage information.")
 }
 
-func PrintDefaultOptions() {
-	flag.PrintDefaults()
+func PrintDefaultOptions(out io.Writer) {
+	fmt.Fprintln(out, "    -h | -help          print the help message.")
+	fmt.Fprintln(out, "    -v | -version       print the version message.")
+	fmt.Fprintln(out, "    -dir                set the working directory.")
 }
 
-func PrintUsage(app App) {
-	out := flag.CommandLine.Output()
+func PrintDefaultUsage(app App) {
+	out := os.Stdout
 
-	fmt.Fprintln(out, "Usage: "+app.Name()+" <command> [options]")
-	fmt.Fprintln(out, "  <command>:")
-	if cmd, ok := app.(Cmd); ok {
-		cmd.PrintCommand(out)
-	} else {
-		PrintDefaultCommand(out)
-	}
-
+	fmt.Fprintln(out, "Usage: "+app.Name()+" [options]")
 	fmt.Fprintln(out, "  <options>:")
-	PrintDefaultOptions()
+	PrintDefaultOptions(out)
 }
 
 // Main server main
 func Main(app App) {
-	flag.CommandLine.Usage = app.Usage
+	var (
+		version bool
+		workdir string
+	)
 
-	workdir := flag.String("dir", "", "set the working directory.")
+	flag.BoolVar(&version, "v", false, "print version message.")
+	flag.BoolVar(&version, "version", false, "print version message.")
+	flag.StringVar(&workdir, "dir", "", "set the working directory.")
+
+	flag.CommandLine.Usage = app.Usage
 
 	if cmd, ok := app.(Cmd); ok {
 		cmd.Flag()
@@ -43,15 +43,15 @@ func Main(app App) {
 
 	flag.Parse()
 
-	chdir(*workdir)
+	chdir(workdir)
+
+	if version {
+		fmt.Println(app.Version())
+		os.Exit(0)
+	}
 
 	arg := flag.Arg(0)
 	switch arg {
-	case "help", "usage":
-		flag.CommandLine.SetOutput(os.Stdout)
-		app.Usage()
-	case "version":
-		fmt.Println(app.Version())
 	case "":
 		runStandalone(app)
 	default:

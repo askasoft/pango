@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/askasoft/pango/lut"
 	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/tmu"
 )
@@ -146,11 +147,12 @@ func getStructFieldPrefix(prefix string, field reflect.StructField, tag string) 
 }
 
 type setOptions struct {
-	valid    bool
-	strip    bool
-	lower    bool
-	upper    bool
-	defaults string
+	valid    bool   // to valid utf-8
+	strip    bool   // strip leading trailing whitespace
+	ascii    bool   // convert full width runes to ascii rune
+	lower    bool   // convert to lower case
+	upper    bool   // convert to upper case
+	defaults string // default value
 }
 
 func tryToSetValue(prefix string, value reflect.Value, field reflect.StructField, setter setter, tag string) (isSet bool, err *FieldBindError) {
@@ -179,6 +181,8 @@ func tryToSetValue(prefix string, value reflect.Value, field reflect.StructField
 			setOpts.valid = true
 		case "strip":
 			setOpts.strip = true
+		case "ascii":
+			setOpts.ascii = true
 		case "lower":
 			setOpts.lower = true
 		case "upper":
@@ -235,6 +239,9 @@ func setByForm(value reflect.Value, field reflect.StructField, form map[string][
 		}
 		if opt.strip {
 			vs = str.RemoveEmpties(str.Strips(vs))
+		}
+		if opt.ascii {
+			vs = lut.ToASCIIs(vs)
 		}
 		if opt.lower {
 			vs = str.ToLowers(vs)

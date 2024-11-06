@@ -232,7 +232,7 @@ func TestMappingTimeDuration(t *testing.T) {
 
 func TestMappingSlice(t *testing.T) {
 	var s struct {
-		Slice  []int    `form:"slice,strip,default=9"`
+		Slice  []int    `form:"slice,strip,ascii,default=9"`
 		Lslice []string `form:"lslice,lower,default=A"`
 		Uslice []string `form:"uslice,upper,default=a"`
 		Vslice []string `form:"vslice,valid"`
@@ -247,7 +247,7 @@ func TestMappingSlice(t *testing.T) {
 
 	// ok
 	err = mappingByPtr(&s, formSource{
-		"slice":  {"3", "", " 4 "},
+		"slice":  {"３", "", " 4 "},
 		"lslice": {"A", "", " B "},
 		"uslice": {"a", "", " b "},
 		"vslice": {"a", "a\xffb\xC0\xAFc\xff", " b "},

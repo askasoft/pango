@@ -166,9 +166,25 @@ func ToASCII(s string) string {
 	return str.ReplaceFunc(s, ToASCIIRune)
 }
 
+// ToASCIIs convert all string from multi byte to single byte ascii in the string slice ss.
+func ToASCIIs(ss []string) []string {
+	for i, s := range ss {
+		ss[i] = ToASCII(s)
+	}
+	return ss
+}
+
 // ToFullWidth convert the string from single ascii to multi ascii
 func ToFullWidth(s string) string {
 	return str.ReplaceFunc(s, ToFullRune)
+}
+
+// ToFullWidths convert all string from single ascii to multi ascii in the string slice ss.
+func ToFullWidths(ss []string) []string {
+	for i, s := range ss {
+		ss[i] = ToFullWidth(s)
+	}
+	return ss
 }
 
 // IsHalfWidthRune checks if the rune c is unicode half-width char.

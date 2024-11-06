@@ -10,8 +10,10 @@ func TestAtoi(t *testing.T) {
 		s string
 		n []int
 	}{
-		{1, "1", []int{}},
-		{0xf, "0xf", []int{}},
+		{1, "1", nil},
+		{2, "02", nil},
+		{0660, "0660", nil},
+		{0xf, "0xf", nil},
 		{-1, "a", []int{-1}},
 	}
 
@@ -29,8 +31,10 @@ func TestAtol(t *testing.T) {
 		s string
 		n []int64
 	}{
-		{1, "1", []int64{}},
-		{0xf, "0xf", []int64{}},
+		{1, "1", nil},
+		{2, "02", nil},
+		{0660, "0660", nil},
+		{0xf, "0xf", nil},
 		{-1, "a", []int64{-1}},
 	}
 
@@ -48,7 +52,7 @@ func TestAtof(t *testing.T) {
 		s string
 		n []float64
 	}{
-		{1, "1", []float64{}},
+		{1, "1", nil},
 		{-1, "a", []float64{-1}},
 	}
 

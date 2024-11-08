@@ -70,15 +70,26 @@ func (lm *LinkedHashMap[K, V]) Get(key K) (V, bool) {
 }
 
 // MustGet looks for the given key, and returns the value associated with it.
-// If not found, return defaults[0] or panic if defaults is not supplied.
-func (lm *LinkedHashMap[K, V]) MustGet(key K, defaults ...V) V {
+// Panic if not found.
+func (lm *LinkedHashMap[K, V]) MustGet(key K) V {
+	if v, ok := lm.Get(key); ok {
+		return v
+	}
+	panic(fmt.Errorf("LinkedHashMap key '%v' does not exist", key))
+}
+
+// SafeGet looks for the given key, and returns the value associated with it.
+// If not found, return defaults[0] or zero V.
+func (lm *LinkedHashMap[K, V]) SafeGet(key K, defaults ...V) V {
 	if v, ok := lm.Get(key); ok {
 		return v
 	}
 	if len(defaults) > 0 {
 		return defaults[0]
 	}
-	panic(fmt.Errorf("LinkedHashMap invalid key '%v'", key))
+
+	var v V
+	return v
 }
 
 // Set sets the paired key-value items, and returns what `Get` would have returned

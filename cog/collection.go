@@ -180,8 +180,12 @@ type Map[K any, V any] interface {
 	Get(key K) (V, bool)
 
 	// MustGet looks for the given key, and returns the value associated with it.
-	// If not found, return defaults[0] or panic if defaults is not supplied.
-	MustGet(key K, defaults ...V) V
+	// Panic if not found.
+	MustGet(key K) V
+
+	// SafeGet looks for the given key, and returns the value associated with it.
+	// If not found, return defaults[0] or zero V.
+	SafeGet(key K, defaults ...V) V
 
 	// Set sets the paired key-value items, and returns what `Get` would have returned
 	// on that key prior to the call to `Set`.

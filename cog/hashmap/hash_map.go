@@ -75,15 +75,26 @@ func (hm *HashMap[K, V]) Get(key K) (v V, ok bool) {
 }
 
 // MustGet looks for the given key, and returns the value associated with it.
-// If not found, return defaults[0] or panic if defaults is not supplied.
-func (hm *HashMap[K, V]) MustGet(key K, defaults ...V) V {
+// Panic if not found.
+func (hm *HashMap[K, V]) MustGet(key K) V {
+	if v, ok := hm.Get(key); ok {
+		return v
+	}
+	panic(fmt.Errorf("HashMap key '%v' does not exist", key))
+}
+
+// SafeGet looks for the given key, and returns the value associated with it.
+// If not found, return defaults[0] or zero V.
+func (hm *HashMap[K, V]) SafeGet(key K, defaults ...V) V {
 	if v, ok := hm.Get(key); ok {
 		return v
 	}
 	if len(defaults) > 0 {
 		return defaults[0]
 	}
-	panic(fmt.Errorf("HashMap invalid key '%v'", key))
+
+	var v V
+	return v
 }
 
 // Set sets the paired key-value items, and returns what `Get` would have returned

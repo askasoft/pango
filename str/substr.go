@@ -593,3 +593,63 @@ func Mid(s string, p, n int) string {
 	_, a := CutAt(s, p)
 	return Left(a, n)
 }
+
+// Ellipsis abbreviates a string with max rune count `n` using ellipses (default "...").
+// This will turn "Now is the time for all good men" into "Now is the time for..."
+func Ellipsis(s string, n int, ellipses ...string) string {
+	if n <= 0 || s == "" {
+		return ""
+	}
+
+	sc := RuneCount(s)
+	if sc <= n {
+		return s
+	}
+
+	e := "..."
+	if len(ellipses) > 0 {
+		e = ellipses[0]
+	}
+
+	ec := RuneCount(e)
+	if n <= ec {
+		return Left(e, n)
+	}
+
+	return Left(s, n-ec) + e
+}
+
+// Ellipsiz abbreviates a string with max rune count `n` using ellipses (default "…").
+// The non ascii rune (> 0x80) in string `s` will count as 2.
+// This will turn "こんにちは世界" into "こんにちは…"
+func Ellipsiz(s string, n int, ellipses ...string) string {
+	if n <= 0 || s == "" {
+		return ""
+	}
+
+	e := "…"
+	if len(ellipses) > 0 {
+		e = ellipses[0]
+	}
+
+	ec := RuneCount(e)
+
+	cut := n - ec
+	sz, j := 0, -1
+	for i, r := range s {
+		sz++
+		if r > utf8.RuneSelf {
+			sz++
+		}
+		if sz > cut && j < 0 {
+			j = i
+		}
+		if sz > n {
+			if n <= ec {
+				return Left(e, n)
+			}
+			return s[0:j] + e
+		}
+	}
+	return s
+}

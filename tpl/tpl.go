@@ -119,6 +119,11 @@ func Functions() FuncMap {
 		"Split":      str.Split,
 		"Fields":     str.Fields,
 		"FieldsAny":  str.FieldsAny,
+		"Left":       str.Left,
+		"Mid":        str.Mid,
+		"Right":      str.Right,
+		"Ellipsis":   str.Ellipsis,
+		"Ellipsiz":   str.Ellipsiz,
 
 		// convert
 		"Atoi": num.Atoi,

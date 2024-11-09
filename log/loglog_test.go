@@ -66,14 +66,17 @@ func (tw *testConcurrentDetectWriter) Close() {
 
 func testLogRoutine(log *Log, wg *sync.WaitGroup, n int, p *int64) {
 	var m int64
+
 	et := time.Now().Add(time.Second * 5)
 	for time.Now().Before(et) {
 		m++
 		log.Infof("%d %d", n, m)
+		time.Sleep(time.Millisecond * 10)
 	}
 	*p = m
-	wg.Done()
+
 	fmt.Println(time.Now(), "test routine ", n, " done ", m)
+	wg.Done()
 }
 
 func testCheckConcurrentDetectWriter(t *testing.T, c string, tw1 *testConcurrentDetectWriter, tw2 *testConcurrentDetectWriter, cs []int64) {
@@ -111,12 +114,13 @@ func testCheckConcurrentDetectWriter(t *testing.T, c string, tw1 *testConcurrent
 
 func TestAsyncToAsync(t *testing.T) {
 	tw1 := newTestConcurrentDetectWriter()
+	aw1 := NewAsyncWriter(tw1, 1000)
 
 	log := NewLog()
 	log.SetFormatter(TextFmtSimple)
-	log.SetWriter(NewAsyncWriter(tw1, 1000))
+	log.SetWriter(aw1)
 
-	fmt.Println(time.Now(), "START")
+	fmt.Println("A2A", time.Now(), "START")
 	wg := &sync.WaitGroup{}
 	counts := make([]int64, testRoutines)
 	for i := 0; i < len(counts); i++ {
@@ -126,30 +130,34 @@ func TestAsyncToAsync(t *testing.T) {
 
 	time.Sleep(time.Second * 2)
 
-	fmt.Println(time.Now(), "REPLACE")
+	fmt.Println("A2A", time.Now(), "SWITCH")
 	tw2 := newTestConcurrentDetectWriter()
-	log.SwitchWriter(NewAsyncWriter(tw2, 100))
+	aw2 := NewAsyncWriter(tw2, 100)
+	log.SwitchWriter(aw2)
 
-	fmt.Println(time.Now(), "WAIT")
+	fmt.Println("A2A", time.Now(), "WAIT")
 	wg.Wait()
 
-	fmt.Println(time.Now(), "CLOSE")
+	fmt.Println("A2A", time.Now(), "CLOSE")
 	log.Close()
 
-	fmt.Println(time.Now(), "END")
-	time.Sleep(time.Second * 2)
+	aw1.Wait()
+	aw2.Wait()
+
+	fmt.Println("A2A", time.Now(), "END")
 
 	testCheckConcurrentDetectWriter(t, "TestAsyncToAsync", tw1, tw2, counts)
 }
 
 func TestAsyncToSync(t *testing.T) {
 	tw1 := newTestConcurrentDetectWriter()
+	aw1 := NewAsyncWriter(tw1, 1000)
 
 	log := NewLog()
 	log.SetFormatter(TextFmtSimple)
-	log.SetWriter(NewAsyncWriter(tw1, 1000))
+	log.SetWriter(aw1)
 
-	fmt.Println(time.Now(), "START")
+	fmt.Println("A2S", time.Now(), "START")
 	wg := &sync.WaitGroup{}
 	counts := make([]int64, testRoutines)
 	for i := 0; i < len(counts); i++ {
@@ -159,17 +167,19 @@ func TestAsyncToSync(t *testing.T) {
 
 	time.Sleep(time.Second * 2)
 
-	fmt.Println(time.Now(), "REPLACE")
+	fmt.Println("A2S", time.Now(), "SWITCH")
 	tw2 := newTestConcurrentDetectWriter()
 	log.SwitchWriter(NewSyncWriter(tw2))
 
-	fmt.Println(time.Now(), "WAIT")
+	fmt.Println("A2S", time.Now(), "WAIT")
 	wg.Wait()
 
-	fmt.Println(time.Now(), "CLOSE")
+	fmt.Println("A2S", time.Now(), "CLOSE")
 	log.Close()
 
-	fmt.Println(time.Now(), "END")
+	aw1.Wait()
+
+	fmt.Println("A2S", time.Now(), "END")
 
 	testCheckConcurrentDetectWriter(t, "TestAsyncToSync", tw1, tw2, counts)
 }
@@ -181,7 +191,7 @@ func TestSyncToSync(t *testing.T) {
 	log.SetFormatter(TextFmtSimple)
 	log.SetWriter(NewSyncWriter(tw1))
 
-	fmt.Println(time.Now(), "START")
+	fmt.Println("S2S", time.Now(), "START")
 	wg := &sync.WaitGroup{}
 	counts := make([]int64, testRoutines)
 	for i := 0; i < len(counts); i++ {
@@ -191,17 +201,17 @@ func TestSyncToSync(t *testing.T) {
 
 	time.Sleep(time.Second * 2)
 
-	fmt.Println(time.Now(), "REPLACE")
+	fmt.Println("S2S", time.Now(), "SWITCH")
 	tw2 := newTestConcurrentDetectWriter()
 	log.SwitchWriter(NewSyncWriter(tw2))
 
-	fmt.Println(time.Now(), "WAIT")
+	fmt.Println("S2S", time.Now(), "WAIT")
 	wg.Wait()
 
-	fmt.Println(time.Now(), "CLOSE")
+	fmt.Println("S2S", time.Now(), "CLOSE")
 	log.Close()
 
-	fmt.Println(time.Now(), "END")
+	fmt.Println("S2S", time.Now(), "END")
 
 	testCheckConcurrentDetectWriter(t, "TestSyncToSync", tw1, tw2, counts)
 }
@@ -213,7 +223,7 @@ func TestSyncToAsync(t *testing.T) {
 	log.SetFormatter(TextFmtSimple)
 	log.SetWriter(NewSyncWriter(tw1))
 
-	fmt.Println(time.Now(), "START")
+	fmt.Println("S2A", time.Now(), "START")
 	wg := &sync.WaitGroup{}
 	counts := make([]int64, testRoutines)
 	for i := 0; i < len(counts); i++ {
@@ -223,17 +233,20 @@ func TestSyncToAsync(t *testing.T) {
 
 	time.Sleep(time.Second * 2)
 
-	fmt.Println(time.Now(), "REPLACE")
+	fmt.Println("S2A", time.Now(), "SWITCH")
 	tw2 := newTestConcurrentDetectWriter()
-	log.SwitchWriter(NewAsyncWriter(tw2, 1000))
+	aw2 := NewAsyncWriter(tw2, 1000)
+	log.SwitchWriter(aw2)
 
-	fmt.Println(time.Now(), "WAIT")
+	fmt.Println("S2A", time.Now(), "WAIT")
 	wg.Wait()
 
-	fmt.Println(time.Now(), "CLOSE")
+	fmt.Println("S2A", time.Now(), "CLOSE")
 	log.Close()
 
-	fmt.Println(time.Now(), "END")
+	aw2.Wait()
+
+	fmt.Println("S2A", time.Now(), "END")
 
 	testCheckConcurrentDetectWriter(t, "TestSyncToAsync", tw1, tw2, counts)
 }

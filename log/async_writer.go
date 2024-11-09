@@ -2,7 +2,6 @@ package log
 
 import (
 	"sync"
-	"time"
 
 	"github.com/askasoft/pango/log/internal"
 )
@@ -44,7 +43,7 @@ func (aw *AsyncWriter) Close() {
 	aw.waitg.Wait()
 }
 
-// SetWriter close the old writer and set the new writer
+// SetWriter send a "switch" signal to switch the writer to `w` and close the old writer
 func (aw *AsyncWriter) SetWriter(w Writer) {
 	aw.sigChan <- signal{"switch", w}
 }
@@ -57,9 +56,13 @@ func (aw *AsyncWriter) Start(size int) {
 	go aw.run()
 }
 
-// Stop stop the run() go-routine
+// Stop send a "stop" signal to the run() go-routine
 func (aw *AsyncWriter) Stop() {
 	aw.sigChan <- signal{"stop", nil}
+}
+
+// Wait wait for the run() go-routine end
+func (aw *AsyncWriter) Wait() {
 	aw.waitg.Wait()
 }
 
@@ -69,34 +72,22 @@ func (aw *AsyncWriter) write(le *Event) {
 	}
 }
 
-// drainOnce drain the event chan once (ignore after-coming event to prevent dead loop)
-func (aw *AsyncWriter) drainOnce() {
-	ec := aw.evtChan
-	for n := len(ec); n > 0; n-- {
-		le := <-ec
-		aw.write(le)
-	}
-}
-
-// drainFull complete drain the event chan
-func (aw *AsyncWriter) drainFull() {
-	// complete drain the event chan
-	ec := aw.evtChan
-	for len(ec) > 0 {
-		le := <-ec
-		aw.write(le)
-	}
-
-	// complete drain the signal chan
-	sc := aw.sigChan
-	for len(sc) > 0 {
-		<-sc
-	}
-}
-
 // run start async log goroutine
 func (aw *AsyncWriter) run() {
-	done := false
+	stop, done := false, false
+
+	defer func() {
+		if done {
+			aw.writer.Close()
+		}
+
+		// It's safe to keep channels open. GC will collect the unreachable channels.
+		// close(aw.evtChan)
+		// close(aw.sigChan)
+
+		aw.waitg.Done()
+	}()
+
 	for {
 		select {
 		case sg := <-aw.sigChan:
@@ -106,44 +97,19 @@ func (aw *AsyncWriter) run() {
 				aw.writer = sg.option.(Writer)
 				ow.Close()
 			case "flush":
-				aw.drainOnce()
 				aw.writer.Flush()
 			case "close":
-				aw.drainFull()
-				aw.writer.Close()
+				stop = true
 				done = true
 			case "stop":
-				aw.drainFull()
-				done = true
+				stop = true
 			}
 		case le := <-aw.evtChan:
 			aw.write(le)
-		}
-		if done {
-			break
-		}
-	}
-
-	// It's safe to keep channels open. GC will collect the unreachable channels.
-	// close(aw.evtChan)
-	// close(aw.sigChan)
-
-	aw.waitg.Done()
-}
-
-// SafeStop use time.NewTimer(d) to check the evtChan and sigChan,
-// if these channels are empty, stop the run() go-routine.
-func (aw *AsyncWriter) SafeStop(d time.Duration) {
-	timer := time.NewTimer(d)
-	go func() {
-		for {
-			<-timer.C
-			if len(aw.evtChan) == 0 && len(aw.sigChan) == 0 {
-				aw.Stop()
+		default:
+			if stop && len(aw.evtChan) == 0 && len(aw.sigChan) == 0 {
 				return
 			}
-
-			timer.Reset(d)
 		}
-	}()
+	}
 }

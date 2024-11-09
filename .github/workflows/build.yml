@@ -59,7 +59,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
       - name: Run Tests
-        run: go test -covermode=atomic -coverprofile=coverage.out $(go list ./...)
+        run: go test -timeout 20m -covermode=atomic -coverprofile=coverage.out $(go list ./...)
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

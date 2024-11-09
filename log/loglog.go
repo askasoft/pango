@@ -2,7 +2,6 @@ package log
 
 import (
 	"sync"
-	"time"
 
 	"github.com/askasoft/pango/str"
 )
@@ -89,7 +88,7 @@ func (log *Log) SwitchWriter(lw Writer) {
 
 	if oaw, ok := ow.(*AsyncWriter); ok {
 		oaw.SetWriter(lw)
-		oaw.SafeStop(time.Second)
+		oaw.Stop()
 		return
 	}
 

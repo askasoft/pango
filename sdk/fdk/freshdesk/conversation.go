@@ -8,14 +8,14 @@ import (
 type ConversationSource int
 
 const (
-	ConversationSourceReply     ConversationSource = 0
-	ConversationSourceNote      ConversationSource = 2
-	ConversationSourceTweets    ConversationSource = 5
-	ConversationSourceSurvey    ConversationSource = 6
-	ConversationSourceFacebook  ConversationSource = 7
-	ConversationSourceForwarded ConversationSource = 8
-	ConversationSourcePhone     ConversationSource = 9
-	ConversationSourceECommerce ConversationSource = 11
+	ConversationSourceReply          ConversationSource = 0
+	ConversationSourceNote           ConversationSource = 2
+	ConversationSourceTweets         ConversationSource = 5
+	ConversationSourceSurveyFeedback ConversationSource = 6
+	ConversationSourceFacebookPost   ConversationSource = 7
+	ConversationSourceForwardedEmail ConversationSource = 8
+	ConversationSourcePhone          ConversationSource = 9
+	ConversationSourceECommerce      ConversationSource = 11
 )
 
 func (cs ConversationSource) String() string {
@@ -26,16 +26,16 @@ func (cs ConversationSource) String() string {
 		return "Note"
 	case ConversationSourceTweets:
 		return "Tweets"
-	case ConversationSourceSurvey:
-		return "Survey"
-	case ConversationSourceFacebook:
-		return "Facebook"
-	case ConversationSourceForwarded:
-		return "Forwarded"
+	case ConversationSourceSurveyFeedback:
+		return "SurveyFeedback"
+	case ConversationSourceFacebookPost:
+		return "FacebookPost"
+	case ConversationSourceForwardedEmail:
+		return "ForwardedEmail"
 	case ConversationSourcePhone:
 		return "Phone"
 	case ConversationSourceECommerce:
-		return "ECommerce"
+		return "E-Commerce"
 	default:
 		return num.Itoa(int(cs))
 	}
@@ -49,15 +49,15 @@ func ParseConversationSource(s string) ConversationSource {
 		return ConversationSourceNote
 	case "tweets":
 		return ConversationSourceTweets
-	case "survey":
-		return ConversationSourceSurvey
-	case "facebook":
-		return ConversationSourceFacebook
-	case "forwarded":
-		return ConversationSourceForwarded
+	case "surveyfeekback":
+		return ConversationSourceSurveyFeedback
+	case "facebookpost":
+		return ConversationSourceFacebookPost
+	case "forwardedemail":
+		return ConversationSourceForwardedEmail
 	case "phone":
 		return ConversationSourcePhone
-	case "ecommerce":
+	case "e-commerce":
 		return ConversationSourceECommerce
 	default:
 		return -1

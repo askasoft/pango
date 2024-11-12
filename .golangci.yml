@@ -41,6 +41,9 @@ issues:
     - linters:
         - revive
       text: "exported:"
+    - linters:
+        - revive
+      text: "redefines-builtin-id:"
     - path: ldt/profiles\.go
       linters:
         - misspell

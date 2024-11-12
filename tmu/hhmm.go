@@ -14,21 +14,21 @@ type HHMM int
 func ParseHHMM(s string) (HHMM, error) {
 	s1, s2, ok := str.Cut(s, ":")
 	if ok {
-		hour, err := strconv.Atoi(s1)
+		hh, err := strconv.Atoi(s1)
 		if err == nil {
-			min, err := strconv.Atoi(s2)
+			mm, err := strconv.Atoi(s2)
 			if err == nil {
-				return HHMM(hour*60 + min), nil
+				return HHMM(hh*60 + mm), nil
 			}
 		}
-		return 0, fmt.Errorf(`ParseHHMM: "%s" is not a HH:MM string`, s)
+		return 0, fmt.Errorf(`ParseHHMM: %q is not a HH:MM string`, s)
 	}
 
-	min, err := strconv.Atoi(s1)
+	mm, err := strconv.Atoi(s1)
 	if err == nil {
-		return HHMM(min), nil
+		return HHMM(mm), nil
 	}
-	return 0, fmt.Errorf(`ParseHHMM: "%s" is not a numeric string`, s)
+	return 0, fmt.Errorf(`ParseHHMM: %q is not a numeric string`, s)
 }
 
 func (hm HHMM) Minutes() int {
@@ -36,13 +36,13 @@ func (hm HHMM) Minutes() int {
 }
 
 func (hm HHMM) String() string {
-	hour, min := hm/60, hm%60
-	return fmt.Sprintf("%02d:%02d", hour, min)
+	hh, mm := hm/60, hm%60
+	return fmt.Sprintf("%02d:%02d", hh, mm)
 }
 
 func (hm HHMM) MarshalJSON() ([]byte, error) {
-	hour, min := hm/60, hm%60
-	return []byte(fmt.Sprintf(`"%02d:%02d"`, hour, min)), nil
+	hh, mm := hm/60, hm%60
+	return []byte(fmt.Sprintf(`"%02d:%02d"`, hh, mm)), nil
 }
 
 func (hm *HHMM) UnmarshalJSON(data []byte) (err error) {

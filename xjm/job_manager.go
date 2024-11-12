@@ -10,7 +10,7 @@ type JobManager interface {
 
 	// GetJobLogs get job logs
 	// set levels to ("I", "W", "E", "F") to filter DEBUG/TRACE logs
-	GetJobLogs(jid int64, min, max int64, asc bool, limit int, levels ...string) ([]*JobLog, error)
+	GetJobLogs(jid int64, minLid, maxLid int64, asc bool, limit int, levels ...string) ([]*JobLog, error)
 
 	// AddJobLogs append job logs
 	AddJobLogs([]*JobLog) error

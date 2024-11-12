@@ -35,18 +35,18 @@ func (gjm *gjm) CountJobLogs(jid int64, levels ...string) (int64, error) {
 	return cnt, r.Error
 }
 
-func (gjm *gjm) GetJobLogs(jid int64, min, max int64, asc bool, limit int, levels ...string) ([]*xjm.JobLog, error) {
+func (gjm *gjm) GetJobLogs(jid int64, minLid, maxLid int64, asc bool, limit int, levels ...string) ([]*xjm.JobLog, error) {
 	var jls []*xjm.JobLog
 
 	tx := gjm.db.Table(gjm.lt).Where("jid = ?", jid)
 	if len(levels) > 0 {
 		tx.Where("level IN ?", levels)
 	}
-	if min > 0 {
-		tx = tx.Where("id >= ?", min)
+	if minLid > 0 {
+		tx = tx.Where("id >= ?", minLid)
 	}
-	if max > 0 {
-		tx = tx.Where("id <= ?", max)
+	if maxLid > 0 {
+		tx = tx.Where("id <= ?", maxLid)
 	}
 	if limit > 0 {
 		tx = tx.Limit(limit)

@@ -10,25 +10,22 @@ import (
 )
 
 type SqlxLogger struct {
-	Logger         log.Logger
-	Level          log.Level
-	ErrorSQLLevel  log.Level
-	SlowSQLLevel   log.Level
-	SlowThreshold  time.Duration
-	TraceErrNoRows bool
+	Logger            log.Logger
+	PrintSQLLevel     log.Level
+	ErrorSQLLevel     log.Level
+	SlowSQLLevel      log.Level
+	SlowThreshold     time.Duration
+	TraceErrNoRows    bool
+	GetSQLErrLogLevel func(error) log.Level
 }
 
-func NewSqlxLogger(logger log.Logger, slowSQL ...time.Duration) *SqlxLogger {
+func NewSqlxLogger(logger log.Logger, slowSQL time.Duration) *SqlxLogger {
 	sl := &SqlxLogger{
 		Logger:        logger,
-		Level:         log.LevelDebug,
-		ErrorSQLLevel: log.LevelWarn,
+		PrintSQLLevel: log.LevelDebug,
+		ErrorSQLLevel: log.LevelError,
 		SlowSQLLevel:  log.LevelWarn,
-		SlowThreshold: time.Second,
-	}
-
-	if len(slowSQL) > 0 {
-		sl.SlowThreshold = slowSQL[0]
+		SlowThreshold: slowSQL,
 	}
 
 	return sl
@@ -53,11 +50,17 @@ func (sl *SqlxLogger) Trace(begin time.Time, sql string, rows int64, err error) 
 	elapsed := time.Since(begin)
 
 	switch {
-	case err != nil && (!errors.Is(err, sqlx.ErrNoRows) || sl.TraceErrNoRows) && sl.Logger.IsLevelEnabled(sl.ErrorSQLLevel):
-		if rows < 0 {
-			sl.printf(sl.ErrorSQLLevel, "%s [%v] %s", err, elapsed, sql)
-		} else {
-			sl.printf(sl.ErrorSQLLevel, "%s [%d: %v] %s", err, rows, elapsed, sql)
+	case err != nil && (sl.TraceErrNoRows || !errors.Is(err, sqlx.ErrNoRows)):
+		lvl := sl.ErrorSQLLevel
+		if f := sl.GetSQLErrLogLevel; f != nil {
+			lvl = f(err)
+		}
+		if sl.Logger.IsLevelEnabled(lvl) {
+			if rows < 0 {
+				sl.printf(lvl, "%s [%v] %s", err, elapsed, sql)
+			} else {
+				sl.printf(lvl, "%s [%d: %v] %s", err, rows, elapsed, sql)
+			}
 		}
 	case sl.SlowThreshold != 0 && elapsed > sl.SlowThreshold && sl.Logger.IsLevelEnabled(sl.SlowSQLLevel):
 		if rows < 0 {
@@ -65,11 +68,11 @@ func (sl *SqlxLogger) Trace(begin time.Time, sql string, rows int64, err error) 
 		} else {
 			sl.printf(sl.SlowSQLLevel, "SLOW >= %v [%d: %v] %s", sl.SlowThreshold, rows, elapsed, sql)
 		}
-	case sl.Logger.IsLevelEnabled(sl.Level):
+	case sl.Logger.IsLevelEnabled(sl.PrintSQLLevel):
 		if rows < 0 {
-			sl.printf(sl.Level, "[%v] %s", elapsed, sql)
+			sl.printf(sl.PrintSQLLevel, "[%v] %s", elapsed, sql)
 		} else {
-			sl.printf(sl.Level, "[%d: %v] %s", rows, elapsed, sql)
+			sl.printf(sl.PrintSQLLevel, "[%d: %v] %s", rows, elapsed, sql)
 		}
 	}
 }

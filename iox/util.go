@@ -81,16 +81,16 @@ func ReadAll(r io.Reader) ([]byte, error) {
 	return io.ReadAll(r)
 }
 
-// ReadAtLeast reads from r into buf until it has read at least min bytes.
+// ReadAtLeast reads from r into buf until it has read at least n bytes.
 // It returns the number of bytes copied and an error if fewer bytes were read.
 // The error is EOF only if no bytes were read.
-// If an EOF happens after reading fewer than min bytes,
+// If an EOF happens after reading fewer than n bytes,
 // ReadAtLeast returns ErrUnexpectedEOF.
-// If min is greater than the length of buf, ReadAtLeast returns ErrShortBuffer.
-// On return, n >= min if and only if err == nil.
-// If r returns an error having read at least min bytes, the error is dropped.
-func ReadAtLeast(r io.Reader, buf []byte, min int) (n int, err error) {
-	return io.ReadAtLeast(r, buf, min)
+// If n is greater than the length of buf, ReadAtLeast returns ErrShortBuffer.
+// The return size >= n if and only if err == nil.
+// If r returns an error having read at least n bytes, the error is dropped.
+func ReadAtLeast(r io.Reader, buf []byte, n int) (int, error) {
+	return io.ReadAtLeast(r, buf, n)
 }
 
 // ReadFull reads exactly len(buf) bytes from r into buf.
@@ -98,9 +98,9 @@ func ReadAtLeast(r io.Reader, buf []byte, min int) (n int, err error) {
 // The error is EOF only if no bytes were read.
 // If an EOF happens after reading some but not all the bytes,
 // ReadFull returns ErrUnexpectedEOF.
-// On return, n == len(buf) if and only if err == nil.
+// The return size == len(buf) if and only if err == nil.
 // If r returns an error having read at least len(buf) bytes, the error is dropped.
-func ReadFull(r io.Reader, buf []byte) (n int, err error) {
+func ReadFull(r io.Reader, buf []byte) (int, error) {
 	return io.ReadFull(r, buf)
 }
 

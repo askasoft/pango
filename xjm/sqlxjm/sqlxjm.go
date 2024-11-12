@@ -36,18 +36,18 @@ func (sjm *sjm) CountJobLogs(jid int64, levels ...string) (cnt int64, err error)
 	return
 }
 
-func (sjm *sjm) GetJobLogs(jid int64, min, max int64, asc bool, limit int, levels ...string) (jls []*xjm.JobLog, err error) {
+func (sjm *sjm) GetJobLogs(jid int64, minLid, maxLid int64, asc bool, limit int, levels ...string) (jls []*xjm.JobLog, err error) {
 	sqb := sjm.db.Builder()
 
 	sqb.Select().From(sjm.lt).Where("jid = ?", jid)
 	if len(levels) > 0 {
 		sqb.In("level", levels)
 	}
-	if min > 0 {
-		sqb.Where("id >= ?", min)
+	if minLid > 0 {
+		sqb.Where("id >= ?", minLid)
 	}
-	if max > 0 {
-		sqb.Where("id <= ?", max)
+	if maxLid > 0 {
+		sqb.Where("id <= ?", maxLid)
 	}
 	sqb.Limit(limit)
 	sqb.Order("id", !asc)

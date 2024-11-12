@@ -14,19 +14,19 @@ type MMSS int
 func ParseMMSS(s string) (MMSS, error) {
 	s1, s2, ok := str.Cut(s, ":")
 	if ok {
-		min, err := strconv.Atoi(s1)
+		mm, err := strconv.Atoi(s1)
 		if err == nil {
-			sec, err := strconv.Atoi(s2)
+			ss, err := strconv.Atoi(s2)
 			if err == nil {
-				return MMSS(min*60 + sec), nil
+				return MMSS(mm*60 + ss), nil
 			}
 		}
 		return 0, fmt.Errorf(`ParseMMSS: "%s" is not a MM:SS string`, s)
 	}
 
-	sec, err := strconv.Atoi(s1)
+	ss, err := strconv.Atoi(s1)
 	if err == nil {
-		return MMSS(sec), nil
+		return MMSS(ss), nil
 	}
 	return 0, fmt.Errorf(`ParseMMSS: "%s" is not a numeric string`, s)
 }
@@ -36,13 +36,13 @@ func (ms MMSS) Seconds() int {
 }
 
 func (ms MMSS) String() string {
-	min, sec := ms/60, ms%60
-	return fmt.Sprintf("%02d:%02d", min, sec)
+	mm, ss := ms/60, ms%60
+	return fmt.Sprintf("%02d:%02d", mm, ss)
 }
 
 func (ms MMSS) MarshalJSON() ([]byte, error) {
-	min, sec := ms/60, ms%60
-	return []byte(fmt.Sprintf(`"%02d:%02d"`, min, sec)), nil
+	mm, ss := ms/60, ms%60
+	return []byte(fmt.Sprintf(`"%02d:%02d"`, mm, ss)), nil
 }
 
 func (ms *MMSS) UnmarshalJSON(data []byte) (err error) {

@@ -413,18 +413,24 @@ func setTimeField(val string, field reflect.StructField, value reflect.Value) er
 	tf := strings.ToLower(field.Tag.Get("time_format"))
 
 	switch tf {
-	case "unix", "unixnano":
+	case "unix", "unixmilli", "unixmicro", "unixnano":
 		n, err := strconv.ParseInt(val, 10, 64)
 		if err != nil {
 			return err
 		}
 
-		d := time.Duration(1)
-		if tf == "unixnano" {
-			d = time.Second
+		var t time.Time
+		switch tf {
+		case "unixnano":
+			t = time.Unix(n/int64(time.Second), n%int64(time.Second))
+		case "unixmicro":
+			t = time.UnixMicro(n)
+		case "unixmilli":
+			t = time.UnixMilli(n)
+		default:
+			t = time.Unix(n, 0)
 		}
 
-		t := time.Unix(n/int64(d), n%int64(d))
 		value.Set(reflect.ValueOf(t))
 		return nil
 	}

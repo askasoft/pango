@@ -69,7 +69,7 @@ import (
 
 func ExtractTextFromXlsxFile(name string) (string, error) {
 	sb := &strings.Builder{}
-	lw := iox.LineWriter(sb)
+	lw := iox.WrapWriter(sb, "", "\n")
 	err := XlsxFileTextify(name, lw)
 	return sb.String(), err
 }
@@ -90,7 +90,7 @@ func ExtractTextFromXlsxBytes(bs []byte) (string, error) {
 
 func ExtractTextFromXlsxReader(r io.ReaderAt, size int64) (string, error) {
 	sb := &strings.Builder{}
-	lw := iox.LineWriter(sb)
+	lw := iox.WrapWriter(sb, "", "\n")
 	err := XlsxReaderTextify(r, size, lw)
 	return sb.String(), err
 }

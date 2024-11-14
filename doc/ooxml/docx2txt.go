@@ -100,7 +100,7 @@ import (
 
 func ExtractTextFromDocxFile(name string) (string, error) {
 	sb := &strings.Builder{}
-	lw := iox.LineWriter(sb)
+	lw := iox.WrapWriter(sb, "", "\n")
 	err := DocxFileTextify(name, lw)
 	return sb.String(), err
 }
@@ -121,7 +121,7 @@ func ExtractTextFromDocxBytes(bs []byte) (string, error) {
 
 func ExtractTextFromDocxReader(r io.ReaderAt, size int64) (string, error) {
 	sb := &strings.Builder{}
-	lw := iox.LineWriter(sb)
+	lw := iox.WrapWriter(sb, "", "\n")
 	err := DocxReaderTextify(r, size, lw)
 	return sb.String(), err
 }

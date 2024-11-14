@@ -57,7 +57,7 @@ import (
 
 func ExtractTextFromPptxFile(name string, opts ...string) (string, error) {
 	sb := &strings.Builder{}
-	lw := iox.LineWriter(sb)
+	lw := iox.WrapWriter(sb, "", "\n")
 	err := PptxFileTexify(name, lw, opts...)
 	return sb.String(), err
 }
@@ -78,7 +78,7 @@ func ExtractTextFromPptxBytes(bs []byte) (string, error) {
 
 func ExtractTextFromPptxReader(r io.ReaderAt, size int64) (string, error) {
 	sb := &strings.Builder{}
-	lw := iox.LineWriter(sb)
+	lw := iox.WrapWriter(sb, "", "\n")
 	err := PptxReaderTexify(r, size, lw)
 	return sb.String(), err
 }

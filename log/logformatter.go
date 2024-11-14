@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/askasoft/pango/iox"
+	"github.com/askasoft/pango/num"
 	"github.com/askasoft/pango/str"
 )
 
@@ -142,64 +143,75 @@ func (tf *TextFormatter) SetFormat(format string) {
 		}
 
 		// symbol
-		var fmt fmtfunc
+		var ff fmtfunc
 		switch format[i] {
 		case 't':
 			p := getFormatOption(format, &i)
 			if p == "" {
 				p = defaultTimeFormat
 			}
-			fmt = fcTime(p)
+			switch p {
+			case "unix":
+				ff = ffTimeUnix
+			case "unixmilli":
+				ff = ffTimeUnixMilli
+			case "unixmicro":
+				ff = ffTimeUnixMicro
+			case "unixnano":
+				ff = ffTimeUnixNano
+			default:
+				ff = fcTimeFormat(p)
+			}
 		case 'c':
 			p := getFormatOption(format, &i)
 			if p == "" {
-				fmt = ffName
+				ff = ffName
 			} else {
-				fmt = fcName("%" + p)
+				ff = fcNameFormat("%" + p)
 			}
 		case 'p':
 			p := getFormatOption(format, &i)
 			if p == "" {
-				fmt = ffLevelPrefix
+				ff = ffLevelPrefix
 			} else {
-				fmt = fcLevelPrefix("%" + p)
+				ff = fcLevelPrefix("%" + p)
 			}
 		case 'l':
 			p := getFormatOption(format, &i)
 			if p == "" {
-				fmt = ffLevelString
+				ff = ffLevelString
 			} else {
-				fmt = fcLevelString("%" + p)
+				ff = fcLevelString("%" + p)
 			}
 		case 'x':
 			p := getFormatOption(format, &i)
 			if p != "" {
-				fmt = fcProp(p)
+				ff = fcPropText(p)
 			}
 		case 'X':
 			p := getFormatOption(format, &i)
 			if p == "" {
 				p = "=| "
 			}
-			fmt = fcProps(p)
+			ff = fcPropsText(p)
 		case 'S':
-			fmt = ffFile
+			ff = ffFile
 		case 'L':
-			fmt = ffLine
+			ff = ffLine
 		case 'F':
-			fmt = ffFunc
+			ff = ffFunc
 		case 'T':
-			fmt = ffTrace
+			ff = ffTrace
 		case 'm':
-			fmt = ffMsg
+			ff = ffMsg
 		case 'q':
-			fmt = ffQmsg
+			ff = ffQmsg
 		case 'n':
-			fmt = ffEol
+			ff = ffEol
 		}
 
-		if fmt != nil {
-			fmts = append(fmts, fmt)
+		if ff != nil {
+			fmts = append(fmts, ff)
 			s = i + 1
 		}
 	}
@@ -244,61 +256,72 @@ func (jf *JSONFormatter) SetFormat(format string) {
 		}
 
 		// symbol
-		var fmt fmtfunc
+		var ff fmtfunc
 		switch format[i] {
 		case 't':
 			p := getFormatOption(format, &i)
 			if p == "" {
 				p = defaultTimeFormat
 			}
-			fmt = fcQuote(fcTime(p))
+			switch p {
+			case "unix":
+				ff = ffTimeUnix
+			case "unixmilli":
+				ff = ffTimeUnixMilli
+			case "unixmicro":
+				ff = ffTimeUnixMicro
+			case "unixnano":
+				ff = ffTimeUnixNano
+			default:
+				ff = fcQuote(fcTimeFormat(p))
+			}
 		case 'c':
 			p := getFormatOption(format, &i)
 			if p == "" {
-				fmt = ffName
+				ff = ffName
 			} else {
-				fmt = fcName("%" + p)
+				ff = fcNameFormat("%" + p)
 			}
-			fmt = fcQuote(fmt)
+			ff = fcQuote(ff)
 		case 'p':
 			p := getFormatOption(format, &i)
 			if p == "" {
-				fmt = ffLevelPrefix
+				ff = ffLevelPrefix
 			} else {
-				fmt = fcLevelPrefix("%" + p)
+				ff = fcLevelPrefix("%" + p)
 			}
-			fmt = fcQuote(fmt)
+			ff = fcQuote(ff)
 		case 'l':
 			p := getFormatOption(format, &i)
 			if p == "" {
-				fmt = ffLevelString
+				ff = ffLevelString
 			} else {
-				fmt = fcLevelString("%" + p)
+				ff = fcLevelString("%" + p)
 			}
-			fmt = fcQuote(fmt)
+			ff = fcQuote(ff)
 		case 'x':
 			p := getFormatOption(format, &i)
 			if p != "" {
-				fmt = fcPropJSON(p)
+				ff = fcPropJSON(p)
 			}
 		case 'X':
-			fmt = fcPropsJSON
+			ff = fcPropsJSON
 		case 'S':
-			fmt = fcQuote(ffFile)
+			ff = fcQuote(ffFile)
 		case 'L':
-			fmt = ffLine
+			ff = ffLine
 		case 'F':
-			fmt = fcQuote(ffFunc)
+			ff = fcQuote(ffFunc)
 		case 'T':
-			fmt = fcQuote(ffTrace)
+			ff = fcQuote(ffTrace)
 		case 'm':
-			fmt = fcQuote(ffMsg)
+			ff = fcQuote(ffMsg)
 		case 'n':
-			fmt = ffEol
+			ff = ffEol
 		}
 
-		if fmt != nil {
-			fmts = append(fmts, fmt)
+		if ff != nil {
+			fmts = append(fmts, ff)
 			s = i + 1
 		}
 	}
@@ -384,13 +407,29 @@ func fcString(s string) fmtfunc {
 	}
 }
 
-func fcTime(layout string) fmtfunc {
+func ffTimeUnix(le *Event) string {
+	return num.Ltoa(le.Time.Unix())
+}
+
+func ffTimeUnixMilli(le *Event) string {
+	return num.Ltoa(le.Time.UnixMilli())
+}
+
+func ffTimeUnixMicro(le *Event) string {
+	return num.Ltoa(le.Time.UnixMicro())
+}
+
+func ffTimeUnixNano(le *Event) string {
+	return num.Ltoa(le.Time.UnixNano())
+}
+
+func fcTimeFormat(layout string) fmtfunc {
 	return func(le *Event) string {
 		return le.Time.Format(layout)
 	}
 }
 
-func fcName(f string) fmtfunc {
+func fcNameFormat(f string) fmtfunc {
 	return func(le *Event) string {
 		return fmt.Sprintf(f, le.Logger.GetName())
 	}
@@ -408,7 +447,7 @@ func fcLevelString(f string) fmtfunc {
 	}
 }
 
-func fcProp(key string) fmtfunc {
+func fcPropText(key string) fmtfunc {
 	return func(le *Event) string {
 		v := le.Logger.GetProp(key)
 		if v == nil {
@@ -418,7 +457,7 @@ func fcProp(key string) fmtfunc {
 	}
 }
 
-func fcProps(f string) fmtfunc {
+func fcPropsText(f string) fmtfunc {
 	ss := strings.Split(f, "|")
 	d := ss[0]
 	j := ""

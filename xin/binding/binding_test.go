@@ -61,15 +61,19 @@ type FooStructDisallowUnknownFields struct {
 }
 
 type FooBarStructForTimeType struct {
-	TimeFoo    time.Time `form:"time_foo" time_format:"2006-01-02" time_utc:"1" time_location:"Asia/Chongqing"`
-	TimeBar    time.Time `form:"time_bar" time_format:"2006-01-02" time_utc:"1"`
-	CreateTime time.Time `form:"createTime" time_format:"unixNano"`
-	UnixTime   time.Time `form:"unixTime" time_format:"unix"`
+	TimeFoo   time.Time `form:"time_foo" time_format:"2006-01-02" time_utc:"1" time_location:"Asia/Chongqing"`
+	TimeBar   time.Time `form:"time_bar" time_format:"2006-01-02" time_utc:"1"`
+	NanoTime  time.Time `form:"nanoTime" time_format:"unixNano"`
+	MicroTime time.Time `form:"microTime" time_format:"unixMicro"`
+	MilliTime time.Time `form:"milliTime" time_format:"unixMilli"`
+	UnixTime  time.Time `form:"unixTime" time_format:"unix"`
 }
 
 type FooStructForTimeTypeNotUnixFormat struct {
-	CreateTime time.Time `form:"createTime" time_format:"unixNano"`
-	UnixTime   time.Time `form:"unixTime" time_format:"unix"`
+	NanoTime  time.Time `form:"nanoTime" time_format:"unixNano"`
+	MicroTime time.Time `form:"microTime" time_format:"unixMicro"`
+	MilliTime time.Time `form:"milliTime" time_format:"unixMilli"`
+	UnixTime  time.Time `form:"unixTime" time_format:"unix"`
 }
 
 type FooStructForTimeTypeNotFormat struct {
@@ -235,17 +239,23 @@ func TestBindingFormDefaultValue2(t *testing.T) {
 		"", "")
 }
 
-func TestBindingFormForTime(t *testing.T) {
-	testFormBindingForTime(t, "POST", "/", "time_foo=2017-11-15&time_bar=&createTime=1562400033000000123&unixTime=1562400033")
-	testFormBindingForTimeNotUnixFormat(t, "POST", "/", "time_foo=2017-11-15&createTime=bad&unixTime=bad")
+func TestBindingFormForTimePOST(t *testing.T) {
+	testFormBindingForTime(t, "POST", "/", "time_foo=2017-11-15&time_bar=&nanoTime=1562400033123456789&microTime=1562400033123456&milliTime=1562400033123&unixTime=1562400033")
+	testFormBindingForTimeNotUnixFormat(t, "POST", "/", "time_foo=2017-11-15&nanoTime=bad")
+	testFormBindingForTimeNotUnixFormat(t, "POST", "/", "time_foo=2017-11-15&microTime=bad")
+	testFormBindingForTimeNotUnixFormat(t, "POST", "/", "time_foo=2017-11-15&milliTime=bad")
+	testFormBindingForTimeNotUnixFormat(t, "POST", "/", "time_foo=2017-11-15&unixTime=bad")
 	testFormBindingForTimeNotFormat(t, "POST", "/", "time_foo=2017/11/15")
 	testFormBindingForTimeFailFormat(t, "POST", "/", "time_foo=2017-11-15")
 	testFormBindingForTimeFailLocation(t, "POST", "/", "time_foo=2017-11-15")
 }
 
-func TestBindingFormForTime2(t *testing.T) {
-	testFormBindingForTime(t, "GET", "/?time_foo=2017-11-15&time_bar=&createTime=1562400033000000123&unixTime=1562400033", "")
-	testFormBindingForTimeNotUnixFormat(t, "GET", "/?time_foo=2017-11-15&createTime=bad&unixTime=bad", "")
+func TestBindingFormForTimeGET(t *testing.T) {
+	testFormBindingForTime(t, "GET", "/?time_foo=2017-11-15&time_bar=&nanoTime=1562400033123456789&microTime=1562400033123456&milliTime=1562400033123&unixTime=1562400033", "")
+	testFormBindingForTimeNotUnixFormat(t, "GET", "/?time_foo=2017-11-15&nanoTime=bad", "")
+	testFormBindingForTimeNotUnixFormat(t, "GET", "/?time_foo=2017-11-15&microTime=bad", "")
+	testFormBindingForTimeNotUnixFormat(t, "GET", "/?time_foo=2017-11-15&milliTime=bad", "")
+	testFormBindingForTimeNotUnixFormat(t, "GET", "/?time_foo=2017-11-15&unixTime=bad", "")
 	testFormBindingForTimeNotFormat(t, "GET", "/?time_foo=2017/11/15", "")
 	testFormBindingForTimeFailFormat(t, "GET", "/?time_foo=2017-11-15", "")
 	testFormBindingForTimeFailLocation(t, "GET", "/?time_foo=2017-11-15", "")
@@ -808,7 +818,9 @@ func testFormBindingForTime(t *testing.T, method, path, body string) {
 	assert.Equal(t, "Asia/Chongqing", obj.TimeFoo.Location().String())
 	assert.Equal(t, int64(-62135596800), obj.TimeBar.Unix())
 	assert.Equal(t, "UTC", obj.TimeBar.Location().String())
-	assert.Equal(t, int64(1562400033000000123), obj.CreateTime.UnixNano())
+	assert.Equal(t, int64(1562400033123456789), obj.NanoTime.UnixNano())
+	assert.Equal(t, int64(1562400033123456), obj.MicroTime.UnixMicro())
+	assert.Equal(t, int64(1562400033123), obj.MilliTime.UnixMilli())
 	assert.Equal(t, int64(1562400033), obj.UnixTime.Unix())
 }
 

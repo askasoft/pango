@@ -1,12 +1,26 @@
 package iox
 
 import (
+	"bytes"
 	"io"
 	"sync"
 	"unicode"
 
 	"github.com/askasoft/pango/str"
 )
+
+// ProxyWriter proxy writer
+type ProxyWriter struct {
+	W io.Writer
+}
+
+func (pw *ProxyWriter) Write(p []byte) (int, error) {
+	return pw.W.Write(p)
+}
+
+func (pw *ProxyWriter) WriteString(s string) (int, error) {
+	return WriteString(pw.W, s)
+}
 
 // syncWriter synchronize writer
 type syncWriter struct {
@@ -101,7 +115,89 @@ func (ww *wrapWriter) WriteString(s string) (n int, err error) {
 	} else {
 		n, err = ww.Write(str.UnsafeBytes(s))
 	}
-	return n, err
+	return
+}
+
+// linePrefixWriter a prefix line wrap writer
+type linePrefixWriter struct {
+	w      io.Writer
+	prefix string
+	lastlf bool
+}
+
+// LinePrefixWriter return a prefix line wrap writer
+func LinePrefixWriter(w io.Writer, prefix string) io.Writer {
+	return &linePrefixWriter{w, prefix, true}
+}
+
+// Write io.Writer implement
+func (lpw *linePrefixWriter) Write(p []byte) (n int, err error) {
+	if len(p) == 0 {
+		return
+	}
+
+	n = len(p)
+	ps := str.UnsafeBytes(lpw.prefix)
+
+	for len(p) > 0 {
+		if lpw.lastlf {
+			if _, err = lpw.w.Write(ps); err != nil {
+				return
+			}
+		}
+
+		i := bytes.IndexByte(p, '\n')
+		if i < 0 {
+			lpw.lastlf = false
+			if _, err = lpw.w.Write(p); err != nil {
+				return
+			}
+			break
+		}
+
+		lpw.lastlf = true
+		if _, err = lpw.w.Write(p[:i+1]); err != nil {
+			return
+		}
+		p = p[i+1:]
+	}
+	return
+}
+
+// WriteString io.StringWriter implement
+func (lpw *linePrefixWriter) WriteString(s string) (n int, err error) {
+	if s == "" {
+		return
+	}
+
+	if sw, ok := lpw.w.(io.StringWriter); ok {
+		n = len(s)
+		for s != "" {
+			if lpw.lastlf {
+				if _, err = sw.WriteString(lpw.prefix); err != nil {
+					return
+				}
+			}
+
+			i := str.IndexByte(s, '\n')
+			if i < 0 {
+				lpw.lastlf = false
+				if _, err = sw.WriteString(s); err != nil {
+					return
+				}
+				break
+			}
+
+			lpw.lastlf = true
+			if _, err = sw.WriteString(s[:i+1]); err != nil {
+				return
+			}
+			s = s[i+1:]
+		}
+	} else {
+		n, err = lpw.Write(str.UnsafeBytes(s))
+	}
+	return
 }
 
 type stripWriter struct {
@@ -166,28 +262,29 @@ func (cw *CompactWriter) Write(p []byte) (int, error) {
 	return cw.WriteString(str.UnsafeString(p))
 }
 
-func (cw *CompactWriter) WriteString(s string) (int, error) {
-	if s == "" {
-		return 0, nil
+func (cw *CompactWriter) WriteString(s string) (n int, err error) {
+	n = len(s)
+	if n == 0 {
+		return
 	}
 
-	for i, r := range s {
+	var sb str.Builder
+	for _, r := range s {
 		c := cw.f(r)
 		if cw.c {
 			if !c {
-				if n, err := WriteString(cw.w, string(r)); err != nil {
-					return i + n, err
-				}
+				sb.WriteRune(r)
 			}
 		} else {
 			if c {
 				r = cw.r
 			}
-			if n, err := WriteString(cw.w, string(r)); err != nil {
-				return i + n, err
-			}
+			sb.WriteRune(r)
 		}
 		cw.c = c
 	}
-	return len(s), nil
+	if sb.Len() > 0 {
+		_, err = WriteString(cw.w, sb.String())
+	}
+	return
 }

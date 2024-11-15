@@ -171,7 +171,8 @@ func (altw *AccessLogTextWriter) SetFormat(format string) {
 			if p != "" {
 				fmt = responseHeader(p)
 			} else {
-				fmt = hostname
+				s, _ := os.Hostname()
+				fmt = strfmtc(s)
 			}
 		case 'n':
 			fmt = eolfmt
@@ -277,7 +278,8 @@ func (aljw *AccessLogJSONWriter) SetFormat(format string) {
 			if p != "" {
 				fmt = quotefmtc(responseHeader(p))
 			} else {
-				fmt = quotefmtc(hostname)
+				s, _ := os.Hostname()
+				fmt = quotefmtc(strfmtc(s))
 			}
 		case 'n':
 			fmt = eolfmt
@@ -341,11 +343,6 @@ func timefmtc(layout string) fmtfunc {
 
 func eolfmt(p *AccessLogCtx) string {
 	return iox.EOL
-}
-
-func hostname(p *AccessLogCtx) string {
-	s, _ := os.Hostname()
-	return s
 }
 
 func latency(p *AccessLogCtx) string {

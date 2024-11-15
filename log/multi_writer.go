@@ -1,7 +1,5 @@
 package log
 
-import "github.com/askasoft/pango/log/internal"
-
 // NewMultiWriter create a multi writer
 func NewMultiWriter(ws ...Writer) *MultiWriter {
 	return &MultiWriter{Writers: ws}
@@ -15,10 +13,7 @@ type MultiWriter struct {
 // Write write log event to multiple writers.
 func (mw *MultiWriter) Write(le *Event) error {
 	for _, w := range mw.Writers {
-		err := w.Write(le)
-		if err != nil {
-			internal.Perror(err)
-		}
+		safeWrite(w, le)
 	}
 	return nil
 }
@@ -26,13 +21,13 @@ func (mw *MultiWriter) Write(le *Event) error {
 // Close close multiple writers.
 func (mw *MultiWriter) Close() {
 	for _, w := range mw.Writers {
-		w.Close()
+		safeClose(w)
 	}
 }
 
 // Flush flush multiple writers.
 func (mw *MultiWriter) Flush() {
 	for _, w := range mw.Writers {
-		w.Flush()
+		safeFlush(w)
 	}
 }

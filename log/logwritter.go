@@ -3,6 +3,7 @@ package log
 import (
 	"bytes"
 
+	"github.com/askasoft/pango/log/internal"
 	"github.com/askasoft/pango/ref"
 )
 
@@ -45,6 +46,41 @@ func ConfigWriter(w Writer, c map[string]any) error {
 
 func setWriterProp(w Writer, k string, v any) (err error) {
 	return ref.SetProperty(w, k, v)
+}
+
+// safeWrite safe write log event
+func safeWrite(lw Writer, le *Event) {
+	defer func() {
+		if r := recover(); r != nil {
+			internal.Perror(r)
+		}
+	}()
+
+	if err := lw.Write(le); err != nil {
+		internal.Perror(err)
+	}
+}
+
+// safeFlush safe flush log events
+func safeFlush(lw Writer) {
+	defer func() {
+		if r := recover(); r != nil {
+			internal.Perror(r)
+		}
+	}()
+
+	lw.Flush()
+}
+
+// safeClose safe close log writer
+func safeClose(lw Writer) {
+	defer func() {
+		if r := recover(); r != nil {
+			internal.Perror(r)
+		}
+	}()
+
+	lw.Close()
 }
 
 type LogFilter struct {

@@ -201,8 +201,7 @@ func StartsWithByte(s string, b byte) bool {
 		return false
 	}
 
-	a := s[0]
-	return a == b
+	return s[0] == b
 }
 
 // EndsWithByte Tests if the byte slice bs ends with the specified suffix b.
@@ -211,6 +210,5 @@ func EndsWithByte(s string, b byte) bool {
 		return false
 	}
 
-	a := s[len(s)-1]
-	return a == b
+	return s[len(s)-1] == b
 }

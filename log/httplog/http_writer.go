@@ -9,7 +9,6 @@ import (
 
 	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/log"
-	"github.com/askasoft/pango/log/internal"
 	"github.com/askasoft/pango/str"
 )
 
@@ -57,19 +56,20 @@ func (hw *HTTPWriter) Write(le *log.Event) error {
 	}
 
 	if hw.BatchCount > 1 {
-		hw.InitBuffer()
-		hw.EventBuffer.Push(le)
-
-		if hw.ShouldFlush(le) {
-			if err := hw.flush(); err != nil {
-				return err
-			}
-			hw.EventBuffer.Clear()
-		}
-		return nil
+		return hw.BatchWrite(le, hw.flush)
 	}
 
 	return hw.write(le)
+}
+
+// Flush flush cached events
+func (hw *HTTPWriter) Flush() {
+	hw.BatchFlush(hw.flush)
+}
+
+// Close flush and close the writer
+func (hw *HTTPWriter) Close() {
+	hw.Flush()
 }
 
 func (hw *HTTPWriter) write(le *log.Event) error {
@@ -88,7 +88,12 @@ func (hw *HTTPWriter) flush() error {
 		lf.Write(&hw.Buffer, le)
 	}
 
-	return hw.send()
+	if err := hw.send(); err != nil {
+		return err
+	}
+
+	hw.EventBuffer.Clear()
+	return nil
 }
 
 func (hw *HTTPWriter) initClient() {
@@ -139,24 +144,6 @@ func (hw *HTTPWriter) send() error {
 
 	iox.DrainAndClose(res.Body)
 	return err
-}
-
-// Flush flush cached events
-func (hw *HTTPWriter) Flush() {
-	if hw.EventBuffer == nil || hw.EventBuffer.IsEmpty() {
-		return
-	}
-
-	if err := hw.flush(); err == nil {
-		hw.EventBuffer.Clear()
-	} else {
-		internal.Perror(err)
-	}
-}
-
-// Close flush and close the writer
-func (hw *HTTPWriter) Close() {
-	hw.Flush()
 }
 
 func init() {

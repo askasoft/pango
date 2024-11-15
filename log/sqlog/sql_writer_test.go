@@ -14,7 +14,7 @@ import (
 
 var (
 	testDSN = ""
-	testSQL = "INSERT INTO sqlogs (time, level, msg, file, line, func, trace) VALUES ($1, $2, $3, $4, $5, $6, $7)"
+	testSQL = "INSERT INTO sqlogs (time, level, msg, file, line, func, trace) VALUES"
 	testARG = "%t %p %m %S %L %F %T"
 )
 

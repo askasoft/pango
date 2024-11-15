@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/sqx"
+	"github.com/askasoft/pango/str"
 )
 
 // SQLWriter implements log Writer Interface and batch send log messages to database.
@@ -24,7 +26,8 @@ import (
 //		trace text NOT NULL);
 //
 // Driver: postgres
-// Statement: "INSERT INTO sqlogs (time, level, msg, file, line, func, trace) VALUES ($1, $2, $3, $4, $5, $6, $7)"
+// Dsn: host=127.0.0.1 user=pango password=pango dbname=pango port=5432 sslmode=disable
+// Statement: "INSERT INTO sqlogs (time, level, msg, file, line, func, trace) VALUES"
 // Parameter: "%t %p %m %S %L %F %T"
 type SQLWriter struct {
 	log.LogFilter
@@ -37,11 +40,14 @@ type SQLWriter struct {
 	ConnMaxIdleTime time.Duration
 	ConnMaxLifeTime time.Duration
 
-	db *sql.DB
-	ps []argfunc
+	db     *sql.DB      // database
+	binder sqx.Binder   // placeholder binder
+	affs   []argFmtFunc // argument functions
+	stmb   str.Builder  // statement buffer
+	args   []any        // argument buffer
 }
 
-type argfunc func(le *log.Event) any
+type argFmtFunc func(le *log.Event) any
 
 // SetConnMaxIdleTime set ConnMaxIdleTime
 func (sw *SQLWriter) SetConnMaxIdleTime(duration string) error {
@@ -78,7 +84,7 @@ func (sw *SQLWriter) SetConnMaxLifeTime(duration string) error {
 // %m: message
 // %M{msg}: custom message
 func (sw *SQLWriter) SetParameter(format string) {
-	ps := make([]argfunc, 0, 10)
+	affs := make([]argFmtFunc, 0, 10)
 
 	for i := 0; i < len(format); i++ {
 		c := format[i]
@@ -92,45 +98,29 @@ func (sw *SQLWriter) SetParameter(format string) {
 		}
 
 		// symbol
-		var p argfunc
+		var p argFmtFunc
 		switch format[i] {
 		case 't':
-			p = func(le *log.Event) any {
-				return le.Time
-			}
+			p = ffTime
 		case 'c':
-			p = func(le *log.Event) any {
-				return le.Logger.GetName()
-			}
+			p = ffName
 		case 'p':
-			p = func(le *log.Event) any {
-				return le.Level.Prefix()
-			}
+			p = ffPrefix
 		case 'l':
-			p = func(le *log.Event) any {
-				return le.Level.String()
-			}
+			p = ffLevel
 		case 'x':
 			o := getOption(format, &i)
 			if o != "" {
 				p = fcProp(o)
 			}
 		case 'S':
-			p = func(le *log.Event) any {
-				return le.File
-			}
+			p = ffFile
 		case 'L':
-			p = func(le *log.Event) any {
-				return le.Line
-			}
+			p = ffLine
 		case 'F':
-			p = func(le *log.Event) any {
-				return le.Func
-			}
+			p = ffFunc
 		case 'T':
-			p = func(le *log.Event) any {
-				return le.Trace
-			}
+			p = ffTrace
 		case 'm':
 			p = func(le *log.Event) any {
 				return le.Msg
@@ -143,11 +133,11 @@ func (sw *SQLWriter) SetParameter(format string) {
 		}
 
 		if p != nil {
-			ps = append(ps, p)
+			affs = append(affs, p)
 		}
 	}
 
-	sw.ps = ps
+	sw.affs = affs
 }
 
 func getOption(format string, i *int) string {
@@ -162,6 +152,50 @@ func getOption(format string, i *int) string {
 	return ""
 }
 
+func fcString(s string) argFmtFunc {
+	return func(le *log.Event) any {
+		return s
+	}
+}
+
+func fcProp(key string) argFmtFunc {
+	return func(le *log.Event) any {
+		return le.Logger.GetProp(key)
+	}
+}
+
+func ffName(le *log.Event) any {
+	return le.Logger.GetName()
+}
+
+func ffTime(le *log.Event) any {
+	return le.Time
+}
+
+func ffPrefix(le *log.Event) any {
+	return le.Level.Prefix()
+}
+
+func ffLevel(le *log.Event) any {
+	return le.Level.String()
+}
+
+func ffFile(le *log.Event) any {
+	return le.File
+}
+
+func ffLine(le *log.Event) any {
+	return le.Line
+}
+
+func ffFunc(le *log.Event) any {
+	return le.Func
+}
+
+func ffTrace(le *log.Event) any {
+	return le.Trace
+}
+
 // Write cache log message, flush if needed
 func (sw *SQLWriter) Write(le *log.Event) error {
 	if sw.Reject(le) {
@@ -169,48 +203,34 @@ func (sw *SQLWriter) Write(le *log.Event) error {
 	}
 
 	if sw.BatchCount > 1 {
-		sw.InitBuffer()
-		sw.EventBuffer.Push(le)
-
-		if sw.ShouldFlush(le) {
-			if err := sw.flush(); err != nil {
-				return err
-			}
-		}
-		return nil
+		return sw.BatchWrite(le, sw.flush)
 	}
 
 	sw.initDB()
 	return sw.write(le)
 }
 
-func (sw *SQLWriter) flush() error {
-	sw.initDB()
-
-	for le, ok := sw.EventBuffer.Peek(); ok; le, ok = sw.EventBuffer.Peek() {
-		if err := sw.write(le); err != nil {
-			return err
-		}
-		_, _ = sw.EventBuffer.Poll()
-	}
-
-	return nil
-}
-
 // Flush flush cached events
 func (sw *SQLWriter) Flush() {
-	if sw.EventBuffer == nil || sw.EventBuffer.IsEmpty() {
-		return
-	}
-
-	if err := sw.flush(); err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
-	}
+	sw.BatchFlush(sw.flush)
 }
 
 // Close flush and close the writer
 func (sw *SQLWriter) Close() {
 	sw.Flush()
+}
+
+func (sw *SQLWriter) flush() error {
+	sw.initDB()
+
+	les := sw.EventBuffer.Values()
+
+	if err := sw.write(les...); err != nil {
+		return err
+	}
+
+	sw.EventBuffer.Clear()
+	return nil
 }
 
 func (sw *SQLWriter) initDB() {
@@ -225,30 +245,34 @@ func (sw *SQLWriter) initDB() {
 		db.SetMaxIdleConns(1)
 		db.SetConnMaxIdleTime(sw.ConnMaxIdleTime)
 		db.SetConnMaxLifetime(sw.ConnMaxLifeTime)
+
 		sw.db = db
+		sw.binder = sqx.GetBinder(sw.Driver)
 	}
 }
 
-func (sw *SQLWriter) write(le *log.Event) error {
-	args := make([]any, len(sw.ps))
-	for i, f := range sw.ps {
-		args[i] = f(le)
+func (sw *SQLWriter) write(les ...*log.Event) error {
+	sw.stmb.Reset()
+	sw.args = sw.args[:0]
+
+	n := 0
+	sw.stmb.WriteString(sw.Statement)
+	for i, le := range les {
+		sw.stmb.WriteString(str.If(i == 0, " (", ",("))
+		for j, f := range sw.affs {
+			sw.args = append(sw.args, f(le))
+			if j > 0 {
+				sw.stmb.WriteRune(',')
+			}
+			n++
+			sw.stmb.WriteString(sw.binder.Placeholder(n))
+		}
+		sw.stmb.WriteRune(')')
 	}
 
-	_, err := sw.db.Exec(sw.Statement, args...)
+	sql := sw.stmb.String()
+	_, err := sw.db.Exec(sql, sw.args...)
 	return err
-}
-
-func fcString(s string) argfunc {
-	return func(le *log.Event) any {
-		return s
-	}
-}
-
-func fcProp(key string) argfunc {
-	return func(le *log.Event) any {
-		return le.Logger.GetProp(key)
-	}
 }
 
 func init() {

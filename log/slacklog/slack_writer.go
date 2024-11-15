@@ -18,6 +18,8 @@ type SlackWriter struct {
 
 	Webhook string
 	Timeout time.Duration
+
+	message slack.Message
 }
 
 // SetWebhook set the webhook URL
@@ -46,23 +48,31 @@ func (sw *SlackWriter) Write(le *log.Event) (err error) {
 		return
 	}
 
+	if len(sw.message.Attachments) == 0 {
+		sw.message.AddAttachment(&slack.Attachment{})
+	}
+
 	sub, msg := sw.format(le)
-
-	sm := &slack.Message{}
-	sm.IconEmoji = sw.getIconEmoji(le.Level)
-	sm.Text = sub
-
-	sa := &slack.Attachment{Text: msg}
-	sm.AddAttachment(sa)
+	sw.message.IconEmoji = sw.getIconEmoji(le.Level)
+	sw.message.Text = sub
+	sw.message.Attachments[0].Text = msg
 
 	if sw.Timeout.Milliseconds() == 0 {
 		sw.Timeout = time.Second * 2
 	}
 
-	if err = slack.Post(sw.Webhook, sw.Timeout, sm); err != nil {
+	if err = slack.Post(sw.Webhook, sw.Timeout, &sw.message); err != nil {
 		err = fmt.Errorf("SlackWriter(%s): Post(): %w", sw.Webhook, err)
 	}
 	return
+}
+
+// Flush implementing method. empty.
+func (sw *SlackWriter) Flush() {
+}
+
+// Close implementing method. empty.
+func (sw *SlackWriter) Close() {
 }
 
 // format format log event to (subject, message)
@@ -73,7 +83,6 @@ func (sw *SlackWriter) format(le *log.Event) (sub, msg string) {
 
 	mbs := sw.Format(le)
 	msg = str.UnsafeString(mbs)
-
 	return
 }
 
@@ -94,14 +103,6 @@ func (sw *SlackWriter) getIconEmoji(lvl log.Level) string {
 	default:
 		return ":ghost:"
 	}
-}
-
-// Flush implementing method. empty.
-func (sw *SlackWriter) Flush() {
-}
-
-// Close implementing method. empty.
-func (sw *SlackWriter) Close() {
 }
 
 func init() {

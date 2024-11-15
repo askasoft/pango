@@ -2,8 +2,6 @@ package log
 
 import (
 	"sync"
-
-	"github.com/askasoft/pango/log/internal"
 )
 
 // NewAsyncWriter create a async writer and start go routine
@@ -66,12 +64,6 @@ func (aw *AsyncWriter) Wait() {
 	aw.waitg.Wait()
 }
 
-func (aw *AsyncWriter) write(le *Event) {
-	if err := aw.writer.Write(le); err != nil {
-		internal.Perror(err)
-	}
-}
-
 // run start async log goroutine
 func (aw *AsyncWriter) run() {
 	stop, done := false, false
@@ -105,7 +97,7 @@ func (aw *AsyncWriter) run() {
 				stop = true
 			}
 		case le := <-aw.evtChan:
-			aw.write(le)
+			safeWrite(aw.writer, le)
 		default:
 			if stop && len(aw.evtChan) == 0 && len(aw.sigChan) == 0 {
 				return

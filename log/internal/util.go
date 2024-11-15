@@ -5,8 +5,8 @@ import (
 	"os"
 )
 
-func Perror(err error) {
-	fmt.Fprintln(os.Stderr, err.Error())
+func Perror(a any) {
+	fmt.Fprintln(os.Stderr, a)
 }
 
 func Perrorf(format string, a ...any) {

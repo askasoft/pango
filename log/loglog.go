@@ -97,16 +97,16 @@ func (log *Log) SwitchWriter(lw Writer) {
 
 // Flush flush all chan data.
 func (log *Log) Flush() {
-	log.writer.Flush()
+	safeFlush(log.writer)
 }
 
 // Close close logger, flush all data and close the writer.
 func (log *Log) Close() {
-	log.writer.Close()
+	safeClose(log.writer)
 }
 
 func (log *Log) write(le *Event) {
-	log.writer.Write(le) //nolint: errcheck
+	safeWrite(log.writer, le)
 }
 
 // Outputer return a io.Writer for go log.SetOutput

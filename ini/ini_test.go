@@ -42,8 +42,6 @@ func testReadString(filename string) string {
 }
 
 func testLoadFile(t *testing.T, fsrc, fexp, fout string) {
-	defer os.Remove(fout)
-
 	ini := NewIni()
 	ini.EOL = iox.CRLF
 
@@ -121,6 +119,8 @@ func testLoadFile(t *testing.T, fsrc, fexp, fout string) {
 		sout := testReadString(fout)
 		if sexp != sout {
 			t.Errorf(`ini.WriteFile(fout)\n actual: %v\n   want: %v`, fout, sexp)
+		} else {
+			os.Remove(fout)
 		}
 	}
 

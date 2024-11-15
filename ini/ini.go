@@ -288,7 +288,7 @@ func (ini *Ini) LoadData(r io.Reader, multiple ...bool) (err error) {
 		if eof {
 			buf = nil
 		} else {
-			buf = bytes.TrimSpace(scanner.Bytes())
+			buf = scanner.Bytes()
 		}
 
 		// line continuation
@@ -297,7 +297,7 @@ func (ini *Ini) LoadData(r io.Reader, multiple ...bool) (err error) {
 				if len(buf) == 1 {
 					// a single '\\' line means EOL
 					if bye.StartsWithByte(val.Bytes(), '"') {
-						qs := quote(ini.EOL)
+						qs := strconv.Quote(ini.EOL)
 						val.WriteString(qs[1 : len(qs)-1])
 					} else {
 						val.WriteString(ini.EOL)
@@ -330,6 +330,7 @@ func (ini *Ini) LoadData(r io.Reader, multiple ...bool) (err error) {
 			break
 		}
 
+		buf = bytes.TrimSpace(buf)
 		linenum++
 
 		// empty line

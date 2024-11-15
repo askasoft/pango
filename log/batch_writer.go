@@ -2,6 +2,8 @@ package log
 
 import (
 	"time"
+
+	"github.com/askasoft/pango/log/internal"
 )
 
 // BatchWriter implements log Writer Interface and batch send log messages to webhook.
@@ -15,41 +17,63 @@ type BatchWriter struct {
 }
 
 // SetFlushLevel set the flush level
-func (wbw *BatchWriter) SetFlushLevel(lvl string) {
-	wbw.FlushLevel = ParseLevel(lvl)
+func (bw *BatchWriter) SetFlushLevel(lvl string) {
+	bw.FlushLevel = ParseLevel(lvl)
 }
 
-func (wbw *BatchWriter) InitBuffer() {
-	if wbw.BatchCount < 1 {
-		wbw.BatchCount = 10
+func (bw *BatchWriter) InitBuffer() {
+	if bw.BatchCount < 1 {
+		bw.BatchCount = 10
 	}
-	if wbw.CacheCount < wbw.BatchCount {
-		wbw.CacheCount = wbw.BatchCount * 2
+	if bw.CacheCount < bw.BatchCount {
+		bw.CacheCount = bw.BatchCount * 2
 	}
 
-	if wbw.EventBuffer == nil {
-		wbw.EventBuffer = NewEventBuffer(wbw.CacheCount)
+	if bw.EventBuffer == nil {
+		bw.EventBuffer = NewEventBuffer(bw.CacheCount)
 	}
 }
 
-func (wbw *BatchWriter) ShouldFlush(le *Event) bool {
-	if wbw.EventBuffer == nil {
+func (bw *BatchWriter) ShouldFlush(le *Event) bool {
+	if bw.EventBuffer == nil {
 		return false
 	}
 
-	if wbw.EventBuffer.Len() >= wbw.BatchCount {
+	if bw.EventBuffer.Len() >= bw.BatchCount {
 		return true
 	}
-	if le.Level <= wbw.FlushLevel {
+	if le.Level <= bw.FlushLevel {
 		return true
 	}
 
-	if wbw.FlushDelta > 0 && wbw.EventBuffer.Len() > 1 {
-		if fle, ok := wbw.EventBuffer.Peek(); ok {
-			if le.Time.Sub(fle.Time) >= wbw.FlushDelta {
+	if bw.FlushDelta > 0 && bw.EventBuffer.Len() > 1 {
+		if fle, ok := bw.EventBuffer.Peek(); ok {
+			if le.Time.Sub(fle.Time) >= bw.FlushDelta {
 				return true
 			}
 		}
 	}
 	return false
+}
+
+func (bw *BatchWriter) BatchWrite(le *Event, flush func() error) error {
+	bw.InitBuffer()
+	bw.EventBuffer.Push(le)
+
+	if bw.ShouldFlush(le) {
+		if err := flush(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (bw *BatchWriter) BatchFlush(flush func() error) {
+	if bw.EventBuffer == nil || bw.EventBuffer.IsEmpty() {
+		return
+	}
+
+	if err := flush(); err != nil {
+		internal.Perror(err)
+	}
 }

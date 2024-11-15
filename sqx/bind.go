@@ -29,9 +29,9 @@ const (
 )
 
 var (
-	PlaceholderDollar = regexp.MustCompile(`\$(\d+)`)
-	PlaceholderColon  = regexp.MustCompile(`:arg(\d+)`)
-	PlaceholderAt     = regexp.MustCompile(`@p(\d+)`)
+	reDollar = regexp.MustCompile(`\$(\d+)`)
+	reColon  = regexp.MustCompile(`:arg(\d+)`)
+	reAt     = regexp.MustCompile(`@p(\d+)`)
 )
 
 var binders = map[string]Binder{
@@ -72,20 +72,6 @@ func BindDriver(driverName string, binder Binder) {
 	binders = nbs
 }
 
-// Placeholder returns the placeholder regexp
-func (binder Binder) Placeholder() *regexp.Regexp {
-	switch binder {
-	case BindDollar:
-		return PlaceholderDollar
-	case BindColon:
-		return PlaceholderColon
-	case BindAt:
-		return PlaceholderAt
-	default:
-		return nil
-	}
-}
-
 // Rebind a query from the default binder (QUESTION) to the target binder.
 func (binder Binder) Rebind(query string) string {
 	switch binder {
@@ -96,29 +82,64 @@ func (binder Binder) Rebind(query string) string {
 	// Add space enough for 10 params before we have to allocate
 	rqb := make([]byte, 0, len(query)+10)
 
-	n := int64(0)
-
-	i := str.IndexByte(query, '?')
-	for ; i != -1; i = str.IndexByte(query, '?') {
+	n := 0
+	for i := str.IndexByte(query, '?'); i >= 0; i = str.IndexByte(query, '?') {
 		rqb = append(rqb, query[:i]...)
 
-		switch binder {
-		case BindDollar:
-			rqb = append(rqb, '$')
-		case BindColon:
-			rqb = append(rqb, ':', 'a', 'r', 'g')
-		case BindAt:
-			rqb = append(rqb, '@', 'p')
-		}
-
 		n++
-		rqb = strconv.AppendInt(rqb, n, 10)
+		rqb = binder.Append(rqb, n)
 
 		query = query[i+1:]
 	}
 	rqb = append(rqb, query...)
 
 	return str.UnsafeString(rqb)
+}
+
+func (binder Binder) Append(q []byte, n int) []byte {
+	switch binder {
+	case BindDollar:
+		q = append(q, '$')
+	case BindColon:
+		q = append(q, ':', 'a', 'r', 'g')
+	case BindAt:
+		q = append(q, '@', 'p')
+	default:
+		n = 0
+	}
+
+	if n > 0 {
+		q = strconv.AppendInt(q, int64(n), 10)
+	} else {
+		q = append(q, '?')
+	}
+	return q
+}
+
+func (binder Binder) Placeholder(n int) string {
+	switch binder {
+	case BindDollar:
+		return fmt.Sprintf("$%d", n)
+	case BindColon:
+		return fmt.Sprintf(":arg%d", n)
+	case BindAt:
+		return fmt.Sprintf("@p%d", n)
+	default:
+		return "?"
+	}
+}
+
+func (binder Binder) matcher() *regexp.Regexp {
+	switch binder {
+	case BindDollar:
+		return reDollar
+	case BindColon:
+		return reColon
+	case BindAt:
+		return reAt
+	default:
+		return nil
+	}
 }
 
 // Explain generate SQL string with given parameters, the generated SQL is expected to be used in logger, execute it might introduce a SQL injection vulnerability
@@ -132,7 +153,7 @@ func (binder Binder) Explain(sql string, args ...any) string {
 		vars[i] = convert(v)
 	}
 
-	rep := binder.Placeholder()
+	rep := binder.matcher()
 
 	if rep == nil {
 		var idx int

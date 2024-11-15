@@ -18,6 +18,8 @@ type TeamsWriter struct {
 
 	Webhook string
 	Timeout time.Duration
+
+	message teams.Message
 }
 
 // SetWebhook set the webhook URL
@@ -46,30 +48,15 @@ func (tw *TeamsWriter) Write(le *log.Event) (err error) {
 		return
 	}
 
-	sub, msg := tw.format(le)
-
-	tm := &teams.Message{}
-	tm.Title = sub
-	tm.Text = msg
+	tw.message.Title, tw.message.Text = tw.format(le)
 
 	if tw.Timeout.Milliseconds() == 0 {
 		tw.Timeout = time.Second * 2
 	}
 
-	if err = teams.Post(tw.Webhook, tw.Timeout, tm); err != nil {
+	if err = teams.Post(tw.Webhook, tw.Timeout, &tw.message); err != nil {
 		err = fmt.Errorf("TeamsWriter(%s): Post(): %w", tw.Webhook, err)
 	}
-	return
-}
-
-// format format log event to (message)
-func (tw *TeamsWriter) format(le *log.Event) (sub, msg string) {
-	sbs := tw.SubFormat(le)
-	sub = str.UnsafeString(sbs)
-
-	mbs := tw.Format(le)
-	msg = str.UnsafeString(mbs)
-
 	return
 }
 
@@ -79,6 +66,16 @@ func (tw *TeamsWriter) Flush() {
 
 // Close implementing method. empty.
 func (tw *TeamsWriter) Close() {
+}
+
+// format format log event to (message)
+func (tw *TeamsWriter) format(le *log.Event) (sub, msg string) {
+	sbs := tw.SubFormat(le)
+	sub = str.UnsafeString(sbs)
+
+	mbs := tw.Format(le)
+	msg = str.UnsafeString(mbs)
+	return
 }
 
 func init() {

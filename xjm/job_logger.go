@@ -1,8 +1,6 @@
 package xjm
 
 import (
-	"fmt"
-	"os"
 	"time"
 
 	"github.com/askasoft/pango/log"
@@ -15,67 +13,63 @@ type JobLogWriter struct {
 
 	jmr JobManager
 	jid int64
+	jls []*JobLog // buffer
 }
 
 func NewJobLogWriter(jmr JobManager, jid int64) *JobLogWriter {
-	jlw := &JobLogWriter{jmr: jmr, jid: jid}
+	jw := &JobLogWriter{jmr: jmr, jid: jid}
 
-	jlw.Filter = log.NewLevelFilter(log.LevelDebug)
-	jlw.BatchCount = 100
-	jlw.CacheCount = 200
-	jlw.FlushLevel = log.LevelWarn
-	jlw.FlushDelta = time.Second
+	jw.Filter = log.NewLevelFilter(log.LevelDebug)
+	jw.BatchCount = 100
+	jw.CacheCount = 200
+	jw.FlushLevel = log.LevelWarn
+	jw.FlushDelta = time.Second
 
-	return jlw
+	return jw
 }
 
-// Write write message in console.
-func (jlw *JobLogWriter) Write(le *log.Event) (err error) {
-	if jlw.Reject(le) {
+// Write write log event.
+func (jw *JobLogWriter) Write(le *log.Event) (err error) {
+	if jw.Reject(le) {
 		return
 	}
 
-	jlw.InitBuffer()
-	jlw.EventBuffer.Push(le)
-
-	if jlw.ShouldFlush(le) {
-		jlw.Flush()
-	}
-
-	return nil
+	return jw.BatchWrite(le, jw.flush)
 }
 
-// Flush implementing method. empty.
-func (jlw *JobLogWriter) Flush() {
-	if jlw.EventBuffer == nil || jlw.EventBuffer.IsEmpty() {
-		return
-	}
-
-	if err := jlw.flush(); err == nil {
-		jlw.EventBuffer.Clear()
-	} else {
-		fmt.Fprintln(os.Stderr, err.Error())
-	}
+// Flush flush cached log events
+func (jw *JobLogWriter) Flush() {
+	jw.BatchFlush(jw.flush)
 }
 
-func (jlw *JobLogWriter) flush() error {
-	var jls []*JobLog
+// Close flush cached log events
+func (jw *JobLogWriter) Close() {
+	jw.Flush()
+}
 
-	for it := jlw.EventBuffer.Iterator(); it.Next(); {
+func (jw *JobLogWriter) flush() error {
+	for len(jw.jls) < jw.EventBuffer.Len() {
+		jw.jls = append(jw.jls, &JobLog{})
+	}
+
+	jls := jw.jls[:jw.EventBuffer.Len()]
+
+	for n, it := 0, jw.EventBuffer.Iterator(); it.Next(); {
 		le := it.Value()
-		jl := &JobLog{
-			JID:     jlw.jid,
-			Time:    le.Time,
-			Level:   le.Level.Prefix(),
-			Message: le.Msg,
-		}
-		jls = append(jls, jl)
+
+		jl := jls[n]
+		jl.ID = 0
+		jl.JID = jw.jid
+		jl.Time = le.Time
+		jl.Level = le.Level.Prefix()
+		jl.Message = le.Msg
+		n++
 	}
 
-	return jlw.jmr.AddJobLogs(jls)
-}
+	if err := jw.jmr.AddJobLogs(jls); err != nil {
+		return err
+	}
 
-// Close implementing method. empty.
-func (jlw *JobLogWriter) Close() {
-	jlw.Flush()
+	jw.EventBuffer.Clear()
+	return nil
 }

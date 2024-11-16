@@ -1,6 +1,7 @@
 package log
 
 import (
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -140,8 +141,9 @@ func TestJSONFormatDefault(t *testing.T) {
 	le.Time = time.Now()
 	le.CallerDepth(2, false)
 
+	host, _ := os.Hostname()
 	assertFormatEvent(t, jf, le, `{"time": "`+le.Time.Format(defaultTimeFormat)+
-		`", "level": "INFO", "name": "JSON", "file": "logformatter_test.go", "line": `+strconv.Itoa(le.Line)+
+		`", "level": "INFO", "name": "JSON", "host": "`+host+`", "file": "logformatter_test.go", "line": `+strconv.Itoa(le.Line)+
 		`, "func": "log.TestJSONFormatDefault", "msg": "default", "trace": ""}`+EOL)
 }
 
@@ -178,8 +180,9 @@ func TestNewJSONFormatDefault(t *testing.T) {
 	le.Time = time.Now()
 	le.CallerDepth(2, false)
 
+	host, _ := os.Hostname()
 	assertFormatEvent(t, jf, le, `{"time": "`+le.Time.Format(defaultTimeFormat)+
-		`", "level": "INFO", "name": "JSON", "file": "logformatter_test.go", "line": `+strconv.Itoa(le.Line)+
+		`", "level": "INFO", "name": "JSON", "host": "`+host+`", "file": "logformatter_test.go", "line": `+strconv.Itoa(le.Line)+
 		`, "func": "log.TestNewJSONFormatDefault", "msg": "default", "trace": ""}`+EOL)
 }
 
@@ -189,7 +192,8 @@ func TestNewLogFormatJSONDefault(t *testing.T) {
 	le.Time = time.Now()
 	le.CallerDepth(2, false)
 
+	host, _ := os.Hostname()
 	assertFormatEvent(t, jf, le, `{"time": "`+le.Time.Format(defaultTimeFormat)+
-		`", "level": "INFO", "name": "JSON", "file": "logformatter_test.go", "line": `+strconv.Itoa(le.Line)+
+		`", "level": "INFO", "name": "JSON", "host": "`+host+`", "file": "logformatter_test.go", "line": `+strconv.Itoa(le.Line)+
 		`, "func": "log.TestNewLogFormatJSONDefault", "msg": "default", "trace": ""}`+EOL)
 }

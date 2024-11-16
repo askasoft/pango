@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"strconv"
 	"strings"
 
@@ -31,8 +32,8 @@ var TextFmtSimple = newTextFormatter("[%p] %m%n")
 // TextFmtDefault default log format "%t %l{-5s} %c %S:%L %F() - %m%n%T"
 var TextFmtDefault = newTextFormatter("%t %l{-5s} %c %S:%L %F() - %m%n%T")
 
-// JSONFmtDefault default log format `{"time": %t, "level": %l, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`
-var JSONFmtDefault = newJSONFormatter(`{"time": %t, "level": %l, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
+// JSONFmtDefault default log format `{"time": %t, "level": %l, "name": %c, "host": %h, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`
+var JSONFmtDefault = newJSONFormatter(`{"time": %t, "level": %l, "name": %c, "host": %h, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
 
 // NewLogFormatter create a text or json formatter
 // text:[%p] %m%n -> TextFormatter
@@ -53,6 +54,8 @@ func NewLogFormatter(format string) Formatter {
 // %c{format}: logger name
 // %p{format}: log level prefix
 // %l{format}: log level string
+// %h{format}: hostname
+// %e{key}: os environment variable
 // %x{key}: logger property
 // %X{=| }: logger properties (operator|separator)
 // %S: caller source file name
@@ -87,6 +90,8 @@ func newTextFormatter(format string) *TextFormatter {
 // %c{format}: logger name
 // %p{format}: log level prefix
 // %l{format}: log level string
+// %h{format}: hostname
+// %e{key}: os environment variable
 // %x{key}: logger property
 // %X: logger properties (json format)
 // %S: caller source file name
@@ -182,6 +187,19 @@ func (tf *TextFormatter) SetFormat(format string) {
 				ff = ffLevelString
 			} else {
 				ff = fcLevelString("%" + p)
+			}
+		case 'h':
+			p := getFormatOption(format, &i)
+			h, _ := os.Hostname()
+			if p == "" {
+				ff = fcString(h)
+			} else {
+				ff = fcStringFormat(p, h)
+			}
+		case 'e':
+			p := getFormatOption(format, &i)
+			if p != "" {
+				ff = fcGetenv(p)
 			}
 		case 'x':
 			p := getFormatOption(format, &i)
@@ -299,6 +317,20 @@ func (jf *JSONFormatter) SetFormat(format string) {
 				ff = fcLevelString("%" + p)
 			}
 			ff = fcQuote(ff)
+		case 'h':
+			p := getFormatOption(format, &i)
+			h, _ := os.Hostname()
+			if p == "" {
+				ff = fcString(h)
+			} else {
+				ff = fcStringFormat(p, h)
+			}
+			ff = fcQuote(ff)
+		case 'e':
+			p := getFormatOption(format, &i)
+			if p != "" {
+				ff = fcQuote(fcGetenv(p))
+			}
 		case 'x':
 			p := getFormatOption(format, &i)
 			if p != "" {
@@ -407,6 +439,12 @@ func fcString(s string) fmtfunc {
 	}
 }
 
+func fcStringFormat(f, s string) fmtfunc {
+	return func(le *Event) string {
+		return fmt.Sprintf(f, s)
+	}
+}
+
 func ffTimeUnix(le *Event) string {
 	return num.Ltoa(le.Time.Unix())
 }
@@ -444,6 +482,12 @@ func fcLevelPrefix(f string) fmtfunc {
 func fcLevelString(f string) fmtfunc {
 	return func(le *Event) string {
 		return fmt.Sprintf(f, le.Level.String())
+	}
+}
+
+func fcGetenv(key string) fmtfunc {
+	return func(le *Event) string {
+		return os.Getenv(key)
 	}
 }
 

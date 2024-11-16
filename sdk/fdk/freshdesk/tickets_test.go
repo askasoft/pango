@@ -149,7 +149,8 @@ func TestIterTicketsAndConversations(t *testing.T) {
 		j = 0
 		fd.IterTicketConversations(t.ID, nil, func(c *Conversation) error {
 			j++
-			fd.Logger.Infof("#%d [%d]: Income: %v, UID: %d, FROM: %s, TO: %v, CC: %v", t.ID, j, c.Incoming, c.UserID, c.FromEmail, c.ToEmails, c.CcEmails)
+			fd.Logger.Infof("#%d [%d]: Source: %v, Income: %v, UID: %d, THID: %d, FROM: %s, TO: %v, CC: %v",
+				t.ID, j, c.Source, c.Incoming, c.UserID, c.ThreadID, c.FromEmail, c.ToEmails, c.CcEmails)
 			return nil
 		})
 		return nil

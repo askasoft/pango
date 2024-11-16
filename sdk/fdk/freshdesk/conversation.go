@@ -89,6 +89,12 @@ type Conversation struct {
 	// Email address from which the reply is sent. For notes, this value will be null.
 	SupportEmail string `json:"support_email,omitempty"`
 
+	// Thread ID undocument
+	ThreadID int64 `json:"thread_id,omitempty"`
+
+	// Thread Message ID undocument
+	ThreadMessageID int64 `json:"thread_message_id,omitempty"`
+
 	// ID of the ticket to which this conversation is being added
 	TicketID int64 `json:"ticket_id,omitempty"`
 

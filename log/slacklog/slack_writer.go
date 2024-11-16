@@ -12,9 +12,10 @@ import (
 
 // SlackWriter implements log Writer Interface and send log message to slack.
 type SlackWriter struct {
-	log.LogFilter
-	log.LogFormatter
-	log.SubFormatter
+	log.RetrySupport
+	log.FilterSupport
+	log.FormatSupport
+	log.SubjectSuport
 
 	Webhook string
 	Timeout time.Duration
@@ -43,11 +44,25 @@ func (sw *SlackWriter) SetTimeout(timeout string) error {
 }
 
 // Write send log message to slack
-func (sw *SlackWriter) Write(le *log.Event) (err error) {
+func (sw *SlackWriter) Write(le *log.Event) {
 	if sw.Reject(le) {
 		return
 	}
 
+	sw.RetryWrite(le, sw.write)
+}
+
+// Flush retry send failed events.
+func (sw *SlackWriter) Flush() {
+	sw.RetryFlush(sw.write)
+}
+
+// Close flush and close.
+func (sw *SlackWriter) Close() {
+	sw.Flush()
+}
+
+func (sw *SlackWriter) write(le *log.Event) (err error) {
 	if len(sw.message.Attachments) == 0 {
 		sw.message.AddAttachment(&slack.Attachment{})
 	}
@@ -65,14 +80,6 @@ func (sw *SlackWriter) Write(le *log.Event) (err error) {
 		err = fmt.Errorf("SlackWriter(%s): Post(): %w", sw.Webhook, err)
 	}
 	return
-}
-
-// Flush implementing method. empty.
-func (sw *SlackWriter) Flush() {
-}
-
-// Close implementing method. empty.
-func (sw *SlackWriter) Close() {
 }
 
 // format format log event to (subject, message)

@@ -1,15 +1,13 @@
 package log
 
 import (
-	"bytes"
-
 	"github.com/askasoft/pango/log/internal"
 	"github.com/askasoft/pango/ref"
 )
 
 // Writer log writer interface
 type Writer interface {
-	Write(le *Event) error
+	Write(le *Event)
 	Flush()
 	Close()
 }
@@ -56,9 +54,7 @@ func safeWrite(lw Writer, le *Event) {
 		}
 	}()
 
-	if err := lw.Write(le); err != nil {
-		internal.Perror(err)
-	}
+	lw.Write(le)
 }
 
 // safeFlush safe flush log events
@@ -81,79 +77,4 @@ func safeClose(lw Writer) {
 	}()
 
 	lw.Close()
-}
-
-type LogFilter struct {
-	Filter Filter // log filter
-}
-
-// SetFilter set the log filter
-func (ll *LogFilter) SetFilter(filter string) {
-	ll.Filter = NewLogFilter(filter)
-}
-
-func (ll *LogFilter) Reject(le *Event) bool {
-	return ll.Filter != nil && ll.Filter.Reject(le)
-}
-
-type LogFormatter struct {
-	Formatter Formatter    // log formatter
-	Buffer    bytes.Buffer // log buffer
-}
-
-// SetFormat set the log formatter
-func (lf *LogFormatter) SetFormat(format string) {
-	lf.Formatter = NewLogFormatter(format)
-}
-
-// Format format the log event
-func (lf *LogFormatter) GetFormatter(le *Event, df ...Formatter) Formatter {
-	f := lf.Formatter
-	if f == nil {
-		f = le.Logger.GetFormatter()
-		if f == nil {
-			if len(df) > 0 {
-				f = df[0]
-			} else {
-				f = TextFmtDefault
-			}
-		}
-	}
-	return f
-}
-
-// Format format the log event
-func (lf *LogFormatter) Format(le *Event, df ...Formatter) []byte {
-	f := lf.GetFormatter(le, df...)
-	lf.Buffer.Reset()
-	f.Write(&lf.Buffer, le)
-	return lf.Buffer.Bytes()
-}
-
-// Append format the log event and append to buffer
-func (lf *LogFormatter) Append(le *Event, df ...Formatter) {
-	f := lf.GetFormatter(le, df...)
-	f.Write(&lf.Buffer, le)
-}
-
-type SubFormatter struct {
-	Subjecter Formatter    // log formatter
-	SubBuffer bytes.Buffer // log buffer
-}
-
-// SetSubject set the subject formatter
-func (sf *SubFormatter) SetSubject(format string) {
-	sf.Subjecter = NewLogFormatter(format)
-}
-
-// GetFormatter get Formatter
-func (sf *SubFormatter) SubFormat(le *Event) []byte {
-	f := sf.Subjecter
-	if f == nil {
-		f = TextFmtDefault
-	}
-
-	sf.SubBuffer.Reset()
-	f.Write(&sf.SubBuffer, le)
-	return sf.SubBuffer.Bytes()
 }

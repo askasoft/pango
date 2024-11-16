@@ -184,13 +184,6 @@ func (log *Log) configLogWriter(a []any, async int) (err error) {
 				}
 
 				var a int
-				if a, err = log.configGetIntValue(c, "_failover"); err != nil {
-					return err
-				}
-				if a > 0 {
-					w = NewFailoverWriter(w, a)
-				}
-
 				if a, err = log.configGetIntValue(c, "_async"); err != nil {
 					return err
 				}

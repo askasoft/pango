@@ -13,9 +13,10 @@ import (
 
 // SMTPWriter implements log Writer Interface and send log message.
 type SMTPWriter struct {
-	log.LogFilter
-	log.LogFormatter
-	log.SubFormatter
+	log.RetrySupport
+	log.FilterSupport
+	log.FormatSupport
+	log.SubjectSuport
 
 	Host     string
 	Port     int
@@ -52,11 +53,32 @@ func (sw *SMTPWriter) SetTimeout(timeout string) error {
 }
 
 // Write send log message to smtp server.
-func (sw *SMTPWriter) Write(le *log.Event) (err error) {
+func (sw *SMTPWriter) Write(le *log.Event) {
 	if sw.Reject(le) {
 		return
 	}
 
+	sw.RetryWrite(le, sw.write)
+}
+
+// Flush retry send failed events.
+func (sw *SMTPWriter) Flush() {
+	sw.RetryFlush(sw.write)
+}
+
+// Close flush and close the mail sender
+func (sw *SMTPWriter) Close() {
+	sw.Flush()
+
+	if sw.sender != nil {
+		if err := sw.sender.Close(); err != nil {
+			internal.Perrorf("SMTPWriter(%s:%d): Close(): %v", sw.Host, sw.Port, err)
+		}
+		sw.sender = nil
+	}
+}
+
+func (sw *SMTPWriter) write(le *log.Event) (err error) {
 	if sw.email == nil {
 		if err = sw.initEmail(); err != nil {
 			return
@@ -142,20 +164,6 @@ func (sw *SMTPWriter) initEmail() (err error) {
 
 	sw.email = m
 	return
-}
-
-// Flush implementing method. empty.
-func (sw *SMTPWriter) Flush() {
-}
-
-// Close close the mail sender
-func (sw *SMTPWriter) Close() {
-	if sw.sender != nil {
-		if err := sw.sender.Close(); err != nil {
-			internal.Perrorf("SMTPWriter(%s:%d): Close(): %v", sw.Host, sw.Port, err)
-		}
-		sw.sender = nil
-	}
 }
 
 func init() {

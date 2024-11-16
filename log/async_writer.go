@@ -26,9 +26,8 @@ type AsyncWriter struct {
 }
 
 // Write async write the log event
-func (aw *AsyncWriter) Write(le *Event) error {
+func (aw *AsyncWriter) Write(le *Event) {
 	aw.evtChan <- le
-	return nil
 }
 
 // Flush async flush the underlying writer

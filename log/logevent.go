@@ -7,8 +7,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/askasoft/pango/cog/ringbuffer"
 	"github.com/askasoft/pango/str"
 )
+
+// EventBuffer a event buffer
+type EventBuffer = ringbuffer.RingBuffer[*Event]
 
 // Event log event
 type Event struct {

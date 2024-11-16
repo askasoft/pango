@@ -12,9 +12,10 @@ import (
 
 // TeamsWriter implements log Writer Interface and send log message to teams.
 type TeamsWriter struct {
-	log.LogFilter
-	log.LogFormatter
-	log.SubFormatter
+	log.RetrySupport
+	log.FilterSupport
+	log.FormatSupport
+	log.SubjectSuport
 
 	Webhook string
 	Timeout time.Duration
@@ -43,11 +44,25 @@ func (tw *TeamsWriter) SetTimeout(timeout string) error {
 }
 
 // Write send log message to teams
-func (tw *TeamsWriter) Write(le *log.Event) (err error) {
+func (tw *TeamsWriter) Write(le *log.Event) {
 	if tw.Reject(le) {
 		return
 	}
 
+	tw.RetryWrite(le, tw.write)
+}
+
+// Flush retry send failed events.
+func (tw *TeamsWriter) Flush() {
+	tw.RetryFlush(tw.write)
+}
+
+// Close flush and close.
+func (tw *TeamsWriter) Close() {
+	tw.Flush()
+}
+
+func (tw *TeamsWriter) write(le *log.Event) (err error) {
 	tw.message.Title, tw.message.Text = tw.format(le)
 
 	if tw.Timeout.Milliseconds() == 0 {
@@ -58,14 +73,6 @@ func (tw *TeamsWriter) Write(le *log.Event) (err error) {
 		err = fmt.Errorf("TeamsWriter(%s): Post(): %w", tw.Webhook, err)
 	}
 	return
-}
-
-// Flush implementing method. empty.
-func (tw *TeamsWriter) Flush() {
-}
-
-// Close implementing method. empty.
-func (tw *TeamsWriter) Close() {
 }
 
 // format format log event to (message)

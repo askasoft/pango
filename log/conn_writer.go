@@ -12,8 +12,8 @@ import (
 // ConnWriter implements Writer.
 // it writes messages in keep-live tcp connection.
 type ConnWriter struct {
-	LogFilter
-	LogFormatter
+	FilterSupport
+	FormatSupport
 
 	Net     string
 	Addr    string
@@ -33,13 +33,18 @@ func (cw *ConnWriter) SetTimeout(timeout string) error {
 }
 
 // Write write logger message to connection.
-func (cw *ConnWriter) Write(le *Event) (err error) {
+func (cw *ConnWriter) Write(le *Event) {
 	if cw.Reject(le) {
 		return
 	}
 
-	err = cw.dial()
-	if err != nil {
+	if err := cw.write(le); err != nil {
+		internal.Perror(err)
+	}
+}
+
+func (cw *ConnWriter) write(le *Event) (err error) {
+	if err = cw.dial(); err != nil {
 		return
 	}
 
@@ -65,11 +70,11 @@ func (cw *ConnWriter) Write(le *Event) (err error) {
 	return
 }
 
-// Flush implementing method. empty.
+// Flush do nothing.
 func (cw *ConnWriter) Flush() {
 }
 
-// Close close the file description, close file writer.
+// Close close the connection.
 func (cw *ConnWriter) Close() {
 	if cw.conn != nil {
 		err := cw.conn.Close()

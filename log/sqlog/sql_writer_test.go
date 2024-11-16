@@ -110,9 +110,9 @@ func TestWebhookBatchWriter(t *testing.T) {
 		Driver:    "postgres",
 		Dsn:       testDSN,
 		Statement: testSQL,
-		BatchWriter: log.BatchWriter{
-			CacheCount: 6,
+		BatchSupport: log.BatchSupport{
 			BatchCount: 3,
+			CacheCount: 6,
 			FlushLevel: log.LevelWarn,
 			FlushDelta: time.Second,
 		},

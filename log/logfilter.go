@@ -117,6 +117,19 @@ func NewLogFilter(c string) Filter {
 	return &MultiFilter{Filters: fs}
 }
 
+type FilterSupport struct {
+	Filter Filter // log filter
+}
+
+// SetFilter set the log filter
+func (fs *FilterSupport) SetFilter(filter string) {
+	fs.Filter = NewLogFilter(filter)
+}
+
+func (fs *FilterSupport) Reject(le *Event) bool {
+	return fs.Filter != nil && fs.Filter.Reject(le)
+}
+
 func init() {
 	RegisterFilter("name", func(s string) Filter {
 		if str.StartsWithByte(s, '!') {

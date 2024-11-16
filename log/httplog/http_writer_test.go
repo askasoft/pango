@@ -108,9 +108,9 @@ func TestWebhookBatchWriter(t *testing.T) {
 		Username:    "admin",
 		Password:    "admin",
 		Timeout:     time.Millisecond * 300,
-		BatchWriter: log.BatchWriter{
-			CacheCount: 6,
+		BatchSupport: log.BatchSupport{
 			BatchCount: 3,
+			CacheCount: 6,
 			FlushLevel: log.LevelWarn,
 			FlushDelta: time.Second,
 		},

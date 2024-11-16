@@ -6,8 +6,13 @@ import (
 
 // NewAsyncWriter create a async writer and start go routine
 func NewAsyncWriter(w Writer, size int) *AsyncWriter {
-	aw := &AsyncWriter{writer: w}
-	aw.Start(size)
+	aw := &AsyncWriter{
+		writer:  w,
+		evtChan: make(chan *Event, size),
+		sigChan: make(chan signal, 1),
+	}
+
+	aw.Start()
 	return aw
 }
 
@@ -25,9 +30,8 @@ type AsyncWriter struct {
 }
 
 // Write async write the log event
-func (aw *AsyncWriter) Write(le *Event) error {
+func (aw *AsyncWriter) Write(le *Event) {
 	aw.evtChan <- le
-	return nil
 }
 
 // Flush async flush the underlying writer
@@ -46,10 +50,8 @@ func (aw *AsyncWriter) SetWriter(w Writer) {
 	aw.sigChan <- signal{"switch", w}
 }
 
-// Start start the goroutine
-func (aw *AsyncWriter) Start(size int) {
-	aw.evtChan = make(chan *Event, size)
-	aw.sigChan = make(chan signal, 1)
+// Start start async log go-routine
+func (aw *AsyncWriter) Start() {
 	aw.waitg.Add(1)
 	go aw.run()
 }
@@ -59,12 +61,11 @@ func (aw *AsyncWriter) Stop() {
 	aw.sigChan <- signal{"stop", nil}
 }
 
-// Wait wait for the run() go-routine end
+// Wait wait for the run() go-routine exit
 func (aw *AsyncWriter) Wait() {
 	aw.waitg.Wait()
 }
 
-// run start async log goroutine
 func (aw *AsyncWriter) run() {
 	stop, done := false, false
 
@@ -73,11 +74,12 @@ func (aw *AsyncWriter) run() {
 			aw.writer.Close()
 		}
 
-		// It's safe to keep channels open. GC will collect the unreachable channels.
+		aw.waitg.Done()
+
+		// Send to a closed channel will cause panic, and it's safe to keep channels open.
+		// GC will collect the unreachable channels.
 		// close(aw.evtChan)
 		// close(aw.sigChan)
-
-		aw.waitg.Done()
 	}()
 
 	for {

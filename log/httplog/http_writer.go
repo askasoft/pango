@@ -14,9 +14,9 @@ import (
 
 // HTTPWriter implements log Writer Interface and batch send log messages to webhook.
 type HTTPWriter struct {
-	log.LogFilter
-	log.LogFormatter
-	log.BatchWriter
+	log.BatchSupport
+	log.FilterSupport
+	log.FormatSupport
 
 	URL         string // request URL
 	Method      string // http method
@@ -50,16 +50,12 @@ func (hw *HTTPWriter) SetTimeout(timeout string) error {
 }
 
 // Write cache log message, flush if needed
-func (hw *HTTPWriter) Write(le *log.Event) error {
+func (hw *HTTPWriter) Write(le *log.Event) {
 	if hw.Reject(le) {
-		return nil
+		return
 	}
 
-	if hw.BatchCount > 1 {
-		return hw.BatchWrite(le, hw.flush)
-	}
-
-	return hw.write(le)
+	hw.BatchWrite(le, hw.flush)
 }
 
 // Flush flush cached events
@@ -72,28 +68,17 @@ func (hw *HTTPWriter) Close() {
 	hw.Flush()
 }
 
-func (hw *HTTPWriter) write(le *log.Event) error {
-	hw.initClient()
-	hw.Format(le, log.JSONFmtDefault)
-	return hw.send()
-}
-
-func (hw *HTTPWriter) flush() error {
+func (hw *HTTPWriter) flush(eb *log.EventBuffer) error {
 	hw.initClient()
 
 	hw.Buffer.Reset()
-	for it := hw.EventBuffer.Iterator(); it.Next(); {
+	for it := eb.Iterator(); it.Next(); {
 		le := it.Value()
 		lf := hw.GetFormatter(le, log.JSONFmtDefault)
 		lf.Write(&hw.Buffer, le)
 	}
 
-	if err := hw.send(); err != nil {
-		return err
-	}
-
-	hw.EventBuffer.Clear()
-	return nil
+	return hw.send()
 }
 
 func (hw *HTTPWriter) initClient() {

@@ -1,6 +1,7 @@
 package log
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -535,4 +536,68 @@ func fcPropJSON(key string) fmtfunc {
 func fcPropsJSON(le *Event) string {
 	b, _ := json.Marshal(le.Logger.GetProps())
 	return str.UnsafeString(b)
+}
+
+//-------------------------------------------------
+
+type FormatSupport struct {
+	Formatter Formatter    // log formatter
+	Buffer    bytes.Buffer // log buffer
+}
+
+// SetFormat set the log formatter
+func (fs *FormatSupport) SetFormat(format string) {
+	fs.Formatter = NewLogFormatter(format)
+}
+
+// Format format the log event
+func (fs *FormatSupport) GetFormatter(le *Event, df ...Formatter) Formatter {
+	f := fs.Formatter
+	if f == nil {
+		f = le.Logger.GetFormatter()
+		if f == nil {
+			if len(df) > 0 {
+				f = df[0]
+			} else {
+				f = TextFmtDefault
+			}
+		}
+	}
+	return f
+}
+
+// Format format the log event
+func (fs *FormatSupport) Format(le *Event, df ...Formatter) []byte {
+	f := fs.GetFormatter(le, df...)
+	fs.Buffer.Reset()
+	f.Write(&fs.Buffer, le)
+	return fs.Buffer.Bytes()
+}
+
+// Append format the log event and append to buffer
+func (fs *FormatSupport) Append(le *Event, df ...Formatter) {
+	f := fs.GetFormatter(le, df...)
+	f.Write(&fs.Buffer, le)
+}
+
+type SubjectSuport struct {
+	Subjecter Formatter    // log formatter
+	SubBuffer bytes.Buffer // log buffer
+}
+
+// SetSubject set the subject formatter
+func (ss *SubjectSuport) SetSubject(format string) {
+	ss.Subjecter = NewLogFormatter(format)
+}
+
+// GetFormatter get Formatter
+func (ss *SubjectSuport) SubFormat(le *Event) []byte {
+	f := ss.Subjecter
+	if f == nil {
+		f = TextFmtDefault
+	}
+
+	ss.SubBuffer.Reset()
+	f.Write(&ss.SubBuffer, le)
+	return ss.SubBuffer.Bytes()
 }

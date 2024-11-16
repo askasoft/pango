@@ -177,9 +177,9 @@ func main() {
 		URL: "http://localhost:9200/pango_logs/_bulk",
 		ContentType: "application/json",
 		Timeout: time.Second*5,
-		BatchWriter: BatchWriter{
-			CacheCount: 6,
+		BatchSupport: log.BatchSupport{
 			BatchCount: 3,
+			CacheCount: 6,
 			FlushLevel: LevelWarn,
 			FlushDelta: time.Second,
 		},

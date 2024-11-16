@@ -197,19 +197,14 @@ func assertLogConfig(t *testing.T, lg *log.Log) {
 			t.Fatalf("Not AsyncWriter")
 		}
 
-		writer := testGetLogWriter(aw)
-		fw, ok := writer.(*log.FailoverWriter)
-		if !ok {
-			t.Fatalf("Not FailoverWriter")
-		}
-
-		writer = testGetLogWriter(fw)
+		writer = testGetLogWriter(aw)
 		w, ok := writer.(*smtplog.SMTPWriter)
 		if !ok {
 			t.Fatalf("Not SMTPWriter")
 		}
 		assertLogEqual(t, `w.Host`, "localhost", w.Host)
 		assertLogEqual(t, `w.Port`, 25, w.Port)
+		assertLogEqual(t, `w.Retries`, 5, w.Retries)
 		assertLogEqual(t, `w.Username`, "-----", w.Username)
 		assertLogEqual(t, `w.Password`, "xxxxxxx", w.Password)
 		assertLogEqual(t, `w.From`, "pango@google.com", w.From)
@@ -248,19 +243,15 @@ func assertLogConfig(t *testing.T, lg *log.Log) {
 
 	i++
 	{
-		aw, ok := mw.Writers[i].(*log.FailoverWriter)
-		if !ok {
-			t.Fatalf("Not FailoverWriter")
-		}
-
-		writer := testGetLogWriter(aw)
-		w, ok := writer.(*httplog.HTTPWriter)
+		w, ok := mw.Writers[i].(*httplog.HTTPWriter)
 		if !ok {
 			t.Fatalf("Not HTTPWriter")
 		}
 		assertLogEqual(t, `w.Webhook`, "http://localhost:9200/pango_logs/_doc", w.URL)
 		assertLogEqual(t, `w.ContentType`, "application/json", w.ContentType)
 		assertLogEqual(t, `w.Timeout`, time.Second*5, w.Timeout)
+		assertLogEqual(t, `w.BatchCount`, 10, w.BatchCount)
+		assertLogEqual(t, `w.CacheCount`, 20, w.CacheCount)
 
 		jf, ok := w.Formatter.(*log.JSONFormatter)
 		if jf == nil || !ok {

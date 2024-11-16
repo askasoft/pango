@@ -16,8 +16,8 @@ import (
 // FileWriter implements Writer.
 // It writes messages and rotate by file size limit, daily, hourly.
 type FileWriter struct {
-	LogFilter
-	LogFormatter
+	FilterSupport
+	FormatSupport
 
 	Path      string // Log file path name
 	DirPerm   uint32 // Log dir permission
@@ -49,11 +49,17 @@ func (fw *FileWriter) SetMaxSize(maxSize string) {
 }
 
 // Write write logger message into file.
-func (fw *FileWriter) Write(le *Event) error {
+func (fw *FileWriter) Write(le *Event) {
 	if fw.Reject(le) {
-		return nil
+		return
 	}
 
+	if err := fw.write(le); err != nil {
+		internal.Perror(err)
+	}
+}
+
+func (fw *FileWriter) write(le *Event) error {
 	if err := fw.init(); err != nil {
 		return err
 	}
@@ -97,6 +103,7 @@ func (fw *FileWriter) sync() {
 // there are no buffering messages in file logger in memory.
 // flush file means sync file to disk.
 func (fw *FileWriter) Flush() {
+	fw.sync()
 }
 
 // Close close the file description, close file writer.

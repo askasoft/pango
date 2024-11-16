@@ -4,9 +4,8 @@ type BridgeWriter struct {
 	Logger Logger
 }
 
-func (bw *BridgeWriter) Write(le *Event) error {
+func (bw *BridgeWriter) Write(le *Event) {
 	bw.Logger.Write(*le)
-	return nil
 }
 
 func (bw *BridgeWriter) Flush() {

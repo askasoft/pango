@@ -41,9 +41,9 @@
 	}, {
 		"_": "smtp",
 		"_async": 1000,
-		"_failover": 5,
 		"host": "localhost",
 		"port": 25,
+		"retries": 5,
 		"username": "-----",
 		"password": "xxxxxxx",
 		"from": "pango@google.com",
@@ -63,10 +63,11 @@
 		"filter": "level:fatal"
 	}, {
 		"_": "http",
-		"_failover": 10,
 		"url": "http://localhost:9200/pango_logs/_doc",
 		"contentType": "application/json",
 		"timeout": "5s",
+		"batchCount": 10,
+		"cacheCount": 20,
 		"format": "json:{\"time\":%t{2006-01-02T15:04:05.000Z07:00}, \"level\":%l, \"file\":%S, \"line\":%L, \"func\":%F, \"msg\": %m, \"stack\": %T}%n",
 		"filter": "level:fatal"
 	}, {

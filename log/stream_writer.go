@@ -9,15 +9,15 @@ import (
 
 // StreamWriter implements log Writer Interface and writes messages to terminal.
 type StreamWriter struct {
-	LogFilter
-	LogFormatter
+	FilterSupport
+	FormatSupport
 
 	Color  bool      //this filed is useful only when system's terminal supports color
 	Output io.Writer // log output
 }
 
 // Write write message in console.
-func (sw *StreamWriter) Write(le *Event) (err error) {
+func (sw *StreamWriter) Write(le *Event) {
 	if sw.Reject(le) {
 		return
 	}
@@ -28,19 +28,12 @@ func (sw *StreamWriter) Write(le *Event) (err error) {
 
 	bs := sw.Format(le)
 	if sw.Color {
-		_, err = sw.Output.Write(colors[le.Level])
-		if err != nil {
-			return
-		}
-		_, err = sw.Output.Write(bs)
-		if err != nil {
-			return
-		}
-		_, err = sw.Output.Write(colors[0])
+		_, _ = sw.Output.Write(colors[le.Level])
+		_, _ = sw.Output.Write(bs)
+		_, _ = sw.Output.Write(colors[0])
 	} else {
-		_, err = sw.Output.Write(bs)
+		_, _ = sw.Output.Write(bs)
 	}
-	return
 }
 
 // Flush implementing method. empty.

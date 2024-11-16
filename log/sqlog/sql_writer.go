@@ -30,8 +30,8 @@ import (
 // Statement: "INSERT INTO sqlogs (time, level, msg, file, line, func, trace) VALUES"
 // Parameter: "%t %p %m %S %L %F %T"
 type SQLWriter struct {
-	log.LogFilter
-	log.BatchWriter
+	log.BatchSupport
+	log.FilterSupport
 
 	Driver    string
 	Dsn       string
@@ -197,17 +197,12 @@ func ffTrace(le *log.Event) any {
 }
 
 // Write cache log message, flush if needed
-func (sw *SQLWriter) Write(le *log.Event) error {
+func (sw *SQLWriter) Write(le *log.Event) {
 	if sw.Reject(le) {
-		return nil
+		return
 	}
 
-	if sw.BatchCount > 1 {
-		return sw.BatchWrite(le, sw.flush)
-	}
-
-	sw.initDB()
-	return sw.write(le)
+	sw.BatchWrite(le, sw.flush)
 }
 
 // Flush flush cached events
@@ -220,17 +215,32 @@ func (sw *SQLWriter) Close() {
 	sw.Flush()
 }
 
-func (sw *SQLWriter) flush() error {
+func (sw *SQLWriter) flush(eb *log.EventBuffer) error {
 	sw.initDB()
 
-	les := sw.EventBuffer.Values()
+	sw.stmb.Reset()
+	sw.args = sw.args[:0]
 
-	if err := sw.write(les...); err != nil {
-		return err
+	n := 0
+	sw.stmb.WriteString(sw.Statement)
+	for i, it := 0, eb.Iterator(); it.Next(); i++ {
+		le := it.Value()
+
+		sw.stmb.WriteString(str.If(i == 0, " (", ",("))
+		for j, f := range sw.affs {
+			sw.args = append(sw.args, f(le))
+			if j > 0 {
+				sw.stmb.WriteRune(',')
+			}
+			n++
+			sw.stmb.WriteString(sw.binder.Placeholder(n))
+		}
+		sw.stmb.WriteRune(')')
 	}
 
-	sw.EventBuffer.Clear()
-	return nil
+	sql := sw.stmb.String()
+	_, err := sw.db.Exec(sql, sw.args...)
+	return err
 }
 
 func (sw *SQLWriter) initDB() {
@@ -249,30 +259,6 @@ func (sw *SQLWriter) initDB() {
 		sw.db = db
 		sw.binder = sqx.GetBinder(sw.Driver)
 	}
-}
-
-func (sw *SQLWriter) write(les ...*log.Event) error {
-	sw.stmb.Reset()
-	sw.args = sw.args[:0]
-
-	n := 0
-	sw.stmb.WriteString(sw.Statement)
-	for i, le := range les {
-		sw.stmb.WriteString(str.If(i == 0, " (", ",("))
-		for j, f := range sw.affs {
-			sw.args = append(sw.args, f(le))
-			if j > 0 {
-				sw.stmb.WriteRune(',')
-			}
-			n++
-			sw.stmb.WriteString(sw.binder.Placeholder(n))
-		}
-		sw.stmb.WriteRune(')')
-	}
-
-	sql := sw.stmb.String()
-	_, err := sw.db.Exec(sql, sw.args...)
-	return err
 }
 
 func init() {

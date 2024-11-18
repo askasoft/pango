@@ -222,13 +222,18 @@ func (c *Context) AbortWithError(code int, err error) {
 /********* ERROR MANAGEMENT *********/
 /************************************/
 
-// Error attaches an error to the current context. The error is pushed to a list of errors.
+// AddError attaches errors to the current context. The error is pushed to a list of errors.
 // It's a good idea to call Error for each error that occurred during the resolution of a request.
 // A middleware can be used to collect all the errors and push them to a database together,
 // print a log, or append it in the HTTP response.
 // Error will panic if err is nil.
-func (c *Context) AddError(err error) {
-	c.Errors = append(c.Errors, err)
+func (c *Context) AddError(errs ...error) {
+	c.Errors = append(c.Errors, errs...)
+}
+
+// SetError clear and attaches new errors to the current context.
+func (c *Context) SetError(errs ...error) {
+	c.Errors = errs
 }
 
 /************************************/

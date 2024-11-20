@@ -11,7 +11,7 @@ func TestProducts(t *testing.T) {
 	}
 
 	itcnt := 0
-	err := fd.IterProducts(nil, func(p *Product) error {
+	err := fd.IterProducts(ctxbg, nil, func(p *Product) error {
 		itcnt++
 		fd.Logger.Debugf("Iterate product #%d: %s", p.ID, p.Name)
 		return nil

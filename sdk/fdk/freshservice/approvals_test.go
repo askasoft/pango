@@ -11,7 +11,7 @@ func TestIterApprovals(t *testing.T) {
 	}
 
 	itcnt := 0
-	err := fs.IterApprovals(&ListApprovalsOption{
+	err := fs.IterApprovals(ctxbg, &ListApprovalsOption{
 		Parent: "ticket",
 		Status: ApprovalStatusRequested.String(),
 	}, func(a *Approval) error {

@@ -1,6 +1,7 @@
 package openai
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -20,10 +21,8 @@ type AzureOpenAI struct {
 	Timeout   time.Duration
 	Logger    log.Logger
 
-	MaxRetries    int
-	RetryAfter    time.Duration
-	AbortOnRetry  func() error
-	AbortInterval time.Duration
+	MaxRetries int
+	RetryAfter time.Duration
 }
 
 func (aoai *AzureOpenAI) endpoint(format string, a ...any) string {
@@ -51,11 +50,6 @@ func (aoai *AzureOpenAI) call(req *http.Request) (res *http.Response, err error)
 	return res, nil
 }
 
-func (aoai *AzureOpenAI) authAndCall(req *http.Request) (res *http.Response, err error) {
-	aoai.authenticate(req)
-	return aoai.call(req)
-}
-
 func (aoai *AzureOpenAI) authenticate(req *http.Request) {
 	if req.Header.Get("Content-Type") == "" {
 		req.Header.Set("Content-Type", contentTypeJSON)
@@ -65,7 +59,8 @@ func (aoai *AzureOpenAI) authenticate(req *http.Request) {
 }
 
 func (aoai *AzureOpenAI) doCall(req *http.Request, result any) error {
-	res, err := aoai.authAndCall(req)
+	aoai.authenticate(req)
+	res, err := aoai.call(req)
 	if err != nil {
 		return err
 	}
@@ -73,19 +68,19 @@ func (aoai *AzureOpenAI) doCall(req *http.Request, result any) error {
 	return decodeResponse(res, result, aoai.RetryAfter)
 }
 
-func (aoai *AzureOpenAI) doPostWithRetry(url string, source, result any) error {
-	return sdk.RetryForError(func() error {
-		return aoai.doPost(url, source, result)
-	}, aoai.MaxRetries, aoai.AbortOnRetry, aoai.AbortInterval, aoai.Logger)
+func (aoai *AzureOpenAI) doPostWithRetry(ctx context.Context, url string, source, result any) error {
+	return sdk.RetryForError(ctx, func() error {
+		return aoai.doPost(ctx, url, source, result)
+	}, aoai.MaxRetries, aoai.Logger)
 }
 
-func (aoai *AzureOpenAI) doPost(url string, source, result any) error {
+func (aoai *AzureOpenAI) doPost(ctx context.Context, url string, source, result any) error {
 	buf, ct, err := buildJsonRequest(source)
 	if err != nil {
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, url, buf)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, buf)
 	if err != nil {
 		return err
 	}
@@ -97,19 +92,19 @@ func (aoai *AzureOpenAI) doPost(url string, source, result any) error {
 }
 
 // https://platform.openai.com/docs/api-reference/chat/create
-func (aoai *AzureOpenAI) CreateChatCompletion(req *ChatCompletionRequest) (*ChatCompletionResponse, error) {
+func (aoai *AzureOpenAI) CreateChatCompletion(ctx context.Context, req *ChatCompletionRequest) (*ChatCompletionResponse, error) {
 	url := aoai.endpoint("/chat/completions")
 
 	res := &ChatCompletionResponse{}
-	err := aoai.doPostWithRetry(url, req, res)
+	err := aoai.doPostWithRetry(ctx, url, req, res)
 	return res, err
 }
 
 // https://platform.openai.com/docs/api-reference/embeddings/create
-func (aoai *AzureOpenAI) CreateTextEmbeddings(req *TextEmbeddingsRequest) (*TextEmbeddingsResponse, error) {
+func (aoai *AzureOpenAI) CreateTextEmbeddings(ctx context.Context, req *TextEmbeddingsRequest) (*TextEmbeddingsResponse, error) {
 	url := aoai.endpoint("/embeddings")
 
 	res := &TextEmbeddingsResponse{}
-	err := aoai.doPostWithRetry(url, req, res)
+	err := aoai.doPostWithRetry(ctx, url, req, res)
 	return res, err
 }

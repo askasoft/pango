@@ -29,7 +29,7 @@ func TestTicketAPIs(t *testing.T) {
 		// CreatedAt:   &Time{Time: tm1}, // unsupport
 	}
 
-	ct, err := fd.CreateTicket(ot)
+	ct, err := fd.CreateTicket(ctxbg, ot)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
@@ -43,18 +43,18 @@ func TestTicketAPIs(t *testing.T) {
 </div>`
 	tu.AddAttachment("./agent.go")
 
-	ut, err := fd.UpdateTicket(ct.ID, tu)
+	ut, err := fd.UpdateTicket(ctxbg, ct.ID, tu)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 
-	err = fd.DeleteAttachment(ut.Attachments[0].ID)
+	err = fd.DeleteAttachment(ctxbg, ut.Attachments[0].ID)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 
 	// find contact
-	cs, _, err := fd.ListContacts(&ListContactsOption{
+	cs, _, err := fd.ListContacts(ctxbg, &ListContactsOption{
 		Phone: "09012345678",
 	})
 	if err != nil {
@@ -71,7 +71,7 @@ func TestTicketAPIs(t *testing.T) {
 		UserID: cs[0].ID,
 		// CreatedAt: &Time{Time: tm2}, // unsupport
 	}
-	cnu, err := fd.CreateNote(ct.ID, nuc)
+	cnu, err := fd.CreateNote(ctxbg, ct.ID, nuc)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
@@ -82,7 +82,7 @@ func TestTicketAPIs(t *testing.T) {
 		Body:    "private agent note " + time.Now().String(),
 		Private: true,
 	}
-	cn, err := fd.CreateNote(ct.ID, nc)
+	cn, err := fd.CreateNote(ctxbg, ct.ID, nc)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
@@ -92,25 +92,25 @@ func TestTicketAPIs(t *testing.T) {
 		Body: "private agent update note " + time.Now().String(),
 	}
 	cu.AddAttachment("./agent.go")
-	uc, err := fd.UpdateConversation(cn.ID, cu)
+	uc, err := fd.UpdateConversation(ctxbg, cn.ID, cu)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 	fd.Logger.Info(uc)
 
-	gtc, err := fd.GetTicket(ct.ID, TicketIncludeConversations)
+	gtc, err := fd.GetTicket(ctxbg, ct.ID, TicketIncludeConversations)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 	fd.Logger.Info(gtc)
 
-	gtr, err := fd.GetTicket(ct.ID, TicketIncludeRequester)
+	gtr, err := fd.GetTicket(ctxbg, ct.ID, TicketIncludeRequester)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 	fd.Logger.Info(gtr)
 
-	err = fd.DeleteTicket(ct.ID)
+	err = fd.DeleteTicket(ctxbg, ct.ID)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
@@ -123,7 +123,7 @@ func TestListTickets(t *testing.T) {
 	}
 
 	ltp := &ListTicketsOption{PerPage: 1}
-	ts, _, err := fd.ListTickets(ltp)
+	ts, _, err := fd.ListTickets(ctxbg, ltp)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
@@ -142,12 +142,12 @@ func TestIterTicketsAndConversations(t *testing.T) {
 	ltp := &ListTicketsOption{PerPage: 10}
 
 	i, j := 0, 0
-	err := fd.IterTickets(ltp, func(t *Ticket) error {
+	err := fd.IterTickets(ctxbg, ltp, func(t *Ticket) error {
 		i++
 		fd.Logger.Infof("%d: #%d [%s] %s", i, t.ID, t.CreatedAt.String(), t.Subject)
 
 		j = 0
-		fd.IterTicketConversations(t.ID, nil, func(c *Conversation) error {
+		fd.IterTicketConversations(ctxbg, t.ID, nil, func(c *Conversation) error {
 			j++
 			fd.Logger.Infof("#%d [%d]: Source: %v, Income: %v, UID: %d, THID: %d, FROM: %s, TO: %v, CC: %v",
 				t.ID, j, c.Source, c.Incoming, c.UserID, c.ThreadID, c.FromEmail, c.ToEmails, c.CcEmails)
@@ -170,7 +170,7 @@ func TestFilterTickets(t *testing.T) {
 		Query: `"created_at:>'2023-10-01'"`,
 	}
 
-	ts, total, err := fd.FilterTickets(ftp)
+	ts, total, err := fd.FilterTickets(ctxbg, ftp)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
@@ -192,7 +192,7 @@ func TestIterFilterTickets(t *testing.T) {
 	}
 
 	i := 0
-	err := fd.IterFilterTickets(ftp, func(t *Ticket) error {
+	err := fd.IterFilterTickets(ctxbg, ftp, func(t *Ticket) error {
 		i++
 		fd.Logger.Infof("%d: #%d [%s] %s", i, t.ID, t.CreatedAt.String(), t.Subject)
 		return nil

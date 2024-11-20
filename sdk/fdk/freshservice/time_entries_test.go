@@ -20,11 +20,11 @@ func TestTimeEntriesAPIs(t *testing.T) {
 		Priority:    TicketPriorityMedium,
 	}
 
-	ct, err := fs.CreateTicket(ot)
+	ct, err := fs.CreateTicket(ctxbg, ot)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	defer fs.DeleteTicket(ct.ID)
+	defer fs.DeleteTicket(ctxbg, ct.ID)
 
 	tm := &TimeEntry{
 		AgentID:   17001136838,
@@ -32,19 +32,19 @@ func TestTimeEntriesAPIs(t *testing.T) {
 		Note:      "test time entry",
 	}
 
-	ctm, err := fs.CreateTimeEntry(ct.ID, tm)
+	ctm, err := fs.CreateTimeEntry(ctxbg, ct.ID, tm)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 	fs.Logger.Debug(ctm)
 
-	tms, _, err := fs.ListTicketTimeEntries(ct.ID, nil)
+	tms, _, err := fs.ListTicketTimeEntries(ctxbg, ct.ID, nil)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 	fs.Logger.Debug(tms)
 
-	err = fs.IterTicketTimeEntries(ct.ID, nil, func(te *TimeEntry) error {
+	err = fs.IterTicketTimeEntries(ctxbg, ct.ID, nil, func(te *TimeEntry) error {
 		fs.Logger.Debug(te)
 		return nil
 	})
@@ -52,7 +52,7 @@ func TestTimeEntriesAPIs(t *testing.T) {
 		t.Fatalf("ERROR: %v", err)
 	}
 
-	err = fs.DeleteTimeEntry(ct.ID, ctm.ID)
+	err = fs.DeleteTimeEntry(ctxbg, ct.ID, ctm.ID)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}

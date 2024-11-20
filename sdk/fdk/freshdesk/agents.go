@@ -1,6 +1,7 @@
 package freshdesk
 
 import (
+	"context"
 	"net/url"
 )
 
@@ -38,21 +39,21 @@ func (lao *ListAgentsOption) Values() Values {
 	return q
 }
 
-func (fd *Freshdesk) GetAgent(aid int64) (*Agent, error) {
+func (fd *Freshdesk) GetAgent(ctx context.Context, aid int64) (*Agent, error) {
 	url := fd.endpoint("/agents/%d", aid)
 	agent := &Agent{}
-	err := fd.doGet(url, agent)
+	err := fd.doGet(ctx, url, agent)
 	return agent, err
 }
 
-func (fd *Freshdesk) ListAgents(lao *ListAgentsOption) ([]*Agent, bool, error) {
+func (fd *Freshdesk) ListAgents(ctx context.Context, lao *ListAgentsOption) ([]*Agent, bool, error) {
 	url := fd.endpoint("/agents")
 	agents := []*Agent{}
-	next, err := fd.doList(url, lao, &agents)
+	next, err := fd.doList(ctx, url, lao, &agents)
 	return agents, next, err
 }
 
-func (fd *Freshdesk) IterAgents(lao *ListAgentsOption, iaf func(*Agent) error) error {
+func (fd *Freshdesk) IterAgents(ctx context.Context, lao *ListAgentsOption, iaf func(*Agent) error) error {
 	if lao == nil {
 		lao = &ListAgentsOption{}
 	}
@@ -64,7 +65,7 @@ func (fd *Freshdesk) IterAgents(lao *ListAgentsOption, iaf func(*Agent) error) e
 	}
 
 	for {
-		agents, next, err := fd.ListAgents(lao)
+		agents, next, err := fd.ListAgents(ctx, lao)
 		if err != nil {
 			return err
 		}
@@ -81,39 +82,39 @@ func (fd *Freshdesk) IterAgents(lao *ListAgentsOption, iaf func(*Agent) error) e
 	return nil
 }
 
-func (fd *Freshdesk) CreateAgent(agent *AgentRequest) (*Agent, error) {
+func (fd *Freshdesk) CreateAgent(ctx context.Context, agent *AgentRequest) (*Agent, error) {
 	url := fd.endpoint("/agents")
 	result := &Agent{}
-	if err := fd.doPost(url, agent, result); err != nil {
+	if err := fd.doPost(ctx, url, agent, result); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-func (fd *Freshdesk) UpdateAgent(aid int64, agent *AgentRequest) (*Agent, error) {
+func (fd *Freshdesk) UpdateAgent(ctx context.Context, aid int64, agent *AgentRequest) (*Agent, error) {
 	url := fd.endpoint("/agents/%d", aid)
 	result := &Agent{}
-	if err := fd.doPut(url, agent, result); err != nil {
+	if err := fd.doPut(ctx, url, agent, result); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-func (fd *Freshdesk) DeleteAgent(aid int64) error {
+func (fd *Freshdesk) DeleteAgent(ctx context.Context, aid int64) error {
 	url := fd.endpoint("/agents/%d", aid)
-	return fd.doDelete(url)
+	return fd.doDelete(ctx, url)
 }
 
-func (fd *Freshdesk) GetCurrentAgent() (*Agent, error) {
+func (fd *Freshdesk) GetCurrentAgent(ctx context.Context) (*Agent, error) {
 	url := fd.endpoint("/agents/me")
 	agent := &Agent{}
-	err := fd.doGet(url, agent)
+	err := fd.doGet(ctx, url, agent)
 	return agent, err
 }
 
-func (fd *Freshdesk) SearchAgents(keyword string) ([]*Agent, error) {
+func (fd *Freshdesk) SearchAgents(ctx context.Context, keyword string) ([]*Agent, error) {
 	url := fd.endpoint("/agents/autocomplete?term=%s", url.QueryEscape(keyword))
 	agents := []*Agent{}
-	err := fd.doGet(url, &agents)
+	err := fd.doGet(ctx, url, &agents)
 	return agents, err
 }

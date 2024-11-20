@@ -19,7 +19,7 @@ func TestContactAPIs(t *testing.T) {
 	}
 	cn.Name = "panda " + cn.Mobile
 
-	cc, err := fd.CreateContact(cn)
+	cc, err := fd.CreateContact(ctxbg, cn)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
@@ -29,19 +29,19 @@ func TestContactAPIs(t *testing.T) {
 	cu.Description = "update description " + time.Now().String()
 	cu.Avatar = NewAvatar("../../../logo.png")
 
-	uc, err := fd.UpdateContact(cc.ID, cu)
+	uc, err := fd.UpdateContact(ctxbg, cc.ID, cu)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 	fd.Logger.Info(uc)
 
-	gc, err := fd.GetContact(cc.ID)
+	gc, err := fd.GetContact(ctxbg, cc.ID)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 	fd.Logger.Info(gc)
 
-	err = fd.IterContacts(nil, func(c *Contact) error {
+	err = fd.IterContacts(ctxbg, nil, func(c *Contact) error {
 		fd.Logger.Info(c)
 		return nil
 	})
@@ -49,7 +49,7 @@ func TestContactAPIs(t *testing.T) {
 		t.Fatalf("ERROR: %v", err)
 	}
 
-	err = fd.DeleteContact(cc.ID)
+	err = fd.DeleteContact(ctxbg, cc.ID)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
@@ -60,12 +60,12 @@ func TestExportContacts(t *testing.T) {
 		return
 	}
 
-	id, err := fd.ExportContacts([]string{"name", "email"}, nil)
+	id, err := fd.ExportContacts(ctxbg, []string{"name", "email"}, nil)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 
-	job, err := fd.GetExportedContactsURL(id)
+	job, err := fd.GetExportedContactsURL(ctxbg, id)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
@@ -78,7 +78,7 @@ func TestGetContacts(t *testing.T) {
 		return
 	}
 
-	c, err := fd.GetContact(2043042684973)
+	c, err := fd.GetContact(ctxbg, 2043042684973)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}

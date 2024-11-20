@@ -1,5 +1,7 @@
 package freshservice
 
+import "context"
+
 type ListApprovalsOption struct {
 	Parent      string
 	ParentID    int64
@@ -28,14 +30,14 @@ func (lao *ListApprovalsOption) Values() Values {
 	return q
 }
 
-func (fs *Freshservice) ListApprovals(lao *ListApprovalsOption) ([]*Approval, bool, error) {
+func (fs *Freshservice) ListApprovals(ctx context.Context, lao *ListApprovalsOption) ([]*Approval, bool, error) {
 	url := fs.endpoint("/approvals")
 	result := &approvalsResult{}
-	next, err := fs.doList(url, lao, result)
+	next, err := fs.doList(ctx, url, lao, result)
 	return result.Approvals, next, err
 }
 
-func (fs *Freshservice) IterApprovals(lao *ListApprovalsOption, iaf func(*Approval) error) error {
+func (fs *Freshservice) IterApprovals(ctx context.Context, lao *ListApprovalsOption, iaf func(*Approval) error) error {
 	if lao == nil {
 		lao = &ListApprovalsOption{}
 	}
@@ -47,7 +49,7 @@ func (fs *Freshservice) IterApprovals(lao *ListApprovalsOption, iaf func(*Approv
 	}
 
 	for {
-		agents, next, err := fs.ListApprovals(lao)
+		agents, next, err := fs.ListApprovals(ctx, lao)
 		if err != nil {
 			return err
 		}

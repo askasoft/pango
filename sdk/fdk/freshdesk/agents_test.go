@@ -1,10 +1,13 @@
 package freshdesk
 
 import (
+	"context"
 	"testing"
 
 	"github.com/askasoft/pango/ran"
 )
+
+var ctxbg = context.Background()
 
 func TestAgentAPIs(t *testing.T) {
 	fd := testNewFreshdesk(t)
@@ -17,7 +20,7 @@ func TestAgentAPIs(t *testing.T) {
 		TicketScope: AgentTicketScopeGlobal,
 	}
 
-	ca, err := fd.CreateAgent(ac)
+	ca, err := fd.CreateAgent(ctxbg, ac)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
@@ -28,19 +31,19 @@ func TestAgentAPIs(t *testing.T) {
 	}
 	//au.Avatar = NewAvatar("../../logo.png")
 
-	ua, err := fd.UpdateAgent(ca.ID, au)
+	ua, err := fd.UpdateAgent(ctxbg, ca.ID, au)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 	fd.Logger.Debug(ua)
 
-	ga, err := fd.GetAgent(ua.ID)
+	ga, err := fd.GetAgent(ctxbg, ua.ID)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 	fd.Logger.Debug(ga)
 
-	err = fd.IterAgents(nil, func(a *Agent) error {
+	err = fd.IterAgents(ctxbg, nil, func(a *Agent) error {
 		fd.Logger.Debug(a)
 		return nil
 	})
@@ -48,7 +51,7 @@ func TestAgentAPIs(t *testing.T) {
 		t.Fatalf("ERROR: %v", err)
 	}
 
-	err = fd.DeleteAgent(ga.ID)
+	err = fd.DeleteAgent(ctxbg, ga.ID)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
@@ -61,7 +64,7 @@ func TestListAgents(t *testing.T) {
 	}
 
 	lao := &ListAgentsOption{PerPage: 10}
-	as, _, err := fd.ListAgents(lao)
+	as, _, err := fd.ListAgents(ctxbg, lao)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}

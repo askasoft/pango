@@ -1,34 +1,36 @@
 package freshservice
 
+import "context"
+
 // ---------------------------------------------------
 // Agent Group
 
 type ListAgentGroupsOption = PageOption
 
-func (fs *Freshservice) CreateAgentGroup(ag *AgentGroup) (*AgentGroup, error) {
+func (fs *Freshservice) CreateAgentGroup(ctx context.Context, ag *AgentGroup) (*AgentGroup, error) {
 	url := fs.endpoint("/groups")
 	result := &agentGroupResult{}
-	if err := fs.doPost(url, ag, result); err != nil {
+	if err := fs.doPost(ctx, url, ag, result); err != nil {
 		return nil, err
 	}
 	return result.Group, nil
 }
 
-func (fs *Freshservice) GetAgentGroup(id int64) (*AgentGroup, error) {
+func (fs *Freshservice) GetAgentGroup(ctx context.Context, id int64) (*AgentGroup, error) {
 	url := fs.endpoint("/groups/%d", id)
 	result := &agentGroupResult{}
-	err := fs.doGet(url, result)
+	err := fs.doGet(ctx, url, result)
 	return result.Group, err
 }
 
-func (fs *Freshservice) ListAgentGroups(lago *ListAgentGroupsOption) ([]*AgentGroup, bool, error) {
+func (fs *Freshservice) ListAgentGroups(ctx context.Context, lago *ListAgentGroupsOption) ([]*AgentGroup, bool, error) {
 	url := fs.endpoint("/groups")
 	result := &agentGroupsResult{}
-	next, err := fs.doList(url, lago, result)
+	next, err := fs.doList(ctx, url, lago, result)
 	return result.Groups, next, err
 }
 
-func (fs *Freshservice) IterAgentGroups(lago *ListAgentGroupsOption, iagf func(*AgentGroup) error) error {
+func (fs *Freshservice) IterAgentGroups(ctx context.Context, lago *ListAgentGroupsOption, iagf func(*AgentGroup) error) error {
 	if lago == nil {
 		lago = &ListAgentRolesOption{}
 	}
@@ -40,7 +42,7 @@ func (fs *Freshservice) IterAgentGroups(lago *ListAgentGroupsOption, iagf func(*
 	}
 
 	for {
-		ags, next, err := fs.ListAgentGroups(lago)
+		ags, next, err := fs.ListAgentGroups(ctx, lago)
 		if err != nil {
 			return err
 		}
@@ -57,16 +59,16 @@ func (fs *Freshservice) IterAgentGroups(lago *ListAgentGroupsOption, iagf func(*
 	return nil
 }
 
-func (fs *Freshservice) UpdateAgentGroup(id int64, ag *AgentGroup) (*AgentGroup, error) {
+func (fs *Freshservice) UpdateAgentGroup(ctx context.Context, id int64, ag *AgentGroup) (*AgentGroup, error) {
 	url := fs.endpoint("/groups/%d", id)
 	result := &agentGroupResult{}
-	if err := fs.doPut(url, ag, result); err != nil {
+	if err := fs.doPut(ctx, url, ag, result); err != nil {
 		return nil, err
 	}
 	return result.Group, nil
 }
 
-func (fs *Freshservice) DeleteAgentGroup(id int64) error {
+func (fs *Freshservice) DeleteAgentGroup(ctx context.Context, id int64) error {
 	url := fs.endpoint("/groups/%d", id)
-	return fs.doDelete(url)
+	return fs.doDelete(ctx, url)
 }

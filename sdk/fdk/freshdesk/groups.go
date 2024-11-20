@@ -1,34 +1,36 @@
 package freshdesk
 
+import "context"
+
 // ---------------------------------------------------
 // Group
 
 type ListGroupsOption = PageOption
 
-func (fd *Freshdesk) GetGroup(gid int64) (*Group, error) {
+func (fd *Freshdesk) GetGroup(ctx context.Context, gid int64) (*Group, error) {
 	url := fd.endpoint("/groups/%d", gid)
 	group := &Group{}
-	err := fd.doGet(url, group)
+	err := fd.doGet(ctx, url, group)
 	return group, err
 }
 
-func (fd *Freshdesk) CreateGroup(group *Group) (*Group, error) {
+func (fd *Freshdesk) CreateGroup(ctx context.Context, group *Group) (*Group, error) {
 	url := fd.endpoint("/groups")
 	result := &Group{}
-	if err := fd.doPost(url, group, result); err != nil {
+	if err := fd.doPost(ctx, url, group, result); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-func (fd *Freshdesk) ListGroups(lgo *ListGroupsOption) ([]*Group, bool, error) {
+func (fd *Freshdesk) ListGroups(ctx context.Context, lgo *ListGroupsOption) ([]*Group, bool, error) {
 	url := fd.endpoint("/groups")
 	groups := []*Group{}
-	next, err := fd.doList(url, lgo, &groups)
+	next, err := fd.doList(ctx, url, lgo, &groups)
 	return groups, next, err
 }
 
-func (fd *Freshdesk) IterGroups(lgo *ListGroupsOption, igf func(*Group) error) error {
+func (fd *Freshdesk) IterGroups(ctx context.Context, lgo *ListGroupsOption, igf func(*Group) error) error {
 	if lgo == nil {
 		lgo = &ListGroupsOption{}
 	}
@@ -40,7 +42,7 @@ func (fd *Freshdesk) IterGroups(lgo *ListGroupsOption, igf func(*Group) error) e
 	}
 
 	for {
-		groups, next, err := fd.ListGroups(lgo)
+		groups, next, err := fd.ListGroups(ctx, lgo)
 		if err != nil {
 			return err
 		}
@@ -57,16 +59,16 @@ func (fd *Freshdesk) IterGroups(lgo *ListGroupsOption, igf func(*Group) error) e
 	return nil
 }
 
-func (fd *Freshdesk) UpdateGroup(gid int64, group *Group) (*Group, error) {
+func (fd *Freshdesk) UpdateGroup(ctx context.Context, gid int64, group *Group) (*Group, error) {
 	url := fd.endpoint("/groups/%d", gid)
 	result := &Group{}
-	if err := fd.doPut(url, group, result); err != nil {
+	if err := fd.doPut(ctx, url, group, result); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-func (fd *Freshdesk) DeleteGroup(gid int64) error {
+func (fd *Freshdesk) DeleteGroup(ctx context.Context, gid int64) error {
 	url := fd.endpoint("/groups/%d", gid)
-	return fd.doDelete(url)
+	return fd.doDelete(ctx, url)
 }

@@ -1,6 +1,7 @@
 package openai
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -42,7 +43,7 @@ func TestOpenAICreateChatCompletion(t *testing.T) {
 		},
 	}
 
-	res, err := oai.CreateChatCompletion(req)
+	res, err := oai.CreateChatCompletion(context.TODO(), req)
 	if err != nil {
 		t.Fatalf("OpenAI.CreateChatCompletion(): %v", err)
 	}
@@ -61,7 +62,7 @@ func TestOpenAICreateTextEmbeddingsAda002(t *testing.T) {
 		Input: []string{"あなたはだれですか？"},
 	}
 
-	res, err := oai.CreateTextEmbeddings(req)
+	res, err := oai.CreateTextEmbeddings(context.TODO(), req)
 	if err != nil {
 		t.Fatalf("OpenAI.CreateTextEmbeddings(): %v", err)
 	} else {
@@ -80,7 +81,7 @@ func TestOpenAICreateTextEmbeddings3Small(t *testing.T) {
 		Input: []string{"あなたはだれですか？"},
 	}
 
-	res, err := oai.CreateTextEmbeddings(req)
+	res, err := oai.CreateTextEmbeddings(context.TODO(), req)
 	if err != nil {
 		t.Fatalf("OpenAI.CreateTextEmbeddings(): %v", err)
 	} else {
@@ -100,7 +101,7 @@ func TestOpenAICreateTextEmbeddings3LargeWithDimensions(t *testing.T) {
 		Dimensions: 1536,
 	}
 
-	res, err := oai.CreateTextEmbeddings(req)
+	res, err := oai.CreateTextEmbeddings(context.TODO(), req)
 	if err != nil {
 		t.Fatalf("OpenAI.CreateTextEmbeddings(): %v", err)
 	} else {

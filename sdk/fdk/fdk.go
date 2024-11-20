@@ -1,6 +1,7 @@
 package fdk
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -23,10 +24,8 @@ type FDK struct {
 	Timeout   time.Duration
 	Logger    log.Logger
 
-	MaxRetries    int
-	RetryAfter    time.Duration
-	AbortOnRetry  func() error
-	AbortInterval time.Duration
+	MaxRetries int
+	RetryAfter time.Duration
 }
 
 // Endpoint formats endpoint url
@@ -34,8 +33,8 @@ func (fdk *FDK) Endpoint(format string, a ...any) string {
 	return "https://" + fdk.Domain + "/api/v2" + fmt.Sprintf(format, a...)
 }
 
-func (fdk *FDK) RetryForError(api func() error) (err error) {
-	return sdk.RetryForError(api, fdk.MaxRetries, fdk.AbortOnRetry, fdk.AbortInterval, fdk.Logger)
+func (fdk *FDK) RetryForError(ctx context.Context, api func() error) (err error) {
+	return sdk.RetryForError(ctx, api, fdk.MaxRetries, fdk.Logger)
 }
 
 func (fdk *FDK) authenticate(req *http.Request) {
@@ -117,14 +116,14 @@ func (fdk *FDK) decodeResponse(res *http.Response, obj any) error {
 	return re
 }
 
-func (fdk *FDK) DoGet(url string, result any) error {
-	return fdk.RetryForError(func() error {
-		return fdk.doGet(url, result)
+func (fdk *FDK) DoGet(ctx context.Context, url string, result any) error {
+	return fdk.RetryForError(ctx, func() error {
+		return fdk.doGet(ctx, url, result)
 	})
 }
 
-func (fdk *FDK) doGet(url string, result any) error {
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+func (fdk *FDK) doGet(ctx context.Context, url string, result any) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return err
 	}
@@ -132,16 +131,16 @@ func (fdk *FDK) doGet(url string, result any) error {
 	return fdk.doCall(req, result)
 }
 
-func (fdk *FDK) DoList(url string, lo ListOption, ap any) (next bool, err error) {
-	err = fdk.RetryForError(func() error {
-		next, err = fdk.doList(url, lo, ap)
+func (fdk *FDK) DoList(ctx context.Context, url string, lo ListOption, ap any) (next bool, err error) {
+	err = fdk.RetryForError(ctx, func() error {
+		next, err = fdk.doList(ctx, url, lo, ap)
 		return err
 	})
 	return
 }
 
-func (fdk *FDK) doList(url string, lo ListOption, result any) (bool, error) {
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+func (fdk *FDK) doList(ctx context.Context, url string, lo ListOption, result any) (bool, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return false, err
 	}
@@ -165,19 +164,19 @@ func (fdk *FDK) doList(url string, lo ListOption, result any) (bool, error) {
 	return next, nil
 }
 
-func (fdk *FDK) DoPost(url string, source, result any) error {
-	return fdk.RetryForError(func() error {
-		return fdk.doPost(url, source, result)
+func (fdk *FDK) DoPost(ctx context.Context, url string, source, result any) error {
+	return fdk.RetryForError(ctx, func() error {
+		return fdk.doPost(ctx, url, source, result)
 	})
 }
 
-func (fdk *FDK) doPost(url string, source, result any) error {
+func (fdk *FDK) doPost(ctx context.Context, url string, source, result any) error {
 	buf, ct, err := buildRequest(source)
 	if err != nil {
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, url, buf)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, buf)
 	if err != nil {
 		return err
 	}
@@ -188,19 +187,19 @@ func (fdk *FDK) doPost(url string, source, result any) error {
 	return fdk.doCall(req, result)
 }
 
-func (fdk *FDK) DoPut(url string, source, result any) error {
-	return fdk.RetryForError(func() error {
-		return fdk.doPut(url, source, result)
+func (fdk *FDK) DoPut(ctx context.Context, url string, source, result any) error {
+	return fdk.RetryForError(ctx, func() error {
+		return fdk.doPut(ctx, url, source, result)
 	})
 }
 
-func (fdk *FDK) doPut(url string, source, result any) error {
+func (fdk *FDK) doPut(ctx context.Context, url string, source, result any) error {
 	buf, ct, err := buildRequest(source)
 	if err != nil {
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPut, url, buf)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, url, buf)
 	if err != nil {
 		return err
 	}
@@ -211,14 +210,14 @@ func (fdk *FDK) doPut(url string, source, result any) error {
 	return fdk.doCall(req, result)
 }
 
-func (fdk *FDK) DoDelete(url string) error {
-	return fdk.RetryForError(func() error {
-		return fdk.doDelete(url)
+func (fdk *FDK) DoDelete(ctx context.Context, url string) error {
+	return fdk.RetryForError(ctx, func() error {
+		return fdk.doDelete(ctx, url)
 	})
 }
 
-func (fdk *FDK) doDelete(url string) error {
-	req, err := http.NewRequest(http.MethodDelete, url, nil)
+func (fdk *FDK) doDelete(ctx context.Context, url string) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
 	if err != nil {
 		return err
 	}
@@ -226,16 +225,16 @@ func (fdk *FDK) doDelete(url string) error {
 	return fdk.doCall(req, nil)
 }
 
-func (fdk *FDK) DoDownload(url string) (buf []byte, err error) {
-	err = fdk.RetryForError(func() error {
-		buf, err = fdk.doDownload(url)
+func (fdk *FDK) DoDownload(ctx context.Context, url string) (buf []byte, err error) {
+	err = fdk.RetryForError(ctx, func() error {
+		buf, err = fdk.doDownload(ctx, url)
 		return err
 	})
 	return
 }
 
-func (fdk *FDK) doDownload(url string) ([]byte, error) {
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+func (fdk *FDK) doDownload(ctx context.Context, url string) ([]byte, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -248,14 +247,14 @@ func (fdk *FDK) doDownload(url string) ([]byte, error) {
 	return copyResponse(res)
 }
 
-func (fdk *FDK) DoSaveFile(url string, path string) error {
-	return fdk.RetryForError(func() error {
-		return fdk.doSaveFile(url, path)
+func (fdk *FDK) DoSaveFile(ctx context.Context, url string, path string) error {
+	return fdk.RetryForError(ctx, func() error {
+		return fdk.doSaveFile(ctx, url, path)
 	})
 }
 
-func (fdk *FDK) doSaveFile(url string, path string) error {
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+func (fdk *FDK) doSaveFile(ctx context.Context, url string, path string) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return err
 	}
@@ -268,16 +267,16 @@ func (fdk *FDK) doSaveFile(url string, path string) error {
 	return saveResponse(res, path)
 }
 
-func (fdk *FDK) DoDownloadNoAuth(url string) (buf []byte, err error) {
-	err = fdk.RetryForError(func() error {
-		buf, err = fdk.doDownloadNoAuth(url)
+func (fdk *FDK) DoDownloadNoAuth(ctx context.Context, url string) (buf []byte, err error) {
+	err = fdk.RetryForError(ctx, func() error {
+		buf, err = fdk.doDownloadNoAuth(ctx, url)
 		return err
 	})
 	return
 }
 
-func (fdk *FDK) doDownloadNoAuth(url string) ([]byte, error) {
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+func (fdk *FDK) doDownloadNoAuth(ctx context.Context, url string) ([]byte, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -290,14 +289,14 @@ func (fdk *FDK) doDownloadNoAuth(url string) ([]byte, error) {
 	return copyResponse(res)
 }
 
-func (fdk *FDK) DoSaveFileNoAuth(url string, path string) error {
-	return fdk.RetryForError(func() error {
-		return fdk.doSaveFileNoAuth(url, path)
+func (fdk *FDK) DoSaveFileNoAuth(ctx context.Context, url string, path string) error {
+	return fdk.RetryForError(ctx, func() error {
+		return fdk.doSaveFileNoAuth(ctx, url, path)
 	})
 }
 
-func (fdk *FDK) doSaveFileNoAuth(url string, path string) error {
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+func (fdk *FDK) doSaveFileNoAuth(ctx context.Context, url string, path string) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return err
 	}

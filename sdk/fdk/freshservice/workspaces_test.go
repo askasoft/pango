@@ -11,7 +11,7 @@ func TestWorkspaces(t *testing.T) {
 	}
 
 	itcnt := 0
-	err := fs.IterWorkspaces(nil, func(w *Workspace) error {
+	err := fs.IterWorkspaces(ctxbg, nil, func(w *Workspace) error {
 		itcnt++
 		fs.Logger.Debugf("Iterate workspace #%d: %s", w.ID, w.Name)
 		return nil

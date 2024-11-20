@@ -33,7 +33,7 @@ func TestTicketAPIs(t *testing.T) {
 		CreatedAt:   &Time{Time: tm1},
 	}
 
-	ct, err := fs.CreateTicket(ot)
+	ct, err := fs.CreateTicket(ctxbg, ot)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
@@ -47,13 +47,13 @@ func TestTicketAPIs(t *testing.T) {
 </div>`
 	tu.AddAttachment("./agent.go")
 
-	ut, err := fs.UpdateTicket(ct.ID, tu)
+	ut, err := fs.UpdateTicket(ctxbg, ct.ID, tu)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 	fs.Logger.Debug(ut)
 
-	err = fs.DeleteTicketAttachment(ut.ID, ut.Attachments[0].ID)
+	err = fs.DeleteTicketAttachment(ctxbg, ut.ID, ut.Attachments[0].ID)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
@@ -65,7 +65,7 @@ func TestTicketAPIs(t *testing.T) {
 		CreatedAt: &Time{Time: tm2},
 	}
 
-	cn, err := fs.CreateNote(ct.ID, nc)
+	cn, err := fs.CreateNote(ctxbg, ct.ID, nc)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
@@ -75,25 +75,25 @@ func TestTicketAPIs(t *testing.T) {
 		Body: "update note " + time.Now().String(),
 	}
 	cu.AddAttachment("./agent.go")
-	uc, err := fs.UpdateConversation(cn.ID, cu)
+	uc, err := fs.UpdateConversation(ctxbg, cn.ID, cu)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 	fs.Logger.Debug(uc)
 
-	gtc, err := fs.GetTicket(ct.ID, TicketIncludeConversations)
+	gtc, err := fs.GetTicket(ctxbg, ct.ID, TicketIncludeConversations)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 	fs.Logger.Debug(gtc)
 
-	gtr, err := fs.GetTicket(ct.ID, TicketIncludeRequester)
+	gtr, err := fs.GetTicket(ctxbg, ct.ID, TicketIncludeRequester)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 	fs.Logger.Debug(gtr)
 
-	err = fs.DeleteTicket(ct.ID)
+	err = fs.DeleteTicket(ctxbg, ct.ID)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
@@ -106,7 +106,7 @@ func TestListTicket(t *testing.T) {
 	}
 
 	ltp := &ListTicketsOption{PerPage: 1}
-	ts, _, err := fs.ListTickets(ltp)
+	ts, _, err := fs.ListTickets(ctxbg, ltp)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
@@ -120,7 +120,7 @@ func TestIterTicket(t *testing.T) {
 	}
 
 	ltp := &ListTicketsOption{PerPage: 2}
-	err := fs.IterTickets(ltp, func(t *Ticket) error {
+	err := fs.IterTickets(ctxbg, ltp, func(t *Ticket) error {
 		fs.Logger.Debug(t)
 		return nil
 	})

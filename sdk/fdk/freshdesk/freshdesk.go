@@ -1,6 +1,7 @@
 package freshdesk
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/askasoft/pango/sdk/fdk"
@@ -59,52 +60,52 @@ func (fd *Freshdesk) endpoint(format string, a ...any) string {
 	return (*fdk.FDK)(fd).Endpoint(format, a...)
 }
 
-func (fd *Freshdesk) doGet(url string, result any) error {
-	return (*fdk.FDK)(fd).DoGet(url, result)
+func (fd *Freshdesk) doGet(ctx context.Context, url string, result any) error {
+	return (*fdk.FDK)(fd).DoGet(ctx, url, result)
 }
 
-func (fd *Freshdesk) doList(url string, lo ListOption, result any) (bool, error) {
-	return (*fdk.FDK)(fd).DoList(url, lo, result)
+func (fd *Freshdesk) doList(ctx context.Context, url string, lo ListOption, result any) (bool, error) {
+	return (*fdk.FDK)(fd).DoList(ctx, url, lo, result)
 }
 
-func (fd *Freshdesk) doPost(url string, source, result any) error {
-	return (*fdk.FDK)(fd).DoPost(url, source, result)
+func (fd *Freshdesk) doPost(ctx context.Context, url string, source, result any) error {
+	return (*fdk.FDK)(fd).DoPost(ctx, url, source, result)
 }
 
-func (fd *Freshdesk) doPut(url string, source, result any) error {
-	return (*fdk.FDK)(fd).DoPut(url, source, result)
+func (fd *Freshdesk) doPut(ctx context.Context, url string, source, result any) error {
+	return (*fdk.FDK)(fd).DoPut(ctx, url, source, result)
 }
 
-func (fd *Freshdesk) doDelete(url string) error {
-	return (*fdk.FDK)(fd).DoDelete(url)
+func (fd *Freshdesk) doDelete(ctx context.Context, url string) error {
+	return (*fdk.FDK)(fd).DoDelete(ctx, url)
 }
 
-func (fd *Freshdesk) Download(url string) ([]byte, error) {
-	return (*fdk.FDK)(fd).DoDownload(url)
+func (fd *Freshdesk) Download(ctx context.Context, url string) ([]byte, error) {
+	return (*fdk.FDK)(fd).DoDownload(ctx, url)
 }
 
-func (fd *Freshdesk) SaveFile(url string, path string) error {
-	return (*fdk.FDK)(fd).DoSaveFile(url, path)
+func (fd *Freshdesk) SaveFile(ctx context.Context, url string, path string) error {
+	return (*fdk.FDK)(fd).DoSaveFile(ctx, url, path)
 }
 
-func (fd *Freshdesk) DownloadNoAuth(url string) ([]byte, error) {
-	return (*fdk.FDK)(fd).DoDownloadNoAuth(url)
+func (fd *Freshdesk) DownloadNoAuth(ctx context.Context, url string) ([]byte, error) {
+	return (*fdk.FDK)(fd).DoDownloadNoAuth(ctx, url)
 }
 
-func (fd *Freshdesk) SaveFileNoAuth(url string, path string) error {
-	return (*fdk.FDK)(fd).DoSaveFileNoAuth(url, path)
+func (fd *Freshdesk) SaveFileNoAuth(ctx context.Context, url string, path string) error {
+	return (*fdk.FDK)(fd).DoSaveFileNoAuth(ctx, url, path)
 }
 
-func (fd *Freshdesk) DeleteAttachment(aid int64) error {
+func (fd *Freshdesk) DeleteAttachment(ctx context.Context, aid int64) error {
 	url := fd.endpoint("/attachments/%d", aid)
-	return fd.doDelete(url)
+	return fd.doDelete(ctx, url)
 }
 
 // GetJob get job detail
-func (fd *Freshdesk) GetJob(jid string) (*Job, error) {
+func (fd *Freshdesk) GetJob(ctx context.Context, jid string) (*Job, error) {
 	url := fd.endpoint("/jobs/%s", jid)
 	job := &Job{}
-	err := fd.doGet(url, job)
+	err := fd.doGet(ctx, url, job)
 	return job, err
 }
 

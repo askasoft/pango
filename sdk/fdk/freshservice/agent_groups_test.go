@@ -1,11 +1,14 @@
 package freshservice
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/askasoft/pango/str"
 )
+
+var ctxbg = context.Background()
 
 func TestAgentGroups(t *testing.T) {
 	fs := testNewFreshservice(t)
@@ -16,7 +19,7 @@ func TestAgentGroups(t *testing.T) {
 	var ags []*AgentGroup
 	defer func() {
 		for _, ag := range ags {
-			err := fs.DeleteAgentGroup(ag.ID)
+			err := fs.DeleteAgentGroup(ctxbg, ag.ID)
 			if err != nil {
 				fs.Logger.Errorf("Failed to delete group [%d] %s: %v", ag.ID, ag.Name, err)
 			}
@@ -29,7 +32,7 @@ func TestAgentGroups(t *testing.T) {
 			Name: fmt.Sprintf("ApiTestGroup%03d", i+1),
 		}
 
-		cg, err := fs.CreateAgentGroup(ag)
+		cg, err := fs.CreateAgentGroup(ctxbg, ag)
 		if err != nil {
 			t.Fatalf("ERROR: %v", err)
 		}
@@ -37,7 +40,7 @@ func TestAgentGroups(t *testing.T) {
 	}
 
 	itcnt := 0
-	err := fs.IterAgentGroups(nil, func(ag *AgentGroup) error {
+	err := fs.IterAgentGroups(ctxbg, nil, func(ag *AgentGroup) error {
 		fs.Logger.Debugf("Iterate group [%d] %s", ag.ID, ag.Name)
 		if str.Contains(ag.Name, "ApiTestGroup") {
 			itcnt++

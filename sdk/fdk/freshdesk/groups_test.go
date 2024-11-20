@@ -16,7 +16,7 @@ func TestGroups(t *testing.T) {
 	var gs []*Group
 	defer func() {
 		for _, g := range gs {
-			err := fd.DeleteGroup(g.ID)
+			err := fd.DeleteGroup(ctxbg, g.ID)
 			if err != nil {
 				fd.Logger.Errorf("Failed to delete group [%d] %s: %v", g.ID, g.Name, err)
 			}
@@ -29,7 +29,7 @@ func TestGroups(t *testing.T) {
 			Name: fmt.Sprintf("ApiTestGroup%03d", i+1),
 		}
 
-		cg, err := fd.CreateGroup(g)
+		cg, err := fd.CreateGroup(ctxbg, g)
 		if err != nil {
 			t.Fatalf("ERROR: %v", err)
 		}
@@ -37,7 +37,7 @@ func TestGroups(t *testing.T) {
 	}
 
 	itcnt := 0
-	err := fd.IterGroups(nil, func(g *Group) error {
+	err := fd.IterGroups(ctxbg, nil, func(g *Group) error {
 		fd.Logger.Debugf("Iterate group [%d] %s", g.ID, g.Name)
 		if str.Contains(g.Name, "ApiTestGroup") {
 			itcnt++

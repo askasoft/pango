@@ -11,7 +11,7 @@ func TestListCompanies(t *testing.T) {
 	}
 
 	lco := &ListCompaniesOption{PerPage: 10}
-	cs, _, err := fd.ListCompanies(lco)
+	cs, _, err := fd.ListCompanies(ctxbg, lco)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
@@ -27,12 +27,12 @@ func TestExportCompany(t *testing.T) {
 		return
 	}
 
-	id, err := fd.ExportCompanies([]string{"name", "description"}, nil)
+	id, err := fd.ExportCompanies(ctxbg, []string{"name", "description"}, nil)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 
-	job, err := fd.GetExportedCompaniesURL(id)
+	job, err := fd.GetExportedCompaniesURL(ctxbg, id)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}

@@ -1,25 +1,27 @@
 package freshservice
 
+import "context"
+
 // ---------------------------------------------------
 // Agent Role
 
 type ListAgentRolesOption = PageOption
 
-func (fs *Freshservice) GetAgentRole(id int64) (*AgentRole, error) {
+func (fs *Freshservice) GetAgentRole(ctx context.Context, id int64) (*AgentRole, error) {
 	url := fs.endpoint("/roles/%d", id)
 	result := &agentRoleResult{}
-	err := fs.doGet(url, result)
+	err := fs.doGet(ctx, url, result)
 	return result.Role, err
 }
 
-func (fs *Freshservice) ListAgentRoles(laro *ListAgentRolesOption) ([]*AgentRole, bool, error) {
+func (fs *Freshservice) ListAgentRoles(ctx context.Context, laro *ListAgentRolesOption) ([]*AgentRole, bool, error) {
 	url := fs.endpoint("/roles")
 	result := &agentRolesResult{}
-	next, err := fs.doList(url, laro, result)
+	next, err := fs.doList(ctx, url, laro, result)
 	return result.Roles, next, err
 }
 
-func (fs *Freshservice) IterAgentRoles(laro *ListAgentRolesOption, iarf func(*AgentRole) error) error {
+func (fs *Freshservice) IterAgentRoles(ctx context.Context, laro *ListAgentRolesOption, iarf func(*AgentRole) error) error {
 	if laro == nil {
 		laro = &ListAgentRolesOption{}
 	}
@@ -31,7 +33,7 @@ func (fs *Freshservice) IterAgentRoles(laro *ListAgentRolesOption, iarf func(*Ag
 	}
 
 	for {
-		ars, next, err := fs.ListAgentRoles(laro)
+		ars, next, err := fs.ListAgentRoles(ctx, laro)
 		if err != nil {
 			return err
 		}

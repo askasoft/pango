@@ -1,25 +1,27 @@
 package freshdesk
 
+import "context"
+
 // ---------------------------------------------------
 // Role
 
 type ListRolesOption = PageOption
 
-func (fd *Freshdesk) GetRole(rid int64) (*Role, error) {
+func (fd *Freshdesk) GetRole(ctx context.Context, rid int64) (*Role, error) {
 	url := fd.endpoint("/roles/%d", rid)
 	role := &Role{}
-	err := fd.doGet(url, role)
+	err := fd.doGet(ctx, url, role)
 	return role, err
 }
 
-func (fd *Freshdesk) ListRoles(lro *ListRolesOption) ([]*Role, bool, error) {
+func (fd *Freshdesk) ListRoles(ctx context.Context, lro *ListRolesOption) ([]*Role, bool, error) {
 	url := fd.endpoint("/roles")
 	roles := []*Role{}
-	next, err := fd.doList(url, lro, &roles)
+	next, err := fd.doList(ctx, url, lro, &roles)
 	return roles, next, err
 }
 
-func (fd *Freshdesk) IterRoles(lro *ListRolesOption, irf func(*Role) error) error {
+func (fd *Freshdesk) IterRoles(ctx context.Context, lro *ListRolesOption, irf func(*Role) error) error {
 	if lro == nil {
 		lro = &ListRolesOption{}
 	}
@@ -31,7 +33,7 @@ func (fd *Freshdesk) IterRoles(lro *ListRolesOption, irf func(*Role) error) erro
 	}
 
 	for {
-		roles, next, err := fd.ListRoles(lro)
+		roles, next, err := fd.ListRoles(ctx, lro)
 		if err != nil {
 			return err
 		}

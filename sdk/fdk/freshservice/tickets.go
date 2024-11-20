@@ -1,6 +1,7 @@
 package freshservice
 
 import (
+	"context"
 	"strings"
 )
 
@@ -76,10 +77,10 @@ func (fto *FilterTicketsOption) Values() Values {
 // PerPage: 1 ~ 100, default: 30
 type ListConversationsOption = PageOption
 
-func (fs *Freshservice) CreateTicket(ticket *Ticket) (*Ticket, error) {
+func (fs *Freshservice) CreateTicket(ctx context.Context, ticket *Ticket) (*Ticket, error) {
 	url := fs.endpoint("/tickets")
 	result := &ticketResult{}
-	if err := fs.doPost(url, ticket, result); err != nil {
+	if err := fs.doPost(ctx, url, ticket, result); err != nil {
 		return nil, err
 	}
 	return result.Ticket, nil
@@ -87,14 +88,14 @@ func (fs *Freshservice) CreateTicket(ticket *Ticket) (*Ticket, error) {
 
 // GetTicket Get a Ticket
 // include: conversations, requester, requested_for, stats, problem, assets, change, related_tickets
-func (fs *Freshservice) GetTicket(tid int64, include ...string) (*Ticket, error) {
+func (fs *Freshservice) GetTicket(ctx context.Context, tid int64, include ...string) (*Ticket, error) {
 	url := fs.endpoint("/tickets/%d", tid)
 	if len(include) > 0 {
 		s := strings.Join(include, ",")
 		url += "?include=" + s
 	}
 	result := &ticketResult{}
-	err := fs.doGet(url, result)
+	err := fs.doGet(ctx, url, result)
 	return result.Ticket, err
 }
 
@@ -145,14 +146,14 @@ func (fs *Freshservice) GetTicket(tid int64, include ...string) (*Ticket, error)
 // 2. Number fields to be given as number without quotes.
 // 3. Date and date_time fields to be enclosed in single quotes('yyyy-mm-dd')
 // 4. only :> and :< are supported for date and date_time fields. Both fields expect input in the same format as 'yyyy-mm-dd'
-func (fs *Freshservice) FilterTickets(fto *FilterTicketsOption) ([]*Ticket, bool, error) {
+func (fs *Freshservice) FilterTickets(ctx context.Context, fto *FilterTicketsOption) ([]*Ticket, bool, error) {
 	url := fs.endpoint("/tickets/filter")
 	result := &ticketResult{}
-	next, err := fs.doList(url, fto, result)
+	next, err := fs.doList(ctx, url, fto, result)
 	return result.Tickets, next, err
 }
 
-func (fs *Freshservice) IterFilterTickets(fto *FilterTicketsOption, itf func(*Ticket) error) error {
+func (fs *Freshservice) IterFilterTickets(ctx context.Context, fto *FilterTicketsOption, itf func(*Ticket) error) error {
 	if fto == nil {
 		fto = &FilterTicketsOption{}
 	}
@@ -164,7 +165,7 @@ func (fs *Freshservice) IterFilterTickets(fto *FilterTicketsOption, itf func(*Ti
 	}
 
 	for {
-		tickets, next, err := fs.FilterTickets(fto)
+		tickets, next, err := fs.FilterTickets(ctx, fto)
 		if err != nil {
 			return err
 		}
@@ -187,14 +188,14 @@ func (fs *Freshservice) IterFilterTickets(fto *FilterTicketsOption, itf func(*Ti
 // 1. By default only tickets that have been created within the past 30 days will be returned. For older tickets, use the updated_since filter.
 // 2. Use 'include' to embed additional details in the response. Each include will consume an additional 2 credits. For example if you embed the stats information you will be charged a total of 3 API credits (1 credit for the API call, and 2 credits for the additional stats embedding).
 // 3. By default, only tickets from the primary workspace will be returned for accounts with the 'Workspaces' feature enabled. For tickets from other workspaces, use the workspace_id filter.
-func (fs *Freshservice) ListTickets(lto *ListTicketsOption) ([]*Ticket, bool, error) {
+func (fs *Freshservice) ListTickets(ctx context.Context, lto *ListTicketsOption) ([]*Ticket, bool, error) {
 	url := fs.endpoint("/tickets")
 	result := &ticketResult{}
-	next, err := fs.doList(url, lto, result)
+	next, err := fs.doList(ctx, url, lto, result)
 	return result.Tickets, next, err
 }
 
-func (fs *Freshservice) IterTickets(lto *ListTicketsOption, itf func(*Ticket) error) error {
+func (fs *Freshservice) IterTickets(ctx context.Context, lto *ListTicketsOption, itf func(*Ticket) error) error {
 	if lto == nil {
 		lto = &ListTicketsOption{}
 	}
@@ -206,7 +207,7 @@ func (fs *Freshservice) IterTickets(lto *ListTicketsOption, itf func(*Ticket) er
 	}
 
 	for {
-		tickets, next, err := fs.ListTickets(lto)
+		tickets, next, err := fs.ListTickets(ctx, lto)
 		if err != nil {
 			return err
 		}
@@ -230,30 +231,30 @@ func (fs *Freshservice) IterTickets(lto *ListTicketsOption, itf func(*Ticket) er
 // 2. The requested_for_id field can be updated only for Service Request tickets.
 // Query Parameters	Handle
 // bypass_mandatory: To bypass mandatory fields check while updating the ticket except for requester_id, source. Any business rules trying to mandate certain fields will also be bypassed. All fields configured as mandatory upon closing or resolving the ticket will be skipped while updating the ticket. This can only be passed by an admin.
-func (fs *Freshservice) UpdateTicket(tid int64, ticket *Ticket) (*Ticket, error) {
+func (fs *Freshservice) UpdateTicket(ctx context.Context, tid int64, ticket *Ticket) (*Ticket, error) {
 	url := fs.endpoint("/tickets/%d", tid)
 	result := &ticketResult{}
-	if err := fs.doPut(url, ticket, result); err != nil {
+	if err := fs.doPut(ctx, url, ticket, result); err != nil {
 		return nil, err
 	}
 	return result.Ticket, nil
 }
 
-func (fs *Freshservice) DeleteTicket(tid int64) error {
+func (fs *Freshservice) DeleteTicket(ctx context.Context, tid int64) error {
 	url := fs.endpoint("/tickets/%d", tid)
-	return fs.doDelete(url)
+	return fs.doDelete(ctx, url)
 }
 
-func (fs *Freshservice) DeleteTicketAttachment(tid, aid int64) error {
+func (fs *Freshservice) DeleteTicketAttachment(ctx context.Context, tid, aid int64) error {
 	url := fs.endpoint("/tickets/%d/attachments/%d", tid, aid)
-	return fs.doDelete(url)
+	return fs.doDelete(ctx, url)
 }
 
 // Restore a Ticket
 // The API mentioned previously. If you deleted some tickets and regret doing so now, this API will help you restore them.
-func (fs *Freshservice) Restore(tid int64) error {
+func (fs *Freshservice) Restore(ctx context.Context, tid int64) error {
 	url := fs.endpoint("/tickets/%d/restore", tid)
-	return fs.doPut(url, nil, nil)
+	return fs.doPut(ctx, url, nil, nil)
 }
 
 // Create a Child Ticket
@@ -263,45 +264,45 @@ func (fs *Freshservice) Restore(tid int64) error {
 // 2. Association of child tickets to a service request is not possible.
 // 3. Association of child tickets to a deleted or a spammed ticket is not allowed.
 // 4. Nesting of a child ticket under another child ticket is not supported.
-func (fs *Freshservice) CreateChildTicket(tid int64, ticket *Ticket) (*Ticket, error) {
+func (fs *Freshservice) CreateChildTicket(ctx context.Context, tid int64, ticket *Ticket) (*Ticket, error) {
 	url := fs.endpoint("/tickets/%d/create_child_ticket", tid)
 	result := &ticketResult{}
-	if err := fs.doPost(url, ticket, result); err != nil {
+	if err := fs.doPost(ctx, url, ticket, result); err != nil {
 		return nil, err
 	}
 	return result.Ticket, nil
 }
 
-func (fs *Freshservice) GetTicketFields() ([]*TicketField, error) {
+func (fs *Freshservice) GetTicketFields(ctx context.Context) ([]*TicketField, error) {
 	url := fs.endpoint("/ticket_form_fields")
 	result := &ticketFieldResult{}
-	err := fs.doGet(url, result)
+	err := fs.doGet(ctx, url, result)
 	return result.TicketFields, err
 }
 
-func (fs *Freshservice) GetTicketActivities(tid int64) ([]*TicketActivity, error) {
+func (fs *Freshservice) GetTicketActivities(ctx context.Context, tid int64) ([]*TicketActivity, error) {
 	url := fs.endpoint("/tickets/%d/activities", tid)
 	result := &ticketActivitiesResult{}
-	err := fs.doGet(url, result)
+	err := fs.doGet(ctx, url, result)
 	return result.TicketActivities, err
 }
 
 // ---------------------------------------------------
 // Conversation
 
-func (fs *Freshservice) CreateReply(tid int64, reply *Reply) (*Conversation, error) {
+func (fs *Freshservice) CreateReply(ctx context.Context, tid int64, reply *Reply) (*Conversation, error) {
 	url := fs.endpoint("/tickets/%d/reply", tid)
 	result := &conversationResult{}
-	if err := fs.doPost(url, reply, result); err != nil {
+	if err := fs.doPost(ctx, url, reply, result); err != nil {
 		return nil, err
 	}
 	return result.Conversation, nil
 }
 
-func (fs *Freshservice) CreateNote(tid int64, note *Note) (*Conversation, error) {
+func (fs *Freshservice) CreateNote(ctx context.Context, tid int64, note *Note) (*Conversation, error) {
 	url := fs.endpoint("/tickets/%d/notes", tid)
 	result := &conversationResult{}
-	if err := fs.doPost(url, note, result); err != nil {
+	if err := fs.doPost(ctx, url, note, result); err != nil {
 		return nil, err
 	}
 	return result.Conversation, nil
@@ -309,33 +310,33 @@ func (fs *Freshservice) CreateNote(tid int64, note *Note) (*Conversation, error)
 
 // Update a Conversation
 // Only public & private notes can be edited.
-func (fs *Freshservice) UpdateConversation(cid int64, conversation *Conversation) (*Conversation, error) {
+func (fs *Freshservice) UpdateConversation(ctx context.Context, cid int64, conversation *Conversation) (*Conversation, error) {
 	url := fs.endpoint("/conversations/%d", cid)
 	result := &conversationResult{}
-	if err := fs.doPut(url, conversation, result); err != nil {
+	if err := fs.doPut(ctx, url, conversation, result); err != nil {
 		return nil, err
 	}
 	return result.Conversation, nil
 }
 
-func (fs *Freshservice) DeleteConversation(cid int64) error {
+func (fs *Freshservice) DeleteConversation(ctx context.Context, cid int64) error {
 	url := fs.endpoint("/conversations/%d", cid)
-	return fs.doDelete(url)
+	return fs.doDelete(ctx, url)
 }
 
-func (fs *Freshservice) DeleteConversationAttachment(cid, aid int64) error {
+func (fs *Freshservice) DeleteConversationAttachment(ctx context.Context, cid, aid int64) error {
 	url := fs.endpoint("/conversations/%d/attachments/%d", cid, aid)
-	return fs.doDelete(url)
+	return fs.doDelete(ctx, url)
 }
 
-func (fs *Freshservice) ListTicketConversations(tid int64, lco *ListConversationsOption) ([]*Conversation, bool, error) {
+func (fs *Freshservice) ListTicketConversations(ctx context.Context, tid int64, lco *ListConversationsOption) ([]*Conversation, bool, error) {
 	url := fs.endpoint("/tickets/%d/conversations", tid)
 	result := &conversationsResult{}
-	next, err := fs.doList(url, lco, result)
+	next, err := fs.doList(ctx, url, lco, result)
 	return result.Conversations, next, err
 }
 
-func (fs *Freshservice) IterTicketConversations(tid int64, lco *ListConversationsOption, icf func(*Conversation) error) error {
+func (fs *Freshservice) IterTicketConversations(ctx context.Context, tid int64, lco *ListConversationsOption, icf func(*Conversation) error) error {
 	if lco == nil {
 		lco = &ListConversationsOption{}
 	}
@@ -347,7 +348,7 @@ func (fs *Freshservice) IterTicketConversations(tid int64, lco *ListConversation
 	}
 
 	for {
-		conversations, next, err := fs.ListTicketConversations(tid, lco)
+		conversations, next, err := fs.ListTicketConversations(ctx, tid, lco)
 		if err != nil {
 			return err
 		}

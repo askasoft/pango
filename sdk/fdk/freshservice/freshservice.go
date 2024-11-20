@@ -1,6 +1,7 @@
 package freshservice
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/askasoft/pango/sdk/fdk"
@@ -59,50 +60,50 @@ func (fs *Freshservice) endpoint(format string, a ...any) string {
 	return (*fdk.FDK)(fs).Endpoint(format, a...)
 }
 
-func (fs *Freshservice) doGet(url string, result any) error {
-	return (*fdk.FDK)(fs).DoGet(url, result)
+func (fs *Freshservice) doGet(ctx context.Context, url string, result any) error {
+	return (*fdk.FDK)(fs).DoGet(ctx, url, result)
 }
 
-func (fs *Freshservice) doList(url string, lo ListOption, result any) (bool, error) {
-	return (*fdk.FDK)(fs).DoList(url, lo, result)
+func (fs *Freshservice) doList(ctx context.Context, url string, lo ListOption, result any) (bool, error) {
+	return (*fdk.FDK)(fs).DoList(ctx, url, lo, result)
 }
 
-func (fs *Freshservice) doPost(url string, source, result any) error {
-	return (*fdk.FDK)(fs).DoPost(url, source, result)
+func (fs *Freshservice) doPost(ctx context.Context, url string, source, result any) error {
+	return (*fdk.FDK)(fs).DoPost(ctx, url, source, result)
 }
 
-func (fs *Freshservice) doPut(url string, source, result any) error {
-	return (*fdk.FDK)(fs).DoPut(url, source, result)
+func (fs *Freshservice) doPut(ctx context.Context, url string, source, result any) error {
+	return (*fdk.FDK)(fs).DoPut(ctx, url, source, result)
 }
 
-func (fs *Freshservice) doDelete(url string) error {
-	return (*fdk.FDK)(fs).DoDelete(url)
+func (fs *Freshservice) doDelete(ctx context.Context, url string) error {
+	return (*fdk.FDK)(fs).DoDelete(ctx, url)
 }
 
-func (fs *Freshservice) Download(url string) ([]byte, error) {
-	return (*fdk.FDK)(fs).DoDownload(url)
+func (fs *Freshservice) Download(ctx context.Context, url string) ([]byte, error) {
+	return (*fdk.FDK)(fs).DoDownload(ctx, url)
 }
 
-func (fs *Freshservice) SaveFile(url string, path string) error {
-	return (*fdk.FDK)(fs).DoSaveFile(url, path)
+func (fs *Freshservice) SaveFile(ctx context.Context, url string, path string) error {
+	return (*fdk.FDK)(fs).DoSaveFile(ctx, url, path)
 }
 
-func (fs *Freshservice) DownloadNoAuth(url string) ([]byte, error) {
-	return (*fdk.FDK)(fs).DoDownloadNoAuth(url)
+func (fs *Freshservice) DownloadNoAuth(ctx context.Context, url string) ([]byte, error) {
+	return (*fdk.FDK)(fs).DoDownloadNoAuth(ctx, url)
 }
 
-func (fs *Freshservice) SaveFileNoAuth(url string, path string) error {
-	return (*fdk.FDK)(fs).DoSaveFileNoAuth(url, path)
+func (fs *Freshservice) SaveFileNoAuth(ctx context.Context, url string, path string) error {
+	return (*fdk.FDK)(fs).DoSaveFileNoAuth(ctx, url, path)
 }
 
-func (fs *Freshservice) DownloadAttachment(aid int64) ([]byte, error) {
+func (fs *Freshservice) DownloadAttachment(ctx context.Context, aid int64) ([]byte, error) {
 	url := fs.endpoint("/attachments/%d", aid)
-	return fs.Download(url)
+	return fs.Download(ctx, url)
 }
 
-func (fs *Freshservice) SaveAttachment(aid int64, path string) error {
+func (fs *Freshservice) SaveAttachment(ctx context.Context, aid int64, path string) error {
 	url := fs.endpoint("/attachments/%d", aid)
-	return fs.SaveFile(url, path)
+	return fs.SaveFile(ctx, url, path)
 }
 
 // GetAgentTicketURL return a permlink for agent ticket URL

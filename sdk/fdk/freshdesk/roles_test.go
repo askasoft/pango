@@ -10,7 +10,7 @@ func TestListRoles(t *testing.T) {
 		return
 	}
 
-	roles, _, err := fd.ListRoles(nil)
+	roles, _, err := fd.ListRoles(ctxbg, nil)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}

@@ -1,25 +1,27 @@
 package freshservice
 
+import "context"
+
 // ---------------------------------------------------
 // Workspace
 
 type ListWorkspacesOption = PageOption
 
-func (fs *Freshservice) GetWorkspace(id int64) (*Workspace, error) {
+func (fs *Freshservice) GetWorkspace(ctx context.Context, id int64) (*Workspace, error) {
 	url := fs.endpoint("/workspaces/%d", id)
 	result := &workspaceResult{}
-	err := fs.doGet(url, result)
+	err := fs.doGet(ctx, url, result)
 	return result.Workspace, err
 }
 
-func (fs *Freshservice) ListWorkspaces(lwo *ListWorkspacesOption) ([]*Workspace, bool, error) {
+func (fs *Freshservice) ListWorkspaces(ctx context.Context, lwo *ListWorkspacesOption) ([]*Workspace, bool, error) {
 	url := fs.endpoint("/workspaces")
 	result := &workspacesResult{}
-	next, err := fs.doList(url, lwo, result)
+	next, err := fs.doList(ctx, url, lwo, result)
 	return result.Workspaces, next, err
 }
 
-func (fs *Freshservice) IterWorkspaces(lwo *ListWorkspacesOption, iwf func(*Workspace) error) error {
+func (fs *Freshservice) IterWorkspaces(ctx context.Context, lwo *ListWorkspacesOption, iwf func(*Workspace) error) error {
 	if lwo == nil {
 		lwo = &ListWorkspacesOption{}
 	}
@@ -31,7 +33,7 @@ func (fs *Freshservice) IterWorkspaces(lwo *ListWorkspacesOption, iwf func(*Work
 	}
 
 	for {
-		ws, next, err := fs.ListWorkspaces(lwo)
+		ws, next, err := fs.ListWorkspaces(ctx, lwo)
 		if err != nil {
 			return err
 		}

@@ -19,12 +19,12 @@ func TestSolutionAPIs(t *testing.T) {
 		Name:        "Test Category",
 		Description: "Test Category For API Test",
 	}
-	cat, err := fd.CreateCategory(cc)
+	cat, err := fd.CreateCategory(ctxbg, cc)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 	defer func() {
-		err = fd.DeleteCategory(cat.ID)
+		err = fd.DeleteCategory(ctxbg, cat.ID)
 		if err != nil {
 			t.Errorf("ERROR: %v", err)
 		}
@@ -35,12 +35,12 @@ func TestSolutionAPIs(t *testing.T) {
 		Description: "Test Folder For API Test",
 		Visibility:  FolderVisibilityAgents,
 	}
-	fol, err := fd.CreateFolder(cat.ID, cf)
+	fol, err := fd.CreateFolder(ctxbg, cat.ID, cf)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 	defer func() {
-		err = fd.DeleteFolder(fol.ID)
+		err = fd.DeleteFolder(ctxbg, fol.ID)
 		if err != nil {
 			t.Errorf("ERROR: %v", err)
 		}
@@ -51,12 +51,12 @@ func TestSolutionAPIs(t *testing.T) {
 		Description: "Test Article for API Test",
 		Status:      ArticleStatusDraft,
 	}
-	art, err := fd.CreateArticle(fol.ID, ca)
+	art, err := fd.CreateArticle(ctxbg, fol.ID, ca)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 	defer func() {
-		err = fd.DeleteArticle(art.ID)
+		err = fd.DeleteArticle(ctxbg, art.ID)
 		if err != nil {
 			t.Errorf("ERROR: %v", err)
 		}
@@ -69,12 +69,12 @@ func TestSolutionAPIs(t *testing.T) {
 
 	ua := &Article{}
 	ua.AddAttachment("./agent.go")
-	ua, err = fd.UpdateArticle(art.ID, ua)
+	ua, err = fd.UpdateArticle(ctxbg, art.ID, ua)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 
-	uad, err := fd.DownloadNoAuth(ua.Attachments[0].AttachmentURL)
+	uad, err := fd.DownloadNoAuth(ctxbg, ua.Attachments[0].AttachmentURL)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
@@ -85,31 +85,31 @@ func TestSolutionAPIs(t *testing.T) {
 
 	ua2 := &Article{}
 	ua2.AddAttachment("./article.go")
-	ua2, err = fd.UpdateArticle(art.ID, ua2)
+	ua2, err = fd.UpdateArticle(ctxbg, art.ID, ua2)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 
 	ua3 := &Article{}
 	ua3.AddAttachment("./agent.go", []byte("agent.go"))
-	ua3, err = fd.UpdateArticle(art.ID, ua3)
+	ua3, err = fd.UpdateArticle(ctxbg, art.ID, ua3)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 
-	ga, err := fd.GetArticle(art.ID)
+	ga, err := fd.GetArticle(ctxbg, art.ID)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 
 	for _, at := range ga.Attachments {
-		err = fd.DeleteAttachment(at.ID)
+		err = fd.DeleteAttachment(ctxbg, at.ID)
 		if err != nil {
 			t.Fatalf("ERROR: %v", err)
 		}
 	}
 
-	cats, _, err := fd.ListCategories(nil)
+	cats, _, err := fd.ListCategories(ctxbg, nil)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
@@ -117,7 +117,7 @@ func TestSolutionAPIs(t *testing.T) {
 		t.Fatalf("ERROR: categories=%d", len(cats))
 	}
 
-	arts, _, err := fd.ListFolderArticles(fol.ID, nil)
+	arts, _, err := fd.ListFolderArticles(ctxbg, fol.ID, nil)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
@@ -125,7 +125,7 @@ func TestSolutionAPIs(t *testing.T) {
 		t.Fatalf("ERROR: articles=%d", len(arts))
 	}
 
-	fols, _, err := fd.ListCategoryFolders(cat.ID, nil)
+	fols, _, err := fd.ListCategoryFolders(ctxbg, cat.ID, nil)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
@@ -144,17 +144,17 @@ func TestSolutionIterAllArticles(t *testing.T) {
 	itf = func(f *Folder) error {
 		fd.Logger.Debugf("Enter Folder #%d - %s", f.ID, f)
 
-		fd.IterSubFolders(f.ID, nil, itf)
+		fd.IterSubFolders(ctxbg, f.ID, nil, itf)
 
-		return fd.IterFolderArticles(f.ID, nil, func(a *Article) error {
+		return fd.IterFolderArticles(ctxbg, f.ID, nil, func(a *Article) error {
 			fd.Logger.Debugf("Article #%d - %s", a.ID, a)
 			return nil
 		})
 	}
 
-	err := fd.IterCategories(nil, func(c *Category) error {
+	err := fd.IterCategories(ctxbg, nil, func(c *Category) error {
 		fd.Logger.Debugf("Enter Category #%d - %s", c.ID, c.Name)
-		return fd.IterCategoryFolders(c.ID, nil, itf)
+		return fd.IterCategoryFolders(ctxbg, c.ID, nil, itf)
 	})
 	if err != nil {
 		t.Error(err)
@@ -172,14 +172,14 @@ func TestSolutionManyCategories(t *testing.T) {
 			Name:        fmt.Sprintf("Test Category %d", i),
 			Description: fmt.Sprintf("Test Category For API Test %d", i),
 		}
-		_, err := fd.CreateCategory(cc)
+		_, err := fd.CreateCategory(ctxbg, cc)
 		if err != nil {
 			t.Fatalf("ERROR: %v", err)
 		}
 	}
 
 	cids := make([]int64, 0, 101)
-	err := fd.IterCategories(nil, func(c *Category) error {
+	err := fd.IterCategories(ctxbg, nil, func(c *Category) error {
 		if str.StartsWith(c.Name, "Test Category") {
 			cids = append(cids, c.ID)
 		}
@@ -193,7 +193,7 @@ func TestSolutionManyCategories(t *testing.T) {
 	}
 
 	for _, cid := range cids {
-		fd.DeleteCategory(cid)
+		fd.DeleteCategory(ctxbg, cid)
 		if err != nil {
 			t.Fatalf("ERROR: %v", err)
 		}
@@ -210,12 +210,12 @@ func TestSolutionManyFolders(t *testing.T) {
 		Name:        "Test Category",
 		Description: "Test Category For API Test",
 	}
-	cat, err := fd.CreateCategory(cc)
+	cat, err := fd.CreateCategory(ctxbg, cc)
 	if err != nil {
 		t.Errorf("ERROR: %v", err)
 	}
 	defer func() {
-		err = fd.DeleteCategory(cat.ID)
+		err = fd.DeleteCategory(ctxbg, cat.ID)
 		if err != nil {
 			t.Errorf("ERROR: %v", err)
 		}
@@ -227,14 +227,14 @@ func TestSolutionManyFolders(t *testing.T) {
 			Description: fmt.Sprintf("Test Folder For API Test %d", i),
 			Visibility:  FolderVisibilityAgents,
 		}
-		_, err := fd.CreateFolder(cat.ID, cf)
+		_, err := fd.CreateFolder(ctxbg, cat.ID, cf)
 		if err != nil {
 			t.Errorf("ERROR: %v", err)
 		}
 	}
 
 	fids := make([]int64, 0, 101)
-	err = fd.IterCategoryFolders(cat.ID, nil, func(f *Folder) error {
+	err = fd.IterCategoryFolders(ctxbg, cat.ID, nil, func(f *Folder) error {
 		fids = append(fids, f.ID)
 		return nil
 	})
@@ -246,7 +246,7 @@ func TestSolutionManyFolders(t *testing.T) {
 	}
 
 	for _, fid := range fids {
-		fd.DeleteFolder(fid)
+		fd.DeleteFolder(ctxbg, fid)
 		if err != nil {
 			t.Errorf("ERROR: %v", err)
 		}
@@ -263,12 +263,12 @@ func TestSolutionManyArticles(t *testing.T) {
 		Name:        "Test Category",
 		Description: "Test Category For API Test",
 	}
-	cat, err := fd.CreateCategory(cc)
+	cat, err := fd.CreateCategory(ctxbg, cc)
 	if err != nil {
 		t.Errorf("ERROR: %v", err)
 	}
 	defer func() {
-		err = fd.DeleteCategory(cat.ID)
+		err = fd.DeleteCategory(ctxbg, cat.ID)
 		if err != nil {
 			t.Errorf("ERROR: %v", err)
 		}
@@ -279,12 +279,12 @@ func TestSolutionManyArticles(t *testing.T) {
 		Description: "Test Folder For API Test",
 		Visibility:  FolderVisibilityAgents,
 	}
-	fol, err := fd.CreateFolder(cat.ID, cf)
+	fol, err := fd.CreateFolder(ctxbg, cat.ID, cf)
 	if err != nil {
 		t.Errorf("ERROR: %v", err)
 	}
 	defer func() {
-		err = fd.DeleteFolder(fol.ID)
+		err = fd.DeleteFolder(ctxbg, fol.ID)
 		if err != nil {
 			t.Errorf("ERROR: %v", err)
 		}
@@ -297,14 +297,14 @@ func TestSolutionManyArticles(t *testing.T) {
 			Status:      ArticleStatusDraft,
 		}
 
-		_, err := fd.CreateArticle(fol.ID, ca)
+		_, err := fd.CreateArticle(ctxbg, fol.ID, ca)
 		if err != nil {
 			t.Errorf("ERROR: %v", err)
 		}
 	}
 
 	aids := make([]int64, 0, 101)
-	err = fd.IterFolderArticles(fol.ID, nil, func(a *Article) error {
+	err = fd.IterFolderArticles(ctxbg, fol.ID, nil, func(a *Article) error {
 		aids = append(aids, a.ID)
 		return nil
 	})
@@ -316,7 +316,7 @@ func TestSolutionManyArticles(t *testing.T) {
 	}
 
 	for _, aid := range aids {
-		fd.DeleteArticle(aid)
+		fd.DeleteArticle(ctxbg, aid)
 		if err != nil {
 			t.Errorf("ERROR: %v", err)
 		}

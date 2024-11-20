@@ -1,6 +1,7 @@
 package openai
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"time"
@@ -18,10 +19,8 @@ type OpenAI struct {
 	Timeout   time.Duration
 	Logger    log.Logger
 
-	MaxRetries    int
-	RetryAfter    time.Duration
-	AbortOnRetry  func() error
-	AbortInterval time.Duration
+	MaxRetries int
+	RetryAfter time.Duration
 }
 
 func (oai *OpenAI) endpoint(format string, a ...any) string {
@@ -49,11 +48,6 @@ func (oai *OpenAI) call(req *http.Request) (res *http.Response, err error) {
 	return res, nil
 }
 
-func (oai *OpenAI) authAndCall(req *http.Request) (res *http.Response, err error) {
-	oai.authenticate(req)
-	return oai.call(req)
-}
-
 func (oai *OpenAI) authenticate(req *http.Request) {
 	if req.Header.Get("Content-Type") == "" {
 		req.Header.Set("Content-Type", contentTypeJSON)
@@ -63,7 +57,8 @@ func (oai *OpenAI) authenticate(req *http.Request) {
 }
 
 func (oai *OpenAI) doCall(req *http.Request, result any) error {
-	res, err := oai.authAndCall(req)
+	oai.authenticate(req)
+	res, err := oai.call(req)
 	if err != nil {
 		return err
 	}
@@ -71,19 +66,19 @@ func (oai *OpenAI) doCall(req *http.Request, result any) error {
 	return decodeResponse(res, result, oai.RetryAfter)
 }
 
-func (oai *OpenAI) doPostWithRetry(url string, source, result any) error {
-	return sdk.RetryForError(func() error {
-		return oai.doPost(url, source, result)
-	}, oai.MaxRetries, oai.AbortOnRetry, oai.AbortInterval, oai.Logger)
+func (oai *OpenAI) doPostWithRetry(ctx context.Context, url string, source, result any) error {
+	return sdk.RetryForError(ctx, func() error {
+		return oai.doPost(ctx, url, source, result)
+	}, oai.MaxRetries, oai.Logger)
 }
 
-func (oai *OpenAI) doPost(url string, source, result any) error {
+func (oai *OpenAI) doPost(ctx context.Context, url string, source, result any) error {
 	buf, ct, err := buildJsonRequest(source)
 	if err != nil {
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, url, buf)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, buf)
 	if err != nil {
 		return err
 	}
@@ -95,19 +90,19 @@ func (oai *OpenAI) doPost(url string, source, result any) error {
 }
 
 // https://platform.openai.com/docs/api-reference/chat/create
-func (oai *OpenAI) CreateChatCompletion(req *ChatCompletionRequest) (*ChatCompletionResponse, error) {
+func (oai *OpenAI) CreateChatCompletion(ctx context.Context, req *ChatCompletionRequest) (*ChatCompletionResponse, error) {
 	url := oai.endpoint("/chat/completions")
 
 	res := &ChatCompletionResponse{}
-	err := oai.doPostWithRetry(url, req, res)
+	err := oai.doPostWithRetry(ctx, url, req, res)
 	return res, err
 }
 
 // https://platform.openai.com/docs/api-reference/embeddings/create
-func (oai *OpenAI) CreateTextEmbeddings(req *TextEmbeddingsRequest) (*TextEmbeddingsResponse, error) {
+func (oai *OpenAI) CreateTextEmbeddings(ctx context.Context, req *TextEmbeddingsRequest) (*TextEmbeddingsResponse, error) {
 	url := oai.endpoint("/embeddings")
 
 	res := &TextEmbeddingsResponse{}
-	err := oai.doPostWithRetry(url, req, res)
+	err := oai.doPostWithRetry(ctx, url, req, res)
 	return res, err
 }

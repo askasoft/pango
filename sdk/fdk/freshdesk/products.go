@@ -1,25 +1,27 @@
 package freshdesk
 
+import "context"
+
 // ---------------------------------------------------
 // Product
 
 type ListProductsOption = PageOption
 
-func (fd *Freshdesk) GetProduct(id int64) (*Product, error) {
+func (fd *Freshdesk) GetProduct(ctx context.Context, id int64) (*Product, error) {
 	url := fd.endpoint("/products/%d", id)
 	product := &Product{}
-	err := fd.doGet(url, product)
+	err := fd.doGet(ctx, url, product)
 	return product, err
 }
 
-func (fd *Freshdesk) ListProducts(lpo *ListProductsOption) ([]*Product, bool, error) {
+func (fd *Freshdesk) ListProducts(ctx context.Context, lpo *ListProductsOption) ([]*Product, bool, error) {
 	url := fd.endpoint("/products")
 	products := []*Product{}
-	next, err := fd.doList(url, lpo, &products)
+	next, err := fd.doList(ctx, url, lpo, &products)
 	return products, next, err
 }
 
-func (fd *Freshdesk) IterProducts(lpo *ListProductsOption, ipf func(*Product) error) error {
+func (fd *Freshdesk) IterProducts(ctx context.Context, lpo *ListProductsOption, ipf func(*Product) error) error {
 	if lpo == nil {
 		lpo = &ListProductsOption{}
 	}
@@ -31,7 +33,7 @@ func (fd *Freshdesk) IterProducts(lpo *ListProductsOption, ipf func(*Product) er
 	}
 
 	for {
-		ps, next, err := fd.ListProducts(lpo)
+		ps, next, err := fd.ListProducts(ctx, lpo)
 		if err != nil {
 			return err
 		}

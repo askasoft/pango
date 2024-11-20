@@ -1,7 +1,7 @@
 package sdk
 
 import (
-	"errors"
+	"context"
 	"fmt"
 	"net/http"
 	"testing"
@@ -30,22 +30,23 @@ func (rte *retryTestError) Error() string {
 }
 
 func TestRetryForErrorLoop(t *testing.T) {
-	w := "429 Too Many Requests (Retry After 1s)"
-
 	rte := &retryTestError{
 		status:     "429 Too Many Requests",
 		statusCode: http.StatusTooManyRequests,
 	}
-	rte.RetryAfter = time.Second
+	rte.RetryAfter = time.Millisecond * 100
 
-	called, aborted := 0, 0
-	err := RetryForError(func() error {
+	w := rte.Error()
+
+	called := 0
+	api := func() error {
 		called++
 		return rte
-	}, 2, func() error {
-		aborted++
-		return nil
-	}, time.Millisecond*250, log.NewLog())
+	}
+
+	ctx := context.Background()
+
+	err := RetryForError(ctx, api, 2, log.NewLog())
 
 	if err.Error() != w {
 		t.Errorf("Error(): %s, want %s", err.Error(), w)
@@ -53,39 +54,35 @@ func TestRetryForErrorLoop(t *testing.T) {
 	if called != 3 {
 		t.Errorf("called = %d, want %d", called, 3)
 	}
-	if aborted != 8 {
-		t.Errorf("aborted = %d, want %d", aborted, 8)
-	}
 }
 
 func TestRetryForErrorAbort(t *testing.T) {
-	w := errors.New("abort")
+	w := context.Canceled
 
 	rte := &retryTestError{
 		status:     "429 Too Many Requests",
 		statusCode: http.StatusTooManyRequests,
 	}
-	rte.RetryAfter = time.Second
+	rte.RetryAfter = time.Millisecond * 100
 
-	called, aborted := 0, 0
-	err := RetryForError(func() error {
+	called := 0
+	api := func() error {
 		called++
 		return rte
-	}, 2, func() error {
-		aborted++
-		if aborted == 2 {
-			return w
-		}
-		return nil
-	}, time.Millisecond*250, log.NewLog())
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		time.Sleep(time.Millisecond * 50)
+		cancel()
+	}()
+
+	err := RetryForError(ctx, api, 2, log.NewLog())
 
 	if err != w {
 		t.Errorf("Error(): %v, want %v", err, w)
 	}
 	if called != 1 {
 		t.Errorf("called = %d, want %d", called, 1)
-	}
-	if aborted != 2 {
-		t.Errorf("aborted = %d, want %d", aborted, 2)
 	}
 }

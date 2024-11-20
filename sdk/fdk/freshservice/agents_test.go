@@ -11,7 +11,7 @@ func TestIterAgents(t *testing.T) {
 	}
 
 	itcnt := 0
-	err := fs.IterAgents(nil, func(a *Agent) error {
+	err := fs.IterAgents(ctxbg, nil, func(a *Agent) error {
 		itcnt++
 		fs.Logger.Debugf("Iterate Agent [%d] %s %s <%s>", a.ID, a.FirstName, a.LastName, a.Email)
 		return nil
@@ -33,7 +33,7 @@ func TestIterFilterAgents(t *testing.T) {
 	}
 
 	itcnt := 0
-	err := fs.IterFilterAgents(fao, func(a *Agent) error {
+	err := fs.IterFilterAgents(ctxbg, fao, func(a *Agent) error {
 		itcnt++
 		fs.Logger.Debugf("Iterate Agent [%d] %s %s <%s>", a.ID, a.FirstName, a.LastName, a.Email)
 		return nil

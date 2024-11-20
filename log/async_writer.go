@@ -100,10 +100,10 @@ func (aw *AsyncWriter) run() {
 			}
 		case le := <-aw.evtChan:
 			safeWrite(aw.writer, le)
-		default:
-			if stop && len(aw.evtChan) == 0 && len(aw.sigChan) == 0 {
-				return
-			}
+		}
+
+		if stop && len(aw.evtChan) == 0 && len(aw.sigChan) == 0 {
+			return
 		}
 	}
 }

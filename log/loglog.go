@@ -2,6 +2,7 @@ package log
 
 import (
 	"fmt"
+	"runtime"
 	"sync"
 
 	"github.com/askasoft/pango/mag"
@@ -37,7 +38,13 @@ func NewLog() *Log {
 		levels: make(map[string]Level),
 		writer: NewStdoutWriter(),
 	}
+
+	runtime.SetFinalizer(log, finalClose)
 	return log
+}
+
+func finalClose(log *Log) {
+	log.Close()
 }
 
 // SetLevels set the logger levels

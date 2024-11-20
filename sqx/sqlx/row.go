@@ -24,6 +24,8 @@ func (r *Row) Scan(dest ...any) error {
 		return r.err
 	}
 
+	defer r.rows.Close()
+
 	// TODO(bradfitz): for now we need to defensively clone all
 	// []byte that the driver returned (not permitting
 	// *RawBytes in Rows.Scan), since we're about to close
@@ -37,7 +39,6 @@ func (r *Row) Scan(dest ...any) error {
 	// from Next will not be modified again." (for instance, if
 	// they were obtained from the network anyway) But for now we
 	// don't care.
-	defer r.rows.Close()
 	for _, dp := range dest {
 		if _, ok := dp.(*sql.RawBytes); ok {
 			return errors.New("sql: RawBytes isn't allowed on Row.Scan")
@@ -50,14 +51,16 @@ func (r *Row) Scan(dest ...any) error {
 		}
 		return ErrNoRows
 	}
-	err := r.rows.Scan(dest...)
-	if err != nil {
+
+	if err := r.rows.Scan(dest...); err != nil {
 		return err
 	}
+
 	// Make sure the query can be processed to completion with no errors.
 	if err := r.rows.Close(); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -101,6 +104,7 @@ func (r *Row) scanAny(dest any, structOnly bool) error {
 		r.err = ErrNoRows
 		return r.err
 	}
+
 	defer r.rows.Close()
 
 	v := reflect.ValueOf(dest)
@@ -140,10 +144,10 @@ func (r *Row) scanAny(dest any, structOnly bool) error {
 	}
 	values := make([]any, len(columns))
 
-	err = fieldsByTraversal(v, fields, values, true)
-	if err != nil {
+	if err = fieldsByTraversal(v, fields, values, true); err != nil {
 		return err
 	}
+
 	// scan into the struct field pointers and append to our results
 	return r.Scan(values...)
 }

@@ -55,7 +55,6 @@ func TestHTTPWriter(t *testing.T) {
 
 	lg := log.NewLog()
 	lg.SetLevel(log.LevelTrace)
-	lg.SetFormat(`json:{"time": %t{2006-01-02T15:04:05.000Z07:00}, "level": %l, "host":%x{HOST}, "version":%x{VERSON}, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
 	lg.SetProp("HOST", "localhost")
 	lg.SetProp("VERSION", "1.0")
 
@@ -67,6 +66,7 @@ func TestHTTPWriter(t *testing.T) {
 		Password:    "admin",
 		Timeout:     time.Millisecond * 300,
 	}
+	ww.SetFormat(`json:{"time": %t{2006-01-02T15:04:05.000Z07:00}, "level": %l, "host":%x{HOST}, "version":%x{VERSON}, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
 
 	ww.Filter = log.NewLevelFilter(log.LevelDebug)
 	lg.SetWriter(log.NewMultiWriter(
@@ -97,7 +97,6 @@ func TestWebhookBatchWriter(t *testing.T) {
 
 	lg := log.NewLog()
 	lg.SetLevel(log.LevelTrace)
-	lg.SetFormat(`json:{"create": {}}%n{"time": %t{2006-01-02T15:04:05.000Z07:00}, "level": %l, "host":%x{HOST}, "version":%x{VERSON}, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
 	lg.SetProp("HOST", "localhost")
 	lg.SetProp("VERSION", "1.0")
 
@@ -115,6 +114,7 @@ func TestWebhookBatchWriter(t *testing.T) {
 			FlushDelta: time.Second,
 		},
 	}
+	ww.SetFormat(`json:{"create": {}}%n{"time": %t{2006-01-02T15:04:05.000Z07:00}, "level": %l, "host":%x{HOST}, "version":%x{VERSON}, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
 
 	ww.Filter = log.NewLevelFilter(log.LevelDebug)
 	lg.SetWriter(log.NewMultiWriter(

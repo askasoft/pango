@@ -9,7 +9,7 @@ func NewAsyncWriter(w Writer, size int) *AsyncWriter {
 	aw := &AsyncWriter{
 		writer:  w,
 		evtChan: make(chan *Event, size),
-		sigChan: make(chan signal, 1),
+		sigChan: make(chan signal, 4),
 	}
 
 	aw.Start()

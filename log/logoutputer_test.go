@@ -43,8 +43,9 @@ func TestGoLogOutputNewLog(t *testing.T) {
 func TestGoLogCallerGlobal(t *testing.T) {
 	sb := &strings.Builder{}
 
-	SetFormatter(NewTextFormatter("%l %S:%L %F() - %m"))
-	SetWriter(&StreamWriter{Output: sb})
+	sw := &StreamWriter{Output: sb}
+	sw.SetFormat("%l %S:%L %F() - %m")
+	SetWriter(sw)
 
 	golog.SetFlags(0)
 	golog.SetOutput(GetOutputer("golog", LevelInfo, 3))
@@ -63,8 +64,9 @@ func TestGoLogCallerNewLog(t *testing.T) {
 	sb := &strings.Builder{}
 
 	lg := NewLog()
-	lg.SetFormat("%l %S:%L %F() - %m")
-	lg.SetWriter(&StreamWriter{Output: sb})
+	sw := &StreamWriter{Output: sb}
+	sw.SetFormat("%l %S:%L %F() - %m")
+	lg.SetWriter(sw)
 
 	golog.SetFlags(0)
 	golog.SetOutput(lg.GetOutputer("std", LevelInfo, 3))
@@ -82,8 +84,9 @@ func TestGoLogCallerNewLog(t *testing.T) {
 func TestIoWriterCallerGlobal(t *testing.T) {
 	sb := &strings.Builder{}
 
-	SetFormat("%l %S:%L %F() - %m%n")
-	SetWriter(&StreamWriter{Output: sb})
+	sw := &StreamWriter{Output: sb}
+	sw.SetFormat("%l %S:%L %F() - %m%n")
+	SetWriter(sw)
 
 	iow := GetOutputer("iow", LevelInfo)
 	file, line, ffun := testGetCaller(1)
@@ -101,8 +104,9 @@ func TestIoWriterFileCallerNewLog(t *testing.T) {
 	sb := &strings.Builder{}
 
 	lg := NewLog()
-	lg.SetFormat("%l %S:%L %F() - %m%n")
-	lg.SetWriter(&StreamWriter{Output: sb})
+	sw := &StreamWriter{Output: sb}
+	sw.SetFormat("%l %S:%L %F() - %m%n")
+	lg.SetWriter(sw)
 
 	iow := lg.GetOutputer("iow", LevelInfo)
 	file, line, ffun := testGetCaller(1)

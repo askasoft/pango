@@ -160,12 +160,12 @@ func fcString(s string) argFmtFunc {
 
 func fcProp(key string) argFmtFunc {
 	return func(le *log.Event) any {
-		return le.Logger.GetProp(key)
+		return le.Props[key]
 	}
 }
 
 func ffName(le *log.Event) any {
-	return le.Logger.GetName()
+	return le.Name
 }
 
 func ffTime(le *log.Event) any {

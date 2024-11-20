@@ -19,7 +19,7 @@ var EOL = iox.EOL
 
 const defaultTimeFormat = "2006-01-02T15:04:05.000"
 
-// Formatter log formater interface
+// Formatter log formatter interface
 type Formatter interface {
 	Write(w io.Writer, le *Event)
 }
@@ -389,7 +389,7 @@ func write(w io.Writer, le *Event, fmts []fmtfunc) {
 }
 
 func ffName(le *Event) string {
-	return le.Logger.GetName()
+	return le.Name
 }
 
 func ffLevelPrefix(le *Event) string {
@@ -470,7 +470,7 @@ func fcTimeFormat(layout string) fmtfunc {
 
 func fcNameFormat(f string) fmtfunc {
 	return func(le *Event) string {
-		return fmt.Sprintf(f, le.Logger.GetName())
+		return fmt.Sprintf(f, le.Name)
 	}
 }
 
@@ -494,11 +494,10 @@ func fcGetenv(key string) fmtfunc {
 
 func fcPropText(key string) fmtfunc {
 	return func(le *Event) string {
-		v := le.Logger.GetProp(key)
-		if v == nil {
-			return ""
+		if v, ok := le.Props[key]; ok {
+			return fmt.Sprint(v)
 		}
-		return fmt.Sprint(v)
+		return ""
 	}
 }
 
@@ -510,13 +509,12 @@ func fcPropsText(f string) fmtfunc {
 		j = ss[1]
 	}
 	return func(le *Event) string {
-		m := le.Logger.GetProps()
-		if m == nil {
+		if len(le.Props) == 0 {
 			return ""
 		}
 
-		a := make([]string, 0, len(m))
-		for k, v := range m {
+		a := make([]string, 0, len(le.Props))
+		for k, v := range le.Props {
 			if v == nil {
 				v = ""
 			}
@@ -528,13 +526,16 @@ func fcPropsText(f string) fmtfunc {
 
 func fcPropJSON(key string) fmtfunc {
 	return func(le *Event) string {
-		b, _ := json.Marshal(le.Logger.GetProp(key))
-		return str.UnsafeString(b)
+		if v, ok := le.Props[key]; ok {
+			b, _ := json.Marshal(v)
+			return str.UnsafeString(b)
+		}
+		return `null`
 	}
 }
 
 func fcPropsJSON(le *Event) string {
-	b, _ := json.Marshal(le.Logger.GetProps())
+	b, _ := json.Marshal(le.Props)
 	return str.UnsafeString(b)
 }
 
@@ -554,13 +555,10 @@ func (fs *FormatSupport) SetFormat(format string) {
 func (fs *FormatSupport) GetFormatter(le *Event, df ...Formatter) Formatter {
 	f := fs.Formatter
 	if f == nil {
-		f = le.Logger.GetFormatter()
-		if f == nil {
-			if len(df) > 0 {
-				f = df[0]
-			} else {
-				f = TextFmtDefault
-			}
+		if len(df) > 0 {
+			f = df[0]
+		} else {
+			f = TextFmtDefault
 		}
 	}
 	return f

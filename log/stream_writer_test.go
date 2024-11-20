@@ -25,10 +25,12 @@ func testConsoleCalls(log Logger, loop int) {
 // Test console info level filter
 func TestConsoleFilterInfo(t *testing.T) {
 	log := NewLog()
+
 	sw := &StreamWriter{Color: true}
 	sw.Filter = NewLevelFilter(LevelInfo)
+	sw.SetFormat("[%c] %l - %m%n")
+
 	log.SetWriter(sw)
-	log.SetFormatter(NewTextFormatter("[%c] %l - %m%n"))
 	testConsoleCalls(log, 1)
 	log.Close()
 }
@@ -38,8 +40,8 @@ func TestConsoleFilterName(t *testing.T) {
 	log := NewLog()
 	sw := &StreamWriter{Color: true}
 	sw.Filter = NewNameFilter("out")
+	sw.SetFormat("[%c] %l - %m%n")
 	log.SetWriter(sw)
-	log.SetFormatter(NewTextFormatter("[%c] %l - %m%n"))
 
 	log1 := log.GetLogger("OUT")
 	testConsoleCalls(log1, 1)
@@ -54,8 +56,8 @@ func TestConsoleFilterMulti(t *testing.T) {
 	log := NewLog()
 	sw := &StreamWriter{Color: true}
 	sw.Filter = NewMultiFilter(NewLevelFilter(LevelWarn), NewNameFilter("out"))
+	sw.SetFormat("[%c] %l - %m%n")
 	log.SetWriter(sw)
-	log.SetFormatter(NewTextFormatter("[%c] %l - %m%n"))
 
 	log1 := log.GetLogger("OUT")
 	testConsoleCalls(log1, 1)
@@ -68,8 +70,10 @@ func TestConsoleFilterMulti(t *testing.T) {
 // Test console without color
 func TestConsoleNoColor(t *testing.T) {
 	log := NewLog()
-	log.SetWriter(&StreamWriter{Color: false})
-	log.SetFormatter(NewTextFormatter("[%c] %l - %m%n"))
+
+	sw := &StreamWriter{Color: false}
+	sw.SetFormat("[%c] %l - %m%n")
+	log.SetWriter(sw)
 	testConsoleCalls(log, 1)
 	log.Close()
 }

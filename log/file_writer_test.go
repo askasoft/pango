@@ -22,9 +22,11 @@ func TestFileTextFormatSimple(t *testing.T) {
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
 
+	fw := &FileWriter{Path: path}
+	fw.SetFormat("[%p] %m%n")
+
 	lg := NewLog()
-	lg.SetFormatter(TextFmtSimple)
-	lg.SetWriter(&FileWriter{Path: path})
+	lg.SetWriter(fw)
 	lg.Info("hello")
 	lg.Close()
 
@@ -44,8 +46,9 @@ func TestFilePropGlobal(t *testing.T) {
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
 
-	SetFormat("%l - %x{key} - %m%n%T")
-	SetWriter(&FileWriter{Path: path})
+	fw := &FileWriter{Path: path}
+	fw.SetFormat("%l - %x{key} - %m%n%T")
+	SetWriter(fw)
 	SetProp("key", "val")
 	Info("hello")
 	Close()
@@ -66,9 +69,11 @@ func TestFilePropDefault(t *testing.T) {
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
 
+	fw := &FileWriter{Path: path}
+	fw.SetFormat("%l - %x{key} - %m%n%T")
+
 	lg := Default()
-	lg.SetFormat("%l - %x{key} - %m%n%T")
-	lg.SetWriter(&FileWriter{Path: path})
+	lg.SetWriter(fw)
 	lg.SetProp("key", "val")
 	lg.Info("hello")
 	lg.Close()
@@ -89,9 +94,11 @@ func TestFilePropNewLog(t *testing.T) {
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
 
+	fw := &FileWriter{Path: path}
+	fw.SetFormat("%l - %X - %m%n%T")
+
 	lg := NewLog()
-	lg.SetFormat("%l - %X - %m%n%T")
-	lg.SetWriter(&FileWriter{Path: path})
+	lg.SetWriter(fw)
 	lg.SetProp("key1", "val1")
 	lg.Info("hello")
 
@@ -119,8 +126,10 @@ func TestFileCallerGlobal(t *testing.T) {
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
 
-	SetFormat("%l %S:%L %F() - %m%n%T")
-	SetWriter(&FileWriter{Path: path})
+	fw := &FileWriter{Path: path}
+	fw.SetFormat("%l %S:%L %F() - %m%n%T")
+
+	SetWriter(fw)
 	file, line, ffun := testGetCaller(1)
 	Info("hello")
 	Close()
@@ -141,9 +150,11 @@ func TestFileCallerNewLog(t *testing.T) {
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
 
+	fw := &FileWriter{Path: path}
+	fw.SetFormat("%l %S:%L %F() - %m%n%T")
+
 	lg := NewLog()
-	lg.SetFormat("%l %S:%L %F() - %m%n%T")
-	lg.SetWriter(&FileWriter{Path: path})
+	lg.SetWriter(fw)
 	file, line, ffun := testGetCaller(1)
 	lg.Info("hello")
 	lg.Close()
@@ -164,9 +175,11 @@ func TestFileCallerNewLog2(t *testing.T) {
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
 
+	fw := &FileWriter{Path: path}
+	fw.SetFormat("%l %S:%L %F() - %m%n%T")
+
 	lg := NewLog()
-	lg.SetFormat("%l %S:%L %F() - %m%n%T")
-	lg.SetWriter(&FileWriter{Path: path})
+	lg.SetWriter(fw)
 	file, line, ffun := testGetCaller(1)
 	lg.Log(LevelInfo, "hello")
 	lg.Close()
@@ -187,9 +200,11 @@ func TestFileRotateMaxSize(t *testing.T) {
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
 
+	fw := &FileWriter{Path: path, MaxSize: 10}
+	fw.SetFormat("[%p] %m%n")
+
 	lg := NewLog()
-	lg.SetFormat("[%p] %m%n")
-	lg.SetWriter(&FileWriter{Path: path, MaxSize: 10})
+	lg.SetWriter(fw)
 	for i := 1; i < 10; i++ {
 		lg.Info("hello test ", i)
 	}
@@ -222,9 +237,11 @@ func TestFileRotateMaxSizeGzip(t *testing.T) {
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
 
+	fw := &FileWriter{Path: path, MaxSize: 10, Gzip: true}
+	fw.SetFormat("[%p] %m%n")
+
 	lg := NewLog()
-	lg.SetFormat("[%p] %m%n")
-	lg.SetWriter(&FileWriter{Path: path, MaxSize: 10, Gzip: true})
+	lg.SetWriter(fw)
 	for i := 1; i < 10; i++ {
 		lg.Info("hello test ", i)
 	}
@@ -275,9 +292,11 @@ func TestFileRotateMaxSizeDaily(t *testing.T) {
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
 
+	fw := &FileWriter{Path: path, MaxDays: 100, MaxSize: 10}
+	fw.SetFormat("[%p] %m%n")
+
 	lg := NewLog()
-	lg.SetFormat("[%p] %m%n")
-	lg.SetWriter(&FileWriter{Path: path, MaxDays: 100, MaxSize: 10})
+	lg.SetWriter(fw)
 
 	now := time.Now()
 	for i := 1; i < 10; i++ {
@@ -314,9 +333,11 @@ func TestFileRotateMaxSplit(t *testing.T) {
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
 
+	fw := &FileWriter{Path: path, MaxSplit: 3, MaxSize: 10}
+	fw.SetFormat("[%p] %m%n")
+
 	lg := NewLog()
-	lg.SetFormat("[%p] %m%n")
-	lg.SetWriter(&FileWriter{Path: path, MaxSplit: 3, MaxSize: 10})
+	lg.SetWriter(fw)
 	for i := 1; i < 10; i++ {
 		lg.Info("hello test ", i)
 	}
@@ -361,9 +382,11 @@ func TestFileRotateMaxFilesHourly(t *testing.T) {
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
 
+	fw := &FileWriter{Path: path, MaxSplit: 3, MaxSize: 10, MaxHours: 100}
+	fw.SetFormat("[%p] %m%n")
+
 	lg := NewLog()
-	lg.SetFormat("[%p] %m%n")
-	lg.SetWriter(&FileWriter{Path: path, MaxSplit: 3, MaxSize: 10, MaxHours: 100})
+	lg.SetWriter(fw)
 	now := time.Now()
 	for i := 1; i < 10; i++ {
 		lg.Info("hello test ", i)
@@ -410,8 +433,10 @@ func TestFileRotateDaily(t *testing.T) {
 	defer os.RemoveAll(testdir)
 
 	fw := &FileWriter{Path: path, MaxDays: 100}
+	fw.SetFormat("[%p] %m%n")
+
 	lg := NewLog()
-	lg.SetFormat("[%p] %m%n")
+	lg.SetWriter(fw)
 
 	now := time.Now()
 	tm := now
@@ -464,8 +489,10 @@ func TestFileRotateDailyInit(t *testing.T) {
 	os.Chtimes(path, yes, yes)
 
 	fw := &FileWriter{Path: path, MaxDays: 100}
+	fw.SetFormat("[%p] %m%n")
+
 	lg := NewLog()
-	lg.SetFormat("[%p] %m%n")
+	lg.SetWriter(fw)
 
 	now := time.Now()
 	tm := now
@@ -527,8 +554,10 @@ func TestFileRotateDailyOutdated(t *testing.T) {
 	defer os.RemoveAll(testdir)
 
 	fw := &FileWriter{Path: path, MaxDays: 3}
+	fw.SetFormat("[%p] %m%n")
+
 	lg := NewLog()
-	lg.SetFormat("[%p] %m%n")
+	lg.SetWriter(fw)
 
 	now := time.Now().Add(time.Hour * 24 * -8)
 	tm := now
@@ -593,8 +622,10 @@ func TestFileRotateHourly(t *testing.T) {
 	defer os.RemoveAll(testdir)
 
 	fw := &FileWriter{Path: path, MaxHours: 100}
+	fw.SetFormat("[%p] %m%n")
+
 	lg := NewLog()
-	lg.SetFormat("[%p] %m%n")
+	lg.SetWriter(fw)
 
 	now := time.Now()
 	tm := now
@@ -641,8 +672,10 @@ func TestFileRotateHourlyOutdated(t *testing.T) {
 	defer os.RemoveAll(testdir)
 
 	fw := &FileWriter{Path: path, MaxHours: 3}
+	fw.SetFormat("[%p] %m%n")
+
 	lg := NewLog()
-	lg.SetFormat("[%p] %m%n")
+	lg.SetWriter(fw)
 
 	now := time.Now().Add(time.Hour * -8)
 	tm := now

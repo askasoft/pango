@@ -1,8 +1,6 @@
 package log
 
 import (
-	"fmt"
-
 	"github.com/askasoft/pango/str"
 )
 
@@ -13,7 +11,6 @@ type Logger interface {
 	GetName() string
 	GetLevel() Level
 	GetTraceLevel() Level
-	GetFormatter() Formatter
 	GetCallerDepth() int
 	SetCallerDepth(d int)
 	GetProp(k string) any
@@ -41,7 +38,7 @@ type Logger interface {
 	IsTraceEnabled() bool
 	Trace(v ...any)
 	Tracef(f string, v ...any)
-	Write(le Event)
+	Write(le *Event)
 }
 
 // logger logger interface implement
@@ -53,12 +50,12 @@ type logger struct {
 }
 
 // GetLogger create a new logger with name
-func (l *logger) GetLogger(name string) Logger {
+func (lg *logger) GetLogger(name string) Logger {
 	return &logger{
-		log:   l.log,
+		log:   lg.log,
 		name:  str.IfEmpty(name, "_"),
-		depth: l.log.logger.depth,
-		props: l.props,
+		depth: lg.depth,
+		props: lg.props,
 	}
 }
 
@@ -72,240 +69,187 @@ func (l *logger) GetLogger(name string) Logger {
 //	  "github.com/askasoft/pango/log"
 //	)
 //	golog.SetOutput(log.Outputer("GO", log.LevelInfo, 3))
-func (l *logger) GetOutputer(name string, lvl Level, callerDepth ...int) Outputer {
-	return l.log.GetOutputer(name, lvl, callerDepth...)
+func (lg *logger) GetOutputer(name string, lvl Level, callerDepth ...int) Outputer {
+	return lg.log.GetOutputer(name, lvl, callerDepth...)
 }
 
 // GetName return the logger's name
-func (l *logger) GetName() string {
-	return l.name
+func (lg *logger) GetName() string {
+	return lg.name
 }
 
 // GetCallerDepth return the logger's depth
-func (l *logger) GetCallerDepth() int {
-	return l.depth
+func (lg *logger) GetCallerDepth() int {
+	return lg.depth
 }
 
 // SetCallerDepth set the logger's caller depth (!!SLOW!!), 0: disable runtime.Caller()
-func (l *logger) SetCallerDepth(d int) {
-	l.depth = d
+func (lg *logger) SetCallerDepth(d int) {
+	lg.depth = d
 }
 
 // GetLevel return the logger's level
-func (l *logger) GetLevel() Level {
-	lvl := l.log.getLoggerLevel(l.name)
+func (lg *logger) GetLevel() Level {
+	lvl := lg.log.GetLoggerLevel(lg.name)
 	if lvl == LevelNone {
-		return l.log.GetLevel()
+		return lg.log.GetLevel()
 	}
 	return lvl
 }
 
 // GetTraceLevel return the logger's trace level
-func (l *logger) GetTraceLevel() Level {
-	return l.log.GetTraceLevel()
+func (lg *logger) GetTraceLevel() Level {
+	return lg.log.GetTraceLevel()
 }
 
 // GetProp get logger property
-func (l *logger) GetProp(k string) any {
-	ps := l.props
-	if len(ps) > 0 {
-		if v, ok := ps[k]; ok {
-			return v
-		}
-	}
-	return l.log.GetProp(k)
+func (lg *logger) GetProp(k string) any {
+	return lg.props[k]
 }
 
 // SetProp set logger property
-func (l *logger) SetProp(k string, v any) {
+func (lg *logger) SetProp(k string, v any) {
 	// copy on write for async
-	om := l.props
-
-	nm := make(map[string]any)
-	for k, v := range om {
-		nm[k] = v
-	}
-	nm[k] = v
-
-	l.props = nm
+	lg.props = cloneAndSetProp(lg.props, k, v)
 }
 
 // GetProps get logger properties
-func (l *logger) GetProps() map[string]any {
-	tm := l.props
-	if len(tm) == 0 {
-		return l.log.GetProps()
-	}
-
-	// props
-	var nm map[string]any
-
-	// parent props
-	pm := l.log.logger.props
-	if len(pm) > 0 {
-		// new return props
-		nm = make(map[string]any, len(tm)+len(pm))
-		for k, v := range pm {
-			nm[k] = v
-		}
-	}
-
-	// self props
-	if nm == nil {
-		nm = make(map[string]any, len(tm))
-	}
-	for k, v := range tm {
-		nm[k] = v
-	}
-	return nm
+func (lg *logger) GetProps() map[string]any {
+	return lg.props
 }
 
 // SetProps set logger properties
-func (l *logger) SetProps(props map[string]any) {
-	l.props = props
-}
-
-// GetFormatter get logger formatter
-func (l *logger) GetFormatter() Formatter {
-	return l.log.GetFormatter()
+func (lg *logger) SetProps(props map[string]any) {
+	if props == nil {
+		props = lg.log.props
+	}
+	lg.props = props
 }
 
 // IsLevelEnabled is specified level enabled
-func (l *logger) IsLevelEnabled(lvl Level) bool {
-	return l.GetLevel() >= lvl
+func (lg *logger) IsLevelEnabled(lvl Level) bool {
+	return lg.GetLevel() >= lvl
 }
 
 // Log log a message at specified level.
-func (l *logger) Log(lvl Level, v ...any) {
-	l._log(lvl, v...)
+func (lg *logger) Log(lvl Level, v ...any) {
+	lg._log(lvl, v...)
 }
 
 // Logf format and log a message at specified level.
-func (l *logger) Logf(lvl Level, f string, v ...any) {
-	l._logf(lvl, f, v...)
+func (lg *logger) Logf(lvl Level, f string, v ...any) {
+	lg._logf(lvl, f, v...)
 }
 
 // IsFatalEnabled is FATAL level enabled
-func (l *logger) IsFatalEnabled() bool {
-	return l.IsLevelEnabled(LevelFatal)
+func (lg *logger) IsFatalEnabled() bool {
+	return lg.IsLevelEnabled(LevelFatal)
 }
 
 // Fatal log a message at fatal level.
-func (l *logger) Fatal(v ...any) {
-	l._log(LevelFatal, v...)
+func (lg *logger) Fatal(v ...any) {
+	lg._log(LevelFatal, v...)
 }
 
 // Fatalf format and log a message at fatal level.
-func (l *logger) Fatalf(f string, v ...any) {
-	l._logf(LevelFatal, f, v...)
+func (lg *logger) Fatalf(f string, v ...any) {
+	lg._logf(LevelFatal, f, v...)
 }
 
 // IsErrorEnabled is ERROR level enabled
-func (l *logger) IsErrorEnabled() bool {
-	return l.IsLevelEnabled(LevelError)
+func (lg *logger) IsErrorEnabled() bool {
+	return lg.IsLevelEnabled(LevelError)
 }
 
 // Error log a message at error level.
-func (l *logger) Error(v ...any) {
-	l._log(LevelError, v...)
+func (lg *logger) Error(v ...any) {
+	lg._log(LevelError, v...)
 }
 
 // Errorf format and log a message at error level.
-func (l *logger) Errorf(f string, v ...any) {
-	l._logf(LevelError, f, v...)
+func (lg *logger) Errorf(f string, v ...any) {
+	lg._logf(LevelError, f, v...)
 }
 
 // IsWarnEnabled is WARN level enabled
-func (l *logger) IsWarnEnabled() bool {
-	return l.IsLevelEnabled(LevelWarn)
+func (lg *logger) IsWarnEnabled() bool {
+	return lg.IsLevelEnabled(LevelWarn)
 }
 
 // Warn log a message at warning level.
-func (l *logger) Warn(v ...any) {
-	l._log(LevelWarn, v...)
+func (lg *logger) Warn(v ...any) {
+	lg._log(LevelWarn, v...)
 }
 
 // Warnf format and log a message at warning level.
-func (l *logger) Warnf(f string, v ...any) {
-	l._logf(LevelWarn, f, v...)
+func (lg *logger) Warnf(f string, v ...any) {
+	lg._logf(LevelWarn, f, v...)
 }
 
 // IsInfoEnabled is INFO level enabled
-func (l *logger) IsInfoEnabled() bool {
-	return l.IsLevelEnabled(LevelInfo)
+func (lg *logger) IsInfoEnabled() bool {
+	return lg.IsLevelEnabled(LevelInfo)
 }
 
 // Info log a message at info level.
-func (l *logger) Info(v ...any) {
-	l._log(LevelInfo, v...)
+func (lg *logger) Info(v ...any) {
+	lg._log(LevelInfo, v...)
 }
 
 // Infof format and log a message at info level.
-func (l *logger) Infof(f string, v ...any) {
-	l._logf(LevelInfo, f, v...)
+func (lg *logger) Infof(f string, v ...any) {
+	lg._logf(LevelInfo, f, v...)
 }
 
 // IsDebugEnabled is DEBUG level enabled
-func (l *logger) IsDebugEnabled() bool {
-	return l.IsLevelEnabled(LevelDebug)
+func (lg *logger) IsDebugEnabled() bool {
+	return lg.IsLevelEnabled(LevelDebug)
 }
 
 // Debug log a message at debug level.
-func (l *logger) Debug(v ...any) {
-	l._log(LevelDebug, v...)
+func (lg *logger) Debug(v ...any) {
+	lg._log(LevelDebug, v...)
 }
 
 // Debugf format log a message at debug level.
-func (l *logger) Debugf(f string, v ...any) {
-	l._logf(LevelDebug, f, v...)
+func (lg *logger) Debugf(f string, v ...any) {
+	lg._logf(LevelDebug, f, v...)
 }
 
 // IsTraceEnabled is TRACE level enabled
-func (l *logger) IsTraceEnabled() bool {
-	return l.IsLevelEnabled(LevelTrace)
+func (lg *logger) IsTraceEnabled() bool {
+	return lg.IsLevelEnabled(LevelTrace)
 }
 
 // Trace log a message at trace level.
-func (l *logger) Trace(v ...any) {
-	l._log(LevelTrace, v...)
+func (lg *logger) Trace(v ...any) {
+	lg._log(LevelTrace, v...)
 }
 
 // Tracef format and log a message at trace level.
-func (l *logger) Tracef(f string, v ...any) {
-	l._logf(LevelTrace, f, v...)
+func (lg *logger) Tracef(f string, v ...any) {
+	lg._logf(LevelTrace, f, v...)
 }
 
 // Write write a log event
-func (l *logger) Write(le Event) {
-	if l.IsLevelEnabled(le.Level) {
-		le.Logger = l
-		l.log.write(&le)
+func (lg *logger) Write(le *Event) {
+	if lg.IsLevelEnabled(le.Level) {
+		lg.log._write(le)
 	}
 }
 
-func (l *logger) _log(lvl Level, v ...any) {
-	if l.IsLevelEnabled(lvl) {
-		s := l._printv(v...)
-		le := NewEvent(l, lvl, s)
-		l.log.write(le)
+func (lg *logger) _log(lvl Level, v ...any) {
+	if lg.IsLevelEnabled(lvl) {
+		s := _printv(v...)
+		le := NewEvent(lg, lvl, s)
+		lg.log._write(le)
 	}
 }
 
-func (l *logger) _logf(lvl Level, f string, v ...any) {
-	if l.IsLevelEnabled(lvl) {
-		s := l._printf(f, v...)
-		le := NewEvent(l, lvl, s)
-		l.log.write(le)
+func (lg *logger) _logf(lvl Level, f string, v ...any) {
+	if lg.IsLevelEnabled(lvl) {
+		s := _printf(f, v...)
+		le := NewEvent(lg, lvl, s)
+		lg.log._write(le)
 	}
-}
-
-func (l *logger) _printv(v ...any) string {
-	if len(v) == 0 {
-		return ""
-	}
-	return fmt.Sprint(v...)
-}
-
-func (l *logger) _printf(f string, v ...any) string {
-	return fmt.Sprintf(f, v...)
 }

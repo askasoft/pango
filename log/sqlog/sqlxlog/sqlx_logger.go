@@ -33,11 +33,12 @@ func NewSqlxLogger(logger log.Logger, slowSQL time.Duration) *SqlxLogger {
 
 func (sl *SqlxLogger) printf(lvl log.Level, msg string, data ...any) {
 	if sl.Logger.IsLevelEnabled(lvl) {
-		le := log.Event{
-			Logger: sl.Logger,
-			Level:  lvl,
-			Msg:    fmt.Sprintf(msg, data...),
-			Time:   time.Now(),
+		le := &log.Event{
+			Name:  sl.Logger.GetName(),
+			Props: sl.Logger.GetProps(),
+			Level: lvl,
+			Msg:   fmt.Sprintf(msg, data...),
+			Time:  time.Now(),
 		}
 		le.CallerStop("/pango/sqx/sqlx/", sl.Logger.GetTraceLevel() >= lvl)
 

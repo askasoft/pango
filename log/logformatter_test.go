@@ -149,10 +149,13 @@ func TestJSONFormatDefault(t *testing.T) {
 
 func TestJSONFormatProp(t *testing.T) {
 	jf := NewJSONFormatter(`{"a":%x{a}, "n":%x{n}, "-":%x{-}}`)
+
 	log := NewLog()
+	log.SetProp("n", 11)
+
 	lg := log.GetLogger("")
 	lg.SetProp("a", "av")
-	log.SetProp("n", 11)
+
 	le := NewEvent(lg, LevelInfo, "prop")
 	le.Time = time.Time{}
 
@@ -161,13 +164,16 @@ func TestJSONFormatProp(t *testing.T) {
 
 func TestJSONFormatProps(t *testing.T) {
 	jf := NewJSONFormatter(`{"m":%X}`)
+
 	log := NewLog()
+	log.SetProp("n", 11)
+	log.SetProp("x", nil)
+
 	lg := log.GetLogger("")
 	lg.SetProp("a", "av")
 	lg.SetProp("b", "bv")
 	lg.SetProp("c", "cv")
-	log.SetProp("n", 11)
-	log.SetProp("x", nil)
+
 	le := NewEvent(lg, LevelInfo, "props")
 	le.Time = time.Time{}
 

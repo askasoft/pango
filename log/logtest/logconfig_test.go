@@ -68,10 +68,6 @@ func assertLogConfig(t *testing.T, lg *log.Log) {
 	lghttp := lg.GetLogger("http")
 	assertLogEqual(t, `lghttp.GetLevel()`, log.LevelTrace, lghttp.GetLevel())
 
-	if _, ok := lg.GetFormatter().(*log.TextFormatter); !ok {
-		t.Fatalf("Not TextFormatter")
-	}
-
 	writer := testGetLogWriter(lg)
 	aw, ok := writer.(*log.AsyncWriter)
 	if !ok {

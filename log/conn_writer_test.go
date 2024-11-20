@@ -76,8 +76,8 @@ func TestConnWriter(t *testing.T) {
 	lg := NewLog()
 
 	cw := &ConnWriter{Addr: "localhost:9999"}
+	cw.SetFormat("%m%n")
 	lg.SetWriter(cw)
-	lg.SetFormat("%m%n")
 
 	ss := []string{
 		"Hello Trace",

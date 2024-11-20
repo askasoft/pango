@@ -34,9 +34,11 @@ func TestAsyncWriteConsole(t *testing.T) {
 func TestAsyncWriter(t *testing.T) {
 	sb := &strings.Builder{}
 
+	sw := &StreamWriter{Output: sb}
+	sw.SetFormat("[%p] %m%n")
+
 	lg := NewLog()
-	lg.SetFormat("[%p] %m%n")
-	lg.SetWriter(NewAsyncWriter(&StreamWriter{Output: sb}, 10))
+	lg.SetWriter(NewAsyncWriter(sw, 10))
 
 	wg := sync.WaitGroup{}
 	for i := 1; i < 10; i++ {

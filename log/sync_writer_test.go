@@ -14,8 +14,9 @@ func TestSyncWriter(t *testing.T) {
 	sb := &strings.Builder{}
 
 	log := NewLog()
-	log.SetFormatter(TextFmtSimple)
-	log.SetWriter(NewSyncWriter(&StreamWriter{Output: sb}))
+	sw := &StreamWriter{Output: sb}
+	sw.Formatter = TextFmtSimple
+	log.SetWriter(NewSyncWriter(sw))
 
 	// test concurrent write
 	wg := sync.WaitGroup{}

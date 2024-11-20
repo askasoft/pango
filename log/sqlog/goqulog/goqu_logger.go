@@ -29,11 +29,12 @@ func (gl *GoquLogger) Printf(format string, v ...any) {
 	lvl := gl.Level
 
 	if gl.Logger.IsLevelEnabled(lvl) {
-		le := log.Event{
-			Logger: gl.Logger,
-			Level:  lvl,
-			Msg:    fmt.Sprintf(format, v...),
-			Time:   time.Now(),
+		le := &log.Event{
+			Name:  gl.Logger.GetName(),
+			Props: gl.Logger.GetProps(),
+			Level: lvl,
+			Msg:   fmt.Sprintf(format, v...),
+			Time:  time.Now(),
 		}
 		le.CallerStop("/goqu/", gl.Logger.GetTraceLevel() >= lvl)
 

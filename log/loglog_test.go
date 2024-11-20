@@ -115,7 +115,6 @@ func TestAsyncToAsync(t *testing.T) {
 	aw1 := NewAsyncWriter(tw1, 1000)
 
 	log := NewLog()
-	log.SetFormatter(TextFmtSimple)
 	log.SetWriter(aw1)
 
 	fmt.Println("A2A", time.Now(), "START")
@@ -152,7 +151,6 @@ func TestAsyncToSync(t *testing.T) {
 	aw1 := NewAsyncWriter(tw1, 1000)
 
 	log := NewLog()
-	log.SetFormatter(TextFmtSimple)
 	log.SetWriter(aw1)
 
 	fmt.Println("A2S", time.Now(), "START")
@@ -186,7 +184,6 @@ func TestSyncToSync(t *testing.T) {
 	tw1 := newTestConcurrentDetectWriter()
 
 	log := NewLog()
-	log.SetFormatter(TextFmtSimple)
 	log.SetWriter(NewSyncWriter(tw1))
 
 	fmt.Println("S2S", time.Now(), "START")
@@ -218,7 +215,6 @@ func TestSyncToAsync(t *testing.T) {
 	tw1 := newTestConcurrentDetectWriter()
 
 	log := NewLog()
-	log.SetFormatter(TextFmtSimple)
 	log.SetWriter(NewSyncWriter(tw1))
 
 	fmt.Println("S2A", time.Now(), "START")

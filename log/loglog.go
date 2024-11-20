@@ -1,42 +1,42 @@
 package log
 
 import (
+	"fmt"
 	"sync"
 
+	"github.com/askasoft/pango/mag"
 	"github.com/askasoft/pango/str"
 )
 
 // Log is default logger in application.
 // it can contain several writers and log message into all writers.
 type Log struct {
-	logger *logger
-	level  Level
-	trace  Level
+	name  string
+	depth int
+	props map[string]any
+
+	level Level
+	trace Level
 
 	writer Writer
 	levels map[string]Level
-	logfmt Formatter
 
 	mutex sync.Mutex
 }
 
+var emptyProps = make(map[string]any)
+
 // NewLog returns a new Log.
 func NewLog() *Log {
-	return newLog(5)
-}
-
-func newLog(depth int) *Log {
 	log := &Log{
-		logger: &logger{
-			name:  "_",
-			depth: depth,
-		},
+		name:   "_",
+		depth:  5,
+		props:  emptyProps,
 		level:  LevelTrace,
 		trace:  LevelError,
 		levels: make(map[string]Level),
 		writer: NewStdoutWriter(),
 	}
-	log.logger.log = log
 	return log
 }
 
@@ -45,8 +45,8 @@ func (log *Log) SetLevels(lvls map[string]Level) {
 	log.levels = lvls
 }
 
-// getLoggerLevel get the named logger level
-func (log *Log) getLoggerLevel(name string) Level {
+// GetLoggerLevel get the named logger level
+func (log *Log) GetLoggerLevel(name string) Level {
 	level := log.levels[name]
 	if level == LevelNone {
 		level = log.GetLevel()
@@ -59,7 +59,8 @@ func (log *Log) GetLogger(name string) Logger {
 	return &logger{
 		log:   log,
 		name:  str.IfEmpty(name, "_"),
-		depth: log.logger.depth,
+		depth: log.depth,
+		props: log.props,
 	}
 }
 
@@ -70,6 +71,9 @@ func (log *Log) GetWriter() Writer {
 
 // SetWriter set the log writer
 func (log *Log) SetWriter(lw Writer) {
+	log.mutex.Lock()
+	defer log.mutex.Unlock()
+
 	log.writer = lw
 }
 
@@ -105,10 +109,6 @@ func (log *Log) Close() {
 	safeClose(log.writer)
 }
 
-func (log *Log) write(le *Event) {
-	safeWrite(log.writer, le)
-}
-
 // Outputer return a io.Writer for go log.SetOutput
 // callerDepth: default is 1 (means +1)
 // if the outputer is used by go std log, set callerDepth to 2
@@ -135,17 +135,17 @@ func (log *Log) GetOutputer(name string, lvl Level, callerDepth ...int) Outputer
 
 // GetName return the logger's name
 func (log *Log) GetName() string {
-	return log.logger.name
+	return log.name
 }
 
 // GetCallerDepth return the logger's depth
 func (log *Log) GetCallerDepth() int {
-	return log.logger.depth
+	return log.depth
 }
 
 // SetCallerDepth set the logger's caller depth (!!SLOW!!), 0: disable runtime.Caller()
 func (log *Log) SetCallerDepth(d int) {
-	log.logger.depth = d
+	log.depth = d
 }
 
 // GetLevel return the logger's level
@@ -170,66 +170,41 @@ func (log *Log) SetTraceLevel(lvl Level) {
 
 // GetProp get logger property
 func (log *Log) GetProp(k string) any {
-	ps := log.logger.props
-	if ps == nil {
-		return nil
-	}
-	return ps[k]
+	return log.props
 }
 
 // SetProp set logger property
 func (log *Log) SetProp(k string, v any) {
-	log.logger.SetProp(k, v)
+	// copy on write for async
+	log.props = cloneAndSetProp(log.props, k, v)
 }
 
 // GetProps get logger properties
 func (log *Log) GetProps() map[string]any {
-	tm := log.logger.props
-	if tm == nil {
-		return nil
-	}
-
-	// new return props
-	nm := make(map[string]any, len(tm))
-	for k, v := range tm {
-		nm[k] = v
-	}
-	return nm
+	return log.props
 }
 
 // SetProps set logger properties
 func (log *Log) SetProps(props map[string]any) {
-	log.logger.SetProps(props)
-}
-
-// GetFormatter get logger formatter
-func (log *Log) GetFormatter() Formatter {
-	return log.logfmt
-}
-
-// SetFormatter set logger formatter
-func (log *Log) SetFormatter(lf Formatter) {
-	log.logfmt = lf
-}
-
-// SetFormat set logger format
-func (log *Log) SetFormat(format string) {
-	log.logfmt = NewLogFormatter(format)
+	if props == nil {
+		props = emptyProps
+	}
+	log.props = props
 }
 
 // IsLevelEnabled is specified level enabled
 func (log *Log) IsLevelEnabled(lvl Level) bool {
-	return log.level > lvl
+	return log.level >= lvl
 }
 
 // Log log a message at specified level.
 func (log *Log) Log(lvl Level, v ...any) {
-	log.logger._log(lvl, v...)
+	log._log(lvl, v...)
 }
 
 // Logf format and log a message at specified level.
 func (log *Log) Logf(lvl Level, f string, v ...any) {
-	log.logger._logf(lvl, f, v...)
+	log._logf(lvl, f, v...)
 }
 
 // IsFatalEnabled is FATAL level enabled
@@ -239,12 +214,12 @@ func (log *Log) IsFatalEnabled() bool {
 
 // Fatal log a message at fatal level.
 func (log *Log) Fatal(v ...any) {
-	log.logger._log(LevelFatal, v...)
+	log._log(LevelFatal, v...)
 }
 
 // Fatalf format and log a message at fatal level.
 func (log *Log) Fatalf(f string, v ...any) {
-	log.logger._logf(LevelFatal, f, v...)
+	log._logf(LevelFatal, f, v...)
 }
 
 // IsErrorEnabled is ERROR level enabled
@@ -254,12 +229,12 @@ func (log *Log) IsErrorEnabled() bool {
 
 // Error log a message at error level.
 func (log *Log) Error(v ...any) {
-	log.logger._log(LevelError, v...)
+	log._log(LevelError, v...)
 }
 
 // Errorf format and log a message at error level.
 func (log *Log) Errorf(f string, v ...any) {
-	log.logger._logf(LevelError, f, v...)
+	log._logf(LevelError, f, v...)
 }
 
 // IsWarnEnabled is WARN level enabled
@@ -269,12 +244,12 @@ func (log *Log) IsWarnEnabled() bool {
 
 // Warn log a message at warning level.
 func (log *Log) Warn(v ...any) {
-	log.logger._log(LevelWarn, v...)
+	log._log(LevelWarn, v...)
 }
 
 // Warnf format and log a message at warning level.
 func (log *Log) Warnf(f string, v ...any) {
-	log.logger._logf(LevelWarn, f, v...)
+	log._logf(LevelWarn, f, v...)
 }
 
 // IsInfoEnabled is INFO level enabled
@@ -284,12 +259,12 @@ func (log *Log) IsInfoEnabled() bool {
 
 // Info log a message at info level.
 func (log *Log) Info(v ...any) {
-	log.logger._log(LevelInfo, v...)
+	log._log(LevelInfo, v...)
 }
 
 // Infof format and log a message at info level.
 func (log *Log) Infof(f string, v ...any) {
-	log.logger._logf(LevelInfo, f, v...)
+	log._logf(LevelInfo, f, v...)
 }
 
 // IsDebugEnabled is DEBUG level enabled
@@ -299,12 +274,12 @@ func (log *Log) IsDebugEnabled() bool {
 
 // Debug log a message at debug level.
 func (log *Log) Debug(v ...any) {
-	log.logger._log(LevelDebug, v...)
+	log._log(LevelDebug, v...)
 }
 
 // Debugf format log a message at debug level.
 func (log *Log) Debugf(f string, v ...any) {
-	log.logger._logf(LevelDebug, f, v...)
+	log._logf(LevelDebug, f, v...)
 }
 
 // IsTraceEnabled is TRACE level enabled
@@ -314,15 +289,57 @@ func (log *Log) IsTraceEnabled() bool {
 
 // Trace log a message at trace level.
 func (log *Log) Trace(v ...any) {
-	log.logger._log(LevelTrace, v...)
+	log._log(LevelTrace, v...)
 }
 
 // Tracef format and log a message at trace level.
 func (log *Log) Tracef(f string, v ...any) {
-	log.logger._logf(LevelTrace, f, v...)
+	log._logf(LevelTrace, f, v...)
 }
 
 // Write write a log event
-func (log *Log) Write(le Event) {
-	log.logger.Write(le)
+func (log *Log) Write(le *Event) {
+	if log.IsLevelEnabled(le.Level) {
+		log._write(le)
+	}
+}
+
+func (log *Log) _log(lvl Level, v ...any) {
+	if log.IsLevelEnabled(lvl) {
+		s := _printv(v...)
+		le := NewEvent(log, lvl, s)
+		log._write(le)
+	}
+}
+
+func (log *Log) _logf(lvl Level, f string, v ...any) {
+	if log.IsLevelEnabled(lvl) {
+		s := _printf(f, v...)
+		le := NewEvent(log, lvl, s)
+		log._write(le)
+	}
+}
+
+func (log *Log) _write(le *Event) {
+	safeWrite(log.writer, le)
+}
+
+func _printv(v ...any) string {
+	if len(v) == 0 {
+		return ""
+	}
+	return fmt.Sprint(v...)
+}
+
+func _printf(f string, v ...any) string {
+	return fmt.Sprintf(f, v...)
+}
+
+func cloneAndSetProp(om map[string]any, k string, v any) map[string]any {
+	// copy on write for async
+	nm := make(map[string]any, len(om)+1)
+	mag.Copy(nm, om)
+	nm[k] = v
+
+	return nm
 }

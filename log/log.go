@@ -57,21 +57,6 @@ func GetOutputer(name string, lvl Level, callerDepth ...int) Outputer {
 	return _log.GetOutputer(name, lvl, callerDepth...)
 }
 
-// GetFormatter get the formatter
-func GetFormatter() Formatter {
-	return _log.GetFormatter()
-}
-
-// SetFormatter set the formatter.
-func SetFormatter(lf Formatter) {
-	_log.SetFormatter(lf)
-}
-
-// SetFormat set logger format
-func SetFormat(format string) {
-	_log.SetFormat(format)
-}
-
 // GetWriter get the writer
 func GetWriter() Writer {
 	return _log.GetWriter()
@@ -134,90 +119,90 @@ func Close() {
 
 // IsFatalEnabled is FATAL level enabled
 func IsFatalEnabled() bool {
-	return _log.logger.IsFatalEnabled()
+	return _log.IsFatalEnabled()
 }
 
 // Fatal log a message at fatal level.
 func Fatal(v ...any) {
-	_log.logger._log(LevelFatal, v...)
+	_log._log(LevelFatal, v...)
 }
 
 // Fatalf format and log a message at fatal level.
 func Fatalf(f string, v ...any) {
-	_log.logger._logf(LevelFatal, f, v...)
+	_log._logf(LevelFatal, f, v...)
 }
 
 // IsErrorEnabled is ERROR level enabled
 func IsErrorEnabled() bool {
-	return _log.logger.IsErrorEnabled()
+	return _log.IsErrorEnabled()
 }
 
 // Error log a message at error level.
 func Error(v ...any) {
-	_log.logger._log(LevelError, v...)
+	_log._log(LevelError, v...)
 }
 
 // Errorf format and log a message at error level.
 func Errorf(f string, v ...any) {
-	_log.logger._logf(LevelError, f, v...)
+	_log._logf(LevelError, f, v...)
 }
 
 // IsWarnEnabled is WARN level enabled
 func IsWarnEnabled() bool {
-	return _log.logger.IsWarnEnabled()
+	return _log.IsWarnEnabled()
 }
 
 // Warn log a message at warning level.
 func Warn(v ...any) {
-	_log.logger._log(LevelWarn, v...)
+	_log._log(LevelWarn, v...)
 }
 
 // Warnf format and log a message at warning level.
 func Warnf(f string, v ...any) {
-	_log.logger._logf(LevelWarn, f, v...)
+	_log._logf(LevelWarn, f, v...)
 }
 
 // IsInfoEnabled is INFO level enabled
 func IsInfoEnabled() bool {
-	return _log.logger.IsInfoEnabled()
+	return _log.IsInfoEnabled()
 }
 
 // Info log a message at info level.
 func Info(v ...any) {
-	_log.logger._log(LevelInfo, v...)
+	_log._log(LevelInfo, v...)
 }
 
 // Infof format and log a message at info level.
 func Infof(f string, v ...any) {
-	_log.logger._logf(LevelInfo, f, v...)
+	_log._logf(LevelInfo, f, v...)
 }
 
 // IsDebugEnabled is DEBUG level enabled
 func IsDebugEnabled() bool {
-	return _log.logger.IsDebugEnabled()
+	return _log.IsDebugEnabled()
 }
 
 // Debug log a message at debug level.
 func Debug(v ...any) {
-	_log.logger._log(LevelDebug, v...)
+	_log._log(LevelDebug, v...)
 }
 
 // Debugf format log a message at debug level.
 func Debugf(f string, v ...any) {
-	_log.logger._logf(LevelDebug, f, v...)
+	_log._logf(LevelDebug, f, v...)
 }
 
 // IsTraceEnabled is TRACE level enabled
 func IsTraceEnabled() bool {
-	return _log.logger.IsTraceEnabled()
+	return _log.IsTraceEnabled()
 }
 
 // Trace log a message at trace level.
 func Trace(v ...any) {
-	_log.logger._log(LevelTrace, v...)
+	_log._log(LevelTrace, v...)
 }
 
 // Tracef format and log a message at trace level.
 func Tracef(f string, v ...any) {
-	_log.logger._logf(LevelTrace, f, v...)
+	_log._logf(LevelTrace, f, v...)
 }

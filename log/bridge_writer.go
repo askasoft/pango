@@ -5,7 +5,7 @@ type BridgeWriter struct {
 }
 
 func (bw *BridgeWriter) Write(le *Event) {
-	bw.Logger.Write(*le)
+	bw.Logger.Write(le)
 }
 
 func (bw *BridgeWriter) Flush() {

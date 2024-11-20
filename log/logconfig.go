@@ -40,9 +40,6 @@ func (log *Log) configJSON(filename string) error {
 	if async, err = log.configGetIntValue(c, "async"); err != nil {
 		return err
 	}
-	if err := log.configLogFormat(c); err != nil {
-		return err
-	}
 
 	if lvl, ok := c["level"]; ok {
 		switch lvls := lvl.(type) {
@@ -79,9 +76,6 @@ func (log *Log) configINI(filename string) (err error) {
 
 	var async int
 	if async, err = log.configGetIntValue(c, "async"); err != nil {
-		return err
-	}
-	if err = log.configLogFormat(c); err != nil {
 		return err
 	}
 
@@ -135,17 +129,6 @@ func (log *Log) configGetIntValue(m map[string]any, k string) (int, error) {
 		}
 	}
 	return 0, nil
-}
-
-func (log *Log) configLogFormat(m map[string]any) error {
-	if v, ok := m["format"]; ok {
-		if s, ok := v.(string); ok {
-			log.SetFormatter(NewLogFormatter(s))
-		} else {
-			return fmt.Errorf("Invalid format value: %v", v)
-		}
-	}
-	return nil
 }
 
 func (log *Log) configLogLevels(lls map[string]any) error {

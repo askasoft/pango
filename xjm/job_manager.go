@@ -1,7 +1,17 @@
 package xjm
 
 import (
+	"errors"
 	"time"
+)
+
+var (
+	ErrJobAborted  = errors.New("job aborted")  // indicates this job status is aborted
+	ErrJobCanceled = errors.New("job canceled") // indicates this job status is canceled
+	ErrJobComplete = errors.New("job complete") // indicates this job is complete, should update job status to Finished
+	ErrJobCheckout = errors.New("job checkout failed")
+	ErrJobPin      = errors.New("job pin failed")
+	ErrJobMissing  = errors.New("job missing")
 )
 
 type JobManager interface {
@@ -42,14 +52,17 @@ type JobManager interface {
 	// AbortJob abort the job
 	AbortJob(jid int64, reason string) error
 
-	// CompleteJob update job status to completed
-	CompleteJob(jid int64) error
+	// CancelJob cancel the job
+	CancelJob(jid int64, reason string) error
+
+	// FinishJob update job status to finished
+	FinishJob(jid int64) error
 
 	// CheckoutJob change job status from pending to running
 	CheckoutJob(jid, rid int64) error
 
-	// PingJob update the job updated_at to now
-	PingJob(jid, rid int64) error
+	// PinJob update the running job updated_at to now
+	PinJob(jid, rid int64) error
 
 	// SetJobState update the running job state
 	SetJobState(jid, rid int64, state string) error

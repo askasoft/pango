@@ -83,12 +83,16 @@ func (jr *JobRunner) Abort(reason string) error {
 	return jr.jmr.AbortJob(jr.jid, reason)
 }
 
-func (jr *JobRunner) Complete() error {
-	return jr.jmr.CompleteJob(jr.jid)
+func (jr *JobRunner) Cancel(reason string) error {
+	return jr.jmr.CancelJob(jr.jid, reason)
 }
 
-func (jr *JobRunner) Ping() error {
-	return jr.jmr.PingJob(jr.jid, jr.rid)
+func (jr *JobRunner) Finish() error {
+	return jr.jmr.FinishJob(jr.jid)
+}
+
+func (jr *JobRunner) Pin() error {
+	return jr.jmr.PinJob(jr.jid, jr.rid)
 }
 
 func (jr *JobRunner) Running(ctx context.Context, interval time.Duration) error {
@@ -100,7 +104,7 @@ func (jr *JobRunner) Running(ctx context.Context, interval time.Duration) error 
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-timer.C:
-			if err := jr.Ping(); err != nil {
+			if err := jr.Pin(); err != nil {
 				return err
 			}
 			timer.Reset(interval)

@@ -2,24 +2,27 @@ package xjm
 
 import (
 	"time"
+
+	"github.com/askasoft/pango/asg"
 )
 
 const (
-	JobStatusAborted   = "A"
-	JobStatusCompleted = "C"
-	JobStatusPending   = "P"
-	JobStatusRunning   = "R"
+	JobStatusAborted  = "A"
+	JobStatusCanceled = "C"
+	JobStatusFinished = "F"
+	JobStatusPending  = "P"
+	JobStatusRunning  = "R"
 )
 
 var (
-	JobPendingRunning   = []string{JobStatusPending, JobStatusRunning}
-	JobAbortedCompleted = []string{JobStatusAborted, JobStatusCompleted}
+	JobDoneStatus   = []string{JobStatusAborted, JobStatusCanceled, JobStatusFinished}
+	JobUndoneStatus = []string{JobStatusPending, JobStatusRunning}
 )
 
 type Job struct {
 	ID        int64     `gorm:"not null;primaryKey;autoIncrement" json:"id,omitempty"`
 	RID       int64     `gorm:"column:rid;not null" json:"rid,omitempty"`
-	Name      string    `gorm:"size:250;not null;index" json:"name,omitempty"`
+	Name      string    `gorm:"size:250;not null;index:idx_jobs_name" json:"name,omitempty"`
 	Status    string    `gorm:"size:1;not null" json:"status,omitempty"`
 	File      string    `gorm:"not null" json:"file,omitempty"`
 	Param     string    `gorm:"not null" json:"param,omitempty"`
@@ -34,8 +37,12 @@ func (j *Job) IsAborted() bool {
 	return j.Status == JobStatusAborted
 }
 
-func (j *Job) IsCompleted() bool {
-	return j.Status == JobStatusCompleted
+func (j *Job) IsCanceled() bool {
+	return j.Status == JobStatusCanceled
+}
+
+func (j *Job) IsFinished() bool {
+	return j.Status == JobStatusFinished
 }
 
 func (j *Job) IsPending() bool {
@@ -44,6 +51,14 @@ func (j *Job) IsPending() bool {
 
 func (j *Job) IsRunning() bool {
 	return j.Status == JobStatusRunning
+}
+
+func (j *Job) IsDone() bool {
+	return asg.Contains(JobDoneStatus, j.Status)
+}
+
+func (j *Job) IsUndone() bool {
+	return asg.Contains(JobUndoneStatus, j.Status)
 }
 
 func (j *Job) String() string {

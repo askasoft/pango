@@ -195,14 +195,22 @@ func (sjm *sjm) AppendJob(name, file, param string) (int64, error) {
 }
 
 func (sjm *sjm) AbortJob(jid int64, reason string) error {
+	return sjm.abortCancelJob(jid, xjm.JobStatusAborted, reason)
+}
+
+func (sjm *sjm) CancelJob(jid int64, reason string) error {
+	return sjm.abortCancelJob(jid, xjm.JobStatusCanceled, reason)
+}
+
+func (sjm *sjm) abortCancelJob(jid int64, status, reason string) error {
 	sqb := sjm.db.Builder()
 
 	sqb.Update(sjm.jt)
-	sqb.Setc("status", xjm.JobStatusAborted)
+	sqb.Setc("status", status)
 	sqb.Setc("error", reason)
 	sqb.Setc("updated_at", time.Now())
 	sqb.Where("id = ?", jid)
-	sqb.In("status", xjm.JobPendingRunning)
+	sqb.In("status", xjm.JobUndoneStatus)
 
 	sql, args := sqb.Build()
 
@@ -221,11 +229,11 @@ func (sjm *sjm) AbortJob(jid int64, reason string) error {
 	return nil
 }
 
-func (sjm *sjm) CompleteJob(jid int64) error {
+func (sjm *sjm) FinishJob(jid int64) error {
 	sqb := sjm.db.Builder()
 
 	sqb.Update(sjm.jt)
-	sqb.Setc("status", xjm.JobStatusCompleted)
+	sqb.Setc("status", xjm.JobStatusFinished)
 	sqb.Setc("error", "")
 	sqb.Setc("updated_at", time.Now())
 	sqb.Where("id = ?", jid)
@@ -275,7 +283,7 @@ func (sjm *sjm) CheckoutJob(jid, rid int64) error {
 	return nil
 }
 
-func (sjm *sjm) PingJob(jid, rid int64) error {
+func (sjm *sjm) PinJob(jid, rid int64) error {
 	sqb := sjm.db.Builder()
 
 	sqb.Update(sjm.jt)
@@ -296,7 +304,7 @@ func (sjm *sjm) PingJob(jid, rid int64) error {
 		return err
 	}
 	if c != 1 {
-		return xjm.ErrJobAborted
+		return xjm.ErrJobPin
 	}
 	return nil
 }
@@ -437,7 +445,7 @@ func (sjm *sjm) CleanOutdatedJobs(before time.Time) (jobs int64, logs int64, err
 	sqb := sjm.db.Builder()
 	sqb.Select("id").From(sjm.jt)
 	sqb.Where("updated_at < ?", before)
-	sqb.In("status", xjm.JobAbortedCompleted)
+	sqb.In("status", xjm.JobDoneStatus)
 
 	sqa := sjm.db.Builder()
 	sqa.Delete(sjm.lt)

@@ -101,7 +101,7 @@ func (gjc *gjc) IterJobChains(it func(*xjm.JobChain) error, name string, start, 
 }
 
 func (gjc *gjc) CreateJobChain(name, states string) (int64, error) {
-	jc := &xjm.JobChain{Name: name, States: states, Status: xjm.JobChainPending}
+	jc := &xjm.JobChain{Name: name, States: states, Status: xjm.JobStatusPending}
 	r := gjc.db.Table(gjc.tb).Create(jc)
 	return jc.ID, r.Error
 }
@@ -144,7 +144,7 @@ func (gjc *gjc) DeleteJobChains(cids ...int64) (cnt int64, err error) {
 }
 
 func (gjc *gjc) CleanOutdatedJobChains(before time.Time) (cnt int64, err error) {
-	jss := xjm.JobChainAbortedCompleted
+	jss := xjm.JobDoneStatus
 
 	r := gjc.db.Table(gjc.tb).Where("status IN ? AND updated_at < ?", jss, before).Delete(&xjm.JobChain{})
 	cnt, err = r.RowsAffected, r.Error

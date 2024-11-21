@@ -188,7 +188,7 @@ func (sjc *sjc) CleanOutdatedJobChains(before time.Time) (cnt int64, err error) 
 	sqb := sjc.db.Builder()
 	sqb.Delete(sjc.tb)
 	sqb.Where("updated_at < ?", before)
-	sqb.In("status", xjm.JobChainAbortedCompleted)
+	sqb.In("status", xjm.JobDoneStatus)
 
 	sql, args := sqb.Build()
 

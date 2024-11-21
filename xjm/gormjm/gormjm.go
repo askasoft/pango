@@ -152,8 +152,16 @@ func (gjm *gjm) AppendJob(name, file, param string) (int64, error) {
 }
 
 func (gjm *gjm) AbortJob(jid int64, reason string) error {
-	job := &xjm.Job{Status: xjm.JobStatusAborted, Error: reason}
-	jss := xjm.JobPendingRunning
+	return gjm.abortCancelJob(jid, xjm.JobStatusAborted, reason)
+}
+
+func (gjm *gjm) CancelJob(jid int64, reason string) error {
+	return gjm.abortCancelJob(jid, xjm.JobStatusCanceled, reason)
+}
+
+func (gjm *gjm) abortCancelJob(jid int64, status, reason string) error {
+	job := &xjm.Job{Status: status, Error: reason}
+	jss := xjm.JobUndoneStatus
 
 	tx := gjm.db.Table(gjm.jt).Where("id = ? AND status IN ?", jid, jss)
 	r := tx.Select("status", "error").Updates(job)
@@ -166,8 +174,8 @@ func (gjm *gjm) AbortJob(jid int64, reason string) error {
 	return nil
 }
 
-func (gjm *gjm) CompleteJob(jid int64) error {
-	job := &xjm.Job{Status: xjm.JobStatusCompleted}
+func (gjm *gjm) FinishJob(jid int64) error {
+	job := &xjm.Job{Status: xjm.JobStatusFinished}
 
 	r := gjm.db.Table(gjm.jt).Where("id = ?", jid).Select("status", "error").Updates(job)
 	if r.Error != nil {
@@ -193,14 +201,14 @@ func (gjm *gjm) CheckoutJob(jid, rid int64) error {
 	return nil
 }
 
-func (gjm *gjm) PingJob(jid, rid int64) error {
+func (gjm *gjm) PinJob(jid, rid int64) error {
 	tx := gjm.db.Table(gjm.jt)
 	r := tx.Where("id = ? AND rid = ? AND status = ?", jid, rid, xjm.JobStatusRunning).Update("updated_at", time.Now())
 	if r.Error != nil {
 		return r.Error
 	}
 	if r.RowsAffected != 1 {
-		return xjm.ErrJobAborted
+		return xjm.ErrJobPin
 	}
 	return nil
 }
@@ -269,7 +277,7 @@ func (gjm *gjm) DeleteJobs(jids ...int64) (jobs int64, logs int64, err error) {
 }
 
 func (gjm *gjm) CleanOutdatedJobs(before time.Time) (jobs int64, logs int64, err error) {
-	jss := xjm.JobAbortedCompleted
+	jss := xjm.JobDoneStatus
 	where := "jid IN (SELECT id FROM " + gjm.jt + " WHERE status IN ? AND updated_at < ?)"
 
 	r := gjm.db.Table(gjm.lt).Where(where, jss, before).Delete(&xjm.JobLog{})

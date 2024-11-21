@@ -33,7 +33,7 @@ type Cache[T any] struct {
 // deleted from the cache before calling c.DeleteExpired().
 func New[T any](defaultExpires, cleanupInterval time.Duration) *Cache[T] {
 	items := make(map[string]Item[T])
-	return newCacheWithJanitor(defaultExpires, cleanupInterval, items)
+	return newCache(defaultExpires, cleanupInterval, items)
 }
 
 // Return a new cache with a given default expiration duration and cleanup
@@ -52,7 +52,64 @@ func New[T any](defaultExpires, cleanupInterval time.Duration) *Cache[T] {
 // If need be, the map can be accessed at a later point using c.Items() (subject
 // to the same caveat.)
 func NewFrom[T any](defaultExpires, cleanupInterval time.Duration, items map[string]Item[T]) *Cache[T] {
-	return newCacheWithJanitor(defaultExpires, cleanupInterval, items)
+	return newCache(defaultExpires, cleanupInterval, items)
+}
+
+func newCache[T any](de time.Duration, ci time.Duration, m map[string]Item[T]) *Cache[T] {
+	if de == 0 {
+		de = -1
+	}
+
+	c := &cache[T]{
+		de:    de,
+		items: m,
+	}
+
+	// This trick ensures that the janitor goroutine (which--granted it
+	// was enabled--is running DeleteExpired on c forever) does not keep
+	// the returned C object from being garbage collected. When it is
+	// garbage collected, the finalizer stops the janitor goroutine, after
+	// which c can be collected.
+	C := &Cache[T]{c}
+	if ci > 0 {
+		startJanitor(c, ci)
+		runtime.SetFinalizer(C, stopJanitor[T])
+	}
+	return C
+}
+
+type janitor[T any] struct {
+	interval time.Duration
+	stopChan chan bool
+}
+
+func (j *janitor[T]) Run(c *cache[T]) {
+	timer := time.NewTimer(j.interval)
+	defer timer.Stop()
+
+	for {
+		select {
+		case <-timer.C:
+			c.DeleteExpired()
+			timer.Reset(j.interval)
+		case <-j.stopChan:
+			return
+		}
+	}
+}
+
+func stopJanitor[T any](c *Cache[T]) {
+	c.janitor.stopChan <- true
+}
+
+func startJanitor[T any](c *cache[T], interval time.Duration) {
+	j := &janitor[T]{
+		interval: interval,
+		stopChan: make(chan bool),
+	}
+	c.janitor = j
+
+	go j.Run(c)
 }
 
 type cache[T any] struct {
@@ -131,6 +188,129 @@ func (c *cache[T]) Replace(k string, x T, d ...time.Duration) error {
 	c.set(k, x, e)
 	c.mu.Unlock()
 	return nil
+}
+
+// Get an item from the cache. Returns the item or nil, and a bool indicating
+// whether the key was found.
+func (c *cache[T]) Get(k string) (T, bool) {
+	c.mu.RLock()
+	item, found := c.items[k]
+	if !found {
+		c.mu.RUnlock()
+		var d T
+		return d, false
+	}
+
+	if item.Expires > 0 {
+		if time.Now().UnixNano() > item.Expires {
+			c.mu.RUnlock()
+			var d T
+			return d, false
+		}
+	}
+
+	c.mu.RUnlock()
+	return item.Object, true
+}
+
+// GetWithExpires returns an item and its expiration time from the cache.
+// It returns the item or nil, the expiration time if one is set (if the item
+// never expires a zero value for time.Time is returned), and a bool indicating
+// whether the key was found.
+func (c *cache[T]) GetWithExpires(k string) (T, time.Time, bool) {
+	c.mu.RLock()
+	item, found := c.items[k]
+	if !found {
+		c.mu.RUnlock()
+		var d T
+		return d, time.Time{}, false
+	}
+
+	if item.Expires > 0 {
+		if time.Now().UnixNano() > item.Expires {
+			c.mu.RUnlock()
+			var d T
+			return d, time.Time{}, false
+		}
+
+		// Return the item and the expiration time
+		c.mu.RUnlock()
+		return item.Object, time.Unix(0, item.Expires), true
+	}
+
+	// If expiration <= 0 (i.e. no expiration time set) then return the item
+	// and a zeroed time.Time
+	c.mu.RUnlock()
+	return item.Object, time.Time{}, true
+}
+
+func (c *cache[T]) get(k string) (T, bool) {
+	item, found := c.items[k]
+	if !found {
+		var d T
+		return d, false
+	}
+
+	if item.Expires > 0 {
+		if time.Now().UnixNano() > item.Expires {
+			var d T
+			return d, false
+		}
+	}
+	return item.Object, true
+}
+
+// Delete an item from the cache. Does nothing if the key is not in the cache.
+func (c *cache[T]) Delete(k string) {
+	c.mu.Lock()
+	delete(c.items, k)
+	c.mu.Unlock()
+}
+
+// Delete all expired items from the cache.
+func (c *cache[T]) DeleteExpired() {
+	c.mu.Lock()
+	now := time.Now().UnixNano()
+	for k, v := range c.items {
+		if v.Expires > 0 && now > v.Expires {
+			delete(c.items, k)
+		}
+	}
+	c.mu.Unlock()
+}
+
+// Copies all unexpired items in the cache into a new map and returns it.
+func (c *cache[T]) Items() map[string]Item[T] {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	m := make(map[string]Item[T], len(c.items))
+	now := time.Now().UnixNano()
+	for k, v := range c.items {
+		if v.Expires > 0 {
+			if now > v.Expires {
+				continue
+			}
+		}
+		m[k] = v
+	}
+	return m
+}
+
+// Returns the number of items in the cache. This may include items that have
+// expired, but have not yet been cleaned up.
+func (c *cache[T]) Count() int {
+	c.mu.RLock()
+	n := len(c.items)
+	c.mu.RUnlock()
+	return n
+}
+
+// Delete all items from the cache.
+func (c *cache[T]) Clear() {
+	c.mu.Lock()
+	c.items = map[string]Item[T]{}
+	c.mu.Unlock()
 }
 
 // Increment an item of type int, int8, int16, int32, int64, uint,
@@ -343,186 +523,4 @@ func (c *cache[T]) dec(o any, n any) (any, error) {
 	default:
 		return o, fmt.Errorf("'%T' is not number", s)
 	}
-}
-
-// Get an item from the cache. Returns the item or nil, and a bool indicating
-// whether the key was found.
-func (c *cache[T]) Get(k string) (T, bool) {
-	c.mu.RLock()
-	item, found := c.items[k]
-	if !found {
-		c.mu.RUnlock()
-		var d T
-		return d, false
-	}
-
-	if item.Expires > 0 {
-		if time.Now().UnixNano() > item.Expires {
-			c.mu.RUnlock()
-			var d T
-			return d, false
-		}
-	}
-
-	c.mu.RUnlock()
-	return item.Object, true
-}
-
-// GetWithExpires returns an item and its expiration time from the cache.
-// It returns the item or nil, the expiration time if one is set (if the item
-// never expires a zero value for time.Time is returned), and a bool indicating
-// whether the key was found.
-func (c *cache[T]) GetWithExpires(k string) (T, time.Time, bool) {
-	c.mu.RLock()
-	item, found := c.items[k]
-	if !found {
-		c.mu.RUnlock()
-		var d T
-		return d, time.Time{}, false
-	}
-
-	if item.Expires > 0 {
-		if time.Now().UnixNano() > item.Expires {
-			c.mu.RUnlock()
-			var d T
-			return d, time.Time{}, false
-		}
-
-		// Return the item and the expiration time
-		c.mu.RUnlock()
-		return item.Object, time.Unix(0, item.Expires), true
-	}
-
-	// If expiration <= 0 (i.e. no expiration time set) then return the item
-	// and a zeroed time.Time
-	c.mu.RUnlock()
-	return item.Object, time.Time{}, true
-}
-
-func (c *cache[T]) get(k string) (T, bool) {
-	item, found := c.items[k]
-	if !found {
-		var d T
-		return d, false
-	}
-
-	if item.Expires > 0 {
-		if time.Now().UnixNano() > item.Expires {
-			var d T
-			return d, false
-		}
-	}
-	return item.Object, true
-}
-
-// Delete an item from the cache. Does nothing if the key is not in the cache.
-func (c *cache[T]) Delete(k string) {
-	c.mu.Lock()
-	delete(c.items, k)
-	c.mu.Unlock()
-}
-
-// Delete all expired items from the cache.
-func (c *cache[T]) DeleteExpired() {
-	now := time.Now().UnixNano()
-
-	c.mu.Lock()
-	for k, v := range c.items {
-		if v.Expires > 0 && now > v.Expires {
-			delete(c.items, k)
-		}
-	}
-	c.mu.Unlock()
-}
-
-// Copies all unexpired items in the cache into a new map and returns it.
-func (c *cache[T]) Items() map[string]Item[T] {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-
-	m := make(map[string]Item[T], len(c.items))
-	now := time.Now().UnixNano()
-	for k, v := range c.items {
-		if v.Expires > 0 {
-			if now > v.Expires {
-				continue
-			}
-		}
-		m[k] = v
-	}
-	return m
-}
-
-// Returns the number of items in the cache. This may include items that have
-// expired, but have not yet been cleaned up.
-func (c *cache[T]) Count() int {
-	c.mu.RLock()
-	n := len(c.items)
-	c.mu.RUnlock()
-	return n
-}
-
-// Delete all items from the cache.
-func (c *cache[T]) Clear() {
-	c.mu.Lock()
-	c.items = map[string]Item[T]{}
-	c.mu.Unlock()
-}
-
-type janitor[T any] struct {
-	Interval time.Duration
-	stop     chan bool
-}
-
-func (j *janitor[T]) Run(c *cache[T]) {
-	ticker := time.NewTicker(j.Interval)
-	for {
-		select {
-		case <-ticker.C:
-			c.DeleteExpired()
-		case <-j.stop:
-			ticker.Stop()
-			return
-		}
-	}
-}
-
-func stopJanitor[T any](c *Cache[T]) {
-	c.janitor.stop <- true
-}
-
-func runJanitor[T any](c *cache[T], ci time.Duration) {
-	j := &janitor[T]{
-		Interval: ci,
-		stop:     make(chan bool),
-	}
-	c.janitor = j
-	go j.Run(c)
-}
-
-func newCache[T any](de time.Duration, m map[string]Item[T]) *cache[T] {
-	if de == 0 {
-		de = -1
-	}
-	c := &cache[T]{
-		de:    de,
-		items: m,
-	}
-	return c
-}
-
-func newCacheWithJanitor[T any](de time.Duration, ci time.Duration, m map[string]Item[T]) *Cache[T] {
-	c := newCache(de, m)
-
-	// This trick ensures that the janitor goroutine (which--granted it
-	// was enabled--is running DeleteExpired on c forever) does not keep
-	// the returned C object from being garbage collected. When it is
-	// garbage collected, the finalizer stops the janitor goroutine, after
-	// which c can be collected.
-	C := &Cache[T]{c}
-	if ci > 0 {
-		runJanitor(c, ci)
-		runtime.SetFinalizer(C, stopJanitor[T])
-	}
-	return C
 }

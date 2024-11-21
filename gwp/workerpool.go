@@ -1,6 +1,7 @@
 package gwp
 
 import (
+	"runtime"
 	"sync"
 	"time"
 )
@@ -8,6 +9,10 @@ import (
 // WorkerPool is a collection of goroutines, where the number of concurrent
 // goroutines processing requests does not exceed the specified maximum.
 type WorkerPool struct {
+	*workerpool
+}
+
+type workerpool struct {
 	curWorks    int
 	maxWorks    int
 	idleTimeout time.Duration
@@ -33,26 +38,32 @@ func NewWorkerPool(maxWorks, maxWaits int) *WorkerPool {
 		maxWaits = maxWorks
 	}
 
-	wp := &WorkerPool{
+	wp := &workerpool{
 		maxWorks:    maxWorks,
 		idleTimeout: 2 * time.Second,
 		taskChan:    make(chan func(), maxWaits),
 		workChan:    make(chan func()),
-		stopChan:    make(chan bool),
+		stopChan:    make(chan bool, 2),
 	}
 
-	wp.Start()
+	WP := &WorkerPool{wp}
+	WP.Start()
+	runtime.SetFinalizer(WP, finalStop)
 
-	return wp
+	return WP
+}
+
+func finalStop(wp *WorkerPool) {
+	wp.StopWait()
 }
 
 // MaxWaits returns the maximum number of concurrent workers.
-func (wp *WorkerPool) MaxWorks() int {
+func (wp *workerpool) MaxWorks() int {
 	return wp.maxWorks
 }
 
 // SetMaxWaits set the maximum number of concurrent workers, panic if maxWorks < 1.
-func (wp *WorkerPool) SetMaxWorks(maxWorks int) {
+func (wp *workerpool) SetMaxWorks(maxWorks int) {
 	if maxWorks < 1 {
 		panic("WorkerPool: maxWorks must greater than 0")
 	}
@@ -60,7 +71,7 @@ func (wp *WorkerPool) SetMaxWorks(maxWorks int) {
 }
 
 // SetIdleTimeout set the timeout to stop a idle worker, panic if timeout < 1ms.
-func (wp *WorkerPool) SetIdleTimeout(timeout time.Duration) {
+func (wp *workerpool) SetIdleTimeout(timeout time.Duration) {
 	if timeout < time.Millisecond {
 		panic("WorkerPool: timeout must greater than 1ms")
 	}
@@ -68,7 +79,7 @@ func (wp *WorkerPool) SetIdleTimeout(timeout time.Duration) {
 }
 
 // Start start the pool go-routine
-func (wp *WorkerPool) Start() {
+func (wp *workerpool) Start() {
 	wp.slock.Lock()
 	defer wp.slock.Unlock()
 
@@ -85,25 +96,25 @@ func (wp *WorkerPool) Start() {
 //
 // Since creating the worker pool starts at least one goroutine for the
 // dispatcher, Stop() should be called when the worker pool is no longer needed.
-func (wp *WorkerPool) Stop() {
+func (wp *workerpool) Stop() {
 	wp.stop(false)
 }
 
 // StopWait stops the worker pool and waits for all queued tasks tasks to
 // complete. No additional tasks may be submitted, but all pending tasks are
 // executed by workers before this function returns.
-func (wp *WorkerPool) StopWait() {
+func (wp *workerpool) StopWait() {
 	wp.stop(true)
 }
 
 // Running returns true if this worker pool is running.
-func (wp *WorkerPool) Running() bool {
+func (wp *workerpool) Running() bool {
 	wp.slock.Lock()
 	defer wp.slock.Unlock()
 	return wp.running
 }
 
-func (wp *WorkerPool) stop(wait bool) {
+func (wp *workerpool) stop(wait bool) {
 	wp.slock.Lock()
 	defer wp.slock.Unlock()
 
@@ -126,14 +137,14 @@ func (wp *WorkerPool) stop(wait bool) {
 // period until there are no more idle workers. Since the time to start new
 // go-routines is not significant, there is no need to retain idle workers
 // indefinitely.
-func (wp *WorkerPool) Submit(task func()) {
+func (wp *workerpool) Submit(task func()) {
 	if task != nil {
 		wp.taskChan <- task
 	}
 }
 
 // SubmitWait enqueues the given function and waits for it to be executed.
-func (wp *WorkerPool) SubmitWait(task func()) {
+func (wp *workerpool) SubmitWait(task func()) {
 	if task == nil {
 		return
 	}
@@ -146,7 +157,7 @@ func (wp *WorkerPool) SubmitWait(task func()) {
 	<-doneChan
 }
 
-func (wp *WorkerPool) run() {
+func (wp *workerpool) run() {
 	timeout := time.NewTimer(wp.idleTimeout)
 
 	idle, stop := false, false
@@ -192,7 +203,7 @@ func (wp *WorkerPool) run() {
 }
 
 // dispatch sends the next queued task to an available worker.
-func (wp *WorkerPool) dispatch(task func()) {
+func (wp *workerpool) dispatch(task func()) {
 	if wp.curWorks >= wp.maxWorks {
 		// Dispatch task to work queue, if max workers have been created.
 		wp.workChan <- task
@@ -211,7 +222,7 @@ func (wp *WorkerPool) dispatch(task func()) {
 	}
 }
 
-func (wp *WorkerPool) killIdleWorker() bool {
+func (wp *workerpool) killIdleWorker() bool {
 	select {
 	case wp.workChan <- nil:
 		// Sent kill signal to worker.
@@ -223,7 +234,7 @@ func (wp *WorkerPool) killIdleWorker() bool {
 }
 
 // worker executes tasks and stops when it receives a nil task.
-func (wp *WorkerPool) worker(task func()) {
+func (wp *workerpool) worker(task func()) {
 	for task != nil {
 		task()
 		task = <-wp.workChan

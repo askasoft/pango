@@ -61,7 +61,7 @@ type JobManager interface {
 	ReappendJobs(before time.Time) (int64, error)
 
 	// StartJobs start to run jobs
-	StartJobs(limit int, run func(*Job)) error
+	StartJobs(limit int, start func(*Job)) error
 
 	// DeleteJobs delete jobs
 	DeleteJobs(jids ...int64) (int64, int64, error)

@@ -237,7 +237,7 @@ func (gjm *gjm) ReappendJobs(before time.Time) (int64, error) {
 	return r.RowsAffected, r.Error
 }
 
-func (gjm *gjm) StartJobs(limit int, run func(*xjm.Job)) error {
+func (gjm *gjm) StartJobs(limit int, start func(*xjm.Job)) error {
 	var jobs []*xjm.Job
 
 	r := gjm.db.Table(gjm.jt).Where("status = ?", xjm.JobStatusPending).Order("id asc").Limit(limit).Find(&jobs)
@@ -246,7 +246,7 @@ func (gjm *gjm) StartJobs(limit int, run func(*xjm.Job)) error {
 	}
 
 	for _, job := range jobs {
-		go run(job)
+		start(job)
 	}
 
 	return nil

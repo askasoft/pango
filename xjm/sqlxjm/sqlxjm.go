@@ -374,7 +374,7 @@ func (sjm *sjm) ReappendJobs(before time.Time) (int64, error) {
 	return r.RowsAffected()
 }
 
-func (sjm *sjm) StartJobs(limit int, run func(*xjm.Job)) error {
+func (sjm *sjm) StartJobs(limit int, start func(*xjm.Job)) error {
 	sqb := sjm.db.Builder()
 
 	sqb.Select().From(sjm.jt)
@@ -395,7 +395,7 @@ func (sjm *sjm) StartJobs(limit int, run func(*xjm.Job)) error {
 	}
 
 	for _, job := range jobs {
-		go run(job)
+		start(job)
 	}
 
 	return nil

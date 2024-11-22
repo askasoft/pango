@@ -7,25 +7,29 @@ import (
 
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/sqx/sqlx"
+	"github.com/askasoft/pango/str"
 )
 
 type SqlxLogger struct {
-	Logger            log.Logger
-	PrintSQLLevel     log.Level
-	ErrorSQLLevel     log.Level
-	SlowSQLLevel      log.Level
-	SlowThreshold     time.Duration
-	TraceErrNoRows    bool
-	GetSQLErrLogLevel func(error) log.Level
+	Logger          log.Logger
+	DefaultSQLLevel log.Level
+	ErrorSQLLevel   log.Level
+	SelectSQLLevel  log.Level
+	SlowSQLLevel    log.Level
+	SlowThreshold   time.Duration
+	TraceErrNoRows  bool
+	GetErrLogLevel  func(error) log.Level
+	GetSQLLogLevel  func(string) log.Level
 }
 
 func NewSqlxLogger(logger log.Logger, slowSQL time.Duration) *SqlxLogger {
 	sl := &SqlxLogger{
-		Logger:        logger,
-		PrintSQLLevel: log.LevelDebug,
-		ErrorSQLLevel: log.LevelError,
-		SlowSQLLevel:  log.LevelWarn,
-		SlowThreshold: slowSQL,
+		Logger:          logger,
+		DefaultSQLLevel: log.LevelInfo,
+		ErrorSQLLevel:   log.LevelError,
+		SelectSQLLevel:  log.LevelDebug,
+		SlowSQLLevel:    log.LevelWarn,
+		SlowThreshold:   slowSQL,
 	}
 
 	return sl
@@ -53,7 +57,7 @@ func (sl *SqlxLogger) Trace(begin time.Time, sql string, rows int64, err error) 
 	switch {
 	case err != nil && (sl.TraceErrNoRows || !errors.Is(err, sqlx.ErrNoRows)):
 		lvl := sl.ErrorSQLLevel
-		if f := sl.GetSQLErrLogLevel; f != nil {
+		if f := sl.GetErrLogLevel; f != nil {
 			lvl = f(err)
 		}
 		if sl.Logger.IsLevelEnabled(lvl) {
@@ -69,11 +73,19 @@ func (sl *SqlxLogger) Trace(begin time.Time, sql string, rows int64, err error) 
 		} else {
 			sl.printf(sl.SlowSQLLevel, "SLOW >= %v [%d: %v] %s", sl.SlowThreshold, rows, elapsed, sql)
 		}
-	case sl.Logger.IsLevelEnabled(sl.PrintSQLLevel):
-		if rows < 0 {
-			sl.printf(sl.PrintSQLLevel, "[%v] %s", elapsed, sql)
-		} else {
-			sl.printf(sl.PrintSQLLevel, "[%d: %v] %s", rows, elapsed, sql)
+	default:
+		lvl := sl.DefaultSQLLevel
+		if f := sl.GetSQLLogLevel; f != nil {
+			lvl = f(sql)
+		} else if str.StartsWithFold(str.StripLeft(sql), "SELECT") {
+			lvl = sl.SelectSQLLevel
+		}
+		if sl.Logger.IsLevelEnabled(lvl) {
+			if rows < 0 {
+				sl.printf(lvl, "[%v] %s", elapsed, sql)
+			} else {
+				sl.printf(lvl, "[%d: %v] %s", rows, elapsed, sql)
+			}
 		}
 	}
 }

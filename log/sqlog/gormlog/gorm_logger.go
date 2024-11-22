@@ -7,28 +7,32 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/str"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
 type GormLogger struct {
 	Logger                   log.Logger
-	PrintSQLLevel            log.Level
+	DefaultSQLLevel          log.Level
 	ErrorSQLLevel            log.Level
+	SelectSQLLevel           log.Level
 	SlowSQLLevel             log.Level
 	SlowThreshold            time.Duration
 	TraceRecordNotFoundError bool
 	ParameterizedQueries     bool
-	GetSQLErrLogLevel        func(error) log.Level
+	GetErrLogLevel           func(error) log.Level
+	GetSQLLogLevel           func(string) log.Level
 }
 
 func NewGormLogger(logger log.Logger, slowSQL time.Duration) *GormLogger {
 	gl := &GormLogger{
-		Logger:        logger,
-		PrintSQLLevel: log.LevelDebug,
-		ErrorSQLLevel: log.LevelError,
-		SlowSQLLevel:  log.LevelWarn,
-		SlowThreshold: slowSQL,
+		Logger:          logger,
+		DefaultSQLLevel: log.LevelInfo,
+		ErrorSQLLevel:   log.LevelError,
+		SelectSQLLevel:  log.LevelDebug,
+		SlowSQLLevel:    log.LevelWarn,
+		SlowThreshold:   slowSQL,
 	}
 
 	return gl
@@ -76,7 +80,7 @@ func (gl *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (str
 	switch {
 	case err != nil && (!errors.Is(err, gorm.ErrRecordNotFound) || gl.TraceRecordNotFoundError):
 		lvl := gl.ErrorSQLLevel
-		if f := gl.GetSQLErrLogLevel; f != nil {
+		if f := gl.GetErrLogLevel; f != nil {
 			lvl = f(err)
 		}
 		if gl.Logger.IsLevelEnabled(lvl) {
@@ -94,12 +98,21 @@ func (gl *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (str
 		} else {
 			gl.printf(gl.SlowSQLLevel, "SLOW >= %v [%d: %v] %s", gl.SlowThreshold, rows, elapsed, sql)
 		}
-	case gl.Logger.IsLevelEnabled(gl.PrintSQLLevel):
+	default:
 		sql, rows := fc()
-		if rows < 0 {
-			gl.printf(gl.PrintSQLLevel, "[%v] %s", elapsed, sql)
-		} else {
-			gl.printf(gl.PrintSQLLevel, "[%d: %v] %s", rows, elapsed, sql)
+		lvl := gl.DefaultSQLLevel
+		if f := gl.GetSQLLogLevel; f != nil {
+			lvl = f(sql)
+		} else if str.StartsWithFold(str.StripLeft(sql), "SELECT") {
+			lvl = gl.SelectSQLLevel
+		}
+		if gl.Logger.IsLevelEnabled(lvl) {
+			if rows < 0 {
+				gl.printf(lvl, "[%v] %s", elapsed, sql)
+			} else {
+				gl.printf(lvl, "[%d: %v] %s", rows, elapsed, sql)
+			}
+
 		}
 	}
 }

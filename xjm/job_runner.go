@@ -63,8 +63,8 @@ func (jr *JobRunner) RunnerID() int64 {
 	return jr.rid
 }
 
-func (jr *JobRunner) GetJob() (*Job, error) {
-	return jr.jmr.GetJob(jr.jid)
+func (jr *JobRunner) GetJob(cols ...string) (*Job, error) {
+	return jr.jmr.GetJob(jr.jid, cols...)
 }
 
 func (jr *JobRunner) Checkout() error {
@@ -95,19 +95,32 @@ func (jr *JobRunner) Pin() error {
 	return jr.jmr.PinJob(jr.jid, jr.rid)
 }
 
-func (jr *JobRunner) Running(ctx context.Context, interval time.Duration) error {
-	timer := time.NewTimer(interval)
-	defer timer.Stop()
+func (jr *JobRunner) Running(ctx context.Context, getTimeout, pinTimeout time.Duration) error {
+	gettm, pintm := time.NewTimer(getTimeout), time.NewTimer(pinTimeout)
+
+	defer func() {
+		gettm.Stop()
+		pintm.Stop()
+	}()
 
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case <-timer.C:
+		case <-gettm.C:
+			job, err := jr.GetJob("id", "rid", "status")
+			if err != nil {
+				return err
+			}
+			if job.RID != jr.rid || job.Status != JobStatusRunning {
+				return ErrJobPin
+			}
+			gettm.Reset(getTimeout)
+		case <-pintm.C:
 			if err := jr.Pin(); err != nil {
 				return err
 			}
-			timer.Reset(interval)
+			pintm.Reset(pinTimeout)
 		}
 	}
 }

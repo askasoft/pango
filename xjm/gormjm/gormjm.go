@@ -66,9 +66,13 @@ func (gjm *gjm) AddJobLog(jid int64, time time.Time, level string, message strin
 	return gjm.db.Table(gjm.lt).Create(jlg).Error
 }
 
-func (gjm *gjm) GetJob(jid int64) (*xjm.Job, error) {
+func (gjm *gjm) GetJob(jid int64, cols ...string) (*xjm.Job, error) {
 	job := &xjm.Job{}
-	r := gjm.db.Table(gjm.jt).Where("id = ?", jid).Take(job)
+	tx := gjm.db.Table(gjm.jt).Where("id = ?", jid)
+	if len(cols) > 0 {
+		tx = tx.Select(cols)
+	}
+	r := tx.Take(job)
 	if errors.Is(r.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}

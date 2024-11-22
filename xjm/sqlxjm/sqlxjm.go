@@ -79,9 +79,9 @@ func (sjm *sjm) AddJobLog(jid int64, time time.Time, level string, message strin
 	return err
 }
 
-func (sjm *sjm) GetJob(jid int64) (*xjm.Job, error) {
+func (sjm *sjm) GetJob(jid int64, cols ...string) (*xjm.Job, error) {
 	sqb := sjm.db.Builder()
-	sqb.Select().From(sjm.jt).Where("id = ?", jid)
+	sqb.Select(cols...).From(sjm.jt).Where("id = ?", jid)
 	sql, args := sqb.Build()
 
 	job := &xjm.Job{}

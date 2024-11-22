@@ -29,7 +29,8 @@ type JobManager interface {
 	AddJobLog(jid int64, time time.Time, level string, message string) error
 
 	// GetJob get a job
-	GetJob(jid int64) (*Job, error)
+	// cols: columns to select, if omit then select all columns (*)
+	GetJob(jid int64, cols ...string) (*Job, error)
 
 	// FindJob find a job
 	// name: name to filter (optional)

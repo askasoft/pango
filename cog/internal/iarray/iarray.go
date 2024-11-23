@@ -1,6 +1,3 @@
-//go:build go1.18
-// +build go1.18
-
 package iarray
 
 func Contains[T any](a []T, v T) bool {

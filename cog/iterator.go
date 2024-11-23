@@ -1,6 +1,3 @@
-//go:build go1.18
-// +build go1.18
-
 package cog
 
 // Eachable a key/value each interface for collection

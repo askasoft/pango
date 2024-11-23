@@ -160,11 +160,11 @@ func (tn *TreeMapNode[K, V]) output(sb *strings.Builder, prefix string, tail boo
 	}
 
 	if flag&tmColor == tmColor {
-		sb.WriteString(fmt.Sprintf("(%v) ", tn.color))
+		fmt.Fprintf(sb, "(%v) ", tn.color)
 	}
-	sb.WriteString(fmt.Sprint(tn.key))
+	fmt.Fprint(sb, tn.key)
 	if flag&tmPoint == tmPoint {
-		sb.WriteString(fmt.Sprintf(" (%p)", tn))
+		fmt.Fprintf(sb, " (%p)", tn)
 	}
 	if flag&tmValue == tmValue {
 		v := str.RemoveAny(fmt.Sprint(tn.value), "\r\n")

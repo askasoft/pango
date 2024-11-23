@@ -142,11 +142,11 @@ func (tn *treeSetNode[T]) output(sb *strings.Builder, prefix string, tail bool, 
 	}
 
 	if flag&tsColor == tsColor {
-		sb.WriteString(fmt.Sprintf("(%v) ", tn.color))
+		fmt.Fprintf(sb, "(%v) ", tn.color)
 	}
-	sb.WriteString(fmt.Sprint(tn.value))
+	fmt.Fprint(sb, tn.value)
 	if flag&tsPoint == tsPoint {
-		sb.WriteString(fmt.Sprintf(" (%p)", tn))
+		fmt.Fprintf(sb, " (%p)", tn)
 	}
 	sb.WriteString(iox.EOL)
 

@@ -71,23 +71,29 @@ func JsonUnmarshalCol[T any](data []byte, c cog.Collection[T]) error {
 }
 
 // ---------------------------------------------------------------------
-func JsonMarshalCol[T any](c cog.Collection[T]) (res []byte, err error) {
+func JsonMarshalCol[T any](c cog.Collection[T]) ([]byte, error) {
 	if c.IsEmpty() {
 		return []byte("[]"), nil
 	}
 
-	res = append(res, '[')
+	var err error
+
+	bb := &bytes.Buffer{}
+	bb.WriteByte('[')
+
+	je := json.NewEncoder(bb)
 	c.Each(func(_ int, v T) bool {
-		var bs []byte
-		bs, err = json.Marshal(v)
-		if err != nil {
+		if err = je.Encode(v); err != nil {
 			return false
 		}
-		res = append(res, bs...)
-		res = append(res, ',')
+
+		// remove last '\n'
+		bs := bb.Bytes()
+		bs[len(bs)-1] = ','
 		return true
 	})
-	res[len(res)-1] = ']'
 
-	return
+	bs := bb.Bytes()
+	bs[len(bs)-1] = ']'
+	return bs, err
 }

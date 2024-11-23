@@ -88,7 +88,7 @@ func (hd *HTTPDumper) dumpRequest(w io.Writer, req *http.Request) string {
 
 	bb := &bytes.Buffer{}
 
-	bb.WriteString(fmt.Sprintf(">>>>>>>> %s %s >>>>>>>>\r\n", time.Now().Format(dumpTimeFormat), id))
+	fmt.Fprintf(bb, ">>>>>>>> %s %s >>>>>>>>\r\n", time.Now().Format(dumpTimeFormat), id)
 	if len(bs) > 0 {
 		bb.Write(bs)
 	}
@@ -102,7 +102,7 @@ func (hd *HTTPDumper) dumpRequest(w io.Writer, req *http.Request) string {
 func (hd *HTTPDumper) dumpResponse(w io.Writer, id string, req *http.Request, hdw *httpDumpWriter) {
 	bb := &bytes.Buffer{}
 
-	bb.WriteString(fmt.Sprintf("<<<<<<<< %s %s <<<<<<<<\r\n", time.Now().Format(dumpTimeFormat), id))
+	fmt.Fprintf(bb, "<<<<<<<< %s %s <<<<<<<<\r\n", time.Now().Format(dumpTimeFormat), id)
 
 	res := &http.Response{
 		Proto:      req.Proto,

@@ -86,25 +86,32 @@ func JsonUnmarshalMap[K any, V any](data []byte, am cog.Map[K, V]) error {
 }
 
 // ---------------------------------------------------------------------
-func JsonMarshalMap[K any, V any](m cog.Map[K, V]) (res []byte, err error) {
+func JsonMarshalMap[K any, V any](m cog.Map[K, V]) ([]byte, error) {
 	if m.IsEmpty() {
 		return []byte("{}"), nil
 	}
 
-	res = append(res, '{')
+	var err error
+
+	bb := &bytes.Buffer{}
+	bb.WriteByte('{')
+
+	je := json.NewEncoder(bb)
 	m.Each(func(k K, v V) bool {
-		var bs []byte
-		s := fmt.Sprintf("%v", k)
-		res = append(res, fmt.Sprintf("%q:", s)...)
-		bs, err = json.Marshal(v)
-		if err != nil {
+		if _, err = fmt.Fprintf(bb, "%q:", fmt.Sprint(k)); err != nil {
 			return false
 		}
-		res = append(res, bs...)
-		res = append(res, ',')
+		if err = je.Encode(v); err != nil {
+			return false
+		}
+
+		// remove last '\n'
+		bs := bb.Bytes()
+		bs[len(bs)-1] = ','
 		return true
 	})
-	res[len(res)-1] = '}'
 
-	return
+	bs := bb.Bytes()
+	bs[len(bs)-1] = '}'
+	return bs, err
 }

@@ -21,9 +21,11 @@ var (
 
 type Job struct {
 	ID        int64     `gorm:"not null;primaryKey;autoIncrement" json:"id,omitempty"`
+	CID       int64     `gorm:"column:cid;not null" json:"cid,omitempty"`
 	RID       int64     `gorm:"column:rid;not null" json:"rid,omitempty"`
 	Name      string    `gorm:"size:250;not null;index:idx_jobs_name" json:"name,omitempty"`
 	Status    string    `gorm:"size:1;not null" json:"status,omitempty"`
+	Locale    string    `gorm:"size:20;not null" json:"locale,omitempty"`
 	File      string    `gorm:"not null" json:"file,omitempty"`
 	Param     string    `gorm:"not null" json:"param,omitempty"`
 	State     string    `gorm:"not null" form:"state" json:"state,omitempty"`

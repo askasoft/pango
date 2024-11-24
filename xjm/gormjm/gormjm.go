@@ -149,8 +149,8 @@ func (gjm *gjm) IterJobs(it func(*xjm.Job) error, name string, start, limit int,
 	return nil
 }
 
-func (gjm *gjm) AppendJob(name, file, param string) (int64, error) {
-	job := &xjm.Job{Name: name, File: file, Param: param, Status: xjm.JobStatusPending}
+func (gjm *gjm) AppendJob(cid int64, name, locale, file, param string) (int64, error) {
+	job := &xjm.Job{CID: cid, Name: name, Locale: locale, File: file, Param: param, Status: xjm.JobStatusPending}
 	r := gjm.db.Table(gjm.jt).Create(job)
 	return job.ID, r.Error
 }

@@ -159,7 +159,7 @@ func (sjc *sjc) UpdateJobChain(cid int64, status string, states ...string) error
 		return err
 	}
 	if c != 1 {
-		return xjm.ErrJobMissing
+		return xjm.ErrJobChainMissing
 	}
 	return nil
 }

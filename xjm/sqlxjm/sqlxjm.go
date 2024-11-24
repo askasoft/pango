@@ -170,14 +170,16 @@ func (sjm *sjm) IterJobs(it func(*xjm.Job) error, name string, start, limit int,
 	return nil
 }
 
-func (sjm *sjm) AppendJob(name, file, param string) (int64, error) {
+func (sjm *sjm) AppendJob(cid int64, name, locale, file, param string) (int64, error) {
 	now := time.Now()
 
 	sqb := sjm.db.Builder()
 	sqb.Insert(sjm.jt)
+	sqb.Setc("cid", cid)
 	sqb.Setc("rid", 0)
 	sqb.Setc("name", name)
 	sqb.Setc("status", xjm.JobStatusPending)
+	sqb.Setc("locale", locale)
 	sqb.Setc("file", file)
 	sqb.Setc("param", param)
 	sqb.Setc("state", "")

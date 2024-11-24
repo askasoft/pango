@@ -128,7 +128,7 @@ func (gjc *gjc) UpdateJobChain(cid int64, status string, states ...string) error
 		return r.Error
 	}
 	if r.RowsAffected != 1 {
-		return xjm.ErrJobMissing
+		return xjm.ErrJobChainMissing
 	}
 	return nil
 }

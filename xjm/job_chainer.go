@@ -1,7 +1,12 @@
 package xjm
 
 import (
+	"errors"
 	"time"
+)
+
+var (
+	ErrJobChainMissing = errors.New("jobchain missing")
 )
 
 type JobChainer interface {

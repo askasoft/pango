@@ -8,27 +8,21 @@ import (
 )
 
 type JobRunner struct {
-	log *log.Log
-
+	job *Job
 	jmr JobManager
 	jlw *JobLogWriter
-
-	jnm string // Job Name
-	jid int64  // Job ID
-	rid int64  // Runner ID
+	log *log.Log
 }
 
 // NewJobRunner create a JobRunner
-func NewJobRunner(jmr JobManager, jnm string, jid, rid int64, logger ...log.Logger) *JobRunner {
+func NewJobRunner(job *Job, jmr JobManager, logger ...log.Logger) *JobRunner {
 	jr := &JobRunner{
-		log: log.NewLog(),
+		job: job,
 		jmr: jmr,
-		jnm: jnm,
-		jid: jid,
-		rid: rid,
+		log: log.NewLog(),
 	}
 
-	jr.jlw = NewJobLogWriter(jmr, jid)
+	jr.jlw = NewJobLogWriter(jmr, job.ID)
 
 	var lw log.Writer = jr.jlw
 	if len(logger) > 0 {
@@ -51,48 +45,64 @@ func (jr *JobRunner) JobLogWriter() *JobLogWriter {
 	return jr.jlw
 }
 
-func (jr *JobRunner) JobName() string {
-	return jr.jnm
+func (jr *JobRunner) JobID() int64 {
+	return jr.job.ID
 }
 
-func (jr *JobRunner) JobID() int64 {
-	return jr.jid
+func (jr *JobRunner) ChainID() int64 {
+	return jr.job.CID
 }
 
 func (jr *JobRunner) RunnerID() int64 {
-	return jr.rid
+	return jr.job.RID
+}
+
+func (jr *JobRunner) Locale() string {
+	return jr.job.Locale
+}
+
+func (jr *JobRunner) JobName() string {
+	return jr.job.Name
+}
+
+func (jr *JobRunner) JobFile() string {
+	return jr.job.File
+}
+
+func (jr *JobRunner) JobParam() string {
+	return jr.job.Param
 }
 
 func (jr *JobRunner) GetJob(cols ...string) (*Job, error) {
-	return jr.jmr.GetJob(jr.jid, cols...)
+	return jr.jmr.GetJob(jr.job.ID, cols...)
 }
 
 func (jr *JobRunner) Checkout() error {
-	return jr.jmr.CheckoutJob(jr.jid, jr.rid)
+	return jr.jmr.CheckoutJob(jr.job.ID, jr.job.RID)
 }
 
 func (jr *JobRunner) SetState(state string) error {
-	return jr.jmr.SetJobState(jr.jid, jr.rid, state)
+	return jr.jmr.SetJobState(jr.job.ID, jr.job.RID, state)
 }
 
 func (jr *JobRunner) AddResult(result string) error {
-	return jr.jmr.AddJobResult(jr.jid, jr.rid, result)
+	return jr.jmr.AddJobResult(jr.job.ID, jr.job.RID, result)
 }
 
 func (jr *JobRunner) Abort(reason string) error {
-	return jr.jmr.AbortJob(jr.jid, reason)
+	return jr.jmr.AbortJob(jr.job.ID, reason)
 }
 
 func (jr *JobRunner) Cancel(reason string) error {
-	return jr.jmr.CancelJob(jr.jid, reason)
+	return jr.jmr.CancelJob(jr.job.ID, reason)
 }
 
 func (jr *JobRunner) Finish() error {
-	return jr.jmr.FinishJob(jr.jid)
+	return jr.jmr.FinishJob(jr.job.ID)
 }
 
 func (jr *JobRunner) Pin() error {
-	return jr.jmr.PinJob(jr.jid, jr.rid)
+	return jr.jmr.PinJob(jr.job.ID, jr.job.RID)
 }
 
 func (jr *JobRunner) Running(ctx context.Context, getTimeout, pinTimeout time.Duration) error {
@@ -112,7 +122,7 @@ func (jr *JobRunner) Running(ctx context.Context, getTimeout, pinTimeout time.Du
 			if err != nil {
 				return err
 			}
-			if job.RID != jr.rid || job.Status != JobStatusRunning {
+			if job.RID != jr.job.RID || job.Status != JobStatusRunning {
 				return ErrJobPin
 			}
 			gettm.Reset(getTimeout)

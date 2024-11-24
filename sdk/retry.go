@@ -11,11 +11,10 @@ type Retryable interface {
 	GetRetryAfter() time.Duration
 }
 
-func getRetryAfter(err error) time.Duration {
-	if re, ok := err.(Retryable); ok { //nolint: all
-		return re.GetRetryAfter()
+func GetRetryAfter(a any) time.Duration {
+	if r, ok := a.(Retryable); ok {
+		return r.GetRetryAfter()
 	}
-
 	return 0
 }
 
@@ -30,7 +29,7 @@ func RetryForError(ctx context.Context, api func() error, retries int, logger lo
 	}
 
 	count := 1
-	after := getRetryAfter(err)
+	after := GetRetryAfter(err)
 	if after <= 0 || count > retries {
 		return err
 	}
@@ -38,25 +37,24 @@ func RetryForError(ctx context.Context, api func() error, retries int, logger lo
 	if logger != nil {
 		logger.Warnf("Sleep %s for retry #%d: %s", after, count, err.Error())
 	}
+
 	timer := time.NewTimer(after)
+	defer timer.Stop()
 
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-timer.C:
-			err = api()
-			if err == nil {
+			if err = api(); err == nil {
 				return nil
 			}
 
-			count++
-			if count > retries {
+			if count++; count > retries {
 				return err
 			}
 
-			after = getRetryAfter(err)
-			if after <= 0 {
+			if after = GetRetryAfter(err); after <= 0 {
 				return err
 			}
 

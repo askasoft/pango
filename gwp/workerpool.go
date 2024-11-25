@@ -34,8 +34,8 @@ func NewWorkerPool(maxWorks, maxWaits int) *WorkerPool {
 	if maxWorks < 1 {
 		maxWorks = 1
 	}
-	if maxWaits < maxWorks {
-		maxWaits = maxWorks
+	if maxWaits < 0 {
+		maxWaits = 0
 	}
 
 	wp := &workerpool{
@@ -90,6 +90,13 @@ func (wp *workerpool) Start() {
 	}
 }
 
+// Running returns true if this worker pool is running.
+func (wp *workerpool) Running() bool {
+	wp.slock.Lock()
+	defer wp.slock.Unlock()
+	return wp.running
+}
+
 // Stop stops the worker pool and waits for only currently running tasks to
 // complete. Pending tasks that are not currently running are abandoned. Tasks
 // must not be submitted to the worker pool after calling stop.
@@ -105,13 +112,6 @@ func (wp *workerpool) Stop() {
 // executed by workers before this function returns.
 func (wp *workerpool) StopWait() {
 	wp.stop(true)
-}
-
-// Running returns true if this worker pool is running.
-func (wp *workerpool) Running() bool {
-	wp.slock.Lock()
-	defer wp.slock.Unlock()
-	return wp.running
 }
 
 func (wp *workerpool) stop(wait bool) {

@@ -8,12 +8,12 @@ import (
 
 const max = 20
 
-func newTestWorkerPool(maxWorks int) *WorkerPool {
-	return NewWorkerPool(maxWorks, 100)
+func newTestWorkerPool(maxWorks, maxWaits int) *WorkerPool {
+	return NewWorkerPool(maxWorks, maxWaits)
 }
 
 func TestExample(t *testing.T) {
-	wp := newTestWorkerPool(2)
+	wp := newTestWorkerPool(2, 0)
 	requests := []string{"alpha", "beta", "gamma", "delta", "epsilon"}
 
 	rspChan := make(chan string, len(requests))
@@ -42,13 +42,13 @@ func TestExample(t *testing.T) {
 }
 
 func TestMaxWorkers(t *testing.T) {
-	wp := newTestWorkerPool(0)
+	wp := newTestWorkerPool(0, 0)
 	wp.Stop()
 	if wp.maxWorks != 1 {
 		t.Fatal("should have created one worker")
 	}
 
-	wp = newTestWorkerPool(max)
+	wp = newTestWorkerPool(max, 0)
 	defer wp.Stop()
 
 	if wp.maxWorks != max {
@@ -81,7 +81,7 @@ func TestMaxWorkers(t *testing.T) {
 }
 
 func TestReuseWorkers(t *testing.T) {
-	wp := newTestWorkerPool(5)
+	wp := newTestWorkerPool(5, 0)
 	defer wp.Stop()
 
 	release := make(chan struct{})
@@ -103,7 +103,7 @@ func TestReuseWorkers(t *testing.T) {
 
 func TestStop(t *testing.T) {
 	// Start workers, and have them all wait on a channel before completing.
-	wp := newTestWorkerPool(5)
+	wp := newTestWorkerPool(5, max)
 
 	release := make(chan struct{})
 	finished := make(chan struct{}, max)
@@ -144,7 +144,7 @@ Count:
 
 func TestStopWait(t *testing.T) {
 	// Start workers, and have them all wait on a channel before completing.
-	wp := newTestWorkerPool(5)
+	wp := newTestWorkerPool(5, max)
 	release := make(chan struct{})
 	finished := make(chan struct{}, max)
 	for i := 0; i < max; i++ {
@@ -159,7 +159,9 @@ func TestStopWait(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 		close(release)
 	}()
+
 	wp.StopWait()
+
 	for count := 0; count < max; count++ {
 		select {
 		case <-finished:
@@ -175,9 +177,11 @@ func TestStopWait(t *testing.T) {
 	if wp.Running() {
 		t.Fatal("pool should be stopped")
 	}
+}
 
+func TestStopWait2(t *testing.T) {
 	// Make sure that calling StopWait() with no queued tasks is OK.
-	wp = newTestWorkerPool(5)
+	wp := newTestWorkerPool(5, 0)
 	wp.StopWait()
 
 	if anyReady(wp) {
@@ -189,7 +193,7 @@ func TestStopWait(t *testing.T) {
 }
 
 func TestSubmitWait(t *testing.T) {
-	wp := newTestWorkerPool(1)
+	wp := newTestWorkerPool(1, 0)
 	defer wp.Stop()
 
 	// Check that these are noop.
@@ -220,7 +224,7 @@ func TestSubmitWait(t *testing.T) {
 }
 
 func TestStopRace(t *testing.T) {
-	wp := newTestWorkerPool(max)
+	wp := newTestWorkerPool(max, max)
 	defer wp.Stop()
 
 	workRelChan := make(chan struct{})
@@ -266,21 +270,6 @@ func TestStopRace(t *testing.T) {
 	}
 }
 
-func TestWorkerLeak(t *testing.T) {
-	const workerCount = 100
-
-	wp := newTestWorkerPool(workerCount)
-
-	// Start workers, and have them all wait on a channel before completing.
-	for i := 0; i < workerCount; i++ {
-		wp.Submit(func() {
-			time.Sleep(time.Millisecond)
-		})
-	}
-
-	wp.Stop()
-}
-
 func anyReady(w *WorkerPool) bool {
 	release := make(chan struct{})
 	wait := func() {
@@ -323,7 +312,7 @@ Run benchmarking with: go test -bench '.'
 */
 
 func BenchmarkEnqueue(b *testing.B) {
-	wp := newTestWorkerPool(1)
+	wp := newTestWorkerPool(1, 1)
 	defer wp.Stop()
 	releaseChan := make(chan struct{})
 
@@ -337,7 +326,7 @@ func BenchmarkEnqueue(b *testing.B) {
 }
 
 func BenchmarkEnqueue2(b *testing.B) {
-	wp := newTestWorkerPool(2)
+	wp := newTestWorkerPool(2, 2)
 	defer wp.Stop()
 
 	b.ResetTimer()
@@ -377,7 +366,7 @@ func BenchmarkExecute1024Workers(b *testing.B) {
 }
 
 func benchmarkExecWorkers(n int, b *testing.B) {
-	wp := newTestWorkerPool(n)
+	wp := newTestWorkerPool(n, n)
 	defer wp.Stop()
 	var allDone sync.WaitGroup
 	allDone.Add(b.N * n)

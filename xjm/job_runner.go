@@ -29,7 +29,7 @@ func NewJobRunner(job *Job, jmr JobManager, logger ...log.Logger) *JobRunner {
 		lw = log.NewMultiWriter(jr.jlw, log.NewBridgeWriter(logger[0]))
 	}
 
-	jr.log.SetWriter(log.NewSyncWriter(lw))
+	jr.log.SetWriter(log.NewAsyncWriter(lw, 100))
 	return jr
 }
 

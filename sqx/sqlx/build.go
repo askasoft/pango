@@ -20,12 +20,12 @@ func (b *Builder) Reset() *Builder {
 	return b
 }
 
-func (b *Builder) Build() (string, []any) {
-	return b.SQL(), b.Params()
+func (b *Builder) Build(raw ...bool) (string, []any) {
+	return b.SQL(raw...), b.Params()
 }
 
-func (b *Builder) SQL() string {
-	return b.sqb.SQL()
+func (b *Builder) SQL(raw ...bool) string {
+	return b.sqb.SQL(raw...)
 }
 
 func (b *Builder) Params() []any {

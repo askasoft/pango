@@ -46,15 +46,15 @@ func (b *Builder) Reset() *Builder {
 	return b
 }
 
-func (b *Builder) Build() (string, []any) {
-	return b.SQL(), b.Params()
+func (b *Builder) Build(raw ...bool) (string, []any) {
+	return b.SQL(raw...), b.Params()
 }
 
 func (b *Builder) Params() []any {
 	return b.params
 }
 
-func (b *Builder) SQL() string {
+func (b *Builder) SQL(raw ...bool) string {
 	s := ""
 	switch b.command {
 	case cselect:
@@ -65,6 +65,9 @@ func (b *Builder) SQL() string {
 		s = b.buildInsert()
 	case cupdate:
 		s = b.buildUpdate()
+	}
+	if len(raw) > 0 && raw[0] {
+		return s
 	}
 	return b.Rebind(s)
 }

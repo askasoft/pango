@@ -12,6 +12,7 @@ var (
 	ErrJobCheckout = errors.New("job checkout failed")
 	ErrJobPin      = errors.New("job pin failed")
 	ErrJobMissing  = errors.New("job missing")
+	ErrJobExisting = errors.New("job existing") // indicates job already existing (for multiple runnable job)
 )
 
 type JobManager interface {

@@ -62,7 +62,6 @@ type Queryerx interface {
 	Queryx(query string, args ...any) (*Rows, error)
 	QueryRowx(query string, args ...any) *Row
 }
-
 type ContextQueryerx interface {
 	QueryxContext(ctx context.Context, query string, args ...any) (*Rows, error)
 	QueryRowxContext(ctx context.Context, query string, args ...any) *Row
@@ -72,7 +71,6 @@ type NamedQueryer interface {
 	NamedQuery(query string, arg any) (*Rows, error)
 	NamedQueryRow(query string, arg any) *Row
 }
-
 type ContextNamedQueryer interface {
 	NamedQueryContext(ctx context.Context, query string, arg any) (*Rows, error)
 	NamedQueryRowContext(ctx context.Context, query string, arg any) *Row
@@ -81,15 +79,55 @@ type ContextNamedQueryer interface {
 type NamedExecer interface {
 	NamedExec(query string, arg any) (sql.Result, error)
 }
-
 type ContextNamedExecer interface {
 	NamedExecContext(ctx context.Context, query string, arg any) (sql.Result, error)
+}
+
+type Getter interface {
+	Get(dest any, query string, args ...any) error
+}
+type ContextGetter interface {
+	GetContext(ctx context.Context, dest any, query string, args ...any) error
+}
+
+type Selector interface {
+	Select(dest any, query string, args ...any) error
+}
+type ContextSelector interface {
+	SelectContext(ctx context.Context, dest any, query string, args ...any) error
+}
+
+type Creator interface {
+	Create(query string, args ...any) (int64, error)
+}
+type ContextCreator interface {
+	CreateContext(ctx context.Context, query string, args ...any) (int64, error)
+}
+
+type NamedGetter interface {
+	NamedGet(dest any, query string, arg any) error
+}
+type ContextNamedGetter interface {
+	NamedGetContext(ctx context.Context, dest any, query string, arg any) error
+}
+
+type NamedSelector interface {
+	NamedSelect(dest any, query string, arg any) error
+}
+type ContextNamedSelector interface {
+	NamedSelectContext(ctx context.Context, dest any, query string, arg any) error
+}
+
+type NamedCreator interface {
+	NamedCreate(query string, arg any) (int64, error)
+}
+type ContextNamedCreator interface {
+	NamedCreateContext(ctx context.Context, query string, arg any) (int64, error)
 }
 
 type Preparerx interface {
 	Preparex(query string) (*Stmt, error)
 }
-
 type ContextPreparerx interface {
 	PreparexContext(ctx context.Context, query string) (*Stmt, error)
 }
@@ -97,21 +135,8 @@ type ContextPreparerx interface {
 type Beginxer interface {
 	Beginx() (*Tx, error)
 }
-
 type BeginTxxer interface {
 	BeginTxx(context.Context, *sql.TxOptions) (*Tx, error)
-}
-
-type Mixer interface {
-	Get(dest any, query string, args ...any) error
-	Select(dest any, query string, args ...any) error
-	Create(query string, args ...any) (int64, error)
-}
-
-type ContextMixer interface {
-	GetContext(ctx context.Context, dest any, query string, args ...any) error
-	SelectContext(ctx context.Context, dest any, query string, args ...any) error
-	CreateContext(ctx context.Context, query string, args ...any) (int64, error)
 }
 
 type BindNamed interface {
@@ -127,19 +152,37 @@ type Sqlx interface {
 	sqx.Rebind
 	sqx.Sql
 	sqx.Sqlc
+
 	Supporter
 	BindNamed
 	Build
+
 	Queryerx
+	Preparerx
+
+	Getter
+	Selector
+	Creator
+
 	NamedQueryer
 	NamedExecer
-	Preparerx
-	Mixer
+
+	NamedGetter
+	NamedSelector
+	NamedCreator
+
 	ContextQueryerx
 	ContextNamedQueryer
 	ContextNamedExecer
 	ContextPreparerx
-	ContextMixer
+
+	ContextGetter
+	ContextSelector
+	ContextCreator
+
+	ContextNamedGetter
+	ContextNamedSelector
+	ContextNamedCreator
 }
 
 type Transactioner interface {

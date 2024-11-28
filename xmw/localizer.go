@@ -5,25 +5,24 @@ import (
 	"github.com/askasoft/pango/xin"
 )
 
-const (
-	// LocaleParamName default parameter key name
-	LocaleParamName = "_locale_"
+var (
+	// LocaleParamNames default parameter key names
+	LocaleParamNames = []string{"_locale_"}
 
-	// LocaleHeaderName default http header name
-	LocaleHeaderName = "X-Accept-Language"
+	// LocaleCookieNames default cookie names
+	LocaleCookieNames = []string{"X_LOCALE"}
 
-	// LocaleCookieName default cookie name
-	LocaleCookieName = "X_LOCALE"
+	// LocaleHeaderNames default http header names
+	LocaleHeaderNames = []string{"Accept-Language"}
 )
 
 // Localizer localizer middleware
 type Localizer struct {
 	Locales []string
 
-	LocaleParamName    string
-	LocaleHeaderName   string
-	LocaleCookieName   string
-	FromAcceptLanguage bool
+	LocaleParamNames  []string
+	LocaleCookieNames []string
+	LocaleHeaderNames []string
 }
 
 // NewLocalizer create a default Localizer
@@ -33,11 +32,10 @@ func NewLocalizer(locales ...string) *Localizer {
 	}
 
 	return &Localizer{
-		Locales:            locales,
-		LocaleHeaderName:   LocaleHeaderName,
-		LocaleParamName:    LocaleParamName,
-		LocaleCookieName:   LocaleCookieName,
-		FromAcceptLanguage: true,
+		Locales:           locales,
+		LocaleHeaderNames: LocaleHeaderNames,
+		LocaleParamNames:  LocaleParamNames,
+		LocaleCookieNames: LocaleCookieNames,
 	}
 }
 
@@ -48,26 +46,20 @@ func (ll *Localizer) Handler() xin.HandlerFunc {
 
 // Handle process xin request
 func (ll *Localizer) Handle(c *xin.Context) {
-	loc := ""
+	loc := ll.getLocaleFromParameter(c, ll.LocaleParamNames)
 
-	if ll.LocaleParamName != "" {
-		loc = ll.getLocaleFromParameter(c, ll.LocaleParamName)
-	}
-
-	if loc == "" && ll.LocaleHeaderName != "" {
-		loc = ll.getLocaleFromHeader(c, ll.LocaleHeaderName)
-	}
-
-	if loc == "" && ll.LocaleCookieName != "" {
-		loc = ll.getLocaleFromCookie(c, ll.LocaleCookieName)
-	}
-
-	if loc == "" && ll.FromAcceptLanguage {
-		loc = ll.getLocaleFromHeader(c, "Accept-Language")
+	if loc == "" {
+		loc = ll.getLocaleFromCookie(c, ll.LocaleCookieNames)
 	}
 
 	if loc == "" {
-		loc = ll.Locales[0]
+		loc = ll.getLocaleFromHeader(c, ll.LocaleHeaderNames)
+	}
+
+	if loc == "" {
+		if locs := ll.Locales; len(locs) > 0 {
+			loc = locs[0]
+		}
 	}
 
 	c.Locale = loc
@@ -75,35 +67,41 @@ func (ll *Localizer) Handle(c *xin.Context) {
 	c.Next()
 }
 
-func (ll *Localizer) getLocaleFromHeader(c *xin.Context, k string) string {
-	loc := c.GetHeader(k)
-	qls := str.FieldsAny(loc, ",; ")
-	for _, ql := range qls {
-		if ll.acceptable(ql) {
-			return ql
+func (ll *Localizer) getLocaleFromParameter(c *xin.Context, ks []string) string {
+	for _, k := range ks {
+		if loc, ok := c.GetPostForm(k); ok {
+			if ll.acceptable(loc) {
+				return loc
+			}
+		}
+		if loc, ok := c.GetQuery(k); ok {
+			if ll.acceptable(loc) {
+				return loc
+			}
 		}
 	}
 	return ""
 }
 
-func (ll *Localizer) getLocaleFromParameter(c *xin.Context, k string) string {
-	if loc, ok := c.GetPostForm(k); ok {
-		if ll.acceptable(loc) {
-			return loc
-		}
-	}
-	if loc, ok := c.GetQuery(k); ok {
-		if ll.acceptable(loc) {
-			return loc
+func (ll *Localizer) getLocaleFromCookie(c *xin.Context, ks []string) string {
+	for _, k := range ks {
+		if loc, err := c.Cookie(k); err == nil {
+			if ll.acceptable(loc) {
+				return loc
+			}
 		}
 	}
 	return ""
 }
 
-func (ll *Localizer) getLocaleFromCookie(c *xin.Context, k string) string {
-	if loc, err := c.Cookie(k); err == nil {
-		if ll.acceptable(loc) {
-			return loc
+func (ll *Localizer) getLocaleFromHeader(c *xin.Context, ks []string) string {
+	for _, k := range ks {
+		loc := c.GetHeader(k)
+		qls := str.FieldsAny(loc, ",; ")
+		for _, ql := range qls {
+			if ll.acceptable(ql) {
+				return ql
+			}
 		}
 	}
 	return ""

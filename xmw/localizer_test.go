@@ -40,7 +40,7 @@ func TestLocalizerAcceptLanguages2(t *testing.T) {
 
 func TestLocalizerHttpHeader(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
-	req.Header.Add(LocaleHeaderName, "zh;ja")
+	req.Header.Add(LocaleHeaderNames[0], "zh;ja")
 
 	doLocalizerTest(t, req, "zh")
 }
@@ -62,7 +62,7 @@ func TestLocalizerPostForm(t *testing.T) {
 func TestLocalizerCookie(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.AddCookie(&http.Cookie{
-		Name:  LocaleCookieName,
+		Name:  LocaleCookieNames[0],
 		Value: "zh",
 	})
 

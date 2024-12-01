@@ -10,9 +10,9 @@ func ExampleHumanSize() {
 	fmt.Println(HumanSize(1000000))
 	fmt.Println(HumanSize(1048576))
 	fmt.Println(HumanSize(2 * MB))
-	fmt.Println(HumanSize(float64(3.42 * GB)))
-	fmt.Println(HumanSize(float64(5.372 * TB)))
-	fmt.Println(HumanSize(float64(2.22 * PB)))
+	fmt.Println(HumanSize(3.42 * GB))
+	fmt.Println(HumanSize(5.372 * TB))
+	fmt.Println(HumanSize(2.22 * PB))
 }
 
 func ExampleParseSize() {

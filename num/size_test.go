@@ -1,8 +1,29 @@
 package num
 
 import (
+	"errors"
+	"fmt"
 	"testing"
 )
+
+func TestHumanSizeAny(t *testing.T) {
+	cs := []struct {
+		a any
+		w string
+		e error
+	}{
+		{1234, "1.21 KB", nil},
+		{2345.0, "2.29 KB", nil},
+		{"1.1", "", errors.New("HumanSize: unknown type for '1.1' (string)")},
+	}
+
+	for i, c := range cs {
+		r, e := HumanSizeAny(c.a, 2)
+		if c.w != r || fmt.Sprint(c.e) != fmt.Sprint(e) {
+			t.Errorf("[%d] HumanSizeAny(%v) = (%T, %v, %v), want: (%T, %v, %v)", i, c.a, r, r, e, c.w, c.w, c.e)
+		}
+	}
+}
 
 func TestHumanSizeMinus(t *testing.T) {
 	cs := []struct {

@@ -103,8 +103,8 @@ func Functions() FuncMap {
 
 		// format
 		"JSON":      funcs.JSON,
-		"Comma":     funcs.Comma,
-		"HumanSize": funcs.HumanSize,
+		"Comma":     num.CommaAny,
+		"HumanSize": num.HumanSizeAny,
 
 		// math
 		"Add":      funcs.Add,

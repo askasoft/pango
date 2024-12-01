@@ -1,6 +1,8 @@
 package num
 
 import (
+	"errors"
+	"fmt"
 	"math"
 	"testing"
 )
@@ -11,36 +13,60 @@ func TestComma(t *testing.T) {
 		s any
 	}{
 		{"0", 0},
-		{"10", 10},
-		{"100", 100},
-		{"1,000", 1000},
-		{"10,000", 10000},
-		{"100,000", 100000},
+		{"10", uint8(10)},
+		{"100", uint8(100)},
+		{"1,000", uint16(1000)},
+		{"10,000", uint16(10000)},
+		{"100,000", uint32(100000)},
 		{"10,000,000", 10000000},
 		{"10,100,000", 10100000},
 		{"10,010,000", 10010000},
-		{"10,001,000", 10001000},
-		{"123,456,789", 123456789},
+		{"10,001,000", uint(10001000)},
+		{"123,456,789", uint64(123456789)},
 		{"9,223,372,000,000,000,000", 9.223372e+18},
 		{"9,223,372,036,854,775,807", math.MaxInt64},
 		{"-9,223,372,036,854,775,808", math.MinInt64},
 		{"-9,223,372,000,000,000,000", -9.223372e+18},
-		{"-123,456,789", -123456789},
-		{"-10,100,000", -10100000},
+		{"-123,456,789", int64(-123456789)},
+		{"-10,100,000", float32(-10100000)},
 		{"-10,010,000", -10010000},
 		{"-10,001,000", -10001000},
-		{"-10,000,000", -10000000},
-		{"-100,000", -100000},
-		{"-10,000", -10000},
-		{"-1,000", -1000},
-		{"-100", -100},
-		{"-10", -10},
+		{"-10,000,000", int32(-10000000)},
+		{"-100,000", int32(-100000)},
+		{"-10,000", int16(-10000)},
+		{"-1,000", int16(-1000)},
+		{"-100", int8(-100)},
+		{"-10", int8(-10)},
 	}
 
 	for i, c := range cs {
 		a := Comma(c.s)
 		if a != c.w {
 			t.Errorf("[%d] Comma(%v) = %v, want %v", i, c.s, a, c.w)
+		}
+	}
+}
+
+func TestCommaAny(t *testing.T) {
+	cs := []struct {
+		n any
+		d int
+		w string
+		e error
+	}{
+		{1234, 0, "1,234", nil},
+		{2345.0, 3, "2,345", nil},
+		{2345.1, 3, "2,345.1", nil},
+		{2345.12, 3, "2,345.12", nil},
+		{2345.1234, 3, "2,345.123", nil},
+		{2345.1235, 3, "2,345.124", nil},
+		{"1.1", 0, "", errors.New("Comma: unknown type for '1.1' (string)")},
+	}
+
+	for i, c := range cs {
+		r, e := CommaAny(c.n, c.d)
+		if c.w != r || fmt.Sprint(c.e) != fmt.Sprint(e) {
+			t.Errorf("[%d] CommaAny(%v, %d) = (%T, %v, %v), want: (%T, %v, %v)", i, c.n, c.d, r, r, e, c.w, c.w, c.e)
 		}
 	}
 }
@@ -60,7 +86,7 @@ func TestCommaFloatWithDigits(t *testing.T) {
 	}
 
 	for i, c := range cs {
-		a := CommaFloatWithDigits(c.n, c.d)
+		a := CommaFloatWithDigits(c.n, c.d, ",")
 		if a != c.w {
 			t.Errorf("[%d] CommaFloatWithDigits(%f, %d) = %v, want %v", i, c.n, c.d, a, c.w)
 		}
@@ -99,7 +125,7 @@ func TestCommaFloat(t *testing.T) {
 	}
 
 	for i, c := range cs {
-		a := CommaFloat(c.n)
+		a := CommaFloat(c.n, ",")
 		if a != c.w {
 			t.Errorf("[%d] CommaFloat(%v) = %v, want %v", i, c.n, a, c.w)
 		}

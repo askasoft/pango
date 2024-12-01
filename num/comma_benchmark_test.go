@@ -12,6 +12,6 @@ func BenchmarkComma(b *testing.B) {
 
 func BenchmarkCommaFloat(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		CommaFloat(1234567890.83584)
+		CommaFloat(1234567890.83584, ",")
 	}
 }

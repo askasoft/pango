@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"math"
-	"reflect"
 	"strconv"
 	"strings"
 )
@@ -13,21 +12,68 @@ import (
 // commas after every three orders of magnitude.
 //
 // e.g. Comma(834142) -> 834,142
+// e.g. Comma(834142.1234, 3) -> 834,142.123
 // e.g. Comma(834142, "_") -> 834_142
-func Comma(n any, c ...string) string {
-	v := reflect.ValueOf(n)
+// e.g. Comma(834142.1234, "_", 3) -> 834_142.123
+func Comma(n any, args ...any) string {
+	s, err := CommaAny(n, args...)
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
 
-	switch v.Kind() {
-	case reflect.Int8, reflect.Uint8:
-		return strconv.Itoa(int(v.Int()))
-	case reflect.Int, reflect.Int16, reflect.Int32, reflect.Int64:
-		return CommaInt(v.Int(), c...)
-	case reflect.Uint, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return CommaUint(v.Uint(), c...)
-	case reflect.Float32, reflect.Float64:
-		return CommaFloat(v.Float(), c...)
+// CommaAny produces a string form of the given number in base 10 with
+// commas after every three orders of magnitude.
+//
+// e.g. CommaAny(834142) -> 834,142
+// e.g. CommaAny(834142.1234, 3) -> 834,142.123
+// e.g. CommaAny(834142, "_") -> 834_142
+// e.g. CommaAny(834142.1234, "_", 3) -> 834_142.123
+func CommaAny(n any, args ...any) (string, error) {
+	c, d := ",", 0
+	for _, a := range args {
+		switch p := a.(type) {
+		case string:
+			c = p
+		case int:
+			d = p
+		}
+	}
+
+	switch v := n.(type) {
+	case int8:
+		return Itoa(int(v)), nil
+	case int16:
+		return CommaInt(int64(v), c), nil
+	case int32:
+		return CommaInt(int64(v), c), nil
+	case int64:
+		return CommaInt(v, c), nil
+	case int:
+		return CommaInt(int64(v), c), nil
+	case uint8:
+		return Itoa(int(v)), nil
+	case uint16:
+		return CommaUint(uint64(v), c), nil
+	case uint32:
+		return CommaUint(uint64(v), c), nil
+	case uint64:
+		return CommaUint(v, c), nil
+	case uint:
+		return CommaUint(uint64(v), c), nil
+	case float32:
+		if d > 0 {
+			return CommaFloatWithDigits(float64(v), d, c), nil
+		}
+		return CommaFloat(float64(v), c), nil
+	case float64:
+		if d > 0 {
+			return CommaFloatWithDigits(float64(v), d, c), nil
+		}
+		return CommaFloat(float64(v), c), nil
 	default:
-		panic(fmt.Sprintf("Comma: unknown type for '%v' (%T)", n, n))
+		return "", fmt.Errorf("Comma: unknown type for '%v' (%T)", n, n)
 	}
 }
 
@@ -36,7 +82,7 @@ func Comma(n any, c ...string) string {
 //
 // e.g. CommaInt(834142) -> 834,142
 // e.g. CommaInt(834142, "_") -> 834_142
-func CommaInt(v int64, c ...string) string {
+func CommaInt(v int64, c string) string {
 	// Min int64 can't be negated to a usable value, so it has to be special cased.
 	if v == math.MinInt64 {
 		return "-9,223,372,036,854,775,808"
@@ -48,15 +94,7 @@ func CommaInt(v int64, c ...string) string {
 		v = 0 - v
 	}
 
-	return sign + CommaUint((uint64)(v), c...)
-}
-
-func comma(c ...string) string {
-	sep := ","
-	if len(c) > 0 {
-		sep = c[0]
-	}
-	return sep
+	return sign + CommaUint((uint64)(v), c)
 }
 
 // CommaUint produces a string form of the given number in base 10 with
@@ -64,7 +102,7 @@ func comma(c ...string) string {
 //
 // e.g. CommaUint(834142) -> 834,142
 // e.g. CommaUint(834142, "_") -> 834_142
-func CommaUint(v uint64, c ...string) string {
+func CommaUint(v uint64, c string) string {
 	parts := []string{"", "", "", "", "", "", ""}
 	j := len(parts) - 1
 
@@ -81,8 +119,7 @@ func CommaUint(v uint64, c ...string) string {
 	}
 	parts[j] = strconv.Itoa(int(v))
 
-	sep := comma(c...)
-	return strings.Join(parts[j:], sep)
+	return strings.Join(parts[j:], c)
 }
 
 // CommaFloat produces a string form of the given number in base 10 with
@@ -90,9 +127,9 @@ func CommaUint(v uint64, c ...string) string {
 //
 // e.g. CommaFloat(834142.32) -> 834,142.32
 // e.g. CommaFloat(834142.32, "_") -> 834_142.32
-func CommaFloat(v float64, c ...string) string {
+func CommaFloat(v float64, c string) string {
 	s := strconv.FormatFloat(v, 'f', -1, 64)
-	return CommaString(s, c...)
+	return CommaString(s, c)
 }
 
 // CommaFloatWithDigits works like the Commaf but limits the resulting
@@ -100,9 +137,9 @@ func CommaFloat(v float64, c ...string) string {
 //
 // e.g. CommaFloatWithDigits(834142.32, 1) -> 834,142.3
 // e.g. CommaFloatWithDigits(834142.32, 1, "_") -> 834_142.3
-func CommaFloatWithDigits(f float64, digits int, c ...string) string {
+func CommaFloatWithDigits(f float64, digits int, c string) string {
 	s := FtoaWithDigits(f, digits)
-	return CommaString(s, c...)
+	return CommaString(s, c)
 }
 
 // CommaString produces a string form of the given number string in base 10 with
@@ -110,12 +147,10 @@ func CommaFloatWithDigits(f float64, digits int, c ...string) string {
 //
 // e.g. CommaString("834142.32") -> 834,142.32
 // e.g. CommaString("834142.32", "_") -> 834_142.32
-func CommaString(s string, c ...string) string {
+func CommaString(s string, c string) string {
 	if s == "" {
 		return s
 	}
-
-	sep := comma(c...)
 
 	var buf bytes.Buffer
 
@@ -129,11 +164,11 @@ func CommaString(s string, c ...string) string {
 	if len(parts[0])%3 != 0 {
 		pos += len(parts[0]) % 3
 		buf.WriteString(parts[0][:pos])
-		buf.WriteString(sep)
+		buf.WriteString(c)
 	}
 	for ; pos < len(parts[0]); pos += 3 {
 		buf.WriteString(parts[0][pos : pos+3])
-		buf.WriteString(sep)
+		buf.WriteString(c)
 	}
 	buf.Truncate(buf.Len() - 1)
 

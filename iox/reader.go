@@ -44,7 +44,7 @@ type MaxBytesError struct {
 
 func (e *MaxBytesError) Error() string {
 	// Due to Hyrum's law, this text cannot be changed.
-	return fmt.Sprintf("iox: reader too large (must <= %s)", num.HumanSize(float64(e.Limit)))
+	return fmt.Sprintf("iox: reader too large (must <= %s)", num.HumanSize(e.Limit))
 }
 
 func NewMaxBytesReader(r io.Reader, n int64) *MaxBytesReader {

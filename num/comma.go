@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"math"
-	"reflect"
 	"strconv"
 	"strings"
 )
@@ -15,17 +14,31 @@ import (
 // e.g. Comma(834142) -> 834,142
 // e.g. Comma(834142, "_") -> 834_142
 func Comma(n any, c ...string) string {
-	v := reflect.ValueOf(n)
-
-	switch v.Kind() {
-	case reflect.Int8, reflect.Uint8:
-		return strconv.Itoa(int(v.Int()))
-	case reflect.Int, reflect.Int16, reflect.Int32, reflect.Int64:
-		return CommaInt(v.Int(), c...)
-	case reflect.Uint, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return CommaUint(v.Uint(), c...)
-	case reflect.Float32, reflect.Float64:
-		return CommaFloat(v.Float(), c...)
+	switch v := n.(type) {
+	case int8:
+		return strconv.Itoa(int(v))
+	case int16:
+		return CommaInt(int64(v), c...)
+	case int32:
+		return CommaInt(int64(v), c...)
+	case int64:
+		return CommaInt(v, c...)
+	case int:
+		return CommaInt(int64(v), c...)
+	case uint8:
+		return strconv.Itoa(int(v))
+	case uint16:
+		return CommaUint(uint64(v), c...)
+	case uint32:
+		return CommaUint(uint64(v), c...)
+	case uint64:
+		return CommaUint(v, c...)
+	case uint:
+		return CommaUint(uint64(v), c...)
+	case float32:
+		return CommaFloat(float64(v), c...)
+	case float64:
+		return CommaFloat(v, c...)
 	default:
 		panic(fmt.Sprintf("Comma: unknown type for '%v' (%T)", n, n))
 	}

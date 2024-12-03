@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 
 	"github.com/askasoft/pango/fsu"
 	"github.com/askasoft/pango/iox"
@@ -121,6 +123,11 @@ func saveResponse(res *http.Response, path string) error {
 
 	if res.StatusCode != http.StatusOK {
 		return &ResultError{StatusCode: res.StatusCode, Status: res.Status}
+	}
+
+	dir := filepath.Dir(path)
+	if err := os.MkdirAll(dir, os.FileMode(0770)); err != nil {
+		return err
 	}
 
 	return fsu.WriteReader(path, res.Body, fsu.FileMode(0660))

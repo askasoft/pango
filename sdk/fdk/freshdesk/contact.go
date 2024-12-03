@@ -76,7 +76,7 @@ type Contact struct {
 	UniqueExternalID string `json:"unique_external_id,omitempty"`
 
 	// Additional companies associated with the contact
-	OtherCompanies []*OtherCompany `json:"other_companies,omitempty"`
+	OtherCompanies []any `json:"other_companies,omitempty"`
 
 	// IDs of the companies associated with the contact (only used by MergeContact)
 	CompanyIDs int64 `json:"company_ids,omitempty"`
@@ -115,9 +115,11 @@ func (c *Contact) Values() Values {
 	vs.SetStrings("tags", c.Tags)
 	vs.SetString("time_zone", c.TimeZone)
 	if len(c.OtherCompanies) > 0 {
-		for _, oc := range c.OtherCompanies {
-			(url.Values)(vs).Add("other_companies[company_id]", num.Ltoa(oc.CompanyID))
-			(url.Values)(vs).Add("other_companies[view_all_tickets]", bol.Btoa(oc.ViewAllTickets))
+		for _, o := range c.OtherCompanies {
+			if oc, ok := o.(*OtherCompany); ok {
+				(url.Values)(vs).Add("other_companies[company_id]", num.Ltoa(oc.CompanyID))
+				(url.Values)(vs).Add("other_companies[view_all_tickets]", bol.Btoa(oc.ViewAllTickets))
+			}
 		}
 	}
 	return vs

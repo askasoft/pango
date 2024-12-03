@@ -1,8 +1,11 @@
 package freshdesk
 
 import (
+	"reflect"
 	"testing"
 	"time"
+
+	"github.com/askasoft/pango/fsu"
 )
 
 var (
@@ -24,7 +27,7 @@ func TestTicketAPIs(t *testing.T) {
 		Phone:       "09012345678",
 		Subject:     "test " + time.Now().String(),
 		Description: "description " + time.Now().String(),
-		Status:      TicketStatusClosed,
+		Status:      TicketStatusPending,
 		Priority:    TicketPriorityMedium,
 		// CreatedAt:   &Time{Time: tm1}, // unsupport
 	}
@@ -33,7 +36,7 @@ func TestTicketAPIs(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	fd.Logger.Info(ct)
+	fd.Logger.Debug(ct)
 
 	tu := &Ticket{}
 	tu.Description = `<div>
@@ -41,16 +44,11 @@ func TestTicketAPIs(t *testing.T) {
 <div>問い合わせです。</div>
 <p> 外部 image</p><img src="https://github.com/askasoft/pango/raw/master/logo.png"><br/><br/><br/>
 </div>`
-	tu.AddAttachment("./agent.go")
+	tu.AddAttachment("./ticket.go")
 
 	ut, err := fd.UpdateTicket(ctxbg, ct.ID, tu)
 	if err != nil {
-		t.Fatalf("ERROR: %v", err)
-	}
-
-	err = fd.DeleteAttachment(ctxbg, ut.Attachments[0].ID)
-	if err != nil {
-		t.Fatalf("ERROR: %v", err)
+		t.Errorf("ERROR: %v", err)
 	}
 
 	// find contact
@@ -58,10 +56,12 @@ func TestTicketAPIs(t *testing.T) {
 		Phone: "09012345678",
 	})
 	if err != nil {
-		t.Fatalf("ERROR: %v", err)
+		t.Errorf("ERROR: %v", err)
 	}
 	if len(cs) == 0 {
-		t.Fatalf("ERROR: %v", "missing contact")
+		t.Errorf("ERROR: %v", "missing contact")
+	} else {
+		fd.Logger.Debug(cs)
 	}
 
 	// public note
@@ -73,9 +73,10 @@ func TestTicketAPIs(t *testing.T) {
 	}
 	cnu, err := fd.CreateNote(ctxbg, ct.ID, nuc)
 	if err != nil {
-		t.Fatalf("ERROR: %v", err)
+		t.Errorf("ERROR: %v", err)
+	} else {
+		fd.Logger.Debug(cnu)
 	}
-	fd.Logger.Info(cnu)
 
 	// private note
 	nc := &Note{
@@ -84,35 +85,80 @@ func TestTicketAPIs(t *testing.T) {
 	}
 	cn, err := fd.CreateNote(ctxbg, ct.ID, nc)
 	if err != nil {
-		t.Fatalf("ERROR: %v", err)
+		t.Errorf("ERROR: %v", err)
+	} else {
+		fd.Logger.Debug(cn)
 	}
-	fd.Logger.Info(cn)
 
 	cu := &Conversation{
 		Body: "private agent update note " + time.Now().String(),
 	}
-	cu.AddAttachment("./agent.go")
+	cu.AddAttachment("./conversation.go")
 	uc, err := fd.UpdateConversation(ctxbg, cn.ID, cu)
 	if err != nil {
-		t.Fatalf("ERROR: %v", err)
+		t.Errorf("ERROR: %v", err)
+	} else {
+		fd.Logger.Debug(uc)
 	}
-	fd.Logger.Info(uc)
-
-	gtc, err := fd.GetTicket(ctxbg, ct.ID, TicketIncludeConversations)
-	if err != nil {
-		t.Fatalf("ERROR: %v", err)
-	}
-	fd.Logger.Info(gtc)
 
 	gtr, err := fd.GetTicket(ctxbg, ct.ID, TicketIncludeRequester)
 	if err != nil {
-		t.Fatalf("ERROR: %v", err)
+		t.Errorf("ERROR: %v", err)
+	} else {
+		fd.Logger.Debug(gtr)
 	}
-	fd.Logger.Info(gtr)
+
+	if len(gtr.Attachments) != 1 {
+		t.Errorf("Attachments: %d", len(gtr.Attachments))
+	} else {
+		bs, err := fd.DownloadNoAuth(ctxbg, gtr.Attachments[0].AttachmentURL)
+		if err != nil {
+			t.Errorf("ERROR: %v", err)
+		} else {
+			ws, _ := fsu.ReadFile("./ticket.go")
+			if !reflect.DeepEqual(bs, ws) {
+				t.Error("./ticket.go different")
+			}
+		}
+	}
+
+	gtc, err := fd.GetTicket(ctxbg, ct.ID, TicketIncludeConversations)
+	if err != nil {
+		t.Errorf("ERROR: %v", err)
+	} else {
+		fd.Logger.Debug(gtc)
+	}
+
+	if len(gtc.Conversations) != 2 {
+		t.Errorf("Conversations: %d", len(gtc.Conversations))
+	} else {
+		for _, c := range gtc.Conversations {
+			if c.Private {
+				if len(c.Attachments) != 1 {
+					t.Errorf("Attachments: %d", len(c.Attachments))
+				} else {
+					bs, err := fd.DownloadNoAuth(ctxbg, c.Attachments[0].AttachmentURL)
+					if err != nil {
+						t.Errorf("ERROR: %v", err)
+					} else {
+						ws, _ := fsu.ReadFile("./conversation.go")
+						if !reflect.DeepEqual(bs, ws) {
+							t.Error("./conversation.go different")
+						}
+					}
+				}
+			}
+		}
+	}
+
+	err = fd.DeleteAttachment(ctxbg, ut.Attachments[0].ID)
+	if err != nil {
+		t.Errorf("ERROR: %v", err)
+	}
 
 	err = fd.DeleteTicket(ctxbg, ct.ID)
 	if err != nil {
-		t.Fatalf("ERROR: %v", err)
+		t.Errorf("ERROR: %v", err)
 	}
 }
 

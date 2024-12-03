@@ -1,9 +1,11 @@
 package freshservice
 
 import (
+	"reflect"
 	"testing"
 	"time"
 
+	"github.com/askasoft/pango/fsu"
 	"github.com/askasoft/pango/log"
 )
 
@@ -28,9 +30,12 @@ func TestTicketAPIs(t *testing.T) {
 		Phone:       "09012345678",
 		Subject:     "test " + time.Now().String(),
 		Description: "description " + time.Now().String(),
-		Status:      TicketStatusOpen,
+		Status:      TicketStatusPending,
 		Priority:    TicketPriorityMedium,
-		CreatedAt:   &Time{Time: tm1},
+		CustomFields: map[string]any{
+			"rand75874209": true,
+		},
+		CreatedAt: &Time{Time: tm1},
 	}
 
 	ct, err := fs.CreateTicket(ctxbg, ot)
@@ -45,17 +50,13 @@ func TestTicketAPIs(t *testing.T) {
 <div>問い合わせです。</div>
 <p> 外部 image</p><img src="https://github.com/askasoft/pango/raw/master/logo.png"><br/><br/><br/>
 </div>`
-	tu.AddAttachment("./agent.go")
+	tu.AddAttachment("./ticket.go")
 
 	ut, err := fs.UpdateTicket(ctxbg, ct.ID, tu)
 	if err != nil {
-		t.Fatalf("ERROR: %v", err)
-	}
-	fs.Logger.Debug(ut)
-
-	err = fs.DeleteTicketAttachment(ctxbg, ut.ID, ut.Attachments[0].ID)
-	if err != nil {
-		t.Fatalf("ERROR: %v", err)
+		t.Errorf("ERROR: %v", err)
+	} else {
+		fs.Logger.Debug(ut)
 	}
 
 	tm2, _ := time.ParseInLocation("2006-1-2 15:04:05", "2000-01-02 10:20:30", time.Local)
@@ -67,35 +68,77 @@ func TestTicketAPIs(t *testing.T) {
 
 	cn, err := fs.CreateNote(ctxbg, ct.ID, nc)
 	if err != nil {
-		t.Fatalf("ERROR: %v", err)
+		t.Errorf("ERROR: %v", err)
+	} else {
+		fs.Logger.Debug(cn)
 	}
-	fs.Logger.Debug(cn)
 
 	cu := &Conversation{
 		Body: "update note " + time.Now().String(),
 	}
-	cu.AddAttachment("./agent.go")
+	cu.AddAttachment("./conversation.go")
 	uc, err := fs.UpdateConversation(ctxbg, cn.ID, cu)
 	if err != nil {
-		t.Fatalf("ERROR: %v", err)
+		t.Errorf("ERROR: %v", err)
+	} else {
+		fs.Logger.Debug(uc)
 	}
-	fs.Logger.Debug(uc)
-
-	gtc, err := fs.GetTicket(ctxbg, ct.ID, TicketIncludeConversations)
-	if err != nil {
-		t.Fatalf("ERROR: %v", err)
-	}
-	fs.Logger.Debug(gtc)
 
 	gtr, err := fs.GetTicket(ctxbg, ct.ID, TicketIncludeRequester)
 	if err != nil {
-		t.Fatalf("ERROR: %v", err)
+		t.Errorf("ERROR: %v", err)
+	} else {
+		fs.Logger.Debug(gtr)
 	}
-	fs.Logger.Debug(gtr)
+
+	if len(gtr.Attachments) != 1 {
+		t.Errorf("Attachments: %d", len(gtr.Attachments))
+	} else {
+		bs, err := fs.DownloadNoAuth(ctxbg, gtr.Attachments[0].AttachmentURL)
+		if err != nil {
+			t.Errorf("ERROR: %v", err)
+		} else {
+			ws, _ := fsu.ReadFile("./ticket.go")
+			if !reflect.DeepEqual(bs, ws) {
+				t.Error("./ticket.go different")
+			}
+		}
+	}
+
+	gtc, err := fs.GetTicket(ctxbg, ct.ID, TicketIncludeConversations)
+	if err != nil {
+		t.Errorf("ERROR: %v", err)
+	} else {
+		fs.Logger.Debug(gtc)
+	}
+
+	if len(gtc.Conversations) != 1 {
+		t.Errorf("Conversations: %d", len(gtc.Conversations))
+	} else {
+		c := gtc.Conversations[0]
+		if len(c.Attachments) != 1 {
+			t.Errorf("Attachments: %d", len(c.Attachments))
+		} else {
+			bs, err := fs.DownloadNoAuth(ctxbg, c.Attachments[0].AttachmentURL)
+			if err != nil {
+				t.Errorf("ERROR: %v", err)
+			} else {
+				ws, _ := fsu.ReadFile("./conversation.go")
+				if !reflect.DeepEqual(bs, ws) {
+					t.Error("./conversation.go different")
+				}
+			}
+		}
+	}
+
+	err = fs.DeleteTicketAttachment(ctxbg, ut.ID, ut.Attachments[0].ID)
+	if err != nil {
+		t.Errorf("ERROR: %v", err)
+	}
 
 	err = fs.DeleteTicket(ctxbg, ct.ID)
 	if err != nil {
-		t.Fatalf("ERROR: %v", err)
+		t.Errorf("ERROR: %v", err)
 	}
 }
 

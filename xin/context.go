@@ -837,6 +837,16 @@ func (c *Context) BindBodyWithXML(obj any) error {
 	return c.BindBodyWith(obj, binding.XML)
 }
 
+// RequestHostname use net.SplitHostPort() to get host name only.
+// If net.SplitHostPort(c.Request.Host) has error, return c.Request.Host .
+func (c *Context) RequestHostname() string {
+	host, _, err := net.SplitHostPort(c.Request.Host)
+	if err == nil {
+		return host
+	}
+	return c.Request.Host
+}
+
 // IsSecure implements one best effort algorithm to check the https request.
 // It checks the Request.URL.Scheme is 'https' or Request.TLS != nil.
 // It called c.RemoteIP() under the hood, to check if the remote IP is a trusted proxy or not,

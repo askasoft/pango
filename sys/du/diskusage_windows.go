@@ -23,11 +23,12 @@ func NewDiskUsage(volumePath string) *DiskUsage {
 
 	pp, _ := syscall.UTF16PtrFromString(volumePath)
 
-	getDiskFreeSpaceExW.Call(
+	getDiskFreeSpaceExW.Call( //nolint: errcheck
 		uintptr(unsafe.Pointer(pp)),
 		uintptr(unsafe.Pointer(&du.freeBytes)),
 		uintptr(unsafe.Pointer(&du.totalBytes)),
-		uintptr(unsafe.Pointer(&du.availBytes)))
+		uintptr(unsafe.Pointer(&du.availBytes)),
+	)
 
 	return du
 }

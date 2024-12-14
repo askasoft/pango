@@ -59,20 +59,25 @@ func (sjm *sjm) GetJobLogs(jid int64, minLid, maxLid int64, asc bool, limit int,
 }
 
 func (sjm *sjm) AddJobLogs(jls []*xjm.JobLog) error {
-	s := "INSERT INTO " + sjm.lt + " (jid, time, level, message) VALUES (:jid, :time, :level, :message)"
-	_, err := sjm.db.NamedExec(s, jls)
+	if len(jls) == 0 {
+		return nil
+	}
+
+	sqb := sjm.db.Builder()
+	sqb.Insert(sjm.lt)
+	sqb.Names("jid", "time", "level", "message")
+	sql := sqb.SQL()
+	_, err := sjm.db.NamedExec(sql, jls)
 	return err
 }
 
 func (sjm *sjm) AddJobLog(jid int64, time time.Time, level string, message string) error {
 	sqb := sjm.db.Builder()
-
 	sqb.Insert(sjm.lt)
 	sqb.Setc("jid", jid)
 	sqb.Setc("time", time)
 	sqb.Setc("level", level)
 	sqb.Setc("message", message)
-
 	sql, args := sqb.Build()
 
 	_, err := sjm.db.Exec(sql, args...)

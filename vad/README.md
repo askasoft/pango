@@ -105,8 +105,8 @@ Baked-in Validations
 
 | Tag | Description |
 | - | - |
-| letter | Ascii Letter Only |
-| letternum | Ascii Letter or Number |
+| letter | ASCII Letter Only |
+| letternum | ASCII Letter or Number |
 | utfletter | Unicode Letter |
 | utfletternum | Unicode Letter or Number |
 | ascii | ASCII |
@@ -121,7 +121,7 @@ Baked-in Validations
 | excludesrune | Excludes Rune |
 | lowercase | Lowercase |
 | multibyte | Multi-Byte Characters |
-| number | NOT DOCUMENTED IN doc.go |
+| number | ASCII Number |
 | numeric | Numeric |
 | decimal | Decimal |
 | printable | Printable Unicode |

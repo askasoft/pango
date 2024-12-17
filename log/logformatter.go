@@ -592,7 +592,7 @@ func (ss *SubjectSuport) SetSubject(format string) {
 func (ss *SubjectSuport) SubFormat(le *Event) []byte {
 	f := ss.Subjecter
 	if f == nil {
-		f = TextFmtDefault
+		f = TextFmtSubject
 	}
 
 	ss.SubBuffer.Reset()

@@ -26,6 +26,7 @@ func TestTeamsWriter(t *testing.T) {
 	sw.Filter = log.NewLevelFilter(log.LevelInfo)
 	lg.SetWriter(sw)
 
-	lg.Debug("This is a teams debug log")
-	lg.Info("This is a teams info log")
+	lg.Debug("This is a teams **debug** log")
+	lg.Info("This is a teams **info** log. \ndetail: This is detail message.")
+	// lg.Warn("This is a teams **warn** log. detail: \n\nThis is detail message.")
 }

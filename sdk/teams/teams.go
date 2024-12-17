@@ -28,18 +28,20 @@ func (e *Error) Error() string {
 
 // Message teams message
 type Message struct {
-	Type  string `json:"type,omitempty"`
-	Title string `json:"title,omitempty"`
-	Text  string `json:"text,omitempty"`
+	Type        string `json:"type,omitempty"`
+	Title       string `json:"title,omitempty"`
+	Text        string `json:"text,omitempty"`
+	Attachments []any  `json:"attachments,omitempty"`
 }
 
 // Post post teams message
-func Post(url string, timeout time.Duration, tm *Message) error {
-	bs, err := json.Marshal(tm)
+func Post(url string, timeout time.Duration, msg any) error {
+	bs, err := json.Marshal(msg)
 	if err != nil {
 		return err
 	}
 
+	fmt.Println(string(bs))
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(bs))
 	if err != nil {
 		return err
@@ -54,7 +56,7 @@ func Post(url string, timeout time.Duration, tm *Message) error {
 
 	defer iox.DrainAndClose(res.Body)
 
-	if res.StatusCode != http.StatusOK {
+	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusAccepted {
 		e := &Error{Status: res.Status, StatusCode: res.StatusCode}
 		ra := res.Header.Get("Retry-After")
 		if ra != "" {

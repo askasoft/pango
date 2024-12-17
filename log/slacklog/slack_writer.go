@@ -46,6 +46,7 @@ func (sw *SlackWriter) SetTimeout(timeout string) error {
 // Write send log message to slack
 func (sw *SlackWriter) Write(le *log.Event) {
 	if sw.Reject(le) {
+		sw.Flush()
 		return
 	}
 
@@ -63,6 +64,10 @@ func (sw *SlackWriter) Close() {
 }
 
 func (sw *SlackWriter) write(le *log.Event) (err error) {
+	if sw.Timeout.Milliseconds() == 0 {
+		sw.Timeout = time.Second * 5
+	}
+
 	if len(sw.message.Attachments) == 0 {
 		sw.message.AddAttachment(&slack.Attachment{})
 	}
@@ -71,10 +76,6 @@ func (sw *SlackWriter) write(le *log.Event) (err error) {
 	sw.message.IconEmoji = sw.getIconEmoji(le.Level)
 	sw.message.Text = sub
 	sw.message.Attachments[0].Text = msg
-
-	if sw.Timeout.Milliseconds() == 0 {
-		sw.Timeout = time.Second * 2
-	}
 
 	if err = slack.Post(sw.Webhook, sw.Timeout, &sw.message); err != nil {
 		err = fmt.Errorf("SlackWriter(%s): Post(): %w", sw.Webhook, err)

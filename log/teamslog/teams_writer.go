@@ -19,6 +19,7 @@ type TeamsWriter struct {
 
 	Webhook string
 	Timeout time.Duration
+	Style   string
 
 	message teams.Message
 }
@@ -46,6 +47,7 @@ func (tw *TeamsWriter) SetTimeout(timeout string) error {
 // Write send log message to teams
 func (tw *TeamsWriter) Write(le *log.Event) {
 	if tw.Reject(le) {
+		tw.Flush()
 		return
 	}
 
@@ -63,10 +65,45 @@ func (tw *TeamsWriter) Close() {
 }
 
 func (tw *TeamsWriter) write(le *log.Event) (err error) {
-	tw.message.Title, tw.message.Text = tw.format(le)
-
 	if tw.Timeout.Milliseconds() == 0 {
-		tw.Timeout = time.Second * 2
+		tw.Timeout = time.Second * 5
+	}
+
+	title, text := tw.format(le)
+
+	switch tw.Style {
+	case "adaptive":
+		if len(tw.message.Attachments) == 0 {
+			tw.message.Type = "message"
+			tw.message.Attachments = []any{
+				map[string]any{
+					"contentType": "application/vnd.microsoft.card.adaptive",
+					"content": map[string]any{
+						"$schema": "https://adaptivecards.io/schemas/adaptive-card.json",
+						"type":    "AdaptiveCard",
+						"version": "1.5",
+						"body": []map[string]any{
+							{
+								"type":  "TextBlock",
+								"text":  "",
+								"wrap":  true,
+								"style": "heading",
+							},
+							{
+								"type":        "CodeBlock",
+								"codeSnippet": "",
+							},
+						},
+					},
+				},
+			}
+		}
+
+		body := tw.message.Attachments[0].(map[string]any)["content"].(map[string]any)["body"].([]map[string]any)
+		body[0]["text"] = title
+		body[1]["codeSnippet"] = text
+	default:
+		tw.message.Title, tw.message.Text = title, text
 	}
 
 	if err = teams.Post(tw.Webhook, tw.Timeout, &tw.message); err != nil {

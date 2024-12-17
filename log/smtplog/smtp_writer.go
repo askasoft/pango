@@ -55,6 +55,7 @@ func (sw *SMTPWriter) SetTimeout(timeout string) error {
 // Write send log message to smtp server.
 func (sw *SMTPWriter) Write(le *log.Event) {
 	if sw.Reject(le) {
+		sw.Flush()
 		return
 	}
 

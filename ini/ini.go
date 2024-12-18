@@ -18,11 +18,11 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
-type Sections = linkedhashmap.LinkedHashMap[string, *Section]
+type sections = linkedhashmap.LinkedHashMap[string, *Section]
 
 // Ini INI file reader / writer
 type Ini struct {
-	sections Sections // Parsed sections
+	sections sections // Parsed sections
 	EOL      string   // End of Line
 }
 
@@ -121,9 +121,9 @@ func (ini *Ini) GetSection(name string) *Section {
 
 // NewSection create a section to INI, overwrite existing section
 func (ini *Ini) NewSection(name string, comments ...string) *Section {
-	section := NewSection(name, comments...)
-	ini.sections.Set(section.name, section)
-	return section
+	sec := &Section{name: name, comments: comments}
+	ini.sections.Set(sec.name, sec)
+	return sec
 }
 
 // AddSection add a section to INI, overwrite existing section
@@ -134,7 +134,7 @@ func (ini *Ini) AddSection(section *Section) {
 // RemoveSection remove a section from INI
 func (ini *Ini) RemoveSection(name string) (sec *Section) {
 	if name == "" {
-		sec, _ = ini.sections.Set("", NewSection(""))
+		sec, _ = ini.sections.Set("", &Section{})
 		return
 	}
 
@@ -143,7 +143,7 @@ func (ini *Ini) RemoveSection(name string) (sec *Section) {
 }
 
 // emptySection empty section for internal use
-var emptySection = NewSection("")
+var emptySection = &Section{}
 
 // esection get a section from ini, or a empty section if it does not exists
 func (ini *Ini) esection(name string) *Section {

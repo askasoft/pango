@@ -29,14 +29,6 @@ type Section struct {
 	entries  EntriesMap // Entries for this section.
 }
 
-// NewSection create a INI section
-func NewSection(name string, comments ...string) *Section {
-	return &Section{
-		name:     name,
-		comments: comments,
-	}
-}
-
 // Name return the section's name
 func (sec *Section) Name() string {
 	return sec.name

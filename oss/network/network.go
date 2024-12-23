@@ -1,17 +1,24 @@
 package network
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // NetworkStats represents network statistics
 type NetworkStats struct {
-	Name        string
-	Received    uint64 // total number of bytes of data received
-	Transmitted uint64 // total number of bytes of data transmitted
+	Name        string `json:"name"`        // network interface name
+	Received    uint64 `json:"received"`    // total number of bytes of data received
+	Transmitted uint64 `json:"transmitted"` // total number of bytes of data transmitted
 }
 
 func (ns *NetworkStats) Subtract(s *NetworkStats) {
 	ns.Received -= s.Received
 	ns.Transmitted -= s.Transmitted
+}
+
+func (ns *NetworkStats) String() string {
+	return fmt.Sprintf("(%q R: %d, T: %d)", ns.Name, ns.Received, ns.Transmitted)
 }
 
 type NetworksStats []NetworkStats
@@ -27,15 +34,35 @@ func (nss NetworksStats) Subtract(ss NetworksStats) {
 	}
 }
 
-type NetworkStatsDelta struct {
+type NetworkUsage struct {
 	NetworkStats
 	Delta time.Duration
 }
 
-type NetworksStatsDelta []NetworkStatsDelta
+// ReceiveSpeed get receive speed bytes/second
+func (nu *NetworkUsage) ReceiveSpeed() float64 {
+	if nu.Delta == 0 {
+		return 0
+	}
+	return float64(nu.Received) / nu.Delta.Seconds()
+}
 
-// GetNetworkStatsDelta get network statistics between delta duration
-func GetNetworkStatsDelta(delta time.Duration) (nssd NetworksStatsDelta, err error) {
+// TransmitSpeed get transmit speed bytes/second
+func (nu *NetworkUsage) TransmitSpeed() float64 {
+	if nu.Delta == 0 {
+		return 0
+	}
+	return float64(nu.Transmitted) / nu.Delta.Seconds()
+}
+
+func (nu *NetworkUsage) String() string {
+	return fmt.Sprintf("(%q R: %d, T: %d, D: %s)", nu.Name, nu.Received, nu.Transmitted, nu.Delta)
+}
+
+type NetworksUsage []NetworkUsage
+
+// GetNetworksUsage get networks usage between delta duration
+func GetNetworksUsage(delta time.Duration) (nsu NetworksUsage, err error) {
 	var nss1, nss2 NetworksStats
 
 	nss1, err = GetNetworksStats()
@@ -52,10 +79,10 @@ func GetNetworkStatsDelta(delta time.Duration) (nssd NetworksStatsDelta, err err
 
 	nss2.Subtract(nss1)
 
-	nssd = make(NetworksStatsDelta, len(nss2))
+	nsu = make(NetworksUsage, len(nss2))
 	for i, ns := range nss2 {
-		nssd[i].NetworkStats = ns
-		nssd[i].Delta = delta
+		nsu[i].NetworkStats = ns
+		nsu[i].Delta = delta
 	}
 	return
 }

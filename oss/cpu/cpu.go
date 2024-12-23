@@ -1,20 +1,23 @@
 package cpu
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // CPUStats represents cpu statistics for linux
 type CPUStats struct {
-	User      uint64
-	Nice      uint64
-	System    uint64
-	Idle      uint64
-	Iowait    uint64
-	Irq       uint64
-	Softirq   uint64
-	Steal     uint64
-	Guest     uint64
-	GuestNice uint64
-	Total     uint64
+	User      uint64 `json:"user"`
+	Nice      uint64 `json:"nice"`
+	System    uint64 `json:"system"`
+	Idle      uint64 `json:"idle"`
+	Iowait    uint64 `json:"iowait"`
+	Irq       uint64 `json:"irq"`
+	Softirq   uint64 `json:"softirq"`
+	Steal     uint64 `json:"steal"`
+	Guest     uint64 `json:"guest"`
+	GuestNice uint64 `json:"guestnice"`
+	Total     uint64 `json:"total"`
 }
 
 func (cs *CPUStats) calcUsage(v uint64) float64 {
@@ -82,14 +85,22 @@ func (cs *CPUStats) Subtract(s *CPUStats) {
 	cs.Total -= s.Total
 }
 
-type CPUStatsDelta struct {
-	CPUStats
-	Delta time.Duration
+func (cs *CPUStats) String() string {
+	return fmt.Sprintf(
+		"(us: %d, sy: %d, ni: %d, id: %d, wa: %d, hi: %d, si: %d, st: %d, gu: %d, gn: %d)",
+		cs.User, cs.System, cs.Nice, cs.Idle, cs.Iowait,
+		cs.Irq, cs.Softirq, cs.Steal, cs.Guest, cs.GuestNice,
+	)
 }
 
-// GetCPUStatsDelta get cpu statistics between delta duration
-func GetCPUStatsDelta(delta time.Duration) (csd CPUStatsDelta, err error) {
-	var cs1 CPUStats
+type CPUUsage struct {
+	CPUStats
+	Delta time.Duration `json:"delta,omitempty"`
+}
+
+// GetCPUUsage get cpu usage between delta duration
+func GetCPUUsage(delta time.Duration) (cu CPUUsage, err error) {
+	var cs1, cs2 CPUStats
 
 	cs1, err = GetCPUStats()
 	if err != nil {
@@ -98,12 +109,13 @@ func GetCPUStatsDelta(delta time.Duration) (csd CPUStatsDelta, err error) {
 
 	time.Sleep(delta)
 
-	csd.CPUStats, err = GetCPUStats()
+	cs2, err = GetCPUStats()
 	if err != nil {
 		return
 	}
 
-	csd.Subtract(&cs1)
-	csd.Delta = delta
+	cu.CPUStats = cs2
+	cu.Subtract(&cs1)
+	cu.Delta = delta
 	return
 }

@@ -13,7 +13,7 @@ import (
 )
 
 // GetDisksStats get disk I/O statistics.
-func GetDisksStats() (DisksStats, error) {
+func GetDisksStats() (DisksIOStats, error) {
 	// Reference: Documentation/iostats.txt in the source of Linux
 	file, err := os.Open("/proc/diskstats")
 	if err != nil {
@@ -23,7 +23,7 @@ func GetDisksStats() (DisksStats, error) {
 	return collectDiskStats(file)
 }
 
-func collectDiskStats(out io.Reader) (stats DisksStats, err error) {
+func collectDiskStats(out io.Reader) (stats DisksIOStats, err error) {
 	var readed, written uint64
 
 	scanner := bufio.NewScanner(out)
@@ -46,7 +46,7 @@ func collectDiskStats(out io.Reader) (stats DisksStats, err error) {
 			return
 		}
 
-		stats = append(stats, DiskStats{
+		stats = append(stats, DiskIOStats{
 			Name:    name,
 			Readed:  readed,
 			Written: written,

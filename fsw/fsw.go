@@ -12,13 +12,18 @@ func Default() *FileWatcher {
 	return _fsw
 }
 
+// SetDefault set the default FileWatcher instance used by the package-level functions.
+func SetDefault(fw *FileWatcher) {
+	_fsw = fw
+}
+
 // Start start file watching go-routine
-func Start() (err error) {
+func Start() error {
 	return _fsw.Start()
 }
 
 // Stop stop file watching go-routine
-func Stop() (err error) {
+func Stop() error {
 	return _fsw.Stop()
 }
 

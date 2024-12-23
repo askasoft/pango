@@ -56,8 +56,9 @@ type fileevent struct {
 
 // FileWatcher struct for file watching
 type FileWatcher struct {
-	Delay    time.Duration
-	Logger   log.Logger // Error logger
+	Delay  time.Duration
+	Logger log.Logger
+
 	fsnotify *fsnotify.Watcher
 	items    map[string]*fileitem
 	events   map[string]*fileevent
@@ -72,7 +73,6 @@ func NewFileWatcher() *FileWatcher {
 		items:  make(map[string]*fileitem),
 		events: make(map[string]*fileevent),
 	}
-
 	return fw
 }
 
@@ -123,27 +123,25 @@ func (fw *FileWatcher) Start() (err error) {
 }
 
 // Stop stop file watching go-routine
-func (fw *FileWatcher) Stop() (err error) {
+func (fw *FileWatcher) Stop() error {
 	fsn := fw.fsnotify
 	if fsn == nil {
-		return
+		return nil
 	}
 
 	timer, log := fw.timer, fw.Logger
 
-	if log != nil {
-		log.Info("fswatch: stop")
-	}
-
 	fw.timer = nil
 	fw.fsnotify = nil
 
+	if log != nil {
+		log.Info("fswatch: stop")
+	}
 	if timer != nil {
 		timer.Stop()
 	}
 
-	err = fsn.Close()
-	return
+	return fsn.Close()
 }
 
 // Add add a file to watch on specified operation op occurred

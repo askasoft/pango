@@ -2,25 +2,24 @@ package cpu
 
 import (
 	"fmt"
-	"runtime"
 	"testing"
 	"time"
 )
 
-func TestGetCPU(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		time.Sleep(time.Second)
-	}
+func TestGetCPUStatsDelta(t *testing.T) {
+	for i := 0; i < 8; i++ {
+		time.Sleep(time.Millisecond * 250)
 
-	cpu, err := GetCPUStats()
-	if err != nil {
-		t.Fatalf("error should be nil but got: %v", err)
-	}
+		cpu, err := GetCPUStatsDelta(time.Millisecond * 250)
+		if err != nil {
+			t.Fatalf("error should be nil but got: %v", err)
+		}
 
-	if cpu.Total <= 0 {
-		t.Fatalf("invalid cpu value: %+v", cpu)
-	}
+		if cpu.Total <= 0 {
+			t.Fatalf("invalid cpu value: %+v", cpu)
+		}
 
-	fmt.Printf("cpu value: %+v\n", cpu)
-	fmt.Printf("cpu usage: %v\n", cpu.CPUUsage())
+		fmt.Printf("[%d] cpu value: %+v\n", i, cpu)
+		fmt.Printf("[%d] cpu usage: %.2f%%\n", i, cpu.CPUUsage()*100)
+	}
 }

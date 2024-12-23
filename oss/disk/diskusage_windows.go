@@ -10,9 +10,9 @@ var (
 	getDiskFreeSpaceExW = kernel.MustFindProc("GetDiskFreeSpaceExW")
 )
 
-// GetDiskStats returns an object holding the disk usage of volumePath
+// GetDiskUsage returns an object holding the disk usage of volumePath
 // or nil in case of error (invalid path, etc)
-func GetDiskStats(volumePath string) (ds DiskStats, err error) {
+func GetDiskUsage(volumePath string) (du DiskUsage, err error) {
 	var pp *uint16
 	pp, err = syscall.UTF16PtrFromString(volumePath)
 	if err != nil {
@@ -22,9 +22,9 @@ func GetDiskStats(volumePath string) (ds DiskStats, err error) {
 	var ret uintptr
 	ret, _, err = getDiskFreeSpaceExW.Call(
 		uintptr(unsafe.Pointer(pp)),
-		uintptr(unsafe.Pointer(&ds.Free)),
-		uintptr(unsafe.Pointer(&ds.Total)),
-		uintptr(unsafe.Pointer(&ds.Available)),
+		uintptr(unsafe.Pointer(&du.Free)),
+		uintptr(unsafe.Pointer(&du.Total)),
+		uintptr(unsafe.Pointer(&du.Available)),
 	)
 	if ret != 0 {
 		err = nil

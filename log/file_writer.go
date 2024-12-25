@@ -254,10 +254,10 @@ func (fw *FileWriter) rotate(tm time.Time) {
 	}
 }
 
-func (fw *FileWriter) nextFile(pre string) string {
-	var path string
+func (fw *FileWriter) nextFile(pre string) (path string) {
 	for fw.fileNum++; ; fw.fileNum++ {
 		path = pre + fmt.Sprintf("-%03d", fw.fileNum) + fw.suffix
+
 		_, err := os.Stat(path)
 		if os.IsNotExist(err) {
 			if fw.Gzip {
@@ -276,6 +276,7 @@ func (fw *FileWriter) nextFile(pre string) string {
 		// remove old splited files
 		for i := fw.fileNum - fw.MaxSplit; i > 0; i-- {
 			p := pre + fmt.Sprintf("-%03d", i) + fw.suffix
+
 			err := os.Remove(p)
 			if os.IsNotExist(err) {
 				if fw.Gzip {
@@ -294,7 +295,8 @@ func (fw *FileWriter) nextFile(pre string) string {
 			}
 		}
 	}
-	return path
+
+	return
 }
 
 func (fw *FileWriter) compressFile(src string) {
@@ -366,7 +368,7 @@ func (fw *FileWriter) deleteOutdatedFiles() {
 		fi, err := de.Info()
 		if err == nil && fi.ModTime().Before(due) {
 			name := filepath.Base(fi.Name())
-			if strings.HasPrefix(name, fw.prefix) {
+			if strings.HasPrefix(name, fw.prefix) && strings.HasSuffix(name, fw.suffix) {
 				path := filepath.Join(fw.dir, fi.Name())
 				if err := os.Remove(path); err != nil {
 					internal.Perrorf("FileWriter('%s'): Remove('%s'): %v", fw.Path, path, err)

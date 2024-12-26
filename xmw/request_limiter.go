@@ -16,12 +16,8 @@ type RequestLimiter struct {
 }
 
 // NewRequestLimiter create a default RequestLimiter middleware
-func NewRequestLimiter(maxBodySize int64, bodyTooLarge ...func(c *xin.Context)) *RequestLimiter {
-	rl := &RequestLimiter{MaxBodySize: maxBodySize}
-	if len(bodyTooLarge) > 0 {
-		rl.BodyTooLarge = bodyTooLarge[0]
-	}
-	return rl
+func NewRequestLimiter(maxBodySize int64) *RequestLimiter {
+	return &RequestLimiter{MaxBodySize: maxBodySize}
 }
 
 // Handler returns the xin.HandlerFunc
@@ -57,8 +53,7 @@ func (rl *RequestLimiter) Handle(c *xin.Context) {
 				iox.Drain(c.Request.Body)
 			}
 
-			btl := rl.BodyTooLarge
-			if btl != nil {
+			if btl := rl.BodyTooLarge; btl != nil {
 				btl(c)
 			} else {
 				c.String(http.StatusRequestEntityTooLarge, mbe.Error())

@@ -16,7 +16,7 @@ type Item[T any] struct {
 
 // Returns true if the item has expired.
 func (item Item[T]) Expired() bool {
-	if item.Expires == 0 {
+	if item.Expires <= 0 {
 		return false
 	}
 	return time.Now().UnixNano() > item.Expires
@@ -56,10 +56,6 @@ func NewFrom[T any](defaultExpires, cleanupInterval time.Duration, items map[str
 }
 
 func newCache[T any](de time.Duration, ci time.Duration, m map[string]Item[T]) *Cache[T] {
-	if de == 0 {
-		de = -1
-	}
-
 	c := &cache[T]{
 		de:    de,
 		items: m,
@@ -119,29 +115,24 @@ type cache[T any] struct {
 	janitor *janitor[T]
 }
 
-func (c *cache[T]) expires(ds ...time.Duration) int64 {
-	var d time.Duration
-	var e int64
-
-	if len(ds) > 0 {
-		d = ds[0]
+func (c *cache[T]) expires(d time.Duration) int64 {
+	if d <= 0 {
+		return 0
 	}
+	return time.Now().Add(d).UnixNano()
+}
 
-	if d == 0 {
-		d = c.de
-	}
-
-	if d > 0 {
-		e = time.Now().Add(d).UnixNano()
-	}
-	return e
+// Add an item to the cache, replacing any existing item.
+// The cache's default expiration time is used.
+func (c *cache[T]) Set(k string, x T) {
+	c.SetWithExpires(k, x, c.de)
 }
 
 // Add an item to the cache, replacing any existing item.
 // If the duration is 0, the cache's default expiration time is used.
 // If it < 0, the item never expires.
-func (c *cache[T]) Set(k string, x T, d ...time.Duration) {
-	e := c.expires(d...)
+func (c *cache[T]) SetWithExpires(k string, x T, d time.Duration) {
+	e := c.expires(d)
 
 	c.mu.Lock()
 	c.items[k] = Item[T]{
@@ -160,7 +151,13 @@ func (c *cache[T]) set(k string, x T, e int64) {
 
 // Add an item to the cache only if an item doesn't already exist for the given
 // key, or if the existing item has expired. Returns an error otherwise.
-func (c *cache[T]) Add(k string, x T, d ...time.Duration) error {
+func (c *cache[T]) Add(k string, x T) error {
+	return c.AddWithExpires(k, x, c.de)
+}
+
+// Add an item to the cache only if an item doesn't already exist for the given
+// key, or if the existing item has expired. Returns an error otherwise.
+func (c *cache[T]) AddWithExpires(k string, x T, d time.Duration) error {
 	c.mu.Lock()
 	_, found := c.get(k)
 	if found {
@@ -168,7 +165,7 @@ func (c *cache[T]) Add(k string, x T, d ...time.Duration) error {
 		return fmt.Errorf("item '%s' already exists", k)
 	}
 
-	e := c.expires(d...)
+	e := c.expires(d)
 	c.set(k, x, e)
 	c.mu.Unlock()
 	return nil
@@ -176,7 +173,13 @@ func (c *cache[T]) Add(k string, x T, d ...time.Duration) error {
 
 // Replace a new value for the cache key only if it already exists, and the existing
 // item hasn't expired. Returns an error otherwise.
-func (c *cache[T]) Replace(k string, x T, d ...time.Duration) error {
+func (c *cache[T]) Replace(k string, x T) error {
+	return c.ReplaceWithExpires(k, x, c.de)
+}
+
+// Replace a new value for the cache key only if it already exists, and the existing
+// item hasn't expired. Returns an error otherwise.
+func (c *cache[T]) ReplaceWithExpires(k string, x T, d time.Duration) error {
 	c.mu.Lock()
 	_, found := c.get(k)
 	if !found {
@@ -184,7 +187,7 @@ func (c *cache[T]) Replace(k string, x T, d ...time.Duration) error {
 		return fmt.Errorf("item '%s' doesn't exist", k)
 	}
 
-	e := c.expires(d...)
+	e := c.expires(d)
 	c.set(k, x, e)
 	c.mu.Unlock()
 	return nil
@@ -324,7 +327,7 @@ func (c *cache[T]) Increment(k string, n T, x ...T) error {
 	v, found := c.items[k]
 	if !found || v.Expired() {
 		if len(x) > 0 {
-			c.set(k, x[0], c.expires())
+			c.set(k, x[0], c.expires(c.de))
 			return nil
 		}
 		return fmt.Errorf("item '%s' doesn't exist", k)
@@ -351,7 +354,7 @@ func (c *cache[T]) Decrement(k string, n T, x ...T) error {
 	v, found := c.items[k]
 	if !found || v.Expired() {
 		if len(x) > 0 {
-			c.set(k, x[0], c.expires())
+			c.set(k, x[0], c.expires(c.de))
 			return nil
 		}
 		return fmt.Errorf("item '%s' doesn't exist", k)

@@ -19,7 +19,7 @@ func BenchmarkCacheGetNotExpiring(b *testing.B) {
 func benchmarkCacheGet(b *testing.B, exp time.Duration) {
 	b.StopTimer()
 	tc := New[any](exp, 0)
-	tc.Set("foo", "bar", 0)
+	tc.Set("foo", "bar")
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
 		tc.Get("foo")
@@ -80,7 +80,7 @@ func BenchmarkCacheGetConcurrentNotExpiring(b *testing.B) {
 func benchmarkCacheGetConcurrent(b *testing.B, exp time.Duration) {
 	b.StopTimer()
 	tc := New[any](exp, 0)
-	tc.Set("foo", "bar", 0)
+	tc.Set("foo", "bar")
 	wg := new(sync.WaitGroup)
 	workers := runtime.NumCPU()
 	each := b.N / workers
@@ -140,7 +140,7 @@ func benchmarkCacheGetManyConcurrent(b *testing.B, exp time.Duration) {
 	for i := 0; i < n; i++ {
 		k := "foo" + strconv.Itoa(i)
 		keys[i] = k
-		tc.Set(k, "bar", 0)
+		tc.Set(k, "bar")
 	}
 	each := b.N / n
 	wg := new(sync.WaitGroup)
@@ -170,7 +170,7 @@ func benchmarkCacheSet(b *testing.B, exp time.Duration) {
 	tc := New[any](exp, 0)
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		tc.Set("foo", "bar", 0)
+		tc.Set("foo", "bar")
 	}
 }
 
@@ -191,7 +191,7 @@ func BenchmarkCacheSetDelete(b *testing.B) {
 	tc := New[any](0, 0)
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
-		tc.Set("foo", "bar", 0)
+		tc.Set("foo", "bar")
 		tc.Delete("foo")
 	}
 }
@@ -268,11 +268,11 @@ func TestGetWithExpires(t *testing.T) {
 		t.Error("Getting C found value that shouldn't exist:", c)
 	}
 
-	tc.Set("a", 1, 0)
-	tc.Set("b", "b", 0)
-	tc.Set("c", 3.5, 0)
-	tc.Set("d", 1, -1)
-	tc.Set("e", 1, 50*time.Millisecond)
+	tc.Set("a", 1)
+	tc.Set("b", "b")
+	tc.Set("c", 3.5)
+	tc.SetWithExpires("d", 1, -1)
+	tc.SetWithExpires("e", 1, 50*time.Millisecond)
 
 	x, expiration, found := tc.GetWithExpires("a")
 	if !found {

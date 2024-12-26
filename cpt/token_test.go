@@ -2,9 +2,9 @@ package cpt
 
 import "testing"
 
-func TestTokenParse(t *testing.T) {
+func TestRandomToken(t *testing.T) {
 	for i := 0; i < 100; i++ {
-		t1 := NewToken()
+		t1 := RandomToken()
 
 		t2, err := ParseToken(t1.token)
 		if err != nil {

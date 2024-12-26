@@ -87,7 +87,7 @@ func (da *DigestAuth) Authorized(c *xin.Context) {
 // Unauthorized set WWW-Authenticate header
 func (da *DigestAuth) Unauthorized(c *xin.Context) {
 	cip := base64.RawURLEncoding.EncodeToString(str.UnsafeBytes(c.ClientIP()))
-	nonce := da.noncer.NewToken(cip)
+	nonce := da.noncer.SecretToken(cip)
 	wa := fmt.Sprintf(`Digest realm="%s", nonce="%s", opaque="%s", algorithm=MD5, qop="auth"`, da.Realm, nonce.Token(), da.Opaque)
 
 	c.Header("WWW-Authenticate", wa)

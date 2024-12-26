@@ -23,15 +23,14 @@ var timestampLength = 16
 
 var tokener = NewTokener(8, 16)
 
-func NewTokener(saltLength, secretLength int) *Tokener {
-	return &Tokener{
-		saltLength:   saltLength,
-		secretLength: secretLength,
-	}
+// RandomToken create a random `randLenth` secret token.
+func RandomToken() *Token {
+	return tokener.RandomToken()
 }
 
-func NewToken() *Token {
-	return tokener.NewToken()
+// SecretToken create a token with secret.
+func SecretToken(secret string) *Token {
+	return tokener.SecretToken(secret)
 }
 
 func ParseToken(token string) (t *Token, err error) {
@@ -39,25 +38,41 @@ func ParseToken(token string) (t *Token, err error) {
 }
 
 type Tokener struct {
-	saltLength   int
-	secretLength int
+	saltLength int
+	randLength int
 }
 
-func (tr *Tokener) NewToken(secret ...string) *Token {
+// NewTokener create a tokener.
+func NewTokener(saltLength, randLength int) *Tokener {
+	return &Tokener{
+		saltLength: saltLength,
+		randLength: randLength,
+	}
+}
+
+// RandomToken create a random `randLenth` secret token.
+func (tr *Tokener) RandomToken() *Token {
+	return tr.newToken(ran.RandString(tr.randLength, SecretChars))
+}
+
+// SecretToken create a token with secret.
+// If secret is empty, a random `randLenth` secret will be used.
+func (tr *Tokener) SecretToken(secret string) *Token {
+	return tr.newToken(secret)
+}
+
+func (tr *Tokener) newToken(secret string) *Token {
 	t := &Token{
-		salt: str.RepeatByte(' ', tr.saltLength),
+		salt:   str.RepeatByte(' ', tr.saltLength),
+		secret: secret,
 	}
-	if len(secret) > 0 {
-		t.secret = secret[0]
-	} else {
-		t.secret = ran.RandString(tr.secretLength, SecretChars)
-	}
+
 	t.Refresh()
 	return t
 }
 
 func (tr *Tokener) ParseToken(token string) (*Token, error) {
-	if len(token) <= tr.saltLength+tr.secretLength {
+	if len(token) < tr.saltLength+timestampLength {
 		return nil, ErrTokenLength
 	}
 

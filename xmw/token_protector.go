@@ -188,7 +188,7 @@ func (tp *TokenProtector) getRequestToken(c *xin.Context) *cpt.Token {
 func (tp *TokenProtector) RefreshToken(c *xin.Context) string {
 	t := tp.getSourceToken(c)
 	if t == nil {
-		t = cpt.NewToken()
+		t = cpt.RandomToken()
 		c.Set(tp.AttrKey, t)
 	} else {
 		t.Refresh()

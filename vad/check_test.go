@@ -226,6 +226,93 @@ func TestIsURL(t *testing.T) {
 	}
 }
 
+func TestIsHttpURL(t *testing.T) {
+	t.Parallel()
+
+	cs := []struct {
+		s string
+		w bool
+	}{
+		{"", false},
+		{"http://foo.bar#com", true},
+		{"http://foobar.com", true},
+		{"http://foobar.coffee/", true},
+		{"http://foobar.中文网/", true},
+		{"http://foobar.org/", true},
+		{"http://foobar.ORG", true},
+		{"http://foobar.org:8080/", true},
+		{"https://foobar.com", false},
+		{"ftp://foobar.ru/", false},
+		{"foobar.com", false},
+	}
+	for i, c := range cs {
+		a := IsHttpURL(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsHttpURL(%q) = %v, want %v", i, c.s, a, c.w)
+		}
+	}
+}
+
+func TestIsHttpsURL(t *testing.T) {
+	t.Parallel()
+
+	cs := []struct {
+		s string
+		w bool
+	}{
+		{"", false},
+		{"https://foo.bar#com", true},
+		{"https://foobar.com", true},
+		{"https://foobar.coffee/", true},
+		{"https://foobar.中文网/", true},
+		{"https://foobar.org/", true},
+		{"https://foobar.ORG", true},
+		{"https://foobar.org:8080/", true},
+		{"http://foobar.com", false},
+		{"ftp://foobar.ru/", false},
+		{"foobar.com", false},
+	}
+	for i, c := range cs {
+		a := IsHttpsURL(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsHttpsURL(%q) = %v, want %v", i, c.s, a, c.w)
+		}
+	}
+}
+
+func TestIsHttpxURL(t *testing.T) {
+	t.Parallel()
+
+	cs := []struct {
+		s string
+		w bool
+	}{
+		{"", false},
+		{"http://foo.bar#com", true},
+		{"http://foobar.com", true},
+		{"http://foobar.coffee/", true},
+		{"http://foobar.中文网/", true},
+		{"http://foobar.org/", true},
+		{"http://foobar.ORG", true},
+		{"http://foobar.org:8080/", true},
+		{"https://foo.bar#com", true},
+		{"https://foobar.com", true},
+		{"https://foobar.coffee/", true},
+		{"https://foobar.中文网/", true},
+		{"https://foobar.org/", true},
+		{"https://foobar.ORG", true},
+		{"https://foobar.org:8080/", true},
+		{"ftp://foobar.ru/", false},
+		{"foobar.com", false},
+	}
+	for i, c := range cs {
+		a := IsHttpxURL(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsHttpxURL(%q) = %v, want %v", i, c.s, a, c.w)
+		}
+	}
+}
+
 func TestIsRequestURL(t *testing.T) {
 	t.Parallel()
 

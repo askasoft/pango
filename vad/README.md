@@ -98,19 +98,28 @@ Baked-in Validations
 | unix_addr | Unix domain socket end point Address |
 | uri | URI String |
 | url | URL String |
-| httpurl | URL (https?://) String |
+| httpurl | URL (http://) String |
 | httpsurl | URL (https://) String |
+| httpxurl | URL (https?://) String |
 
 ### Strings:
 
 | Tag | Description |
 | - | - |
+| ascii | ASCII |
+| boolean | Boolean |
+| number | ASCII Number |
+| numeric | Numeric |
+| decimal | Decimal |
 | letter | ASCII Letter Only |
 | letternum | ASCII Letter or Number |
 | utfletter | Unicode Letter |
 | utfletternum | Unicode Letter or Number |
-| ascii | ASCII |
-| boolean | Boolean |
+| printable | Printable Unicode |
+| printascii | Printable ASCII |
+| lowercase | Lowercase |
+| uppercase | Uppercase |
+| multibyte | Multi-Byte Characters |
 | contains | Contains |
 | containsany | Contains Any |
 | containsrune | Contains Rune |
@@ -119,16 +128,8 @@ Baked-in Validations
 | excludes | Excludes |
 | excludesall | Excludes All |
 | excludesrune | Excludes Rune |
-| lowercase | Lowercase |
-| multibyte | Multi-Byte Characters |
-| number | ASCII Number |
-| numeric | Numeric |
-| decimal | Decimal |
-| printable | Printable Unicode |
-| printascii | Printable ASCII |
 | startsnotwith | Starts Not With |
 | startswith | Starts With |
-| uppercase | Uppercase |
 
 ### Format:
 | Tag | Description |

@@ -125,6 +125,7 @@ var (
 		"url":                           isURL,
 		"httpurl":                       isHttpURL,
 		"httpsurl":                      isHttpsURL,
+		"httpxurl":                      isHttpxURL,
 		"file":                          isFile,
 		"base64":                        isBase64,
 		"base64url":                     isBase64URL,
@@ -1072,7 +1073,7 @@ func isURL(fl FieldLevel) bool {
 	return IsURL(fl.Field().String())
 }
 
-// isHttpURL is the validation function for validating if the current field's value is a valid https?:// URL.
+// isHttpURL is the validation function for validating if the current field's value is a valid http:// URL.
 func isHttpURL(fl FieldLevel) bool {
 	return IsHttpURL(fl.Field().String())
 }
@@ -1080,6 +1081,11 @@ func isHttpURL(fl FieldLevel) bool {
 // isHttpsURL is the validation function for validating if the current field's value is a valid https:// URL.
 func isHttpsURL(fl FieldLevel) bool {
 	return IsHttpsURL(fl.Field().String())
+}
+
+// isHttpxURL is the validation function for validating if the current field's value is a valid https?:// URL.
+func isHttpxURL(fl FieldLevel) bool {
+	return IsHttpxURL(fl.Field().String())
 }
 
 // isFile is the validation function for validating if the current field's value is a valid file path.

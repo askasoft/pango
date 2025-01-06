@@ -61,13 +61,11 @@ func IsURI(s string) bool {
 // IsURL checks if the string is an URL.
 func IsURL(s string) bool {
 	u, _, _ := str.CutByte(s, '#')
-
 	if len(u) == 0 {
 		return false
 	}
 
 	url, err := url.ParseRequestURI(u)
-
 	if err != nil || url.Scheme == "" {
 		return false
 	}
@@ -75,38 +73,40 @@ func IsURL(s string) bool {
 	return true
 }
 
-// IsHttpURL checks if the string is an https?:// URL.
-func IsHttpURL(s string) bool {
+// IsURLWithScheme checks if the string is an URL with specified shemes.
+func IsURLWithScheme(s string, schemes ...string) bool {
 	u, _, _ := str.CutByte(s, '#')
-
 	if len(u) == 0 {
 		return false
 	}
 
 	url, err := url.ParseRequestURI(u)
-
-	if err != nil || !(str.EqualFold(url.Scheme, "http") || str.EqualFold(url.Scheme, "https")) {
+	if err != nil {
 		return false
 	}
 
-	return true
+	for _, scheme := range schemes {
+		if str.EqualFold(scheme, url.Scheme) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// IsHttpURL checks if the string is an http:// URL.
+func IsHttpURL(s string) bool {
+	return IsURLWithScheme(s, "http")
 }
 
 // IsHttpsURL checks if the string is an https:// URL.
 func IsHttpsURL(s string) bool {
-	u, _, _ := str.CutByte(s, '#')
+	return IsURLWithScheme(s, "https")
+}
 
-	if len(u) == 0 {
-		return false
-	}
-
-	url, err := url.ParseRequestURI(u)
-
-	if err != nil || !str.EqualFold(url.Scheme, "https") {
-		return false
-	}
-
-	return true
+// IsHttpxURL checks if the string is an https?:// URL.
+func IsHttpxURL(s string) bool {
+	return IsURLWithScheme(s, "http", "https")
 }
 
 // IsRequestURL checks if the string rawurl, assuming

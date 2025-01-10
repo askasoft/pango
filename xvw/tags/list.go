@@ -4,8 +4,6 @@ import (
 	"fmt"
 
 	"github.com/askasoft/pango/asg"
-	"github.com/askasoft/pango/cog"
-	"github.com/askasoft/pango/cog/hashmap"
 	"github.com/askasoft/pango/num"
 )
 
@@ -15,15 +13,27 @@ type List interface {
 	Get(key string) (string, bool)
 }
 
+type intstrList interface {
+	Each(func(int, string) bool)
+
+	Get(key int) (string, bool)
+}
+
+type collection[T any] interface {
+	Each(func(int, T) bool)
+
+	Contain(T) bool
+}
+
 func AsList(o any) List {
 	if list, ok := o.(List); ok {
 		return list
 	}
-	if ism, ok := o.(cog.Map[int, string]); ok {
-		return intstrcom{ism}
+	if isl, ok := o.(intstrList); ok {
+		return intstrlist{isl}
 	}
 	if ssm, ok := o.(map[string]string); ok {
-		return hashmap.AsHashMap(ssm)
+		return strstrmap(ssm)
 	}
 	if ism, ok := o.(map[int]string); ok {
 		return intstrmap(ism)
@@ -34,14 +44,14 @@ func AsList(o any) List {
 	if is, ok := o.([]int); ok {
 		return intslice(is)
 	}
-	if sc, ok := o.(cog.Collection[string]); ok {
+	if sc, ok := o.(collection[string]); ok {
 		return strcol{sc}
 	}
-	if ic, ok := o.(cog.Collection[int]); ok {
+	if ic, ok := o.(collection[int]); ok {
 		return intcol{ic}
 	}
 
-	panic(fmt.Sprintf("Invalid List Argument: %T", o))
+	panic(fmt.Errorf("Invalid List Argument: %T", o))
 }
 
 type strslice []string
@@ -79,6 +89,23 @@ func (is intslice) Each(f func(string, string) bool) {
 	}
 }
 
+type strstrmap map[string]string
+
+func (ssm strstrmap) Get(key string) (string, bool) {
+	if v, ok := ssm[key]; ok {
+		return v, true
+	}
+	return "", false
+}
+
+func (ssm strstrmap) Each(f func(string, string) bool) {
+	for k, v := range ssm {
+		if !f(k, v) {
+			return
+		}
+	}
+}
+
 type intstrmap map[int]string
 
 func (ism intstrmap) Get(key string) (string, bool) {
@@ -96,25 +123,25 @@ func (ism intstrmap) Each(f func(string, string) bool) {
 	}
 }
 
-type intstrcom struct {
-	com cog.Map[int, string]
+type intstrlist struct {
+	isl intstrList
 }
 
-func (ism intstrcom) Get(key string) (string, bool) {
-	if v, ok := ism.com.Get(num.Atoi(key)); ok {
+func (isl intstrlist) Get(key string) (string, bool) {
+	if v, ok := isl.isl.Get(num.Atoi(key)); ok {
 		return v, true
 	}
 	return "", false
 }
 
-func (ism intstrcom) Each(f func(string, string) bool) {
-	ism.com.Each(func(k int, v string) bool {
+func (isl intstrlist) Each(f func(string, string) bool) {
+	isl.isl.Each(func(k int, v string) bool {
 		return f(num.Itoa(k), v)
 	})
 }
 
 type strcol struct {
-	col cog.Collection[string]
+	col collection[string]
 }
 
 func (sc strcol) Get(key string) (string, bool) {
@@ -131,7 +158,7 @@ func (sc strcol) Each(f func(string, string) bool) {
 }
 
 type intcol struct {
-	col cog.Collection[int]
+	col collection[int]
 }
 
 func (ic intcol) Get(key string) (string, bool) {

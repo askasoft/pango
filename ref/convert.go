@@ -13,8 +13,7 @@ func ConvertTo(v any, t reflect.Type) (any, error) {
 	if rv.Type().ConvertibleTo(t) {
 		return rv.Convert(t).Interface(), nil
 	}
-
-	return nil, fmt.Errorf("cannot convert value %v to type %s", v, t.String())
+	return nil, fmt.Errorf("cannot convert '%T' to '%s'", v, t.String())
 }
 
 // CastTo cast the value v to the specified Type t

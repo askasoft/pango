@@ -371,8 +371,8 @@ func (pr *PageRenderer) writeLimitsSelect(sb *strings.Builder) error {
 	}
 
 	sr := &SelectRenderer{
-		List:   olist,
-		Values: []string{num.Itoa(pr.Limit)},
+		List:   AsList(olist),
+		Values: AsValues([]string{num.Itoa(pr.Limit)}),
 	}
 
 	args := []any{

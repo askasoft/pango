@@ -3,8 +3,6 @@ package tags
 import (
 	"html"
 	"strings"
-
-	"github.com/askasoft/pango/asg"
 )
 
 func ChecksRender(args ...any) (any, error) {
@@ -14,7 +12,7 @@ func ChecksRender(args ...any) (any, error) {
 type ChecksRenderer struct {
 	Name     string
 	List     List
-	Values   []string
+	Values   Values
 	Disabled bool
 	Ordered  bool
 }
@@ -27,8 +25,8 @@ func (cr *ChecksRenderer) SetList(list any) {
 	cr.List = AsList(list)
 }
 
-func (cr *ChecksRenderer) SetValue(val string) {
-	cr.Values = []string{val}
+func (cr *ChecksRenderer) SetValues(values any) {
+	cr.Values = AsValues(values)
 }
 
 func (cr *ChecksRenderer) Render(sb *strings.Builder, args ...any) error {
@@ -47,22 +45,25 @@ func (cr *ChecksRenderer) Render(sb *strings.Builder, args ...any) error {
 
 	if cr.List != nil {
 		if cr.Ordered {
-			for _, k := range cr.Values {
-				if v, ok := cr.List.Get(k); ok {
-					cr.writeCheckbox(sb, k, v, true)
-				}
+			if cr.Values != nil {
+				cr.Values.Each(func(k any) bool {
+					if v, ok := cr.List.Get(k); ok {
+						cr.writeCheckbox(sb, k, v, true)
+					}
+					return true
+				})
 			}
 			sb.WriteString("<hr>")
 
-			cr.List.Each(func(k, v string) bool {
-				if !asg.Contains(cr.Values, k) {
+			cr.List.Each(func(k any, v string) bool {
+				if !contains(cr.Values, k) {
 					cr.writeCheckbox(sb, k, v, false)
 				}
 				return true
 			})
 		} else {
-			cr.List.Each(func(k, v string) bool {
-				cr.writeCheckbox(sb, k, v, asg.Contains(cr.Values, k))
+			cr.List.Each(func(k any, v string) bool {
+				cr.writeCheckbox(sb, k, v, contains(cr.Values, k))
 				return true
 			})
 		}
@@ -73,13 +74,13 @@ func (cr *ChecksRenderer) Render(sb *strings.Builder, args ...any) error {
 	return nil
 }
 
-func (cr *ChecksRenderer) writeCheckbox(sb *strings.Builder, key, text string, checked bool) {
+func (cr *ChecksRenderer) writeCheckbox(sb *strings.Builder, key any, text string, checked bool) {
 	TagStart(sb, "label")
 
 	a := Attrs{
 		"type":  "checkbox",
 		"name":  cr.Name,
-		"value": key,
+		"value": toString(key),
 	}
 
 	if checked {

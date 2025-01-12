@@ -61,8 +61,8 @@ func (rb *RingBuffer[T]) Add(v T) {
 	rb.Insert(rb.len, v)
 }
 
-// Adds adds all items of vs.
-func (rb *RingBuffer[T]) Adds(vs ...T) {
+// AddAll adds all items of vs.
+func (rb *RingBuffer[T]) AddAll(vs ...T) {
 	rb.Inserts(rb.len, vs...)
 }
 
@@ -71,15 +71,15 @@ func (rb *RingBuffer[T]) AddCol(ac cog.Collection[T]) {
 	rb.InsertCol(rb.len, ac)
 }
 
-// Remove remove all items with associated value v of vs
+// Remove remove all items with associated value v
 func (rb *RingBuffer[T]) Remove(v T) {
 	for i := rb.Index(v); i >= 0; i = rb.Index(v) {
 		rb.DeleteAt(i)
 	}
 }
 
-// Removes remove all items in the array vs
-func (rb *RingBuffer[T]) Removes(vs ...T) {
+// RemoveAll remove all items in the array vs
+func (rb *RingBuffer[T]) RemoveAll(vs ...T) {
 	if rb.IsEmpty() {
 		return
 	}
@@ -105,7 +105,7 @@ func (rb *RingBuffer[T]) RemoveCol(ac cog.Collection[T]) {
 		return
 	}
 
-	rb.Removes(ac.Values()...)
+	rb.RemoveAll(ac.Values()...)
 }
 
 // RemoveIter remove all items in the iterator it
@@ -129,13 +129,13 @@ func (rb *RingBuffer[T]) RemoveFunc(f func(T) bool) {
 	}
 }
 
-// Contain Test to see if the list contains the value v
-func (rb *RingBuffer[T]) Contain(v T) bool {
+// Contains Test to see if the list contains the value v
+func (rb *RingBuffer[T]) Contains(v T) bool {
 	return rb.Index(v) >= 0
 }
 
-// Contains Test to see if the RingBuffer contains the value v
-func (rb *RingBuffer[T]) Contains(vs ...T) bool {
+// ContainsAll Test to see if the RingBuffer contains the value v
+func (rb *RingBuffer[T]) ContainsAll(vs ...T) bool {
 	if len(vs) == 0 {
 		return true
 	}
@@ -152,8 +152,8 @@ func (rb *RingBuffer[T]) Contains(vs ...T) bool {
 	return true
 }
 
-// ContainCol Test to see if the collection contains all items of another collection
-func (rb *RingBuffer[T]) ContainCol(ac cog.Collection[T]) bool {
+// ContainsCol Test to see if the collection contains all items of another collection
+func (rb *RingBuffer[T]) ContainsCol(ac cog.Collection[T]) bool {
 	if ac.IsEmpty() || rb == ac {
 		return true
 	}
@@ -163,14 +163,14 @@ func (rb *RingBuffer[T]) ContainCol(ac cog.Collection[T]) bool {
 	}
 
 	if ic, ok := ac.(cog.Iterable[T]); ok {
-		return rb.ContainIter(ic.Iterator())
+		return rb.ContainsIter(ic.Iterator())
 	}
 
-	return rb.Contains(ac.Values()...)
+	return rb.ContainsAll(ac.Values()...)
 }
 
-// ContainIter Test to see if the collection contains all items of iterator 'it'
-func (rb *RingBuffer[T]) ContainIter(it cog.Iterator[T]) bool {
+// ContainsIter Test to see if the collection contains all items of iterator 'it'
+func (rb *RingBuffer[T]) ContainsIter(it cog.Iterator[T]) bool {
 	for it.Next() {
 		if rb.Index(it.Value()) < 0 {
 			return false
@@ -179,8 +179,8 @@ func (rb *RingBuffer[T]) ContainIter(it cog.Iterator[T]) bool {
 	return true
 }
 
-// Retains Retains only the elements in this collection that are contained in the argument array vs.
-func (rb *RingBuffer[T]) Retains(vs ...T) {
+// RetainAll Retains only the elements in this collection that are contained in the argument array vs.
+func (rb *RingBuffer[T]) RetainAll(vs ...T) {
 	if rb.IsEmpty() {
 		return
 	}
@@ -209,7 +209,7 @@ func (rb *RingBuffer[T]) RetainCol(ac cog.Collection[T]) {
 		return
 	}
 
-	rb.RetainFunc(ac.Contain)
+	rb.RetainFunc(ac.Contains)
 }
 
 // RetainFunc Retains all items that function f returns true

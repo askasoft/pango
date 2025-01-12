@@ -49,8 +49,8 @@ type Collection[T any] interface {
 	// Add adds item v to the collection
 	Add(v T)
 
-	// Adds adds items of vs to the collection
-	Adds(vs ...T)
+	// AddAll adds items of vs to the collection
+	AddAll(vs ...T)
 
 	// AddCol adds all items of another collection
 	AddCol(ac Collection[T])
@@ -58,8 +58,8 @@ type Collection[T any] interface {
 	// Remove remove all items with associated value v
 	Remove(v T)
 
-	// Removes remove all items in the array vs
-	Removes(vs ...T)
+	// RemoveAll remove all items in the array vs
+	RemoveAll(vs ...T)
 
 	// RemoveCol remove all of this collection's elements that are also contained in the specified collection
 	RemoveCol(ac Collection[T])
@@ -70,17 +70,17 @@ type Collection[T any] interface {
 	// RemoveFunc remove all items that function f returns true
 	RemoveFunc(f func(T) bool)
 
-	// Contain Test to see if the collection contains item v
-	Contain(v T) bool
+	// Contains Test to see if the collection contains item v
+	Contains(v T) bool
 
-	// Contains Test to see if the collection contains all items of vs
-	Contains(vs ...T) bool
+	// ContainsAll Test to see if the collection contains all items of vs
+	ContainsAll(vs ...T) bool
 
-	// ContainCol Test to see if the collection contains all items of another collection
-	ContainCol(ac Collection[T]) bool
+	// ContainsCol Test to see if the collection contains all items of another collection
+	ContainsCol(ac Collection[T]) bool
 
-	// Retains Retains only the elements in this collection that are contained in the argument array vs.
-	Retains(vs ...T)
+	// RetainAll Retains only the elements in this collection that are contained in the argument array vs.
+	RetainAll(vs ...T)
 
 	// RetainCol Retains only the elements in this collection that are contained in the specified collection.
 	RetainCol(ac Collection[T])
@@ -161,24 +161,24 @@ import (
 
 func main() {
 	list := arraylist.NewArrayList[string]()
-	list.Add("a")                         // ["a"]
-	list.Adds("c", "b")                   // ["a","c","b"]
-	list.Sort(cmp.Less[string])             // ["a","b","c"]
-	_ = list.Get(0)                       // "a"
-	_ = list.Get(100)                     // panic
-	_ = list.Contain("a")                 // true
-	_ = list.Contains("a", "b", "c")      // true
-	_ = list.Contains("a", "b", "c", "d") // false
-	list.Swap(0, 1)                       // ["b","a",c"]
-	list.DeleteAt(2)                      // ["b","a"]
-	list.DeleteAt(1)                      // ["b"]
-	list.DeleteAt(0)                      // []
-	_ = list.IsEmpty()                    // true
-	_ = list.Len()                        // 0
-	list.Add("a")                         // ["a"]
-	list.Clear()                          // []
-	list.Insert(0, "b")                   // ["b"]
-	list.Insert(0, "a")                   // ["a","b"]
+	list.Add("a")                            // ["a"]
+	list.AddAll("c", "b")                    // ["a","c","b"]
+	list.Sort(cmp.Less[string])              // ["a","b","c"]
+	_ = list.Get(0)                          // "a"
+	_ = list.Get(100)                        // panic
+	_ = list.Contains("a")                   // true
+	_ = list.ContainsAll("a", "b", "c")      // true
+	_ = list.ContainsAll("a", "b", "c", "d") // false
+	list.Swap(0, 1)                          // ["b","a",c"]
+	list.DeleteAt(2)                         // ["b","a"]
+	list.DeleteAt(1)                         // ["b"]
+	list.DeleteAt(0)                         // []
+	_ = list.IsEmpty()                       // true
+	_ = list.Len()                           // 0
+	list.Add("a")                            // ["a"]
+	list.Clear()                             // []
+	list.Insert(0, "b")                      // ["b"]
+	list.Insert(0, "a")                      // ["a","b"]
 }
 ```
 
@@ -198,24 +198,24 @@ import (
 
 func main() {
 	list := linkedlist.NewLinkedList[string]()
-	list.Add("a")                         // ["a"]
-	list.Adds("c", "b")                   // ["a","c","b"]
-	list.Sort(cmp.Less[string])             // ["a","b","c"]
-	_ = list.Get(0)                       // "a"
-	_ = list.Get(100)                     // panic
-	_ = list.Contain("a")                 // true
-	_ = list.Contains("a", "b", "c")      // true
-	_ = list.Contains("a", "b", "c", "d") // false
-	list.Swap(0, 1)                       // ["b","a",c"]
-	list.DeleteAt(2)                      // ["b","a"]
-	list.DeleteAt(1)                      // ["b"]
-	list.DeleteAt(0)                      // []
-	_ = list.IsEmpty()                    // true
-	_ = list.Len()                        // 0
-	list.Add("a")                         // ["a"]
-	list.Clear()                          // []
-	list.Insert(0, "b")                   // ["b"]
-	list.Insert(0, "a")                   // ["a","b"]
+	list.Add("a")                            // ["a"]
+	list.AddAll("c", "b")                    // ["a","c","b"]
+	list.Sort(cmp.Less[string])              // ["a","b","c"]
+	_ = list.Get(0)                          // "a"
+	_ = list.Get(100)                        // panic
+	_ = list.Contains("a")                   // true
+	_ = list.ContainsAll("a", "b", "c")      // true
+	_ = list.ContainsAll("a", "b", "c", "d") // false
+	list.Swap(0, 1)                          // ["b","a",c"]
+	list.DeleteAt(2)                         // ["b","a"]
+	list.DeleteAt(1)                         // ["b"]
+	list.DeleteAt(0)                         // []
+	_ = list.IsEmpty()                       // true
+	_ = list.Len()                           // 0
+	list.Add("a")                            // ["a"]
+	list.Clear()                             // []
+	list.Insert(0, "b")                      // ["b"]
+	list.Insert(0, "a")                      // ["a","b"]
 }
 ```
 
@@ -244,17 +244,17 @@ import (
 
 func main() {
 	set := hashset.NewHashSet[int]()
-	set.Add(1)              // 1
-	set.Adds(2, 2, 3, 4, 5) // 3, 1, 2, 4, 5 (random order, duplicates ignored)
-	set.Remove(4)           // 5, 3, 2, 1 (random order)
-	set.Removes(2, 3)       // 1, 5 (random order)
-	set.Contain(1)          // true
-	set.Contains(1, 5)      // true
-	set.Contains(1, 6)      // false
-	_ = set.Values()        // []int{5,1} (random order)
-	set.Clear()             // empty
-	set.IsEmpty()           // true
-	set.Len()               // 0
+	set.Add(1)                // 1
+	set.AddAll(2, 2, 3, 4, 5) // 3, 1, 2, 4, 5 (random order, duplicates ignored)
+	set.Remove(4)             // 5, 3, 2, 1 (random order)
+	set.RemoveAll(2, 3)       // 1, 5 (random order)
+	set.Contains(1)           // true
+	set.ContainsAll(1, 5)     // true
+	set.ContainsAll(1, 6)     // false
+	_ = set.Values()          // []int{5,1} (random order)
+	set.Clear()               // empty
+	set.IsEmpty()             // true
+	set.Len()                 // 0
 }
 ```
 
@@ -273,18 +273,18 @@ import (
 
 func main() {
 	set := linkedhashset.NewLinkedHashSet[int]()
-	set.Add(5)              // 5
-	set.Adds(4, 4, 3, 2, 1) // 5, 4, 3, 2, 1 (in insertion-order, duplicates ignored)
-	set.Add(4)              // 5, 4, 3, 2, 1 (duplicates ignored, insertion-order unchanged)
-	set.Remove(4)           // 5, 3, 2, 1 (in insertion-order)
-	set.Removes(2, 3)       // 5, 1 (in insertion-order)
-	set.Contain(1)          // true
-	set.Contains(1, 5)      // true
-	set.Contains(1, 6)      // false
-	_ = set.Values()        // []int{5, 1} (in insertion-order)
-	set.Clear()             // empty
-	set.IsEmpty()           // true
-	set.Len()               // 0
+	set.Add(5)                // 5
+	set.AddAll(4, 4, 3, 2, 1) // 5, 4, 3, 2, 1 (in insertion-order, duplicates ignored)
+	set.Add(4)                // 5, 4, 3, 2, 1 (duplicates ignored, insertion-order unchanged)
+	set.Remove(4)             // 5, 3, 2, 1 (in insertion-order)
+	set.RemoveAll(2, 3)       // 5, 1 (in insertion-order)
+	set.Contains(1)           // true
+	set.ContainsAll(1, 5)     // true
+	set.ContainsAll(1, 6)     // false
+	_ = set.Values()          // []int{5, 1} (in insertion-order)
+	set.Clear()               // empty
+	set.IsEmpty()             // true
+	set.Len()                 // 0
 }
 ```
 
@@ -304,17 +304,17 @@ import (
 
 func main() {
 	set := treeset.NewTreeSet(cmp.Compare[int])
-	set.Add(1)              // 1
-	set.Adds(2, 2, 3, 4, 5) // 1, 2, 3, 4, 5 (in order, duplicates ignored)
-	set.Remove(4)           // 1, 2, 3, 5 (in order)
-	set.Removes(2, 3)       // 1, 5 (in order)
-	set.Contain(1)          // true
-	set.Contains(1, 5)      // true
-	set.Contains(1, 6)      // false
-	_ = set.Values()        // []int{1,5} (in order)
-	set.Clear()             // empty
-	set.IsEmpty()           // true
-	set.Len()               // 0
+	set.Add(1)                // 1
+	set.AddAll(2, 2, 3, 4, 5) // 1, 2, 3, 4, 5 (in order, duplicates ignored)
+	set.Remove(4)             // 1, 2, 3, 5 (in order)
+	set.RemoveAll(2, 3)       // 1, 5 (in order)
+	set.Contains(1)           // true
+	set.ContainsAll(1, 5)     // true
+	set.ContainsAll(1, 6)     // false
+	_ = set.Values()          // []int{1,5} (in order)
+	set.Clear()               // empty
+	set.IsEmpty()             // true
+	set.Len()                 // 0
 }
 ```
 
@@ -354,14 +354,14 @@ type Map[K any, V any] interface {
 	// on that key prior to the call to `Set`.
 	Remove(k K) (ov V, ok bool)
 
-	// Removes remove all items with key of ks.
-	Removes(ks ...K)
+	// RemoveAll remove all items with key of ks.
+	RemoveAll(ks ...K)
 
-	// Contain looks for the given key, and returns true if the key exists in the map.
-	Contain(k K) bool
+	// Contains Test to see if the map contains the given key
+	Contains(k K) bool
 
-	// Contains looks for the given key, and returns true if the key exists in the map.
-	Contains(ks ...K) bool
+	// ContainsAll Test to see if the map contains all keys of ks
+	ContainsAll(ks ...K) bool
 
 	// Keys returns the key slice
 	Keys() []K

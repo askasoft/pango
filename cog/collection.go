@@ -57,8 +57,8 @@ type Collection[T any] interface {
 	// Add adds item v to the collection
 	Add(v T)
 
-	// Adds adds items of vs to the collection
-	Adds(vs ...T)
+	// AddAll adds items of vs to the collection
+	AddAll(vs ...T)
 
 	// AddCol adds all items of another collection
 	AddCol(ac Collection[T])
@@ -66,8 +66,8 @@ type Collection[T any] interface {
 	// Remove remove all items with associated value v
 	Remove(v T)
 
-	// Removes remove all items in the array vs
-	Removes(vs ...T)
+	// RemoveAll remove all items in the array vs
+	RemoveAll(vs ...T)
 
 	// RemoveCol remove all of this collection's elements that are also contained in the specified collection
 	RemoveCol(ac Collection[T])
@@ -78,20 +78,20 @@ type Collection[T any] interface {
 	// RemoveFunc remove all items that function f returns true
 	RemoveFunc(f func(T) bool)
 
-	// Contain Test to see if the collection contains item v
-	Contain(v T) bool
+	// Contains Test to see if the collection contains item v
+	Contains(v T) bool
 
-	// Contains Test to see if the collection contains all items of vs
-	Contains(vs ...T) bool
+	// ContainsAll Test to see if the collection contains all items of vs
+	ContainsAll(vs ...T) bool
 
-	// ContainCol Test to see if the collection contains all items of another collection
-	ContainCol(ac Collection[T]) bool
+	// ContainsCol Test to see if the collection contains all items of another collection
+	ContainsCol(ac Collection[T]) bool
 
-	// ContainIter Test to see if the collection contains all items of iterator 'it'
-	ContainIter(it Iterator[T]) bool
+	// ContainsIter Test to see if the collection contains all items of iterator 'it'
+	ContainsIter(it Iterator[T]) bool
 
-	// Retains Retains only the elements in this collection that are contained in the argument array vs.
-	Retains(vs ...T)
+	// RetainAll Retains only the elements in this collection that are contained in the argument array vs.
+	RetainAll(vs ...T)
 
 	// RetainCol Retains only the elements in this collection that are contained in the specified collection.
 	RetainCol(ac Collection[T])
@@ -205,14 +205,14 @@ type Map[K any, V any] interface {
 	// on that key prior to the call to `Set`.
 	Remove(k K) (ov V, ok bool)
 
-	// Removes remove all items with key of ks.
-	Removes(ks ...K)
+	// RemoveAll remove all items with key of ks.
+	RemoveAll(ks ...K)
 
-	// Contain looks for the given key, and returns true if the key exists in the map.
-	Contain(k K) bool
+	// Contains Test to see if the map contains the given key
+	Contains(k K) bool
 
-	// Contains looks for the given key, and returns true if the key exists in the map.
-	Contains(ks ...K) bool
+	// ContainsAll Test to see if the map contains all keys of ks
+	ContainsAll(ks ...K) bool
 
 	// Keys returns the key slice
 	Keys() []K

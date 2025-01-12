@@ -83,8 +83,8 @@ func (tm *TreeMap[K, V]) Entries() []cog.P[K, V] {
 	return ps
 }
 
-// Contain Test to see if the list contains the key k
-func (tm *TreeMap[K, V]) Contain(k K) bool {
+// Contains Test to see if the map contains the given key
+func (tm *TreeMap[K, V]) Contains(k K) bool {
 	if tm.IsEmpty() {
 		return false
 	}
@@ -94,8 +94,8 @@ func (tm *TreeMap[K, V]) Contain(k K) bool {
 	return false
 }
 
-// Contains looks for the given key, and returns true if the key exists in the map.
-func (tm *TreeMap[K, V]) Contains(ks ...K) bool {
+// ContainsAll Test to see if the map contains all keys of ks
+func (tm *TreeMap[K, V]) ContainsAll(ks ...K) bool {
 	if len(ks) == 0 {
 		return true
 	}
@@ -218,8 +218,8 @@ func (tm *TreeMap[K, V]) Remove(k K) (ov V, ok bool) {
 	return tm.delete(k)
 }
 
-// Removes remove all items with key of ks.
-func (tm *TreeMap[K, V]) Removes(ks ...K) {
+// RemoveAll remove all items with key of ks.
+func (tm *TreeMap[K, V]) RemoveAll(ks ...K) {
 	if tm.IsEmpty() {
 		return
 	}

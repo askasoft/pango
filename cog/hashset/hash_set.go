@@ -11,7 +11,7 @@ import (
 // NewHashSet Create a new hash set
 func NewHashSet[T comparable](vs ...T) *HashSet[T] {
 	hs := &HashSet[T]{}
-	hs.Adds(vs...)
+	hs.AddAll(vs...)
 	return hs
 }
 
@@ -53,8 +53,8 @@ func (hs *HashSet[T]) Add(v T) {
 	hs.hash[v] = struct{}{}
 }
 
-// Adds Adds all items of vs to the set
-func (hs *HashSet[T]) Adds(vs ...T) {
+// AddAll AddAll all items of vs to the set
+func (hs *HashSet[T]) AddAll(vs ...T) {
 	if len(vs) == 0 {
 		return
 	}
@@ -80,16 +80,16 @@ func (hs *HashSet[T]) AddCol(ac cog.Collection[T]) {
 		return
 	}
 
-	hs.Adds(ac.Values()...)
+	hs.AddAll(ac.Values()...)
 }
 
-// Remove remove all items with associated value v of vs
+// Remove remove all items with associated value v
 func (hs *HashSet[T]) Remove(v T) {
 	delete(hs.hash, v)
 }
 
-// Removes delete items of vs
-func (hs *HashSet[T]) Removes(vs ...T) {
+// RemoveAll delete items of vs
+func (hs *HashSet[T]) RemoveAll(vs ...T) {
 	if hs.IsEmpty() {
 		return
 	}
@@ -111,7 +111,7 @@ func (hs *HashSet[T]) RemoveCol(ac cog.Collection[T]) {
 		return
 	}
 
-	hs.Removes(ac.Values()...)
+	hs.RemoveAll(ac.Values()...)
 }
 
 // RemoveIter remove all items in the iterator it
@@ -134,8 +134,8 @@ func (hs *HashSet[T]) RemoveFunc(f func(T) bool) {
 	}
 }
 
-// Contain Test to see if the list contains the value v
-func (hs *HashSet[T]) Contain(v T) bool {
+// Contains Test to see if the list contains the value v
+func (hs *HashSet[T]) Contains(v T) bool {
 	if hs.IsEmpty() {
 		return false
 	}
@@ -145,8 +145,8 @@ func (hs *HashSet[T]) Contain(v T) bool {
 	return false
 }
 
-// Contains Test to see if the collection contains all items of vs
-func (hs *HashSet[T]) Contains(vs ...T) bool {
+// ContainsAll Test to see if the collection contains all items of vs
+func (hs *HashSet[T]) ContainsAll(vs ...T) bool {
 	if len(vs) == 0 {
 		return true
 	}
@@ -163,8 +163,8 @@ func (hs *HashSet[T]) Contains(vs ...T) bool {
 	return true
 }
 
-// ContainCol Test to see if the collection contains all items of another collection
-func (hs *HashSet[T]) ContainCol(ac cog.Collection[T]) bool {
+// ContainsCol Test to see if the collection contains all items of another collection
+func (hs *HashSet[T]) ContainsCol(ac cog.Collection[T]) bool {
 	if ac.IsEmpty() || hs == ac {
 		return true
 	}
@@ -174,14 +174,14 @@ func (hs *HashSet[T]) ContainCol(ac cog.Collection[T]) bool {
 	}
 
 	if ic, ok := ac.(cog.Iterable[T]); ok {
-		return hs.ContainIter(ic.Iterator())
+		return hs.ContainsIter(ic.Iterator())
 	}
 
-	return hs.Contains(ac.Values()...)
+	return hs.ContainsAll(ac.Values()...)
 }
 
-// ContainIter Test to see if the collection contains all items of iterator 'it'
-func (hs *HashSet[T]) ContainIter(it cog.Iterator[T]) bool {
+// ContainsIter Test to see if the collection contains all items of iterator 'it'
+func (hs *HashSet[T]) ContainsIter(it cog.Iterator[T]) bool {
 	for it.Next() {
 		if _, ok := hs.hash[it.Value()]; !ok {
 			return false
@@ -190,8 +190,8 @@ func (hs *HashSet[T]) ContainIter(it cog.Iterator[T]) bool {
 	return true
 }
 
-// Retains Retains only the elements in this collection that are contained in the argument array vs.
-func (hs *HashSet[T]) Retains(vs ...T) {
+// RetainAll Retains only the elements in this collection that are contained in the argument array vs.
+func (hs *HashSet[T]) RetainAll(vs ...T) {
 	if hs.IsEmpty() {
 		return
 	}
@@ -219,7 +219,7 @@ func (hs *HashSet[T]) RetainCol(ac cog.Collection[T]) {
 		return
 	}
 
-	hs.RetainFunc(ac.Contain)
+	hs.RetainFunc(ac.Contains)
 }
 
 // RetainFunc Retains all items that function f returns true

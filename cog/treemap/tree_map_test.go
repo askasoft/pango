@@ -81,7 +81,7 @@ func TestTreeMapDelete(t *testing.T) {
 	tree.Set(1, "a") //overwrite
 
 	tree.Remove(5)
-	tree.Removes(6, 7)
+	tree.RemoveAll(6, 7)
 	tree.Remove(8)
 	tree.Remove(5)
 
@@ -117,7 +117,7 @@ func TestTreeMapDelete(t *testing.T) {
 	}
 
 	tree.Remove(1)
-	tree.Removes(4, 2, 3, 2)
+	tree.RemoveAll(4, 2, 3, 2)
 	tree.Remove(2)
 
 	if av, ev := fmt.Sprintf("%v", tree.Keys()), "[]"; av != ev {

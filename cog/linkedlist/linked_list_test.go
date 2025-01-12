@@ -45,7 +45,7 @@ func TestLinkedListNew(t *testing.T) {
 func TestLinkedListAdd(t *testing.T) {
 	list := NewLinkedList[string]()
 	list.Add("a")
-	list.Adds("b", "c")
+	list.AddAll("b", "c")
 	if av := list.IsEmpty(); av != false {
 		t.Errorf("Got %v expected %v", av, false)
 	}
@@ -66,7 +66,7 @@ func TestLinkedListIndex(t *testing.T) {
 	}
 
 	list.Add("a")
-	list.Adds("b", "c")
+	list.AddAll("b", "c")
 
 	expectedIndex = 0
 	if index := list.Index("a"); index != expectedIndex {
@@ -101,7 +101,7 @@ func TestLinkedListDelete(t *testing.T) {
 	}
 	for i := 1; i <= 100; i++ {
 		l.Remove(i)
-		l.Removes(i, i)
+		l.RemoveAll(i, i)
 		if l.Len() != 100-i {
 			t.Errorf("LinkedList.Remove(%v) failed, l.Len() = %v, want %v", i, l.Len(), 100-i)
 		}
@@ -175,7 +175,7 @@ func TestLinkedListDeleteAll(t *testing.T) {
 func TestLinkedListDeleteAt(t *testing.T) {
 	list := NewLinkedList[string]()
 	list.Add("a")
-	list.Adds("b", "c")
+	list.AddAll("b", "c")
 	list.DeleteAt(2)
 	list.DeleteAt(1)
 	list.DeleteAt(0)
@@ -201,7 +201,7 @@ func TestLinkedListDeleteAtPanic(t *testing.T) {
 func TestLinkedListGet(t *testing.T) {
 	list := NewLinkedList[string]()
 	list.Add("a")
-	list.Adds("b", "c")
+	list.AddAll("b", "c")
 	if av := list.Get(0); av != "a" {
 		t.Errorf("Got %v expected %v", av, "a")
 	}
@@ -231,7 +231,7 @@ func TestLinkedListGetPanic(t *testing.T) {
 func TestLinkedListSwap(t *testing.T) {
 	list := NewLinkedList[string]()
 	list.Add("a")
-	list.Adds("b", "c")
+	list.AddAll("b", "c")
 	list.Swap(0, 1)
 	if av := list.Get(0); av != "b" {
 		t.Errorf("Got %v expected %v", av, "c")
@@ -240,7 +240,7 @@ func TestLinkedListSwap(t *testing.T) {
 
 func TestLinkedListClear(t *testing.T) {
 	list := NewLinkedList[string]()
-	list.Adds("e", "f", "g", "a", "b", "c", "d")
+	list.AddAll("e", "f", "g", "a", "b", "c", "d")
 	list.Clear()
 	if av := list.IsEmpty(); av != true {
 		t.Errorf("Got %v expected %v", av, true)
@@ -264,17 +264,17 @@ func TestLinkedListContains(t *testing.T) {
 		if !list.Contains(i) {
 			t.Errorf("%d Contains() should return true", i)
 		}
-		if !list.Contains(a[0 : i+1]...) {
-			t.Errorf("%d Contains(...) should return true", i)
+		if !list.ContainsAll(a[0 : i+1]...) {
+			t.Errorf("%d ContainsAll(...) should return true", i)
 		}
-		if list.Contains(a...) {
-			t.Errorf("%d Contains(...) should return false", i)
+		if list.ContainsAll(a...) {
+			t.Errorf("%d ContainsAll(...) should return false", i)
 		}
-		if !list.ContainCol(arraylist.AsArrayList(a[0 : i+1])) {
-			t.Errorf("%d ContainCol(...) should return true", i)
+		if !list.ContainsCol(arraylist.AsArrayList(a[0 : i+1])) {
+			t.Errorf("%d ContainsCol(...) should return true", i)
 		}
-		if list.ContainCol(arraylist.AsArrayList(a)) {
-			t.Errorf("%d ContainCol(...) should return false", i)
+		if list.ContainsCol(arraylist.AsArrayList(a)) {
+			t.Errorf("%d ContainsCol(...) should return false", i)
 		}
 	}
 
@@ -282,7 +282,7 @@ func TestLinkedListContains(t *testing.T) {
 	if av := list.Contains(0); av != false {
 		t.Errorf("Got %v expected %v", av, false)
 	}
-	if av := list.Contains(0, 1, 2); av != false {
+	if av := list.ContainsAll(0, 1, 2); av != false {
 		t.Errorf("Got %v expected %v", av, false)
 	}
 }
@@ -297,19 +297,19 @@ func TestLinkedListRetain(t *testing.T) {
 			}
 			list.Add(i)
 
-			list.Retains(a...)
+			list.RetainAll(a...)
 			vs := list.Values()
 			if !reflect.DeepEqual(vs, a) {
-				t.Fatalf("%d Retains() = %v, want %v", i, vs, a)
+				t.Fatalf("%d RetainAll() = %v, want %v", i, vs, a)
 			}
 		}
 
 		{
 			a = []int{}
-			list.Retains()
+			list.RetainAll()
 			vs := list.Values()
 			if len(vs) > 0 {
-				t.Fatalf("%d Retains() = %v, want %v", n, vs, a)
+				t.Fatalf("%d RetainAll() = %v, want %v", n, vs, a)
 			}
 		}
 
@@ -333,7 +333,7 @@ func TestLinkedListRetain(t *testing.T) {
 			list.RetainCol(arraylist.AsArrayList(a))
 			vs := list.Values()
 			if len(vs) > 0 {
-				t.Fatalf("%d Retains() = %v, want %v", n, vs, a)
+				t.Fatalf("%d RetainAll() = %v, want %v", n, vs, a)
 			}
 		}
 	}
@@ -342,7 +342,7 @@ func TestLinkedListRetain(t *testing.T) {
 func TestLinkedListValues(t *testing.T) {
 	list := NewLinkedList[string]()
 	list.Add("a")
-	list.Adds("b", "c")
+	list.AddAll("b", "c")
 	if av, ev := fmt.Sprintf("%v", list.Values()), "[a b c]"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
@@ -414,7 +414,7 @@ func TestLinkedListSetPanic(t *testing.T) {
 
 func TestLinkedListEach(t *testing.T) {
 	list := NewLinkedList[string]()
-	list.Adds("a", "b", "c")
+	list.AddAll("a", "b", "c")
 	list.Each(func(index int, value string) bool {
 		switch index {
 		case 0:
@@ -454,7 +454,7 @@ func TestLinkedListIteratorNextOnEmpty(t *testing.T) {
 
 func TestLinkedListIteratorPrev(t *testing.T) {
 	list := NewLinkedList[string]()
-	list.Adds("a", "b", "c")
+	list.AddAll("a", "b", "c")
 	it := list.Iterator()
 	count := 0
 	index := list.Len()
@@ -486,7 +486,7 @@ func TestLinkedListIteratorPrev(t *testing.T) {
 
 func TestLinkedListIteratorNext(t *testing.T) {
 	list := NewLinkedList[string]()
-	list.Adds("a", "b", "c")
+	list.AddAll("a", "b", "c")
 	it := list.Iterator()
 	count := 0
 	index := 0
@@ -520,7 +520,7 @@ func TestLinkedListIteratorReset(t *testing.T) {
 	list := NewLinkedList[string]()
 
 	it := list.Iterator()
-	list.Adds("a", "b", "c")
+	list.AddAll("a", "b", "c")
 
 	for it.Next() {
 	}

@@ -46,7 +46,7 @@ func TestArrayListNew(t *testing.T) {
 func TestArrayListAdd(t *testing.T) {
 	list := NewArrayList[string]()
 	list.Add("a")
-	list.Adds("b", "c")
+	list.AddAll("b", "c")
 	if av := list.IsEmpty(); av != false {
 		t.Errorf("Got %v expected %v", av, false)
 	}
@@ -98,7 +98,7 @@ func TestArrayListIndex(t *testing.T) {
 	}
 
 	list.Add("a")
-	list.Adds("b", "c")
+	list.AddAll("b", "c")
 
 	expectedIndex = 0
 	if index := list.Index("a"); index != expectedIndex {
@@ -133,7 +133,7 @@ func TestArrayListRemove(t *testing.T) {
 	}
 	for i := 1; i <= 100; i++ {
 		l.Remove(i)
-		l.Removes(i, i)
+		l.RemoveAll(i, i)
 		if l.Len() != 100-i {
 			t.Errorf("ArrayList.Remove(%v) failed, l.Len() = %v, want %v", i, l.Len(), 100-i)
 		}
@@ -207,7 +207,7 @@ func TestArrayListDeleteAll(t *testing.T) {
 func TestArrayListDeleteAt(t *testing.T) {
 	list := NewArrayList[string]()
 	list.Add("a")
-	list.Adds("b", "c")
+	list.AddAll("b", "c")
 	list.DeleteAt(2)
 	list.DeleteAt(1)
 	list.DeleteAt(0)
@@ -233,7 +233,7 @@ func TestArrayListDeleteAtPanic(t *testing.T) {
 func TestArrayListGet(t *testing.T) {
 	list := NewArrayList[string]()
 	list.Add("a")
-	list.Adds("b", "c")
+	list.AddAll("b", "c")
 	if av := list.Get(0); av != "a" {
 		t.Errorf("Got %v expected %v", av, "a")
 	}
@@ -263,7 +263,7 @@ func TestArrayListGetPanic(t *testing.T) {
 func TestArrayListSwap(t *testing.T) {
 	list := NewArrayList[string]()
 	list.Add("a")
-	list.Adds("b", "c")
+	list.AddAll("b", "c")
 	list.Swap(0, 1)
 	if av := list.Get(0); av != "b" {
 		t.Errorf("Got %v expected %v", av, "b")
@@ -272,7 +272,7 @@ func TestArrayListSwap(t *testing.T) {
 
 func TestArrayListClear(t *testing.T) {
 	list := NewArrayList[string]()
-	list.Adds("e", "f", "g", "a", "b", "c", "d")
+	list.AddAll("e", "f", "g", "a", "b", "c", "d")
 	list.Clear()
 	if av := list.IsEmpty(); av != true {
 		t.Errorf("Got %v expected %v", av, true)
@@ -296,25 +296,25 @@ func TestArrayListContains(t *testing.T) {
 		if !list.Contains(i) {
 			t.Errorf("%d Contains() should return true", i)
 		}
-		if !list.Contains(a[0 : i+1]...) {
-			t.Errorf("%d Contains(...) should return true", i)
+		if !list.ContainsAll(a[0 : i+1]...) {
+			t.Errorf("%d ContainsAll(...) should return true", i)
 		}
-		if list.Contains(a...) {
-			t.Errorf("%d Contains(...) should return false", i)
+		if list.ContainsAll(a...) {
+			t.Errorf("%d ContainsAll(...) should return false", i)
 		}
-		if !list.ContainCol(AsArrayList(a[0 : i+1])) {
-			t.Errorf("%d ContainCol(...) should return true", i)
+		if !list.ContainsCol(AsArrayList(a[0 : i+1])) {
+			t.Errorf("%d ContainsCol(...) should return true", i)
 		}
-		if list.ContainCol(AsArrayList(a)) {
-			t.Errorf("%d ContainCol(...) should return false", i)
+		if list.ContainsCol(AsArrayList(a)) {
+			t.Errorf("%d ContainsCol(...) should return false", i)
 		}
 	}
 
 	list.Clear()
-	if av := list.Contain(0); av != false {
+	if av := list.Contains(0); av != false {
 		t.Errorf("Got %v expected %v", av, false)
 	}
-	if av := list.Contains(0, 1, 2); av != false {
+	if av := list.ContainsAll(0, 1, 2); av != false {
 		t.Errorf("Got %v expected %v", av, false)
 	}
 }
@@ -329,19 +329,19 @@ func TestArrayListRetain(t *testing.T) {
 			}
 			list.Add(i)
 
-			list.Retains(a...)
+			list.RetainAll(a...)
 			vs := list.Values()
 			if !reflect.DeepEqual(vs, a) {
-				t.Fatalf("%d Retains() = %v, want %v", i, vs, a)
+				t.Fatalf("%d RetainAll() = %v, want %v", i, vs, a)
 			}
 		}
 
 		{
 			a = []int{}
-			list.Retains()
+			list.RetainAll()
 			vs := list.Values()
 			if len(vs) > 0 {
-				t.Fatalf("%d Retains() = %v, want %v", n, vs, a)
+				t.Fatalf("%d RetainAll() = %v, want %v", n, vs, a)
 			}
 		}
 
@@ -365,7 +365,7 @@ func TestArrayListRetain(t *testing.T) {
 			list.RetainCol(AsArrayList(a))
 			vs := list.Values()
 			if len(vs) > 0 {
-				t.Fatalf("%d Retains() = %v, want %v", n, vs, a)
+				t.Fatalf("%d RetainAll() = %v, want %v", n, vs, a)
 			}
 		}
 	}
@@ -374,7 +374,7 @@ func TestArrayListRetain(t *testing.T) {
 func TestArrayListValues(t *testing.T) {
 	list := NewArrayList[string]()
 	list.Add("a")
-	list.Adds("b", "c")
+	list.AddAll("b", "c")
 	if av, ev := fmt.Sprintf("%v", list.Values()), "[a b c]"; av != ev {
 		t.Errorf("Got %v expected %v", av, ev)
 	}
@@ -445,7 +445,7 @@ func TestArrayListSetPanic(t *testing.T) {
 
 func TestArrayListEach(t *testing.T) {
 	list := NewArrayList[string]()
-	list.Adds("a", "b", "c")
+	list.AddAll("a", "b", "c")
 	list.Each(func(index int, value string) bool {
 		switch index {
 		case 0:
@@ -485,7 +485,7 @@ func TestArrayListIteratorNextOnEmpty(t *testing.T) {
 
 func TestArrayListIteratorPrev(t *testing.T) {
 	list := NewArrayList[string]()
-	list.Adds("a", "b", "c")
+	list.AddAll("a", "b", "c")
 	it := list.Iterator()
 	count := 0
 	index := list.Len()
@@ -517,7 +517,7 @@ func TestArrayListIteratorPrev(t *testing.T) {
 
 func TestArrayListIteratorNext(t *testing.T) {
 	list := NewArrayList[string]()
-	list.Adds("a", "b", "c")
+	list.AddAll("a", "b", "c")
 	it := list.Iterator()
 	count := 0
 	for index := 0; it.Next(); index++ {
@@ -549,7 +549,7 @@ func TestArrayListIteratorReset(t *testing.T) {
 	list := NewArrayList[string]()
 
 	it := list.Iterator()
-	list.Adds("a", "b", "c")
+	list.AddAll("a", "b", "c")
 
 	for it.Next() {
 	}

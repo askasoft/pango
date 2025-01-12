@@ -181,7 +181,7 @@ func TestLinkedHashMapBasicFeatures(t *testing.T) {
 		assertLenEqual("TestLinkedHashMapBasicFeatures", t, lm, n-j-1)
 
 		// deleting again shouldn't change anything
-		lm.Removes(i)
+		lm.RemoveAll(i)
 		assertLenEqual("TestLinkedHashMapBasicFeatures", t, lm, n-j-1)
 	}
 
@@ -526,7 +526,7 @@ func TestLinkedHashMapRemove(t *testing.T) {
 	m.Set(1, "a") //overwrite
 
 	m.Remove(5)
-	m.Removes(6, 7, 8)
+	m.RemoveAll(6, 7, 8)
 	m.Remove(5)
 
 	if av, ev := m.Keys(), []int{3, 4, 1, 2}; !testLinkedHashMapSameValues(av, ev) {
@@ -569,7 +569,7 @@ func TestLinkedHashMapRemove(t *testing.T) {
 	}
 
 	m.Remove(1)
-	m.Removes(4, 2, 3, 2)
+	m.RemoveAll(4, 2, 3, 2)
 	m.Remove(2)
 
 	if av, ev := fmt.Sprintf("%v", m.Keys()), "[]"; av != ev {

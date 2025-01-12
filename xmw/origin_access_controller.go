@@ -73,11 +73,11 @@ func (ll *OriginAccessController) Handle(c *xin.Context) {
 	if acaos.Len() > 0 {
 		acao := ""
 
-		if acaos.Contain("*") {
+		if acaos.Contains("*") {
 			acao = "*"
 		} else {
 			origin := c.GetHeader("Origin")
-			if origin != "" && acaos.Contain(origin) {
+			if origin != "" && acaos.Contains(origin) {
 				acao = origin
 			}
 		}

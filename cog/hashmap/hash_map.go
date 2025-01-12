@@ -141,8 +141,8 @@ func (hm *HashMap[K, V]) Remove(k K) (ov V, ok bool) {
 	return
 }
 
-// Removes remove all items with key of ks.
-func (hm *HashMap[K, V]) Removes(ks ...K) {
+// RemoveAll remove all items with key of ks.
+func (hm *HashMap[K, V]) RemoveAll(ks ...K) {
 	if hm.IsEmpty() {
 		return
 	}
@@ -152,8 +152,8 @@ func (hm *HashMap[K, V]) Removes(ks ...K) {
 	}
 }
 
-// Contain Test to see if the list contains the key k
-func (hm *HashMap[K, V]) Contain(k K) bool {
+// Contains Test to see if the map contains the given key
+func (hm *HashMap[K, V]) Contains(k K) bool {
 	if hm.IsEmpty() {
 		return false
 	}
@@ -164,8 +164,8 @@ func (hm *HashMap[K, V]) Contain(k K) bool {
 	return false
 }
 
-// Contains looks for the given key, and returns true if the key exists in the map.
-func (hm *HashMap[K, V]) Contains(ks ...K) bool {
+// ContainsAll Test to see if the map contains all keys of ks
+func (hm *HashMap[K, V]) ContainsAll(ks ...K) bool {
 	if len(ks) == 0 {
 		return true
 	}

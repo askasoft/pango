@@ -13,7 +13,7 @@ import (
 // Example: cog.NewTreeSet(cog.CompareString, "v1", "v2")
 func NewTreeSet[T any](compare cog.Compare[T], vs ...T) *TreeSet[T] {
 	ts := &TreeSet[T]{compare: compare}
-	ts.Adds(vs...)
+	ts.AddAll(vs...)
 	return ts
 }
 
@@ -57,8 +57,8 @@ func (ts *TreeSet[T]) Add(v T) {
 	ts.add(v)
 }
 
-// Adds adds all items of vs.
-func (ts *TreeSet[T]) Adds(vs ...T) {
+// AddAll adds all items of vs.
+func (ts *TreeSet[T]) AddAll(vs ...T) {
 	for _, v := range vs {
 		ts.add(v)
 	}
@@ -78,18 +78,18 @@ func (ts *TreeSet[T]) AddCol(ac cog.Collection[T]) {
 		return
 	}
 
-	ts.Adds(ac.Values()...)
+	ts.AddAll(ac.Values()...)
 }
 
-// Remove remove all items with associated value v of vs
+// Remove remove all items with associated value v
 func (ts *TreeSet[T]) Remove(v T) {
 	if tn := ts.lookup(v); tn != nil {
 		ts.deleteNode(tn)
 	}
 }
 
-// Removes remove all items in the array vs
-func (ts *TreeSet[T]) Removes(vs ...T) {
+// RemoveAll remove all items in the array vs
+func (ts *TreeSet[T]) RemoveAll(vs ...T) {
 	if ts.IsEmpty() {
 		return
 	}
@@ -115,7 +115,7 @@ func (ts *TreeSet[T]) RemoveCol(ac cog.Collection[T]) {
 		return
 	}
 
-	ts.Removes(ac.Values()...)
+	ts.RemoveAll(ac.Values()...)
 }
 
 // RemoveIter remove all items in the iterator it
@@ -138,13 +138,13 @@ func (ts *TreeSet[T]) RemoveFunc(f func(T) bool) {
 	}
 }
 
-// Contain Test to see if the list contains the value v
-func (ts *TreeSet[T]) Contain(v T) bool {
+// Contains Test to see if the list contains the value v
+func (ts *TreeSet[T]) Contains(v T) bool {
 	return ts.lookup(v) != nil
 }
 
-// Contains Test to see if the collection contains all items of vs
-func (ts *TreeSet[T]) Contains(vs ...T) bool {
+// ContainsAll Test to see if the collection contains all items of vs
+func (ts *TreeSet[T]) ContainsAll(vs ...T) bool {
 	if len(vs) == 0 {
 		return true
 	}
@@ -161,8 +161,8 @@ func (ts *TreeSet[T]) Contains(vs ...T) bool {
 	return true
 }
 
-// ContainCol Test to see if the collection contains all items of another collection
-func (ts *TreeSet[T]) ContainCol(ac cog.Collection[T]) bool {
+// ContainsCol Test to see if the collection contains all items of another collection
+func (ts *TreeSet[T]) ContainsCol(ac cog.Collection[T]) bool {
 	if ac.IsEmpty() || ts == ac {
 		return true
 	}
@@ -172,14 +172,14 @@ func (ts *TreeSet[T]) ContainCol(ac cog.Collection[T]) bool {
 	}
 
 	if ic, ok := ac.(cog.Iterable[T]); ok {
-		return ts.ContainIter(ic.Iterator())
+		return ts.ContainsIter(ic.Iterator())
 	}
 
-	return ts.Contains(ac.Values()...)
+	return ts.ContainsAll(ac.Values()...)
 }
 
-// ContainIter Test to see if the collection contains all items of iterator 'it'
-func (ts *TreeSet[T]) ContainIter(it cog.Iterator[T]) bool {
+// ContainsIter Test to see if the collection contains all items of iterator 'it'
+func (ts *TreeSet[T]) ContainsIter(it cog.Iterator[T]) bool {
 	for it.Next() {
 		if tn := ts.lookup(it.Value()); tn == nil {
 			return false
@@ -188,8 +188,8 @@ func (ts *TreeSet[T]) ContainIter(it cog.Iterator[T]) bool {
 	return true
 }
 
-// Retains Retains only the elements in this collection that are contained in the argument array vs.
-func (ts *TreeSet[T]) Retains(vs ...T) {
+// RetainAll Retains only the elements in this collection that are contained in the argument array vs.
+func (ts *TreeSet[T]) RetainAll(vs ...T) {
 	if ts.IsEmpty() {
 		return
 	}
@@ -217,7 +217,7 @@ func (ts *TreeSet[T]) RetainCol(ac cog.Collection[T]) {
 		return
 	}
 
-	ts.RetainFunc(ac.Contain)
+	ts.RetainFunc(ac.Contains)
 }
 
 // RetainFunc Retains all items that function f returns true

@@ -22,7 +22,7 @@ type intstrList interface {
 type collection[T any] interface {
 	Each(func(int, T) bool)
 
-	Contain(T) bool
+	Contains(T) bool
 }
 
 func AsList(o any) List {
@@ -145,7 +145,7 @@ type strcol struct {
 }
 
 func (sc strcol) Get(key string) (string, bool) {
-	if sc.col.Contain(key) {
+	if sc.col.Contains(key) {
 		return key, true
 	}
 	return "", false
@@ -162,7 +162,7 @@ type intcol struct {
 }
 
 func (ic intcol) Get(key string) (string, bool) {
-	if ic.col.Contain(num.Atoi(key)) {
+	if ic.col.Contains(num.Atoi(key)) {
 		return key, true
 	}
 	return "", false

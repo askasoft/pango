@@ -15,7 +15,7 @@ import (
 // Example: cog.NewLinkedHashSet(1, 2, 3)
 func NewLinkedHashSet[T comparable](vs ...T) *LinkedHashSet[T] {
 	ls := &LinkedHashSet[T]{}
-	ls.Adds(vs...)
+	ls.AddAll(vs...)
 	return ls
 }
 
@@ -61,9 +61,9 @@ func (ls *LinkedHashSet[T]) Add(v T) {
 	ls.Insert(ls.Len(), v)
 }
 
-// Adds adds all items of vs.
+// AddAll adds all items of vs.
 // Note: existing item's order will not change.
-func (ls *LinkedHashSet[T]) Adds(vs ...T) {
+func (ls *LinkedHashSet[T]) AddAll(vs ...T) {
 	ls.Inserts(ls.Len(), vs...)
 }
 
@@ -80,8 +80,8 @@ func (ls *LinkedHashSet[T]) Remove(v T) {
 	}
 }
 
-// Removes remove all items in the array vs
-func (ls *LinkedHashSet[T]) Removes(vs ...T) {
+// RemoveAll remove all items in the array vs
+func (ls *LinkedHashSet[T]) RemoveAll(vs ...T) {
 	if ls.IsEmpty() {
 		return
 	}
@@ -107,7 +107,7 @@ func (ls *LinkedHashSet[T]) RemoveCol(ac cog.Collection[T]) {
 		return
 	}
 
-	ls.Removes(ac.Values()...)
+	ls.RemoveAll(ac.Values()...)
 }
 
 // RemoveIter remove all items in the iterator it
@@ -130,8 +130,8 @@ func (ls *LinkedHashSet[T]) RemoveFunc(f func(T) bool) {
 	}
 }
 
-// Contain Test to see if the list contains the value v
-func (ls *LinkedHashSet[T]) Contain(v T) bool {
+// Contains Test to see if the list contains the value v
+func (ls *LinkedHashSet[T]) Contains(v T) bool {
 	if ls.IsEmpty() {
 		return false
 	}
@@ -141,8 +141,8 @@ func (ls *LinkedHashSet[T]) Contain(v T) bool {
 	return false
 }
 
-// Contains Test to see if the collection contains all items of vs
-func (ls *LinkedHashSet[T]) Contains(vs ...T) bool {
+// ContainsAll Test to see if the collection contains all items of vs
+func (ls *LinkedHashSet[T]) ContainsAll(vs ...T) bool {
 	if len(vs) == 0 {
 		return true
 	}
@@ -159,8 +159,8 @@ func (ls *LinkedHashSet[T]) Contains(vs ...T) bool {
 	return true
 }
 
-// ContainCol Test to see if the collection contains all items of another collection
-func (ls *LinkedHashSet[T]) ContainCol(ac cog.Collection[T]) bool {
+// ContainsCol Test to see if the collection contains all items of another collection
+func (ls *LinkedHashSet[T]) ContainsCol(ac cog.Collection[T]) bool {
 	if ac.IsEmpty() || ls == ac {
 		return true
 	}
@@ -170,14 +170,14 @@ func (ls *LinkedHashSet[T]) ContainCol(ac cog.Collection[T]) bool {
 	}
 
 	if ic, ok := ac.(cog.Iterable[T]); ok {
-		return ls.ContainIter(ic.Iterator())
+		return ls.ContainsIter(ic.Iterator())
 	}
 
-	return ls.Contains(ac.Values()...)
+	return ls.ContainsAll(ac.Values()...)
 }
 
-// ContainIter Test to see if the collection contains all items of iterator 'it'
-func (ls *LinkedHashSet[T]) ContainIter(it cog.Iterator[T]) bool {
+// ContainsIter Test to see if the collection contains all items of iterator 'it'
+func (ls *LinkedHashSet[T]) ContainsIter(it cog.Iterator[T]) bool {
 	for it.Next() {
 		if _, ok := ls.hash[it.Value()]; !ok {
 			return false
@@ -186,8 +186,8 @@ func (ls *LinkedHashSet[T]) ContainIter(it cog.Iterator[T]) bool {
 	return true
 }
 
-// Retains Retains only the elements in this collection that are contained in the argument array vs.
-func (ls *LinkedHashSet[T]) Retains(vs ...T) {
+// RetainAll Retains only the elements in this collection that are contained in the argument array vs.
+func (ls *LinkedHashSet[T]) RetainAll(vs ...T) {
 	if ls.IsEmpty() {
 		return
 	}
@@ -215,7 +215,7 @@ func (ls *LinkedHashSet[T]) RetainCol(ac cog.Collection[T]) {
 		return
 	}
 
-	ls.RetainFunc(ac.Contain)
+	ls.RetainFunc(ac.Contains)
 }
 
 // RetainFunc Retains all items that function f returns true

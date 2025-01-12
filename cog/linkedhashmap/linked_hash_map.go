@@ -146,7 +146,7 @@ func (lm *LinkedHashMap[K, V]) Remove(k K) (ov V, ok bool) {
 }
 
 // Remove remove all items with key of ks.
-func (lm *LinkedHashMap[K, V]) Removes(ks ...K) {
+func (lm *LinkedHashMap[K, V]) RemoveAll(ks ...K) {
 	if lm.IsEmpty() {
 		return
 	}
@@ -158,8 +158,8 @@ func (lm *LinkedHashMap[K, V]) Removes(ks ...K) {
 	}
 }
 
-// Contain Test to see if the list contains the key k
-func (lm *LinkedHashMap[K, V]) Contain(k K) bool {
+// Contains Test to see if the map contains the given key
+func (lm *LinkedHashMap[K, V]) Contains(k K) bool {
 	if lm.IsEmpty() {
 		return false
 	}
@@ -170,8 +170,8 @@ func (lm *LinkedHashMap[K, V]) Contain(k K) bool {
 	return false
 }
 
-// Contains looks for the given key, and returns true if the key exists in the map.
-func (lm *LinkedHashMap[K, V]) Contains(ks ...K) bool {
+// ContainsAll Test to see if the map contains all keys of ks
+func (lm *LinkedHashMap[K, V]) ContainsAll(ks ...K) bool {
 	if len(ks) == 0 {
 		return true
 	}

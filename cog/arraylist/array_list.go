@@ -69,8 +69,8 @@ func (al *ArrayList[T]) Add(v T) {
 	al.Insert(al.Len(), v)
 }
 
-// Adds adds all items of vs
-func (al *ArrayList[T]) Adds(vs ...T) {
+// AddAll adds all items of vs
+func (al *ArrayList[T]) AddAll(vs ...T) {
 	al.Inserts(al.Len(), vs...)
 }
 
@@ -79,7 +79,7 @@ func (al *ArrayList[T]) AddCol(ac cog.Collection[T]) {
 	al.InsertCol(al.Len(), ac)
 }
 
-// Remove remove all items with associated value v of vs
+// Remove remove all items with associated value v
 func (al *ArrayList[T]) Remove(v T) {
 	i := al.Index(v)
 	if i < 0 {
@@ -97,8 +97,8 @@ func (al *ArrayList[T]) Remove(v T) {
 	al.data = a[:i]
 }
 
-// Removes remove all items in the array vs
-func (al *ArrayList[T]) Removes(vs ...T) {
+// RemoveAll remove all items in the array vs
+func (al *ArrayList[T]) RemoveAll(vs ...T) {
 	if al.IsEmpty() {
 		return
 	}
@@ -124,7 +124,7 @@ func (al *ArrayList[T]) RemoveCol(ac cog.Collection[T]) {
 		return
 	}
 
-	al.Removes(ac.Values()...)
+	al.RemoveAll(ac.Values()...)
 }
 
 // RemoveIter remove all items in the iterator it
@@ -147,13 +147,13 @@ func (al *ArrayList[T]) RemoveFunc(f func(T) bool) {
 	}
 }
 
-// Contain Test to see if the list contains the value v
-func (al *ArrayList[T]) Contain(v T) bool {
+// Contains Test to see if the list contains the value v
+func (al *ArrayList[T]) Contains(v T) bool {
 	return al.Index(v) >= 0
 }
 
-// Contains Test to see if the collection contains all items of vs
-func (al *ArrayList[T]) Contains(vs ...T) bool {
+// ContainsAll Test to see if the collection contains all items of vs
+func (al *ArrayList[T]) ContainsAll(vs ...T) bool {
 	if len(vs) == 0 {
 		return true
 	}
@@ -170,8 +170,8 @@ func (al *ArrayList[T]) Contains(vs ...T) bool {
 	return true
 }
 
-// ContainCol Test to see if the collection contains all items of another collection
-func (al *ArrayList[T]) ContainCol(ac cog.Collection[T]) bool {
+// ContainsCol Test to see if the collection contains all items of another collection
+func (al *ArrayList[T]) ContainsCol(ac cog.Collection[T]) bool {
 	if ac.IsEmpty() || al == ac {
 		return true
 	}
@@ -181,14 +181,14 @@ func (al *ArrayList[T]) ContainCol(ac cog.Collection[T]) bool {
 	}
 
 	if ic, ok := ac.(cog.Iterable[T]); ok {
-		return al.ContainIter(ic.Iterator())
+		return al.ContainsIter(ic.Iterator())
 	}
 
-	return al.Contains(ac.Values()...)
+	return al.ContainsAll(ac.Values()...)
 }
 
-// ContainIter Test to see if the collection contains all items of iterator 'it'
-func (al *ArrayList[T]) ContainIter(it cog.Iterator[T]) bool {
+// ContainsIter Test to see if the collection contains all items of iterator 'it'
+func (al *ArrayList[T]) ContainsIter(it cog.Iterator[T]) bool {
 	for it.Next() {
 		if al.Index(it.Value()) < 0 {
 			return false
@@ -197,8 +197,8 @@ func (al *ArrayList[T]) ContainIter(it cog.Iterator[T]) bool {
 	return true
 }
 
-// Retains Retains only the elements in this collection that are contained in the argument array vs.
-func (al *ArrayList[T]) Retains(vs ...T) {
+// RetainAll Retains only the elements in this collection that are contained in the argument array vs.
+func (al *ArrayList[T]) RetainAll(vs ...T) {
 	if al.IsEmpty() {
 		return
 	}
@@ -226,7 +226,7 @@ func (al *ArrayList[T]) RetainCol(ac cog.Collection[T]) {
 		return
 	}
 
-	al.RetainFunc(ac.Contain)
+	al.RetainFunc(ac.Contains)
 }
 
 // RetainFunc Retains all items that function f returns true

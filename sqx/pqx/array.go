@@ -13,6 +13,10 @@ import (
 // BoolArray represents a one-dimensional array of the PostgreSQL boolean type.
 type BoolArray []bool
 
+func (a BoolArray) Slice() []bool {
+	return a
+}
+
 // Scan implements the sql.Scanner interface.
 func (a *BoolArray) Scan(src any) error {
 	switch src := src.(type) {
@@ -88,6 +92,10 @@ func (a BoolArray) Value() (driver.Value, error) {
 // precision type.
 type Float64Array []float64
 
+func (a Float64Array) Slice() []float64 {
+	return a
+}
+
 // Scan implements the sql.Scanner interface.
 func (a *Float64Array) Scan(src any) error {
 	switch src := src.(type) {
@@ -149,6 +157,10 @@ func (a Float64Array) Value() (driver.Value, error) {
 // Float32Array represents a one-dimensional array of the PostgreSQL double
 // precision type.
 type Float32Array []float32
+
+func (a Float32Array) Slice() []float32 {
+	return a
+}
 
 // Scan implements the sql.Scanner interface.
 func (a *Float32Array) Scan(src any) error {
@@ -213,6 +225,10 @@ func (a Float32Array) Value() (driver.Value, error) {
 // Int64Array represents a one-dimensional array of the PostgreSQL integer types.
 type Int64Array []int64
 
+func (a Int64Array) Slice() []int64 {
+	return a
+}
+
 // Scan implements the sql.Scanner interface.
 func (a *Int64Array) Scan(src any) error {
 	switch src := src.(type) {
@@ -273,6 +289,10 @@ func (a Int64Array) Value() (driver.Value, error) {
 
 // Int32Array represents a one-dimensional array of the PostgreSQL integer types.
 type Int32Array []int32
+
+func (a Int32Array) Slice() []int32 {
+	return a
+}
 
 // Scan implements the sql.Scanner interface.
 func (a *Int32Array) Scan(src any) error {
@@ -337,6 +357,10 @@ func (a Int32Array) Value() (driver.Value, error) {
 // IntArray represents a one-dimensional array of the PostgreSQL integer types.
 type IntArray []int
 
+func (a IntArray) Slice() []int {
+	return a
+}
+
 // Scan implements the sql.Scanner interface.
 func (a *IntArray) Scan(src any) error {
 	switch src := src.(type) {
@@ -399,6 +423,10 @@ func (a IntArray) Value() (driver.Value, error) {
 
 // StringArray represents a one-dimensional array of the PostgreSQL character types.
 type StringArray []string
+
+func (a StringArray) Slice() []string {
+	return a
+}
 
 // Scan implements the sql.Scanner interface.
 func (a *StringArray) Scan(src any) error {

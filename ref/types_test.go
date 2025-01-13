@@ -5,10 +5,19 @@ import (
 )
 
 func TestIsArrayType(t *testing.T) {
-	var a [1]int
+	cs := []struct {
+		w bool
+		x any
+	}{
+		{true, [1]int{}},
+		{false, nil},
+	}
 
-	if !IsArrayType(a) {
-		t.Errorf("IsArrayType(%T) = false", a)
+	for i, c := range cs {
+		a := IsArrayType(c.x)
+		if a != c.w {
+			t.Errorf("[%d] IsArrayType(%T) = %v, want %v", i, c.x, a, c.w)
+		}
 	}
 }
 

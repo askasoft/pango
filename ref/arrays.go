@@ -68,7 +68,7 @@ func ArraySet(a any, i int, v any) (any, error) {
 		vv := reflect.ValueOf(v)
 		vt := reflect.TypeOf(v)
 		if vt.Kind() != rt.Elem().Kind() {
-			cv, err := Convert(v, rt.Elem())
+			cv, err := CastTo(v, rt.Elem())
 			if err != nil {
 				return nil, fmt.Errorf("ArraySet(): invalid value type - %w", err)
 			}

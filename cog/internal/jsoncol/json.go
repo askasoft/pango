@@ -12,18 +12,6 @@ import (
 	"github.com/askasoft/pango/ref"
 )
 
-func jsonAddColItem[T any](c cog.Collection[T], v any) error {
-	var tv T
-
-	av, err := ref.Convert(v, reflect.TypeOf(tv))
-	if err != nil {
-		return err
-	}
-
-	c.Add(av.(T))
-	return nil
-}
-
 func JsonUnmarshalCol[T any](data []byte, c cog.Collection[T]) error {
 	dec := json.NewDecoder(bytes.NewReader(data))
 
@@ -36,21 +24,23 @@ func JsonUnmarshalCol[T any](data []byte, c cog.Collection[T]) error {
 		return fmt.Errorf("expect JSON array open with '['")
 	}
 
+	var v T
+
+	tv := reflect.TypeOf(v)
 	for dec.More() {
-		var v T
-		err = dec.Decode(&v)
-		if errors.Is(err, io.EOF) {
-			break
+		if err := dec.Decode(&v); err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			return err
 		}
 
+		cv, err := ref.CastTo(v, tv)
 		if err != nil {
 			return err
 		}
 
-		err = jsonAddColItem(c, v)
-		if err != nil {
-			return err
-		}
+		c.Add(cv.(T))
 	}
 
 	t, err = dec.Token()

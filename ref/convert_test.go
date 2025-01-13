@@ -27,7 +27,7 @@ func utcMilli(msec int64) time.Time {
 	return time.Unix(msec/1e3, (msec%1e3)*1e6).UTC()
 }
 
-func TestConvert(t *testing.T) {
+func TestCastTo(t *testing.T) {
 	cs := []struct {
 		w any
 		s any
@@ -48,12 +48,12 @@ func TestConvert(t *testing.T) {
 		{int32(0), "", TypeInt32},
 	}
 	for i, c := range cs {
-		a, err := Convert(c.s, c.b)
+		a, err := CastTo(c.s, c.b)
 		if err != nil {
-			t.Errorf("[%d] Convert(%v, %q) Failed: %v, want %v", i, c.s, c.b, err, c.w)
+			t.Errorf("[%d] CastTo(%v, %q) Failed: %v, want %v", i, c.s, c.b, err, c.w)
 		}
 		if !reflect.DeepEqual(a, c.w) {
-			t.Errorf("[%d] Convert(%v, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+			t.Errorf("[%d] CastTo(%v, %q) = %v, want %v", i, c.s, c.b, a, c.w)
 		}
 	}
 }

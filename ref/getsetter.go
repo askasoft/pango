@@ -60,7 +60,7 @@ func SetProperty(o any, k string, v any) (err error) {
 	if m.IsValid() && m.Type().NumIn() == 1 {
 		t := m.Type().In(0)
 
-		i, err := Convert(v, t)
+		i, err := CastTo(v, t)
 		if err != nil {
 			return err
 		}
@@ -77,7 +77,7 @@ func SetProperty(o any, k string, v any) (err error) {
 	f := r.Elem().FieldByName(p)
 	if f.IsValid() && f.CanSet() {
 		t := f.Type()
-		cv, err := Convert(v, t)
+		cv, err := CastTo(v, t)
 		if err != nil {
 			return err
 		}

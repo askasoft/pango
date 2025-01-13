@@ -12,24 +12,6 @@ import (
 	"github.com/askasoft/pango/ref"
 )
 
-func jsonAddMapItem[K any, V any](am cog.Map[K, V], k string, v any) error {
-	var tk K
-	var tv V
-
-	ak, err := ref.Convert(k, reflect.TypeOf(tk))
-	if err != nil {
-		return err
-	}
-
-	av, err := ref.Convert(v, reflect.TypeOf(tv))
-	if err != nil {
-		return err
-	}
-
-	am.Set(ak.(K), av.(V))
-	return nil
-}
-
 func JsonUnmarshalMap[K any, V any](data []byte, am cog.Map[K, V]) error {
 	dec := json.NewDecoder(bytes.NewReader(data))
 
@@ -42,31 +24,41 @@ func JsonUnmarshalMap[K any, V any](data []byte, am cog.Map[K, V]) error {
 		return fmt.Errorf("expect JSON object open with '{'")
 	}
 
+	var k K
+	var v V
+
+	tk := reflect.TypeOf(k)
+	tv := reflect.TypeOf(v)
+
 	for dec.More() {
 		t, err := dec.Token()
 		if err != nil {
 			return err
 		}
 
-		k, ok := t.(string)
+		sk, ok := t.(string)
 		if !ok {
 			return fmt.Errorf("expecting JSON key should be always a string: %T: %v", t, t)
 		}
 
-		var v V
-		err = dec.Decode(&v)
-		if errors.Is(err, io.EOF) {
-			break
+		if err = dec.Decode(&v); err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			return err
 		}
 
+		ck, err := ref.CastTo(sk, tk)
 		if err != nil {
 			return err
 		}
 
-		err = jsonAddMapItem(am, k, v)
+		cv, err := ref.CastTo(v, tv)
 		if err != nil {
 			return err
 		}
+
+		am.Set(ck.(K), cv.(V))
 	}
 
 	t, err = dec.Token()

@@ -7,17 +7,18 @@ import (
 	"github.com/askasoft/pango/cas"
 )
 
-func convertTo(v any, t reflect.Type) (any, error) {
-	sv := reflect.ValueOf(v)
-	if sv.Type().ConvertibleTo(t) {
-		return sv.Convert(t).Interface(), nil
+// ConvertTo convert the value v to the specified Type t, if v is convertible.
+func ConvertTo(v any, t reflect.Type) (any, error) {
+	rv := reflect.ValueOf(v)
+	if rv.Type().ConvertibleTo(t) {
+		return rv.Convert(t).Interface(), nil
 	}
 
 	return nil, fmt.Errorf("cannot convert value %v to type %s", v, t.String())
 }
 
-// Convert convert the value v to the specified Type t
-func Convert(v any, t reflect.Type) (cv any, err error) {
+// CastTo cast the value v to the specified Type t
+func CastTo(v any, t reflect.Type) (cv any, err error) {
 	switch t {
 	case TypeDuration:
 		return cas.ToDuration(v)
@@ -57,7 +58,7 @@ func Convert(v any, t reflect.Type) (cv any, err error) {
 			if v == nil {
 				return reflect.MakeSlice(t, 0, 0).Interface(), nil
 			}
-			cv, err = convertTo(v, t)
+			cv, err = ConvertTo(v, t)
 		default:
 			// case reflect.Complex64, reflect.Complex128:
 			// case reflect.Pointer:
@@ -73,9 +74,9 @@ func Convert(v any, t reflect.Type) (cv any, err error) {
 				return reflect.New(t).Interface(), nil
 			}
 
-			sv := reflect.ValueOf(v)
-			if sv.Type().ConvertibleTo(t) {
-				return sv.Convert(t).Interface(), nil
+			rv := reflect.ValueOf(v)
+			if rv.Type().ConvertibleTo(t) {
+				return rv.Convert(t).Interface(), nil
 			}
 
 			err = fmt.Errorf("cannot convert %T to %s", v, t.String())

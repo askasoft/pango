@@ -33,7 +33,7 @@ func MapGet(dict any, keys ...any) (any, error) {
 	kv := reflect.ValueOf(keys[0])
 	kt := reflect.TypeOf(keys[0])
 	if kt.Kind() != mt.Key().Kind() {
-		cv, err := Convert(keys[0], mt.Key())
+		cv, err := CastTo(keys[0], mt.Key())
 		if err != nil {
 			return nil, fmt.Errorf("MapGet(): invalid key type - %w", err)
 		}
@@ -66,7 +66,7 @@ func MapSet(dict any, key, val any) (any, error) {
 	kv := reflect.ValueOf(key)
 	kt := reflect.TypeOf(key)
 	if kt.Kind() != mt.Key().Kind() {
-		cv, err := Convert(key, mt.Key())
+		cv, err := CastTo(key, mt.Key())
 		if err != nil {
 			return nil, fmt.Errorf("MapSet(): invalid key type - %w", err)
 		}
@@ -77,7 +77,7 @@ func MapSet(dict any, key, val any) (any, error) {
 	vv := reflect.ValueOf(val)
 	vt := reflect.TypeOf(val)
 	if vt.Kind() != mt.Elem().Kind() {
-		cv, err := Convert(val, mt.Elem())
+		cv, err := CastTo(val, mt.Elem())
 		if err != nil {
 			return nil, fmt.Errorf("MapSet(): invalid value type - %w", err)
 		}

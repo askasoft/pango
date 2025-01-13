@@ -49,10 +49,10 @@ func addMultipartValues(mw *httpx.MultipartWriter, vs Values) error {
 
 func addMultipartFiles(mw *httpx.MultipartWriter, fs Files) (err error) {
 	for _, f := range fs {
-		if len(f.Data()) > 0 {
-			err = mw.WriteFileData(f.Field(), f.File(), f.Data())
-		} else {
+		if f.Data() == nil {
 			err = mw.WriteFile(f.Field(), f.File())
+		} else {
+			err = mw.WriteFileData(f.Field(), f.File(), f.Data())
 		}
 		if err != nil {
 			return

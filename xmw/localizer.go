@@ -70,12 +70,12 @@ func (ll *Localizer) Handle(c *xin.Context) {
 func (ll *Localizer) getLocaleFromParameter(c *xin.Context, ks []string) string {
 	for _, k := range ks {
 		if loc, ok := c.GetPostForm(k); ok {
-			if ll.acceptable(loc) {
+			if loc, ok = ll.acceptable(loc); ok {
 				return loc
 			}
 		}
 		if loc, ok := c.GetQuery(k); ok {
-			if ll.acceptable(loc) {
+			if loc, ok = ll.acceptable(loc); ok {
 				return loc
 			}
 		}
@@ -86,8 +86,8 @@ func (ll *Localizer) getLocaleFromParameter(c *xin.Context, ks []string) string 
 func (ll *Localizer) getLocaleFromCookie(c *xin.Context, ks []string) string {
 	for _, k := range ks {
 		if loc, err := c.Cookie(k); err == nil {
-			if ll.acceptable(loc) {
-				return loc
+			if al, ok := ll.acceptable(loc); ok {
+				return al
 			}
 		}
 	}
@@ -96,24 +96,23 @@ func (ll *Localizer) getLocaleFromCookie(c *xin.Context, ks []string) string {
 
 func (ll *Localizer) getLocaleFromHeader(c *xin.Context, ks []string) string {
 	for _, k := range ks {
-		loc := c.GetHeader(k)
-		qls := str.FieldsAny(loc, ",; ")
-		for _, ql := range qls {
-			if ll.acceptable(ql) {
-				return ql
+		locs := str.FieldsAny(c.GetHeader(k), ",; ")
+		for _, loc := range locs {
+			if al, ok := ll.acceptable(loc); ok {
+				return al
 			}
 		}
 	}
 	return ""
 }
 
-func (ll *Localizer) acceptable(loc string) bool {
+func (ll *Localizer) acceptable(loc string) (string, bool) {
 	if loc != "" {
 		for _, al := range ll.Locales {
 			if str.StartsWith(loc, al) {
-				return true
+				return al, true
 			}
 		}
 	}
-	return false
+	return loc, false
 }

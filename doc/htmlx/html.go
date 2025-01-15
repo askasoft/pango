@@ -101,6 +101,13 @@ func FindNodeAttr(n *html.Node, k string) *html.Attribute {
 	return nil
 }
 
+func GetNodeAttrValue(n *html.Node, k string) string {
+	if na := FindNodeAttr(n, k); na != nil {
+		return na.Val
+	}
+	return ""
+}
+
 func FindAndGetHtmlLang(doc *html.Node) string {
 	if h := FindElementNode(doc, atom.Html); h != nil {
 		if a := FindNodeAttr(h, "lang"); a != nil {

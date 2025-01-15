@@ -64,7 +64,7 @@ func isSpace(r rune) bool {
 type Textifier struct {
 	Custom func(tf *Textifier, n *html.Node) (bool, error)
 
-	ow io.Writer          // current writer
+	tw io.Writer          // text writer
 	pw *iox.ProxyWriter   // proxy writer
 	cw *iox.CompactWriter // compact writer
 	ln int                // ol>li number
@@ -77,7 +77,7 @@ func NewTextifier(w io.Writer) *Textifier {
 	pw := &iox.ProxyWriter{W: w}
 	cw := iox.NewCompactWriter(pw, isSpace, ' ')
 	tf := &Textifier{
-		ow: cw,
+		tw: cw,
 		pw: pw,
 		cw: cw,
 	}
@@ -139,18 +139,22 @@ func (tf *Textifier) Textify(n *html.Node) error {
 			return tf.Blockquote(n)
 		case atom.Code, atom.Pre, atom.Textarea, atom.Xmp:
 			return tf.RawDeep(n)
+		case atom.A:
+			return tf.A(n)
+		case atom.Img:
+			return tf.Img(n)
 		default:
 			return tf.Deep(n)
 		}
 	case html.TextNode:
-		return tf.Write(n.Data)
+		return tf.Text(n.Data)
 	default:
 		return tf.Deep(n)
 	}
 }
 
-func (tf *Textifier) Write(s string) error {
-	_, err := iox.WriteString(tf.ow, s)
+func (tf *Textifier) Text(s string) error {
+	_, err := iox.WriteString(tf.tw, s)
 	return err
 }
 
@@ -187,6 +191,44 @@ func (tf *Textifier) HbrDeep(n *html.Node, x int) error {
 		return err
 	}
 	return tf.Eol()
+}
+
+func (tf *Textifier) A(n *html.Node) error {
+	href := str.Strip(GetNodeAttrValue(n, "href"))
+
+	if href == "" {
+		return tf.Deep(n)
+	}
+
+	if _, err := tf.pw.Write([]byte{'['}); err != nil {
+		return err
+	}
+	if err := tf.Deep(n); err != nil {
+		return err
+	}
+	if _, err := tf.pw.WriteString("]("); err != nil {
+		return err
+	}
+	if _, err := tf.pw.WriteString(href); err != nil {
+		return err
+	}
+	if _, err := tf.pw.Write([]byte{')'}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (tf *Textifier) Img(n *html.Node) error {
+	src := str.Strip(GetNodeAttrValue(n, "src"))
+	if src != "" {
+		alt := str.Strip(GetNodeAttrValue(n, "alt"))
+
+		if _, err := fmt.Fprintf(tf.pw, "![%s](%s)", alt, src); err != nil {
+			return err
+		}
+	}
+
+	return tf.Deep(n)
 }
 
 func (tf *Textifier) WbrDeep(n *html.Node) error {
@@ -337,12 +379,12 @@ func (tf *Textifier) RawDeep(n *html.Node) error {
 		return err
 	}
 
-	ow := tf.ow
-	tf.ow = tf.pw
+	tw := tf.tw
+	tf.tw = tf.pw
 	if err := tf.Deep(n); err != nil {
 		return err
 	}
-	tf.ow = ow
+	tf.tw = tw
 	return tf.Eol()
 }
 

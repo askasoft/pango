@@ -155,17 +155,17 @@ type List[T any] interface {
 
 // P key/value pair
 type P[K any, V any] struct {
-	Key   K
-	Value V
+	Key K
+	Val V
 }
 
 func (p *P[K, V]) String() string {
-	return fmt.Sprintf("%v = %v", p.Key, p.Value)
+	return fmt.Sprintf("%v = %v", p.Key, p.Val)
 }
 
 // KV create key/value pair
 func KV[K any, V any](k K, v V) P[K, V] {
-	return P[K, V]{Key: k, Value: v}
+	return P[K, V]{Key: k, Val: v}
 }
 
 // Map map interface

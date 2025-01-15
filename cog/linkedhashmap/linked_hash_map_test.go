@@ -616,7 +616,7 @@ func testLinkedHashMapSameEntries[K comparable, V comparable](a []cog.P[K, V], b
 	}
 
 	for i := range a {
-		if a[i].Key != b[i].Key && a[i].Value != b[i].Value {
+		if a[i].Key != b[i].Key && a[i].Val != b[i].Val {
 			return false
 		}
 	}
@@ -956,20 +956,20 @@ func TestLinkedHashMapUnmarshal(t *testing.T) {
 	var (
 		data  = []byte(`{"as":"AS15169 Google Inc.","city":"Mountain View","country":"United States","countryCode":"US","isp":"Google Cloud","lat":"37.4192","lon":"-122.0574","org":"Google Cloud","query":"35.192.25.53","region":"CA","regionName":"California","status":"success","timezone":"America/Los_Angeles","zip":"94043"}`)
 		pairs = []cog.P[string, string]{
-			{Key: "as", Value: "AS15169 Google Inc."},
-			{Key: "city", Value: "Mountain View"},
-			{Key: "country", Value: "United States"},
-			{Key: "countryCode", Value: "US"},
-			{Key: "isp", Value: "Google Cloud"},
-			{Key: "lat", Value: "37.4192"},
-			{Key: "lon", Value: "-122.0574"},
-			{Key: "org", Value: "Google Cloud"},
-			{Key: "query", Value: "35.192.25.53"},
-			{Key: "region", Value: "CA"},
-			{Key: "regionName", Value: "California"},
-			{Key: "status", Value: "success"},
-			{Key: "timezone", Value: "America/Los_Angeles"},
-			{Key: "zip", Value: "94043"},
+			{Key: "as", Val: "AS15169 Google Inc."},
+			{Key: "city", Val: "Mountain View"},
+			{Key: "country", Val: "United States"},
+			{Key: "countryCode", Val: "US"},
+			{Key: "isp", Val: "Google Cloud"},
+			{Key: "lat", Val: "37.4192"},
+			{Key: "lon", Val: "-122.0574"},
+			{Key: "org", Val: "Google Cloud"},
+			{Key: "query", Val: "35.192.25.53"},
+			{Key: "region", Val: "CA"},
+			{Key: "regionName", Val: "California"},
+			{Key: "status", Val: "success"},
+			{Key: "timezone", Val: "America/Los_Angeles"},
+			{Key: "zip", Val: "94043"},
 		}
 		obj = NewLinkedHashMap(pairs...)
 	)
@@ -983,7 +983,7 @@ func TestLinkedHashMapUnmarshal(t *testing.T) {
 	// check by Has and GetValue
 	for _, p := range pairs {
 		k := p.Key
-		v := p.Value
+		v := p.Val
 
 		if !lm.Contains(k) {
 			t.Fatalf("expect key %q exists in Unmarshaled LinkedHashMap", k)

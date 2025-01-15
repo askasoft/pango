@@ -25,21 +25,21 @@ func ExampleLinkedHashMap() {
 func ExampleNewLinkedHashMap() {
 	// initialize from a list of key-value pairs
 	lm := NewLinkedHashMap([]cog.P[string, any]{
-		{Key: "country", Value: "United States"},
-		{Key: "countryCode", Value: "US"},
-		{Key: "region", Value: "CA"},
-		{Key: "regionName", Value: "California"},
-		{Key: "city", Value: "Mountain View"},
-		{Key: "zip", Value: "94043"},
-		{Key: "lat", Value: 37.4192},
-		{Key: "lon", Value: -122.0574},
-		{Key: "timezone", Value: "America/Los_Angeles"},
-		{Key: "isp", Value: "Google Cloud"},
-		{Key: "org", Value: "Google Cloud"},
-		{Key: "as", Value: "AS15169 Google Inc."},
-		{Key: "mobile", Value: true},
-		{Key: "proxy", Value: false},
-		{Key: "query", Value: "35.192.xx.xxx"},
+		{Key: "country", Val: "United States"},
+		{Key: "countryCode", Val: "US"},
+		{Key: "region", Val: "CA"},
+		{Key: "regionName", Val: "California"},
+		{Key: "city", Val: "Mountain View"},
+		{Key: "zip", Val: "94043"},
+		{Key: "lat", Val: 37.4192},
+		{Key: "lon", Val: -122.0574},
+		{Key: "timezone", Val: "America/Los_Angeles"},
+		{Key: "isp", Val: "Google Cloud"},
+		{Key: "org", Val: "Google Cloud"},
+		{Key: "as", Val: "AS15169 Google Inc."},
+		{Key: "mobile", Val: true},
+		{Key: "proxy", Val: false},
+		{Key: "query", Val: "35.192.xx.xxx"},
 	}...)
 
 	for it := lm.Iterator(); it.Next(); {

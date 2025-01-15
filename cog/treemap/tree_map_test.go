@@ -673,14 +673,14 @@ func testTreeMapIterate(t *testing.T, cmp cog.Compare[int], kvs []cog.P[int, str
 
 func TestTreeMapIterator1(t *testing.T) {
 	kvs := []cog.P[int, string]{
-		{Key: 5, Value: "e"},
-		{Key: 6, Value: "f"},
-		{Key: 7, Value: "g"},
-		{Key: 3, Value: "c"},
-		{Key: 4, Value: "d"},
-		{Key: 1, Value: "x"},
-		{Key: 2, Value: "b"},
-		{Key: 1, Value: "a"},
+		{Key: 5, Val: "e"},
+		{Key: 6, Val: "f"},
+		{Key: 7, Val: "g"},
+		{Key: 3, Val: "c"},
+		{Key: 4, Val: "d"},
+		{Key: 1, Val: "x"},
+		{Key: 2, Val: "b"},
+		{Key: 1, Val: "a"},
 	} //overwrite
 	// │   ┌── 7
 	// └── 6
@@ -695,32 +695,32 @@ func TestTreeMapIterator1(t *testing.T) {
 
 func TestTreeMapIterator2(t *testing.T) {
 	kvs := []cog.P[int, string]{
-		{Key: 3, Value: "c"},
-		{Key: 1, Value: "a"},
-		{Key: 2, Value: "b"},
+		{Key: 3, Val: "c"},
+		{Key: 1, Val: "a"},
+		{Key: 2, Val: "b"},
 	}
 
 	testTreeMapIterate(t, cmp.Compare[int], kvs, false)
 }
 
 func TestTreeMapIterator3(t *testing.T) {
-	kvs := []cog.P[int, string]{{Key: 1, Value: "a"}}
+	kvs := []cog.P[int, string]{{Key: 1, Val: "a"}}
 
 	testTreeMapIterate(t, cmp.Compare[int], kvs, false)
 }
 
 func TestTreeMapIterator4(t *testing.T) {
 	kvs := []cog.P[int, string]{
-		{Key: 13, Value: "5"},
-		{Key: 8, Value: "3"},
-		{Key: 17, Value: "7"},
-		{Key: 1, Value: "1"},
-		{Key: 11, Value: "4"},
-		{Key: 15, Value: "6"},
-		{Key: 25, Value: "9"},
-		{Key: 6, Value: "2"},
-		{Key: 22, Value: "8"},
-		{Key: 27, Value: "10"}}
+		{Key: 13, Val: "5"},
+		{Key: 8, Val: "3"},
+		{Key: 17, Val: "7"},
+		{Key: 1, Val: "1"},
+		{Key: 11, Val: "4"},
+		{Key: 15, Val: "6"},
+		{Key: 25, Val: "9"},
+		{Key: 6, Val: "2"},
+		{Key: 22, Val: "8"},
+		{Key: 27, Val: "10"}}
 	// │           ┌── 27
 	// │       ┌── 25
 	// │       │   └── 22

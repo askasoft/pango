@@ -234,7 +234,7 @@ func testHashMapSameEntries[K any, V any](a []cog.P[K, V], b []cog.P[K, V]) bool
 	for _, ap := range a {
 		found := false
 		for _, bp := range b {
-			if reflect.DeepEqual(ap.Key, ap.Key) && reflect.DeepEqual(ap.Value, bp.Value) {
+			if reflect.DeepEqual(ap.Key, ap.Key) && reflect.DeepEqual(ap.Val, bp.Val) {
 				found = true
 				break
 			}

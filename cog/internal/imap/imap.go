@@ -4,7 +4,7 @@ import "github.com/askasoft/pango/cog"
 
 func SetMapPairs[K any, V any](m cog.Map[K, V], ps ...cog.P[K, V]) {
 	for _, p := range ps {
-		m.Set(p.Key, p.Value)
+		m.Set(p.Key, p.Val)
 	}
 }
 

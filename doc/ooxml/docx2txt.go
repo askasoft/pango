@@ -98,44 +98,54 @@ import (
 // </w:p>
 // ```
 
-func ExtractTextFromDocxFile(name string) (string, error) {
+func DocxFileTextifyString(name string) (string, error) {
 	sb := &strings.Builder{}
-	lw := iox.WrapWriter(sb, "", "\n")
-	err := DocxFileTextify(name, lw)
+	err := DocxFileTextify(sb, name)
 	return sb.String(), err
 }
 
-func DocxFileTextify(name string, w io.Writer) error {
+func DocxFileTextify(w io.Writer, name string) error {
 	zr, err := zip.OpenReader(name)
 	if err != nil {
 		return err
 	}
 	defer zr.Close()
 
-	return extractStringFromDocx(&zr.Reader, w)
+	return DocxZipReaderTextify(w, &zr.Reader)
 }
 
-func ExtractTextFromDocxBytes(bs []byte) (string, error) {
-	return ExtractTextFromDocxReader(bytes.NewReader(bs), int64(len(bs)))
+func DocxBytesTextifyString(bs []byte) (string, error) {
+	return DocxReaderTextifyString(bytes.NewReader(bs), int64(len(bs)))
 }
 
-func ExtractTextFromDocxReader(r io.ReaderAt, size int64) (string, error) {
+func DocxBytesTextify(w io.Writer, bs []byte) error {
+	return DocxReaderTextify(w, bytes.NewReader(bs), int64(len(bs)))
+}
+
+func DocxReaderTextifyString(r io.ReaderAt, size int64) (string, error) {
 	sb := &strings.Builder{}
-	lw := iox.WrapWriter(sb, "", "\n")
-	err := DocxReaderTextify(r, size, lw)
+	err := DocxReaderTextify(sb, r, size)
 	return sb.String(), err
 }
 
-func DocxReaderTextify(r io.ReaderAt, size int64, w io.Writer) error {
+func DocxReaderTextify(w io.Writer, r io.ReaderAt, size int64) error {
 	zr, err := zip.NewReader(r, size)
 	if err != nil {
 		return err
 	}
 
-	return extractStringFromDocx(zr, w)
+	return DocxZipReaderTextify(w, zr)
 }
 
-func extractStringFromDocx(zr *zip.Reader, w io.Writer) error {
+func DocxZipReaderTextifyString(zr *zip.Reader) (string, error) {
+	sb := &strings.Builder{}
+	err := DocxZipReaderTextify(sb, zr)
+	return sb.String(), err
+}
+
+func DocxZipReaderTextify(w io.Writer, zr *zip.Reader) error {
+	lw := iox.WrapWriter(w, "", "\n")
+
 	for _, zf := range zr.File {
 		if zf.Name == "word/document.xml" {
 			fr, err := zf.Open()
@@ -144,13 +154,13 @@ func extractStringFromDocx(zr *zip.Reader, w io.Writer) error {
 			}
 			defer fr.Close()
 
-			return docxTextify(fr, w)
+			return docxTextify(lw, fr)
 		}
 	}
 	return nil
 }
 
-func docxTextify(r io.Reader, w io.Writer) error {
+func docxTextify(w io.Writer, r io.Reader) error {
 	xd := xml.NewDecoder(r)
 
 	sb := &strings.Builder{}

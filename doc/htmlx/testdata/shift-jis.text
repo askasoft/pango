@@ -16,7 +16,8 @@
 DIVです。 SPANです。 
 PREです。
 LINE2です。
-[Aです。](https://google.com/) ![imgです。](./x.png)
+
+https://google.com/ [Aです。](https://a.com/) ![imgです。](./x.png) 
 
 1. OL.LI(1) 
 	- OL.UL.LI(1)

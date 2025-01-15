@@ -11,22 +11,10 @@ import (
 	"golang.org/x/net/html/atom"
 )
 
-func ExtractTextFromHTMLFile(name string, detect int, charsets ...string) (string, error) {
+func HTMLFileTextifyString(name string, detect int, charsets ...string) (string, error) {
 	sb := &strings.Builder{}
 	err := HTMLFileTextify(sb, name, detect, charsets...)
 	return sb.String(), err
-}
-
-func ExtractTextFromHTMLString(html string) (string, error) {
-	sb := &strings.Builder{}
-	err := HTMLStringTextify(sb, html)
-	return sb.String(), err
-}
-
-func ExtractTextFromHTMLNode(node *html.Node) string {
-	sb := &strings.Builder{}
-	_ = Textify(sb, node)
-	return sb.String()
 }
 
 func HTMLFileTextify(w io.Writer, name string, detect int, charsets ...string) error {
@@ -35,13 +23,24 @@ func HTMLFileTextify(w io.Writer, name string, detect int, charsets ...string) e
 		return err
 	}
 
-	return Textify(w, doc)
+	return HTMLNodeTextify(w, doc)
 }
 
-func HTMLStringTextify(w io.Writer, html string) error {
-	r := strings.NewReader(html)
+func HTMLTextifyString(html string) (string, error) {
+	sb := &strings.Builder{}
+	err := HTMLTextify(sb, html)
+	return sb.String(), err
+}
 
+func HTMLTextify(w io.Writer, html string) error {
+	r := strings.NewReader(html)
 	return HTMLReaderTextify(w, r)
+}
+
+func HTMLReaderTextifyString(r io.Reader) (string, error) {
+	sb := &strings.Builder{}
+	err := HTMLReaderTextify(sb, r)
+	return sb.String(), err
 }
 
 func HTMLReaderTextify(w io.Writer, r io.Reader) error {
@@ -49,10 +48,16 @@ func HTMLReaderTextify(w io.Writer, r io.Reader) error {
 	if err != nil {
 		return err
 	}
-	return Textify(w, doc)
+	return HTMLNodeTextify(w, doc)
 }
 
-func Textify(w io.Writer, n *html.Node) error {
+func HTMLNodeTextifyString(node *html.Node) string {
+	sb := &strings.Builder{}
+	_ = HTMLNodeTextify(sb, node)
+	return sb.String()
+}
+
+func HTMLNodeTextify(w io.Writer, n *html.Node) error {
 	tf := NewTextifier(w)
 	return tf.Textify(n)
 }
@@ -90,6 +95,7 @@ func (tf *Textifier) Textify(n *html.Node) error {
 			return err
 		}
 	}
+
 	switch n.Type {
 	case html.CommentNode:
 		return nil
@@ -195,27 +201,23 @@ func (tf *Textifier) HbrDeep(n *html.Node, x int) error {
 
 func (tf *Textifier) A(n *html.Node) error {
 	href := str.Strip(GetNodeAttrValue(n, "href"))
-
 	if href == "" {
 		return tf.Deep(n)
 	}
 
-	if _, err := tf.pw.Write([]byte{'['}); err != nil {
+	var sa strings.Builder
+	ht := NewTextifier(&sa)
+	if err := ht.Deep(n); err != nil {
 		return err
 	}
-	if err := tf.Deep(n); err != nil {
-		return err
+	text := sa.String()
+
+	if href == text {
+		return tf.Text(href)
 	}
-	if _, err := tf.pw.WriteString("]("); err != nil {
-		return err
-	}
-	if _, err := tf.pw.WriteString(href); err != nil {
-		return err
-	}
-	if _, err := tf.pw.Write([]byte{')'}); err != nil {
-		return err
-	}
-	return nil
+
+	_, err := fmt.Fprintf(tf.tw, "[%s](%s)", text, href)
+	return err
 }
 
 func (tf *Textifier) Img(n *html.Node) error {
@@ -223,7 +225,7 @@ func (tf *Textifier) Img(n *html.Node) error {
 	if src != "" {
 		alt := str.Strip(GetNodeAttrValue(n, "alt"))
 
-		if _, err := fmt.Fprintf(tf.pw, "![%s](%s)", alt, src); err != nil {
+		if _, err := fmt.Fprintf(tf.tw, "![%s](%s)", alt, src); err != nil {
 			return err
 		}
 	}
@@ -243,14 +245,14 @@ func (tf *Textifier) WbrDeep(n *html.Node) error {
 
 func (tf *Textifier) Title(n *html.Node) error {
 	s := Stringify(n)
-	if _, err := iox.WriteString(tf.pw, s); err != nil {
+	if _, err := tf.pw.WriteString(s); err != nil {
 		return err
 	}
 	if err := tf.Eol(); err != nil {
 		return err
 	}
 	s = str.RepeatRune('=', len(s))
-	if _, err := iox.WriteString(tf.pw, s); err != nil {
+	if _, err := tf.pw.WriteString(s); err != nil {
 		return err
 	}
 	return tf.Eol()
@@ -338,7 +340,7 @@ func (tf *Textifier) Ul(n *html.Node) error {
 func (tf *Textifier) Li(n *html.Node) error {
 	p := str.RepeatRune('\t', tf.lv-1)
 	if tf.ln > 0 {
-		if _, err := tf.pw.WriteString(fmt.Sprintf("%s%d. ", p, tf.ln)); err != nil {
+		if _, err := fmt.Fprintf(tf.pw, "%s%d. ", p, tf.ln); err != nil {
 			return err
 		}
 		tf.ln++

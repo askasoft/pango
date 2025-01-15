@@ -55,44 +55,54 @@ import (
 // </p:sld>
 // ```
 
-func ExtractTextFromPptxFile(name string, opts ...string) (string, error) {
+func PptxFileTextifyString(name string, opts ...string) (string, error) {
 	sb := &strings.Builder{}
-	lw := iox.WrapWriter(sb, "", "\n")
-	err := PptxFileTexify(name, lw, opts...)
+	err := PptxFileTextify(sb, name, opts...)
 	return sb.String(), err
 }
 
-func PptxFileTexify(name string, w io.Writer, opts ...string) error {
+func PptxFileTextify(w io.Writer, name string, opts ...string) error {
 	zr, err := zip.OpenReader(name)
 	if err != nil {
 		return err
 	}
 	defer zr.Close()
 
-	return pptxTextify(&zr.Reader, w, opts...)
+	return PptxZipReaderTextify(w, &zr.Reader, opts...)
 }
 
-func ExtractTextFromPptxBytes(bs []byte) (string, error) {
-	return ExtractTextFromPptxReader(bytes.NewReader(bs), int64(len(bs)))
+func PptxBytesTextifyString(bs []byte, opts ...string) (string, error) {
+	return PptxReaderTextifyString(bytes.NewReader(bs), int64(len(bs)), opts...)
 }
 
-func ExtractTextFromPptxReader(r io.ReaderAt, size int64) (string, error) {
+func PptxBytesTextify(w io.Writer, bs []byte, opts ...string) error {
+	return PptxReaderTextify(w, bytes.NewReader(bs), int64(len(bs)), opts...)
+}
+
+func PptxReaderTextifyString(r io.ReaderAt, size int64, opts ...string) (string, error) {
 	sb := &strings.Builder{}
-	lw := iox.WrapWriter(sb, "", "\n")
-	err := PptxReaderTexify(r, size, lw)
+	err := PptxReaderTextify(sb, r, size, opts...)
 	return sb.String(), err
 }
 
-func PptxReaderTexify(r io.ReaderAt, size int64, w io.Writer) error {
+func PptxReaderTextify(w io.Writer, r io.ReaderAt, size int64, opts ...string) error {
 	zr, err := zip.NewReader(r, size)
 	if err != nil {
 		return err
 	}
 
-	return pptxTextify(zr, w)
+	return PptxZipReaderTextify(w, zr, opts...)
 }
 
-func pptxTextify(zr *zip.Reader, w io.Writer, opts ...string) error {
+func PptxZipReaderTextifyString(zr *zip.Reader, opts ...string) (string, error) {
+	sb := &strings.Builder{}
+	err := PptxZipReaderTextify(sb, zr, opts...)
+	return sb.String(), err
+}
+
+func PptxZipReaderTextify(w io.Writer, zr *zip.Reader, opts ...string) error {
+	lw := iox.WrapWriter(w, "", "\n")
+
 	nopgbrk := asg.Contains(opts, "-nopgbrk")
 
 	zfm := treemap.NewTreeMap[int, *zip.File](cmp.Compare[int])
@@ -112,12 +122,12 @@ func pptxTextify(zr *zip.Reader, w io.Writer, opts ...string) error {
 		}
 		defer fr.Close()
 
-		if err := pptxSlideTextify(fr, w); err != nil {
+		if err := pptxSlideTextify(lw, fr); err != nil {
 			return err
 		}
 
 		if !nopgbrk {
-			if _, err := w.Write([]byte{'\f'}); err != nil {
+			if _, err := lw.Write([]byte{'\f'}); err != nil {
 				return err
 			}
 		}
@@ -125,7 +135,7 @@ func pptxTextify(zr *zip.Reader, w io.Writer, opts ...string) error {
 	return nil
 }
 
-func pptxSlideTextify(r io.Reader, w io.Writer) error {
+func pptxSlideTextify(w io.Writer, r io.Reader) error {
 	xd := xml.NewDecoder(r)
 
 	sb := &strings.Builder{}

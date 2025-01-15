@@ -21,20 +21,20 @@ func testReadFile(t *testing.T, name string) []byte {
 	return bs
 }
 
-func TestExtractTextFromDocxFile(t *testing.T) {
+func TestDocxFileTextifyString(t *testing.T) {
 	cs := []string{"hello.docx", "history.docx", "table.docx"}
 
 	for i, c := range cs {
 		fn := testFilename(c)
-		a, err := ExtractTextFromDocxFile(fn)
+		a, err := DocxFileTextifyString(fn)
 		if err != nil {
-			t.Errorf("[%d] ExtractTextFromDocxFile(%q): %v", i, fn, err)
+			t.Errorf("[%d] DocxFileTextifyString(%q): %v", i, fn, err)
 			continue
 		}
 
 		w := string(testReadFile(t, c+".txt"))
 		if w != a {
-			t.Errorf("[%d] ExtractTextFromDocxFile(%q):\nACTUAL: %q\n  WANT: %q\n", i, fn, a, w)
+			t.Errorf("[%d] DocxFileTextifyString(%q):\nACTUAL: %q\n  WANT: %q\n", i, fn, a, w)
 			fsu.WriteString(fn+".out", a, fsu.FileMode(0660))
 		} else {
 			os.Remove(fn + ".out")

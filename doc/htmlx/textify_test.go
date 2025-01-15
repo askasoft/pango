@@ -7,45 +7,49 @@ import (
 	"github.com/askasoft/pango/fsu"
 )
 
-func TestExtractTextFromHTMLFile(t *testing.T) {
-	cs := []string{"utf-8.html", "shift-jis.html"}
-
-	w := string(testReadFile(t, "expect.txt"))
+func TestHTMLFileTextifyString(t *testing.T) {
+	cs := []string{
+		"utf-8",
+		"shift-jis",
+	}
 
 	for i, c := range cs {
-		fn := testFilename(c)
-		a, err := ExtractTextFromHTMLFile(fn, 1024)
+		sfn := testFilename(c + ".html")
+		ofn := testFilename(c + ".out")
+
+		a, err := HTMLFileTextifyString(sfn, 1024)
 		if err != nil {
-			t.Fatalf("[%d] Failed to ExtractTextFromHTMLFile(%q): %v", i, c, err)
+			t.Fatalf("[%d] Failed to HTMLFileTextifyString(%q): %v", i, c, err)
 		}
 
+		w := string(testReadFile(t, c+".text"))
 		if w != a {
-			t.Errorf("[%d] ExtractTextFromHTMLFile(%q):\n  GOT: %q\n WANT: %q\n", i, c, a, w)
-			fsu.WriteString(fn+".out", a, fsu.FileMode(0660))
+			t.Errorf("[%d] HTMLFileTextifyString(%q):\n  GOT: %q\n WANT: %q\n", i, c, a, w)
+			fsu.WriteString(ofn, a, fsu.FileMode(0660))
 		} else {
-			os.Remove(fn + ".out")
+			os.Remove(ofn)
 		}
 	}
 }
 
-func TestExtractTextFromHTMLString(t *testing.T) {
-	cs := []string{"utf-8.html"}
-
-	w := string(testReadFile(t, "expect.txt"))
+func TestHTMLTextifyString(t *testing.T) {
+	cs := []string{"utf-8"}
 
 	for i, c := range cs {
-		fn := testFilename(c)
-		s := string(testReadFile(t, c))
-		a, err := ExtractTextFromHTMLString(s)
+		ofn := testFilename(c + ".out")
+
+		s := string(testReadFile(t, c+".html"))
+		a, err := HTMLTextifyString(s)
 		if err != nil {
-			t.Fatalf("[%d] Failed to ExtractTextFromHTMLString(%q): %v", i, c, err)
+			t.Fatalf("[%d] Failed to HTMLTextifyString(%q): %v", i, c, err)
 		}
 
+		w := string(testReadFile(t, c+".text"))
 		if w != a {
-			t.Errorf("[%d] ExtractTextFromHTMLString(%q):\n  GOT: %q\n WANT: %q\n", i, c, a, w)
-			fsu.WriteString(fn+".out", a, fsu.FileMode(0660))
+			t.Errorf("[%d] HTMLTextifyString(%q):\n  GOT: %q\n WANT: %q\n", i, c, a, w)
+			fsu.WriteString(ofn, a, fsu.FileMode(0660))
 		} else {
-			os.Remove(fn + ".out")
+			os.Remove(ofn)
 		}
 	}
 }

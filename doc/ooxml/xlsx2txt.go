@@ -67,44 +67,54 @@ import (
 // </sst>
 // ```
 
-func ExtractTextFromXlsxFile(name string) (string, error) {
+func XlsxFileTextifyString(name string) (string, error) {
 	sb := &strings.Builder{}
-	lw := iox.WrapWriter(sb, "", "\n")
-	err := XlsxFileTextify(name, lw)
+	err := XlsxFileTextify(sb, name)
 	return sb.String(), err
 }
 
-func XlsxFileTextify(name string, w io.Writer) error {
+func XlsxFileTextify(w io.Writer, name string) error {
 	zr, err := zip.OpenReader(name)
 	if err != nil {
 		return err
 	}
 	defer zr.Close()
 
-	return xlsxTextify(&zr.Reader, w)
+	return XlsxZipReaderTextify(w, &zr.Reader)
 }
 
-func ExtractTextFromXlsxBytes(bs []byte) (string, error) {
-	return ExtractTextFromXlsxReader(bytes.NewReader(bs), int64(len(bs)))
+func XlsxBytesTextifyString(bs []byte) (string, error) {
+	return XlsxReaderTextifyString(bytes.NewReader(bs), int64(len(bs)))
 }
 
-func ExtractTextFromXlsxReader(r io.ReaderAt, size int64) (string, error) {
+func XlsxBytesTextify(w io.Writer, bs []byte) error {
+	return XlsxReaderTextify(w, bytes.NewReader(bs), int64(len(bs)))
+}
+
+func XlsxReaderTextifyString(r io.ReaderAt, size int64) (string, error) {
 	sb := &strings.Builder{}
-	lw := iox.WrapWriter(sb, "", "\n")
-	err := XlsxReaderTextify(r, size, lw)
+	err := XlsxReaderTextify(sb, r, size)
 	return sb.String(), err
 }
 
-func XlsxReaderTextify(r io.ReaderAt, size int64, w io.Writer) error {
+func XlsxReaderTextify(w io.Writer, r io.ReaderAt, size int64) error {
 	zr, err := zip.NewReader(r, size)
 	if err != nil {
 		return err
 	}
 
-	return xlsxTextify(zr, w)
+	return XlsxZipReaderTextify(w, zr)
 }
 
-func xlsxTextify(zr *zip.Reader, w io.Writer) error {
+func XlsxZipReaderTextifyString(zr *zip.Reader) (string, error) {
+	sb := &strings.Builder{}
+	err := XlsxZipReaderTextify(sb, zr)
+	return sb.String(), err
+}
+
+func XlsxZipReaderTextify(w io.Writer, zr *zip.Reader) error {
+	lw := iox.WrapWriter(w, "", "\n")
+
 	for _, zf := range zr.File {
 		if zf.Name == "xl/sharedStrings.xml" {
 			fr, err := zf.Open()
@@ -113,7 +123,7 @@ func xlsxTextify(zr *zip.Reader, w io.Writer) error {
 			}
 			defer fr.Close()
 
-			return xlsxStringsTextify(fr, w)
+			return xlsxStringsTextify(fr, lw)
 		}
 	}
 	return nil

@@ -1,4 +1,4 @@
-package pdfx
+package xpdf
 
 import (
 	"bytes"
@@ -33,22 +33,22 @@ func testSkip(t *testing.T) {
 	}
 }
 
-func TestExtractTextFromPdfFile(t *testing.T) {
+func TestPdfFileTextifyString(t *testing.T) {
 	testSkip(t)
 
 	cs := []string{"hello.pdf", "table.pdf"}
 
 	for i, c := range cs {
 		fn := testFilename(c)
-		a, err := ExtractTextFromPdfFile(context.Background(), fn)
+		a, err := PdfFileTextifyString(context.Background(), fn)
 		if err != nil {
-			fmt.Printf("[%d] ExtractTextFromPdfFile(%s): %v\n", i, fn, err)
+			fmt.Printf("[%d] PdfFileTextifyString(%s): %v\n", i, fn, err)
 		} else {
 			w := string(testReadFile(t, c+".txt"))
 
 			a = str.RemoveByte(a, '\r')
 			if w != a {
-				t.Errorf("[%d] ExtractTextFromPdfFile(%s):\nACTUAL: %q\n  WANT: %q\n", i, fn, a, w)
+				t.Errorf("[%d] PdfFileTextifyString(%s):\nACTUAL: %q\n  WANT: %q\n", i, fn, a, w)
 				fsu.WriteString(fn+".out", a, fsu.FileMode(0660))
 			} else {
 				os.Remove(fn + ".out")
@@ -57,7 +57,7 @@ func TestExtractTextFromPdfFile(t *testing.T) {
 	}
 }
 
-func TestExtractStringFromPdfReader(t *testing.T) {
+func TestPdfReaderTextify(t *testing.T) {
 	testSkip(t)
 
 	cs := []string{"hello.pdf", "table.pdf"}
@@ -66,22 +66,22 @@ func TestExtractStringFromPdfReader(t *testing.T) {
 		fn := testFilename(c)
 		fr, err := os.Open(fn)
 		if err != nil {
-			t.Errorf("[%d] TestExtractStringFromPdfReader(%s): %v\n", i, fn, err)
+			t.Errorf("[%d] PdfReaderTextify(%s): %v\n", i, fn, err)
 			continue
 		}
 		defer fr.Close()
 
 		bw := &bytes.Buffer{}
-		err = ExtractStringFromPdfReader(context.Background(), bw, fr)
+		err = PdfReaderTextify(context.Background(), bw, fr)
 		if err != nil {
-			fmt.Printf("[%d] TestExtractStringFromPdfReader(%s): %v\n", i, fn, err)
+			fmt.Printf("[%d] PdfReaderTextify(%s): %v\n", i, fn, err)
 			continue
 		}
 
 		w := string(testReadFile(t, c+".txt"))
 		a := str.RemoveByte(bw.String(), '\r')
 		if w != a {
-			t.Errorf("[%d] TestExtractStringFromPdfReader(%s):\nACTUAL: %q\n  WANT: %q\n", i, fn, a, w)
+			t.Errorf("[%d] PdfReaderTextify(%s):\nACTUAL: %q\n  WANT: %q\n", i, fn, a, w)
 			fsu.WriteString(fn+".out", a, fsu.FileMode(0660))
 		} else {
 			os.Remove(fn + ".out")

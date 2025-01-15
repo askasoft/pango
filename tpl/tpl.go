@@ -137,6 +137,7 @@ func Functions() FuncMap {
 		"Array":    funcs.Array,
 		"ArrayGet": ref.ArrayGet,
 		"ArraySet": ref.ArraySet,
+		"SliceAdd": ref.SliceAdd,
 		"Map":      funcs.Map,
 		"MapGet":   ref.MapGet,
 		"MapSet":   ref.MapSet,

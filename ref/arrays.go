@@ -11,10 +11,10 @@ func ArrayLen(a any) (int, error) {
 		return 0, nil
 	}
 
-	rv := reflect.ValueOf(a)
-	switch rv.Kind() {
+	av := reflect.ValueOf(a)
+	switch av.Kind() {
 	case reflect.Slice, reflect.Array:
-		return rv.Len(), nil
+		return av.Len(), nil
 	default:
 		return 0, errors.New("ArrayLen(): invalid array or slice")
 	}
@@ -34,14 +34,14 @@ func ArrayGet(a any, idxs ...int) (any, error) {
 		return nil, nil
 	}
 
-	rv := reflect.ValueOf(a)
-	switch rv.Kind() {
+	av := reflect.ValueOf(a)
+	switch av.Kind() {
 	case reflect.Slice, reflect.Array:
-		if idxs[0] < 0 || idxs[0] > rv.Len() {
+		if idxs[0] < 0 || idxs[0] > av.Len() {
 			return nil, errors.New("ArrayGet(): invalid index")
 		}
 
-		r := rv.Index(idxs[0]).Interface()
+		r := av.Index(idxs[0]).Interface()
 		// if there is more keys, handle this recursively
 		if len(idxs) > 1 {
 			return ArrayGet(r, idxs[1:]...)
@@ -54,21 +54,18 @@ func ArrayGet(a any, idxs ...int) (any, error) {
 
 // ArraySet set value to the array or slice by index
 func ArraySet(a any, i int, v any) (any, error) {
-	rt := reflect.TypeOf(a)
+	av := reflect.ValueOf(a)
+	at := av.Type()
 
-	switch rt.Kind() {
+	switch at.Kind() {
 	case reflect.Slice, reflect.Array:
-		rv := reflect.ValueOf(a)
-		if i < 0 || i > rv.Len() {
+		if i < 0 || i > av.Len() {
 			return nil, errors.New("ArraySet(): invalid index")
 		}
 
-		iv := rv.Index(i)
-
 		vv := reflect.ValueOf(v)
-		vt := reflect.TypeOf(v)
-		if vt.Kind() != rt.Elem().Kind() {
-			cv, err := CastTo(v, rt.Elem())
+		if vv.Type().Kind() != at.Elem().Kind() {
+			cv, err := CastTo(v, at.Elem())
 			if err != nil {
 				return nil, fmt.Errorf("ArraySet(): invalid value type - %w", err)
 			}
@@ -76,10 +73,40 @@ func ArraySet(a any, i int, v any) (any, error) {
 			vv = reflect.ValueOf(cv)
 		}
 
-		iv.Set(vv)
+		av.Index(i).Set(vv)
 		return nil, nil
-
 	default:
-		return nil, errors.New("ArrayGet(): invalid array or slice")
+		return nil, errors.New("ArraySet(): invalid array or slice")
+	}
+}
+
+// SliceAdd add values to the slice
+func SliceAdd(a any, vs ...any) (any, error) {
+	av := reflect.ValueOf(a)
+	at := av.Type()
+
+	switch at.Kind() {
+	case reflect.Slice:
+		if len(vs) == 0 {
+			return a, nil
+		}
+
+		rvs := make([]reflect.Value, len(vs))
+		for i, v := range vs {
+			vv := reflect.ValueOf(v)
+			if vv.Type().Kind() != at.Elem().Kind() {
+				cv, err := CastTo(v, at.Elem())
+				if err != nil {
+					return nil, fmt.Errorf("SliceAdd(): invalid value type - %w", err)
+				}
+				vv = reflect.ValueOf(cv)
+			}
+			rvs[i] = vv
+		}
+
+		av = reflect.Append(av, rvs...)
+		return av.Interface(), nil
+	default:
+		return nil, errors.New("SliceAdd(): invalid slice")
 	}
 }

@@ -46,3 +46,20 @@ func TestArraySet(t *testing.T) {
 		}
 	}
 }
+
+func TestSliceAdd(t *testing.T) {
+	cs := []struct {
+		s any
+		a []any
+		w any
+	}{
+		{[]string{"a"}, []any{1, "2"}, []string{"a", "1", "2"}},
+	}
+
+	for i, c := range cs {
+		a, err := SliceAdd(c.s, c.a...)
+		if err != nil || !reflect.DeepEqual(a, c.w) {
+			t.Errorf("[%d] SliceAdd(%v, %v) = (%v, %v), want: %v", i, c.s, c.a, a, err, c.w)
+		}
+	}
+}

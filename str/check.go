@@ -1,7 +1,6 @@
 package str
 
 import (
-	"regexp"
 	"unicode"
 )
 
@@ -173,15 +172,41 @@ func IsNumeric(s string) bool {
 	return true
 }
 
-var reDecimal = regexp.MustCompile(`^[-+]?[0-9]+(?:\.[0-9]+)?$`)
-
 // IsDecimal checks if the string is a decimal number "^[-+]?[0-9]+(?:\\.[0-9]+)?$".
 func IsDecimal(s string) bool {
 	if s == "" {
 		return false
 	}
 
-	return reDecimal.MatchString(s)
+	if len(s) > 1 && (s[0] == '+' || s[0] == '-') {
+		s = s[1:]
+	}
+
+	if s[len(s)-1] == '.' {
+		return false
+	}
+
+	dot, dec := false, false
+
+	l := len(s)
+	for i := 0; i < l; i++ {
+		b := s[i]
+		if b == '.' {
+			if dot {
+				return false
+			}
+			dot = true
+			continue
+		}
+
+		if b < '0' || b > '9' {
+			return false
+		}
+
+		dec = true
+	}
+
+	return dec
 }
 
 // IsUTFNumeric checks if the string contains only unicode numbers of any kind.

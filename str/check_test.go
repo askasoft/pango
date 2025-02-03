@@ -518,6 +518,7 @@ func TestIsDecimal(t *testing.T) {
 		{"123.123", true},
 		{" ", false},
 		{".", false},
+		{"1.", false},
 		{"12𐅪3", false},
 		{"-1¾", false},
 		{"1¾", false},

@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
-	"os"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -126,7 +125,6 @@ var (
 		"httpurl":                       isHttpURL,
 		"httpsurl":                      isHttpsURL,
 		"httpxurl":                      isHttpxURL,
-		"file":                          isFile,
 		"base64":                        isBase64,
 		"base64url":                     isBase64URL,
 		"regexp":                        isRegexp,
@@ -180,7 +178,6 @@ var (
 		"fqdn":                          isFQDN,
 		"unique":                        isUnique,
 		"oneof":                         isOneOf,
-		"dir":                           isDir,
 		"json":                          isJSON,
 		"jwt":                           isJWT,
 		"hostname_port":                 isHostnamePort,
@@ -1088,23 +1085,6 @@ func isHttpxURL(fl FieldLevel) bool {
 	return IsHttpxURL(fl.Field().String())
 }
 
-// isFile is the validation function for validating if the current field's value is a valid file path.
-func isFile(fl FieldLevel) bool {
-	field := fl.Field()
-
-	switch field.Kind() {
-	case reflect.String:
-		fileInfo, err := os.Stat(field.String())
-		if err != nil {
-			return false
-		}
-
-		return !fileInfo.IsDir()
-	}
-
-	panic(fmt.Sprintf("file: bad field type %T", field.Interface()))
-}
-
 // isE164 is the validation function for validating if the current field's value is a valid e.164 formatted phone number.
 func isE164(fl FieldLevel) bool {
 	return e164Regex.MatchString(fl.Field().String())
@@ -1927,22 +1907,6 @@ func isFQDN(fl FieldLevel) bool {
 	}
 
 	return fqdnRegexRFC1123.MatchString(val)
-}
-
-// isDir is the validation function for validating if the current field's value is a valid directory.
-func isDir(fl FieldLevel) bool {
-	field := fl.Field()
-
-	if field.Kind() == reflect.String {
-		fileInfo, err := os.Stat(field.String())
-		if err != nil {
-			return false
-		}
-
-		return fileInfo.IsDir()
-	}
-
-	panic(fmt.Sprintf("dir: bad field type %T", field.Interface()))
 }
 
 // isJSON is the validation function for validating if the current field's value is a valid json string.

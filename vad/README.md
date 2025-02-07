@@ -204,8 +204,6 @@ Baked-in Validations
 ### Other:
 | Tag | Description |
 | - | - |
-| dir | Directory |
-| file | File path |
 | isdefault | Is Default |
 | oneof | One Of |
 | required | Required |

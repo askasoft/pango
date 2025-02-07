@@ -8,7 +8,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -5080,39 +5079,6 @@ func TestBase64URLValidation(t *testing.T) {
 	}
 }
 
-func TestFileValidation(t *testing.T) {
-	validate := New()
-
-	tests := []struct {
-		title    string
-		param    string
-		expected bool
-	}{
-		{"empty path", "", false},
-		{"regular file", filepath.Join("testdata", "a.go"), true},
-		{"missing file", filepath.Join("testdata", "no.go"), false},
-		{"directory, not a file", "testdata", false},
-	}
-
-	for _, test := range tests {
-		errs := validate.Var(test.param, "file")
-
-		if test.expected {
-			if !assertIsEqual(errs, nil) {
-				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
-			}
-		} else {
-			if assertIsEqual(errs, nil) {
-				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
-			}
-		}
-	}
-
-	assertPanicMatches(t, func() {
-		_ = validate.Var(6, "file")
-	}, "file: bad field type int")
-}
-
 func TestBitcoinAddressValidation(t *testing.T) {
 	validate := New()
 
@@ -9473,41 +9439,6 @@ func TestStructLevelValidationsPointerPassing(t *testing.T) {
 	errs := v1.Struct(tst)
 	assertNotEqual(t, errs, nil)
 	AssertError(t, errs, "TestStruct.StringVal", "TestStruct.String", "StringVal", "String", "badvalueteststruct")
-}
-
-func TestDirValidation(t *testing.T) {
-	validate := New()
-
-	tests := []struct {
-		title    string
-		param    string
-		expected bool
-	}{
-		{"existing dir", "testdata", true},
-		{"existing self dir", ".", true},
-		{"existing parent dir", "..", true},
-		{"empty dir", "", false},
-		{"missing dir", "non_existing_testdata", false},
-		{"a file not a directory", filepath.Join("testdata", "a.go"), false},
-	}
-
-	for _, test := range tests {
-		errs := validate.Var(test.param, "dir")
-
-		if test.expected {
-			if !assertIsEqual(errs, nil) {
-				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
-			}
-		} else {
-			if assertIsEqual(errs, nil) {
-				t.Fatalf("Test: '%s' failed Error: %s", test.title, errs)
-			}
-		}
-	}
-
-	assertPanicMatches(t, func() {
-		_ = validate.Var(2, "dir")
-	}, "dir: bad field type int")
 }
 
 func TestStartsWithValidation(t *testing.T) {

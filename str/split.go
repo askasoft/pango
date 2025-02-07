@@ -97,7 +97,7 @@ func SplitAny(s, chars string) []string {
 	}
 
 	n := CountAny(s, chars)
-	a := make([]string, 0, n)
+	a := make([]string, 0, n+1)
 
 	b := 0
 	for i, c := range s {
@@ -111,6 +111,75 @@ func SplitAny(s, chars string) []string {
 	return a
 }
 
+// SplitByte split string into string slice by byte c.
+func SplitByte(s string, c byte) []string {
+	if s == "" {
+		return []string{}
+	}
+
+	n := CountByte(s, c)
+	a := make([]string, 0, n+1)
+
+	b := 0
+	for i := 0; i < len(s); i++ {
+		if c == s[i] {
+			a = append(a, s[b:i])
+			b = i + 1
+		}
+	}
+
+	if b <= len(s) {
+		a = append(a, s[b:])
+	}
+	return a
+}
+
+// SplitRune split string into string slice by rune r.
+func SplitRune(s string, r rune) []string {
+	if s == "" {
+		return []string{}
+	}
+
+	n := CountRune(s, r)
+	a := make([]string, 0, n+1)
+
+	b := 0
+	z := utf8.RuneLen(r)
+	for i, c := range s {
+		if r == c {
+			a = append(a, s[b:i])
+			b = i + z
+		}
+	}
+
+	if b <= len(s) {
+		a = append(a, s[b:])
+	}
+	return a
+}
+
+// SplitFuncIter splits the string s at each rune of Unicode code points c satisfying f(c)
+// and call iter(s). stop split if iter(s) returns false.
+func SplitFuncIter(s string, f func(rune) bool, iter func(string) bool) {
+	if s == "" {
+		return
+	}
+
+	b := 0
+	for i, c := range s {
+		if f(c) {
+			if !iter(s[b:i]) {
+				return
+			}
+			b = i + utf8.RuneLen(c)
+		}
+	}
+
+	if b <= len(s) {
+		iter(s[b:])
+	}
+}
+
 // FieldsAny split string (exclude empty string) into string slice by any rune in chars
 func FieldsAny(s, chars string) []string {
 	if s == "" {
@@ -122,7 +191,7 @@ func FieldsAny(s, chars string) []string {
 	}
 
 	n := CountAny(s, chars)
-	a := make([]string, 0, n)
+	a := make([]string, 0, n+1)
 
 	b := 0
 	for i, c := range s {
@@ -147,7 +216,7 @@ func FieldsByte(s string, c byte) []string {
 	}
 
 	n := CountByte(s, c)
-	a := make([]string, 0, n)
+	a := make([]string, 0, n+1)
 
 	b := 0
 	for i := 0; i < len(s); i++ {
@@ -172,7 +241,7 @@ func FieldsRune(s string, r rune) []string {
 	}
 
 	n := CountRune(s, r)
-	a := make([]string, 0, n)
+	a := make([]string, 0, n+1)
 
 	b := 0
 	z := utf8.RuneLen(r)
@@ -191,8 +260,9 @@ func FieldsRune(s string, r rune) []string {
 	return a
 }
 
-// FieldsFuncIter splits the string s at each rune of Unicode code points c satisfying f(c)
-// and call iter(s). stop split if iter(s) returns false.
+// FieldsFuncIter splits the string s (exclude empty string)
+// at each rune of Unicode code points c satisfying f(c) and call iter(s).
+// stop split if iter(s) returns false.
 func FieldsFuncIter(s string, f func(rune) bool, iter func(string) bool) {
 	if s == "" {
 		return

@@ -83,6 +83,72 @@ func TestSplitAny(t *testing.T) {
 	}
 }
 
+func TestSplitByte(t *testing.T) {
+	cs := []struct {
+		w []string
+		s string
+		b byte
+	}{
+		{[]string{}, "", 'c'},
+		{[]string{"http://a", "b", "c", ""}, "http://a.b.c.", '.'},
+		{[]string{"http:", "", "a.b.c"}, "http://a.b.c", '/'},
+	}
+
+	for i, c := range cs {
+		a := SplitByte(c.s, c.b)
+		if !reflect.DeepEqual(a, c.w) {
+			t.Errorf("[%d] SplitByte(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+		}
+	}
+}
+
+func TestSplitRune(t *testing.T) {
+	cs := []struct {
+		w []string
+		s string
+		b rune
+	}{
+		{[]string{}, "", 'c'},
+		{[]string{"http://a", "b", "c", ""}, "http://a.b.c.", '.'},
+		{[]string{"http:", "", "a.b.c"}, "http://a.b.c", '/'},
+		{[]string{"http://一", "二", "三"}, "http://一.二.三", '.'},
+		{[]string{"http://一", "二", "三"}, "http://一。二。三", '。'},
+	}
+
+	for i, c := range cs {
+		a := SplitRune(c.s, c.b)
+		if !reflect.DeepEqual(a, c.w) {
+			t.Errorf("[%d] SplitRune(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+		}
+	}
+}
+
+func TestSplitFuncIter(t *testing.T) {
+	cs := []struct {
+		w []string
+		s string
+		b rune
+	}{
+		{[]string{}, "", 'c'},
+		{[]string{"http://a", "b", "c", ""}, "http://a.b.c.", '.'},
+		{[]string{"http:", "", "a.b.c", ""}, "http://a.b.c/", '/'},
+		{[]string{"http://一", "二", "三"}, "http://一.二.三", '.'},
+		{[]string{"http://一", "二", "三"}, "http://一。二。三", '。'},
+	}
+
+	for i, c := range cs {
+		a := []string{}
+		SplitFuncIter(c.s, func(r rune) bool { return c.b == r }, func(s string) bool {
+			a = append(a, s)
+			return true
+		})
+
+		if !reflect.DeepEqual(a, c.w) {
+			t.Errorf("[%d] SplitFuncIter(%q, %q) = %v, want %v", i, c.s, c.b, a, c.w)
+		}
+	}
+}
+
 func TestFieldsAny(t *testing.T) {
 	cs := []struct {
 		w []string

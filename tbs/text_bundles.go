@@ -1,6 +1,7 @@
 package tbs
 
 import (
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -195,25 +196,9 @@ func (tbs *TextBundles) GetText(locale, key string, defs ...string) string {
 	return ""
 }
 
-func (tbs *TextBundles) getTextWithPairedArgs(locale, format string, args ...any) (string, []any) {
-	var defs []string
-
-	if len(args)&1 != 0 {
-		if s, ok := args[0].(string); ok {
-			defs = append(defs, s)
-			args = args[1:]
-		} else {
-			panic("tbs: invalid arguments")
-		}
-	}
-
-	return tbs.GetText(locale, format, defs...), args
-}
-
-// Format use fmt.Sprrintf to translate content to the locale language.
-func (tbs *TextBundles) Format(locale, format string, args ...any) string {
-	format = tbs.GetText(locale, format)
-
+// Format use fmt.Sprintf to format the locale text by key and args.
+func (tbs *TextBundles) Format(locale, key string, args ...any) string {
+	format := tbs.GetText(locale, key)
 	if format == "" || len(args) == 0 {
 		return format
 	}
@@ -235,9 +220,19 @@ func (tbs *TextBundles) Format(locale, format string, args ...any) string {
 }
 
 // Replace use strings.Replacer to translate content to the locale language.
-func (tbs *TextBundles) Replace(locale, format string, args ...any) string {
-	format, args = tbs.getTextWithPairedArgs(locale, format, args...)
+func (tbs *TextBundles) Replace(locale, key string, args ...any) string {
+	var defs []string
 
+	if len(args)&1 != 0 {
+		if s, ok := args[0].(string); ok {
+			defs = append(defs, s)
+			args = args[1:]
+		} else {
+			panic("tbs: invalid arguments")
+		}
+	}
+
+	format := tbs.GetText(locale, key, defs...)
 	if format == "" || len(args) == 0 {
 		return format
 	}
@@ -249,4 +244,14 @@ func (tbs *TextBundles) Replace(locale, format string, args ...any) string {
 	repl := strings.NewReplacer(sargs...)
 
 	return repl.Replace(format)
+}
+
+// Error create a error with the locale text by key.
+func (tbs *TextBundles) Error(locale, key string, defs ...string) error {
+	return errors.New(tbs.GetText(locale, key, defs...))
+}
+
+// Errorf create a error with the locale text by key and args.
+func (tbs *TextBundles) Errorf(locale, key string, args ...any) error {
+	return errors.New(tbs.Format(locale, key, args...))
 }

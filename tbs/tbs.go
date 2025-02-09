@@ -67,7 +67,7 @@ func GetText(locale, key string, defs ...string) string {
 	return _tbs.GetText(locale, key, defs...)
 }
 
-// Format translate content to target language.
+// Format use fmt.Sprintf to format the locale text by key and args.
 func Format(locale, format string, args ...any) string {
 	return _tbs.Format(locale, format, args...)
 }
@@ -75,4 +75,14 @@ func Format(locale, format string, args ...any) string {
 // Replace use strings.Replacer to translate content to the locale language.
 func Replace(locale, format string, args ...any) string {
 	return _tbs.Replace(locale, format, args...)
+}
+
+// Error create a error with the locale text by key.
+func Error(locale, key string, defs ...string) error {
+	return _tbs.Error(locale, key, defs...)
+}
+
+// Errorf create a error with the locale text by key and args.
+func Errorf(locale, key string, args ...any) error {
+	return _tbs.Errorf(locale, key, args...)
 }

@@ -10,11 +10,11 @@ import (
 
 const (
 	Nanosecond  = time.Nanosecond
-	Microsecond = time.Microsecond //nolint: revive
-	Millisecond = time.Millisecond //nolint: revive
-	Second      = time.Second      //nolint: revive
-	Minute      = time.Minute      //nolint: revive
-	Hour        = time.Hour        //nolint: revive
+	Microsecond = time.Microsecond
+	Millisecond = time.Millisecond
+	Second      = time.Second
+	Minute      = time.Minute
+	Hour        = time.Hour
 	Day         = time.Hour * 24
 )
 

@@ -4,11 +4,11 @@ run:
 linters:
   enable:
     - asciicheck
+    - copyloopvar
     - dogsled
     - durationcheck
     - errcheck
     - errorlint
-    - exportloopref
     - gofmt
     - goimports
     - misspell
@@ -34,16 +34,19 @@ issues:
       text: "empty-block:"
     - linters:
         - revive
-      text: "var-naming:"
+      text: "exported:"
+    - linters:
+        - revive
+      text: "redefines-builtin-id:"
+    - linters:
+        - revive
+      text: "time-naming:"
     - linters:
         - revive
       text: "unused-parameter:"
     - linters:
         - revive
-      text: "exported:"
-    - linters:
-        - revive
-      text: "redefines-builtin-id:"
+      text: "var-naming:"
     - path: ldt/profiles\.go
       linters:
         - misspell

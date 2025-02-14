@@ -117,6 +117,7 @@ func Functions() FuncMap {
 		"EndsWith":   str.EndsWith,
 		"Contains":   str.Contains,
 		"Split":      str.Split,
+		"SplitAny":   str.SplitAny,
 		"Fields":     str.Fields,
 		"FieldsAny":  str.FieldsAny,
 		"Left":       str.Left,
@@ -124,6 +125,8 @@ func Functions() FuncMap {
 		"Right":      str.Right,
 		"Ellipsis":   str.Ellipsis,
 		"Ellipsiz":   str.Ellipsiz,
+		"Lower":      str.ToLower,
+		"Upper":      str.ToUpper,
 
 		// convert
 		"Atoi": num.Atoi,

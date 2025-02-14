@@ -108,7 +108,8 @@ func (ll *Localizer) getLocaleFromHeader(c *xin.Context, ks []string) string {
 
 func (ll *Localizer) acceptable(loc string) (string, bool) {
 	if loc != "" {
-		for _, al := range ll.Locales {
+		locs := ll.Locales
+		for _, al := range locs {
 			if str.StartsWith(loc, al) {
 				return al, true
 			}

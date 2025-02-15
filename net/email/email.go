@@ -21,12 +21,12 @@ type Email struct {
 	HTML        bool
 	Attachments []*Attachment
 
-	sender *mail.Address
-	from   *mail.Address
-	tos    []*mail.Address
-	ccs    []*mail.Address
-	bccs   []*mail.Address
-	replys []*mail.Address
+	Sender   *mail.Address
+	From     *mail.Address
+	Tos      []*mail.Address
+	Ccs      []*mail.Address
+	Bccs     []*mail.Address
+	ReplyTos []*mail.Address
 
 	DkimDomain     string
 	DkimSelector   string
@@ -37,119 +37,141 @@ type Email struct {
 func ParseAddress(s string) (*mail.Address, error) {
 	a, err := mail.ParseAddress(s)
 	if err != nil {
-		return nil, fmt.Errorf("Invalid address %s - %w", s, err)
+		return nil, fmt.Errorf("%w - %s", err, s)
 	}
 	return a, nil
+}
+
+// ParseAddressList parse email address list (comma separate)
+func ParseAddressList(s string) ([]*mail.Address, error) {
+	as, err := mail.ParseAddressList(s)
+	if err != nil {
+		return nil, fmt.Errorf("%w - %s", err, s)
+	}
+	return as, nil
+}
+
+// ParseAddresses parse email addresses
+func ParseAddresses(ss ...string) ([]*mail.Address, error) {
+	as := make([]*mail.Address, len(ss))
+	for i, s := range ss {
+		a, err := ParseAddress(s)
+		if err != nil {
+			return nil, err
+		}
+		as[i] = a
+	}
+	return as, nil
 }
 
 // GetDate return the email date
 func (m *Email) GetDate() time.Time {
 	if m.Date.IsZero() {
-		m.Date = time.Now()
+		return time.Now()
 	}
 	return m.Date
 }
 
-// GetSender get sender
-func (m *Email) GetSender() string {
-	if m.sender == nil {
-		m.sender = m.from
+// SenderAddress get sender address
+func (m *Email) SenderAddress() string {
+	s := m.Sender
+	if s == nil {
+		s = m.From
 	}
-	if m.sender == nil {
+	if s == nil {
 		return ""
 	}
-	return m.sender.Address
+	return s.Address
 }
 
 // SetSender set sender
 func (m *Email) SetSender(s string) error {
 	a, err := ParseAddress(s)
 	if err != nil {
-		m.sender = a
+		m.Sender = a
 	}
 	return err
 }
 
-// GetFrom get from
-func (m *Email) GetFrom() *mail.Address {
-	return m.from
-}
-
-// SetFrom set from
+// SetFrom set the From address
 func (m *Email) SetFrom(s string) error {
 	a, err := ParseAddress(s)
 	if err == nil {
-		m.from = a
+		m.From = a
 	}
 	return err
 }
 
-// GetTos get to address array
-func (m *Email) GetTos() []*mail.Address {
-	return m.tos
-}
-
-// AddTo add to address
+// AddTo add To address
 func (m *Email) AddTo(tos ...string) error {
-	for _, s := range tos {
-		a, err := ParseAddress(s)
-		if err != nil {
-			return err
-		}
-		m.tos = append(m.tos, a)
+	as, err := ParseAddresses(tos...)
+	if err == nil {
+		m.Tos = append(m.Tos, as...)
 	}
-	return nil
+	return err
 }
 
-// GetCcs get cc address array
-func (m *Email) GetCcs() []*mail.Address {
-	return m.ccs
+// SetTo set To address list (comma separate)
+func (m *Email) SetTo(to string) error {
+	as, err := ParseAddressList(to)
+	if err == nil {
+		m.Tos = as
+	}
+	return err
 }
 
-// AddCc add cc address
+// AddCc add Cc address
 func (m *Email) AddCc(ccs ...string) error {
-	for _, s := range ccs {
-		a, err := ParseAddress(s)
-		if err != nil {
-			return err
-		}
-		m.ccs = append(m.ccs, a)
+	as, err := ParseAddresses(ccs...)
+	if err == nil {
+		m.Ccs = append(m.Ccs, as...)
 	}
-	return nil
+	return err
 }
 
-// GetBccs get bcc address array
-func (m *Email) GetBccs() []*mail.Address {
-	return m.bccs
+// SetCc set Cc address list (comma separate)
+func (m *Email) SetCc(cc string) error {
+	as, err := ParseAddressList(cc)
+	if err == nil {
+		m.Ccs = as
+	}
+	return err
 }
 
-// AddBcc add bcc address
+// AddBcc add Bcc address
 func (m *Email) AddBcc(bccs ...string) error {
-	for _, s := range bccs {
-		a, err := ParseAddress(s)
-		if err != nil {
-			return err
-		}
-		m.bccs = append(m.bccs, a)
+	as, err := ParseAddresses(bccs...)
+	if err == nil {
+		m.Bccs = append(m.Bccs, as...)
 	}
-	return nil
+	return err
 }
 
-// GetReplys get reply address array
-func (m *Email) GetReplys() []*mail.Address {
-	return m.replys
+// SetBcc set Bcc address list (comma separate)
+func (m *Email) SetBcc(bcc string) error {
+	as, err := ParseAddressList(bcc)
+	if err == nil {
+		m.Bccs = as
+	}
+	return err
 }
 
-// AddReply add reply address
-func (m *Email) AddReply(rs ...string) error {
-	for _, s := range rs {
-		a, err := ParseAddress(s)
-		if err != nil {
-			return err
-		}
-		m.replys = append(m.replys, a)
+// AddReplyTo add Reply-To address
+func (m *Email) AddReplyTo(rs ...string) error {
+	as, err := ParseAddresses(rs...)
+	if err == nil {
+		m.ReplyTos = append(m.ReplyTos, as...)
 	}
-	return nil
+	return err
+}
+
+// SetReplyTo set Reply-To address list (comma separate)
+func (m *Email) SetReply(rs string) error {
+	as, err := ParseAddressList(rs)
+	if err == nil {
+		m.ReplyTos = as
+	}
+	return err
 }
 
 // AddAttachment add a attachment
@@ -201,22 +223,21 @@ func (m *Email) EmbedString(cid string, name string, data string) {
 
 // GetRecipients get all recipients
 func (m *Email) GetRecipients() []string {
-	rs := make(map[string]bool, len(m.tos)+len(m.ccs)+len(m.bccs))
-	for _, a := range m.tos {
-		rs[a.Address] = true
+	rs := make(map[string]struct{}, len(m.Tos)+len(m.Ccs)+len(m.Bccs))
+	for _, a := range m.Tos {
+		rs[a.Address] = struct{}{}
 	}
-	for _, a := range m.ccs {
-		rs[a.Address] = true
+	for _, a := range m.Ccs {
+		rs[a.Address] = struct{}{}
 	}
-	for _, a := range m.bccs {
-		rs[a.Address] = true
+	for _, a := range m.Bccs {
+		rs[a.Address] = struct{}{}
 	}
 
 	as := make([]string, 0, len(rs))
 	for a := range rs {
 		as = append(as, a)
 	}
-
 	return as
 }
 

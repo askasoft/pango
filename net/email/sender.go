@@ -142,7 +142,7 @@ func (s *Sender) dial(host string, port int) error {
 
 func (s *Sender) send(recipients []string, email *Email) error {
 	c := s.client
-	if err := c.Mail(email.GetSender()); err != nil {
+	if err := c.Mail(email.SenderAddress()); err != nil {
 		return err
 	}
 
@@ -339,19 +339,19 @@ func (s *Sender) writeMail(w io.Writer, m *Email) (err error) {
 	if err = writeHeader(w, "Date", formatDate(m.GetDate())); err != nil {
 		return
 	}
-	if err = writeAddress(w, "From", m.GetFrom()); err != nil {
+	if err = writeAddress(w, "From", m.From); err != nil {
 		return
 	}
-	if err = writeAddress(w, "To", m.GetTos()...); err != nil {
+	if err = writeAddress(w, "To", m.Tos...); err != nil {
 		return
 	}
-	if err = writeAddress(w, "Cc", m.GetCcs()...); err != nil {
+	if err = writeAddress(w, "Cc", m.Ccs...); err != nil {
 		return
 	}
-	if err = writeAddress(w, "Bcc", m.GetBccs()...); err != nil {
+	if err = writeAddress(w, "Bcc", m.Bccs...); err != nil {
 		return
 	}
-	if err = writeAddress(w, "Reply-To", m.GetReplys()...); err != nil {
+	if err = writeAddress(w, "Reply-To", m.ReplyTos...); err != nil {
 		return
 	}
 	if err = writeHeader(w, "Subject", encodeString(m.Subject)); err != nil {

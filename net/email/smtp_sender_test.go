@@ -93,7 +93,7 @@ func testSendEmail(t *testing.T, m *Email) {
 		return
 	}
 
-	fmt.Printf("SMTP send %s -> %s\n", m.from, m.GetTos()[0])
+	fmt.Printf("SMTP send %s -> %s\n", m.From, m.Tos[0])
 	ss.TLSConfig = &tls.Config{ServerName: ss.Host, InsecureSkipVerify: true}
 	err = ss.DialAndSend(m)
 	if err != nil {

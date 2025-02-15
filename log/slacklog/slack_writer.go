@@ -78,7 +78,7 @@ func (sw *SlackWriter) write(le *log.Event) (err error) {
 	sw.message.Attachments[0].Text = msg
 
 	if err = slack.Post(sw.Webhook, sw.Timeout, &sw.message); err != nil {
-		err = fmt.Errorf("SlackWriter(%s): Post(): %w", sw.Webhook, err)
+		err = fmt.Errorf("slacklog: Post(%q): %w", sw.Webhook, err)
 	}
 	return
 }

@@ -3,7 +3,6 @@ package logtest
 import (
 	"os"
 	"reflect"
-	"strings"
 	"testing"
 	"time"
 	"unsafe"
@@ -203,9 +202,6 @@ func assertLogConfig(t *testing.T, lg *log.Log) {
 		assertLogEqual(t, `w.Retries`, 5, w.Retries)
 		assertLogEqual(t, `w.Username`, "-----", w.Username)
 		assertLogEqual(t, `w.Password`, "xxxxxxx", w.Password)
-		assertLogEqual(t, `w.From`, "pango@google.com", w.From)
-		assertLogEqual(t, `w.Tos`, "to1@test.com to2@test.com", strings.Join(w.Tos, " "))
-		assertLogEqual(t, `w.Ccs`, "cc1@test.com cc2@test.com", strings.Join(w.Ccs, " "))
 		assertLogEqual(t, `w.Timeout`, time.Second*5, w.Timeout)
 
 		f, ok := w.Filter.(*log.LevelFilter)

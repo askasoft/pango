@@ -53,7 +53,7 @@ type argFmtFunc func(le *log.Event) any
 func (sw *SQLWriter) SetConnMaxIdleTime(duration string) error {
 	td, err := time.ParseDuration(duration)
 	if err != nil {
-		return fmt.Errorf("SQLWriter: invalid ConnMaxIdleTime %q: %w", duration, err)
+		return fmt.Errorf("sqlog: invalid ConnMaxIdleTime %q: %w", duration, err)
 	}
 
 	sw.ConnMaxIdleTime = td
@@ -64,7 +64,7 @@ func (sw *SQLWriter) SetConnMaxIdleTime(duration string) error {
 func (sw *SQLWriter) SetConnMaxLifeTime(duration string) error {
 	td, err := time.ParseDuration(duration)
 	if err != nil {
-		return fmt.Errorf("SQLWriter: invalid ConnMaxLifeTime %q: %w", duration, err)
+		return fmt.Errorf("sqlog: invalid ConnMaxLifeTime %q: %w", duration, err)
 	}
 
 	sw.ConnMaxLifeTime = td
@@ -247,7 +247,7 @@ func (sw *SQLWriter) initDB() {
 	if sw.db == nil {
 		db, err := sql.Open(sw.Driver, sw.Dsn)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "SQLWrite(%q, %q): %v", sw.Driver, sw.Dsn, err)
+			fmt.Fprintf(os.Stderr, "sqlog: Open(%q, %q): %v", sw.Driver, sw.Dsn, err)
 			return
 		}
 

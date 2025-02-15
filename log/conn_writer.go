@@ -26,7 +26,7 @@ type ConnWriter struct {
 func (cw *ConnWriter) SetTimeout(timeout string) error {
 	tmo, err := time.ParseDuration(timeout)
 	if err != nil {
-		return fmt.Errorf("ConnkWriter: invalid timeout: %w", err)
+		return fmt.Errorf("connlog: invalid timeout: %w", err)
 	}
 	cw.Timeout = tmo
 	return nil
@@ -63,7 +63,7 @@ func (cw *ConnWriter) write(le *Event) (err error) {
 
 		_, err = cw.conn.Write(cw.Buffer.Bytes())
 		if err != nil {
-			err = fmt.Errorf("ConnWriter(%s:%s): Write([%d]): %w", cw.Net, cw.Addr, cw.Buffer.Len(), err)
+			err = fmt.Errorf("connlog: (%s:%s) Write([%d]): %w", cw.Net, cw.Addr, cw.Buffer.Len(), err)
 			cw.Close()
 		}
 	}
@@ -79,7 +79,7 @@ func (cw *ConnWriter) Close() {
 	if cw.conn != nil {
 		err := cw.conn.Close()
 		if err != nil {
-			internal.Perrorf("ConnWriter(%s:%s): Close(): %v", cw.Net, cw.Addr, err)
+			internal.Perrorf("connlog: (%s:%s) Close(): %v", cw.Net, cw.Addr, err)
 		}
 		cw.conn = nil
 	}
@@ -100,13 +100,13 @@ func (cw *ConnWriter) dial() error {
 
 	conn, err := net.DialTimeout(cw.Net, cw.Addr, cw.Timeout)
 	if err != nil {
-		return fmt.Errorf("ConnWriter(%s:%s): Dial(): %w", cw.Net, cw.Addr, err)
+		return fmt.Errorf("connlog: Dial(%s:%s): %w", cw.Net, cw.Addr, err)
 	}
 
 	if tcpConn, ok := conn.(*net.TCPConn); ok {
 		err = tcpConn.SetKeepAlive(true)
 		if err != nil {
-			return fmt.Errorf("ConnWriter(%s:%s): SetKeepAlive(): %w", cw.Net, cw.Addr, err)
+			return fmt.Errorf("connlog: (%s:%s) SetKeepAlive(): %w", cw.Net, cw.Addr, err)
 		}
 	}
 

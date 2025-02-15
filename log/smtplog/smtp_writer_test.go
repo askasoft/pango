@@ -10,7 +10,6 @@ import (
 	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/net/netutil"
-	"github.com/askasoft/pango/str"
 )
 
 func skipTest(t *testing.T, msg string) {
@@ -38,14 +37,14 @@ func TestSmtpWriter(t *testing.T) {
 		return
 	}
 
-	sf := os.Getenv("SMTP_FROM")
-	if sf == "" {
+	from := os.Getenv("SMTP_FROM")
+	if from == "" {
 		skipTest(t, "SMTP_FROM not set")
 		return
 	}
 
-	sts := str.RemoveEmpties(str.TrimSpaces(str.Split(os.Getenv("SMTP_TO"), ";")))
-	if len(sts) < 1 {
+	to := os.Getenv("SMTP_TO")
+	if to == "" {
 		skipTest(t, "SMTP_TO not set")
 		return
 	}
@@ -57,9 +56,9 @@ func TestSmtpWriter(t *testing.T) {
 		Insecure: true,
 		Username: user,
 		Password: pass,
-		From:     sf,
-		Tos:      sts,
 	}
+	sw.SetFrom(from)
+	sw.SetTo(to)
 	sw.SetSubject("%t [%l] %m")
 	lg.SetWriter(sw)
 

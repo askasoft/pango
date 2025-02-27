@@ -112,7 +112,7 @@ func (ca *CookieAuth) Authorized(c *xin.Context) {
 
 // Unauthorized redirect or abort with status 401
 func (ca *CookieAuth) Unauthorized(c *xin.Context) {
-	u := ca.buildRedirectURL(c)
+	u := ca.BuildRedirectURL(c)
 	if u != "" {
 		c.Abort()
 		c.Redirect(http.StatusTemporaryRedirect, u)
@@ -122,7 +122,7 @@ func (ca *CookieAuth) Unauthorized(c *xin.Context) {
 	c.AbortWithStatus(http.StatusUnauthorized)
 }
 
-func (ca *CookieAuth) buildRedirectURL(c *xin.Context) string {
+func (ca *CookieAuth) BuildRedirectURL(c *xin.Context) string {
 	u := ca.RedirectURL
 	if u == "" || u == c.Request.URL.Path { // prevent redirect dead loop
 		return ""

@@ -49,6 +49,7 @@ func TestOpenAICreateChatCompletion(t *testing.T) {
 	}
 
 	fmt.Println(res)
+	fmt.Println(res.Usage.String())
 }
 
 func TestOpenAICreateTextEmbeddingsAda002(t *testing.T) {

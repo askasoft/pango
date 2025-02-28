@@ -47,6 +47,15 @@ type ChatCompletionRequest struct {
 	// ID of the model to use. See the model endpoint compatibility table for details on which models work with the Chat API.
 	Model string `json:"model,omitempty"`
 
+	// Store Whether or not to store the output of this chat completion request for use in our model distillation or evals products.
+	Store bool `json:"store,omitempty"`
+
+	// ReasoningEffort Constrains effort on reasoning for reasoning models. Currently supported values are low, medium, and high. Reducing reasoning effort can result in faster responses and fewer tokens used on reasoning in a response.
+	ReasoningEffort string `json:"reasoning_effort,omitempty"`
+
+	// Metadata Set of 16 key-value pairs that can be attached to an object. This can be useful for storing additional information about the object in a structured format, and querying for objects via API or the dashboard. Keys are strings with a maximum length of 64 characters. Values are strings with a maximum length of 512 characters.
+	Metadata any `json:"metadata,omitempty"`
+
 	// Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim.
 	// Defaults to 0
 	FrequencyPenalty float64 `json:"frequency_penalty,omitempty"`
@@ -62,13 +71,25 @@ type ChatCompletionRequest struct {
 	// An integer between 0 and 20 specifying the number of most likely tokens to return at each token position, each with an associated log probability. logprobs must be set to true if this parameter is used.
 	TopLogprobs int `json:"top_logprobs,omitempty"`
 
-	// The maximum number of tokens to generate in the chat completion.
-	// The total length of input tokens and generated tokens is limited by the model's context length.
+	// Deprecated: The maximum number of tokens to generate in the chat completion. The total length of input tokens and generated tokens is limited by the model's context length.
 	MaxTokens int `json:"max_tokens,omitempty"`
+
+	// An upper bound for the number of tokens that can be generated for a completion, including visible output tokens and reasoning tokens.
+	MaxCompletionTokens int `json:"max_completion_tokens,omitempty"`
 
 	// How many chat completion choices to generate for each input message.
 	// Defaults to 1
 	N int `json:"n,omitempty"`
+
+	// Output types that you would like the model to generate for this request. Most models are capable of generating text, which is the default: ["text"]
+	// The gpt-4o-audio-preview model can also be used to generate audio. To request that this model generate both text and audio responses, you can use: ["text", "audio"]
+	Modalities []string `json:"modalities,omitempty"`
+
+	// Configuration for a Predicted Output, which can greatly improve response times when large parts of the model response are known ahead of time. This is most common when you are regenerating a file with only minor changes to most of the content.
+	Prediction any `json:"prediction,omitempty"`
+
+	// Parameters for audio output. Required when audio output is requested with modalities: ["audio"]. Learn more.
+	Audio any `json:"audio,omitempty"`
 
 	// Number between -2.0 and 2.0. Positive values penalize new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics.
 	// Defaults to 0
@@ -82,12 +103,22 @@ type ChatCompletionRequest struct {
 	// resulting in a long-running and seemingly "stuck" request.
 	// Also note that the message content may be partially cut off if finish_reason="length",
 	// which indicates the generation exceeded max_tokens or the conversation exceeded the max context length.
-	ResponseFormat map[string]any `json:"response_format,omitempty"`
+	ResponseFormat any `json:"response_format,omitempty"`
 
 	// This feature is in Beta. If specified, our system will make a best effort to sample deterministically,
 	// such that repeated requests with the same seed and parameters should return the same result.
 	// Determinism is not guaranteed, and you should refer to the system_fingerprint response parameter to monitor changes in the backend.
 	Seed int `json:"seed,omitempty"`
+
+	// Specifies the latency tier to use for processing the request. This parameter is relevant for customers subscribed to the scale tier service:
+	//
+	//	If set to 'auto', and the Project is Scale tier enabled, the system will utilize scale tier credits until they are exhausted.
+	//	If set to 'auto', and the Project is not Scale tier enabled, the request will be processed using the default service tier with a lower uptime SLA and no latency guarantee.
+	//	If set to 'default', the request will be processed using the default service tier with a lower uptime SLA and no latency guarantee.
+	//	When not set, the default behavior is 'auto'.
+	//
+	// Defaults to auto
+	ServiceTier string `json:"service_tier,omitempty"`
 
 	// Up to 4 sequences where the API will stop generating further tokens.
 	Stop any `json:"stop,omitempty"`
@@ -96,10 +127,18 @@ type ChatCompletionRequest struct {
 	// Defaults to false
 	Stream bool `json:"stream,omitempty"`
 
+	// Options for streaming response. Only set this when you set stream: true.
+	StreamOptions any `json:"stream_options,omitempty"`
+
 	// What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
 	// We generally recommend altering this or top_p but not both.
 	// Defaults to 1
 	Temperature float64 `json:"temperature,omitempty"`
+
+	// An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
+	// We generally recommend altering this or temperature but not both.
+	// Defaults to 1
+	TopP float64 `json:"top_p,omitempty"`
 
 	// A list of tools the model may call.
 	// Currently, only functions are supported as a tool.
@@ -112,11 +151,6 @@ type ChatCompletionRequest struct {
 	// Specifying a particular function via {"type": "function", "function": {"name": "my_function"}} forces the model to call that function.
 	// none is the default when no functions are present. auto is the default if functions are present.
 	ToolChoice any `json:"tool_choice,omitempty"`
-
-	// An alternative to sampling with temperature, called nucleus sampling, where the model considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10% probability mass are considered.
-	// We generally recommend altering this or temperature but not both.
-	// Defaults to 1
-	TopP float64 `json:"top_p,omitempty"`
 
 	// A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse.
 	User string `json:"user,omitempty"`
@@ -151,29 +185,79 @@ type ChatChoice struct {
 	FinishReason string      `json:"finish_reason"`
 }
 
+type CompletionTokensDetails struct {
+	// When using Predicted Outputs, the number of tokens in the prediction that appeared in the completion.
+	AcceptedPredictionTokens int `json:"accepted_prediction_tokens"`
+
+	// Audio input tokens generated by the model.
+	AudioTokens int `json:"audio_tokens"`
+
+	// Tokens generated by the model for reasoning.
+	ReasoningTokens int `json:"reasoning_tokens"`
+
+	// When using Predicted Outputs, the number of tokens in the prediction that did not appear in the completion. However, like reasoning tokens, these tokens are still counted in the total completion tokens for purposes of billing, output, and context window limits.
+	RejectedPredictionTokens int `json:"rejected_prediction_tokens"`
+}
+
+func (ctd *CompletionTokensDetails) Add(d *CompletionTokensDetails) {
+	ctd.AcceptedPredictionTokens += d.AcceptedPredictionTokens
+	ctd.AudioTokens += d.AudioTokens
+	ctd.ReasoningTokens += d.ReasoningTokens
+	ctd.RejectedPredictionTokens += d.RejectedPredictionTokens
+}
+
+func (ctd *CompletionTokensDetails) String() string {
+	return fmt.Sprintf("AP: %d, A: %d, R: %d, RP: %d", ctd.AcceptedPredictionTokens, ctd.AudioTokens, ctd.ReasoningTokens, ctd.RejectedPredictionTokens)
+}
+
+type PromptTokensDetails struct {
+	// Audio input tokens present in the prompt.
+	AudioTokens int `json:"audio_tokens"`
+
+	// Cached tokens present in the prompt.
+	CachedTokens int `json:"cached_tokens"`
+}
+
+func (ptd *PromptTokensDetails) Add(d *PromptTokensDetails) {
+	ptd.AudioTokens += d.AudioTokens
+	ptd.CachedTokens += d.CachedTokens
+}
+
+func (ptd *PromptTokensDetails) String() string {
+	return fmt.Sprintf("A: %d, C: %d", ptd.AudioTokens, ptd.CachedTokens)
+}
+
 type ChatUsage struct {
-	PromptTokens     int `json:"prompt_tokens"`
-	CompletionTokens int `json:"completion_tokens"`
-	TotalTokens      int `json:"total_tokens"`
+	CompletionTokens        int                     `json:"completion_tokens"`
+	PromptTokens            int                     `json:"prompt_tokens"`
+	TotalTokens             int                     `json:"total_tokens"`
+	CompletionTokensDetails CompletionTokensDetails `json:"completion_tokens_details"`
+	PromptTokensDetails     PromptTokensDetails     `json:"prompt_tokens_details"`
 }
 
 func (cu *ChatUsage) Add(u *ChatUsage) {
 	cu.PromptTokens += u.PromptTokens
 	cu.CompletionTokens += u.CompletionTokens
 	cu.TotalTokens += u.TotalTokens
+	cu.CompletionTokensDetails.Add(&u.CompletionTokensDetails)
+	cu.PromptTokensDetails.Add(&u.PromptTokensDetails)
 }
 
 func (cu *ChatUsage) String() string {
-	return fmt.Sprintf("%d, %d, %d", cu.PromptTokens, cu.CompletionTokens, cu.TotalTokens)
+	return fmt.Sprintf("C: %d (%s), P: %d (%s), T: %d",
+		cu.CompletionTokens, cu.CompletionTokensDetails.String(),
+		cu.PromptTokens, cu.PromptTokensDetails.String(),
+		cu.TotalTokens)
 }
 
 type ChatCompletionResponse struct {
 	ID                string        `json:"id,omitempty"`
-	Object            string        `json:"object,omitempty"`
+	Choices           []*ChatChoice `json:"choices,omitempty"`
 	Created           int64         `json:"created,omitempty"`
 	Model             string        `json:"model,omitempty"`
+	ServiceTier       string        `json:"service_tier,omitempty"`
 	SystemFingerprint string        `json:"system_fingerprint,omitempty"`
-	Choices           []*ChatChoice `json:"choices,omitempty"`
+	Object            string        `json:"object,omitempty"`
 	Usage             ChatUsage     `json:"usage,omitempty"`
 }
 

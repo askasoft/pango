@@ -2601,346 +2601,6 @@ func TestCIDRv4Validation(t *testing.T) {
 	}
 }
 
-func TestTCPAddrValidation(t *testing.T) {
-	tests := []struct {
-		param    string
-		expected bool
-	}{
-		{"", false},
-		{":80", false},
-		{"127.0.0.1:80", true},
-		{"[::1]:80", true},
-		{"256.0.0.0:1", false},
-		{"[::1]", false},
-	}
-
-	validate := New()
-
-	for i, test := range tests {
-		errs := validate.Var(test.param, "tcp_addr")
-		if test.expected {
-			if !assertIsEqual(errs, nil) {
-				t.Fatalf("Index: %d tcp_addr failed Error: %s", i, errs)
-			}
-		} else {
-			if assertIsEqual(errs, nil) {
-				t.Fatalf("Index: %d tcp_addr failed Error: %s", i, errs)
-			} else {
-				val := getError(errs, "", "")
-				if val.Tag() != "tcp_addr" {
-					t.Fatalf("Index: %d tcp_addr failed Error: %s", i, errs)
-				}
-			}
-		}
-	}
-}
-
-func TestTCP6AddrValidation(t *testing.T) {
-	tests := []struct {
-		param    string
-		expected bool
-	}{
-		{"", false},
-		{":80", false},
-		{"127.0.0.1:80", false},
-		{"[::1]:80", true},
-		{"256.0.0.0:1", false},
-		{"[::1]", false},
-	}
-
-	validate := New()
-
-	for i, test := range tests {
-		errs := validate.Var(test.param, "tcp6_addr")
-		if test.expected {
-			if !assertIsEqual(errs, nil) {
-				t.Fatalf("Index: %d tcp6_addr failed Error: %s", i, errs)
-			}
-		} else {
-			if assertIsEqual(errs, nil) {
-				t.Fatalf("Index: %d tcp6_addr failed Error: %s", i, errs)
-			} else {
-				val := getError(errs, "", "")
-				if val.Tag() != "tcp6_addr" {
-					t.Fatalf("Index: %d tcp6_addr failed Error: %s", i, errs)
-				}
-			}
-		}
-	}
-}
-
-func TestTCP4AddrValidation(t *testing.T) {
-	tests := []struct {
-		param    string
-		expected bool
-	}{
-		{"", false},
-		{":80", false},
-		{"127.0.0.1:80", true},
-		{"[::1]:80", false}, // https://github.com/golang/go/issues/14037
-		{"256.0.0.0:1", false},
-		{"[::1]", false},
-	}
-
-	validate := New()
-
-	for i, test := range tests {
-		errs := validate.Var(test.param, "tcp4_addr")
-		if test.expected {
-			if !assertIsEqual(errs, nil) {
-				t.Fatalf("Index: %d tcp4_addr failed Error: %s", i, errs)
-			}
-		} else {
-			if assertIsEqual(errs, nil) {
-				t.Log(test.param, assertIsEqual(errs, nil))
-				t.Fatalf("Index: %d tcp4_addr failed Error: %s", i, errs)
-			} else {
-				val := getError(errs, "", "")
-				if val.Tag() != "tcp4_addr" {
-					t.Fatalf("Index: %d tcp4_addr failed Error: %s", i, errs)
-				}
-			}
-		}
-	}
-}
-
-func TestUDPAddrValidation(t *testing.T) {
-	tests := []struct {
-		param    string
-		expected bool
-	}{
-		{"", false},
-		{":80", false},
-		{"127.0.0.1:80", true},
-		{"[::1]:80", true},
-		{"256.0.0.0:1", false},
-		{"[::1]", false},
-	}
-
-	validate := New()
-
-	for i, test := range tests {
-		errs := validate.Var(test.param, "udp_addr")
-		if test.expected {
-			if !assertIsEqual(errs, nil) {
-				t.Fatalf("Index: %d udp_addr failed Error: %s", i, errs)
-			}
-		} else {
-			if assertIsEqual(errs, nil) {
-				t.Fatalf("Index: %d udp_addr failed Error: %s", i, errs)
-			} else {
-				val := getError(errs, "", "")
-				if val.Tag() != "udp_addr" {
-					t.Fatalf("Index: %d udp_addr failed Error: %s", i, errs)
-				}
-			}
-		}
-	}
-}
-
-func TestUDP6AddrValidation(t *testing.T) {
-	tests := []struct {
-		param    string
-		expected bool
-	}{
-		{"", false},
-		{":80", false},
-		{"127.0.0.1:80", false},
-		{"[::1]:80", true},
-		{"256.0.0.0:1", false},
-		{"[::1]", false},
-	}
-
-	validate := New()
-
-	for i, test := range tests {
-		errs := validate.Var(test.param, "udp6_addr")
-		if test.expected {
-			if !assertIsEqual(errs, nil) {
-				t.Fatalf("Index: %d udp6_addr failed Error: %s", i, errs)
-			}
-		} else {
-			if assertIsEqual(errs, nil) {
-				t.Fatalf("Index: %d udp6_addr failed Error: %s", i, errs)
-			} else {
-				val := getError(errs, "", "")
-				if val.Tag() != "udp6_addr" {
-					t.Fatalf("Index: %d udp6_addr failed Error: %s", i, errs)
-				}
-			}
-		}
-	}
-}
-
-func TestUDP4AddrValidation(t *testing.T) {
-	tests := []struct {
-		param    string
-		expected bool
-	}{
-		{"", false},
-		{":80", false},
-		{"127.0.0.1:80", true},
-		{"[::1]:80", false}, // https://github.com/golang/go/issues/14037
-		{"256.0.0.0:1", false},
-		{"[::1]", false},
-	}
-
-	validate := New()
-
-	for i, test := range tests {
-		errs := validate.Var(test.param, "udp4_addr")
-		if test.expected {
-			if !assertIsEqual(errs, nil) {
-				t.Fatalf("Index: %d udp4_addr failed Error: %s", i, errs)
-			}
-		} else {
-			if assertIsEqual(errs, nil) {
-				t.Log(test.param, assertIsEqual(errs, nil))
-				t.Fatalf("Index: %d udp4_addr failed Error: %s", i, errs)
-			} else {
-				val := getError(errs, "", "")
-				if val.Tag() != "udp4_addr" {
-					t.Fatalf("Index: %d udp4_addr failed Error: %s", i, errs)
-				}
-			}
-		}
-	}
-}
-
-func TestIPAddrValidation(t *testing.T) {
-	tests := []struct {
-		param    string
-		expected bool
-	}{
-		{"", false},
-		{"127.0.0.1", true},
-		{"127.0.0.1:80", false},
-		{"::1", true},
-		{"256.0.0.0", false},
-		{"localhost", false},
-	}
-
-	validate := New()
-
-	for i, test := range tests {
-		errs := validate.Var(test.param, "ip_addr")
-		if test.expected {
-			if !assertIsEqual(errs, nil) {
-				t.Fatalf("Index: %d ip_addr failed Error: %s", i, errs)
-			}
-		} else {
-			if assertIsEqual(errs, nil) {
-				t.Fatalf("Index: %d ip_addr failed Error: %s", i, errs)
-			} else {
-				val := getError(errs, "", "")
-				if val.Tag() != "ip_addr" {
-					t.Fatalf("Index: %d ip_addr failed Error: %s", i, errs)
-				}
-			}
-		}
-	}
-}
-
-func TestIP6AddrValidation(t *testing.T) {
-	tests := []struct {
-		param    string
-		expected bool
-	}{
-		{"", false},
-		{"127.0.0.1", false}, // https://github.com/golang/go/issues/14037
-		{"127.0.0.1:80", false},
-		{"::1", true},
-		{"0:0:0:0:0:0:0:1", true},
-		{"256.0.0.0", false},
-	}
-
-	validate := New()
-
-	for i, test := range tests {
-		errs := validate.Var(test.param, "ip6_addr")
-		if test.expected {
-			if !assertIsEqual(errs, nil) {
-				t.Fatalf("Index: %d ip6_addr failed Error: %s", i, errs)
-			}
-		} else {
-			if assertIsEqual(errs, nil) {
-				t.Fatalf("Index: %d ip6_addr failed Error: %s", i, errs)
-			} else {
-				val := getError(errs, "", "")
-				if val.Tag() != "ip6_addr" {
-					t.Fatalf("Index: %d ip6_addr failed Error: %s", i, errs)
-				}
-			}
-		}
-	}
-}
-
-func TestIP4AddrValidation(t *testing.T) {
-	tests := []struct {
-		param    string
-		expected bool
-	}{
-		{"", false},
-		{"127.0.0.1", true},
-		{"127.0.0.1:80", false},
-		{"::1", false}, // https://github.com/golang/go/issues/14037
-		{"256.0.0.0", false},
-		{"localhost", false},
-	}
-
-	validate := New()
-
-	for i, test := range tests {
-		errs := validate.Var(test.param, "ip4_addr")
-		if test.expected {
-			if !assertIsEqual(errs, nil) {
-				t.Fatalf("Index: %d ip4_addr failed Error: %s", i, errs)
-			}
-		} else {
-			if assertIsEqual(errs, nil) {
-				t.Log(test.param, assertIsEqual(errs, nil))
-				t.Fatalf("Index: %d ip4_addr failed Error: %s", i, errs)
-			} else {
-				val := getError(errs, "", "")
-				if val.Tag() != "ip4_addr" {
-					t.Fatalf("Index: %d ip4_addr failed Error: %s", i, errs)
-				}
-			}
-		}
-	}
-}
-
-func TestUnixAddrValidation(t *testing.T) {
-	tests := []struct {
-		param    string
-		expected bool
-	}{
-		{"", true},
-		{"v.sock", true},
-	}
-
-	validate := New()
-
-	for i, test := range tests {
-		errs := validate.Var(test.param, "unix_addr")
-		if test.expected {
-			if !assertIsEqual(errs, nil) {
-				t.Fatalf("Index: %d unix_addr failed Error: %s", i, errs)
-			}
-		} else {
-			if assertIsEqual(errs, nil) {
-				t.Log(test.param, assertIsEqual(errs, nil))
-				t.Fatalf("Index: %d unix_addr failed Error: %s", i, errs)
-			} else {
-				val := getError(errs, "", "")
-				if val.Tag() != "unix_addr" {
-					t.Fatalf("Index: %d unix_addr failed Error: %s", i, errs)
-				}
-			}
-		}
-	}
-}
-
 func TestSliceMapArrayChanFuncPtrInterfaceRequiredValidation(t *testing.T) {
 	validate := New()
 
@@ -4283,33 +3943,6 @@ func TestISBN10Validation(t *testing.T) {
 	}
 }
 
-func TestExcludesRuneValidation(t *testing.T) {
-	tests := []struct {
-		Value       string `validate:"excludesrune=☻"`
-		Tag         string
-		ExpectedNil bool
-	}{
-		{Value: "a☺b☻c☹d", Tag: "excludesrune=☻", ExpectedNil: false},
-		{Value: "abcd", Tag: "excludesrune=☻", ExpectedNil: true},
-	}
-
-	validate := New()
-
-	for i, s := range tests {
-		errs := validate.Var(s.Value, s.Tag)
-
-		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
-			t.Fatalf("Index: %d failed Error: %s", i, errs)
-		}
-
-		errs = validate.Struct(s)
-
-		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
-			t.Fatalf("Index: %d failed Error: %s", i, errs)
-		}
-	}
-}
-
 func TestExcludesAllValidation(t *testing.T) {
 	tests := []struct {
 		Value       string `validate:"excludesall=@!{}[]"`
@@ -4363,33 +3996,6 @@ func TestExcludesValidation(t *testing.T) {
 	}{
 		{Value: "abcd@!jfk", Tag: "excludes=@", ExpectedNil: false},
 		{Value: "abcdq!jfk", Tag: "excludes=@", ExpectedNil: true},
-	}
-
-	validate := New()
-
-	for i, s := range tests {
-		errs := validate.Var(s.Value, s.Tag)
-
-		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
-			t.Fatalf("Index: %d failed Error: %s", i, errs)
-		}
-
-		errs = validate.Struct(s)
-
-		if (s.ExpectedNil && errs != nil) || (!s.ExpectedNil && errs == nil) {
-			t.Fatalf("Index: %d failed Error: %s", i, errs)
-		}
-	}
-}
-
-func TestContainsRuneValidation(t *testing.T) {
-	tests := []struct {
-		Value       string `validate:"containsrune=☻"`
-		Tag         string
-		ExpectedNil bool
-	}{
-		{Value: "a☺b☻c☹d", Tag: "containsrune=☻", ExpectedNil: true},
-		{Value: "abcd", Tag: "containsrune=☻", ExpectedNil: false},
 	}
 
 	validate := New()
@@ -7248,11 +6854,6 @@ func TestHsla(t *testing.T) {
 	errs = validate.Var(s, "hsla")
 	assertNotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "hsla")
-
-	i := 1
-	errs = validate.Var(i, "hsla")
-	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "hsla")
 }
 
 func TestHsl(t *testing.T) {
@@ -7283,11 +6884,6 @@ func TestHsl(t *testing.T) {
 
 	s = "hsl(-10,100%,100%)"
 	errs = validate.Var(s, "hsl")
-	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "hsl")
-
-	i := 1
-	errs = validate.Var(i, "hsl")
 	assertNotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "hsl")
 }
@@ -7330,11 +6926,6 @@ func TestRgba(t *testing.T) {
 	errs = validate.Var(s, "rgba")
 	assertNotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "rgba")
-
-	i := 1
-	errs = validate.Var(i, "rgba")
-	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "rgba")
 }
 
 func TestRgb(t *testing.T) {
@@ -7365,11 +6956,6 @@ func TestRgb(t *testing.T) {
 
 	s = "rgba(0,31,255)"
 	errs = validate.Var(s, "rgb")
-	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "rgb")
-
-	i := 1
-	errs = validate.Var(i, "rgb")
 	assertNotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "rgb")
 }
@@ -7434,11 +7020,6 @@ func TestEmail(t *testing.T) {
 	errs = validate.Var(s, "email")
 	assertNotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "email")
-
-	i := true
-	errs = validate.Var(i, "email")
-	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "email")
 }
 
 func TestHexColor(t *testing.T) {
@@ -7461,11 +7042,6 @@ func TestHexColor(t *testing.T) {
 	errs = validate.Var(s, "hexcolor")
 	assertNotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "hexcolor")
-
-	i := true
-	errs = validate.Var(i, "hexcolor")
-	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "hexcolor")
 }
 
 func TestHexadecimal(t *testing.T) {
@@ -7485,11 +7061,6 @@ func TestHexadecimal(t *testing.T) {
 
 	s = "abcdefg"
 	errs = validate.Var(s, "hexadecimal")
-	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "hexadecimal")
-
-	i := true
-	errs = validate.Var(i, "hexadecimal")
 	assertNotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "hexadecimal")
 }
@@ -7651,10 +7222,6 @@ func TestLetter(t *testing.T) {
 	errs = validate.Var(s, "letter")
 	assertNotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "letter")
-
-	errs = validate.Var(1, "letter")
-	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "letter")
 }
 
 func TestAlpha(t *testing.T) {
@@ -7683,10 +7250,6 @@ func TestAlpha(t *testing.T) {
 	errs = validate.Var(s, "alpha")
 	assertNotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "alpha")
-
-	errs = validate.Var(1, "alpha")
-	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "alpha")
 }
 
 func TestLetterNumber(t *testing.T) {
@@ -7700,10 +7263,6 @@ func TestLetterNumber(t *testing.T) {
 	errs = validate.Var(s, "letternum")
 	assertNotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "letternum")
-
-	errs = validate.Var(1, "letternum")
-	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "letternum")
 }
 
 func TestAlphaNumber(t *testing.T) {
@@ -7715,10 +7274,6 @@ func TestAlphaNumber(t *testing.T) {
 
 	s = "abc!23"
 	errs = validate.Var(s, "alphanum")
-	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "alphanum")
-
-	errs = validate.Var(1, "alphanum")
 	assertNotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "alphanum")
 }
@@ -10662,22 +10217,22 @@ func TestDurationType(t *testing.T) {
 	}
 }
 
-func TestBicIsoFormatValidation(t *testing.T) {
+func TestSwiftcodeFormatValidation(t *testing.T) {
 	tests := []struct {
-		value    string `validate:"bic"`
+		value    string `validate:"swiftcode"`
 		tag      string
 		expected bool
 	}{
-		{"SBICKEN1345", "bic", true},
-		{"SBICKEN1", "bic", true},
-		{"SBICKENY", "bic", true},
-		{"SBICKEN1YYP", "bic", true},
-		{"SBIC23NXXX", "bic", false},
-		{"S23CKENXXXX", "bic", false},
-		{"SBICKENXX", "bic", false},
-		{"SBICKENXX9", "bic", false},
-		{"SBICKEN13458", "bic", false},
-		{"SBICKEN", "bic", false},
+		{"SBICKEN1345", "swiftcode", true},
+		{"SBICKEN1", "swiftcode", true},
+		{"SBICKENY", "swiftcode", true},
+		{"SBICKEN1YYP", "swiftcode", true},
+		{"SBIC23NXXX", "swiftcode", false},
+		{"S23CKENXXXX", "swiftcode", false},
+		{"SBICKENXX", "swiftcode", false},
+		{"SBICKENXX9", "swiftcode", false},
+		{"SBICKEN13458", "swiftcode", false},
+		{"SBICKEN", "swiftcode", false},
 	}
 
 	validate := New()
@@ -10688,15 +10243,15 @@ func TestBicIsoFormatValidation(t *testing.T) {
 
 		if test.expected {
 			if !assertIsEqual(errs, nil) {
-				t.Fatalf("Index: %d bic failed Error: %s", i, errs)
+				t.Fatalf("Index: %d swiftcode failed Error: %s", i, errs)
 			}
 		} else {
 			if assertIsEqual(errs, nil) {
-				t.Fatalf("Index: %d bic failed Error: %s", i, errs)
+				t.Fatalf("Index: %d swiftcode failed Error: %s", i, errs)
 			} else {
 				val := getError(errs, "", "")
-				if val.Tag() != "bic" {
-					t.Fatalf("Index: %d bic failed Error: %s", i, errs)
+				if val.Tag() != "swiftcode" {
+					t.Fatalf("Index: %d swiftcode failed Error: %s", i, errs)
 				}
 			}
 		}

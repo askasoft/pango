@@ -1,10 +1,12 @@
 package vad
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"net"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/askasoft/pango/str"
 )
@@ -577,5 +579,129 @@ func IsIMSI(s string) bool {
 	default:
 		return false
 	}
+	return true
+}
+
+func IsJSONObject(s string) bool {
+	if !json.Valid(str.UnsafeBytes(s)) {
+		return false
+	}
+	return str.StartsWithByte(str.Strip(s), '{')
+}
+
+func IsJSONArray(s string) bool {
+	if !json.Valid(str.UnsafeBytes(s)) {
+		return false
+	}
+	return str.StartsWithByte(str.Strip(s), '[')
+}
+
+// IsBitcoinAddress is the validation function for validating if the field's value is a valid btc address
+func IsBitcoinAddress(address string) bool {
+	if !btcAddressRegex.MatchString(address) {
+		return false
+	}
+
+	alphabet := "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+
+	decode := [25]byte{}
+	for i := 0; i < len(address); i++ {
+		d := str.IndexByte(alphabet, address[i])
+		for i := 24; i >= 0; i-- {
+			d += 58 * int(decode[i])
+			decode[i] = byte(d % 256)
+			d /= 256
+		}
+	}
+
+	h := sha256.New()
+	_, _ = h.Write(decode[:21])
+	d := h.Sum([]byte{})
+	h = sha256.New()
+	_, _ = h.Write(d)
+
+	validchecksum := [4]byte{}
+	computedchecksum := [4]byte{}
+
+	copy(computedchecksum[:], h.Sum(d[:0]))
+	copy(validchecksum[:], decode[21:])
+
+	return validchecksum == computedchecksum
+}
+
+// IsBitcoinBech32Address is the validation function for validating if the field's value is a valid bech32 btc address
+func IsBitcoinBech32Address(address string) bool {
+	if !btcLowerAddressRegexBech32.MatchString(address) && !btcUpperAddressRegexBech32.MatchString(address) {
+		return false
+	}
+
+	am := len(address) % 8
+	if am == 0 || am == 3 || am == 5 {
+		return false
+	}
+
+	address = strings.ToLower(address)
+
+	alphabet := "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
+
+	hr := []int{3, 3, 0, 2, 3} // the human readable part will always be bc
+	addr := address[3:]
+	dp := make([]int, 0, len(addr))
+
+	for _, c := range addr {
+		dp = append(dp, strings.IndexRune(alphabet, c))
+	}
+
+	ver := dp[0]
+
+	if ver < 0 || ver > 16 {
+		return false
+	}
+
+	if ver == 0 {
+		if len(address) != 42 && len(address) != 62 {
+			return false
+		}
+	}
+
+	values := append(hr, dp...)
+
+	GEN := []int{0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3}
+
+	p := 1
+
+	for _, v := range values {
+		b := p >> 25
+		p = (p&0x1ffffff)<<5 ^ v
+
+		for i := 0; i < 5; i++ {
+			if (b>>uint(i))&1 == 1 {
+				p ^= GEN[i]
+			}
+		}
+	}
+
+	if p != 1 {
+		return false
+	}
+
+	b := uint(0)
+	acc := 0
+	mv := (1 << 5) - 1
+	var sw []int
+
+	for _, v := range dp[1 : len(dp)-6] {
+		acc = (acc << 5) | v
+		b += 5
+		for b >= 8 {
+			b -= 8
+			sw = append(sw, (acc>>b)&mv)
+		}
+	}
+
+	if len(sw) < 2 || len(sw) > 40 {
+		return false
+	}
+
 	return true
 }

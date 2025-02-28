@@ -83,19 +83,9 @@ Baked-in Validations
 | hostname_port | HostPort |
 | hostname_rfc1123 | Hostname RFC 1123 |
 | ip | Internet Protocol Address IP |
-| ip4_addr | Internet Protocol Address IPv4 |
-| ip6_addr | Internet Protocol Address IPv6 |
-| ip_addr | Internet Protocol Address IP |
 | ipv4 | Internet Protocol Address IPv4 |
 | ipv6 | Internet Protocol Address IPv6 |
 | mac | Media Access Control Address MAC |
-| tcp4_addr | Transmission Control Protocol Address TCPv4 |
-| tcp6_addr | Transmission Control Protocol Address TCPv6 |
-| tcp_addr | Transmission Control Protocol Address TCP |
-| udp4_addr | User Datagram Protocol Address UDPv4 |
-| udp6_addr | User Datagram Protocol Address UDPv6 |
-| udp_addr | User Datagram Protocol Address UDP |
-| unix_addr | Unix domain socket end point Address |
 | uri | URI String |
 | url | URL String |
 | httpurl | URL (http://) String |
@@ -122,12 +112,10 @@ Baked-in Validations
 | multibyte | Multi-Byte Characters |
 | contains | Contains |
 | containsany | Contains Any |
-| containsrune | Contains Rune |
 | endsnotwith | Ends With |
 | endswith | Ends With |
 | excludes | Excludes |
 | excludesall | Excludes All |
-| excludesrune | Excludes Rune |
 | startsnotwith | Starts Not With |
 | startswith | Starts With |
 
@@ -136,15 +124,12 @@ Baked-in Validations
 | - | - |
 | base64 | Base64 String |
 | base64url | Base64URL String |
-| bic | Business Identifier Code (ISO 9362) |
-| bcp47_language_tag | Language tag (BCP 47) |
 | btc_addr | Bitcoin Address |
 | btc_addr_bech32 | Bitcoin Bech32 Address (segwit) |
 | datetime | Datetime |
 | duration | Duration |
 | e164 | e164 formatted phone number |
 | email | E-mail String
-| eth_addr | Ethereum Address |
 | hexadecimal | Hexadecimal String |
 | hexcolor | Hexcolor String |
 | hsl | HSL String |
@@ -154,12 +139,9 @@ Baked-in Validations
 | isbn | International Standard Book Number |
 | isbn10 | International Standard Book Number 10 |
 | isbn13 | International Standard Book Number 13 |
-| iso3166_1_alpha2 | Two-letter country code (ISO 3166-1 alpha-2) |
-| iso3166_1_alpha3 | Three-letter country code (ISO 3166-1 alpha-3) |
-| iso3166_1_alpha_numeric | Numeric country code (ISO 3166-1 numeric) |
-| iso3166_2 | Country subdivision code (ISO 3166-2) |
-| iso4217 | Currency code (ISO 4217) |
 | json | JSON |
+| jsonobject | JSON Object |
+| jsonarray | JSON Array |
 | jwt | JSON Web Token (JWT) |
 | latitude | Latitude |
 | longitude | Longitude |
@@ -171,13 +153,10 @@ Baked-in Validations
 | timezone | Timezone |
 | uuid | Universally Unique Identifier UUID |
 | uuid3 | Universally Unique Identifier UUID v3 |
-| uuid3_rfc4122 | Universally Unique Identifier UUID v3 RFC4122 |
 | uuid4 | Universally Unique Identifier UUID v4 |
-| uuid4_rfc4122 | Universally Unique Identifier UUID v4 RFC4122 |
 | uuid5 | Universally Unique Identifier UUID v5 |
-| uuid5_rfc4122 | Universally Unique Identifier UUID v5 RFC4122 |
-| uuid_rfc4122 | Universally Unique Identifier UUID RFC4122 |
 | semver | Semantic Versioning 2.0.0 |
+| swiftcode | Business Identifier Code (ISO 9362) |
 | ulid | Universally Unique Lexicographically Sortable Identifier ULID |
 
 ### Comparisons:
@@ -223,9 +202,10 @@ Baked-in Validations
 #### Aliases:
 | Tag | Description |
 | - | - |
-| iscolor | hexcolor\|rgb\|rgba\|hsl\|hsla |
 | alpha | letter |
 | alphanum | letternum |
 | alphaunicode | utfletter |
 | alphanumunicode | utfletternum |
+| iscolor | hexcolor\|rgb\|rgba\|hsl\|hsla |
+| bic | swiftcode |
 

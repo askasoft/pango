@@ -1051,3 +1051,43 @@ func TestIsLongitude(t *testing.T) {
 		}
 	}
 }
+
+func TestIsJSONObject(t *testing.T) {
+	t.Parallel()
+
+	cs := []struct {
+		s string
+		w bool
+	}{
+		{``, false},
+		{`"foo@bar.com"`, false},
+		{` { "email": "foo@bar.com.au"} `, true},
+		{`[]`, false},
+	}
+	for i, c := range cs {
+		a := IsJSONObject(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsJSONObject(%q) = %v, want %v", i, c.s, a, c.w)
+		}
+	}
+}
+
+func TestIsJSONArray(t *testing.T) {
+	t.Parallel()
+
+	cs := []struct {
+		s string
+		w bool
+	}{
+		{``, false},
+		{`"foo@bar.com"`, false},
+		{` [ "email", "foo@bar.com.au" ] `, true},
+		{`{}`, false},
+	}
+	for i, c := range cs {
+		a := IsJSONArray(c.s)
+		if a != c.w {
+			t.Errorf("[%d] IsJSONArray(%q) = %v, want %v", i, c.s, a, c.w)
+		}
+	}
+}

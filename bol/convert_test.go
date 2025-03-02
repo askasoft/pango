@@ -12,7 +12,7 @@ func TestAtob(t *testing.T) {
 	}{
 		{false, "F", []bool{}},
 		{false, "False", []bool{}},
-		{true, "", []bool{true}},
+		{true, "", []bool{false, true}},
 	}
 
 	for i, c := range cs {

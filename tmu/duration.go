@@ -18,6 +18,21 @@ const (
 	Day         = time.Hour * 24
 )
 
+// Atod convert string to time.Duration.
+// if not found or convert error, returns the first non-zero value from defs.
+func Atod(s string, defs ...time.Duration) time.Duration {
+	if d, err := time.ParseDuration(s); err == nil {
+		return d
+	}
+
+	for _, d := range defs {
+		if d != 0 {
+			return d
+		}
+	}
+	return 0
+}
+
 // HumanDuration returns a string representing the duration in the form "3d23h3m5s".
 // Leading zero units are omitted. As a special case, durations less than one
 // second format use a smaller unit (milli-, micro-, or nanoseconds) to ensure

@@ -5,6 +5,24 @@ import (
 	"time"
 )
 
+func TestAtod(t *testing.T) {
+	cs := []struct {
+		w time.Duration
+		s string
+		n []time.Duration
+	}{
+		{time.Second, "1s", nil},
+		{time.Minute, "x", []time.Duration{0, time.Minute}},
+	}
+
+	for i, c := range cs {
+		a := Atod(c.s, c.n...)
+		if a != c.w {
+			t.Errorf("[%d] Atod(%s, %v) = %v, want %v", i, c.s, c.n, a, c.w)
+		}
+	}
+}
+
 func TestHumanDuration(t *testing.T) {
 	cs := []struct {
 		d time.Duration

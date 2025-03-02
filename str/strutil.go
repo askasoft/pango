@@ -7,6 +7,16 @@ import (
 	"unicode/utf8"
 )
 
+// NonEmpty return the first non-empty value of defs or a empty string.
+func NonEmpty(defs ...string) string {
+	for _, d := range defs {
+		if d != "" {
+			return d
+		}
+	}
+	return ""
+}
+
 // If return (b ? t : f)
 func If(b bool, t, f string) string {
 	if b {

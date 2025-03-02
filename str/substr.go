@@ -607,8 +607,11 @@ func Ellipsis(s string, n int, ellipses ...string) string {
 	}
 
 	e := "..."
-	if len(ellipses) > 0 {
-		e = ellipses[0]
+	for _, d := range ellipses {
+		if d != "" {
+			e = d
+			break
+		}
 	}
 
 	ec := RuneCount(e)
@@ -628,8 +631,11 @@ func Ellipsiz(s string, n int, ellipses ...string) string {
 	}
 
 	e := "…"
-	if len(ellipses) > 0 {
-		e = ellipses[0]
+	for _, d := range ellipses {
+		if d != "" {
+			e = d
+			break
+		}
 	}
 
 	ec := RuneCount(e)

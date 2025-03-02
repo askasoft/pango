@@ -169,43 +169,43 @@ func (ini *Ini) Get(sec, key string) string {
 }
 
 // GetString get a string value of the key from the section sec
-// if not found, returns the default defs[0] string value
+// if not found, returns the first non-empty string value from defs.
 func (ini *Ini) GetString(sec, key string, defs ...string) string {
 	return ini.esection(sec).GetString(key, defs...)
 }
 
 // GetInt get a int value of the key from the section sec
-// if not found or convert error, returns the default defs[0] int value
+// if not found or convert error, returns the first non-zero value from defs.
 func (ini *Ini) GetInt(sec, key string, defs ...int) int {
 	return ini.esection(sec).GetInt(key, defs...)
 }
 
 // GetInt64 get a int64 value of the key from the section sec
-// if not found or convert error, returns the default defs[0] int64 value
+// if not found or convert error, returns the first non-zero value from defs.
 func (ini *Ini) GetInt64(sec, key string, defs ...int64) int64 {
 	return ini.esection(sec).GetInt64(key, defs...)
 }
 
 // GetFloat get a float value of the key from the section sec
-// if not found or convert error, returns the default defs[0] float value
+// if not found or convert error, returns the first non-zero value from defs.
 func (ini *Ini) GetFloat(sec, key string, defs ...float64) float64 {
 	return ini.esection(sec).GetFloat(key, defs...)
 }
 
 // GetBool get a bool value of the key from the section sec
-// if not found or convert error, returns the default defs[0] bool value
+// if not found or convert error, returns the first non-false value from defs.
 func (ini *Ini) GetBool(sec, key string, defs ...bool) bool {
 	return ini.esection(sec).GetBool(key, defs...)
 }
 
 // GetSize get a int64 size value of the key from the section sec
-// if not found or convert error, returns the default defs[0] int value
+// if not found or convert error, returns the first non-zero value from defs.
 func (ini *Ini) GetSize(sec, key string, defs ...int64) int64 {
 	return ini.esection(sec).GetSize(key, defs...)
 }
 
 // GetDuration get a time.Duration value of the key from the section sec
-// if not found or convert error, returns the default defs[0] Duration value
+// if not found or convert error, returns the first non-zero value from defs.
 func (ini *Ini) GetDuration(sec, key string, defs ...time.Duration) time.Duration {
 	return ini.esection(sec).GetDuration(key, defs...)
 }

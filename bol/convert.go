@@ -4,20 +4,27 @@ import (
 	"strconv"
 )
 
-// Atob use strconv.ParseBool(s, 0, strconv.IntSize) to parse string 's' to int, return n[0] if error.
-func Atob(s string, b ...bool) bool {
-	if s == "" {
-		if len(b) > 0 {
-			return b[0]
+// NonFalse returns first non-first value of defs if error.
+func NonFalse(bs ...bool) bool {
+	for _, b := range bs {
+		if b {
+			return b
 		}
-		return false
+	}
+	return false
+}
+
+// Atob use strconv.ParseBool(s, 0, strconv.IntSize) to parse string 's' to int,
+// returns first non-first value of defs if error.
+func Atob(s string, defs ...bool) bool {
+	if s == "" {
+		return NonFalse(defs...)
 	}
 
-	r, err := strconv.ParseBool(s)
-	if err != nil && len(b) > 0 {
-		return b[0]
+	if r, err := strconv.ParseBool(s); err == nil {
+		return r
 	}
-	return r
+	return NonFalse(defs...)
 }
 
 func Btoa(b bool) string {

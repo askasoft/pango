@@ -26,3 +26,13 @@ func IfZero[T Number](a, b T) T {
 	}
 	return a
 }
+
+// NonZero return the first non-zero value of defs if error.
+func NonZero[T Number](ns ...T) T {
+	for _, n := range ns {
+		if n != 0 {
+			return n
+		}
+	}
+	return 0
+}

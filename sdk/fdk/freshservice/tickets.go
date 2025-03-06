@@ -9,16 +9,17 @@ import (
 // Ticket
 
 const (
-	TicketIncludeStats              = "stats"
+	TicketIncludeTags               = "tags"
+	TicketIncludeConversations      = "conversations"
 	TicketIncludeRequester          = "requester"
 	TicketIncludeRequestedFor       = "requested_for"
+	TicketIncludeStats              = "stats"
+	TicketIncludeProblem            = "problem"
+	TicketIncludeAssets             = "assets"
+	TicketIncludeChanges            = "changes"
+	TicketIncludeRelatedTickets     = "related_tickets"
 	TicketIncludeOnboardingContext  = "onboarding_context"
 	TicketIncludeOffboardingContext = "offboarding_context"
-	TicketIncludeConversations      = "conversations"   // old documented
-	TicketIncludeProblem            = "problem"         // old documented
-	TicketIncludeAssets             = "assets"          // old documented
-	TicketIncludeChange             = "change"          // old documented
-	TicketIncludeRelatedTickets     = "related_tickets" // old documented
 
 	TicketTypeIncident       = "Incident"
 	TicketTypeServiceRequest = "Service Request"

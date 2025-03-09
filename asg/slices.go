@@ -29,6 +29,16 @@ func Contains[T comparable](a []T, c T) bool {
 	return Index(a, c) >= 0
 }
 
+// ContainsAny reports whether the any item of cs is contained in the slice a.
+func ContainsAny[T comparable](a []T, cs ...T) bool {
+	for _, c := range cs {
+		if Contains(a, c) {
+			return true
+		}
+	}
+	return false
+}
+
 // ContainsFunc reports whether at least one element e of a satisfies f(e).
 func ContainsFunc[T any](a []T, f func(T) bool) bool {
 	return IndexFunc(a, f) >= 0

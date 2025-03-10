@@ -1,6 +1,7 @@
 module github.com/askasoft/pango
 
 go 1.21
+toolchain go1.23.7
 
 require github.com/stretchr/testify v1.10.0
 
@@ -11,7 +12,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/mattn/go-sqlite3 v1.14.24
 	golang.org/x/net v0.35.0
-	golang.org/x/sys v0.30.0
+	golang.org/x/sys v0.31.0
 	golang.org/x/text v0.22.0
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/gorm v1.25.12

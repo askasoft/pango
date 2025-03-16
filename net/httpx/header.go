@@ -1,8 +1,10 @@
 package httpx
 
 import (
+	"mime"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"strconv"
 
 	"github.com/askasoft/pango/str"
@@ -59,15 +61,20 @@ func (hw *headersWriter) WriteHeader(statusCode int) {
 	hw.ResponseWriter.WriteHeader(statusCode)
 }
 
-// SetAttachmentHeader set header Content-Disposition: attachment; filename=...
-func SetAttachmentHeader(header http.Header, filename string) {
-	var v string
-
-	if str.IsASCII(filename) {
-		v = `attachment; filename=` + strconv.Quote(filename)
-	} else {
-		v = `attachment; filename*=UTF-8''` + url.QueryEscape(filename)
+// SetAttachmentHeader set header Content-Disposition: attachment; filename=... and Content-Type: mime.TypeByExtension(filename)
+func SetAttachmentHeader(hh http.Header, filename string) {
+	if _, ok := hh["Content-Type"]; !ok {
+		ct := mime.TypeByExtension(filepath.Ext(filename))
+		if ct != "" {
+			hh.Set("Content-Type", ct)
+		}
 	}
 
-	header.Set("Content-Disposition", v)
+	var cd string
+	if str.IsASCII(filename) {
+		cd = `attachment; filename=` + strconv.Quote(filename)
+	} else {
+		cd = `attachment; filename*=UTF-8''` + url.QueryEscape(filename)
+	}
+	hh.Set("Content-Disposition", cd)
 }

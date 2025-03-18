@@ -65,10 +65,6 @@ func (jr *JobRunner) JobName() string {
 	return jr.job.Name
 }
 
-func (jr *JobRunner) JobFile() string {
-	return jr.job.File
-}
-
 func (jr *JobRunner) JobParam() string {
 	return jr.job.Param
 }

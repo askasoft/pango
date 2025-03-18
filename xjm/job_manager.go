@@ -49,7 +49,7 @@ type JobManager interface {
 	IterJobs(it func(job *Job) error, name string, start, limit int, asc bool, status ...string) error
 
 	// AppendJob append a pendding job
-	AppendJob(cid int64, name, locale, file, param string) (int64, error)
+	AppendJob(cid int64, name, locale, param string) (int64, error)
 
 	// AbortJob abort the job
 	AbortJob(jid int64, reason string) error

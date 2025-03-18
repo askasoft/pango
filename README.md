@@ -20,7 +20,8 @@ Pango is a GO development utility library.
 | [doc/htmlx](./doc/htmlx/)        | a html parse/textify package            |
 | [doc/ocrx](./doc/ocrx/)          | a ocr (tesseract) command wrapper package |
 | [doc/ooxml](./doc/ooxml/)        | a ooxml text extract utility package |
-| [doc/pdfx](./doc/pdfx/)          | a pdftotxt (poppler-utils) command wrapper package |
+| [doc/xmlx](./doc/xmlx/)          | a xml to map decoder package based on https://github.com/sbabiv/xml2map |
+| [doc/xpdf](./doc/xpdf/)          | a pdftotxt (poppler-utils) command wrapper package |
 | [fsu](./fsu/)                    | a file system utility package           |
 | [fsw](./fsw/)                    | a file system watcher (fsnotify) wrapper package |
 | [gwp](./gwp/)                    | a go-routine worker pool package based on https://github.com/gammazero/workerpool |
@@ -28,8 +29,8 @@ Pango is a GO development utility library.
 | [ini](./ini/)                    | a INI file read/write package           |
 | [iox](./iox/)                    | a IO utility package                    |
 | [ldt](./ldt/)                    | a language detection package based on http://github.com/saintfish/chardet |
+| [log](./log/)                    | a Log package like Log4j                |
 | [lut](./lut/)                    | a language utility package              |
-| [log](./log/)                    | a Log like Log4j                        |
 | [mag](./mag/)                    | a Generic map utility package           |
 | [net/email](./net/email/)        | a email sender package                  |
 | [net/httpx](./net/httpx/)        | a package for http                      |

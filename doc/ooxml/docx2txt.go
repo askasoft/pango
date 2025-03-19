@@ -98,12 +98,14 @@ import (
 // </w:p>
 // ```
 
+// DocxFileTextifyString Extract docx file to string
 func DocxFileTextifyString(name string) (string, error) {
 	sb := &strings.Builder{}
 	err := DocxFileTextify(sb, name)
 	return sb.String(), err
 }
 
+// DocxFileTextify Extract docx file to writer
 func DocxFileTextify(w io.Writer, name string) error {
 	zr, err := zip.OpenReader(name)
 	if err != nil {
@@ -114,20 +116,24 @@ func DocxFileTextify(w io.Writer, name string) error {
 	return DocxZipReaderTextify(w, &zr.Reader)
 }
 
+// DocxBytesTextifyString Extract docx data to string
 func DocxBytesTextifyString(bs []byte) (string, error) {
 	return DocxReaderTextifyString(bytes.NewReader(bs), int64(len(bs)))
 }
 
+// DocxBytesTextify Extract docx data to writer
 func DocxBytesTextify(w io.Writer, bs []byte) error {
 	return DocxReaderTextify(w, bytes.NewReader(bs), int64(len(bs)))
 }
 
+// DocxReaderTextifyString Extract docx reader to string
 func DocxReaderTextifyString(r io.ReaderAt, size int64) (string, error) {
 	sb := &strings.Builder{}
 	err := DocxReaderTextify(sb, r, size)
 	return sb.String(), err
 }
 
+// DocxReaderTextify Extract docx reader to writer
 func DocxReaderTextify(w io.Writer, r io.ReaderAt, size int64) error {
 	zr, err := zip.NewReader(r, size)
 	if err != nil {
@@ -137,12 +143,14 @@ func DocxReaderTextify(w io.Writer, r io.ReaderAt, size int64) error {
 	return DocxZipReaderTextify(w, zr)
 }
 
+// DocxZipReaderTextifyString Extract docx zip reader to string
 func DocxZipReaderTextifyString(zr *zip.Reader) (string, error) {
 	sb := &strings.Builder{}
 	err := DocxZipReaderTextify(sb, zr)
 	return sb.String(), err
 }
 
+// DocxZipReaderTextify Extract docx zip reader to writer
 func DocxZipReaderTextify(w io.Writer, zr *zip.Reader) error {
 	lw := iox.WrapWriter(w, "", "\n")
 

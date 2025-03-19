@@ -67,12 +67,14 @@ import (
 // </sst>
 // ```
 
+// XlsxFileTextifyString Extract xlsx file to string
 func XlsxFileTextifyString(name string) (string, error) {
 	sb := &strings.Builder{}
 	err := XlsxFileTextify(sb, name)
 	return sb.String(), err
 }
 
+// XlsxFileTextify Extract xlsx file to writer
 func XlsxFileTextify(w io.Writer, name string) error {
 	zr, err := zip.OpenReader(name)
 	if err != nil {
@@ -83,20 +85,24 @@ func XlsxFileTextify(w io.Writer, name string) error {
 	return XlsxZipReaderTextify(w, &zr.Reader)
 }
 
+// XlsxBytesTextifyString Extract xlsx data to string
 func XlsxBytesTextifyString(bs []byte) (string, error) {
 	return XlsxReaderTextifyString(bytes.NewReader(bs), int64(len(bs)))
 }
 
+// XlsxBytesTextify Extract xlsx data to writer
 func XlsxBytesTextify(w io.Writer, bs []byte) error {
 	return XlsxReaderTextify(w, bytes.NewReader(bs), int64(len(bs)))
 }
 
+// XlsxReaderTextifyString Extract xlsx reader to string
 func XlsxReaderTextifyString(r io.ReaderAt, size int64) (string, error) {
 	sb := &strings.Builder{}
 	err := XlsxReaderTextify(sb, r, size)
 	return sb.String(), err
 }
 
+// XlsxReaderTextify Extract xlsx reader to writer
 func XlsxReaderTextify(w io.Writer, r io.ReaderAt, size int64) error {
 	zr, err := zip.NewReader(r, size)
 	if err != nil {
@@ -106,12 +112,14 @@ func XlsxReaderTextify(w io.Writer, r io.ReaderAt, size int64) error {
 	return XlsxZipReaderTextify(w, zr)
 }
 
+// XlsxZipReaderTextifyString Extract xlsx zip reader to string
 func XlsxZipReaderTextifyString(zr *zip.Reader) (string, error) {
 	sb := &strings.Builder{}
 	err := XlsxZipReaderTextify(sb, zr)
 	return sb.String(), err
 }
 
+// XlsxZipReaderTextify Extract xlsx zip reader to writer
 func XlsxZipReaderTextify(w io.Writer, zr *zip.Reader) error {
 	lw := iox.WrapWriter(w, "", "\n")
 

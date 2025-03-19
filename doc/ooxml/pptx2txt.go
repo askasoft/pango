@@ -55,55 +55,87 @@ import (
 // </p:sld>
 // ```
 
-func PptxFileTextifyString(name string, opts ...string) (string, error) {
+// PptxFileTextifyString Extract pptx file to string
+// options:
+//
+//	-nopgbrk             : don't insert page breaks '\f' between pages
+func PptxFileTextifyString(name string, options ...string) (string, error) {
 	sb := &strings.Builder{}
-	err := PptxFileTextify(sb, name, opts...)
+	err := PptxFileTextify(sb, name, options...)
 	return sb.String(), err
 }
 
-func PptxFileTextify(w io.Writer, name string, opts ...string) error {
+// PptxFileTextify Extract pptx file to writer
+// options:
+//
+//	-nopgbrk             : don't insert page breaks '\f' between pages
+func PptxFileTextify(w io.Writer, name string, options ...string) error {
 	zr, err := zip.OpenReader(name)
 	if err != nil {
 		return err
 	}
 	defer zr.Close()
 
-	return PptxZipReaderTextify(w, &zr.Reader, opts...)
+	return PptxZipReaderTextify(w, &zr.Reader, options...)
 }
 
-func PptxBytesTextifyString(bs []byte, opts ...string) (string, error) {
-	return PptxReaderTextifyString(bytes.NewReader(bs), int64(len(bs)), opts...)
+// PptxBytesTextifyString Extract pptx data to string
+// options:
+//
+//	-nopgbrk             : don't insert page breaks '\f' between pages
+func PptxBytesTextifyString(bs []byte, options ...string) (string, error) {
+	return PptxReaderTextifyString(bytes.NewReader(bs), int64(len(bs)), options...)
 }
 
-func PptxBytesTextify(w io.Writer, bs []byte, opts ...string) error {
-	return PptxReaderTextify(w, bytes.NewReader(bs), int64(len(bs)), opts...)
+// PptxBytesTextify Extract pptx data to writer
+// options:
+//
+//	-nopgbrk             : don't insert page breaks '\f' between pages
+func PptxBytesTextify(w io.Writer, bs []byte, options ...string) error {
+	return PptxReaderTextify(w, bytes.NewReader(bs), int64(len(bs)), options...)
 }
 
-func PptxReaderTextifyString(r io.ReaderAt, size int64, opts ...string) (string, error) {
+// PptxReaderTextifyString Extract pptx reader to string
+// options:
+//
+//	-nopgbrk             : don't insert page breaks '\f' between pages
+func PptxReaderTextifyString(r io.ReaderAt, size int64, options ...string) (string, error) {
 	sb := &strings.Builder{}
-	err := PptxReaderTextify(sb, r, size, opts...)
+	err := PptxReaderTextify(sb, r, size, options...)
 	return sb.String(), err
 }
 
-func PptxReaderTextify(w io.Writer, r io.ReaderAt, size int64, opts ...string) error {
+// PptxReaderTextify Extract pptx reader to writer
+// options:
+//
+//	-nopgbrk             : don't insert page breaks '\f' between pages
+func PptxReaderTextify(w io.Writer, r io.ReaderAt, size int64, options ...string) error {
 	zr, err := zip.NewReader(r, size)
 	if err != nil {
 		return err
 	}
 
-	return PptxZipReaderTextify(w, zr, opts...)
+	return PptxZipReaderTextify(w, zr, options...)
 }
 
-func PptxZipReaderTextifyString(zr *zip.Reader, opts ...string) (string, error) {
+// PptxZipReaderTextifyString Extract pptx zip reader to string
+// options:
+//
+//	-nopgbrk             : don't insert page breaks '\f' between pages
+func PptxZipReaderTextifyString(zr *zip.Reader, options ...string) (string, error) {
 	sb := &strings.Builder{}
-	err := PptxZipReaderTextify(sb, zr, opts...)
+	err := PptxZipReaderTextify(sb, zr, options...)
 	return sb.String(), err
 }
 
-func PptxZipReaderTextify(w io.Writer, zr *zip.Reader, opts ...string) error {
+// PptxZipReaderTextify Extract pptx zip reader to writer
+// options:
+//
+//	-nopgbrk             : don't insert page breaks '\f' between pages
+func PptxZipReaderTextify(w io.Writer, zr *zip.Reader, options ...string) error {
 	lw := iox.WrapWriter(w, "", "\n")
 
-	nopgbrk := asg.Contains(opts, "-nopgbrk")
+	nopgbrk := asg.Contains(options, "-nopgbrk")
 
 	zfm := treemap.NewTreeMap[int, *zip.File](cmp.Compare[int])
 	for _, zf := range zr.File {

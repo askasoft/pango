@@ -39,46 +39,55 @@ import (
 //   --help               : print usage information
 //   -?                   : print usage information
 
-func PdfFileTextifyString(ctx context.Context, name string, opts ...string) (string, error) {
+// PdfFileTextifyString Extract pdf file to string
+// options: see "pdftotext -h"
+func PdfFileTextifyString(ctx context.Context, name string, options ...string) (string, error) {
 	bw := &bytes.Buffer{}
-	err := PdfFileTextify(ctx, bw, name)
+	err := PdfFileTextify(ctx, bw, name, options...)
 	return bw.String(), err
 }
 
-func PdfFileTextify(ctx context.Context, w io.Writer, name string, opts ...string) error {
-	args := buildPdfToTextArgs(name, opts...)
+// PdfFileTextify Extract pdf file to writer
+// options: see "pdftotext -h"
+func PdfFileTextify(ctx context.Context, w io.Writer, name string, options ...string) error {
+	args := buildPdfToTextArgs(name, options...)
 	cmd := exec.CommandContext(ctx, "pdftotext", args...)
 	cmd.Stdout = w
 	return cmd.Run()
 }
 
-func PdfBytesTextifyString(ctx context.Context, bs []byte, opts ...string) (string, error) {
+// PdfBytesTextifyString Extract pdf data to string
+// options: see "pdftotext -h"
+func PdfBytesTextifyString(ctx context.Context, bs []byte, options ...string) (string, error) {
 	bw := &bytes.Buffer{}
-	err := PdfBytesTextify(ctx, bw, bs, opts...)
+	err := PdfBytesTextify(ctx, bw, bs, options...)
 	return bw.String(), err
 }
 
-func PdfBytesTextify(ctx context.Context, w io.Writer, bs []byte, opts ...string) error {
-	return PdfReaderTextify(ctx, w, bytes.NewReader(bs), opts...)
+// PdfBytesTextify Extract pdf data to writer
+// options: see "pdftotext -h"
+func PdfBytesTextify(ctx context.Context, w io.Writer, bs []byte, options ...string) error {
+	return PdfReaderTextify(ctx, w, bytes.NewReader(bs), options...)
 }
 
-func PdfReaderTextifyString(ctx context.Context, r io.Reader, opts ...string) (string, error) {
+// PdfReaderTextifyString Extract pdf reader to string
+// options: see "pdftotext -h"
+func PdfReaderTextifyString(ctx context.Context, r io.Reader, options ...string) (string, error) {
 	bw := &bytes.Buffer{}
-	err := PdfReaderTextify(ctx, bw, r)
+	err := PdfReaderTextify(ctx, bw, r, options...)
 	return bw.String(), err
 }
 
-func PdfReaderTextify(ctx context.Context, w io.Writer, r io.Reader, opts ...string) error {
-	args := buildPdfToTextArgs("-", opts...)
+// PdfReaderTextify Extract pdf reader to writer
+// options: see "pdftotext -h"
+func PdfReaderTextify(ctx context.Context, w io.Writer, r io.Reader, options ...string) error {
+	args := buildPdfToTextArgs("-", options...)
 	cmd := exec.CommandContext(ctx, "pdftotext", args...)
 	cmd.Stdin = r
 	cmd.Stdout = w
 	return cmd.Run()
 }
 
-func buildPdfToTextArgs(input string, opts ...string) []string {
-	if len(opts) == 0 {
-		opts = []string{"-layout"}
-	}
-	return append(opts, input, "-")
+func buildPdfToTextArgs(input string, options ...string) []string {
+	return append(options, input, "-")
 }

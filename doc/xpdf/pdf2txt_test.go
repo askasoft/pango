@@ -40,7 +40,7 @@ func TestPdfFileTextifyString(t *testing.T) {
 
 	for i, c := range cs {
 		fn := testFilename(c)
-		a, err := PdfFileTextifyString(context.Background(), fn)
+		a, err := PdfFileTextifyString(context.Background(), fn, "-layout")
 		if err != nil {
 			fmt.Printf("[%d] PdfFileTextifyString(%s): %v\n", i, fn, err)
 		} else {
@@ -72,7 +72,7 @@ func TestPdfReaderTextify(t *testing.T) {
 		defer fr.Close()
 
 		bw := &bytes.Buffer{}
-		err = PdfReaderTextify(context.Background(), bw, fr)
+		err = PdfReaderTextify(context.Background(), bw, fr, "-layout")
 		if err != nil {
 			fmt.Printf("[%d] PdfReaderTextify(%s): %v\n", i, fn, err)
 			continue

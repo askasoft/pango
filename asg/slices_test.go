@@ -5,6 +5,7 @@ package asg
 
 import (
 	"cmp"
+	"fmt"
 	"math"
 	"strings"
 	"testing"
@@ -650,6 +651,26 @@ func TestMaxFunc(t *testing.T) {
 		a := MaxFunc(c.s, cmp.Compare)
 		if c.max != a {
 			t.Errorf("[%s] MaxFunc(%v) = %v, WANT %v", c.name, c.s, a, c.max)
+		}
+	}
+}
+
+func TestJoin(t *testing.T) {
+	cs := []struct {
+		s []int
+		f []func(int) string
+		w string
+	}{
+		{[]int{}, nil, ""},
+		{[]int{1}, nil, "1"},
+		{[]int{1, 2}, nil, "1 2"},
+		{[]int{1, 10}, []func(int) string{func(i int) string { return fmt.Sprintf("0x%x", i) }}, "0x1 0xa"},
+	}
+
+	for i, c := range cs {
+		a := Join(c.s, " ", c.f...)
+		if a != c.w {
+			t.Errorf("[%d] Join(%v) = %v, want %v", i, c.s, a, c.w)
 		}
 	}
 }

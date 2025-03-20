@@ -3,7 +3,11 @@
 
 package asg
 
-import "cmp"
+import (
+	"cmp"
+	"fmt"
+	"strings"
+)
 
 // Anys convert slice 'sa' to []any slice
 func Anys[T any](sa []T) []any {
@@ -291,4 +295,32 @@ func MaxFunc[T any](x []T, cmp func(a, b T) int) T {
 		}
 	}
 	return m
+}
+
+func sprint[T any](a T) string {
+	return fmt.Sprint(a)
+}
+
+// Join concatenates the elements of its first argument to create a single string. The separator
+// string sep is placed between elements in the resulting string.
+func Join[T any](elems []T, sep string, fmt ...func(T) string) string {
+	sp := sprint[T]
+	if len(fmt) > 0 {
+		sp = fmt[0]
+	}
+
+	switch len(elems) {
+	case 0:
+		return ""
+	case 1:
+		return sp(elems[0])
+	}
+
+	var b strings.Builder
+	b.WriteString(sp(elems[0]))
+	for _, n := range elems[1:] {
+		b.WriteString(sep)
+		b.WriteString(sp(n))
+	}
+	return b.String()
 }

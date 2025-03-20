@@ -3,7 +3,7 @@ package freshservice
 import (
 	"context"
 
-	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/asg"
 )
 
 // ---------------------------------------------------
@@ -304,7 +304,7 @@ func (fs *Freshservice) ConvertRequesterToAgent(ctx context.Context, id int64) (
 
 // Merge secondary requesters into a primary requester.
 func (fs *Freshservice) MergeRequesters(ctx context.Context, id int64, ids ...int64) (*Requester, error) {
-	url := fs.endpoint("/requesters/%d/merge?secondary_requesters=%s", id, str.JoinInt64s(ids, ","))
+	url := fs.endpoint("/requesters/%d/merge?secondary_requesters=%s", id, asg.Join(ids, ","))
 	result := &requesterResult{}
 	if err := fs.doPut(ctx, url, nil, result); err != nil {
 		return nil, err

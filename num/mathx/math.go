@@ -1,4 +1,4 @@
-package funcs
+package mathx
 
 import (
 	"fmt"
@@ -6,11 +6,11 @@ import (
 	"github.com/askasoft/pango/cas"
 )
 
-// Add returns the result of a + b[0] + b[1] ...
-func Add(a any, b ...any) (r any, err error) {
+// Adds returns the result of a + b[0] + b[1] ...
+func Adds(a any, b ...any) (r any, err error) {
 	r = a
 	for _, v := range b {
-		r, err = add(r, v)
+		r, err = Add(r, v)
 		if err != nil {
 			return
 		}
@@ -18,7 +18,8 @@ func Add(a any, b ...any) (r any, err error) {
 	return
 }
 
-func add(a, b any) (any, error) {
+// Add returns the result of a + b
+func Add(a, b any) (any, error) {
 	switch na := a.(type) {
 	case int:
 		nb, err := cas.ToInt(b)
@@ -57,15 +58,15 @@ func add(a, b any) (any, error) {
 		nb, err := cas.ToFloat64(b)
 		return na + nb, err
 	default:
-		return nil, fmt.Errorf("Add: unknown type for '%T'", a)
+		return a, fmt.Errorf("Add: unknown type for '%T'", a)
 	}
 }
 
-// Subtract returns the result of a - b[0] - b[1] ...
-func Subtract(a any, b ...any) (r any, err error) {
+// Subtracts returns the result of a - b[0] - b[1] ...
+func Subtracts(a any, b ...any) (r any, err error) {
 	r = a
 	for _, v := range b {
-		r, err = subtract(r, v)
+		r, err = Subtract(r, v)
 		if err != nil {
 			return
 		}
@@ -73,7 +74,8 @@ func Subtract(a any, b ...any) (r any, err error) {
 	return
 }
 
-func subtract(a, b any) (any, error) {
+// Subtract returns the result of a - b
+func Subtract(a, b any) (any, error) {
 	switch na := a.(type) {
 	case int:
 		nb, err := cas.ToInt(b)
@@ -112,15 +114,15 @@ func subtract(a, b any) (any, error) {
 		nb, err := cas.ToFloat64(b)
 		return na - nb, err
 	default:
-		return nil, fmt.Errorf("Subtract: unknown type for '%T'", a)
+		return a, fmt.Errorf("Subtract: unknown type for '%T'", a)
 	}
 }
 
-// Multiply returns the result of a * b[0] * b[1] ...
-func Multiply(a any, b ...any) (r any, err error) {
+// Multiplys returns the result of a * b[0] * b[1] ...
+func Multiplys(a any, b ...any) (r any, err error) {
 	r = a
 	for _, v := range b {
-		r, err = multiply(r, v)
+		r, err = Multiply(r, v)
 		if err != nil {
 			return
 		}
@@ -128,7 +130,8 @@ func Multiply(a any, b ...any) (r any, err error) {
 	return
 }
 
-func multiply(a, b any) (any, error) {
+// Multiply returns the result of a * b
+func Multiply(a, b any) (any, error) {
 	switch na := a.(type) {
 	case int:
 		nb, err := cas.ToInt(b)
@@ -167,15 +170,15 @@ func multiply(a, b any) (any, error) {
 		nb, err := cas.ToFloat64(b)
 		return na * nb, err
 	default:
-		return nil, fmt.Errorf("Multiply: unknown type for '%T'", a)
+		return a, fmt.Errorf("Multiply: unknown type for '%T'", a)
 	}
 }
 
-// Divide returns the result of a / b[0] / b[1] ...
-func Divide(a any, b ...any) (r any, err error) {
+// Divides returns the result of a / b[0] / b[1] ...
+func Divides(a any, b ...any) (r any, err error) {
 	r = a
 	for _, v := range b {
-		r, err = divide(r, v)
+		r, err = Divide(r, v)
 		if err != nil {
 			return
 		}
@@ -183,7 +186,8 @@ func Divide(a any, b ...any) (r any, err error) {
 	return
 }
 
-func divide(a, b any) (any, error) {
+// Divide returns the result of a / b
+func Divide(a, b any) (any, error) {
 	switch na := a.(type) {
 	case int:
 		nb, err := cas.ToInt(b)
@@ -222,6 +226,6 @@ func divide(a, b any) (any, error) {
 		nb, err := cas.ToFloat64(b)
 		return na / nb, err
 	default:
-		return nil, fmt.Errorf("Divide: unknown type for '%T'", a)
+		return a, fmt.Errorf("Divide: unknown type for '%T'", a)
 	}
 }

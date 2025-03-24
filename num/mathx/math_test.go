@@ -1,4 +1,4 @@
-package funcs
+package mathx
 
 import (
 	"errors"
@@ -20,7 +20,7 @@ func TestAdd(t *testing.T) {
 		{1.0, 2, float64(3), nil},
 		{1.0, uint(2), float64(3), nil},
 		{1.0, 2.0, float64(3), nil},
-		{"foo", 2, nil, errors.New("Add: unknown type for 'string'")},
+		{"foo", 2, "foo", errors.New("Add: unknown type for 'string'")},
 	}
 
 	for i, c := range cs {
@@ -45,7 +45,7 @@ func TestSubtract(t *testing.T) {
 		{2, 1.0, 1, nil},
 		{uint(2), 1.0, uint(1), nil},
 		{2.0, 1.0, 1.0, nil},
-		{"foo", 2, nil, errors.New("Subtract: unknown type for 'string'")},
+		{"foo", 2, "foo", errors.New("Subtract: unknown type for 'string'")},
 	}
 
 	for i, c := range cs {
@@ -70,7 +70,7 @@ func TestMultiply(t *testing.T) {
 		{3.0, 2, 6.0, nil},
 		{uint(3), 2.0, uint(6), nil},
 		{3.0, 2.0, 6.0, nil},
-		{"foo", 2, nil, errors.New("Multiply: unknown type for 'string'")},
+		{"foo", 2, "foo", errors.New("Multiply: unknown type for 'string'")},
 	}
 
 	for i, c := range cs {
@@ -95,7 +95,7 @@ func TestDivide(t *testing.T) {
 		{10, 2.0, 5, nil},
 		{uint(10), 2.0, uint(5), nil},
 		{10.0, 2.0, 5.0, nil},
-		{"foo", 2, nil, errors.New("Divide: unknown type for 'string'")},
+		{"foo", 2, "foo", errors.New("Divide: unknown type for 'string'")},
 	}
 
 	for i, c := range cs {

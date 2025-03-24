@@ -9,12 +9,12 @@ import (
 	"github.com/askasoft/pango/xin"
 )
 
-func TestRequestLimiter(t *testing.T) {
+func TestRequestSizeLimiter(t *testing.T) {
 	req, _ := http.NewRequest("POST", "/", strings.NewReader(`{"a": "1345678901"}`))
 
 	w := httptest.NewRecorder()
 	router := xin.New()
-	router.Use(NewRequestLimiter(10).Handler())
+	router.Use(NewRequestSizeLimiter(10).Handler())
 	router.POST("/", func(c *xin.Context) {
 		m := map[string]string{}
 		if err := c.MustBindJSON(&m); err == nil {

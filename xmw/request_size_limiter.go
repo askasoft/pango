@@ -8,37 +8,37 @@ import (
 	"github.com/askasoft/pango/xin"
 )
 
-// RequestLimiter http request limit middleware
-type RequestLimiter struct {
+// RequestSizeLimiter http request limit middleware
+type RequestSizeLimiter struct {
 	MaxBodySize  int64
 	DrainBody    bool // drain request body if we are under apache, otherwise the apache will return 502 Bad Gateway
 	BodyTooLarge func(c *xin.Context)
 }
 
-// NewRequestLimiter create a default RequestLimiter middleware
-func NewRequestLimiter(maxBodySize int64) *RequestLimiter {
-	return &RequestLimiter{MaxBodySize: maxBodySize}
+// NewRequestSizeLimiter create a default RequestSizeLimiter middleware
+func NewRequestSizeLimiter(maxBodySize int64) *RequestSizeLimiter {
+	return &RequestSizeLimiter{MaxBodySize: maxBodySize}
 }
 
 // Handler returns the xin.HandlerFunc
-func (rl *RequestLimiter) Handler() xin.HandlerFunc {
-	return rl.Handle
+func (rsl *RequestSizeLimiter) Handler() xin.HandlerFunc {
+	return rsl.Handle
 }
 
 // Handle process xin request
-func (rl *RequestLimiter) Handle(c *xin.Context) {
-	if rl.MaxBodySize <= 0 {
+func (rsl *RequestSizeLimiter) Handle(c *xin.Context) {
+	if rsl.MaxBodySize <= 0 {
 		c.Next()
 		return
 	}
 
 	var err error
 
-	if c.Request.ContentLength > rl.MaxBodySize {
-		err = &iox.MaxBytesError{Limit: rl.MaxBodySize}
+	if c.Request.ContentLength > rsl.MaxBodySize {
+		err = &iox.MaxBytesError{Limit: rsl.MaxBodySize}
 	} else {
 		crb := c.Request.Body
-		mbr := iox.NewMaxBytesReader(crb, rl.MaxBodySize)
+		mbr := iox.NewMaxBytesReader(crb, rsl.MaxBodySize)
 		c.Request.Body = mbr
 		c.Next()
 		c.Request.Body = crb
@@ -49,11 +49,11 @@ func (rl *RequestLimiter) Handle(c *xin.Context) {
 	if err != nil {
 		var mbe *iox.MaxBytesError
 		if ok := errors.As(err, &mbe); ok {
-			if rl.DrainBody {
+			if rsl.DrainBody {
 				iox.Drain(c.Request.Body)
 			}
 
-			if btl := rl.BodyTooLarge; btl != nil {
+			if btl := rsl.BodyTooLarge; btl != nil {
 				btl(c)
 			} else {
 				c.String(http.StatusRequestEntityTooLarge, mbe.Error())

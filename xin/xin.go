@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/net/netutil"
 	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/xin/render"
 	"github.com/askasoft/pango/xin/validate"
@@ -313,31 +314,13 @@ func iterate(path, method string, routes RoutesInfo, root *node) RoutesInfo {
 // by default. If you want to disable this feature, use
 // Engine.SetTrustedProxies(nil), then Context.ClientIP() will
 // return the remote address directly.
-func (engine *Engine) SetTrustedProxies(trustedProxies []string) error {
-	cidr := make([]*net.IPNet, 0, len(trustedProxies))
-	for _, trustedProxy := range trustedProxies {
-		if !str.ContainsByte(trustedProxy, '/') {
-			ip := parseIP(trustedProxy)
-			if ip == nil {
-				return &net.ParseError{Type: "IP address", Text: trustedProxy}
-			}
-
-			switch len(ip) {
-			case net.IPv4len:
-				trustedProxy += "/32"
-			case net.IPv6len:
-				trustedProxy += "/128"
-			}
-		}
-
-		_, cidrNet, err := net.ParseCIDR(trustedProxy)
-		if err != nil {
-			return err
-		}
-		cidr = append(cidr, cidrNet)
+func (engine *Engine) SetTrustedProxies(cidrs []string) error {
+	ipnets, err := netutil.ParseCIDRs(cidrs)
+	if err != nil {
+		return err
 	}
 
-	engine.trustedProxies = cidr
+	engine.trustedProxies = ipnets
 	return nil
 }
 
@@ -372,20 +355,6 @@ func (engine *Engine) validateClientIP(header string) (clientIP string, valid bo
 		}
 	}
 	return "", false
-}
-
-// parseIP parse a string representation of an IP and returns a net.IP with the
-// minimum byte representation or nil if input is invalid.
-func parseIP(ip string) net.IP {
-	parsedIP := net.ParseIP(ip)
-
-	if ipv4 := parsedIP.To4(); ipv4 != nil {
-		// return ip in a 4-byte representation
-		return ipv4
-	}
-
-	// return ip in a 16-byte representation or nil
-	return parsedIP
 }
 
 // ServeHTTP conforms to the http.Handler interface.

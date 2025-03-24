@@ -11,6 +11,7 @@ import (
 
 	"github.com/askasoft/pango/bol"
 	"github.com/askasoft/pango/num"
+	"github.com/askasoft/pango/num/mathx"
 	"github.com/askasoft/pango/ref"
 	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/tmu"
@@ -107,10 +108,10 @@ func Functions() FuncMap {
 		"HumanSize": num.HumanSizeAny,
 
 		// math
-		"Add":      funcs.Add,
-		"Subtract": funcs.Subtract,
-		"Multiply": funcs.Multiply,
-		"Divide":   funcs.Divide,
+		"Add":      mathx.Adds,
+		"Subtract": mathx.Subtracts,
+		"Multiply": mathx.Multiplys,
+		"Divide":   mathx.Divides,
 
 		// string
 		"StartsWith": str.StartsWith,

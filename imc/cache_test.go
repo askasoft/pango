@@ -108,12 +108,10 @@ func TestCacheTimes(t *testing.T) {
 func TestNewFrom(t *testing.T) {
 	m := map[string]Item[int]{
 		"a": {
-			Object:  1,
-			Expires: 0,
+			Val: 1,
 		},
 		"b": {
-			Object:  2,
-			Expires: 0,
+			Val: 2,
 		},
 	}
 	tc := NewFrom(0, 0, m)

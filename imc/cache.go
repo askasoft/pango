@@ -6,20 +6,20 @@ import (
 	"sync"
 	"time"
 
-	"github.com/askasoft/pango/cas"
+	"github.com/askasoft/pango/num/mathx"
 )
 
 type Item[T any] struct {
-	Object  T     // Cache Object
-	Expires int64 // UnixNano
+	Val T     // Cache Value
+	TTL int64 // Time-To-Live (time.Unix)
 }
 
-// Returns true if the item has expired.
+// Expired Returns true if the item has expired.
 func (item Item[T]) Expired() bool {
-	if item.Expires <= 0 {
+	if item.TTL <= 0 {
 		return false
 	}
-	return time.Now().UnixNano() > item.Expires
+	return time.Now().Unix() > item.TTL
 }
 
 type Cache[T any] struct {
@@ -115,11 +115,11 @@ type cache[T any] struct {
 	janitor *janitor[T]
 }
 
-func (c *cache[T]) expires(d time.Duration) int64 {
+func (c *cache[T]) timeToLive(d time.Duration) int64 {
 	if d <= 0 {
 		return 0
 	}
-	return time.Now().Add(d).UnixNano()
+	return time.Now().Add(d).Unix()
 }
 
 // Add an item to the cache, replacing any existing item.
@@ -132,21 +132,15 @@ func (c *cache[T]) Set(k string, x T) {
 // If the duration is 0, the cache's default expiration time is used.
 // If it < 0, the item never expires.
 func (c *cache[T]) SetWithExpires(k string, x T, d time.Duration) {
-	e := c.expires(d)
+	t := c.timeToLive(d)
 
 	c.mu.Lock()
-	c.items[k] = Item[T]{
-		Object:  x,
-		Expires: e,
-	}
+	c.set(k, x, t)
 	c.mu.Unlock()
 }
 
-func (c *cache[T]) set(k string, x T, e int64) {
-	c.items[k] = Item[T]{
-		Object:  x,
-		Expires: e,
-	}
+func (c *cache[T]) set(k string, x T, t int64) {
+	c.items[k] = Item[T]{Val: x, TTL: t}
 }
 
 // Add an item to the cache only if an item doesn't already exist for the given
@@ -165,8 +159,8 @@ func (c *cache[T]) AddWithExpires(k string, x T, d time.Duration) error {
 		return fmt.Errorf("item '%s' already exists", k)
 	}
 
-	e := c.expires(d)
-	c.set(k, x, e)
+	t := c.timeToLive(d)
+	c.set(k, x, t)
 	c.mu.Unlock()
 	return nil
 }
@@ -187,8 +181,8 @@ func (c *cache[T]) ReplaceWithExpires(k string, x T, d time.Duration) error {
 		return fmt.Errorf("item '%s' doesn't exist", k)
 	}
 
-	e := c.expires(d)
-	c.set(k, x, e)
+	t := c.timeToLive(d)
+	c.set(k, x, t)
 	c.mu.Unlock()
 	return nil
 }
@@ -204,8 +198,8 @@ func (c *cache[T]) Get(k string) (T, bool) {
 		return d, false
 	}
 
-	if item.Expires > 0 {
-		if time.Now().UnixNano() > item.Expires {
+	if item.TTL > 0 {
+		if time.Unix(item.TTL, 0).Before(time.Now()) {
 			c.mu.RUnlock()
 			var d T
 			return d, false
@@ -213,7 +207,7 @@ func (c *cache[T]) Get(k string) (T, bool) {
 	}
 
 	c.mu.RUnlock()
-	return item.Object, true
+	return item.Val, true
 }
 
 // GetWithExpires returns an item and its expiration time from the cache.
@@ -229,8 +223,9 @@ func (c *cache[T]) GetWithExpires(k string) (T, time.Time, bool) {
 		return d, time.Time{}, false
 	}
 
-	if item.Expires > 0 {
-		if time.Now().UnixNano() > item.Expires {
+	if item.TTL > 0 {
+		ttl := time.Unix(item.TTL, 0)
+		if ttl.Before(time.Now()) {
 			c.mu.RUnlock()
 			var d T
 			return d, time.Time{}, false
@@ -238,13 +233,13 @@ func (c *cache[T]) GetWithExpires(k string) (T, time.Time, bool) {
 
 		// Return the item and the expiration time
 		c.mu.RUnlock()
-		return item.Object, time.Unix(0, item.Expires), true
+		return item.Val, ttl, true
 	}
 
 	// If expiration <= 0 (i.e. no expiration time set) then return the item
 	// and a zeroed time.Time
 	c.mu.RUnlock()
-	return item.Object, time.Time{}, true
+	return item.Val, time.Time{}, true
 }
 
 func (c *cache[T]) get(k string) (T, bool) {
@@ -254,13 +249,13 @@ func (c *cache[T]) get(k string) (T, bool) {
 		return d, false
 	}
 
-	if item.Expires > 0 {
-		if time.Now().UnixNano() > item.Expires {
+	if item.TTL > 0 {
+		if time.Unix(item.TTL, 0).Before(time.Now()) {
 			var d T
 			return d, false
 		}
 	}
-	return item.Object, true
+	return item.Val, true
 }
 
 // Delete an item from the cache. Does nothing if the key is not in the cache.
@@ -273,9 +268,9 @@ func (c *cache[T]) Delete(k string) {
 // Delete all expired items from the cache.
 func (c *cache[T]) DeleteExpired() {
 	c.mu.Lock()
-	now := time.Now().UnixNano()
+	now := time.Now()
 	for k, v := range c.items {
-		if v.Expires > 0 && now > v.Expires {
+		if v.TTL > 0 && time.Unix(v.TTL, 0).Before(now) {
 			delete(c.items, k)
 		}
 	}
@@ -287,13 +282,12 @@ func (c *cache[T]) Items() map[string]Item[T] {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
+	now := time.Now()
+
 	m := make(map[string]Item[T], len(c.items))
-	now := time.Now().UnixNano()
 	for k, v := range c.items {
-		if v.Expires > 0 {
-			if now > v.Expires {
-				continue
-			}
+		if v.TTL > 0 && time.Unix(v.TTL, 0).Before(now) {
+			continue
 		}
 		m[k] = v
 	}
@@ -317,213 +311,24 @@ func (c *cache[T]) Clear() {
 }
 
 // Increment an item of type int, int8, int16, int32, int64, uint,
-// uint8, uint32, or uint64, float32 or float64 by n. Returns an error if the
-// item's value is not an integer, if it was not found and default value 'x[0]' is not supplied,
-// or if it is not possible to increment it by n.
-func (c *cache[T]) Increment(k string, n T, x ...T) error {
+// uint8, uint32, or uint64, float32 or float64 by n.
+// Returns the incremented value.
+func (c *cache[T]) Increment(k string, n T) T {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	v, found := c.items[k]
 	if !found || v.Expired() {
-		if len(x) > 0 {
-			c.set(k, x[0], c.expires(c.de))
-			return nil
-		}
-		return fmt.Errorf("item '%s' doesn't exist", k)
+		c.set(k, n, c.timeToLive(c.de))
+		return n
 	}
 
-	o, err := c.inc(v.Object, n)
+	o, err := mathx.Add(v.Val, n)
 	if err != nil {
-		return fmt.Errorf("item '%s' cannot increment: %w", k, err)
+		panic(fmt.Errorf("item '%s' cannot increment: %w", k, err))
 	}
 
-	v.Object = o.(T)
+	v.Val = o.(T)
 	c.items[k] = v
-	return nil
-}
-
-// Decrement an item of type int, int8, int16, int32, int64, uint,
-// uint8, uint32, or uint64, float32 or float64 by n. Returns an error if the
-// item's value is not an integer, if it was not found and default value 'x[0]' is not supplied,
-// or if it is not possible to decrement it by n.
-func (c *cache[T]) Decrement(k string, n T, x ...T) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	v, found := c.items[k]
-	if !found || v.Expired() {
-		if len(x) > 0 {
-			c.set(k, x[0], c.expires(c.de))
-			return nil
-		}
-		return fmt.Errorf("item '%s' doesn't exist", k)
-	}
-
-	o, err := c.dec(v.Object, n)
-	if err != nil {
-		return fmt.Errorf("item '%s' cannot decrement: %w", k, err)
-	}
-
-	v.Object = o.(T)
-	c.items[k] = v
-	return nil
-}
-
-func (c *cache[T]) inc(o any, n any) (any, error) {
-	switch s := o.(type) {
-	case int:
-		d, err := cas.ToInt(n)
-		if err != nil {
-			return o, err
-		}
-		return s + d, nil
-	case int8:
-		d, err := cas.ToInt8(n)
-		if err != nil {
-			return o, err
-		}
-		return s + d, nil
-	case int16:
-		d, err := cas.ToInt16(n)
-		if err != nil {
-			return o, err
-		}
-		return s + d, nil
-	case int32:
-		d, err := cas.ToInt32(n)
-		if err != nil {
-			return o, err
-		}
-		return s + d, nil
-	case int64:
-		d, err := cas.ToInt64(n)
-		if err != nil {
-			return o, err
-		}
-		return s + d, nil
-	case uint:
-		d, err := cas.ToUint(n)
-		if err != nil {
-			return o, err
-		}
-		return s + d, nil
-	case uint8:
-		d, err := cas.ToUint8(n)
-		if err != nil {
-			return o, err
-		}
-		return s + d, nil
-	case uint16:
-		d, err := cas.ToUint16(n)
-		if err != nil {
-			return o, err
-		}
-		return s + d, nil
-	case uint32:
-		d, err := cas.ToUint32(n)
-		if err != nil {
-			return o, err
-		}
-		return s + d, nil
-	case uint64:
-		d, err := cas.ToUint64(n)
-		if err != nil {
-			return o, err
-		}
-		return s + d, nil
-	case float32:
-		d, err := cas.ToFloat32(n)
-		if err != nil {
-			return o, err
-		}
-		return s + d, nil
-	case float64:
-		d, err := cas.ToFloat64(n)
-		if err != nil {
-			return o, err
-		}
-		return s + d, nil
-	default:
-		return o, fmt.Errorf("'%T' is not number", o)
-	}
-}
-
-func (c *cache[T]) dec(o any, n any) (any, error) {
-	switch s := o.(type) {
-	case int:
-		d, err := cas.ToInt(n)
-		if err != nil {
-			return o, err
-		}
-		return s - d, nil
-	case int8:
-		d, err := cas.ToInt8(n)
-		if err != nil {
-			return o, err
-		}
-		return s - d, nil
-	case int16:
-		d, err := cas.ToInt16(n)
-		if err != nil {
-			return o, err
-		}
-		return s - d, nil
-	case int32:
-		d, err := cas.ToInt32(n)
-		if err != nil {
-			return o, err
-		}
-		return s - d, nil
-	case int64:
-		d, err := cas.ToInt64(n)
-		if err != nil {
-			return o, err
-		}
-		return s - d, nil
-	case uint:
-		d, err := cas.ToUint(n)
-		if err != nil {
-			return o, err
-		}
-		return s - d, nil
-	case uint8:
-		d, err := cas.ToUint8(n)
-		if err != nil {
-			return o, err
-		}
-		return s - d, nil
-	case uint16:
-		d, err := cas.ToUint16(n)
-		if err != nil {
-			return o, err
-		}
-		return s - d, nil
-	case uint32:
-		d, err := cas.ToUint32(n)
-		if err != nil {
-			return o, err
-		}
-		return s - d, nil
-	case uint64:
-		d, err := cas.ToUint64(n)
-		if err != nil {
-			return o, err
-		}
-		return s - d, nil
-	case float32:
-		d, err := cas.ToFloat32(n)
-		if err != nil {
-			return o, err
-		}
-		return s - d, nil
-	case float64:
-		d, err := cas.ToFloat64(n)
-		if err != nil {
-			return o, err
-		}
-		return s - d, nil
-	default:
-		return o, fmt.Errorf("'%T' is not number", s)
-	}
+	return v.Val
 }

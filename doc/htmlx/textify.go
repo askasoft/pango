@@ -210,13 +210,13 @@ func (tf *Textifier) A(n *html.Node) error {
 	if err := ht.Deep(n); err != nil {
 		return err
 	}
-	text := sa.String()
+	text := str.Strip(sa.String())
 
 	if href == text {
-		return tf.Text(href)
+		return tf.Text(" " + href + " ")
 	}
 
-	_, err := fmt.Fprintf(tf.tw, "[%s](%s)", text, href)
+	_, err := fmt.Fprintf(tf.tw, " [%s](%s) ", text, href)
 	return err
 }
 
@@ -224,8 +224,7 @@ func (tf *Textifier) Img(n *html.Node) error {
 	src := str.Strip(GetNodeAttrValue(n, "src"))
 	if src != "" {
 		alt := str.Strip(GetNodeAttrValue(n, "alt"))
-
-		if _, err := fmt.Fprintf(tf.tw, "![%s](%s)", alt, src); err != nil {
+		if _, err := fmt.Fprintf(tf.tw, " ![%s](%s) ", alt, src); err != nil {
 			return err
 		}
 	}

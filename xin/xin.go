@@ -10,7 +10,7 @@ import (
 	"sync"
 
 	"github.com/askasoft/pango/log"
-	"github.com/askasoft/pango/net/netutil"
+	"github.com/askasoft/pango/net/netx"
 	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/xin/render"
 	"github.com/askasoft/pango/xin/validate"
@@ -315,7 +315,7 @@ func iterate(path, method string, routes RoutesInfo, root *node) RoutesInfo {
 // Engine.SetTrustedProxies(nil), then Context.ClientIP() will
 // return the remote address directly.
 func (engine *Engine) SetTrustedProxies(cidrs []string) error {
-	ipnets, err := netutil.ParseCIDRs(cidrs)
+	ipnets, err := netx.ParseCIDRs(cidrs)
 	if err != nil {
 		return err
 	}

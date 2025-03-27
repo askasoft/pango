@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/imc"
-	"github.com/askasoft/pango/net/netutil"
+	"github.com/askasoft/pango/net/netx"
 	"github.com/askasoft/pango/xin"
 )
 
@@ -57,7 +57,7 @@ func (rrl *RequestRateLimiter) Handle(c *xin.Context) {
 }
 
 func (rrl *RequestRateLimiter) SetTrustedClients(cidrs []string) error {
-	ipnets, err := netutil.ParseCIDRs(cidrs)
+	ipnets, err := netx.ParseCIDRs(cidrs)
 	if err != nil {
 		return err
 	}

@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/iox"
-	"github.com/askasoft/pango/net/netutil"
+	"github.com/askasoft/pango/net/netx"
 	"github.com/askasoft/pango/str"
 )
 
@@ -40,7 +40,7 @@ func testSendEmail(t *testing.T, m *Email) {
 	f := os.Stdout
 	w := iox.SyncWriter(f)
 	ss.ConnDebug = func(conn net.Conn) net.Conn {
-		return netutil.DumpConn(
+		return netx.DumpConn(
 			conn,
 			iox.WrapWriter(w, iox.ConsoleColor.Magenta+"< ", iox.ConsoleColor.Reset),
 			iox.WrapWriter(w, iox.ConsoleColor.Yellow+"> ", iox.ConsoleColor.Reset),

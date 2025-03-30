@@ -38,6 +38,7 @@ Pango is a GO development utility library.
 | [oss](./oss/)                    | a os stats collect utility package based on https://github.com/mackerelio/go-osstat |
 | [ran](./ran/)                    | a random utility package                |
 | [ref](./ref/)                    | a GO reflect utility package            |
+| [rex](./rex/)                    | a GO regexp utility package            |
 | [sch](./sch/)                    | a scheduler utility package             |
 | [sdk/openai](./sdk/openai/)      | a simple sdk package for openai         |
 | [sdk/slack](./sdk/slack/)        | a slack webhook sender package          |

@@ -8,77 +8,38 @@ import (
 	"unicode/utf8"
 )
 
-func SubmatchReplace(re *regexp.Regexp, source, replace []byte) []byte {
-	smis := re.FindAllSubmatchIndex(source, -1)
-	if len(smis) == 0 {
-		return source
-	}
-
-	last := 0
-
-	var bs []byte
-	for _, smi := range smis {
-		if smi[0] > last {
-			bs = append(bs, source[last:smi[0]]...)
-		}
-		last = smi[1]
-
-		bs = re.Expand(bs, replace, source, smi)
-	}
-
-	if last < len(source) {
-		bs = append(bs, source[last:]...)
-	}
-
-	return bs
-}
-
-func SubmatchReplaceString(re *regexp.Regexp, source, replace string) string {
-	sr := SubmatchReplacer{Pattern: re, Template: replace}
-	return sr.Replace(source)
-}
-
+// Converter a convert function used by ExpandConvertWrite()
+// `n` is the number of $0, $1, $2, ...
+// `name` is the name of ${x}, $y, ...
+// (n = -1 and name = "") means other unmatched text
 type Converter func(n int, name string, value string) string
 
-func noconvert(n int, name string, value string) string {
+func NoConvert(n int, name string, value string) string {
 	return value
 }
 
-type SubmatchReplacer struct {
-	Pattern   *regexp.Regexp
-	Template  string
-	Converter Converter
+func ReplaceAllString(source string, re *regexp.Regexp, template string) string {
+	return ReplaceAllConvertString(source, re, template, NoConvert)
 }
 
-// Replace returns a copy of s with all replacements performed.
-func (sr *SubmatchReplacer) Replace(source string) string {
-	smis := sr.Pattern.FindAllStringSubmatchIndex(source, -1)
-	if len(smis) == 0 {
-		return source
-	}
-
+func ReplaceAllConvertString(source string, re *regexp.Regexp, template string, convert Converter) string {
 	var sb strings.Builder
-	if _, err := sr.write(&sb, source, smis); err != nil {
+
+	if _, err := ReplaceAllConvertWrite(source, &sb, re, template, convert); err != nil {
 		panic(err)
 	}
 
 	return sb.String()
 }
 
-// WriteString writes source to w with all replacements performed.
-func (sr *SubmatchReplacer) WriteString(w io.Writer, source string) (int, error) {
-	smis := sr.Pattern.FindAllStringSubmatchIndex(source, -1)
-	if len(smis) == 0 {
-		return io.WriteString(w, source)
-	}
-
-	return sr.write(w, source, smis)
+func ReplaceAllWrite(source string, w io.Writer, re *regexp.Regexp, template string) (int, error) {
+	return ReplaceAllConvertWrite(source, w, re, template, NoConvert)
 }
 
-func (sr *SubmatchReplacer) write(w io.Writer, source string, smis [][]int) (int, error) {
-	convert := sr.Converter
-	if convert == nil {
-		convert = noconvert
+func ReplaceAllConvertWrite(source string, w io.Writer, re *regexp.Regexp, template string, convert Converter) (int, error) {
+	smis := re.FindAllStringSubmatchIndex(source, -1)
+	if len(smis) == 0 {
+		return io.WriteString(w, source)
 	}
 
 	last := 0
@@ -95,7 +56,7 @@ func (sr *SubmatchReplacer) write(w io.Writer, source string, smis [][]int) (int
 		}
 		last = smi[1]
 
-		n, err := sr.expand(w, source, smi, convert)
+		n, err := ExpandConvertWrite(source, w, re, template, smi, convert)
 		written += n
 		if err != nil {
 			return written, err
@@ -114,9 +75,12 @@ func (sr *SubmatchReplacer) write(w io.Writer, source string, smis [][]int) (int
 	return written, nil
 }
 
-func (sr *SubmatchReplacer) expand(dst io.Writer, src string, match []int, convert Converter) (int, error) {
+func ExpandWrite(source string, w io.Writer, re *regexp.Regexp, template string, match []int) (int, error) {
+	return ExpandConvertWrite(source, w, re, template, match, NoConvert)
+}
+
+func ExpandConvertWrite(source string, w io.Writer, re *regexp.Regexp, template string, match []int, convert Converter) (int, error) {
 	written := 0
-	template := sr.Template
 
 	for len(template) > 0 {
 		before, after, ok := strings.Cut(template, "$")
@@ -124,7 +88,7 @@ func (sr *SubmatchReplacer) expand(dst io.Writer, src string, match []int, conve
 			break
 		}
 
-		n, err := io.WriteString(dst, before)
+		n, err := io.WriteString(w, before)
 		written += n
 		if err != nil {
 			return written, err
@@ -133,7 +97,7 @@ func (sr *SubmatchReplacer) expand(dst io.Writer, src string, match []int, conve
 		template = after
 		if template != "" && template[0] == '$' {
 			// Treat $$ as $.
-			n, err := io.WriteString(dst, "$")
+			n, err := io.WriteString(w, "$")
 			written += n
 			if err != nil {
 				return written, err
@@ -142,10 +106,10 @@ func (sr *SubmatchReplacer) expand(dst io.Writer, src string, match []int, conve
 			continue
 		}
 
-		name, num, rest, ok := sr.extract(template)
+		name, num, rest, ok := extract(template)
 		if !ok {
 			// Malformed; treat $ as raw text.
-			n, err := io.WriteString(dst, "$")
+			n, err := io.WriteString(w, "$")
 			written += n
 			if err != nil {
 				return written, err
@@ -156,18 +120,18 @@ func (sr *SubmatchReplacer) expand(dst io.Writer, src string, match []int, conve
 		template = rest
 		if num >= 0 {
 			if 2*num+1 < len(match) && match[2*num] >= 0 {
-				sub := convert(num, "", src[match[2*num]:match[2*num+1]])
-				n, err := io.WriteString(dst, sub)
+				sub := convert(num, "", source[match[2*num]:match[2*num+1]])
+				n, err := io.WriteString(w, sub)
 				written += n
 				if err != nil {
 					return written, err
 				}
 			}
 		} else {
-			for i, namei := range sr.Pattern.SubexpNames() {
+			for i, namei := range re.SubexpNames() {
 				if name == namei && 2*i+1 < len(match) && match[2*i] >= 0 {
-					sub := convert(-1, name, src[match[2*i]:match[2*i+1]])
-					n, err := io.WriteString(dst, sub)
+					sub := convert(-1, name, source[match[2*i]:match[2*i+1]])
+					n, err := io.WriteString(w, sub)
 					written += n
 					if err != nil {
 						return written, err
@@ -178,7 +142,7 @@ func (sr *SubmatchReplacer) expand(dst io.Writer, src string, match []int, conve
 		}
 	}
 
-	n, err := io.WriteString(dst, template)
+	n, err := io.WriteString(w, template)
 	written += n
 	return written, err
 }
@@ -186,7 +150,7 @@ func (sr *SubmatchReplacer) expand(dst io.Writer, src string, match []int, conve
 // extract returns the name from a leading "name" or "{name}" in str.
 // (The $ has already been removed by the caller.)
 // If it is a number, extract returns num set to that number; otherwise num = -1.
-func (sr *SubmatchReplacer) extract(str string) (name string, num int, rest string, ok bool) {
+func extract(str string) (name string, num int, rest string, ok bool) {
 	if str == "" {
 		return
 	}

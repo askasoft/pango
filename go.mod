@@ -2,6 +2,8 @@ module github.com/askasoft/pango
 
 go 1.23.0
 
+toolchain go1.24.1
+
 require github.com/stretchr/testify v1.10.0
 
 require (
@@ -12,7 +14,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs v1.47.1
 	github.com/go-sql-driver/mysql v1.9.1
 	github.com/jackc/pgerrcode v0.0.0-20240316143900-6e2875d9b438
-	github.com/jackc/pgx/v5 v5.7.3
+	github.com/jackc/pgx/v5 v5.7.4
 	github.com/lib/pq v1.10.9
 	github.com/mattn/go-sqlite3 v1.14.24
 	golang.org/x/net v0.37.0

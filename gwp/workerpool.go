@@ -57,12 +57,17 @@ func finalStop(wp *WorkerPool) {
 	wp.StopWait()
 }
 
-// MaxWaits returns the maximum number of concurrent workers.
+// CurWorks returns the current number of concurrent workers.
+func (wp *workerpool) CurWorks() int {
+	return wp.curWorks
+}
+
+// MaxWorks returns the maximum number of concurrent workers.
 func (wp *workerpool) MaxWorks() int {
 	return wp.maxWorks
 }
 
-// SetMaxWaits set the maximum number of concurrent workers, panic if maxWorks < 1.
+// SetMaxWorks set the maximum number of concurrent workers, panic if maxWorks < 1.
 func (wp *workerpool) SetMaxWorks(maxWorks int) {
 	if maxWorks < 1 {
 		panic("WorkerPool: maxWorks must greater than 0")
@@ -95,6 +100,11 @@ func (wp *workerpool) Running() bool {
 	wp.slock.Lock()
 	defer wp.slock.Unlock()
 	return wp.running
+}
+
+// Working returns true if this worker pool has running task.
+func (wp *workerpool) Working() bool {
+	return wp.curWorks > 0
 }
 
 // Stop stops the worker pool and waits for only currently running tasks to

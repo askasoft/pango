@@ -9,17 +9,42 @@ import (
 	"github.com/askasoft/pango/num/mathx"
 )
 
+// Worker interface for cached item to control it's expiration
+type Worker interface {
+	// Working returns true to prevent expired
+	Working() bool
+}
+
 type Item[T any] struct {
 	Val T     // Cache Value
 	TTL int64 // Time-To-Live (time.Unix)
 }
 
+// Working returns true to prevent expired
+func (item Item[T]) Working() bool {
+	var a any = item.Val
+	if w, ok := a.(Worker); ok {
+		return w.Working()
+	}
+	return false
+}
+
 // Expired Returns true if the item has expired.
 func (item Item[T]) Expired() bool {
-	if item.TTL <= 0 {
+	if item.TTL <= 0 || item.Working() {
 		return false
 	}
+
 	return time.Now().Unix() > item.TTL
+}
+
+// ExpiredAt Returns true if the item has expired at time `t`.
+func (item Item[T]) ExpiredAt(t int64) bool {
+	if item.TTL <= 0 || item.Working() {
+		return false
+	}
+
+	return t > item.TTL
 }
 
 type Cache[T any] struct {
@@ -143,6 +168,20 @@ func (c *cache[T]) set(k string, x T, t int64) {
 	c.items[k] = Item[T]{Val: x, TTL: t}
 }
 
+func (c *cache[T]) get(k string) (T, bool) {
+	item, found := c.items[k]
+	if !found {
+		var d T
+		return d, false
+	}
+
+	if item.Expired() {
+		var d T
+		return d, false
+	}
+	return item.Val, true
+}
+
 // Add an item to the cache only if an item doesn't already exist for the given
 // key, or if the existing item has expired. Returns an error otherwise.
 func (c *cache[T]) Add(k string, x T) error {
@@ -198,12 +237,10 @@ func (c *cache[T]) Get(k string) (T, bool) {
 		return d, false
 	}
 
-	if item.TTL > 0 {
-		if time.Unix(item.TTL, 0).Before(time.Now()) {
-			c.mu.RUnlock()
-			var d T
-			return d, false
-		}
+	if item.Expired() {
+		c.mu.RUnlock()
+		var d T
+		return d, false
 	}
 
 	c.mu.RUnlock()
@@ -223,39 +260,22 @@ func (c *cache[T]) GetWithExpires(k string) (T, time.Time, bool) {
 		return d, time.Time{}, false
 	}
 
-	if item.TTL > 0 {
-		ttl := time.Unix(item.TTL, 0)
-		if ttl.Before(time.Now()) {
-			c.mu.RUnlock()
-			var d T
-			return d, time.Time{}, false
-		}
-
-		// Return the item and the expiration time
+	if item.TTL <= 0 {
+		// If expiration <= 0 (i.e. no expiration time set) then return the item
+		// and a zeroed time.Time
 		c.mu.RUnlock()
-		return item.Val, ttl, true
+		return item.Val, time.Time{}, true
 	}
 
-	// If expiration <= 0 (i.e. no expiration time set) then return the item
-	// and a zeroed time.Time
-	c.mu.RUnlock()
-	return item.Val, time.Time{}, true
-}
-
-func (c *cache[T]) get(k string) (T, bool) {
-	item, found := c.items[k]
-	if !found {
+	if item.Expired() {
+		c.mu.RUnlock()
 		var d T
-		return d, false
+		return d, time.Time{}, false
 	}
 
-	if item.TTL > 0 {
-		if time.Unix(item.TTL, 0).Before(time.Now()) {
-			var d T
-			return d, false
-		}
-	}
-	return item.Val, true
+	// Return the item and the expiration time
+	c.mu.RUnlock()
+	return item.Val, time.Unix(item.TTL, 0), true
 }
 
 // Delete an item from the cache. Does nothing if the key is not in the cache.
@@ -268,30 +288,48 @@ func (c *cache[T]) Delete(k string) {
 // Delete all expired items from the cache.
 func (c *cache[T]) DeleteExpired() {
 	c.mu.Lock()
-	now := time.Now()
+	now := time.Now().Unix()
 	for k, v := range c.items {
-		if v.TTL > 0 && time.Unix(v.TTL, 0).Before(now) {
+		if v.ExpiredAt(now) {
 			delete(c.items, k)
 		}
 	}
 	c.mu.Unlock()
 }
 
-// Copies all unexpired items in the cache into a new map and returns it.
+// Items Copies all unexpired items in the cache into a new map and returns it.
 func (c *cache[T]) Items() map[string]Item[T] {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	now := time.Now()
+	now := time.Now().Unix()
 
 	m := make(map[string]Item[T], len(c.items))
 	for k, v := range c.items {
-		if v.TTL > 0 && time.Unix(v.TTL, 0).Before(now) {
+		if v.ExpiredAt(now) {
 			continue
 		}
 		m[k] = v
 	}
 	return m
+}
+
+// Each Iterate all unexpired items in the cache to call function `f`.
+// Function `f` returns false can break th iteration.
+func (c *cache[T]) Each(f func(string, Item[T]) bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	now := time.Now().Unix()
+
+	for k, v := range c.items {
+		if v.ExpiredAt(now) {
+			continue
+		}
+		if !f(k, v) {
+			break
+		}
+	}
 }
 
 // Returns the number of items in the cache. This may include items that have

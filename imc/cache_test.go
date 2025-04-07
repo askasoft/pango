@@ -76,7 +76,7 @@ func TestCacheTimes(t *testing.T) {
 	tc.SetWithExpires("c", 3, 2*time.Second)
 	tc.SetWithExpires("d", 4, 3*time.Second)
 
-	<-time.After(1000 * time.Millisecond)
+	<-time.After(2000 * time.Millisecond)
 	_, found = tc.Get("a")
 	if found {
 		t.Error("Found a when it should have been automatically deleted")

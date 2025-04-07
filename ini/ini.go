@@ -106,7 +106,6 @@ func (ini *Ini) Sections() []*Section {
 func (ini *Ini) Section(name string) (sec *Section) {
 	if sec = ini.GetSection(name); sec == nil {
 		sec = ini.NewSection(name)
-		ini.AddSection(sec)
 	}
 	return
 }
@@ -145,8 +144,8 @@ func (ini *Ini) RemoveSection(name string) (sec *Section) {
 // emptySection empty section for internal use
 var emptySection = &Section{}
 
-// esection get a section from ini, or a empty section if it does not exists
-func (ini *Ini) esection(name string) *Section {
+// section get a section from ini, or a empty section if it does not exists
+func (ini *Ini) section(name string) *Section {
 	if sec, ok := ini.sections.Get(name); ok {
 		return sec
 	}
@@ -165,49 +164,54 @@ func (ini *Ini) Set(sec, key, value string, comments ...string) *Entry {
 
 // Get get a value of the key from the section sec
 func (ini *Ini) Get(sec, key string) string {
-	return ini.esection(sec).Get(key)
+	return ini.section(sec).Get(key)
 }
 
 // GetString get a string value of the key from the section sec
 // if not found, returns the first non-empty string value from defs.
 func (ini *Ini) GetString(sec, key string, defs ...string) string {
-	return ini.esection(sec).GetString(key, defs...)
+	return ini.section(sec).GetString(key, defs...)
 }
 
 // GetInt get a int value of the key from the section sec
 // if not found or convert error, returns the first non-zero value from defs.
 func (ini *Ini) GetInt(sec, key string, defs ...int) int {
-	return ini.esection(sec).GetInt(key, defs...)
+	return ini.section(sec).GetInt(key, defs...)
 }
 
 // GetInt64 get a int64 value of the key from the section sec
 // if not found or convert error, returns the first non-zero value from defs.
 func (ini *Ini) GetInt64(sec, key string, defs ...int64) int64 {
-	return ini.esection(sec).GetInt64(key, defs...)
+	return ini.section(sec).GetInt64(key, defs...)
 }
 
 // GetFloat get a float value of the key from the section sec
 // if not found or convert error, returns the first non-zero value from defs.
 func (ini *Ini) GetFloat(sec, key string, defs ...float64) float64 {
-	return ini.esection(sec).GetFloat(key, defs...)
+	return ini.section(sec).GetFloat(key, defs...)
 }
 
 // GetBool get a bool value of the key from the section sec
 // if not found or convert error, returns the first non-false value from defs.
 func (ini *Ini) GetBool(sec, key string, defs ...bool) bool {
-	return ini.esection(sec).GetBool(key, defs...)
+	return ini.section(sec).GetBool(key, defs...)
 }
 
 // GetSize get a int64 size value of the key from the section sec
 // if not found or convert error, returns the first non-zero value from defs.
 func (ini *Ini) GetSize(sec, key string, defs ...int64) int64 {
-	return ini.esection(sec).GetSize(key, defs...)
+	return ini.section(sec).GetSize(key, defs...)
+}
+
+// GetEntry get a entry of key from the section sec
+func (ini *Ini) GetEntry(sec, key string) *Entry {
+	return ini.section(sec).GetEntry(key)
 }
 
 // GetDuration get a time.Duration value of the key from the section sec
 // if not found or convert error, returns the first non-zero value from defs.
 func (ini *Ini) GetDuration(sec, key string, defs ...time.Duration) time.Duration {
-	return ini.esection(sec).GetDuration(key, defs...)
+	return ini.section(sec).GetDuration(key, defs...)
 }
 
 // Copy copy section/entries from src ini, overwrite existing entries

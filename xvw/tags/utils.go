@@ -256,20 +256,20 @@ func AsList(a any) List {
 }
 
 type xstrdict2list[T comparable] struct {
-	asd xstrdict[T]
+	xsd xstrdict[T]
 }
 
-func (asdl xstrdict2list[T]) Each(f func(any, string) bool) {
-	asdl.asd.Each(func(k T, v string) bool {
+func (xsdl xstrdict2list[T]) Each(f func(any, string) bool) {
+	xsdl.xsd.Each(func(k T, v string) bool {
 		return f(k, v)
 	})
 }
 
-func (asdl xstrdict2list[T]) Get(a any) (string, bool) {
+func (xsdl xstrdict2list[T]) Get(a any) (string, bool) {
 	var k T
 
 	convert(a, &k)
-	if v, ok := asdl.asd.Get(k); ok {
+	if v, ok := xsdl.xsd.Get(k); ok {
 		return v, true
 	}
 	return "", false
@@ -297,18 +297,18 @@ type xcol2list[T comparable] struct {
 	col collection[T]
 }
 
-func (acl xcol2list[T]) Each(f func(any, string) bool) {
-	acl.col.Each(func(i int, v T) bool {
+func (xcl xcol2list[T]) Each(f func(any, string) bool) {
+	xcl.col.Each(func(i int, v T) bool {
 		s := toString(v)
 		return f(v, s)
 	})
 }
 
-func (acl xcol2list[T]) Get(a any) (string, bool) {
+func (xcl xcol2list[T]) Get(a any) (string, bool) {
 	var k T
 
 	convert(a, &k)
-	if acl.col.Contains(k) {
+	if xcl.col.Contains(k) {
 		return toString(k), true
 	}
 	return "", false
@@ -617,8 +617,7 @@ func (ss strslice2values) Each(f func(any) bool) {
 }
 
 func (ss strslice2values) Contains(a any) bool {
-	s := toString(a)
-	return asg.Contains(ss, s)
+	return asg.Contains(ss, toString(a))
 }
 
 type xslice2values[T comparable] []T

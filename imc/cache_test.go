@@ -10,8 +10,8 @@ type TestStruct struct {
 	Children []*TestStruct
 }
 
-func testNewCache() *Cache[any] {
-	return New[any](0, 0)
+func testNewCache() *Cache[string, any] {
+	return New[string, any](0, 0)
 }
 
 func TestCache(t *testing.T) {
@@ -70,11 +70,11 @@ func TestCache(t *testing.T) {
 func TestCacheTimes(t *testing.T) {
 	var found bool
 
-	tc := New[any](time.Second, 100*time.Millisecond)
+	tc := New[string, any](time.Second, 100*time.Millisecond)
 	tc.Set("a", 1)
-	tc.SetWithExpires("b", 2, -1)
-	tc.SetWithExpires("c", 3, 2*time.Second)
-	tc.SetWithExpires("d", 4, 3*time.Second)
+	tc.SetWithTTL("b", 2, -1)
+	tc.SetWithTTL("c", 3, 2*time.Second)
+	tc.SetWithTTL("d", 4, 3*time.Second)
 
 	<-time.After(2000 * time.Millisecond)
 	_, found = tc.Get("a")
@@ -153,33 +153,38 @@ func TestStorePointerToStruct(t *testing.T) {
 
 func TestAdd(t *testing.T) {
 	tc := testNewCache()
-	err := tc.Add("foo", "bar")
-	if err != nil {
+
+	ok := tc.Add("foo", "bar")
+	if !ok {
 		t.Error("Couldn't add foo even though it shouldn't exist")
 	}
-	err = tc.Add("foo", "baz")
-	if err == nil {
+
+	ok = tc.Add("foo", "baz")
+	if ok {
 		t.Error("Successfully added another foo when it should have returned an error")
 	}
 }
 
 func TestReplace(t *testing.T) {
 	tc := testNewCache()
-	err := tc.Replace("foo", "bar")
-	if err == nil {
+
+	ok := tc.Replace("foo", "bar")
+	if ok {
 		t.Error("Replaced foo when it shouldn't exist")
 	}
+
 	tc.Set("foo", "bar")
-	err = tc.Replace("foo", "bar")
-	if err != nil {
+	ok = tc.Replace("foo", "bar")
+	if !ok {
 		t.Error("Couldn't replace existing key foo")
 	}
 }
 
-func TestDelete(t *testing.T) {
+func TestRemove(t *testing.T) {
 	tc := testNewCache()
+
 	tc.Set("foo", "bar")
-	tc.Delete("foo")
+	tc.Remove("foo")
 	x, found := tc.Get("foo")
 	if found {
 		t.Error("foo was found, but it should have been deleted")
@@ -189,12 +194,12 @@ func TestDelete(t *testing.T) {
 	}
 }
 
-func TestCount(t *testing.T) {
+func TestLen(t *testing.T) {
 	tc := testNewCache()
 	tc.Set("foo", "1")
 	tc.Set("bar", "2")
 	tc.Set("baz", "3")
-	if n := tc.Count(); n != 3 {
+	if n := tc.Len(); n != 3 {
 		t.Errorf("Item count is not 3: %d", n)
 	}
 }
@@ -328,20 +333,20 @@ func TestIncrementWithFloat64(t *testing.T) {
 	}
 }
 
-func TestGetWithExpires(t *testing.T) {
-	tc := New[any](0, 0)
+func TestGetWithTTL(t *testing.T) {
+	tc := New[string, any](0, 0)
 
-	a, expiration, found := tc.GetWithExpires("a")
+	a, expiration, found := tc.GetWithTTL("a")
 	if found || a != nil || !expiration.IsZero() {
 		t.Error("Getting A found value that shouldn't exist:", a)
 	}
 
-	b, expiration, found := tc.GetWithExpires("b")
+	b, expiration, found := tc.GetWithTTL("b")
 	if found || b != nil || !expiration.IsZero() {
 		t.Error("Getting B found value that shouldn't exist:", b)
 	}
 
-	c, expiration, found := tc.GetWithExpires("c")
+	c, expiration, found := tc.GetWithTTL("c")
 	if found || c != nil || !expiration.IsZero() {
 		t.Error("Getting C found value that shouldn't exist:", c)
 	}
@@ -349,10 +354,10 @@ func TestGetWithExpires(t *testing.T) {
 	tc.Set("a", 1)
 	tc.Set("b", "b")
 	tc.Set("c", 3.5)
-	tc.SetWithExpires("d", 1, -1)
-	tc.SetWithExpires("e", 1, time.Second)
+	tc.SetWithTTL("d", 1, -1)
+	tc.SetWithTTL("e", 1, time.Second)
 
-	x, expiration, found := tc.GetWithExpires("a")
+	x, expiration, found := tc.GetWithTTL("a")
 	if !found {
 		t.Error("a was not found while getting a2")
 	}
@@ -365,7 +370,7 @@ func TestGetWithExpires(t *testing.T) {
 		t.Error("expiration for a is not a zeroed time")
 	}
 
-	x, expiration, found = tc.GetWithExpires("b")
+	x, expiration, found = tc.GetWithTTL("b")
 	if !found {
 		t.Error("b was not found while getting b2")
 	}
@@ -378,7 +383,7 @@ func TestGetWithExpires(t *testing.T) {
 		t.Error("expiration for b is not a zeroed time")
 	}
 
-	x, expiration, found = tc.GetWithExpires("c")
+	x, expiration, found = tc.GetWithTTL("c")
 	if !found {
 		t.Error("c was not found while getting c2")
 	}
@@ -391,7 +396,7 @@ func TestGetWithExpires(t *testing.T) {
 		t.Error("expiration for c is not a zeroed time")
 	}
 
-	x, expiration, found = tc.GetWithExpires("d")
+	x, expiration, found = tc.GetWithTTL("d")
 	if !found {
 		t.Error("d was not found while getting d2")
 	}
@@ -404,7 +409,7 @@ func TestGetWithExpires(t *testing.T) {
 		t.Error("expiration for d is not a zeroed time")
 	}
 
-	x, expiration, found = tc.GetWithExpires("e")
+	x, expiration, found = tc.GetWithTTL("e")
 	if !found {
 		t.Error("e was not found while getting e2")
 	}

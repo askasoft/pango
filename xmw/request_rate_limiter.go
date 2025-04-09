@@ -17,12 +17,12 @@ type RequestRateLimiter struct {
 	TrustedClients  []*net.IPNet
 	TooManyRequests func(c *xin.Context)
 
-	counts *imc.Cache[int]
+	counts *imc.Cache[string, int]
 }
 
 // NewRequestRateLimiter create a default RequestRateLimiter middleware
 func NewRequestRateLimiter(limit int, duration, cleanupInterval time.Duration) *RequestRateLimiter {
-	return &RequestRateLimiter{Limit: limit, Duration: duration, counts: imc.New[int](duration, cleanupInterval)}
+	return &RequestRateLimiter{Limit: limit, Duration: duration, counts: imc.New[string, int](duration, cleanupInterval)}
 }
 
 // Handler returns the xin.HandlerFunc

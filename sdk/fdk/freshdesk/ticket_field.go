@@ -1,10 +1,7 @@
-package freshservice
+package freshdesk
 
 type TicketField struct {
 	ID int64 `json:"id,omitempty"`
-
-	// ID of the workspace to which this ticket belongs. The attribute is applicable only for accounts with the 'Workspaces' feature enabled.
-	WorkspaceID int64 `json:"workspace_id,omitempty"`
 
 	// Name of the ticket field.
 	Name string `json:"name,omitempty"`
@@ -15,23 +12,17 @@ type TicketField struct {
 	// Description of the field
 	Description string `json:"description,omitempty"`
 
-	// Indicates if the field is a checkbox, dropdown, text field
-	FieldType string `json:"field_type,omitempty"`
+	// True if the field is a default field. False if customm
+	Default bool `json:"default,omitempty"`
 
-	// True if the field is marked mandatory
-	Required bool `json:"required,omitempty"`
+	// Position in which the ticket field is displayed in the form
+	Position int `json:"field_type,omitempty"`
+
+	// For custom ticket fields, The type of value associated with the field will be given (Examples custom_date, custom_text...)
+	Type string `json:"type,omitempty"`
 
 	// True if the field is marked mandatory while closing the Release item
 	RequiredForClosure bool `json:"required_for_closure,omitempty"`
-
-	// True if the field is a default field. False if customm
-	DefaultField bool `json:"default_field,omitempty"`
-
-	// List of values supported by the field.
-	Choices any `json:"choices,omitempty"`
-
-	// contain details of nested fields
-	NestedFields any `json:"nested_fields,omitempty"`
 
 	// Set to true if the field is mandatory for Agents
 	RequiredForAgents bool `json:"required_for_agents,omitempty"`
@@ -54,8 +45,20 @@ type TicketField struct {
 	// Applicable only if portal_cc is set to true. Value will be all when a customer can add any requester to the CC list and company when a customer can add only company contacts to the CC list
 	PortalCcTo string `json:"portal_cc_to,omitempty"`
 
-	// Applicable only for custom_date field. When ‘Request time information’ is selected, the field date_only returns false and if unchecked, date_only returns true
-	DateOnly bool `json:"date_only,omitempty"`
+	// List of values supported by the field.
+	Choices any `json:"choices,omitempty"`
+
+	// Applicable only for dependent fields, this contains details of nested fields
+	DependentFields any `json:"dependent_fields,omitempty"`
+
+	// Applicable only if the field is part of a section. This contains the details of a section (ID, position) for which it is been a part of
+	SectionMappings any `json:"SectionMappings,omitempty"`
+
+	// True if the Ticket field is inside FSM section (Applicable only if FSM is enabled)
+	IsFsm bool `json:"is_fsm,omitempty"`
+
+	// True if the choice update is in progress (Applicable for the fields which has 100+ choices)
+	FieldUpdateInProgress bool `json:"field_update_in_progress,omitempty"`
 
 	CreatedAt *Time `json:"created_at,omitempty"`
 
@@ -64,9 +67,4 @@ type TicketField struct {
 
 func (tf *TicketField) String() string {
 	return toString(tf)
-}
-
-type ticketFieldResult struct {
-	TicketField  *TicketField   `json:"ticket_field,omitempty"`
-	TicketFields []*TicketField `json:"ticket_fields,omitempty"`
 }

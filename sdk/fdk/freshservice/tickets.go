@@ -274,7 +274,7 @@ func (fs *Freshservice) CreateChildTicket(ctx context.Context, tid int64, ticket
 	return result.Ticket, nil
 }
 
-func (fs *Freshservice) GetTicketFields(ctx context.Context) ([]*TicketField, error) {
+func (fs *Freshservice) ListTicketFields(ctx context.Context) ([]*TicketField, error) {
 	url := fs.endpoint("/ticket_form_fields")
 	result := &ticketFieldResult{}
 	err := fs.doGet(ctx, url, result)

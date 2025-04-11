@@ -171,3 +171,17 @@ func TestIterTicket(t *testing.T) {
 		t.Fatalf("ERROR: %v", err)
 	}
 }
+
+func TestListTicketFields(t *testing.T) {
+	fs := testNewFreshservice(t)
+	if fs == nil {
+		return
+	}
+
+	tfs, err := fs.ListTicketFields(ctxbg)
+	if err != nil {
+		t.Fatalf("ERROR: %v", err)
+	}
+
+	fs.Logger.Debug(tfs)
+}

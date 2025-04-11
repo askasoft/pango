@@ -12,6 +12,9 @@ func TestParseTime(t *testing.T) {
 
 	tmu, _ := time.ParseInLocation(TimeFormat, "2020-01-02T03:04:05Z", time.UTC)
 	fmt.Println(tmu.String())
+
+	tm3, _ := time.ParseInLocation(TimeFormat, "2020-01-02T03:04:05+08:00", time.UTC)
+	fmt.Println(tm3.String())
 }
 
 func TestParseTimeSpent(t *testing.T) {

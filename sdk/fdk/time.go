@@ -9,9 +9,9 @@ import (
 
 const (
 	DateFormat     = "2006-01-02"
-	TimeFormat     = "2006-01-02T15:04:05Z"
-	jsonDateFormat = `"2006-01-02"`
-	jsonTimeFormat = `"2006-01-02T15:04:05Z"`
+	TimeFormat     = time.RFC3339 //"2006-01-02T15:04:05Z07:00"
+	jsonDateFormat = `"` + DateFormat + `"`
+	jsonTimeFormat = `"` + TimeFormat + `"`
 )
 
 type Date struct {

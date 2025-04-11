@@ -34,7 +34,7 @@ func testNewFreshservice(t *testing.T) *Freshservice {
 	}
 
 	logs := log.NewLog()
-	logs.SetLevel(log.LevelInfo)
+	logs.SetLevel(log.LevelTrace)
 	fd := &Freshservice{
 		Domain:     domain,
 		Apikey:     apikey,

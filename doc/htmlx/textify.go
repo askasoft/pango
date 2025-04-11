@@ -75,7 +75,7 @@ type Textifier struct {
 	ln int                // ol>li number
 	lv int                // ol/ul/dir/menu level
 	th bool               // thead
-	tc int                // td count
+	td int                // td count
 }
 
 func NewTextifier(w io.Writer) *Textifier {
@@ -101,7 +101,9 @@ func (tf *Textifier) Textify(n *html.Node) error {
 		return nil
 	case html.ElementNode:
 		switch n.DataAtom {
-		case atom.Noscript, atom.Script, atom.Style, atom.Select, atom.Object, atom.Applet, atom.Iframe, atom.Frameset, atom.Frame:
+		case atom.Noscript, atom.Script, atom.Style, atom.Select, atom.Object, atom.Applet:
+			return nil
+		case atom.Iframe, atom.Frameset, atom.Frame, atom.Rb, atom.Rp, atom.Rt, atom.Rtc:
 			return nil
 		case atom.Br:
 			return tf.LbrDeep(n)
@@ -139,16 +141,22 @@ func (tf *Textifier) Textify(n *html.Node) error {
 			return tf.WbrDeep(n)
 		case atom.Dd:
 			return tf.Dd(n)
-		case atom.Div, atom.P:
-			return tf.RbrDeep(n)
 		case atom.Blockquote:
 			return tf.Blockquote(n)
-		case atom.Code, atom.Pre, atom.Textarea, atom.Xmp:
-			return tf.RawDeep(n)
 		case atom.A:
 			return tf.A(n)
 		case atom.Img:
 			return tf.Img(n)
+		case atom.B, atom.Strong:
+			return tf.Bold(n)
+		case atom.Em, atom.I:
+			return tf.Italic(n)
+		case atom.S, atom.Strike:
+			return tf.Strike(n)
+		case atom.Div, atom.P, atom.Section:
+			return tf.RbrDeep(n)
+		case atom.Code, atom.Pre, atom.Textarea, atom.Xmp:
+			return tf.RawDeep(n)
 		default:
 			return tf.Deep(n)
 		}
@@ -167,6 +175,29 @@ func (tf *Textifier) Text(s string) error {
 func (tf *Textifier) Eol() error {
 	tf.cw.Reset(true)
 	_, err := tf.pw.Write([]byte{'\n'})
+	return err
+}
+
+func (tf *Textifier) Bold(n *html.Node) error {
+	return tf.WrapDeep(n, "**")
+}
+
+func (tf *Textifier) Italic(n *html.Node) error {
+	return tf.WrapDeep(n, "*")
+}
+
+func (tf *Textifier) Strike(n *html.Node) error {
+	return tf.WrapDeep(n, "~")
+}
+
+func (tf *Textifier) WrapDeep(n *html.Node, w string) error {
+	if _, err := tf.pw.WriteString(w); err != nil {
+		return err
+	}
+	if err := tf.Deep(n); err != nil {
+		return err
+	}
+	_, err := tf.pw.WriteString(w)
 	return err
 }
 
@@ -272,8 +303,8 @@ func (tf *Textifier) Tr(n *html.Node) error {
 		return err
 	}
 	tf.cw.Reset(true)
-	tc := tf.tc
-	tf.tc = 0
+	td := tf.td
+	tf.td = 0
 	if err := tf.Deep(n); err != nil {
 		return err
 	}
@@ -284,7 +315,7 @@ func (tf *Textifier) Tr(n *html.Node) error {
 		if _, err := tf.pw.Write([]byte{'|'}); err != nil {
 			return err
 		}
-		for i := 0; i < tf.tc; i++ {
+		for range tf.td {
 			if _, err := tf.pw.WriteString("---|"); err != nil {
 				return err
 			}
@@ -293,12 +324,12 @@ func (tf *Textifier) Tr(n *html.Node) error {
 			return err
 		}
 	}
-	tf.tc = tc
+	tf.td = td
 	return nil
 }
 
 func (tf *Textifier) Td(n *html.Node) error {
-	tf.tc++
+	tf.td++
 	if err := tf.Deep(n); err != nil {
 		return err
 	}

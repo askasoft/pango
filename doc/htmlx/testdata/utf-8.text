@@ -13,9 +13,10 @@
 ##### H5です。
 
 ###### H6です。
-DIVです。 SPANです。 
+Section: DIVです。 There are **apple**, *banana*, ~peer~. 
 PREです。
-LINE2です。
+	LINE2です。
+
 
 https://google.com/ [Aです。](https://a.com/) [Bです。](https://b.com/) ![x.png](./x.png) ![a.png](./a.png) ![b.png](./b.png) 
 

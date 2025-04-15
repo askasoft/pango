@@ -20,8 +20,12 @@ func (b *Builder) Reset() *Builder {
 	return b
 }
 
+func (b *Builder) Explain(sql string, args ...any) string {
+	return b.sqb.Explain(sql, args...)
+}
+
 func (b *Builder) Build(raw ...bool) (string, []any) {
-	return b.SQL(raw...), b.Params()
+	return b.sqb.Build(raw...)
 }
 
 func (b *Builder) SQL(raw ...bool) string {
@@ -129,6 +133,66 @@ func (b *Builder) Names(cols ...string) *Builder {
 
 func (b *Builder) Omits(cols ...string) *Builder {
 	b.sqb.Omits(cols...)
+	return b
+}
+
+func (b *Builder) Eq(col string, val any) *Builder {
+	b.sqb.Eq(col, val)
+	return b
+}
+
+func (b *Builder) Neq(col string, val any) *Builder {
+	b.sqb.Neq(col, val)
+	return b
+}
+
+func (b *Builder) Gt(col string, val any) *Builder {
+	b.sqb.Gt(col, val)
+	return b
+}
+
+func (b *Builder) Gte(col string, val any) *Builder {
+	b.sqb.Gte(col, val)
+	return b
+}
+
+func (b *Builder) Lt(col string, val any) *Builder {
+	b.sqb.Lt(col, val)
+	return b
+}
+
+func (b *Builder) Lte(col string, val any) *Builder {
+	b.sqb.Lte(col, val)
+	return b
+}
+
+func (b *Builder) Like(col string, val any) *Builder {
+	b.sqb.Like(col, val)
+	return b
+}
+
+func (b *Builder) ILike(col string, val any) *Builder {
+	b.sqb.ILike(col, val)
+	return b
+}
+
+func (b *Builder) NotLike(col string, val any) *Builder {
+	b.sqb.NotLike(col, val)
+	return b
+}
+
+func (b *Builder) NotILike(col string, val any) *Builder {
+	b.sqb.NotILike(col, val)
+	return b
+}
+
+func (b *Builder) Btw(col string, vmin, vmax any) *Builder {
+	b.sqb.Btw(col, vmin, vmax)
+	return b
+}
+
+func (b *Builder) Nbtw(col string, vmin, vmax any) *Builder {
+	b.sqb.Nbtw(col, vmin, vmax)
 	return b
 }
 

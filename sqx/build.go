@@ -196,6 +196,54 @@ func (b *Builder) Omits(cols ...string) *Builder {
 	return b
 }
 
+func (b *Builder) Eq(col string, val any) *Builder {
+	return b.Where(b.Quote(col)+" = ?", val)
+}
+
+func (b *Builder) Neq(col string, val any) *Builder {
+	return b.Where(b.Quote(col)+" <> ?", val)
+}
+
+func (b *Builder) Gt(col string, val any) *Builder {
+	return b.Where(b.Quote(col)+" > ?", val)
+}
+
+func (b *Builder) Gte(col string, val any) *Builder {
+	return b.Where(b.Quote(col)+" >= ?", val)
+}
+
+func (b *Builder) Lt(col string, val any) *Builder {
+	return b.Where(b.Quote(col)+" < ?", val)
+}
+
+func (b *Builder) Lte(col string, val any) *Builder {
+	return b.Where(b.Quote(col)+" <= ?", val)
+}
+
+func (b *Builder) Like(col string, val any) *Builder {
+	return b.Where(b.Quote(col)+" LIKE ?", val)
+}
+
+func (b *Builder) ILike(col string, val any) *Builder {
+	return b.Where(b.Quote(col)+" ILIKE ?", val)
+}
+
+func (b *Builder) NotLike(col string, val any) *Builder {
+	return b.Where(b.Quote(col)+" NOT LIKE ?", val)
+}
+
+func (b *Builder) NotILike(col string, val any) *Builder {
+	return b.Where(b.Quote(col)+" NOT ILIKE ?", val)
+}
+
+func (b *Builder) Btw(col string, vmin, vmax any) *Builder {
+	return b.Where(b.Quote(col)+" BETWEEN ? AND ?", vmin, vmax)
+}
+
+func (b *Builder) Nbtw(col string, vmin, vmax any) *Builder {
+	return b.Where(b.Quote(col)+" NOT BETWEEN ? AND ?", vmin, vmax)
+}
+
 func (b *Builder) In(col string, val any) *Builder {
 	return b.in("IN", b.Quote(col), val)
 }

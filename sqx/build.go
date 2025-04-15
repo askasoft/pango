@@ -124,13 +124,22 @@ func (b *Builder) Update(tb string) *Builder {
 	return b
 }
 
-func (b *Builder) From(tb string) *Builder {
+func (b *Builder) From(tb string, args ...any) *Builder {
 	b.table = tb
+	b.params = append(b.params, args...)
 	return b
 }
 
+// Columns add select columns
 func (b *Builder) Columns(cols ...string) *Builder {
 	b.columns = append(b.columns, cols...)
+	return b
+}
+
+// Columnx add select column and parameters
+func (b *Builder) Columnx(col string, args ...any) *Builder {
+	b.columns = append(b.columns, col)
+	b.params = append(b.params, args...)
 	return b
 }
 

@@ -72,13 +72,20 @@ func (b *Builder) Update(tb string) *Builder {
 	return b
 }
 
-func (b *Builder) From(tb string) *Builder {
-	b.sqb.From(tb)
+func (b *Builder) From(tb string, args ...any) *Builder {
+	b.sqb.From(tb, args...)
 	return b
 }
 
+// Columns add select columns
 func (b *Builder) Columns(cols ...string) *Builder {
 	b.sqb.Columns(cols...)
+	return b
+}
+
+// Columnx add select column and parameters
+func (b *Builder) Columnx(col string, args ...any) *Builder {
+	b.sqb.Columnx(col, args...)
 	return b
 }
 

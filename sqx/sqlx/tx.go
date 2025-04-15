@@ -37,7 +37,7 @@ func (tx *Tx) ExecContext(ctx context.Context, query string, args ...any) (sql.R
 //
 // To use an existing prepared statement on this transaction, see Tx.Stmt.
 func (tx *Tx) Prepare(query string) (*sql.Stmt, error) {
-	return tx.tracer.TracePrepare(tx, query)
+	return tx.tracer.TracePrepare(tx.tx, query)
 }
 
 // PrepareContext creates a prepared statement for later queries or executions.

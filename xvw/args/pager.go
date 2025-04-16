@@ -6,10 +6,10 @@ import (
 )
 
 type Pager struct {
-	Page  int `form:"p"` // page no
-	Limit int `form:"l"` // page limit
-	Count int // page item count
-	Total int // total count
+	Page  int `json:"p,omitempty" form:"p"` // page no
+	Limit int `json:"l,omitempty" form:"l"` // page limit
+	Count int `json:"-"`                    // page item count
+	Total int `json:"-"`                    // total count
 }
 
 func (p *Pager) Start() int {

@@ -15,21 +15,41 @@ type Builder struct {
 	sqb sqx.Builder
 }
 
-func (b *Builder) Reset() *Builder {
-	b.sqb.Reset()
-	return b
+// Rebind a SQL from the default binder (QUESTION) to the target binder.
+func (b *Builder) Rebind(sql string) string {
+	return b.sqb.Rebind(sql)
+}
+
+func (b *Builder) Placeholder(n int) string {
+	return b.sqb.Placeholder(n)
 }
 
 func (b *Builder) Explain(sql string, args ...any) string {
 	return b.sqb.Explain(sql, args...)
 }
 
-func (b *Builder) Build(raw ...bool) (string, []any) {
-	return b.sqb.Build(raw...)
+// Quotes quote string 's' in 'ss' with quote marks [2]rune, return (m[0] + s + m[1])
+func (b *Builder) Quotes(ss ...string) []string {
+	return b.sqb.Quotes(ss...)
 }
 
-func (b *Builder) SQL(raw ...bool) string {
-	return b.sqb.SQL(raw...)
+// Quote quote string 's' with quotes [2]rune.
+// Returns (quoter[0] + s + quoter[1]), if 's' does not contains any "!\"#$%&'()*+,-/:;<=>?@[\\]^`{|}~" characters.
+func (b *Builder) Quote(s string) string {
+	return b.sqb.Quote(s)
+}
+
+func (b *Builder) Reset() *Builder {
+	b.sqb.Reset()
+	return b
+}
+
+func (b *Builder) Build() (string, []any) {
+	return b.sqb.Build()
+}
+
+func (b *Builder) SQL() string {
+	return b.sqb.SQL()
 }
 
 func (b *Builder) Params() []any {
@@ -133,6 +153,16 @@ func (b *Builder) Names(cols ...string) *Builder {
 
 func (b *Builder) Omits(cols ...string) *Builder {
 	b.sqb.Omits(cols...)
+	return b
+}
+
+func (b *Builder) IsNull(col string) *Builder {
+	b.sqb.IsNull(col)
+	return b
+}
+
+func (b *Builder) NotNull(col string) *Builder {
+	b.sqb.NotNull(col)
 	return b
 }
 

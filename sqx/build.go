@@ -46,15 +46,15 @@ func (b *Builder) Reset() *Builder {
 	return b
 }
 
-func (b *Builder) Build(raw ...bool) (string, []any) {
-	return b.SQL(raw...), b.Params()
+func (b *Builder) Build() (string, []any) {
+	return b.Rebind(b.SQL()), b.Params()
 }
 
 func (b *Builder) Params() []any {
 	return b.params
 }
 
-func (b *Builder) SQL(raw ...bool) string {
+func (b *Builder) SQL() string {
 	s := ""
 	switch b.command {
 	case cselect:
@@ -66,10 +66,7 @@ func (b *Builder) SQL(raw ...bool) string {
 	case cupdate:
 		s = b.buildUpdate()
 	}
-	if len(raw) > 0 && raw[0] {
-		return s
-	}
-	return b.Rebind(s)
+	return s
 }
 
 // Count shortcut for SELECT COUNT(*)
@@ -194,6 +191,14 @@ func (b *Builder) Omits(cols ...string) *Builder {
 		b.values = asg.DeleteEqual(b.values, ":"+col)
 	}
 	return b
+}
+
+func (b *Builder) IsNull(col string) *Builder {
+	return b.Where(b.Quote(col) + " IS NULL")
+}
+
+func (b *Builder) NotNull(col string) *Builder {
+	return b.Where(b.Quote(col) + " IS NOT NULL")
 }
 
 func (b *Builder) Eq(col string, val any) *Builder {

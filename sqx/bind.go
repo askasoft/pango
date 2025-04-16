@@ -72,31 +72,31 @@ func BindDriver(driverName string, binder Binder) {
 	binders = nbs
 }
 
-// Rebind a query from the default binder (QUESTION) to the target binder.
-func (binder Binder) Rebind(query string) string {
+// Rebind a SQL from the default binder (QUESTION) to the target binder.
+func (binder Binder) Rebind(sql string) string {
 	switch binder {
 	case BindQuestion, BindUnknown:
-		return query
+		return sql
 	}
 
 	// Add space enough for 10 params before we have to allocate
-	rqb := make([]byte, 0, len(query)+10)
+	rqb := make([]byte, 0, len(sql)+10)
 
 	n := 0
-	for i := str.IndexByte(query, '?'); i >= 0; i = str.IndexByte(query, '?') {
-		rqb = append(rqb, query[:i]...)
+	for i := str.IndexByte(sql, '?'); i >= 0; i = str.IndexByte(sql, '?') {
+		rqb = append(rqb, sql[:i]...)
 
 		n++
-		rqb = binder.Append(rqb, n)
+		rqb = binder.append(rqb, n)
 
-		query = query[i+1:]
+		sql = sql[i+1:]
 	}
-	rqb = append(rqb, query...)
+	rqb = append(rqb, sql...)
 
 	return str.UnsafeString(rqb)
 }
 
-func (binder Binder) Append(q []byte, n int) []byte {
+func (binder Binder) append(q []byte, n int) []byte {
 	switch binder {
 	case BindDollar:
 		q = append(q, '$')

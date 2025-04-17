@@ -13,16 +13,7 @@ type SchemaInfo struct {
 type SchemaQuery struct {
 	args.Pager
 	args.Sorter
-	Name string `json:"name" form:"name,strip"`
-}
-
-func (sq *SchemaQuery) Normalize(limits []int) {
-	sq.Sorter.Normalize(
-		"name",
-		"comment",
-		"size",
-	)
-	sq.Pager.Normalize(limits...)
+	Name string `json:"name,omitempty" form:"name,strip"`
 }
 
 type SchemaManager interface {

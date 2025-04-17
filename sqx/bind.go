@@ -116,6 +116,7 @@ func (binder Binder) append(q []byte, n int) []byte {
 	return q
 }
 
+// Placeholder generate a place holder mark with No. n.
 func (binder Binder) Placeholder(n int) string {
 	switch binder {
 	case BindDollar:

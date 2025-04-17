@@ -171,6 +171,17 @@ func (b *Builder) Setc(col string, arg any) *Builder {
 	return b.Setx(col, "?", arg)
 }
 
+// Name add named column and value.
+// Example:
+//
+//	sqb.Insert("a").Name("id") // INSERT INTO a (id) VALUES (:id)
+//	sqb.Update("a").Name("value").Where("id = :id") // UPDATE a SET value = :value WHERE id = :id
+func (b *Builder) Name(col string) *Builder {
+	b.columns = append(b.columns, col)
+	b.values = append(b.values, ":"+col)
+	return b
+}
+
 // Names add named columns and values.
 // Example:
 //
@@ -178,8 +189,7 @@ func (b *Builder) Setc(col string, arg any) *Builder {
 //	sqb.Update("a").Names("name", "value").Where("id = :id") // UPDATE a SET name = :name, value = :value WHERE id = :id
 func (b *Builder) Names(cols ...string) *Builder {
 	for _, col := range cols {
-		b.columns = append(b.columns, col)
-		b.values = append(b.values, ":"+col)
+		b.Name(col)
 	}
 	return b
 }

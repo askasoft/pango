@@ -3,7 +3,6 @@ package sqx
 import (
 	"context"
 	"database/sql"
-	"fmt"
 )
 
 //------------------------------------------------
@@ -140,6 +139,7 @@ func MustStmtExecContext(ctx context.Context, e ContextStmtExecer, query string,
 // they are rolled back.
 func Transaction(db Beginer, fc func(tx *sql.Tx) error) (err error) {
 	var tx *sql.Tx
+	var done bool
 
 	tx, err = db.Begin()
 	if err != nil {
@@ -148,16 +148,16 @@ func Transaction(db Beginer, fc func(tx *sql.Tx) error) (err error) {
 
 	defer func() {
 		// Make sure to rollback when panic
-		if x := recover(); x != nil {
-			err = fmt.Errorf("panic: %v", x)
+		if err != nil || !done {
 			_ = tx.Rollback()
 		}
 	}()
 
 	if err = fc(tx); err == nil {
-		return tx.Commit()
+		err = tx.Commit()
 	}
 
+	done = true
 	return
 }
 
@@ -166,6 +166,7 @@ func Transaction(db Beginer, fc func(tx *sql.Tx) error) (err error) {
 // they are rolled back.
 func Transactionx(ctx context.Context, db BeginTxer, opts *sql.TxOptions, fc func(tx *sql.Tx) error) (err error) {
 	var tx *sql.Tx
+	var done bool
 
 	tx, err = db.BeginTx(ctx, opts)
 	if err != nil {
@@ -174,15 +175,15 @@ func Transactionx(ctx context.Context, db BeginTxer, opts *sql.TxOptions, fc fun
 
 	defer func() {
 		// Make sure to rollback when panic
-		if x := recover(); x != nil {
-			err = fmt.Errorf("panic: %v", x)
+		if err != nil || !done {
 			_ = tx.Rollback()
 		}
 	}()
 
 	if err = fc(tx); err == nil {
-		return tx.Commit()
+		err = tx.Commit()
 	}
 
+	done = true
 	return
 }

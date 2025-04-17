@@ -405,7 +405,7 @@ func (db *DB) NamedCreateContext(ctx context.Context, query string, arg any) (in
 
 // Beginx begins a transaction and returns an *sqlx.Tx instead of an *sql.Tx.
 func (db *DB) Beginx() (*Tx, error) {
-	tx, err := db.db.Begin()
+	tx, err := db.tracer.TraceBegin(db.db)
 	if err != nil {
 		return nil, err
 	}
@@ -420,7 +420,7 @@ func (db *DB) Beginx() (*Tx, error) {
 // transaction. Tx.Commit will return an error if the context provided to
 // BeginxContext is canceled.
 func (db *DB) BeginTxx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) {
-	tx, err := db.db.BeginTx(ctx, opts)
+	tx, err := db.tracer.TraceBeginTx(ctx, db.db, opts)
 	if err != nil {
 		return nil, err
 	}

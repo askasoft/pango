@@ -3,7 +3,6 @@ package sqlx
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"time"
 
 	"github.com/askasoft/pango/ref"
@@ -259,6 +258,16 @@ func (ext *ext) Rebind(query string) string {
 	return ext.binder.Rebind(query)
 }
 
+// Explain generate SQL string with given parameters.
+func (ext *ext) Explain(sql string, args ...any) string {
+	return ext.binder.Explain(sql, args...)
+}
+
+// Placeholder generate a place holder mark with No. n.
+func (ext *ext) Placeholder(n int) string {
+	return ext.binder.Placeholder(n)
+}
+
 // Quoter returns the quoter by driverName passed to the Open function for this DB.
 func (ext *ext) Quoter() Quoter {
 	return ext.quoter
@@ -279,7 +288,7 @@ func (ext *ext) Mapper() *ref.Mapper {
 	return ext.mapper
 }
 
-// SupportRetuning check sql driver support "RETUNING"
+// SupportLastInsertID check sql driver support "LastInsertID()"
 func (ext *ext) SupportLastInsertID() bool {
 	return ext.binder != BindDollar
 }
@@ -546,6 +555,7 @@ func NamedCreateContext(ctx context.Context, x Sqlx, query string, arg any) (int
 // they are rolled back.
 func Transaction(db Beginxer, fc func(tx *Tx) error) (err error) {
 	var tx *Tx
+	var done bool
 
 	tx, err = db.Beginx()
 	if err != nil {
@@ -554,16 +564,16 @@ func Transaction(db Beginxer, fc func(tx *Tx) error) (err error) {
 
 	defer func() {
 		// Make sure to rollback when panic
-		if x := recover(); x != nil {
-			err = fmt.Errorf("panic: %v", x)
+		if err != nil || !done {
 			_ = tx.Rollback()
 		}
 	}()
 
 	if err = fc(tx); err == nil {
-		return tx.Commit()
+		err = tx.Commit()
 	}
 
+	done = true
 	return
 }
 
@@ -572,6 +582,7 @@ func Transaction(db Beginxer, fc func(tx *Tx) error) (err error) {
 // they are rolled back.
 func Transactionx(ctx context.Context, db BeginTxxer, opts *sql.TxOptions, fc func(tx *Tx) error) (err error) {
 	var tx *Tx
+	var done bool
 
 	tx, err = db.BeginTxx(ctx, opts)
 	if err != nil {
@@ -580,16 +591,16 @@ func Transactionx(ctx context.Context, db BeginTxxer, opts *sql.TxOptions, fc fu
 
 	defer func() {
 		// Make sure to rollback when panic
-		if x := recover(); x != nil {
-			err = fmt.Errorf("panic: %v", x)
+		if err != nil || !done {
 			_ = tx.Rollback()
 		}
 	}()
 
 	if err = fc(tx); err == nil {
-		return tx.Commit()
+		err = tx.Commit()
 	}
 
+	done = true
 	return
 }
 

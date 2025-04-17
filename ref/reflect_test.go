@@ -144,9 +144,9 @@ func TestBasicEmbeddedWithTags(t *testing.T) {
 		t.Errorf("Expecting 5 fields")
 	}
 
-	// for _, fi := range fields.index {
-	// 	log.Println(fi)
-	// }
+	for _, fi := range fields.Index {
+		fmt.Println(fi)
+	}
 
 	v := m.FieldByName(zv, "a")
 	if ival(v) != z.A { // the dominant field
@@ -328,9 +328,9 @@ func TestFieldsEmbedded(t *testing.T) {
 	pp.Article.Title = "Best city ever"
 
 	fields := m.TypeMap(reflect.TypeOf(pp))
-	// for i, f := range fields {
-	// 	log.Println(i, f)
-	// }
+	for i, f := range fields.Index {
+		fmt.Println(i, f)
+	}
 
 	ppv := reflect.ValueOf(pp)
 

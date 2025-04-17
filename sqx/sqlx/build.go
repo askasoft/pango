@@ -141,6 +141,16 @@ func (b *Builder) Setc(col string, arg any) *Builder {
 	return b
 }
 
+// Name add named column and value.
+// Example:
+//
+//	sqb.Insert("a").Name("id") // INSERT INTO a (id) VALUES (:id)
+//	sqb.Update("a").Name("value").Where("id = :id") // UPDATE a SET value = :value WHERE id = :id
+func (b *Builder) Name(col string) *Builder {
+	b.sqb.Name(col)
+	return b
+}
+
 // Names add named columns and values.
 // Example:
 //
@@ -271,7 +281,7 @@ func (b *Builder) Limit(limit int) *Builder {
 func (b *Builder) StructSelect(a any, omits ...string) *Builder {
 	sm := b.mpr.TypeMap(reflect.TypeOf(a))
 	for _, fi := range sm.Index {
-		if !asg.Contains(omits, fi.Name) {
+		if !fi.Embedded && !asg.Contains(omits, fi.Name) {
 			b.sqb.Select(fi.Name)
 		}
 	}
@@ -291,7 +301,7 @@ func (b *Builder) StructSelect(a any, omits ...string) *Builder {
 func (b *Builder) StructPrefixSelect(a any, prefix string, omits ...string) *Builder {
 	sm := b.mpr.TypeMap(reflect.TypeOf(a))
 	for _, fi := range sm.Index {
-		if !asg.Contains(omits, fi.Name) {
+		if !fi.Embedded && !asg.Contains(omits, fi.Name) {
 			b.sqb.Select(prefix + fi.Name)
 		}
 	}
@@ -312,8 +322,8 @@ func (b *Builder) StructPrefixSelect(a any, prefix string, omits ...string) *Bui
 func (b *Builder) StructNames(a any, omits ...string) *Builder {
 	sm := b.mpr.TypeMap(reflect.TypeOf(a))
 	for _, fi := range sm.Index {
-		if !asg.Contains(omits, fi.Name) {
-			b.sqb.Names(fi.Name)
+		if !fi.Embedded && !asg.Contains(omits, fi.Name) {
+			b.sqb.Name(fi.Name)
 		}
 	}
 	return b

@@ -11,6 +11,7 @@ import (
 
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/net/netx"
+	"github.com/askasoft/pango/ref"
 	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/xin/render"
 	"github.com/askasoft/pango/xin/validate"
@@ -259,7 +260,7 @@ func (engine *Engine) addRoute(method, path string, handlers HandlersChain) {
 
 	if engine.Logger.IsInfoEnabled() {
 		nuHandlers := len(handlers)
-		handlerName := nameOfFunction(handlers.Last())
+		handlerName := ref.NameOfFunc(handlers.Last())
 		engine.Logger.Infof("%-6s %-25s --> %s (%d handlers)", method, path, handlerName, nuHandlers)
 	}
 
@@ -296,7 +297,7 @@ func iterate(path, method string, routes RoutesInfo, root *node) RoutesInfo {
 		routes = append(routes, RouteInfo{
 			Method:      method,
 			Path:        path,
-			Handler:     nameOfFunction(handlerFunc),
+			Handler:     ref.NameOfFunc(handlerFunc),
 			HandlerFunc: handlerFunc,
 		})
 	}

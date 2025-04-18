@@ -13,6 +13,7 @@ import (
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/net/httpx"
 	"github.com/askasoft/pango/net/httpx/sse"
+	"github.com/askasoft/pango/ref"
 	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/xin/binding"
 	"github.com/askasoft/pango/xin/render"
@@ -132,7 +133,7 @@ func (c *Context) Copy() *Context {
 // HandlerName returns the main handler's name. For example if the handler is "handleGetUsers()",
 // this function will return "main.handleGetUsers".
 func (c *Context) HandlerName() string {
-	return nameOfFunction(c.handlers.Last())
+	return ref.NameOfFunc(c.handlers.Last())
 }
 
 // HandlerNames returns a list of all registered handlers for this context in descending order,
@@ -140,7 +141,7 @@ func (c *Context) HandlerName() string {
 func (c *Context) HandlerNames() []string {
 	hn := make([]string, 0, len(c.handlers))
 	for _, val := range c.handlers {
-		hn = append(hn, nameOfFunction(val))
+		hn = append(hn, ref.NameOfFunc(val))
 	}
 	return hn
 }

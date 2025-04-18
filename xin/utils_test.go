@@ -77,14 +77,6 @@ func TestFilterFlags(t *testing.T) {
 	assert.Equal(t, "text/html", result)
 }
 
-func TestFunctionName(t *testing.T) {
-	assert.Regexp(t, `^(.*/vendor/)?github.com/askasoft/pango/xin.somefunction$`, nameOfFunction(somefunction))
-}
-
-func somefunction() {
-	// this empty function is used by TestFunctionName()
-}
-
 func TestJoinPaths(t *testing.T) {
 	assert.Equal(t, "", joinPaths("", ""))
 	assert.Equal(t, "/", joinPaths("", "/"))

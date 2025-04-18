@@ -3,6 +3,8 @@ package disk
 import (
 	"fmt"
 	"time"
+
+	"github.com/askasoft/pango/num"
 )
 
 type DiskUsage struct {
@@ -25,7 +27,7 @@ func (du *DiskUsage) Usage() float64 {
 }
 
 func (du *DiskUsage) String() string {
-	return fmt.Sprintf("(F: %d, A: %d, T: %d)", du.Free, du.Available, du.Total)
+	return fmt.Sprintf("(F: %s, A: %s, T: %s)", num.HumanSize(du.Free), num.HumanSize(du.Available), num.HumanSize(du.Total))
 }
 
 // DiskIOStats represents disk I/O statistics

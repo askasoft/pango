@@ -1,6 +1,10 @@
 package mem
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/askasoft/pango/num"
+)
 
 type MemoryStats struct {
 	Total     uint64 `json:"total"`      // the total accessible system memory in bytes.
@@ -32,6 +36,8 @@ func (ms *MemoryStats) Usage() float64 {
 }
 
 func (ms *MemoryStats) String() string {
-	return fmt.Sprintf("(T: %d, F: %d, S: %d, B: %d, C: %d, ST: %d, SF: %d)",
-		ms.Total, ms.Free, ms.Shared, ms.Buffer, ms.Cached, ms.SwapTotal, ms.SwapFree)
+	return fmt.Sprintf("(T: %s, F: %s, S: %s, B: %s, C: %s, ST: %s, SF: %s)",
+		num.HumanSize(ms.Total), num.HumanSize(ms.Free),
+		num.HumanSize(ms.Shared), num.HumanSize(ms.Buffer), num.HumanSize(ms.Cached),
+		num.HumanSize(ms.SwapTotal), num.HumanSize(ms.SwapFree))
 }

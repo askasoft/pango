@@ -1597,6 +1597,30 @@ func TestContextMustBindWithXML(t *testing.T) {
 	assert.Equal(t, 0, w.Body.Len())
 }
 
+func TestContextMustBindPlain(t *testing.T) {
+	// string
+	w := httptest.NewRecorder()
+	c, _ := CreateTestContext(w)
+	c.Request, _ = http.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`test string`))
+	c.Request.Header.Add("Content-Type", MIMEPlain)
+
+	var s string
+
+	assert.NoError(t, c.MustBindPlain(&s))
+	assert.Equal(t, "test string", s)
+	assert.Equal(t, 0, w.Body.Len())
+
+	// []byte
+	c.Request, _ = http.NewRequest(http.MethodPost, "/", bytes.NewBufferString(`test []byte`))
+	c.Request.Header.Add("Content-Type", MIMEPlain)
+
+	var bs []byte
+
+	assert.NoError(t, c.MustBindPlain(&bs))
+	assert.Equal(t, []byte("test []byte"), bs)
+	assert.Equal(t, 0, w.Body.Len())
+}
+
 func TestContextMustBindHeader(t *testing.T) {
 	w := httptest.NewRecorder()
 	c, _ := CreateTestContext(w)

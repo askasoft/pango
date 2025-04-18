@@ -43,8 +43,12 @@ func CustomSize(format string, size float64, base float64, units []string) strin
 
 // HumanSize returns a human-readable approximation of a size
 // with specified precision digit numbers (default: 2) (eg. "2.75 MB", "796 KB").
-func HumanSize(n any, precision ...int) string {
-	s, err := HumanSizeAny(n, precision...)
+//
+// e.g. HumanSize(1234) -> 1.21 KB
+// e.g. HumanSize(1234, 1) -> 1.2 KB
+// e.g. HumanSize(1234, "") -> 1.21KB
+func HumanSize(n any, args ...any) string {
+	s, err := HumanSizeAny(n, args...)
 	if err != nil {
 		panic(err)
 	}
@@ -54,37 +58,46 @@ func HumanSize(n any, precision ...int) string {
 
 // HumanSizeAny returns a human-readable approximation of a size
 // with specified precision digit numbers (eg. "2.75 MB", "796 KB").
-func HumanSizeAny(n any, precision ...int) (string, error) {
-	p := 2
-	if len(precision) > 0 {
-		p = precision[0]
+//
+// e.g. HumanSizeAny(1234) -> 1.21 KB
+// e.g. HumanSizeAny(1234, 1) -> 1.2 KB
+// e.g. HumanSizeAny(1234, "") -> 1.21KB
+func HumanSizeAny(n any, args ...any) (string, error) {
+	p, s := 2, " "
+	for _, a := range args {
+		switch v := a.(type) {
+		case string:
+			s = v
+		case int:
+			p = v
+		}
 	}
 
 	switch v := n.(type) {
 	case int8:
-		return HumanSizeFloat(float64(v), p), nil
+		return HumanSizeFloat(float64(v), p, s), nil
 	case int16:
-		return HumanSizeFloat(float64(v), p), nil
+		return HumanSizeFloat(float64(v), p, s), nil
 	case int32:
-		return HumanSizeFloat(float64(v), p), nil
+		return HumanSizeFloat(float64(v), p, s), nil
 	case int64:
-		return HumanSizeFloat(float64(v), p), nil
+		return HumanSizeFloat(float64(v), p, s), nil
 	case int:
-		return HumanSizeFloat(float64(v), p), nil
+		return HumanSizeFloat(float64(v), p, s), nil
 	case uint8:
-		return HumanSizeFloat(float64(v), p), nil
+		return HumanSizeFloat(float64(v), p, s), nil
 	case uint16:
-		return HumanSizeFloat(float64(v), p), nil
+		return HumanSizeFloat(float64(v), p, s), nil
 	case uint32:
-		return HumanSizeFloat(float64(v), p), nil
+		return HumanSizeFloat(float64(v), p, s), nil
 	case uint64:
-		return HumanSizeFloat(float64(v), p), nil
+		return HumanSizeFloat(float64(v), p, s), nil
 	case uint:
-		return HumanSizeFloat(float64(v), p), nil
+		return HumanSizeFloat(float64(v), p, s), nil
 	case float32:
-		return HumanSizeFloat(float64(v), p), nil
+		return HumanSizeFloat(float64(v), p, s), nil
 	case float64:
-		return HumanSizeFloat(v, p), nil
+		return HumanSizeFloat(v, p, s), nil
 	default:
 		return "", fmt.Errorf("HumanSize: unknown type for '%v' (%T)", n, n)
 	}
@@ -92,12 +105,12 @@ func HumanSizeAny(n any, precision ...int) (string, error) {
 
 // HumanSizeFloat returns a human-readable approximation of a size
 // with specified precision digit numbers (eg. "2.75 MB", "796 KB").
-func HumanSizeFloat(size float64, precision int) string {
+func HumanSizeFloat(size float64, precision int, separator string) string {
 	size, unit := getSizeAndUnit(size, KB, sizeUnits)
 
 	hs := FtoaWithDigits(size, precision)
 
-	return hs + " " + unit
+	return hs + separator + unit
 }
 
 // ParseSize returns an integer from a human-readable size using windows specification (KB = 1024B).

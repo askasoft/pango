@@ -3,6 +3,7 @@ package binding
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type appkey struct {
@@ -1139,6 +1141,46 @@ func testBodyBindingFail(t *testing.T, b Binding, name, path, badPath, body, bad
 	req = requestWithBody("POST", badPath, badBody)
 	err = JSON.Bind(req, &obj)
 	assert.Error(t, err)
+}
+
+type failRead struct{}
+
+func (f *failRead) Read(b []byte) (n int, err error) {
+	return 0, errors.New("my fail")
+}
+
+func (f *failRead) Close() error {
+	return nil
+}
+
+func TestPlainBinding(t *testing.T) {
+	p := Plain
+	assert.Equal(t, "plain", p.Name())
+
+	var s string
+	req := requestWithBody(http.MethodPost, "/", "test string")
+	assert.NoError(t, p.Bind(req, &s))
+	assert.Equal(t, "test string", s)
+
+	var bs []byte
+	req = requestWithBody(http.MethodPost, "/", "test []byte")
+	assert.NoError(t, p.Bind(req, &bs))
+	assert.Equal(t, bs, []byte("test []byte"))
+
+	var i int
+	req = requestWithBody(http.MethodPost, "/", "test fail")
+	require.Error(t, p.Bind(req, &i))
+
+	req = requestWithBody(http.MethodPost, "/", "")
+	req.Body = &failRead{}
+	require.Error(t, p.Bind(req, &s))
+
+	req = requestWithBody(http.MethodPost, "/", "")
+	assert.NoError(t, p.Bind(req, nil))
+
+	var ptr *string
+	req = requestWithBody(http.MethodPost, "/", "")
+	assert.NoError(t, p.Bind(req, ptr))
 }
 
 func requestWithBody(method, path, body string) (req *http.Request) {

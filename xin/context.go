@@ -705,6 +705,11 @@ func (c *Context) MustBindQuery(obj any) error {
 	return c.MustBindWith(obj, binding.Query)
 }
 
+// MustBindPlain is a shortcut for c.MustBindWith(obj, binding.Plain).
+func (c *Context) MustBindPlain(obj any) error {
+	return c.MustBindWith(obj, binding.Plain)
+}
+
 // MustBindHeader is a shortcut for c.MustBindWith(obj, binding.Header).
 func (c *Context) MustBindHeader(obj any) error {
 	return c.MustBindWith(obj, binding.Header)
@@ -759,6 +764,11 @@ func (c *Context) BindXML(obj any) error {
 // BindQuery is a shortcut for c.BindWith(obj, binding.Query).
 func (c *Context) BindQuery(obj any) error {
 	return c.BindWith(obj, binding.Query)
+}
+
+// BindPlain is a shortcut for c.BindWith(obj, binding.Plain).
+func (c *Context) ShouldBindPlain(obj any) error {
+	return c.BindWith(obj, binding.Plain)
 }
 
 // BindHeader is a shortcut for c.BindWith(obj, binding.Header).
@@ -831,6 +841,11 @@ func (c *Context) BindBodyWithJSON(obj any) error {
 // BindBodyWithXML is a shortcut for c.BindBodyWith(obj, binding.XML).
 func (c *Context) BindBodyWithXML(obj any) error {
 	return c.BindBodyWith(obj, binding.XML)
+}
+
+// BindBodyWithPlain is a shortcut for c.BindBodyWith(obj, binding.Plain).
+func (c *Context) BindBodyWithPlain(obj any) error {
+	return c.BindBodyWith(obj, binding.Plain)
 }
 
 // RequestHostname use net.SplitHostPort() to get host name only.

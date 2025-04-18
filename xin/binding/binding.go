@@ -48,6 +48,7 @@ var (
 	FormMultipart Binding     = formMultipartBinding{}
 	URI           URIBinding  = uriBinding{}
 	Header        Binding     = headerBinding{}
+	Plain         BodyBinding = plainBinding{}
 )
 
 // Default returns the appropriate Binding instance based on the HTTP method

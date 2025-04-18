@@ -67,6 +67,11 @@ func SetWriter(lw Writer) {
 	_log.SetWriter(lw)
 }
 
+// SwitchWriter use lw to replace the log writer
+func SwitchWriter(lw Writer) {
+	_log.SwitchWriter(lw)
+}
+
 // GetLevel return the logger's level
 func GetLevel() Level {
 	return _log.GetLevel()
@@ -110,6 +115,11 @@ func GetProps() map[string]any {
 // SetProps set logger properties
 func SetProps(props map[string]any) {
 	_log.SetProps(props)
+}
+
+// Flush flush all chan data.
+func Flush() {
+	_log.Flush()
 }
 
 // Close will remove all writers and stop async goroutine

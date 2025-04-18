@@ -13,7 +13,7 @@ import (
 func ExampleLocalizer() {
 	router := xin.Default()
 
-	router.Use(NewLocalizer("en", "ja", "zh").Handler())
+	router.Use(NewLocalizer("en", "ja", "zh").Handle)
 	router.GET("/", func(c *xin.Context) {
 		c.String(200, c.Locale)
 	})

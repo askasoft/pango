@@ -11,7 +11,7 @@ import (
 
 func ExampleHTTPDumper() {
 	router := xin.New()
-	router.Use(NewHTTPDumper(os.Stdout).Handler())
+	router.Use(NewHTTPDumper(os.Stdout).Handle)
 
 	router.Any("/example", func(c *xin.Context) {
 		c.String(http.StatusOK, c.Request.URL.String())

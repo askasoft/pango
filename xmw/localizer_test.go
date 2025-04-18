@@ -12,7 +12,7 @@ import (
 func doLocalizerTest(t *testing.T, req *http.Request, want string) {
 	w := httptest.NewRecorder()
 	router := xin.New()
-	router.Use(NewLocalizer("ja", "zh").Handler())
+	router.Use(NewLocalizer("ja", "zh").Handle)
 	router.Any("/", func(c *xin.Context) {
 		c.String(200, c.Locale)
 	})

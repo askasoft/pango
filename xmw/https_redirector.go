@@ -26,11 +26,6 @@ func (sh *HTTPSRedirector) Disable(disabled bool) {
 	sh.disabled = disabled
 }
 
-// Handler returns the xin.HandlerFunc
-func (sh *HTTPSRedirector) Handler() xin.HandlerFunc {
-	return sh.Handle
-}
-
 // Handle process xin request
 func (sh *HTTPSRedirector) Handle(c *xin.Context) {
 	if sh.disabled {

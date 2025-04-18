@@ -11,7 +11,7 @@ import (
 
 func newHTTPSRedirectorServer(sh *HTTPSRedirector) *xin.Engine {
 	r := xin.New()
-	r.Use(sh.Handler())
+	r.Use(sh.Handle)
 	r.GET("/foo", func(c *xin.Context) {
 		c.String(200, "bar")
 	})

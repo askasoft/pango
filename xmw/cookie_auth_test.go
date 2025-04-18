@@ -15,7 +15,7 @@ func TestCookieAuthSucceed(t *testing.T) {
 	router := xin.New()
 
 	ca := NewCookieAuth(accounts.FindUser, "1234567890abced")
-	router.Use(ca.Handler())
+	router.Use(ca.Handle)
 
 	router.GET("/login", func(c *xin.Context) {
 		c.String(http.StatusOK, c.MustGet(AuthUserKey).(*testAccount).username)
@@ -43,7 +43,7 @@ func TestCookieAuthRedirect(t *testing.T) {
 
 	ca := NewCookieAuth(accounts.FindUser, "1234567890abcdefg")
 	ca.RedirectURL = "/redirect"
-	router.Use(ca.Handler())
+	router.Use(ca.Handle)
 
 	router.GET("/login", func(c *xin.Context) {
 		called = true

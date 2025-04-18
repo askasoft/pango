@@ -32,11 +32,6 @@ func NewOriginAccessController(origins ...string) *OriginAccessController {
 	return &OriginAccessController{AllowOrigins: hashset.NewHashSet(origins...)}
 }
 
-// Handler returns the xin.HandlerFunc
-func (ll *OriginAccessController) Handler() xin.HandlerFunc {
-	return ll.Handle
-}
-
 // SetAllowOrigins set allow origins
 func (ll *OriginAccessController) SetAllowOrigins(origins ...string) {
 	ll.AllowOrigins = hashset.NewHashSet(origins...)

@@ -13,7 +13,7 @@ func TestResponseHeader(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	router := xin.New()
-	router.Use(NewResponseHeader(map[string]string{"Access-Control-Allow-Origin": "*"}).Handler())
+	router.Use(NewResponseHeader(map[string]string{"Access-Control-Allow-Origin": "*"}).Handle)
 	router.GET("/", func(c *xin.Context) {
 		c.String(200, "OK")
 	})

@@ -221,7 +221,3 @@ func (ccs *CacheControlSetter) WrapWriter(w ResponseWriter) ResponseWriter {
 func (ccs *CacheControlSetter) Handle(c *Context) {
 	c.Writer = ccs.WrapWriter(c.Writer)
 }
-
-func (ccs *CacheControlSetter) Handler() HandlerFunc {
-	return ccs.Handle
-}

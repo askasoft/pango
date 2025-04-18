@@ -222,11 +222,6 @@ func (rc *ResponseCompressor) Disable(disabled bool) {
 	rc.disabled = disabled
 }
 
-// Handler returns the xin.HandlerFunc
-func (rc *ResponseCompressor) Handler() xin.HandlerFunc {
-	return rc.Handle
-}
-
 // Handle process xin request
 func (rc *ResponseCompressor) Handle(ctx *xin.Context) {
 	ae := rc.shouldCompress(ctx)

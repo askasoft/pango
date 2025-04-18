@@ -13,7 +13,7 @@ func TestTokenProtectorFail(t *testing.T) {
 	w := httptest.NewRecorder()
 	router := xin.New()
 	tp := NewTokenProtector("1234567890123456")
-	router.Use(tp.Handler())
+	router.Use(tp.Handle)
 	router.POST("/", func(c *xin.Context) {
 		c.String(200, "OK")
 	})
@@ -35,7 +35,7 @@ func TestTokenProtectorOK(t *testing.T) {
 	w := httptest.NewRecorder()
 	router := xin.New()
 	tp := NewTokenProtector("1234567890123456")
-	router.Use(tp.Handler())
+	router.Use(tp.Handle)
 	router.GET("/", func(c *xin.Context) {
 		c.String(200, tp.RefreshToken(c))
 	})

@@ -29,11 +29,6 @@ func (al *AccessLogger) Disable(disabled bool) {
 	al.disabled = disabled
 }
 
-// Handler returns the HandlerFunc
-func (al *AccessLogger) Handler() xin.HandlerFunc {
-	return al.Handle
-}
-
 // Handle process xin request
 func (al *AccessLogger) Handle(c *xin.Context) {
 	w := al.writer

@@ -12,7 +12,7 @@ import (
 func ExampleResponseCompressor() {
 	router := xin.Default()
 
-	router.Use(DefaultResponseCompressor().Handler())
+	router.Use(DefaultResponseCompressor().Handle)
 	router.GET("/", func(c *xin.Context) {
 		c.String(200, strings.Repeat("This is a Test!\n", 1000))
 	})

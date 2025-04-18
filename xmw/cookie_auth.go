@@ -60,11 +60,6 @@ func NewCookieAuth(f FindUserFunc, secret string) *CookieAuth {
 	return ca
 }
 
-// Handler returns the xin.HandlerFunc
-func (ca *CookieAuth) Handler() xin.HandlerFunc {
-	return ca.Handle
-}
-
 // Handle process xin request
 func (ca *CookieAuth) Handle(c *xin.Context) {
 	if _, ok := c.Get(ca.AuthUserKey); ok {

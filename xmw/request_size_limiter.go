@@ -20,11 +20,6 @@ func NewRequestSizeLimiter(maxBodySize int64) *RequestSizeLimiter {
 	return &RequestSizeLimiter{MaxBodySize: maxBodySize}
 }
 
-// Handler returns the xin.HandlerFunc
-func (rsl *RequestSizeLimiter) Handler() xin.HandlerFunc {
-	return rsl.Handle
-}
-
 // Handle process xin request
 func (rsl *RequestSizeLimiter) Handle(c *xin.Context) {
 	if rsl.MaxBodySize <= 0 {

@@ -43,7 +43,7 @@ func TestHttpDump(t *testing.T) {
 		}
 		ctx.Next()
 	})
-	router.Use(hd.Handler())
+	router.Use(hd.Handle)
 
 	router.Any("/example", func(c *xin.Context) {
 		c.String(http.StatusOK, c.Request.URL.String())

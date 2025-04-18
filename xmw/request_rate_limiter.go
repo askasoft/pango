@@ -25,11 +25,6 @@ func NewRequestRateLimiter(limit int, duration, cleanupInterval time.Duration) *
 	return &RequestRateLimiter{Limit: limit, Duration: duration, counts: imc.New[string, int](duration, cleanupInterval)}
 }
 
-// Handler returns the xin.HandlerFunc
-func (rrl *RequestRateLimiter) Handler() xin.HandlerFunc {
-	return rrl.Handle
-}
-
 // Handle process xin request
 func (rrl *RequestRateLimiter) Handle(c *xin.Context) {
 	if rrl.Limit <= 0 {

@@ -14,7 +14,7 @@ func TestRequestSizeLimiter(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	router := xin.New()
-	router.Use(NewRequestSizeLimiter(10).Handler())
+	router.Use(NewRequestSizeLimiter(10).Handle)
 	router.POST("/", func(c *xin.Context) {
 		m := map[string]string{}
 		if err := c.MustBindJSON(&m); err == nil {

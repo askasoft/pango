@@ -39,11 +39,6 @@ func NewLocalizer(locales ...string) *Localizer {
 	}
 }
 
-// Handler returns the xin.HandlerFunc
-func (ll *Localizer) Handler() xin.HandlerFunc {
-	return ll.Handle
-}
-
 // Handle process xin request
 func (ll *Localizer) Handle(c *xin.Context) {
 	loc := ll.getLocaleFromParameter(c, ll.LocaleParamNames)

@@ -43,11 +43,6 @@ func NewDigestAuth(f FindUserFunc) *DigestAuth {
 	return da
 }
 
-// Handler returns the xin.HandlerFunc
-func (da *DigestAuth) Handler() xin.HandlerFunc {
-	return da.Handle
-}
-
 // Handle process xin request
 func (da *DigestAuth) Handle(c *xin.Context) {
 	if _, ok := c.Get(da.AuthUserKey); ok {

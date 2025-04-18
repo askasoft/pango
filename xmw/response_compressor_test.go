@@ -96,7 +96,7 @@ func TestResponseCompressorGzip(t *testing.T) {
 	w := httptest.NewRecorder()
 	body := strings.Repeat("This is a Test!\n", 1000)
 	router := xin.New()
-	router.Use(DefaultResponseCompressor().Handler())
+	router.Use(DefaultResponseCompressor().Handle)
 	router.GET("/", func(c *xin.Context) {
 		c.String(200, body)
 	})
@@ -113,7 +113,7 @@ func TestResponseCompressorZlib(t *testing.T) {
 	w := httptest.NewRecorder()
 	body := strings.Repeat("This is a Test!\n", 1000)
 	router := xin.New()
-	router.Use(DefaultResponseCompressor().Handler())
+	router.Use(DefaultResponseCompressor().Handle)
 	router.GET("/", func(c *xin.Context) {
 		c.String(200, body)
 	})
@@ -181,7 +181,7 @@ func TestResponseCompressorIgnore_HTTP_1_0(t *testing.T) {
 
 	router := xin.New()
 	rc := DefaultResponseCompressor()
-	router.Use(rc.Handler())
+	router.Use(rc.Handle)
 
 	body := strings.Repeat("This is http 1.0!\n", 1000)
 	router.GET("/", func(c *xin.Context) {
@@ -199,7 +199,7 @@ func TestResponseCompressorIgnoreSmallSize(t *testing.T) {
 
 	router := xin.New()
 	rc := DefaultResponseCompressor()
-	router.Use(rc.Handler())
+	router.Use(rc.Handle)
 
 	body := "this is a TEXT!"
 	router.GET("/", func(c *xin.Context) {
@@ -217,7 +217,7 @@ func TestResponseCompressorIngoreContentType(t *testing.T) {
 
 	body := strings.Repeat("This is a PNG!\n", 1000)
 	router := xin.New()
-	router.Use(DefaultResponseCompressor().Handler())
+	router.Use(DefaultResponseCompressor().Handle)
 	router.GET("/image.png", func(c *xin.Context) {
 		c.Header("Content-Type", "image/png")
 		c.String(200, body)
@@ -235,7 +235,7 @@ func TestResponseCompressorIgnorePathPrefix(t *testing.T) {
 	router := xin.New()
 	rc := DefaultResponseCompressor()
 	rc.IgnorePathPrefix("/api/")
-	router.Use(rc.Handler())
+	router.Use(rc.Handle)
 
 	body := strings.Repeat("This is books!\n", 1000)
 	router.GET("/api/books", func(c *xin.Context) {
@@ -254,7 +254,7 @@ func TestResponseCompressorIgnorePathRegexp(t *testing.T) {
 	router := xin.New()
 	rc := DefaultResponseCompressor()
 	rc.IgnorePathRegexp("/.*/books")
-	router.Use(rc.Handler())
+	router.Use(rc.Handle)
 
 	body := strings.Repeat("This is books!\n", 1000)
 	router.GET("/api/books", func(c *xin.Context) {
@@ -274,7 +274,7 @@ func testResponseCompressorIgnoreProxied(t *testing.T, proxied string, hand xin.
 	router := xin.New()
 	rc := DefaultResponseCompressor()
 	rc.SetProxied(proxied)
-	router.Use(rc.Handler())
+	router.Use(rc.Handle)
 
 	body := strings.Repeat("This is proxy!\n", 1000)
 	router.GET("/", func(c *xin.Context) {
@@ -329,7 +329,7 @@ func testResponseCompressorEnableProxied(t *testing.T, proxied string, hand xin.
 	router := xin.New()
 	rc := DefaultResponseCompressor()
 	rc.SetProxied(proxied)
-	router.Use(rc.Handler())
+	router.Use(rc.Handle)
 
 	body := strings.Repeat("This is proxy!\n", 1000)
 	router.GET("/", func(c *xin.Context) {

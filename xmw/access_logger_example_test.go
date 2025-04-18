@@ -11,7 +11,7 @@ import (
 
 func ExampleAccessLogger() {
 	router := xin.New()
-	router.Use(NewAccessLogger(NewAccessLogWriter(os.Stdout, AccessLogTextFormat)).Handler())
+	router.Use(NewAccessLogger(NewAccessLogWriter(os.Stdout, AccessLogTextFormat)).Handle)
 
 	router.Any("/example", func(c *xin.Context) {
 		c.String(http.StatusOK, c.Request.URL.String())

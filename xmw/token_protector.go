@@ -74,11 +74,6 @@ func (tp *TokenProtector) SetMethods(ms ...string) {
 	tp.methods = newStringSet(ms...)
 }
 
-// Handler returns the xin.HandlerFunc
-func (tp *TokenProtector) Handler() xin.HandlerFunc {
-	return tp.Handle
-}
-
 // Handle process xin request
 func (tp *TokenProtector) Handle(c *xin.Context) {
 	ms := tp.methods

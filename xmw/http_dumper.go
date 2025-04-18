@@ -44,11 +44,6 @@ func (hd *HTTPDumper) Disable(disabled bool) {
 	hd.disabled = disabled
 }
 
-// Handler returns the xin.HandlerFunc
-func (hd *HTTPDumper) Handler() xin.HandlerFunc {
-	return hd.Handle
-}
-
 // Handle process xin request
 func (hd *HTTPDumper) Handle(c *xin.Context) {
 	w := hd.Outputer

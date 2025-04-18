@@ -40,11 +40,6 @@ func NewBasicAuth(f FindUserFunc) *BasicAuth {
 	return ba
 }
 
-// Handler returns the xin.HandlerFunc
-func (ba *BasicAuth) Handler() xin.HandlerFunc {
-	return ba.Handle
-}
-
 // Handle process xin request
 func (ba *BasicAuth) Handle(c *xin.Context) {
 	if _, ok := c.Get(ba.AuthUserKey); ok {

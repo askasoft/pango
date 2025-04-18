@@ -40,7 +40,7 @@ func testBasicAuthHeader(user, password string) string {
 func TestBasicAuthSucceed(t *testing.T) {
 	accounts := testAccounts{"admin": {"admin", "password"}}
 	router := xin.New()
-	router.Use(NewBasicAuth(accounts.FindUser).Handler())
+	router.Use(NewBasicAuth(accounts.FindUser).Handle)
 	router.GET("/login", func(c *xin.Context) {
 		c.String(http.StatusOK, c.MustGet(AuthUserKey).(*testAccount).username)
 	})
@@ -58,7 +58,7 @@ func TestBasicAuth401(t *testing.T) {
 	called := false
 	accounts := testAccounts{"foo": {"foo", "bar"}}
 	router := xin.New()
-	router.Use(NewBasicAuth(accounts.FindUser).Handler())
+	router.Use(NewBasicAuth(accounts.FindUser).Handle)
 	router.GET("/login", func(c *xin.Context) {
 		called = true
 		c.String(http.StatusOK, c.MustGet(AuthUserKey).(*testAccount).username)
@@ -80,7 +80,7 @@ func TestBasicAuth401WithCustomRealm(t *testing.T) {
 	router := xin.New()
 	ba := NewBasicAuth(accounts.FindUser)
 	ba.Realm = `My Custom "Realm"`
-	router.Use(ba.Handler())
+	router.Use(ba.Handle)
 	router.GET("/login", func(c *xin.Context) {
 		called = true
 		c.String(http.StatusOK, c.MustGet(AuthUserKey).(*testAccount).username)

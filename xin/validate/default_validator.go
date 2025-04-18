@@ -1,8 +1,8 @@
 package validate
 
 import (
-	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/askasoft/pango/vad"
@@ -18,24 +18,21 @@ type SliceValidationError []error
 // Error concatenates all error elements in SliceValidationError into a single string separated by \n.
 func (err SliceValidationError) Error() string {
 	n := len(err)
-	switch n {
-	case 0:
+
+	if n == 0 {
 		return ""
-	default:
-		var b strings.Builder
-		if err[0] != nil {
-			fmt.Fprintf(&b, "[%d]: %s", 0, err[0].Error())
-		}
-		if n > 1 {
-			for i := 1; i < n; i++ {
-				if err[i] != nil {
-					b.WriteString("\n")
-					fmt.Fprintf(&b, "[%d]: %s", i, err[i].Error())
-				}
-			}
-		}
-		return b.String()
 	}
+
+	var b strings.Builder
+	for i := 0; i < n; i++ {
+		if err[i] != nil {
+			if b.Len() > 0 {
+				b.WriteString("\n")
+			}
+			b.WriteString("[" + strconv.Itoa(i) + "]: " + err[i].Error())
+		}
+	}
+	return b.String()
 }
 
 // ValidateStruct receives any kind of type, but only performed struct or pointer to struct type.

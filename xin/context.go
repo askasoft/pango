@@ -393,7 +393,7 @@ func (c *Context) GetStringMapStrings(key string) (smss map[string][]string) {
 /************************************/
 func (c *Context) initQueryCache() {
 	if c.queryCache == nil {
-		if c.Request != nil {
+		if c.Request != nil && c.Request.URL != nil {
 			c.queryCache = c.Request.URL.Query()
 		} else {
 			c.queryCache = url.Values{}

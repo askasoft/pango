@@ -461,6 +461,44 @@ func TestEngineHandleContextManyReEntries(t *testing.T) {
 	assert.Equal(t, int64(expectValue), middlewareCounter)
 }
 
+func TestEngineHandleContextPreventsMiddlewareReEntry(t *testing.T) {
+	// given
+	var handlerCounterV1, handlerCounterV2, middlewareCounterV1 int64
+
+	r := New()
+	v1 := r.Group("/v1")
+	{
+		v1.Use(func(c *Context) {
+			atomic.AddInt64(&middlewareCounterV1, 1)
+		})
+		v1.GET("/test", func(c *Context) {
+			atomic.AddInt64(&handlerCounterV1, 1)
+			c.Status(http.StatusOK)
+		})
+	}
+
+	v2 := r.Group("/v2")
+	{
+		v2.GET("/test", func(c *Context) {
+			c.Request.URL.Path = "/v1/test"
+			r.HandleContext(c)
+		}, func(c *Context) {
+			atomic.AddInt64(&handlerCounterV2, 1)
+		})
+	}
+
+	// when
+	responseV1 := performRequest(r, "GET", "/v1/test")
+	responseV2 := performRequest(r, "GET", "/v2/test")
+
+	// then
+	assert.Equal(t, 200, responseV1.Code)
+	assert.Equal(t, 200, responseV2.Code)
+	assert.Equal(t, int64(2), handlerCounterV1)
+	assert.Equal(t, int64(2), middlewareCounterV1)
+	assert.Equal(t, int64(1), handlerCounterV2)
+}
+
 func TestPrepareTrustedCIRDsWith(t *testing.T) {
 	r := New()
 
@@ -586,3 +624,13 @@ func assertRoutePresent(t *testing.T, gotRoutes RoutesInfo, wantRoute RouteInfo)
 
 func handlerTest1(c *Context) {}
 func handlerTest2(c *Context) {}
+
+func TestMethodNotAllowedNoRoute(t *testing.T) {
+	g := New()
+	g.HandleMethodNotAllowed = true
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	resp := httptest.NewRecorder()
+	assert.NotPanics(t, func() { g.ServeHTTP(resp, req) })
+	assert.Equal(t, http.StatusNotFound, resp.Code)
+}

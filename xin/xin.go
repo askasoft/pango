@@ -375,10 +375,12 @@ func (engine *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 // Disclaimer: You can loop yourself to deal with this, use wisely.
 func (engine *Engine) HandleContext(c *Context) {
 	oldIndexValue := c.index
+	oldHandlers := c.handlers
 	c.reset()
 	engine.handleHTTPRequest(c)
 
 	c.index = oldIndexValue
+	c.handlers = oldHandlers
 }
 
 func (engine *Engine) handleHTTPRequest(c *Context) {
@@ -425,7 +427,7 @@ func (engine *Engine) handleHTTPRequest(c *Context) {
 		break
 	}
 
-	if engine.HandleMethodNotAllowed {
+	if engine.HandleMethodNotAllowed && len(t) > 0 {
 		// According to RFC 7231 section 6.5.5, MUST generate an Allow header field in response
 		// containing a list of the target resource's currently supported methods.
 		allowed := make([]string, 0, len(t)-1)

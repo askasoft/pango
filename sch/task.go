@@ -1,12 +1,11 @@
 package sch
 
 import (
-	"reflect"
-	"runtime"
 	"sync/atomic"
 	"time"
 
 	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/ref"
 )
 
 type Task struct {
@@ -30,13 +29,13 @@ func (t *Task) callback() {
 		if err := recover(); err != nil {
 			t.Error = err
 			if log := t.Logger; log != nil {
-				log.Errorf("Task %q %s() run error: %v", t.Name, nameOfCallback(t.Callback), err)
+				log.Errorf("Task %q %s() run error: %v", t.Name, ref.NameOfFunc(t.Callback), err)
 			}
 		}
 	}()
 
 	if log := t.Logger; log != nil {
-		log.Debugf("Task %q %s() start at %s", t.Name, nameOfCallback(t.Callback), t.ExecutionTime.Format(time.RFC3339))
+		log.Debugf("Task %q %s() start at %s", t.Name, ref.NameOfFunc(t.Callback), t.ExecutionTime.Format(time.RFC3339))
 	}
 
 	t.Callback()
@@ -47,7 +46,7 @@ func (t *Task) run() {
 	if cnt > 1 {
 		atomic.AddInt32(&t.count, -1)
 		if log := t.Logger; log != nil {
-			log.Warnf("Task %q %s() is running at %s, SKIP!", t.Name, nameOfCallback(t.Callback), t.ExecutionTime.Format(time.RFC3339))
+			log.Warnf("Task %q %s() is running at %s, SKIP!", t.Name, ref.NameOfFunc(t.Callback), t.ExecutionTime.Format(time.RFC3339))
 		}
 		return
 	}
@@ -65,15 +64,11 @@ func (t *Task) run() {
 	atomic.AddInt32(&t.count, -1)
 }
 
-func nameOfCallback(f any) string {
-	return runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
-}
-
 func (t *Task) schedule() {
 	timer := t.timer
 	if timer != nil && !t.ScheduledTime.IsZero() {
 		if log := t.Logger; log != nil {
-			log.Infof("Schedule task %q %s() at %s", t.Name, nameOfCallback(t.Callback), t.ScheduledTime.Format(time.RFC3339))
+			log.Infof("Schedule task %q %s() at %s", t.Name, ref.NameOfFunc(t.Callback), t.ScheduledTime.Format(time.RFC3339))
 		}
 
 		d := time.Until(t.ScheduledTime)
@@ -97,7 +92,7 @@ func (t *Task) Stop() bool {
 	timer := t.timer
 	if timer != nil {
 		if log := t.Logger; log != nil {
-			log.Infof("Stop task %q %s() at %s", t.Name, nameOfCallback(t.Callback), t.ScheduledTime.Format(time.RFC3339))
+			log.Infof("Stop task %q %s() at %s", t.Name, ref.NameOfFunc(t.Callback), t.ScheduledTime.Format(time.RFC3339))
 		}
 		t.timer = nil
 		return timer.Stop()

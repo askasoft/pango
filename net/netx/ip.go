@@ -1,10 +1,19 @@
 package netx
 
 import (
+	"encoding/binary"
 	"net"
 
 	"github.com/askasoft/pango/str"
 )
+
+// IPv4ToInt converts IP address of version 4 from net.IP to uint32 representation.
+func IPv4ToInt(ip net.IP) uint32 {
+	if ipv4 := ip.To4(); ipv4 != nil {
+		return binary.BigEndian.Uint32(ipv4)
+	}
+	return 0
+}
 
 // ParseIP parse a string representation of an IP and returns a net.IP with the
 // minimum byte representation or nil if input is invalid.

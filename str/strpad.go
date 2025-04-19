@@ -5,17 +5,34 @@ import (
 	"unicode/utf8"
 )
 
-// RepeatByte returns a new string consisting of count copies of the byte b.
+const maxInt = int(^uint(0) >> 1)
+
+// Repeat returns a new string consisting of count copies of the string s.
 //
-// It panics if count is negative or if
+// It panics if the result of (len(s) * count) overflows.
+func Repeat(s string, count int) string {
+	if count <= 0 {
+		return ""
+	}
+	if len(s) > maxInt/count {
+		panic("str: Repeat output length overflow")
+	}
+
+	return strings.Repeat(s, count)
+}
+
+// RepeatByte returns a new string consisting of count copies of the byte b.
 func RepeatByte(b byte, count int) string {
 	if count <= 0 {
 		return ""
 	}
+	if count > maxInt {
+		panic("str: RepeatByte output length overflow")
+	}
 
 	sb := &strings.Builder{}
 	sb.Grow(count)
-	for i := 0; i < count; i++ {
+	for sb.Len() < count {
 		sb.WriteByte(b)
 	}
 	return sb.String()
@@ -23,8 +40,7 @@ func RepeatByte(b byte, count int) string {
 
 // RepeatRune returns a new string consisting of count copies of the rune r.
 //
-// It panics if count is negative or if
-// the result of (utf8.RuneLen(r) * count) overflows.
+// It panics if the result of (utf8.RuneLen(r) * count) overflows.
 func RepeatRune(r rune, count int) string {
 	if count <= 0 {
 		return ""
@@ -43,7 +59,7 @@ func RepeatRune(r rune, count int) string {
 
 	sb := &strings.Builder{}
 	sb.Grow(size)
-	for i := 0; i < count; i++ {
+	for sb.Len() < size {
 		sb.WriteRune(r)
 	}
 	return sb.String()

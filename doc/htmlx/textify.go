@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/askasoft/pango/iox"
+	"github.com/askasoft/pango/num"
 	"github.com/askasoft/pango/str"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
@@ -174,7 +175,7 @@ func (tf *Textifier) Text(s string) error {
 
 func (tf *Textifier) Eol() error {
 	tf.cw.Reset(true)
-	_, err := tf.pw.Write([]byte{'\n'})
+	_, err := tf.pw.WriteString("\n")
 	return err
 }
 
@@ -281,8 +282,7 @@ func (tf *Textifier) Title(n *html.Node) error {
 	if err := tf.Eol(); err != nil {
 		return err
 	}
-	s = str.RepeatRune('=', len(s))
-	if _, err := tf.pw.WriteString(s); err != nil {
+	if _, err := iox.RepeatWriteString(tf.pw, "=", len(s)); err != nil {
 		return err
 	}
 	return tf.Eol()
@@ -368,17 +368,26 @@ func (tf *Textifier) Ul(n *html.Node) error {
 }
 
 func (tf *Textifier) Li(n *html.Node) error {
-	p := str.RepeatRune('\t', tf.lv-1)
+	if _, err := iox.RepeatWriteString(tf.pw, "\t", tf.lv-1); err != nil {
+		return err
+	}
 	if tf.ln > 0 {
-		if _, err := fmt.Fprintf(tf.pw, "%s%d. ", p, tf.ln); err != nil {
+		if _, err := tf.pw.WriteString(num.Itoa(tf.ln)); err != nil {
+			return err
+		}
+		if _, err := tf.pw.WriteString("."); err != nil {
 			return err
 		}
 		tf.ln++
 	} else {
-		if _, err := tf.pw.WriteString(p + "- "); err != nil {
+		if _, err := tf.pw.WriteString("-"); err != nil {
 			return err
 		}
 	}
+	if _, err := tf.pw.WriteString(" "); err != nil {
+		return err
+	}
+
 	tf.cw.Reset(true)
 	return tf.RbrDeep(n)
 }

@@ -9,6 +9,40 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
+// RepeatWrite repeat write bytes s.
+func RepeatWrite(w io.Writer, s []byte, count int) (int, error) {
+	if count <= 0 {
+		return 0, nil
+	}
+
+	total := 0
+	for range count {
+		n, err := w.Write(s)
+		total += n
+		if err != nil {
+			return total, err
+		}
+	}
+	return total, nil
+}
+
+// RepeatWriteString repeat write string s.
+func RepeatWriteString(w io.Writer, s string, count int) (int, error) {
+	if count <= 0 {
+		return 0, nil
+	}
+
+	total := 0
+	for range count {
+		n, err := WriteString(w, s)
+		total += n
+		if err != nil {
+			return total, err
+		}
+	}
+	return total, nil
+}
+
 // ProxyWriter proxy writer
 type ProxyWriter struct {
 	W io.Writer

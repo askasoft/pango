@@ -279,6 +279,9 @@ func setByForm(value reflect.Value, field reflect.StructField, form map[string][
 
 		if len(vs) > 0 {
 			val = vs[0]
+			if val == "" {
+				val = opt.defaults
+			}
 		}
 		isSet, err = true, setWithProperType(val, value, field)
 	}

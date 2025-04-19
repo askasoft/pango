@@ -161,6 +161,24 @@ func TestMappingForm(t *testing.T) {
 	assert.Equal(t, int(6), s.F)
 }
 
+func TestMappingFormFieldNotSent(t *testing.T) {
+	var s struct {
+		F string `form:"field,default=defVal"`
+	}
+	err := mapForm(&s, map[string][]string{})
+	assert.NoError(t, err)
+	assert.Equal(t, "defVal", s.F)
+}
+
+func TestMappingFormWithEmptyToDefault(t *testing.T) {
+	var s struct {
+		F string `form:"field,default=DefVal"`
+	}
+	err := mapForm(&s, map[string][]string{"field": {""}})
+	assert.NoError(t, err)
+	assert.Equal(t, "DefVal", s.F)
+}
+
 func TestMapFormWithTag(t *testing.T) {
 	var s struct {
 		F int `externalTag:"field"`

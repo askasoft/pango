@@ -67,16 +67,14 @@ type CustomTypeFunc func(field reflect.Value) any
 type TagNameFunc func(field reflect.StructField) string
 
 type internalValidationFuncWrapper struct {
-	fn                FuncCtx
-	runValidatinOnNil bool
+	fn                 FuncCtx
+	runValidationOnNil bool
 }
 
 // Validate contains the validator settings and cache
 type Validate struct {
 	tagName          string
 	pool             *sync.Pool
-	hasCustomFuncs   bool
-	hasTagNameFunc   bool
 	tagNameFunc      TagNameFunc
 	structLevelFuncs map[reflect.Type]StructLevelFuncCtx
 	customFuncs      map[reflect.Type]CustomTypeFunc
@@ -84,6 +82,8 @@ type Validate struct {
 	validations      map[string]internalValidationFuncWrapper
 	tagCache         *tagCache
 	structCache      *structCache
+	hasCustomFuncs   bool
+	hasTagNameFunc   bool
 }
 
 // New returns a new instance of 'validate' with sane defaults.
@@ -143,6 +143,7 @@ func (v *Validate) SetTagName(name string) {
 //
 //	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 //	    name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+//	    // skip if tag key says it should be ignored
 //	    if name == "-" {
 //	        return ""
 //	    }
@@ -185,7 +186,7 @@ func (v *Validate) registerValidation(tag string, fn FuncCtx, bakedIn bool, nilC
 	if !bakedIn && (ok || strings.ContainsAny(tag, restrictedTagChars)) {
 		panic(fmt.Sprintf(restrictedTagErr, tag))
 	}
-	v.validations[tag] = internalValidationFuncWrapper{fn: fn, runValidatinOnNil: nilCheckable}
+	v.validations[tag] = internalValidationFuncWrapper{fn: fn, runValidationOnNil: nilCheckable}
 }
 
 // RegisterAlias registers a mapping of a single validation tag that
@@ -267,7 +268,7 @@ func (v *Validate) StructCtx(ctx context.Context, s any) (err error) {
 		val = val.Elem()
 	}
 
-	if val.Kind() != reflect.Struct || val.Type() == timeType {
+	if val.Kind() != reflect.Struct || val.Type().ConvertibleTo(timeType) {
 		return &InvalidValidationError{Type: reflect.TypeOf(s)}
 	}
 
@@ -311,7 +312,7 @@ func (v *Validate) StructFilteredCtx(ctx context.Context, s any, fn FilterFunc) 
 		val = val.Elem()
 	}
 
-	if val.Kind() != reflect.Struct || val.Type() == timeType {
+	if val.Kind() != reflect.Struct || val.Type().ConvertibleTo(timeType) {
 		return &InvalidValidationError{Type: reflect.TypeOf(s)}
 	}
 
@@ -344,7 +345,7 @@ func (v *Validate) StructPartial(s any, fields ...string) error {
 }
 
 // StructPartialCtx validates the fields passed in only, ignoring all others and allows passing of contextual
-// validation validation information via context.Context
+// validation information via context.Context
 // Fields may be provided in a namespaced fashion relative to the  struct provided
 // eg. NestedStruct.Field or NestedArrayField[0].Struct.Name
 //
@@ -358,7 +359,7 @@ func (v *Validate) StructPartialCtx(ctx context.Context, s any, fields ...string
 		val = val.Elem()
 	}
 
-	if val.Kind() != reflect.Struct || val.Type() == timeType {
+	if val.Kind() != reflect.Struct || val.Type().ConvertibleTo(timeType) {
 		return &InvalidValidationError{Type: reflect.TypeOf(s)}
 	}
 
@@ -376,7 +377,6 @@ func (v *Validate) StructPartialCtx(ctx context.Context, s any, fields ...string
 	for _, k := range fields {
 		flds := strings.Split(k, namespaceSeparator)
 		if len(flds) > 0 {
-
 			vd.misc = append(vd.misc[0:0], name...)
 			// Don't append empty name for unnamed structs
 			if len(vd.misc) != 0 {
@@ -444,7 +444,7 @@ func (v *Validate) StructExceptCtx(ctx context.Context, s any, fields ...string)
 		val = val.Elem()
 	}
 
-	if val.Kind() != reflect.Struct || val.Type() == timeType {
+	if val.Kind() != reflect.Struct || val.Type().ConvertibleTo(timeType) {
 		return &InvalidValidationError{Type: reflect.TypeOf(s)}
 	}
 
@@ -584,7 +584,7 @@ func (v *Validate) Var(value any, tag string) error {
 }
 
 // VarCtx validates a single variable using tag style validation and allows passing of contextual
-// validation validation information via context.Context.
+// validation information via context.Context.
 // eg.
 // var i int
 // validate.Var(i, "gt=1,lt=10")
@@ -620,7 +620,7 @@ func (v *Validate) VarWithValue(field any, other any, tag string) error {
 }
 
 // VarWithValueCtx validates a single variable, against another variable/field's value using tag style validation and
-// allows passing of contextual validation validation information via context.Context.
+// allows passing of contextual validation information via context.Context.
 // eg.
 // s1 := "abcd"
 // s2 := "abcd"

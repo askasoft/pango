@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"unsafe"
 )
 
 // per validate construct
@@ -142,7 +143,7 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 						structNs:       v.str2,
 						fieldLen:       uint8(len(cf.altName)),
 						structfieldLen: uint8(len(cf.name)),
-						value:          current.Interface(),
+						value:          getValue(current),
 						param:          ct.param,
 						kind:           kind,
 						typ:            current.Type(),
@@ -185,7 +186,7 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 								structNs:       v.str2,
 								fieldLen:       uint8(len(cf.altName)),
 								structfieldLen: uint8(len(cf.name)),
-								value:          current.Interface(),
+								value:          getValue(current),
 								param:          ct.param,
 								kind:           kind,
 								typ:            typ,
@@ -375,7 +376,7 @@ OUTER:
 								structNs:       v.str2,
 								fieldLen:       uint8(len(cf.altName)),
 								structfieldLen: uint8(len(cf.name)),
-								value:          current.Interface(),
+								value:          getValue(current),
 								param:          ct.param,
 								kind:           kind,
 								typ:            typ,
@@ -393,7 +394,7 @@ OUTER:
 								structNs:       v.str2,
 								fieldLen:       uint8(len(cf.altName)),
 								structfieldLen: uint8(len(cf.name)),
-								value:          current.Interface(),
+								value:          getValue(current),
 								param:          ct.param,
 								kind:           kind,
 								typ:            typ,
@@ -432,7 +433,7 @@ OUTER:
 						structNs:       v.str2,
 						fieldLen:       uint8(len(cf.altName)),
 						structfieldLen: uint8(len(cf.name)),
-						value:          current.Interface(),
+						value:          getValue(current),
 						param:          ct.param,
 						kind:           kind,
 						typ:            typ,
@@ -443,5 +444,28 @@ OUTER:
 			}
 			ct = ct.next
 		}
+	}
+}
+
+func getValue(val reflect.Value) interface{} {
+	if val.CanInterface() {
+		return val.Interface()
+	}
+
+	if val.CanAddr() {
+		return reflect.NewAt(val.Type(), unsafe.Pointer(val.UnsafeAddr())).Elem().Interface()
+	}
+
+	switch val.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return val.Int()
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return val.Uint()
+	case reflect.Complex64, reflect.Complex128:
+		return val.Complex()
+	case reflect.Float32, reflect.Float64:
+		return val.Float()
+	default:
+		return val.String()
 	}
 }

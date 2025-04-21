@@ -38,6 +38,7 @@ func (sc *structCache) Get(key reflect.Type) (c *cStruct, found bool) {
 }
 
 func (sc *structCache) Set(key reflect.Type, value *cStruct) {
+	// copy-on-write
 	om := sc.smap
 	nm := make(map[reflect.Type]*cStruct, len(om)+1)
 	for k, v := range om {
@@ -58,6 +59,7 @@ func (tc *tagCache) Get(key string) (c *cTag, found bool) {
 }
 
 func (tc *tagCache) Set(key string, value *cTag) {
+	// copy-on-write
 	om := tc.tmap
 	nm := make(map[string]*cTag, len(om)+1)
 	for k, v := range om {
@@ -183,7 +185,6 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 			} else {
 				next, curr := v.parseFieldTagsRecursive(tagsVal, fieldName, t, true)
 				current.next, current = next, curr
-
 			}
 			continue
 		}
@@ -202,15 +203,12 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 		switch t {
 		case diveTag:
 			current.typeof = typeDive
-			continue
 
 		case keysTag:
 			current.typeof = typeKeys
 			if i == 0 || prevTag != typeDive {
 				panic(fmt.Sprintf("'%s' tag must be immediately preceded by the '%s' tag", keysTag, diveTag))
 			}
-
-			current.typeof = typeKeys
 
 			// need to pass along only keys tag
 			// need to increment i to skip over the keys tags
@@ -226,7 +224,6 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 			}
 
 			current.keys, _ = v.parseFieldTagsRecursive(string(b[:len(b)-1]), fieldName, "", false)
-			continue
 
 		case endKeysTag:
 			current.typeof = typeEndKeys
@@ -240,15 +237,12 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 
 		case omitempty:
 			current.typeof = typeOmitEmpty
-			continue
 
 		case structOnlyTag:
 			current.typeof = typeStructOnly
-			continue
 
 		case noStructLevelTag:
 			current.typeof = typeNoStructLevel
-			continue
 
 		default:
 			if t == isdefault {
@@ -279,7 +273,7 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 
 				if wrapper, ok := v.validations[current.tag]; ok {
 					current.fn = wrapper.fn
-					current.runValidationWhenNil = wrapper.runValidatinOnNil
+					current.runValidationWhenNil = wrapper.runValidationOnNil
 				} else {
 					panic(strings.TrimSpace(fmt.Sprintf(undefinedValidation, current.tag, fieldName)))
 				}

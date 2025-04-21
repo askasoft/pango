@@ -2,10 +2,6 @@ package xmw
 
 import (
 	"bytes"
-	"compress/flate"
-	"compress/gzip"
-	"compress/zlib"
-	"io"
 	"regexp"
 	"strings"
 	"sync"
@@ -16,17 +12,8 @@ import (
 
 // http://nginx.org/en/docs/http/ngx_http_gzip_module.html
 
-const (
-	BestCompression    = flate.BestCompression
-	BestSpeed          = flate.BestSpeed
-	DefaultCompression = flate.DefaultCompression
-	NoCompression      = flate.NoCompression
-)
-
 // ResponseCompressor Compresses responses using the “gzip” method
 type ResponseCompressor struct {
-	compressLevel int
-
 	// protoMajor Sets the minimum HTTP Major version of a request required to compress a response.
 	// Default: 1
 	protoMajor int
@@ -62,42 +49,39 @@ type ResponseCompressor struct {
 	disabled bool
 
 	bufPool *sync.Pool
-	gzwPool *sync.Pool
-	zlwPool *sync.Pool
+
+	Encodings map[string]CompressorProvider
 }
 
 // DefaultResponseCompressor create a default zipper
-// = NewResponseCompressor(DefaultCompression, 1024)
+// = NewResponseCompressor(1024)
 func DefaultResponseCompressor() *ResponseCompressor {
-	return NewResponseCompressor(DefaultCompression, 1024)
+	return NewResponseCompressor(1024)
 }
 
 // NewResponseCompressor create a http response compressor
 // proxied: ProxiedAny
 // vary: true
 // minLength: 1024
-func NewResponseCompressor(compressLevel, minLength int) *ResponseCompressor {
-	rc := &ResponseCompressor{
-		compressLevel: compressLevel,
-		protoMajor:    1,
-		protoMinor:    1,
-		proxied:       ProxiedAny,
-		vary:          true,
-		minLength:     minLength,
+func NewResponseCompressor(minLength int) *ResponseCompressor {
+	xrc := &ResponseCompressor{
+		protoMajor: 1,
+		protoMinor: 1,
+		proxied:    ProxiedAny,
+		vary:       true,
+		minLength:  minLength,
 	}
-	rc.bufPool = &sync.Pool{
+	xrc.bufPool = &sync.Pool{
 		New: func() any {
 			return &bytes.Buffer{}
 		},
 	}
-	rc.gzwPool = &sync.Pool{
-		New: rc.newGzipWriter,
-	}
-	rc.zlwPool = &sync.Pool{
-		New: rc.newZlibWriter,
+	xrc.Encodings = map[string]CompressorProvider{
+		"gzip":    NewGzipCompressorProvider(),
+		"deflate": NewZlibCompressorProvider(),
 	}
 
-	rc.SetMimeTypes(
+	xrc.SetMimeTypes(
 		"text/html",
 		"text/plain",
 		"text/xml",
@@ -114,13 +98,13 @@ func NewResponseCompressor(compressLevel, minLength int) *ResponseCompressor {
 		"application/javascript",
 		"application/x-javascript",
 	)
-	return rc
+	return xrc
 }
 
 // SetHTTPVersion Sets the minimum HTTP Proto version of a request required to compress a response.
-func (rc *ResponseCompressor) SetHTTPVersion(major, minor int) {
-	rc.protoMajor = major
-	rc.protoMinor = minor
+func (xrc *ResponseCompressor) SetHTTPVersion(major, minor int) {
+	xrc.protoMajor = major
+	xrc.protoMinor = minor
 }
 
 // SetProxied Enables or disables compressing of responses for proxied requests depending on the request and response.
@@ -161,14 +145,14 @@ func (rc *ResponseCompressor) SetHTTPVersion(major, minor int) {
 // no_etag
 //
 //	enables compression if a response header does not include the “ETag” field;
-func (rc *ResponseCompressor) SetProxied(ps ...string) {
-	rc.proxied = toProxiedFlag(ps...)
+func (xrc *ResponseCompressor) SetProxied(ps ...string) {
+	xrc.proxied = toProxiedFlag(ps...)
 }
 
 // Vary Enables or disables inserting the “Vary: Accept-Encoding” response header field.
 // Default: true
-func (rc *ResponseCompressor) Vary(vary bool) {
-	rc.vary = vary
+func (xrc *ResponseCompressor) Vary(vary bool) {
+	xrc.vary = vary
 }
 
 // SetMimeTypes Enables compressing of responses for the specified MIME types.
@@ -190,9 +174,9 @@ func (rc *ResponseCompressor) Vary(vary bool) {
 //	application/json
 //	application/javascript
 //	application/x-javascript
-func (rc *ResponseCompressor) SetMimeTypes(mts ...string) {
+func (xrc *ResponseCompressor) SetMimeTypes(mts ...string) {
 	if len(mts) == 0 {
-		rc.mimeTypes = nil
+		xrc.mimeTypes = nil
 		return
 	}
 
@@ -200,39 +184,39 @@ func (rc *ResponseCompressor) SetMimeTypes(mts ...string) {
 	if hs.Contains("*") {
 		hs = nil
 	}
-	rc.mimeTypes = hs
+	xrc.mimeTypes = hs
 }
 
 // IgnorePathPrefix ignore URL path prefix
-func (rc *ResponseCompressor) IgnorePathPrefix(ps ...string) {
-	rc.ignorePathPrefixs = ps
+func (xrc *ResponseCompressor) IgnorePathPrefix(ps ...string) {
+	xrc.ignorePathPrefixs = ps
 }
 
 // IgnorePathRegexp ignore URL path regexp
-func (rc *ResponseCompressor) IgnorePathRegexp(ps ...string) {
+func (xrc *ResponseCompressor) IgnorePathRegexp(ps ...string) {
 	rs := make([]*regexp.Regexp, len(ps))
 	for i, p := range ps {
 		rs[i] = regexp.MustCompile(p)
 	}
-	rc.ignorePathRegexps = rs
+	xrc.ignorePathRegexps = rs
 }
 
 // Disable disable the gzip compress or not
-func (rc *ResponseCompressor) Disable(disabled bool) {
-	rc.disabled = disabled
+func (xrc *ResponseCompressor) Disable(disabled bool) {
+	xrc.disabled = disabled
 }
 
 // Handle process xin request
-func (rc *ResponseCompressor) Handle(ctx *xin.Context) {
-	ae := rc.shouldCompress(ctx)
-	if ae == acceptEncodingNone {
+func (xrc *ResponseCompressor) Handle(ctx *xin.Context) {
+	encoding := xrc.getEncoding(ctx)
+	if encoding == "" {
 		ctx.Next()
 		return
 	}
 
 	rcw := &responseCompressWriter{
-		ae:             ae,
-		rc:             rc,
+		enc:            encoding,
+		xrc:            xrc,
 		ctx:            ctx,
 		ResponseWriter: ctx.Writer,
 	}
@@ -243,116 +227,71 @@ func (rc *ResponseCompressor) Handle(ctx *xin.Context) {
 	ctx.Next()
 }
 
-func (rc *ResponseCompressor) getBuffer() *bytes.Buffer {
-	return rc.bufPool.Get().(*bytes.Buffer)
+func (xrc *ResponseCompressor) getBuffer() *bytes.Buffer {
+	return xrc.bufPool.Get().(*bytes.Buffer)
 }
 
-func (rc *ResponseCompressor) putBuffer(buf *bytes.Buffer) {
-	rc.bufPool.Put(buf)
+func (xrc *ResponseCompressor) putBuffer(buf *bytes.Buffer) {
+	xrc.bufPool.Put(buf)
 }
 
-func (rc *ResponseCompressor) newGzipWriter() any {
-	w, err := gzip.NewWriterLevel(io.Discard, rc.compressLevel)
-	if err != nil {
-		panic(err)
+func (xrc *ResponseCompressor) getCompressor(encoding string) (c Compressor) {
+	if p, ok := xrc.Encodings[encoding]; ok {
+		return p.GetCompressor()
 	}
-	return w
+	return nil
 }
 
-func (rc *ResponseCompressor) newZlibWriter() any {
-	w, err := zlib.NewWriterLevel(io.Discard, rc.compressLevel)
-	if err != nil {
-		panic(err)
-	}
-	return w
-}
-
-func (rc *ResponseCompressor) getCompressor(ac acceptEncoding) compressor {
-	switch ac {
-	case acceptEncodingGzip:
-		return rc.gzwPool.Get().(*gzip.Writer)
-	case acceptEncodingDeflate:
-		return rc.zlwPool.Get().(*zlib.Writer)
-	default:
-		panic("ResponseCompressor: Invalid Encoding")
+func (xrc *ResponseCompressor) putCompressor(encoding string, c Compressor) {
+	if p, ok := xrc.Encodings[encoding]; ok {
+		p.PutCompressor(c)
 	}
 }
 
-func (rc *ResponseCompressor) putCompressor(ac acceptEncoding, cw compressor) {
-	switch ac {
-	case acceptEncodingGzip:
-		rc.gzwPool.Put(cw)
-	case acceptEncodingDeflate:
-		rc.zlwPool.Put(cw)
-	default:
-		panic("ResponseCompressor: Invalid Encoding")
+func (xrc *ResponseCompressor) getEncoding(c *xin.Context) (encoding string) {
+	if xrc.disabled {
+		return
 	}
-}
 
-func (rc *ResponseCompressor) shouldCompress(c *xin.Context) (ae acceptEncoding) {
 	req := c.Request
 
-	if rc.disabled {
+	if !req.ProtoAtLeast(xrc.protoMajor, xrc.protoMinor) {
 		return
 	}
-
-	if !req.ProtoAtLeast(rc.protoMajor, rc.protoMinor) {
-		return
-	}
-
 	if str.ContainsFold(req.Header.Get("Connection"), "Upgrade") {
 		return
 	}
-
 	if str.ContainsFold(req.Header.Get("Content-Type"), "text/event-stream") {
 		return
 	}
 
 	if req.Header.Get("Via") != "" {
-		if rc.proxied == ProxiedOff {
+		if xrc.proxied == ProxiedOff {
 			return
 		}
-		if rc.proxied&ProxiedAuth == ProxiedAuth {
+		if xrc.proxied&ProxiedAuth == ProxiedAuth {
 			if req.Header.Get("Authorization") == "" {
 				return
 			}
 		}
 	}
 
-	if rc.ignorePathPrefixs.Contains(req.URL.Path) {
+	if xrc.ignorePathPrefixs.Contains(req.URL.Path) {
 		return
 	}
-	if rc.ignorePathRegexps.Contains(req.URL.Path) {
+	if xrc.ignorePathRegexps.Contains(req.URL.Path) {
 		return
 	}
 
-	ac := req.Header.Get("Accept-Encoding")
-	if str.ContainsFold(ac, "gzip") {
-		ae = acceptEncodingGzip
-	} else if str.ContainsFold(ac, "deflate") {
-		ae = acceptEncodingDeflate
+	acs := str.FieldsByte(req.Header.Get("Accept-Encoding"), ',')
+	for _, ac := range acs {
+		ac = str.ToLower(str.Strip(str.SubstrBeforeByte(ac, ';')))
+		if _, ok := xrc.Encodings[ac]; ok {
+			encoding = ac
+			break
+		}
 	}
-
 	return
-}
-
-type acceptEncoding int
-
-const (
-	acceptEncodingNone acceptEncoding = iota
-	acceptEncodingGzip
-	acceptEncodingDeflate
-)
-
-func (ae acceptEncoding) String() string {
-	switch ae {
-	case acceptEncodingGzip:
-		return "gzip"
-	case acceptEncodingDeflate:
-		return "deflate"
-	default:
-		return ""
-	}
 }
 
 // ProxiedFlag Proxied flag

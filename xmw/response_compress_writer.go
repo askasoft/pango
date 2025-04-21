@@ -15,21 +15,14 @@ const (
 	rcwStateComp // compressing
 )
 
-type compressor interface {
-	io.Writer
-	Reset(w io.Writer)
-	Flush() error
-	Close() error
-}
-
 type responseCompressWriter struct {
 	xin.ResponseWriter
 
-	ae  acceptEncoding
-	rc  *ResponseCompressor
+	enc string
+	xrc *ResponseCompressor
 	ctx *xin.Context
 	buf *bytes.Buffer
-	cw  compressor
+	cw  Compressor
 
 	state int
 }
@@ -40,20 +33,22 @@ func (rcw *responseCompressWriter) Close() {
 			rcw.ResponseWriter.Write(rcw.buf.Bytes()) //nolint: errcheck
 			rcw.buf.Reset()
 		}
-		rcw.rc.putBuffer(rcw.buf)
+		rcw.xrc.putBuffer(rcw.buf)
 		rcw.buf = nil
 	}
 
 	if rcw.cw != nil {
 		rcw.cw.Close()
 		rcw.cw.Reset(io.Discard)
-		rcw.rc.putCompressor(rcw.ae, rcw.cw)
+		if _, ok := rcw.cw.(*passCompressor); !ok {
+			rcw.xrc.putCompressor(rcw.enc, rcw.cw)
+		}
 		rcw.cw = nil
 	}
 
 	rcw.ctx.Writer = rcw.ResponseWriter
 
-	rcw.rc = nil
+	rcw.xrc = nil
 	rcw.ResponseWriter = nil
 	rcw.ctx = nil
 	rcw.state = rcwStateNone
@@ -70,7 +65,7 @@ func (rcw *responseCompressWriter) checkHeader() {
 		return
 	}
 
-	mts := rcw.rc.mimeTypes
+	mts := rcw.xrc.mimeTypes
 	if mts != nil {
 		ct := str.SubstrBeforeByte(h.Get("Content-Type"), ';')
 		if !mts.Contains(ct) {
@@ -80,37 +75,37 @@ func (rcw *responseCompressWriter) checkHeader() {
 	}
 
 	if rcw.ctx.Request.Header.Get("Via") != "" {
-		if rcw.rc.proxied&ProxiedExpired == ProxiedExpired {
+		if rcw.xrc.proxied&ProxiedExpired == ProxiedExpired {
 			if h.Get("Expires") == "" {
 				rcw.state = rcwStateSkip
 				return
 			}
 		}
-		if rcw.rc.proxied&ProxiedNoCache == ProxiedNoCache {
+		if rcw.xrc.proxied&ProxiedNoCache == ProxiedNoCache {
 			if !str.ContainsFold(h.Get("Cache-Control"), "no-cache") {
 				rcw.state = rcwStateSkip
 				return
 			}
 		}
-		if rcw.rc.proxied&ProxiedNoStore == ProxiedNoStore {
+		if rcw.xrc.proxied&ProxiedNoStore == ProxiedNoStore {
 			if !str.ContainsFold(h.Get("Cache-Control"), "no-store") {
 				rcw.state = rcwStateSkip
 				return
 			}
 		}
-		if rcw.rc.proxied&ProxiedPrivate == ProxiedPrivate {
+		if rcw.xrc.proxied&ProxiedPrivate == ProxiedPrivate {
 			if !str.ContainsFold(h.Get("Cache-Control"), "private") {
 				rcw.state = rcwStateSkip
 				return
 			}
 		}
-		if rcw.rc.proxied&ProxiedNoLastModified == ProxiedNoLastModified {
+		if rcw.xrc.proxied&ProxiedNoLastModified == ProxiedNoLastModified {
 			if h.Get("Last-Modified") != "" {
 				rcw.state = rcwStateSkip
 				return
 			}
 		}
-		if rcw.rc.proxied&ProxiedNoETag == ProxiedNoETag {
+		if rcw.xrc.proxied&ProxiedNoETag == ProxiedNoETag {
 			if h.Get("ETag") != "" {
 				rcw.state = rcwStateSkip
 				return
@@ -119,7 +114,7 @@ func (rcw *responseCompressWriter) checkHeader() {
 	}
 
 	rcw.state = rcwStateBuff
-	rcw.buf = rcw.rc.getBuffer()
+	rcw.buf = rcw.xrc.getBuffer()
 }
 
 func (rcw *responseCompressWriter) checkBuffer(data []byte) (err error) {
@@ -127,15 +122,20 @@ func (rcw *responseCompressWriter) checkBuffer(data []byte) (err error) {
 		return
 	}
 
-	if rcw.buf.Len()+len(data) < rcw.rc.minLength {
+	if rcw.buf.Len()+len(data) < rcw.xrc.minLength {
 		return
 	}
 
-	rcw.modifyHeader()
-
 	rcw.state = rcwStateComp
-	rcw.cw = rcw.rc.getCompressor(rcw.ae)
-	rcw.cw.Reset(rcw.ResponseWriter)
+
+	rcw.cw = rcw.xrc.getCompressor(rcw.enc)
+	if rcw.cw == nil {
+		rcw.cw = &passCompressor{rcw.ResponseWriter}
+	} else {
+		rcw.modifyHeader()
+		rcw.cw.Reset(rcw.ResponseWriter)
+	}
+
 	if rcw.buf.Len() > 0 {
 		_, err = rcw.cw.Write(rcw.buf.Bytes())
 		rcw.buf.Reset()
@@ -147,8 +147,8 @@ func (rcw *responseCompressWriter) modifyHeader() {
 	h := rcw.ResponseWriter.Header()
 
 	h.Del("Content-Length")
-	h.Set("Content-Encoding", rcw.ae.String())
-	if rcw.rc.vary {
+	h.Set("Content-Encoding", rcw.enc)
+	if rcw.xrc.vary {
 		h.Set("Vary", "Accept-Encoding")
 	}
 }

@@ -106,3 +106,25 @@ func TestAddMonth(t *testing.T) {
 		}
 	}
 }
+
+func TestTruncateHours(t *testing.T) {
+	cs := []struct {
+		s string
+		w string
+	}{
+		{"2020-01-02T01:02:03Z", "2020-01-02T00:00:00Z"},
+		{"2020-01-02T01:02:03+09:00", "2020-01-02T00:00:00+09:00"},
+	}
+
+	for i, c := range cs {
+		d, err := Parse(c.s)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		a := TruncateHours(d).Format(time.RFC3339)
+		if err != nil || a != c.w {
+			t.Errorf("[%d] TruncateHours(%q) = %q, want %q", i, c.s, a, c.w)
+		}
+	}
+}

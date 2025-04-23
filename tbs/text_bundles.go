@@ -190,12 +190,7 @@ func (tbs *TextBundles) GetText(locale, key string, defs ...string) string {
 		return value
 	}
 
-	for _, d := range defs {
-		if d != "" {
-			return d
-		}
-	}
-	return ""
+	return str.NonEmpty(defs...)
 }
 
 // Format use fmt.Sprintf to format the locale text by key and args.

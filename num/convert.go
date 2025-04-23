@@ -5,27 +5,17 @@ import (
 	"strconv"
 )
 
-// NonZeroi return the first non-zero value of defs if error.
-func NonZeroi(ns ...int) int {
-	for _, n := range ns {
-		if n != 0 {
-			return n
-		}
-	}
-	return 0
-}
-
 // Atoi use strconv.ParseInt(s, 0, strconv.IntSize) to parse string 's' to int,
 // return the first non-zero value of defs if error.
 func Atoi(s string, defs ...int) int {
 	if s == "" {
-		return NonZeroi(defs...)
+		return NonZero(defs...)
 	}
 
 	if i, err := strconv.ParseInt(s, 0, strconv.IntSize); err == nil {
 		return int(i)
 	}
-	return NonZeroi(defs...)
+	return NonZero(defs...)
 }
 
 // Itoa is equivalent to strconv.FormatInt(int64(i), 10).
@@ -33,27 +23,17 @@ func Itoa(i int) string {
 	return strconv.FormatInt(int64(i), 10)
 }
 
-// NonZerol return the first non-zero value of defs if error.
-func NonZerol(ns ...int64) int64 {
-	for _, n := range ns {
-		if n != 0 {
-			return n
-		}
-	}
-	return 0
-}
-
 // Atol use strconv.ParseInt(s, 0, 64) to parse string 's' to int64,
 // return the first non-zero value of defs if error.
 func Atol(s string, defs ...int64) int64 {
 	if s == "" {
-		return NonZerol(defs...)
+		return NonZero(defs...)
 	}
 
 	if i, err := strconv.ParseInt(s, 0, 64); err == nil {
 		return i
 	}
-	return NonZerol(defs...)
+	return NonZero(defs...)
 }
 
 // Itoa is equivalent to strconv.FormatInt(i, 10).
@@ -61,27 +41,17 @@ func Ltoa(i int64) string {
 	return strconv.FormatInt(i, 10)
 }
 
-// NonZerof return the first non-zero value of defs if error.
-func NonZerof(ns ...float64) float64 {
-	for _, n := range ns {
-		if n != 0 {
-			return n
-		}
-	}
-	return 0
-}
-
 // Atol use strconv.ParseFloat(s, 64) to parse string 's' to float64,
 // return the first non-zero value of defs if error.
 func Atof(s string, defs ...float64) float64 {
 	if s == "" {
-		return NonZerof(defs...)
+		return NonZero(defs...)
 	}
 
 	if f, err := strconv.ParseFloat(s, 64); err == nil {
 		return f
 	}
-	return NonZerof(defs...)
+	return NonZero(defs...)
 }
 
 // Ftoa converts a float to a string with no trailing zeros.

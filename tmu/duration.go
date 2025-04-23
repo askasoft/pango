@@ -18,19 +18,31 @@ const (
 	Day         = time.Hour * 24
 )
 
+func NonZeroTime(ts ...time.Time) time.Time {
+	for _, t := range ts {
+		if !t.IsZero() {
+			return t
+		}
+	}
+	return time.Time{}
+}
+
+func NonZeroDuration(ds ...time.Duration) time.Duration {
+	for _, d := range ds {
+		if d != 0 {
+			return d
+		}
+	}
+	return 0
+}
+
 // Atod convert string to time.Duration.
 // if not found or convert error, returns the first non-zero value from defs.
 func Atod(s string, defs ...time.Duration) time.Duration {
 	if d, err := time.ParseDuration(s); err == nil {
 		return d
 	}
-
-	for _, d := range defs {
-		if d != 0 {
-			return d
-		}
-	}
-	return 0
+	return NonZeroDuration(defs...)
 }
 
 // HumanDuration returns a string representing the duration in the form "3d23h3m5s".

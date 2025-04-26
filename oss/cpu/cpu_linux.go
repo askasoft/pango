@@ -34,6 +34,7 @@ func collectCPUStats(out io.Reader, cpu *CPUStats) error {
 	scanner := bufio.NewScanner(out)
 
 	cpuStats := []cpuStat{
+		{"cpu", nil},
 		{"user", &cpu.User},
 		{"nice", &cpu.Nice},
 		{"system", &cpu.System},
@@ -50,9 +51,13 @@ func collectCPUStats(out io.Reader, cpu *CPUStats) error {
 		return errors.New("failed to scan /proc/stat")
 	}
 
-	valStrs := strings.Fields(scanner.Text())[1:]
-	for i, valStr := range valStrs {
-		val, err := strconv.ParseUint(valStr, 10, 64)
+	ss := strings.Fields(scanner.Text())
+	for i, s := range ss {
+		if cpuStats[i].ptr == nil {
+			continue
+		}
+
+		val, err := strconv.ParseUint(s, 10, 64)
 		if err != nil {
 			return fmt.Errorf("failed to scan %q from /proc/stat", cpuStats[i].name)
 		}

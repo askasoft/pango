@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/log"
-	"github.com/askasoft/pango/sdk/teams"
 	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/whk/teams"
 )
 
 // TeamsWriter implements log Writer Interface and send log message to teams.

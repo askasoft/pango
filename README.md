@@ -41,8 +41,6 @@ Pango is a GO development utility library.
 | [rex](./rex/)                    | a GO regexp utility package            |
 | [sch](./sch/)                    | a scheduler utility package             |
 | [sdk/openai](./sdk/openai/)      | a simple sdk package for openai         |
-| [sdk/slack](./sdk/slack/)        | a slack webhook sender package          |
-| [sdk/teams](./sdk/teams/)        | a teams webhook sender package          |
 | [sdk/fdk/freshdesk](./sdk/fdk/freshdesk/) | a sdk package for freshdesk    |
 | [sdk/fdk/freshservice](./sdk/fdk/freshservice/) | a sdk package for freshservice |
 | [sqx/sqlx](./sqx/sqlx)           | a sql package based on https://github.com/jmoiron/sqlx |
@@ -53,6 +51,8 @@ Pango is a GO development utility library.
 | [tpl](./tpl/)                    | a text/template, html/template wrapper for recursively load template file |
 | [vad](./vad/)                    | a validation package based on https://github.com/go-playground/validator |
 | [wcu](./wcu/)                    | a internal language charset utility package |
+| [whk/slack](./whk/slack/)        | a slack webhook sender package          |
+| [whk/teams](./whk/teams/)        | a teams webhook sender package          |
 | [xfs](./xfs/)                    | a app file system package |
 | [xin](./xin/)                    | a web framework based on https://github.com/gin-gonic/gin |
 | [xjm](./xjm/)                    | a app job manage package |

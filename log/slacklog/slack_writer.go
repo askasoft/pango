@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/log"
-	"github.com/askasoft/pango/sdk/slack"
 	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/whk/slack"
 )
 
 // SlackWriter implements log Writer Interface and send log message to slack.

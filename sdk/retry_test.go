@@ -10,10 +10,10 @@ import (
 	"github.com/askasoft/pango/log"
 )
 
-var _ Retryable = NewNetError(nil)
+var _ Retryable = NewRetryError(nil)
 
 type retryTestError struct {
-	NetError
+	RetryError
 
 	status     string // http status
 	statusCode int    // http status code

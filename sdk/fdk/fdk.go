@@ -67,7 +67,7 @@ func (fdk *FDK) call(req *http.Request) (res *http.Response, err error) {
 		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 			return res, err
 		}
-		return res, sdk.NewNetError(err, fdk.RetryAfter)
+		return res, sdk.NewRetryError(err, fdk.RetryAfter)
 	}
 
 	httplog.TraceHttpResponse(fdk.Logger, res, rid)

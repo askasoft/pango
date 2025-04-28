@@ -7,6 +7,36 @@ import (
 	"github.com/askasoft/pango/log"
 )
 
+type RetryError struct {
+	Err        error
+	RetryAfter time.Duration
+}
+
+func NewRetryError(err error, retryAfter ...time.Duration) *RetryError {
+	re := &RetryError{
+		Err: err,
+	}
+	if len(retryAfter) > 0 {
+		re.RetryAfter = retryAfter[0]
+	}
+	return re
+}
+
+func (re *RetryError) GetRetryAfter() time.Duration {
+	return re.RetryAfter
+}
+
+func (re *RetryError) Unwrap() error {
+	return re.Err
+}
+
+func (re *RetryError) Error() string {
+	if re == nil || re.Err == nil {
+		return "<nil>"
+	}
+	return re.Err.Error()
+}
+
 type Retryable interface {
 	GetRetryAfter() time.Duration
 }

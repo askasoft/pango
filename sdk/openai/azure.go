@@ -47,7 +47,7 @@ func (aoai *AzureOpenAI) call(req *http.Request) (res *http.Response, err error)
 		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 			return res, err
 		}
-		return res, sdk.NewNetError(err, aoai.RetryAfter)
+		return res, sdk.NewRetryError(err, aoai.RetryAfter)
 	}
 
 	httplog.TraceHttpResponse(aoai.Logger, res, rid)

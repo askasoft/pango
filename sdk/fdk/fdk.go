@@ -25,8 +25,9 @@ type FDK struct {
 	Timeout   time.Duration
 	Logger    log.Logger
 
-	MaxRetries int
-	RetryAfter time.Duration
+	MaxRetries  int
+	RetryAfter  time.Duration
+	ShouldRetry func(*ResultError) bool // default retry on (status = 429 || (status >= 500 && status <= 599))
 }
 
 // Endpoint formats endpoint url
@@ -104,8 +105,12 @@ func (fdk *FDK) decodeResponse(res *http.Response, obj any) error {
 		_ = decoder.Decode(re)
 	}
 
-	switch {
-	case res.StatusCode == http.StatusTooManyRequests:
+	fsr := fdk.ShouldRetry
+	if fsr == nil {
+		fsr = shouldRetry
+	}
+
+	if fsr(re) {
 		s := res.Header.Get("Retry-After")
 		n := num.Atoi(s)
 		if n > 0 {
@@ -113,8 +118,6 @@ func (fdk *FDK) decodeResponse(res *http.Response, obj any) error {
 		} else {
 			re.RetryAfter = fdk.RetryAfter
 		}
-	case res.StatusCode >= 500 && res.StatusCode <= 599:
-		re.RetryAfter = fdk.RetryAfter
 	}
 
 	return re

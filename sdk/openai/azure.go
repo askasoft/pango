@@ -2,6 +2,7 @@ package openai
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -22,8 +23,9 @@ type AzureOpenAI struct {
 	Timeout   time.Duration
 	Logger    log.Logger
 
-	MaxRetries int
-	RetryAfter time.Duration
+	MaxRetries  int
+	RetryAfter  time.Duration
+	ShouldRetry func(*ResultError) bool // default retry on (status = 429 || (status >= 500 && status <= 599))
 }
 
 func (aoai *AzureOpenAI) endpoint(format string, a ...any) string {
@@ -64,12 +66,35 @@ func (aoai *AzureOpenAI) authenticate(req *http.Request) {
 
 func (aoai *AzureOpenAI) doCall(req *http.Request, result any) error {
 	aoai.authenticate(req)
+
 	res, err := aoai.call(req)
 	if err != nil {
 		return err
 	}
 
-	return decodeResponse(res, result, aoai.RetryAfter)
+	decoder := json.NewDecoder(res.Body)
+	if res.StatusCode == http.StatusOK {
+		if result != nil {
+			return decoder.Decode(result)
+		}
+		return nil
+	}
+
+	re := &ResultError{
+		Status:     res.Status,
+		StatusCode: res.StatusCode,
+	}
+	_ = decoder.Decode(re)
+
+	fsr := aoai.ShouldRetry
+	if fsr == nil {
+		fsr = shouldRetry
+	}
+
+	if fsr(re) {
+		re.RetryAfter = aoai.RetryAfter
+	}
+	return re
 }
 
 func (aoai *AzureOpenAI) doPostWithRetry(ctx context.Context, url string, source, result any) error {

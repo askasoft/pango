@@ -2,11 +2,13 @@ package openai
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"time"
 
+	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/log/httplog"
 	"github.com/askasoft/pango/sdk"
@@ -20,8 +22,9 @@ type OpenAI struct {
 	Timeout   time.Duration
 	Logger    log.Logger
 
-	MaxRetries int
-	RetryAfter time.Duration
+	MaxRetries  int
+	RetryAfter  time.Duration
+	ShouldRetry func(*ResultError) bool // default retry on (status = 429 || (status >= 500 && status <= 599))
 }
 
 func (oai *OpenAI) endpoint(format string, a ...any) string {
@@ -62,12 +65,36 @@ func (oai *OpenAI) authenticate(req *http.Request) {
 
 func (oai *OpenAI) doCall(req *http.Request, result any) error {
 	oai.authenticate(req)
+
 	res, err := oai.call(req)
 	if err != nil {
 		return err
 	}
+	defer iox.DrainAndClose(res.Body)
 
-	return decodeResponse(res, result, oai.RetryAfter)
+	decoder := json.NewDecoder(res.Body)
+	if res.StatusCode == http.StatusOK {
+		if result != nil {
+			return decoder.Decode(result)
+		}
+		return nil
+	}
+
+	re := &ResultError{
+		Status:     res.Status,
+		StatusCode: res.StatusCode,
+	}
+	_ = decoder.Decode(re)
+
+	fsr := oai.ShouldRetry
+	if fsr == nil {
+		fsr = shouldRetry
+	}
+
+	if fsr(re) {
+		re.RetryAfter = oai.RetryAfter
+	}
+	return re
 }
 
 func (oai *OpenAI) doPostWithRetry(ctx context.Context, url string, source, result any) error {

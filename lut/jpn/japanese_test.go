@@ -167,11 +167,19 @@ func TestJapanConvert(t *testing.T) {
 			if a != e {
 				t.Fatalf("ToHankaku(%q) = %q, want %q", s, a, e)
 			}
+			a2 := ToHankaku(a)
+			if a2 != a {
+				t.Fatalf("ToHankaku(%q) = %q, want %q", a, a2, a)
+			}
 
 			e = zen.String()
 			a = ToZenkaku(s)
 			if a != e {
 				t.Fatalf("ToZenkaku(%q) = %q, want %q", s, a, e)
+			}
+			a2 = ToZenkaku(a)
+			if a2 != a {
+				t.Fatalf("ToZenkaku(%q) = %q, want %q", a, a2, a)
 			}
 		}
 	}
@@ -256,5 +264,93 @@ func TestIsZenkakuKatakana(t *testing.T) {
 	a := IsZenkakuKatakana(zenkakuKatakana)
 	if !a {
 		t.Errorf("IsZenkakuKatakana(%q) = %v, want %v", zenkakuKatakana, a, true)
+	}
+}
+
+func TestHiraganaToKatagana(t *testing.T) {
+	cs := []struct {
+		hira string
+		kata string
+	}{
+		{`ぁあぃいぅうぇえぉおかがきぎく
+ぐけげこごさざしじすずせぜそぞた
+だちぢっつづてでとどなにぬねのは
+ばぱひびぴふぶぷへべぺほぼぽまみ
+むめもゃやゅゆょよらりるれろゎわ
+ゐゑをんゔゕゖ`, `ァアィイゥウェエォオカガキギク
+グケゲコゴサザシジスズセゼソゾタ
+ダチヂッツヅテデトドナニヌネノハ
+バパヒビピフブプヘベペホボポマミ
+ムメモャヤュユョヨラリルレロヮワ
+ヰヱヲンヴヵヶ`},
+		{"", ""},
+		{"abc", "abc"},
+		{"aぁあぃいぅうぇえぉおかがきぎくz", "aァアィイゥウェエォオカガキギクz"},
+	}
+
+	for i, c := range cs {
+		h2k := HiraganaToKatagana(c.hira)
+		if h2k != c.kata {
+			t.Errorf("#%d HiraganaToKatagana(%q) = %q, want %q", i, c.hira, h2k, c.kata)
+		}
+
+		k2h := KataganaToHiragana(c.kata)
+		if k2h != c.hira {
+			t.Errorf("#%d KataganaToHiragana(%q) = %q, want %q", i, c.kata, k2h, c.hira)
+		}
+	}
+}
+
+func TestCompareKana(t *testing.T) {
+	tcs := []struct {
+		s, t string
+		out  int
+	}{
+		{"j", "J", 1},
+		{"ぁあぃいぅうぇえぉお", "ァアィイゥウェエォオ", 0},
+		{"abcdぁあぃいぅうぇえぉおefghij", "abcdァアィイゥウェエォオefghij", 0},
+		{"abcdぁあぃいぅうぇえぉおefghijk", "abcdァアィイゥウェエォオefghij", 1},
+		{"abcdぁあぃいぅうぇえぉおefghij", "abcdァアィイゥウェエォオefghiJ", 1},
+	}
+
+	for _, tt := range tcs {
+		if out := CompareKana(tt.s, tt.t); out != tt.out {
+			t.Errorf("CompareKana(%#q, %#q) = %v, want %v", tt.s, tt.t, out, tt.out)
+		}
+		if out := CompareKana(tt.t, tt.s); out != -tt.out {
+			t.Errorf("CompareKana(%#q, %#q) = %v, want %v", tt.t, tt.s, out, -tt.out)
+		}
+	}
+}
+
+func TestCompareFoldKana(t *testing.T) {
+	tcs := []struct {
+		s, t string
+		out  int
+	}{
+		{"ぁあぃいぅうぇえぉお", "ァアィイゥウェエォオ", 0},
+		{"abcdぁあぃいぅうぇえぉおefghij", "aBcdァアィイゥウェエォオeFghij", 0},
+		{"abc", "abc", 0},
+		{"ABcd", "ABcd", 0},
+		{"123abc", "123ABC", 0},
+		{"abc", "xyz", -1},
+		{"abc", "XYZ", -1},
+		{"αβδ", "ΑΒΔ", 0},
+		{"abcdefghijk", "abcdefghijX", -1},
+		{"abcdefghijk", "abcdefghij\u212A", 0},
+		{"abcdefghijK", "abcdefghij\u212A", 0},
+		{"abcdefghijkz", "abcdefghij\u212Ay", 1},
+		{"abcdefghijKz", "abcdefghij\u212Ay", 1},
+		{"1", "2", -1},
+		{"utf-8", "US-ASCII", 1},
+	}
+
+	for _, tt := range tcs {
+		if out := CompareFoldKana(tt.s, tt.t); out != tt.out {
+			t.Errorf("CompareFoldKana(%#q, %#q) = %v, want %v", tt.s, tt.t, out, tt.out)
+		}
+		if out := CompareFoldKana(tt.t, tt.s); out != -tt.out {
+			t.Errorf("CompareFoldKana(%#q, %#q) = %v, want %v", tt.t, tt.s, out, -tt.out)
+		}
 	}
 }

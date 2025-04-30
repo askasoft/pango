@@ -2,6 +2,7 @@ package jpn
 
 import (
 	"strings"
+	"unicode"
 	"unicode/utf8"
 
 	"github.com/askasoft/pango/lut"
@@ -377,14 +378,20 @@ func ToHankaku(s string) string {
 	}
 
 	var sb strings.Builder
-	for _, c := range s {
+	for i, c := range s {
 		if IsHankakuRune(c) {
-			sb.WriteRune(c)
+			if sb.Len() > 0 {
+				sb.WriteRune(c)
+			}
 			continue
 		}
 
 		r := ToHankakuDakuRune(c)
 		if r != c {
+			if sb.Len() == 0 {
+				sb.Grow(len(s))
+				sb.WriteString(s[:i])
+			}
 			sb.WriteRune(r)
 			sb.WriteRune('\uFF9E') // ﾞ
 			continue
@@ -392,14 +399,297 @@ func ToHankaku(s string) string {
 
 		r = ToHankakuHandakuRune(c)
 		if r != c {
+			if sb.Len() == 0 {
+				sb.Grow(len(s))
+				sb.WriteString(s[:i])
+			}
 			sb.WriteRune(r)
 			sb.WriteRune('\uFF9F') // ﾟ
 			continue
 		}
 
 		r = ToHankakuRune(c)
-		sb.WriteRune(r)
+		if r != c {
+			if sb.Len() == 0 {
+				sb.Grow(len(s))
+				sb.WriteString(s[:i])
+			}
+			sb.WriteRune(r)
+			continue
+		}
+
+		if sb.Len() > 0 {
+			sb.WriteRune(c)
+		}
 	}
 
-	return sb.String()
+	if sb.Len() > 0 {
+		return sb.String()
+	}
+	return s
+}
+
+func HiraganaToKatagana(s string) string {
+	if s == "" {
+		return s
+	}
+
+	var sb strings.Builder
+
+	for i, c := range s {
+		if c >= 0x3041 && c <= 0x3096 {
+			if sb.Len() == 0 {
+				sb.Grow(len(s))
+				sb.WriteString(s[:i])
+			}
+			sb.WriteRune(c + 0x60)
+			continue
+		}
+
+		if sb.Len() > 0 {
+			sb.WriteRune(c)
+		}
+	}
+
+	if sb.Len() > 0 {
+		return sb.String()
+	}
+	return s
+}
+
+func KataganaToHiragana(s string) string {
+	if s == "" {
+		return s
+	}
+
+	var sb strings.Builder
+
+	for i, c := range s {
+		if c >= 0x30a1 && c <= 0x30f6 {
+			if sb.Len() == 0 {
+				sb.Grow(len(s))
+				sb.WriteString(s[:i])
+			}
+			sb.WriteRune(c - 0x60)
+			continue
+		}
+
+		if sb.Len() > 0 {
+			sb.WriteRune(c)
+		}
+	}
+
+	if sb.Len() > 0 {
+		return sb.String()
+	}
+	return s
+}
+
+// CompareKana returns an integer comparing two strings kana-insensitive.
+// The result will be 0 if a==b, -1 if a < b, and +1 if a > b.
+func CompareKana(s, t string) int {
+	// ASCII fast path
+	i := 0
+	for ; i < len(s) && i < len(t); i++ {
+		sr := s[i]
+		tr := t[i]
+		if sr|tr >= utf8.RuneSelf {
+			goto hasUnicode
+		}
+
+		if tr == sr {
+			continue
+		}
+
+		// ASCII only
+		switch {
+		case sr < tr:
+			return -1
+		case sr > tr:
+			return 1
+		}
+	}
+
+	// Check if we've exhausted both strings.
+	{
+		r := len(s) - len(t)
+		switch {
+		case r < 0:
+			return -1
+		case r > 0:
+			return 1
+		default:
+			return 0
+		}
+	}
+
+hasUnicode:
+	s = s[i:]
+	t = t[i:]
+	for _, sr := range s {
+		// If t is exhausted the strings are not equal.
+		if len(t) == 0 {
+			return 1
+		}
+
+		// Extract first rune from second string.
+		var tr rune
+		if t[0] < utf8.RuneSelf {
+			tr, t = rune(t[0]), t[1:]
+		} else {
+			r, size := utf8.DecodeRuneInString(t)
+			tr, t = r, t[size:]
+		}
+
+		// If they match, keep going;
+		if tr == sr {
+			continue
+		}
+
+		// Fast check for ASCII.
+		if sr < utf8.RuneSelf && tr < utf8.RuneSelf {
+			switch {
+			case sr < tr:
+				return -1
+			case sr > tr:
+				return 1
+			default:
+				continue
+			}
+		}
+
+		// check for GANA.
+		if sr >= 0x30a1 && sr <= 0x30f6 {
+			sr -= 0x60
+		}
+		if tr >= 0x30a1 && tr <= 0x30f6 {
+			tr -= 0x60
+		}
+		switch {
+		case sr < tr:
+			return -1
+		case sr > tr:
+			return 1
+		}
+	}
+
+	// First string is empty, so check if the second one is also empty.
+	if len(t) == 0 {
+		return 0
+	}
+
+	return -1
+}
+
+// CompareFoldKana returns an integer comparing two strings case&kana-insensitive.
+// The result will be 0 if a==b, -1 if a < b, and +1 if a > b.
+func CompareFoldKana(s, t string) int {
+	// ASCII fast path
+	i := 0
+	for ; i < len(s) && i < len(t); i++ {
+		sr := s[i]
+		tr := t[i]
+		if sr|tr >= utf8.RuneSelf {
+			goto hasUnicode
+		}
+
+		if tr == sr {
+			continue
+		}
+
+		// ASCII only, sr/tr must be upper/lower case
+		if 'A' <= sr && sr <= 'Z' {
+			sr += ('a' - 'A')
+		}
+		if 'A' <= tr && tr <= 'Z' {
+			tr += ('a' - 'A')
+		}
+
+		switch {
+		case sr < tr:
+			return -1
+		case sr > tr:
+			return 1
+		}
+	}
+
+	// Check if we've exhausted both strings.
+	{
+		r := len(s) - len(t)
+		switch {
+		case r < 0:
+			return -1
+		case r > 0:
+			return 1
+		default:
+			return 0
+		}
+	}
+
+hasUnicode:
+	s = s[i:]
+	t = t[i:]
+	for _, sr := range s {
+		// If t is exhausted the strings are not equal.
+		if len(t) == 0 {
+			return 1
+		}
+
+		// Extract first rune from second string.
+		var tr rune
+		if t[0] < utf8.RuneSelf {
+			tr, t = rune(t[0]), t[1:]
+		} else {
+			r, size := utf8.DecodeRuneInString(t)
+			tr, t = r, t[size:]
+		}
+
+		// If they match, keep going;
+		if tr == sr {
+			continue
+		}
+
+		// Fast check for ASCII.
+		if sr < utf8.RuneSelf && tr < utf8.RuneSelf {
+			// ASCII only, sr/tr must be upper/lower case
+			if 'A' <= sr && sr <= 'Z' {
+				sr += ('a' - 'A')
+			}
+			if 'A' <= tr && tr <= 'Z' {
+				tr += ('a' - 'A')
+			}
+
+			switch {
+			case sr < tr:
+				return -1
+			case sr > tr:
+				return 1
+			default:
+				continue
+			}
+		}
+
+		// check for GANA and lower/upper case.
+		if sr >= 0x30a1 && sr <= 0x30f6 {
+			sr -= 0x60
+		}
+		if tr >= 0x30a1 && tr <= 0x30f6 {
+			tr -= 0x60
+		}
+		sr = unicode.ToLower(sr)
+		tr = unicode.ToLower(tr)
+		switch {
+		case sr < tr:
+			return -1
+		case sr > tr:
+			return 1
+		}
+	}
+
+	// First string is empty, so check if the second one is also empty.
+	if len(t) == 0 {
+		return 0
+	}
+
+	return -1
 }

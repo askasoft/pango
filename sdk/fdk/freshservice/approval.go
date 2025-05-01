@@ -74,8 +74,8 @@ type Approval struct {
 	ApprovalStatus *ApprovalInfo `json:"approval_status,omitempty"`
 	Delegatee      *Delegatee    `json:"delegatee,omitempty"`
 	LatestRemark   string        `json:"latest_remark,omitempty"`
-	CreatedAt      *Time         `json:"created_at,omitempty"`
-	UpdatedAt      *Time         `json:"updated_at,omitempty"`
+	CreatedAt      Time          `json:"created_at,omitempty"`
+	UpdatedAt      Time          `json:"updated_at,omitempty"`
 }
 
 func (a *Approval) String() string {

@@ -25,11 +25,11 @@ func TestGroups(t *testing.T) {
 
 	count := 100
 	for i := 0; i < count; i++ {
-		g := &Group{
+		gc := &GroupCreate{
 			Name: fmt.Sprintf("ApiTestGroup%03d", i+1),
 		}
 
-		cg, err := fd.CreateGroup(ctxbg, g)
+		cg, err := fd.CreateGroup(ctxbg, gc)
 		if err != nil {
 			t.Fatalf("ERROR: %v", err)
 		}

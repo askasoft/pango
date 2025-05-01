@@ -9,9 +9,9 @@ type Product struct {
 	// Description of the product
 	Description string `json:"description,omitempty"`
 
-	CreatedAt *Time `json:"created_at,omitempty"`
+	CreatedAt Time `json:"created_at,omitempty"`
 
-	UpdatedAt *Time `json:"updated_at,omitempty"`
+	UpdatedAt Time `json:"updated_at,omitempty"`
 }
 
 func (p *Product) String() string {

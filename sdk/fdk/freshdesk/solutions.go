@@ -17,7 +17,7 @@ type ListFoldersOption = PageOption
 // PerPage: 1 ~ 100, default: 30
 type ListArticlesOption = PageOption
 
-func (fd *Freshdesk) CreateCategory(ctx context.Context, category *Category) (*Category, error) {
+func (fd *Freshdesk) CreateCategory(ctx context.Context, category *CategoryCreate) (*Category, error) {
 	url := fd.endpoint("/solutions/categories")
 	result := &Category{}
 	if err := fd.doPost(ctx, url, category, result); err != nil {
@@ -26,7 +26,7 @@ func (fd *Freshdesk) CreateCategory(ctx context.Context, category *Category) (*C
 	return result, nil
 }
 
-func (fd *Freshdesk) CreateCategoryTranslated(ctx context.Context, cid int64, lang string, category *Category) (*Category, error) {
+func (fd *Freshdesk) CreateCategoryTranslated(ctx context.Context, cid int64, lang string, category *CategoryCreate) (*Category, error) {
 	url := fd.endpoint("/solutions/categories/%d/%s", cid, lang)
 	result := &Category{}
 	if err := fd.doPost(ctx, url, category, result); err != nil {
@@ -35,7 +35,7 @@ func (fd *Freshdesk) CreateCategoryTranslated(ctx context.Context, cid int64, la
 	return result, nil
 }
 
-func (fd *Freshdesk) UpdateCategory(ctx context.Context, cid int64, category *Category) (*Category, error) {
+func (fd *Freshdesk) UpdateCategory(ctx context.Context, cid int64, category *CategoryUpdate) (*Category, error) {
 	url := fd.endpoint("/solutions/categories/%d", cid)
 	result := &Category{}
 	if err := fd.doPut(ctx, url, category, result); err != nil {
@@ -44,7 +44,7 @@ func (fd *Freshdesk) UpdateCategory(ctx context.Context, cid int64, category *Ca
 	return result, nil
 }
 
-func (fd *Freshdesk) UpdateCategoryTranslated(ctx context.Context, cid int64, lang string, category *Category) (*Category, error) {
+func (fd *Freshdesk) UpdateCategoryTranslated(ctx context.Context, cid int64, lang string, category *CategoryUpdate) (*Category, error) {
 	url := fd.endpoint("/solutions/categories/%d/%s", cid, lang)
 	result := &Category{}
 	if err := fd.doPut(ctx, url, category, result); err != nil {
@@ -144,7 +144,7 @@ func (fd *Freshdesk) DeleteCategory(ctx context.Context, cid int64) error {
 	return fd.doDelete(ctx, url)
 }
 
-func (fd *Freshdesk) CreateFolder(ctx context.Context, cid int64, folder *Folder) (*Folder, error) {
+func (fd *Freshdesk) CreateFolder(ctx context.Context, cid int64, folder *FolderCreate) (*Folder, error) {
 	url := fd.endpoint("/solutions/categories/%d/folders", cid)
 	result := &Folder{}
 	if err := fd.doPost(ctx, url, folder, result); err != nil {
@@ -153,7 +153,7 @@ func (fd *Freshdesk) CreateFolder(ctx context.Context, cid int64, folder *Folder
 	return result, nil
 }
 
-func (fd *Freshdesk) CreateFolderTranslated(ctx context.Context, fid int64, lang string, folder *Folder) (*Folder, error) {
+func (fd *Freshdesk) CreateFolderTranslated(ctx context.Context, fid int64, lang string, folder *FolderCreate) (*Folder, error) {
 	url := fd.endpoint("/solutions/folders/%d/%s", fid, lang)
 	result := &Folder{}
 	if err := fd.doPost(ctx, url, folder, result); err != nil {
@@ -162,7 +162,7 @@ func (fd *Freshdesk) CreateFolderTranslated(ctx context.Context, fid int64, lang
 	return result, nil
 }
 
-func (fd *Freshdesk) UpdateFolder(ctx context.Context, fid int64, folder *Folder) (*Folder, error) {
+func (fd *Freshdesk) UpdateFolder(ctx context.Context, fid int64, folder *FolderUpdate) (*Folder, error) {
 	url := fd.endpoint("/solutions/folders/%d", fid)
 	result := &Folder{}
 	if err := fd.doPut(ctx, url, folder, result); err != nil {
@@ -171,7 +171,7 @@ func (fd *Freshdesk) UpdateFolder(ctx context.Context, fid int64, folder *Folder
 	return result, nil
 }
 
-func (fd *Freshdesk) UpdateFolderTranslated(ctx context.Context, fid int64, lang string, folder *Folder) (*Folder, error) {
+func (fd *Freshdesk) UpdateFolderTranslated(ctx context.Context, fid int64, lang string, folder *FolderUpdate) (*Folder, error) {
 	url := fd.endpoint("/solutions/folders/%d/%s", fid, lang)
 	result := &Folder{}
 	if err := fd.doPut(ctx, url, folder, result); err != nil {
@@ -343,7 +343,7 @@ func (fd *Freshdesk) DeleteFolder(ctx context.Context, fid int64) error {
 	return fd.doDelete(ctx, url)
 }
 
-func (fd *Freshdesk) CreateArticle(ctx context.Context, fid int64, article *Article) (*Article, error) {
+func (fd *Freshdesk) CreateArticle(ctx context.Context, fid int64, article *ArticleCreate) (*Article, error) {
 	url := fd.endpoint("/solutions/folders/%d/articles", fid)
 	result := &Article{}
 	if err := fd.doPost(ctx, url, article, result); err != nil {
@@ -352,7 +352,7 @@ func (fd *Freshdesk) CreateArticle(ctx context.Context, fid int64, article *Arti
 	return result, nil
 }
 
-func (fd *Freshdesk) CreateArticleTranslated(ctx context.Context, aid int64, lang string, article *Article) (*Article, error) {
+func (fd *Freshdesk) CreateArticleTranslated(ctx context.Context, aid int64, lang string, article *ArticleCreate) (*Article, error) {
 	url := fd.endpoint("/solutions/articles/%d/%s", aid, lang)
 	result := &Article{}
 	if err := fd.doPost(ctx, url, article, result); err != nil {
@@ -361,7 +361,7 @@ func (fd *Freshdesk) CreateArticleTranslated(ctx context.Context, aid int64, lan
 	return result, nil
 }
 
-func (fd *Freshdesk) UpdateArticle(ctx context.Context, aid int64, article *Article) (*Article, error) {
+func (fd *Freshdesk) UpdateArticle(ctx context.Context, aid int64, article *ArticleUpdate) (*Article, error) {
 	url := fd.endpoint("/solutions/articles/%d", aid)
 	result := &Article{}
 	if err := fd.doPut(ctx, url, article, result); err != nil {
@@ -370,7 +370,7 @@ func (fd *Freshdesk) UpdateArticle(ctx context.Context, aid int64, article *Arti
 	return result, nil
 }
 
-func (fd *Freshdesk) UpdateArticleTranslated(ctx context.Context, aid int64, lang string, article *Article) (*Article, error) {
+func (fd *Freshdesk) UpdateArticleTranslated(ctx context.Context, aid int64, lang string, article *ArticleUpdate) (*Article, error) {
 	url := fd.endpoint("/solutions/articles/%d/%s", aid, lang)
 	result := &Article{}
 	if err := fd.doPut(ctx, url, article, result); err != nil {

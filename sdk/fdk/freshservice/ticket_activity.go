@@ -9,7 +9,7 @@ type TicketActivity struct {
 	Actor       *Actor   `json:"actor,omitempty"`
 	Content     string   `json:"content,omitempty"`
 	SubContents []string `json:"sub_contents,omitempty"`
-	CreatedAt   *Time    `json:"created_at,omitempty"`
+	CreatedAt   Time     `json:"created_at,omitempty"`
 }
 
 func (ta *TicketActivity) String() string {

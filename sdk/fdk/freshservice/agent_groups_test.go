@@ -28,11 +28,11 @@ func TestAgentGroups(t *testing.T) {
 
 	count := 100
 	for i := 0; i < count; i++ {
-		ag := &AgentGroup{
+		agc := &AgentGroupCreate{
 			Name: fmt.Sprintf("ApiTestGroup%03d", i+1),
 		}
 
-		cg, err := fs.CreateAgentGroup(ctxbg, ag)
+		cg, err := fs.CreateAgentGroup(ctxbg, agc)
 		if err != nil {
 			t.Fatalf("ERROR: %v", err)
 		}

@@ -61,7 +61,7 @@ func (fao *FilterAgentsOption) Values() Values {
 	return q
 }
 
-func (fs *Freshservice) CreateAgent(ctx context.Context, agent *Agent) (*Agent, error) {
+func (fs *Freshservice) CreateAgent(ctx context.Context, agent *AgentCreate) (*Agent, error) {
 	url := fs.endpoint("/agents")
 	result := &agentResult{}
 	if err := fs.doPost(ctx, url, agent, result); err != nil {
@@ -184,7 +184,7 @@ func (fs *Freshservice) IterFilterAgents(ctx context.Context, fao *FilterAgentsO
 // This operation allows you to modify the profile of a particular agent.
 // Note:
 // can_see_all_tickets_from_associated_departments will automatically be set to false unless it is explicitly set to true in the payload, irrespective of the previous value of the field.
-func (fs *Freshservice) UpdateAgent(ctx context.Context, id int64, agent *Agent) (*Agent, error) {
+func (fs *Freshservice) UpdateAgent(ctx context.Context, id int64, agent *AgentUpdate) (*Agent, error) {
 	url := fs.endpoint("/agents/%d", id)
 	result := &agentResult{}
 	if err := fs.doPut(ctx, url, agent, result); err != nil {

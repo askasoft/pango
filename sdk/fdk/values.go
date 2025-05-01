@@ -68,6 +68,19 @@ func (vs Values) SetStrings(name string, value []string) {
 	}
 }
 
+func (vs Values) SetStringsPtr(name string, value *[]string) {
+	if value != nil {
+		name += "[]"
+		if len(*value) == 0 {
+			(url.Values)(vs).Add(name, "")
+		} else {
+			for _, s := range *value {
+				(url.Values)(vs).Add(name, s)
+			}
+		}
+	}
+}
+
 func (vs Values) SetInts(name string, value []int) {
 	if len(value) > 0 {
 		name += "[]"

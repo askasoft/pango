@@ -15,11 +15,11 @@ type Job struct {
 
 	DownloadURL string `json:"download_url,omitempty"`
 
-	CreatedAt *Time `json:"created_at,omitempty"`
+	CreatedAt Time `json:"created_at,omitempty"`
 
-	UpdatedAt *Time `json:"updated_at,omitempty"`
+	UpdatedAt Time `json:"updated_at,omitempty"`
 
-	StatusUpdatedAt *Time `json:"status_updated_at,omitempty"`
+	StatusUpdatedAt Time `json:"status_updated_at,omitempty"`
 
 	Progress int `json:"progress,omitempty"`
 }

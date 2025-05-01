@@ -7,35 +7,47 @@ import (
 	"github.com/askasoft/pango/ran"
 )
 
+var (
+	_ WithFiles = &ContactCreate{}
+	_ WithFiles = &ContactUpdate{}
+)
+
 func TestContactAPIs(t *testing.T) {
 	fd := testNewFreshdesk(t)
 	if fd == nil {
 		return
 	}
 
-	cn := &Contact{
+	cc := &ContactCreate{
 		Mobile:      ran.RandNumbers(11),
 		Description: "create description " + time.Now().String(),
 	}
-	cn.Name = "panda " + cn.Mobile
+	cc.Name = "panda " + cc.Mobile
 
-	cc, err := fd.CreateContact(ctxbg, cn)
+	c1, err := fd.CreateContact(ctxbg, cc)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
-	fd.Logger.Info(cc)
+	fd.Logger.Info(c1)
 
-	cu := &Contact{}
+	defer func() {
+		err = fd.DeleteContact(ctxbg, c1.ID)
+		if err != nil {
+			t.Fatalf("ERROR: %v", err)
+		}
+	}()
+
+	cu := &ContactUpdate{}
 	cu.Description = "update description " + time.Now().String()
 	cu.Avatar = NewAvatar("../../../logo.png")
 
-	uc, err := fd.UpdateContact(ctxbg, cc.ID, cu)
+	uc, err := fd.UpdateContact(ctxbg, c1.ID, cu)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 	fd.Logger.Info(uc)
 
-	gc, err := fd.GetContact(ctxbg, cc.ID)
+	gc, err := fd.GetContact(ctxbg, c1.ID)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
@@ -45,11 +57,6 @@ func TestContactAPIs(t *testing.T) {
 		fd.Logger.Info(c)
 		return nil
 	})
-	if err != nil {
-		t.Fatalf("ERROR: %v", err)
-	}
-
-	err = fd.DeleteContact(ctxbg, cc.ID)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}

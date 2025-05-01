@@ -82,7 +82,7 @@ func (fd *Freshdesk) IterAgents(ctx context.Context, lao *ListAgentsOption, iaf 
 	return nil
 }
 
-func (fd *Freshdesk) CreateAgent(ctx context.Context, agent *AgentRequest) (*Agent, error) {
+func (fd *Freshdesk) CreateAgent(ctx context.Context, agent *AgentCreate) (*Agent, error) {
 	url := fd.endpoint("/agents")
 	result := &Agent{}
 	if err := fd.doPost(ctx, url, agent, result); err != nil {
@@ -91,7 +91,7 @@ func (fd *Freshdesk) CreateAgent(ctx context.Context, agent *AgentRequest) (*Age
 	return result, nil
 }
 
-func (fd *Freshdesk) UpdateAgent(ctx context.Context, aid int64, agent *AgentRequest) (*Agent, error) {
+func (fd *Freshdesk) UpdateAgent(ctx context.Context, aid int64, agent *AgentUpdate) (*Agent, error) {
 	url := fd.endpoint("/agents/%d", aid)
 	result := &Agent{}
 	if err := fd.doPut(ctx, url, agent, result); err != nil {

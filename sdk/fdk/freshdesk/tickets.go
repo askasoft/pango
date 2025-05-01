@@ -81,7 +81,7 @@ type FilterTicketsResult struct {
 // PerPage: 1 ~ 100, default: 30
 type ListConversationsOption = PageOption
 
-func (fd *Freshdesk) CreateTicket(ctx context.Context, ticket *Ticket) (*Ticket, error) {
+func (fd *Freshdesk) CreateTicket(ctx context.Context, ticket *TicketCreate) (*Ticket, error) {
 	url := fd.endpoint("/tickets")
 	result := &Ticket{}
 	if err := fd.doPost(ctx, url, ticket, result); err != nil {
@@ -197,7 +197,7 @@ func (fd *Freshdesk) IterFilterTickets(ctx context.Context, fto *FilterTicketsOp
 	return nil
 }
 
-func (fd *Freshdesk) UpdateTicket(ctx context.Context, tid int64, ticket *Ticket) (*Ticket, error) {
+func (fd *Freshdesk) UpdateTicket(ctx context.Context, tid int64, ticket *TicketUpdate) (*Ticket, error) {
 	url := fd.endpoint("/tickets/%d", tid)
 	result := &Ticket{}
 	if err := fd.doPut(ctx, url, ticket, result); err != nil {
@@ -338,7 +338,7 @@ func (fd *Freshdesk) IterTicketConversations(ctx context.Context, tid int64, lco
 	return nil
 }
 
-func (fd *Freshdesk) CreateReply(ctx context.Context, tid int64, reply *Reply) (*Reply, error) {
+func (fd *Freshdesk) CreateReply(ctx context.Context, tid int64, reply *ReplyCreate) (*Reply, error) {
 	url := fd.endpoint("/tickets/%d/reply", tid)
 	result := &Reply{}
 	if err := fd.doPost(ctx, url, reply, result); err != nil {
@@ -347,7 +347,7 @@ func (fd *Freshdesk) CreateReply(ctx context.Context, tid int64, reply *Reply) (
 	return result, nil
 }
 
-func (fd *Freshdesk) CreateNote(ctx context.Context, tid int64, note *Note) (*Note, error) {
+func (fd *Freshdesk) CreateNote(ctx context.Context, tid int64, note *NoteCreate) (*Note, error) {
 	url := fd.endpoint("/tickets/%d/notes", tid)
 	result := &Note{}
 	if err := fd.doPost(ctx, url, note, result); err != nil {
@@ -357,10 +357,10 @@ func (fd *Freshdesk) CreateNote(ctx context.Context, tid int64, note *Note) (*No
 }
 
 // UpdateConversation only public & private notes can be edited.
-func (fd *Freshdesk) UpdateConversation(ctx context.Context, cid int64, conversation *Conversation) (*Conversation, error) {
+func (fd *Freshdesk) UpdateConversation(ctx context.Context, cid int64, note *NoteUpdate) (*Conversation, error) {
 	url := fd.endpoint("/conversations/%d", cid)
 	result := &Conversation{}
-	if err := fd.doPut(ctx, url, conversation, result); err != nil {
+	if err := fd.doPut(ctx, url, note, result); err != nil {
 		return nil, err
 	}
 	return result, nil

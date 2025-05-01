@@ -66,7 +66,7 @@ func (sao *SearchArticlesOption) Values() Values {
 	return q
 }
 
-func (fs *Freshservice) CreateCategory(ctx context.Context, category *Category) (*Category, error) {
+func (fs *Freshservice) CreateCategory(ctx context.Context, category *CategoryCreate) (*Category, error) {
 	url := fs.endpoint("/solutions/categories")
 	result := &categoryResult{}
 	if err := fs.doPost(ctx, url, category, result); err != nil {
@@ -75,7 +75,7 @@ func (fs *Freshservice) CreateCategory(ctx context.Context, category *Category) 
 	return result.Category, nil
 }
 
-func (fs *Freshservice) UpdateCategory(ctx context.Context, cid int64, category *Category) (*Category, error) {
+func (fs *Freshservice) UpdateCategory(ctx context.Context, cid int64, category *CategoryUpdate) (*Category, error) {
 	url := fs.endpoint("/solutions/categories/%d", cid)
 	result := &categoryResult{}
 	if err := fs.doPut(ctx, url, category, result); err != nil {
@@ -132,7 +132,7 @@ func (fs *Freshservice) DeleteCategory(ctx context.Context, cid int64) error {
 	return fs.doDelete(ctx, url)
 }
 
-func (fs *Freshservice) CreateFolder(ctx context.Context, folder *Folder) (*Folder, error) {
+func (fs *Freshservice) CreateFolder(ctx context.Context, folder *FolderCreate) (*Folder, error) {
 	url := fs.endpoint("/solutions/folders")
 	result := &folderResult{}
 	if err := fs.doPost(ctx, url, folder, result); err != nil {
@@ -141,7 +141,7 @@ func (fs *Freshservice) CreateFolder(ctx context.Context, folder *Folder) (*Fold
 	return result.Foler, nil
 }
 
-func (fs *Freshservice) UpdateFolder(ctx context.Context, fid int64, folder *Folder) (*Folder, error) {
+func (fs *Freshservice) UpdateFolder(ctx context.Context, fid int64, folder *FolderUpdate) (*Folder, error) {
 	url := fs.endpoint("/solutions/folders/%d", fid)
 	result := &folderResult{}
 	if err := fs.doPut(ctx, url, folder, result); err != nil {
@@ -203,7 +203,7 @@ func (fs *Freshservice) DeleteFolder(ctx context.Context, fid int64) error {
 	return fs.doDelete(ctx, url)
 }
 
-func (fs *Freshservice) CreateArticle(ctx context.Context, article *Article) (*Article, error) {
+func (fs *Freshservice) CreateArticle(ctx context.Context, article *ArticleCreate) (*Article, error) {
 	url := fs.endpoint("/solutions/articles")
 	result := &articleResult{}
 	if err := fs.doPost(ctx, url, article, result); err != nil {
@@ -221,7 +221,7 @@ func (fs *Freshservice) SendArticleToApproval(ctx context.Context, aid int64) (*
 	return result.Article, nil
 }
 
-func (fs *Freshservice) UpdateArticle(ctx context.Context, aid int64, article *Article) (*Article, error) {
+func (fs *Freshservice) UpdateArticle(ctx context.Context, aid int64, article *ArticleUpdate) (*Article, error) {
 	url := fs.endpoint("/solutions/articles/%d", aid)
 	result := &articleResult{}
 	if err := fs.doPut(ctx, url, article, result); err != nil {

@@ -42,28 +42,48 @@ func (ars *AutomationRules) String() string {
 }
 
 type AutomationRule struct {
-	ID         int64                  `json:"id,omitempty"`         // Id of the automation
-	Name       string                 `json:"name,omitempty"`       // Name of the automation rule
-	Position   int                    `json:"position,omitempty"`   // Position of the automation rule
-	Active     bool                   `json:"active,omitempty"`     // Set to true if the rule is active
-	Performer  *AutomationPerformer   `json:"performer,omitempty"`  // **Applicable only if automation_type_id is 4**, Any event performer (agent, customer or system) whose action triggers the rule
-	Events     []*AutomationEvent     `json:"events,omitempty"`     // **Applicable only if automation_type_id is 4**, Events that are responsible for triggering the rule
-	Conditions []*AutomationCondition `json:"conditions,omitempty"` // Conditions to check whether the rule can run on a ticket or not
-	Operator   AutomationOperator     `json:"operator,omitempty"`   // AND/OR operator to combine multiple conditions in a rule
-	Actions    []*AutomationAction    `json:"actions,omitempty"`    // sActions to be performed by the rule on matching tickets
+	ID               int64                  `json:"id,omitempty"`                 // Id of the automation
+	Name             string                 `json:"name,omitempty"`               // Name of the automation rule
+	Description      string                 `json:"description,omitempty"`        // Description of the automation rule
+	Position         int                    `json:"position,omitempty"`           // Position of the automation rule
+	Active           bool                   `json:"active,omitempty"`             // Set to true if the rule is active
+	AutomationTypeID int64                  `json:"automation_type_id,omitempty"` // Type id of the automation
+	Performer        *AutomationPerformer   `json:"performer,omitempty"`          // **Applicable only if automation_type_id is 4**, Any event performer (agent, customer or system) whose action triggers the rule
+	Events           []*AutomationEvent     `json:"events,omitempty"`             // **Applicable only if automation_type_id is 4**, Events that are responsible for triggering the rule
+	Conditions       []*AutomationCondition `json:"conditions,omitempty"`         // Conditions to check whether the rule can run on a ticket or not
+	Operator         AutomationOperator     `json:"operator,omitempty"`           // AND/OR operator to combine multiple conditions in a rule
+	Actions          []*AutomationAction    `json:"actions,omitempty"`            // sActions to be performed by the rule on matching tickets
 
 	Summary             map[string]any `json:"summary,omitempty"`
 	Outdated            bool           `json:"outdated,omitempty"`
 	AffectedTicketCount int            `json:"affected_tickets_count,omitempty"`
 	LastUpdatedBy       int64          `json:"last_updated_by,omitempty"`
 	Meta                map[string]any `json:"meta,omitempty"`
-	CreatedAt           *Time          `json:"created_at,omitempty"`
-	UpdatedAt           *Time          `json:"updated_at,omitempty"`
+	CreatedAt           Time           `json:"created_at,omitempty"`
+	UpdatedAt           Time           `json:"updated_at,omitempty"`
 }
 
 func (ar *AutomationRule) String() string {
 	return toString(ar)
 }
+
+type AutomationRuleCreate struct {
+	Name        string                 `json:"name,omitempty"`        // Name of the automation rule
+	Description string                 `json:"description,omitempty"` // Description of the automation rule
+	Position    int                    `json:"position,omitempty"`    // Position of the automation rule
+	Active      bool                   `json:"active,omitempty"`      // Set to true if the rule is active
+	Performer   *AutomationPerformer   `json:"performer,omitempty"`   // **Applicable only if automation_type_id is 4**, Any event performer (agent, customer or system) whose action triggers the rule
+	Events      []*AutomationEvent     `json:"events,omitempty"`      // **Applicable only if automation_type_id is 4**, Events that are responsible for triggering the rule
+	Conditions  []*AutomationCondition `json:"conditions,omitempty"`  // Conditions to check whether the rule can run on a ticket or not
+	Operator    AutomationOperator     `json:"operator,omitempty"`    // AND/OR operator to combine multiple conditions in a rule
+	Actions     []*AutomationAction    `json:"actions,omitempty"`     // sActions to be performed by the rule on matching tickets
+}
+
+func (ar *AutomationRuleCreate) String() string {
+	return toString(ar)
+}
+
+type AutomationRuleUpdate = AutomationRuleCreate
 
 type AutomationPerformer struct {
 	Type    AutomationPerformerType `json:"type,omitempty"`    // Agent/Requester/AgentOrRequester/System

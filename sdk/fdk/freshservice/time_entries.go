@@ -14,7 +14,7 @@ type ListTimeEntriesOption = PageOption
 // 1. If timer_running is not specified in the request, it is considered as false and time_spent is mandatory in this scenario.
 // 2. time_spent can be set only if timer_running is false or not set.
 // POST  /api/v2/tickets/[ticket_id]/time_entries
-func (fs *Freshservice) CreateTimeEntry(ctx context.Context, tid int64, tm *TimeEntry) (*TimeEntry, error) {
+func (fs *Freshservice) CreateTimeEntry(ctx context.Context, tid int64, tm *TimeEntryCreate) (*TimeEntry, error) {
 	url := fs.endpoint("/tickets/%d/time_entries", tid)
 	result := &timeEntryResult{}
 	if err := fs.doPost(ctx, url, tm, result); err != nil {
@@ -76,7 +76,7 @@ func (fs *Freshservice) IterTicketTimeEntries(ctx context.Context, tid int64, lt
 // This API can be used to update/modify existing time entry.
 // Note:
 // 1. For a running timer, time_spent cannot be updated without stopping it.
-func (fs *Freshservice) UpdateTimeEntry(ctx context.Context, tid, teid int64, tm *TimeEntry) (*TimeEntry, error) {
+func (fs *Freshservice) UpdateTimeEntry(ctx context.Context, tid, teid int64, tm *TimeEntryUpdate) (*TimeEntry, error) {
 	url := fs.endpoint("/tickets/%d/time_entries/%d", tid, teid)
 	result := &timeEntryResult{}
 	if err := fs.doPut(ctx, url, tm, result); err != nil {

@@ -38,11 +38,11 @@ func (r *Reply) Files() Files {
 func (r *Reply) Values() Values {
 	vs := Values{}
 
+	vs.SetString("body", r.Body)
 	vs.SetString("from_email", r.FromEmail)
 	vs.SetInt64("user_id", r.UserID)
 	vs.SetStrings("cc_emails", r.CcEmails)
 	vs.SetStrings("bcc_emails", r.BccEmails)
-	vs.SetString("body", r.Body)
 	vs.SetTimePtr("created_at", r.CreatedAt)
 	vs.SetTimePtr("updated_at", r.UpdatedAt)
 

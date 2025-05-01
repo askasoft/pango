@@ -1,22 +1,21 @@
 package freshservice
 
 import (
+	"errors"
+	"io"
 	"reflect"
 	"testing"
 	"time"
 
 	"github.com/askasoft/pango/fsu"
-	"github.com/askasoft/pango/log"
 )
 
-func TestTicketTypes(t *testing.T) {
-	var tt WithFiles = &Ticket{}
-	var n WithFiles = &Note{}
-	var r WithFiles = &Reply{}
-	var c WithFiles = &Conversation{}
-
-	log.Trace(tt, n, r, c)
-}
+var (
+	_ WithFiles = &TicketCreate{}
+	_ WithFiles = &TicketUpdate{}
+	_ WithFiles = &Note{}
+	_ WithFiles = &Reply{}
+)
 
 func TestTicketAPIs(t *testing.T) {
 	fs := testNewFreshservice(t)
@@ -25,7 +24,7 @@ func TestTicketAPIs(t *testing.T) {
 	}
 
 	tm1, _ := time.ParseInLocation("2006-1-2 15:04:05", "2000-01-02 10:20:30", time.Local)
-	ot := &Ticket{
+	tc := &TicketCreate{
 		Name:        "test",
 		Phone:       "09012345678",
 		Subject:     "test " + time.Now().String(),
@@ -38,13 +37,13 @@ func TestTicketAPIs(t *testing.T) {
 		CreatedAt: &Time{Time: tm1},
 	}
 
-	ct, err := fs.CreateTicket(ctxbg, ot)
+	ct, err := fs.CreateTicket(ctxbg, tc)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 	fs.Logger.Debug(ct)
 
-	tu := &Ticket{}
+	tu := &TicketUpdate{}
 	tu.Description = `<div>
 <div>test05 - 非公開メモ</div>
 <div>問い合わせです。</div>
@@ -73,11 +72,11 @@ func TestTicketAPIs(t *testing.T) {
 		fs.Logger.Debug(cn)
 	}
 
-	cu := &Conversation{
+	cnu := &Note{
 		Body: "update note " + time.Now().String(),
 	}
-	cu.AddAttachment("./conversation.go")
-	uc, err := fs.UpdateConversation(ctxbg, cn.ID, cu)
+	cnu.AddAttachment("./conversation.go")
+	uc, err := fs.UpdateConversation(ctxbg, cn.ID, cnu)
 	if err != nil {
 		t.Errorf("ERROR: %v", err)
 	} else {
@@ -162,12 +161,18 @@ func TestIterTicket(t *testing.T) {
 		return
 	}
 
+	cnt := 0
 	ltp := &ListTicketsOption{PerPage: 2}
 	err := fs.IterTickets(ctxbg, ltp, func(t *Ticket) error {
+		cnt++
 		fs.Logger.Debug(t)
+
+		if cnt > 10 {
+			return io.EOF
+		}
 		return nil
 	})
-	if err != nil {
+	if err != nil && !errors.Is(err, io.EOF) {
 		t.Fatalf("ERROR: %v", err)
 	}
 }

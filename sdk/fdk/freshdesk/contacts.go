@@ -47,7 +47,7 @@ func (lco *ListContactsOption) Values() Values {
 	return q
 }
 
-func (fd *Freshdesk) CreateContact(ctx context.Context, contact *Contact) (*Contact, error) {
+func (fd *Freshdesk) CreateContact(ctx context.Context, contact *ContactCreate) (*Contact, error) {
 	url := fd.endpoint("/contacts")
 	result := &Contact{}
 	if err := fd.doPost(ctx, url, contact, result); err != nil {
@@ -56,7 +56,7 @@ func (fd *Freshdesk) CreateContact(ctx context.Context, contact *Contact) (*Cont
 	return result, nil
 }
 
-func (fd *Freshdesk) UpdateContact(ctx context.Context, cid int64, contact *Contact) (*Contact, error) {
+func (fd *Freshdesk) UpdateContact(ctx context.Context, cid int64, contact *ContactUpdate) (*Contact, error) {
 	url := fd.endpoint("/contacts/%d", cid)
 	result := &Contact{}
 	if err := fd.doPut(ctx, url, contact, result); err != nil {

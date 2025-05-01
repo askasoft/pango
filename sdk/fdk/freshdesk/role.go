@@ -10,9 +10,9 @@ type Role struct {
 	// Set to true if this is the default role
 	Default bool `json:"default,omitempty"`
 
-	CreatedAt *Time `json:"created_at,omitempty"`
+	CreatedAt Time `json:"created_at,omitempty"`
 
-	UpdatedAt *Time `json:"updated_at,omitempty"`
+	UpdatedAt Time `json:"updated_at,omitempty"`
 }
 
 func (r *Role) String() string {

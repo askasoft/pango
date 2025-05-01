@@ -2,6 +2,7 @@ package freshservice
 
 import (
 	"context"
+	"strings"
 
 	"github.com/askasoft/pango/asg"
 )
@@ -184,7 +185,7 @@ func (fs *Freshservice) IterRequesterGroupMembers(ctx context.Context, rgid int6
 	return nil
 }
 
-func (fs *Freshservice) CreateRequester(ctx context.Context, requester *Requester) (*Requester, error) {
+func (fs *Freshservice) CreateRequester(ctx context.Context, requester *RequesterCreate) (*Requester, error) {
 	url := fs.endpoint("/requesters")
 	result := &requesterResult{}
 	if err := fs.doPost(ctx, url, requester, result); err != nil {
@@ -258,8 +259,13 @@ func (fs *Freshservice) IterRequesters(ctx context.Context, lro *ListRequestersO
 	return nil
 }
 
-func (fs *Freshservice) GetRequesterFields(ctx context.Context) ([]*RequesterField, error) {
+func (fs *Freshservice) GetRequesterFields(ctx context.Context, include ...string) ([]*RequesterField, error) {
 	url := fs.endpoint("/requester_fields")
+	if len(include) > 0 {
+		s := strings.Join(include, ",")
+		url += "?include=" + s
+	}
+
 	result := &requesterFieldsResult{}
 	err := fs.doGet(ctx, url, result)
 	return result.RequesterFields, err
@@ -269,7 +275,7 @@ func (fs *Freshservice) GetRequesterFields(ctx context.Context) ([]*RequesterFie
 // This operation allows you to modify the profile of a particular requester.
 // Note:
 // can_see_all_tickets_from_associated_departments will automatically be set to false unless it is explicitly set to true in the payload, irrespective of the previous value of the field.
-func (fs *Freshservice) UpdateRequester(ctx context.Context, id int64, requester *Requester) (*Requester, error) {
+func (fs *Freshservice) UpdateRequester(ctx context.Context, id int64, requester *RequesterUpdate) (*Requester, error) {
 	url := fs.endpoint("/requesters/%d", id)
 	result := &requesterResult{}
 	if err := fs.doPut(ctx, url, requester, result); err != nil {

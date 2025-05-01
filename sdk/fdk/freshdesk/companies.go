@@ -10,7 +10,7 @@ import (
 
 type ListCompaniesOption = PageOption
 
-func (fd *Freshdesk) CreateCompany(ctx context.Context, company *Company) (*Company, error) {
+func (fd *Freshdesk) CreateCompany(ctx context.Context, company *CompanyCreate) (*Company, error) {
 	url := fd.endpoint("/companies")
 	result := &Company{}
 	if err := fd.doPost(ctx, url, company, result); err != nil {
@@ -74,7 +74,7 @@ func (fd *Freshdesk) SearchCompanies(ctx context.Context, name string) ([]*Compa
 	return result.Companies, err
 }
 
-func (fd *Freshdesk) UpdateCompany(ctx context.Context, cid int64, company *Company) (*Company, error) {
+func (fd *Freshdesk) UpdateCompany(ctx context.Context, cid int64, company *CompanyUpdate) (*Company, error) {
 	url := fd.endpoint("/companies/%d", cid)
 	result := &Company{}
 	if err := fd.doPut(ctx, url, company, result); err != nil {

@@ -39,7 +39,7 @@ func (lteo *ListTimeEntriesOption) Values() Values {
 	return q
 }
 
-func (fd *Freshdesk) CreateTimeEntry(ctx context.Context, tid int64, te *TimeEntry) (*TimeEntry, error) {
+func (fd *Freshdesk) CreateTimeEntry(ctx context.Context, tid int64, te *TimeEntryCreate) (*TimeEntry, error) {
 	url := fd.endpoint("/tickets/%d/time_entries", tid)
 	result := &TimeEntry{}
 	if err := fd.doPost(ctx, url, te, result); err != nil {
@@ -93,7 +93,7 @@ func (fd *Freshdesk) IterTimeEntries(ctx context.Context, lteo *ListTimeEntriesO
 // 3. The start_time cannot be greater than the current time
 // 4. The timer_running attribute cannot be set to the same value as before
 // 5. The agent_id cannot be updated if the timer is already running
-func (fd *Freshdesk) UpdateTimeEntry(ctx context.Context, teid int64, te *TimeEntry) (*TimeEntry, error) {
+func (fd *Freshdesk) UpdateTimeEntry(ctx context.Context, teid int64, te *TimeEntryUpdate) (*TimeEntry, error) {
 	url := fd.endpoint("/time_entries/%d", teid)
 	result := &TimeEntry{}
 	if err := fd.doPut(ctx, url, te, result); err != nil {

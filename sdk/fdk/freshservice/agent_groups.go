@@ -7,7 +7,7 @@ import "context"
 
 type ListAgentGroupsOption = PageOption
 
-func (fs *Freshservice) CreateAgentGroup(ctx context.Context, ag *AgentGroup) (*AgentGroup, error) {
+func (fs *Freshservice) CreateAgentGroup(ctx context.Context, ag *AgentGroupCreate) (*AgentGroup, error) {
 	url := fs.endpoint("/groups")
 	result := &agentGroupResult{}
 	if err := fs.doPost(ctx, url, ag, result); err != nil {
@@ -59,7 +59,7 @@ func (fs *Freshservice) IterAgentGroups(ctx context.Context, lago *ListAgentGrou
 	return nil
 }
 
-func (fs *Freshservice) UpdateAgentGroup(ctx context.Context, id int64, ag *AgentGroup) (*AgentGroup, error) {
+func (fs *Freshservice) UpdateAgentGroup(ctx context.Context, id int64, ag *AgentGroupUpdate) (*AgentGroup, error) {
 	url := fs.endpoint("/groups/%d", id)
 	result := &agentGroupResult{}
 	if err := fs.doPut(ctx, url, ag, result); err != nil {

@@ -47,7 +47,7 @@ func (fd *Freshdesk) ListTicketFields(ctx context.Context, types ...string) ([]*
 	return fields, err
 }
 
-func (fd *Freshdesk) CreateTicketField(ctx context.Context, tf *TicketField) (*TicketField, error) {
+func (fd *Freshdesk) CreateTicketField(ctx context.Context, tf *TicketFieldCreate) (*TicketField, error) {
 	url := fd.endpoint("/admin/ticket_fields")
 	result := &TicketField{}
 	if err := fd.doPost(ctx, url, tf, result); err != nil {
@@ -70,7 +70,7 @@ func (fd *Freshdesk) GetTicketField(ctx context.Context, fid int64, include ...s
 	return result, err
 }
 
-func (fd *Freshdesk) UpdateTicketField(ctx context.Context, fid int64, field *TicketField) (*TicketField, error) {
+func (fd *Freshdesk) UpdateTicketField(ctx context.Context, fid int64, field *TicketFieldUpdate) (*TicketField, error) {
 	url := fd.endpoint("/admin/ticket_fields/%d", fid)
 	result := &TicketField{}
 	if err := fd.doPut(ctx, url, field, result); err != nil {

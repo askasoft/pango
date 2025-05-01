@@ -78,7 +78,7 @@ func (fto *FilterTicketsOption) Values() Values {
 // PerPage: 1 ~ 100, default: 30
 type ListConversationsOption = PageOption
 
-func (fs *Freshservice) CreateTicket(ctx context.Context, ticket *Ticket) (*Ticket, error) {
+func (fs *Freshservice) CreateTicket(ctx context.Context, ticket *TicketCreate) (*Ticket, error) {
 	url := fs.endpoint("/tickets")
 	result := &ticketResult{}
 	if err := fs.doPost(ctx, url, ticket, result); err != nil {
@@ -232,7 +232,7 @@ func (fs *Freshservice) IterTickets(ctx context.Context, lto *ListTicketsOption,
 // 2. The requested_for_id field can be updated only for Service Request tickets.
 // Query Parameters	Handle
 // bypass_mandatory: To bypass mandatory fields check while updating the ticket except for requester_id, source. Any business rules trying to mandate certain fields will also be bypassed. All fields configured as mandatory upon closing or resolving the ticket will be skipped while updating the ticket. This can only be passed by an admin.
-func (fs *Freshservice) UpdateTicket(ctx context.Context, tid int64, ticket *Ticket) (*Ticket, error) {
+func (fs *Freshservice) UpdateTicket(ctx context.Context, tid int64, ticket *TicketUpdate) (*Ticket, error) {
 	url := fs.endpoint("/tickets/%d", tid)
 	result := &ticketResult{}
 	if err := fs.doPut(ctx, url, ticket, result); err != nil {
@@ -311,10 +311,10 @@ func (fs *Freshservice) CreateNote(ctx context.Context, tid int64, note *Note) (
 
 // Update a Conversation
 // Only public & private notes can be edited.
-func (fs *Freshservice) UpdateConversation(ctx context.Context, cid int64, conversation *Conversation) (*Conversation, error) {
+func (fs *Freshservice) UpdateConversation(ctx context.Context, cid int64, note *Note) (*Conversation, error) {
 	url := fs.endpoint("/conversations/%d", cid)
 	result := &conversationResult{}
-	if err := fs.doPut(ctx, url, conversation, result); err != nil {
+	if err := fs.doPut(ctx, url, note, result); err != nil {
 		return nil, err
 	}
 	return result.Conversation, nil

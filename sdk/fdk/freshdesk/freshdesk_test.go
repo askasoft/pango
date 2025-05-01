@@ -1,24 +1,12 @@
 package freshdesk
 
 import (
-	"fmt"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/askasoft/pango/log"
 )
-
-func TestWithFiles(t *testing.T) {
-	var (
-		tt WithFiles = &Ticket{}
-		tc WithFiles = &Conversation{}
-		at WithFiles = &Article{}
-		ac WithFiles = &Contact{}
-		//ag WithFiles = &Agent{}
-	)
-	fmt.Println(tt, tc, at, ac)
-}
 
 func testNewFreshdesk(t *testing.T) *Freshdesk {
 	apikey := os.Getenv("FDK_APIKEY")

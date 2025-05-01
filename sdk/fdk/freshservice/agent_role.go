@@ -12,9 +12,9 @@ type AgentRole struct {
 	// default	boolean	Set to true if it is a default role, and false otherwise
 	Default bool `json:"default,omitempty"`
 
-	CreatedAt *Time `json:"created_at,omitempty"`
+	CreatedAt Time `json:"created_at,omitempty"`
 
-	UpdatedAt *Time `json:"updated_at,omitempty"`
+	UpdatedAt Time `json:"updated_at,omitempty"`
 }
 
 func (ar *AgentRole) String() string {

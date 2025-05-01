@@ -116,34 +116,9 @@ type Article struct {
 	// Attachments associated with the article. The total size of all of a article's attachments cannot exceed 25MB.
 	Attachments []*Attachment `json:"attachments,omitempty"`
 
-	CreatedAt *Time `json:"created_at,omitempty"`
+	CreatedAt Time `json:"created_at,omitempty"`
 
-	UpdatedAt *Time `json:"updated_at,omitempty"`
-}
-
-func (a *Article) AddAttachment(path string, data ...[]byte) {
-	aa := NewAttachment(path, data...)
-	a.Attachments = append(a.Attachments, aa)
-}
-
-func (a *Article) Files() Files {
-	return ((Attachments)(a.Attachments)).Files()
-}
-
-func (a *Article) Values() Values {
-	vs := Values{}
-
-	vs.SetString("title", a.Title)
-	vs.SetString("description", a.Description)
-	vs.SetInt("status", (int)(a.Status))
-	vs.SetStrings("tags", a.Tags)
-	vs.SetStrings("platforms", a.Platforms)
-	if a.SeoData != nil {
-		vs.SetString("seo_data[meta_title]", a.SeoData.MetaTitle)
-		vs.SetString("seo_data[meta_keywords]", a.SeoData.MetaKeywords)
-		vs.SetString("seo_data[meta_description]", a.SeoData.MetaDescription)
-	}
-	return vs
+	UpdatedAt Time `json:"updated_at,omitempty"`
 }
 
 func (a *Article) String() string {
@@ -162,3 +137,57 @@ type ArticleEx struct {
 func (a *ArticleEx) String() string {
 	return toString(a)
 }
+
+type ArticleCreate struct {
+	// ID of the agent who created the solution article
+	AgentID int64 `json:"agent_id,omitempty"`
+
+	// Title of the solution article
+	Title string `json:"title,omitempty"`
+
+	// Description of the solution article
+	Description string `json:"description,omitempty"`
+
+	// Status of the solution article
+	Status ArticleStatus `json:"status,omitempty"`
+
+	// Meta data for search engine optimization. Allows meta_title, meta_description and meta_keywords
+	SeoData *ArticleSeoData `json:"seo_data,omitempty"`
+
+	// Tags that have been associated with the solution article
+	Tags *[]string `json:"tags,omitempty"`
+
+	// Attachments associated with the article. The total size of all of a article's attachments cannot exceed 25MB.
+	Attachments []*Attachment `json:"attachments,omitempty"`
+}
+
+func (a *ArticleCreate) AddAttachment(path string, data ...[]byte) {
+	aa := NewAttachment(path, data...)
+	a.Attachments = append(a.Attachments, aa)
+}
+
+func (a *ArticleCreate) Files() Files {
+	return ((Attachments)(a.Attachments)).Files()
+}
+
+func (a *ArticleCreate) Values() Values {
+	vs := Values{}
+
+	vs.SetInt64("agent_id", a.AgentID)
+	vs.SetString("title", a.Title)
+	vs.SetString("description", a.Description)
+	vs.SetInt("status", (int)(a.Status))
+	vs.SetStringsPtr("tags", a.Tags)
+	if a.SeoData != nil {
+		vs.SetString("seo_data[meta_title]", a.SeoData.MetaTitle)
+		vs.SetString("seo_data[meta_keywords]", a.SeoData.MetaKeywords)
+		vs.SetString("seo_data[meta_description]", a.SeoData.MetaDescription)
+	}
+	return vs
+}
+
+func (a *ArticleCreate) String() string {
+	return toString(a)
+}
+
+type ArticleUpdate = ArticleCreate

@@ -9,10 +9,11 @@ import (
 )
 
 var (
-	_ WithFiles = &Ticket{}
-	_ WithFiles = &Note{}
-	_ WithFiles = &Reply{}
-	_ WithFiles = &Conversation{}
+	_ WithFiles = &TicketCreate{}
+	_ WithFiles = &TicketUpdate{}
+	_ WithFiles = &NoteCreate{}
+	_ WithFiles = &NoteUpdate{}
+	_ WithFiles = &ReplyCreate{}
 )
 
 func TestTicketAPIs(t *testing.T) {
@@ -22,7 +23,7 @@ func TestTicketAPIs(t *testing.T) {
 	}
 
 	// tm1, _ := time.ParseInLocation("2006-1-2 15:04:05", "2000-01-02 10:20:30", time.Local)
-	ot := &Ticket{
+	tc := &TicketCreate{
 		Name:        "test",
 		Phone:       "09012345678",
 		Subject:     "test " + time.Now().String(),
@@ -32,13 +33,13 @@ func TestTicketAPIs(t *testing.T) {
 		// CreatedAt:   &Time{Time: tm1}, // unsupport
 	}
 
-	ct, err := fd.CreateTicket(ctxbg, ot)
+	ct, err := fd.CreateTicket(ctxbg, tc)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 	fd.Logger.Debug(ct)
 
-	tu := &Ticket{}
+	tu := &TicketUpdate{}
 	tu.Description = `<div>
 <div>test05 - 非公開メモ</div>
 <div>問い合わせです。</div>
@@ -66,12 +67,12 @@ func TestTicketAPIs(t *testing.T) {
 
 	// public note
 	// tm2, _ := time.ParseInLocation("2006-1-2 15:04:05", "2000-01-02 10:20:30", time.Local)
-	nuc := &Note{
+	nc1 := &NoteCreate{
 		Body:   "public user note " + time.Now().String(),
 		UserID: cs[0].ID,
 		// CreatedAt: &Time{Time: tm2}, // unsupport
 	}
-	cnu, err := fd.CreateNote(ctxbg, ct.ID, nuc)
+	cnu, err := fd.CreateNote(ctxbg, ct.ID, nc1)
 	if err != nil {
 		t.Errorf("ERROR: %v", err)
 	} else {
@@ -79,22 +80,22 @@ func TestTicketAPIs(t *testing.T) {
 	}
 
 	// private note
-	nc := &Note{
+	nc2 := &NoteCreate{
 		Body:    "private agent note " + time.Now().String(),
 		Private: true,
 	}
-	cn, err := fd.CreateNote(ctxbg, ct.ID, nc)
+	cn, err := fd.CreateNote(ctxbg, ct.ID, nc2)
 	if err != nil {
 		t.Errorf("ERROR: %v", err)
 	} else {
 		fd.Logger.Debug(cn)
 	}
 
-	cu := &Conversation{
+	nu := &NoteUpdate{
 		Body: "private agent update note " + time.Now().String(),
 	}
-	cu.AddAttachment("./conversation.go")
-	uc, err := fd.UpdateConversation(ctxbg, cn.ID, cu)
+	nu.AddAttachment("./conversation.go")
+	uc, err := fd.UpdateConversation(ctxbg, cn.ID, nu)
 	if err != nil {
 		t.Errorf("ERROR: %v", err)
 	} else {

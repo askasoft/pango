@@ -11,7 +11,7 @@ func TestTimeEntriesAPIs(t *testing.T) {
 		return
 	}
 
-	ot := &Ticket{
+	tc := &TicketCreate{
 		Name:        "test",
 		Phone:       "09012345678",
 		Subject:     "test " + time.Now().String(),
@@ -20,20 +20,20 @@ func TestTimeEntriesAPIs(t *testing.T) {
 		Priority:    TicketPriorityMedium,
 	}
 
-	ct, err := fd.CreateTicket(ctxbg, ot)
+	ct, err := fd.CreateTicket(ctxbg, tc)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 
 	defer fd.DeleteTicket(ctxbg, ct.ID)
 
-	tm := &TimeEntry{
+	tmc := &TimeEntryCreate{
 		AgentID:   2043035275047,
 		TimeSpent: 70,
 		Note:      "test time entry",
 	}
 
-	ctm, err := fd.CreateTimeEntry(ctxbg, ct.ID, tm)
+	ctm, err := fd.CreateTimeEntry(ctxbg, ct.ID, tmc)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}

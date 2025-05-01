@@ -71,16 +71,16 @@ type Agent struct {
 
 	Contact *Contact `json:"contact,omitempty"`
 
-	CreatedAt *Time `json:"created_at,omitempty"`
+	CreatedAt Time `json:"created_at,omitempty"`
 
-	UpdatedAt *Time `json:"updated_at,omitempty"`
+	UpdatedAt Time `json:"updated_at,omitempty"`
 }
 
 func (a *Agent) String() string {
 	return toString(a)
 }
 
-type AgentRequest struct {
+type AgentCreate struct {
 	// Set to true if this is an occasional agent (true => occasional, false => full-time)
 	Occasional bool `json:"occasional,omitempty"`
 
@@ -127,8 +127,8 @@ type AgentRequest struct {
 	//Avatar *Avatar `json:"avatar,omitempty"`
 }
 
-func (aq *AgentRequest) String() string {
-	return toString(aq)
+func (a *AgentCreate) String() string {
+	return toString(a)
 }
 
 // func (aq *AgentRequest) Files() Files {
@@ -158,3 +158,5 @@ func (aq *AgentRequest) String() string {
 // 	vs.SetString("time_zone", aq.TimeZone)
 // 	return vs
 // }
+
+type AgentUpdate = AgentCreate

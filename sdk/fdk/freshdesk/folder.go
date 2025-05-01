@@ -89,11 +89,37 @@ type Folder struct {
 	// IDs of the company segments to whom this solution folder is visible
 	CompanySegmentIDs []int64 `json:"company_segment_ids,omitempty"`
 
-	CreatedAt *Time `json:"created_at,omitempty"`
+	CreatedAt Time `json:"created_at,omitempty"`
 
-	UpdatedAt *Time `json:"updated_at,omitempty"`
+	UpdatedAt Time `json:"updated_at,omitempty"`
 }
 
 func (f *Folder) String() string {
 	return toString(f)
 }
+
+type FolderCreate struct {
+	Name string `json:"name,omitempty"`
+
+	Description string `json:"description,omitempty"`
+
+	ParentFolderID int64 `json:"parent_folder_id,omitempty"`
+
+	// Accessibility of this folder. Please refer to Folder Properties table.
+	Visibility FolderVisibility `json:"visibility,omitempty"`
+
+	// IDs of the companies to whom this solution folder is visible
+	CompanyIDs []int64 `json:"company_ids,omitempty"`
+
+	// IDs of the contact segments to whom this solution folder is visible
+	ContactSegmentIDs []int64 `json:"contact_segment_ids,omitempty"`
+
+	// IDs of the company segments to whom this solution folder is visible
+	CompanySegmentIDs []int64 `json:"company_segment_ids,omitempty"`
+}
+
+func (f *FolderCreate) String() string {
+	return toString(f)
+}
+
+type FolderUpdate = FolderCreate

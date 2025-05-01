@@ -102,31 +102,14 @@ type Conversation struct {
 	// Email address added in the 'bcc' field of the outgoing ticket email.
 	BccEmails []string `json:"bcc_emails,omitempty"`
 
+	// response
+	NotifiedTos []string `json:"notified_to,omitempty"`
+
 	// Conversation creation timestamp
-	CreatedAt *Time `json:"created_at,omitempty"`
+	CreatedAt Time `json:"created_at,omitempty"`
 
 	// Conversation updated timestamp
-	UpdatedAt *Time `json:"updated_at,omitempty"`
-
-	// ------------------------------------------------------
-	// response
-
-	NotifiedTos []string `json:"notified_to,omitempty"`
-}
-
-func (c *Conversation) AddAttachment(path string, data ...[]byte) {
-	a := NewAttachment(path, data...)
-	c.Attachments = append(c.Attachments, a)
-}
-
-func (c *Conversation) Files() Files {
-	return ((Attachments)(c.Attachments)).Files()
-}
-
-func (c *Conversation) Values() Values {
-	vs := Values{}
-	vs.SetString("body", c.Body)
-	return vs
+	UpdatedAt Time `json:"updated_at,omitempty"`
 }
 
 func (c *Conversation) String() string {

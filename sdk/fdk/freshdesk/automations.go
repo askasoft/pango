@@ -55,7 +55,7 @@ func (fd *Freshdesk) DeleteAutomationRule(ctx context.Context, aType AutomationT
 	return fd.doDelete(ctx, url)
 }
 
-func (fd *Freshdesk) CreateAutomationRule(ctx context.Context, aType AutomationType, rule *AutomationRule) (*AutomationRule, error) {
+func (fd *Freshdesk) CreateAutomationRule(ctx context.Context, aType AutomationType, rule *AutomationRuleCreate) (*AutomationRule, error) {
 	url := fd.endpoint("/automations/%d/rules", aType)
 	result := &AutomationRule{}
 	if err := fd.doPost(ctx, url, rule, result); err != nil {
@@ -64,7 +64,7 @@ func (fd *Freshdesk) CreateAutomationRule(ctx context.Context, aType AutomationT
 	return result, nil
 }
 
-func (fd *Freshdesk) UpdateAutomationRule(ctx context.Context, aType AutomationType, rid int64, rule *AutomationRule) (*AutomationRule, error) {
+func (fd *Freshdesk) UpdateAutomationRule(ctx context.Context, aType AutomationType, rid int64, rule *AutomationRuleUpdate) (*AutomationRule, error) {
 	url := fd.endpoint("/automations/%d/rules/%d", aType, rid)
 	result := &AutomationRule{}
 	if err := fd.doPut(ctx, url, rule, result); err != nil {

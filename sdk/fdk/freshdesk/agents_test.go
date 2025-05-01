@@ -15,7 +15,7 @@ func TestAgentAPIs(t *testing.T) {
 		return
 	}
 
-	ac := &AgentRequest{
+	ac := &AgentCreate{
 		Email:       ran.RandNumbers(11) + "@" + ran.RandLetters(8) + ".com",
 		TicketScope: AgentTicketScopeGlobal,
 	}
@@ -26,7 +26,7 @@ func TestAgentAPIs(t *testing.T) {
 	}
 	fd.Logger.Debug(ca)
 
-	au := &AgentRequest{
+	au := &AgentUpdate{
 		Occasional: true,
 	}
 	//au.Avatar = NewAvatar("../../logo.png")

@@ -33,9 +33,9 @@ type AgentField struct {
 	// Indicates whether it is a default field or user-defined custom field
 	DefaultField bool `json:"default_field,omitempty"`
 
-	CreatedAt *Time `json:"created_at,omitempty"`
+	CreatedAt Time `json:"created_at,omitempty"`
 
-	UpdatedAt *Time `json:"updated_at,omitempty"`
+	UpdatedAt Time `json:"updated_at,omitempty"`
 }
 
 func (af *AgentField) String() string {

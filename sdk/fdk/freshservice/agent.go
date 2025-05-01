@@ -162,9 +162,9 @@ type Agent struct {
 	// True if the agent is active, false if the agent has been deactivated.
 	Active bool `json:"active,omitempty"`
 
-	CreatedAt *Time `json:"created_at,omitempty"`
+	CreatedAt Time `json:"created_at,omitempty"`
 
-	UpdatedAt *Time `json:"updated_at,omitempty"`
+	UpdatedAt Time `json:"updated_at,omitempty"`
 }
 
 func (a *Agent) String() string {
@@ -178,3 +178,82 @@ type agentResult struct {
 type agentsResult struct {
 	Agents []*Agent `json:"agents,omitempty"`
 }
+
+type AgentCreate struct {
+	// First name of the agent
+	FirstName string `json:"first_name,omitempty"`
+
+	// Last name of the agent.
+	LastName string `json:"last_name,omitempty"`
+
+	// Set to true if this is an occasional agent (true => occasional, false => full-time)
+	Occasional bool `json:"occasional,omitempty"`
+
+	// Job title of the agent.
+	JobTitle string `json:"job_title,omitempty"`
+
+	// Email address of the agent.
+	Email string `json:"email,omitempty"`
+
+	// Work phone number of the agent.
+	WorkPhoneNumber string `json:"work_phone_number,omitempty"`
+
+	// Mobile phone number of the agent.
+	MobilePhoneNumber string `json:"mobile_phone_number,omitempty"`
+
+	// Unique IDs of the departments associated with the requester
+	DepartmentIDs []int64 `json:"department_ids,omitempty"`
+
+	// Set to true if the requester must be allowed to view tickets filed by other members of the department, and false otherwise
+	CanSeeAllTicketsFromAssociatedDepartments bool `json:"can_see_all_tickets_from_associated_departments,omitempty"`
+
+	// User ID of the requester’s reporting manager.
+	ReportingManagerID int64 `json:"reporting_manager_id,omitempty"`
+
+	// Address of the requester.
+	Address string `json:"address,omitempty"`
+
+	// Time zone of the requester.
+	TimeZone string `json:"time_zone,omitempty"`
+
+	// Time format for the requester.Possible values: 12h (12 hour format), 24h (24 hour format)
+	TimeFormat string `json:"time_format,omitempty"`
+
+	// Language used by the requester.
+	Language string `json:"language,omitempty"`
+
+	// Unique ID of the location associated with the requester.
+	LocationID int64 `json:"location_id,omitempty"`
+
+	// Background information of the requester.
+	BackgroundInformation string `json:"background_information,omitempty"`
+
+	// Unique ID of the level of the agent in the Arcade.
+	ScoreboardLevelID AgentScoreboardLevel `json:"scoreboard_level_id,omitempty"`
+
+	// Unique IDs of the groups that the agent is a member of.
+	// The input value for this field should also include the IDs of approval-enabled restricted groups for which the agent’s member access is pending approval by a group leader.
+	// The response value for this field would only contain the list of groups that the agent is an approved member of.
+	// The member_of_pending_approval read-only attribute in the response will include the list of groups for which the agent’s member access is pending approval by a group leader.
+	MemberOf []int64 `json:"member_of,omitempty"`
+
+	// Unique IDs of the groups that the agent is an observer of.
+	// The input value for this field should also include the IDs of approval-enabled restricted groups for which the agent’s observer access is pending approval by a group leader.
+	// The response value for this field would only contain the list of groups that the agent is an approved observer of.
+	// The observer_of_pending_approval read-only attribute in the response will include the list of groups for which the agent’s observer access is pending approval by a group leader.
+	ObserverOf []int64 `json:"observer_of,omitempty"`
+
+	Roles []*AssignRole `json:"roles,omitempty"`
+
+	// Signature of the agent in HTML format.
+	Signature string `json:"signature,omitempty"`
+
+	// Key-value pair containing the names and values of the (custom) requester fields.
+	CustomFields map[string]any `json:"custom_fields,omitempty"`
+}
+
+func (a *AgentCreate) String() string {
+	return toString(a)
+}
+
+type AgentUpdate = AgentCreate

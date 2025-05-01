@@ -10,7 +10,7 @@ func TestTicketFieldsAPIs(t *testing.T) {
 		return
 	}
 
-	otf := &TicketField{
+	tfc := &TicketFieldCreate{
 		Label:                "testfieldlabel",
 		LabelForCustomers:    "testfieldlabelforcustomers",
 		Type:                 TicketFieldTypeCustomText,
@@ -18,15 +18,17 @@ func TestTicketFieldsAPIs(t *testing.T) {
 		DisplayedToCustomers: true,
 	}
 
-	ctf, err := fd.CreateTicketField(ctxbg, otf)
+	ctf, err := fd.CreateTicketField(ctxbg, tfc)
 	if err != nil {
 		t.Fatalf("ERROR: %v", err)
 	}
 	fd.Logger.Debug(ctf)
 
-	tuf := &TicketField{LabelForCustomers: "testfieldlabelforcustomersupd"}
+	tfu := &TicketFieldUpdate{
+		LabelForCustomers: "testfieldlabelforcustomersupd",
+	}
 
-	utf, err := fd.UpdateTicketField(ctxbg, ctf.ID, tuf)
+	utf, err := fd.UpdateTicketField(ctxbg, ctf.ID, tfu)
 	if err != nil {
 		t.Errorf("ERROR: %v", err)
 	} else {

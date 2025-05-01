@@ -57,9 +57,9 @@ type TicketField struct {
 	// Applicable only for custom_date field. When ‘Request time information’ is selected, the field date_only returns false and if unchecked, date_only returns true
 	DateOnly bool `json:"date_only,omitempty"`
 
-	CreatedAt *Time `json:"created_at,omitempty"`
+	CreatedAt Time `json:"created_at,omitempty"`
 
-	UpdatedAt *Time `json:"updated_at,omitempty"`
+	UpdatedAt Time `json:"updated_at,omitempty"`
 }
 
 func (tf *TicketField) String() string {

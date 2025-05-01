@@ -81,22 +81,85 @@ type Contact struct {
 	// IDs of the companies associated with the contact (only used by MergeContact)
 	CompanyIDs int64 `json:"company_ids,omitempty"`
 
-	CreatedAt *Time `json:"created_at,omitempty"`
-
-	UpdatedAt *Time `json:"updated_at,omitempty"`
-
 	// Return by MakeAgent()
 	Agent *Agent `json:"agent,omitempty"`
+
+	CreatedAt Time `json:"created_at,omitempty"`
+
+	UpdatedAt Time `json:"updated_at,omitempty"`
 }
 
-func (c *Contact) Files() Files {
+func (c *Contact) String() string {
+	return toString(c)
+}
+
+type ContactCreate struct {
+	// Name of the contact
+	Name string `json:"name,omitempty"`
+
+	// Primary email address of the contact. If you want to associate additional email(s) with this contact, use the other_emails attribute
+	Email string `json:"email,omitempty"`
+
+	// Telephone number of the contact
+	Phone string `json:"phone,omitempty"`
+
+	// Mobile number of the contact
+	Mobile string `json:"mobile,omitempty"`
+
+	// Twitter handle of the contact
+	TwitterID string `json:"twitter_id,omitempty"`
+
+	// External ID of the contact
+	UniqueExternalID string `json:"unique_external_id,omitempty"`
+
+	// Additional emails associated with the contact
+	OtherEmails []string `json:"other_emails,omitempty"`
+
+	// ID of the primary company to which this contact belongs
+	CompanyID int64 `json:"company_id,omitempty"`
+
+	// Set to true if the contact can see all tickets that are associated with the company to which he belong
+	ViewAllTickets bool `json:"view_all_tickets,omitempty"`
+
+	// Additional companies associated with the contact
+	OtherCompanies []any `json:"other_companies,omitempty"`
+
+	// Address of the contact
+	Address string `json:"address,omitempty"`
+
+	// Avatar of the contact
+	Avatar *Avatar `json:"avatar,omitempty"`
+
+	// Key value pair containing the name and value of the custom fields.
+	CustomFields map[string]any `json:"custom_fields,omitempty"`
+
+	// A short description of the contact
+	Description string `json:"description,omitempty"`
+
+	// Job title of the contact
+	JobTitle string `json:"job_title,omitempty"`
+
+	// Language of the contact
+	Language string `json:"language,omitempty"`
+
+	// Tags associated with this contact
+	Tags *[]string `json:"tags,omitempty"`
+
+	// Time zone in which the contact resides
+	TimeZone string `json:"time_zone,omitempty"`
+
+	// This attribute for contacts can only be set if the Custom Objects feature is enabled. The value can either be in the form of the display_id (record id) or primary_field_value (user defined record value). The default value is display_id.
+	LookupParameter string `json:"lookup_parameter,omitempty"`
+}
+
+func (c *ContactCreate) Files() Files {
 	if c.Avatar != nil {
 		return Files{c.Avatar}
 	}
 	return nil
 }
 
-func (c *Contact) Values() Values {
+func (c *ContactCreate) Values() Values {
 	vs := Values{}
 	vs.SetString("name", c.Name)
 	vs.SetString("email", c.Email)
@@ -112,8 +175,9 @@ func (c *Contact) Values() Values {
 	vs.SetString("description", c.Description)
 	vs.SetString("job_title", c.JobTitle)
 	vs.SetString("language", c.Language)
-	vs.SetStrings("tags", c.Tags)
+	vs.SetStringsPtr("tags", c.Tags)
 	vs.SetString("time_zone", c.TimeZone)
+	vs.SetString("lookup_parameter", c.LookupParameter)
 	if len(c.OtherCompanies) > 0 {
 		for _, o := range c.OtherCompanies {
 			if oc, ok := o.(*OtherCompany); ok {
@@ -125,9 +189,11 @@ func (c *Contact) Values() Values {
 	return vs
 }
 
-func (c *Contact) String() string {
+func (c *ContactCreate) String() string {
 	return toString(c)
 }
+
+type ContactUpdate = ContactCreate
 
 type ContactsMerge struct {
 	// ID of the primary contact

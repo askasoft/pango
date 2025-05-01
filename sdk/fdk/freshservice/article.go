@@ -63,6 +63,10 @@ func ParseArticleStatus(s string) ArticleStatus {
 type Article struct {
 	ID int64 `json:"id,omitempty"`
 
+	// WorkspaceID ID of the workspace to which the solution article belongs.
+	// This attribute is applicable only to accounts on the Employee Support Mode.
+	WorkspaceID int64 `json:"workspace_id,omitempty"`
+
 	// Title of the solution article
 	Title string `json:"title,omitempty"`
 
@@ -122,32 +126,9 @@ type Article struct {
 
 	Approvals []*Approval `json:"approvals,omitempty"`
 
-	CreatedAt *Time `json:"created_at,omitempty"`
+	CreatedAt Time `json:"created_at,omitempty"`
 
-	UpdatedAt *Time `json:"updated_at,omitempty"`
-}
-
-func (a *Article) AddAttachment(path string, data ...[]byte) {
-	aa := NewAttachment(path, data...)
-	a.Attachments = append(a.Attachments, aa)
-}
-
-func (a *Article) Files() Files {
-	return ((Attachments)(a.Attachments)).Files()
-}
-
-func (a *Article) Values() Values {
-	vs := Values{}
-
-	vs.SetString("title", a.Title)
-	vs.SetString("description", a.Description)
-	vs.SetInt("article_type", (int)(a.ArticleType))
-	vs.SetInt64("folder_id", a.FolderID)
-	vs.SetInt("status", (int)(a.Status))
-	vs.SetStrings("tags", a.Tags)
-	vs.SetStrings("keywords", a.Keywords)
-	vs.SetTimePtr("review_date", a.ReviewDate)
-	return vs
+	UpdatedAt Time `json:"updated_at,omitempty"`
 }
 
 func (a *Article) String() string {
@@ -188,3 +169,73 @@ func (ai *ArticleInfo) String() string {
 type articlesResult struct {
 	Articles []*ArticleInfo `json:"articles,omitempty"`
 }
+
+type ArticleCreate struct {
+	// Title of the solution article
+	Title string `json:"title,omitempty"`
+
+	// Article from external url link
+	URL string `json:"url,omitempty"`
+
+	// Description of the solution article
+	Description string `json:"description,omitempty"`
+
+	// The type of the article. ( 1 - permanent, 2 - workaround )
+	ArticleType ArticleType `json:"article_type,omitempty"`
+
+	// ID of the folder to which the solution article belongs
+	FolderID int64 `json:"folder_id,omitempty"`
+
+	// Status of the solution article.  ( 1 - draft, 2 - published )
+	Status ArticleStatus `json:"status,omitempty"`
+
+	// Tags that have been associated with the solution article
+	Tags *[]string `json:"tags,omitempty"`
+
+	// Keywords that have been associated with the solution article
+	Keywords *[]string `json:"keywords,omitempty"`
+
+	// Attachments associated with the article. The total size of all of a article's attachments cannot exceed 25MB.
+	Attachments []*Attachment `json:"attachments,omitempty"`
+
+	// Date in future when this article would need to be reviewed again.
+	ReviewDate *Time `json:"review_date,omitempty"`
+
+	// Unique ID of the primary language article
+	ParentID int64 `json:"parent_id,omitempty"`
+
+	// Language of secondary solution article, For example: French -> “fr”
+	Language string `json:"language,omitempty"`
+}
+
+func (a *ArticleCreate) AddAttachment(path string, data ...[]byte) {
+	aa := NewAttachment(path, data...)
+	a.Attachments = append(a.Attachments, aa)
+}
+
+func (a *ArticleCreate) Files() Files {
+	return ((Attachments)(a.Attachments)).Files()
+}
+
+func (a *ArticleCreate) Values() Values {
+	vs := Values{}
+
+	vs.SetString("url", a.URL)
+	vs.SetString("title", a.Title)
+	vs.SetString("description", a.Description)
+	vs.SetInt("article_type", (int)(a.ArticleType))
+	vs.SetInt64("folder_id", a.FolderID)
+	vs.SetInt("status", (int)(a.Status))
+	vs.SetStringsPtr("tags", a.Tags)
+	vs.SetStringsPtr("keywords", a.Keywords)
+	vs.SetTimePtr("review_date", a.ReviewDate)
+	vs.SetInt64("parent_id", a.ParentID)
+	vs.SetString("language", a.Language)
+	return vs
+}
+
+func (a *ArticleCreate) String() string {
+	return toString(a)
+}
+
+type ArticleUpdate = ArticleCreate

@@ -14,7 +14,7 @@ func (fd *Freshdesk) GetGroup(ctx context.Context, gid int64) (*Group, error) {
 	return group, err
 }
 
-func (fd *Freshdesk) CreateGroup(ctx context.Context, group *Group) (*Group, error) {
+func (fd *Freshdesk) CreateGroup(ctx context.Context, group *GroupCreate) (*Group, error) {
 	url := fd.endpoint("/groups")
 	result := &Group{}
 	if err := fd.doPost(ctx, url, group, result); err != nil {
@@ -59,7 +59,7 @@ func (fd *Freshdesk) IterGroups(ctx context.Context, lgo *ListGroupsOption, igf 
 	return nil
 }
 
-func (fd *Freshdesk) UpdateGroup(ctx context.Context, gid int64, group *Group) (*Group, error) {
+func (fd *Freshdesk) UpdateGroup(ctx context.Context, gid int64, group *GroupUpdate) (*Group, error) {
 	url := fd.endpoint("/groups/%d", gid)
 	result := &Group{}
 	if err := fd.doPut(ctx, url, group, result); err != nil {

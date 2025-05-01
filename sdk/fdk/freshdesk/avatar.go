@@ -15,9 +15,9 @@ type Avatar struct {
 
 	ThumbURL string `json:"thumb_url,omitempty"`
 
-	CreatedAt *Time `json:"created_at,omitempty"`
+	CreatedAt Time `json:"created_at,omitempty"`
 
-	UpdatedAt *Time `json:"updated_at,omitempty"`
+	UpdatedAt Time `json:"updated_at,omitempty"`
 
 	// data attachment data
 	data []byte

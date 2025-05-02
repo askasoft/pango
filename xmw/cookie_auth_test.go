@@ -24,7 +24,7 @@ func TestCookieAuthSucceed(t *testing.T) {
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/login", nil)
 
-	val, _ := ca.encrypt("admin", "password", ca.CookieMaxAge)
+	val, _ := ca.encrypt("admin", "password")
 	req.AddCookie(&http.Cookie{
 		Name:  AuthCookieName,
 		Value: val,
@@ -53,7 +53,7 @@ func TestCookieAuthRedirect(t *testing.T) {
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/login", nil)
 
-	val, _ := ca.encrypt("admin", "password", ca.CookieMaxAge)
+	val, _ := ca.encrypt("admin", "password")
 	req.AddCookie(&http.Cookie{
 		Name:  AuthCookieName,
 		Value: val,

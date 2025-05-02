@@ -3,7 +3,6 @@ package xmw
 import (
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"time"
@@ -166,9 +165,7 @@ func (ca *CookieAuth) GetUserPassFromCookie(c *xin.Context) (username, password 
 }
 
 func (ca *CookieAuth) SaveUserPassToCookie(c *xin.Context, au AuthUser) error {
-	user, pass, age := au.GetUsername(), au.GetPassword(), ca.GetCookieMaxAge(c)
-
-	val, err := ca.encrypt(user, pass, age)
+	val, err := ca.encrypt(au.GetUsername(), au.GetPassword())
 	if err != nil {
 		return err
 	}
@@ -176,7 +173,7 @@ func (ca *CookieAuth) SaveUserPassToCookie(c *xin.Context, au AuthUser) error {
 	ck := &http.Cookie{
 		Name:     ca.CookieName,
 		Value:    val,
-		MaxAge:   int(age.Seconds()),
+		MaxAge:   int(ca.GetCookieMaxAge(c)),
 		Path:     ca.CookiePath,
 		Domain:   ca.CookieDomain,
 		Secure:   ca.CookieSecure,
@@ -205,17 +202,17 @@ func (ca *CookieAuth) DeleteCookie(c *xin.Context) {
 	})
 }
 
-func (ca *CookieAuth) encrypt(username, password string, maxage time.Duration) (string, error) {
-	auth := ca.encode(username, password, maxage)
+func (ca *CookieAuth) encrypt(username, password string) (string, error) {
+	auth := ca.encode(username, password)
 	return ca.Cryptor.EncryptString(auth)
 }
 
-func (ca *CookieAuth) encode(username, password string, maxage time.Duration) string {
-	now := num.Ltoa(time.Now().UnixMilli())
-	raw := fmt.Sprintf("%d\n%s\n%s", maxage.Milliseconds(), username, password)
+func (ca *CookieAuth) encode(username, password string) string {
+	now := num.Ltoa(time.Now().Unix())
+	raw := username + "\n" + password
 	unsalt := base64.RawURLEncoding.EncodeToString(str.UnsafeBytes(raw))
 	salted := cpt.Salt(cpt.SecretChars, now, unsalt)
-	auth := fmt.Sprintf("%s\n%s", now, salted)
+	auth := now + "\n" + salted
 	return auth
 }
 
@@ -231,31 +228,23 @@ func (ca *CookieAuth) decode(auth string, maxage time.Duration) (string, string,
 		return "", "", err
 	}
 
-	raw := str.UnsafeString(bs)
-
-	ss := str.FieldsByte(raw, '\n')
-	if len(ss) != 3 {
-		return "", "", errors.New("invalid - " + raw)
-	}
-
-	duration := num.Atol(ss[0])
-
-	// cookie maxage check
-	if maxage.Milliseconds() != duration {
-		return "", "", fmt.Errorf("cookie max age %d != %d", maxage.Milliseconds(), duration)
-	}
-
-	now := time.Now().UnixMilli()
-	delta := time.Minute.Milliseconds()
-
-	// -+ 1m for different time on cluster servers
-	start, after := now-duration-delta, now+delta
-
 	// timestamp check
 	created := num.Atol(timestamp)
+	delta := int64(60)
+	now := time.Now().Unix()
+
+	// -+ 60s for different time on cluster servers
+	start, after := now-(maxage.Milliseconds()/1000)-delta, now+delta
 	if created < start || created > after {
 		return "", "", errors.New("timestamp expired")
 	}
 
-	return ss[1], ss[2], nil
+	// extract username and password
+	raw := str.UnsafeString(bs)
+	username, password, ok := str.CutByte(raw, '\n')
+	if !ok {
+		return "", "", errors.New("invalid - " + raw)
+	}
+
+	return username, password, nil
 }

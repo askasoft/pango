@@ -23,7 +23,7 @@ type BasicAuth struct {
 	Realm        string
 	FindUser     FindUserFunc
 	AuthUserKey  string
-	AuthPassed   xin.HandlerFunc
+	AuthPassed   func(c *xin.Context, au AuthUser)
 	AuthFailed   xin.HandlerFunc
 	AuthRequired xin.HandlerFunc
 }
@@ -54,24 +54,24 @@ func (ba *BasicAuth) Handle(c *xin.Context) {
 		return
 	}
 
-	user, err := ba.FindUser(c, username)
+	au, err := ba.FindUser(c, username)
 	if err != nil {
 		c.Logger.Errorf("BasicAuth: %v", err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
-	if user == nil || password != user.GetPassword() {
+	if au == nil || password != au.GetPassword() {
 		ba.AuthFailed(c)
 		return
 	}
 
-	c.Set(ba.AuthUserKey, user)
-	ba.AuthPassed(c)
+	ba.AuthPassed(c, au)
 }
 
-// Authorized just call c.Next()
-func (ba *BasicAuth) Authorized(c *xin.Context) {
+// Authorized set user to context then call c.Next()
+func (ba *BasicAuth) Authorized(c *xin.Context, au AuthUser) {
+	c.Set(ba.AuthUserKey, au)
 	c.Next()
 }
 

@@ -2,6 +2,7 @@ package xmw
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -31,12 +32,13 @@ type CookieAuth struct {
 	CookieHttpOnly bool
 	CookieSameSite http.SameSite
 
-	AuthUserKey    string
-	RedirectURL    string
-	OriginURLQuery string
-	AuthPassed     xin.HandlerFunc
-	AuthFailed     xin.HandlerFunc
-	AuthRequired   xin.HandlerFunc
+	AuthUserKey     string
+	RedirectURL     string
+	OriginURLQuery  string
+	AuthPassed      func(c *xin.Context, au AuthUser)
+	AuthFailed      xin.HandlerFunc
+	AuthRequired    xin.HandlerFunc
+	GetCookieMaxAge func(c *xin.Context) time.Duration
 }
 
 func NewCookieAuth(f FindUserFunc, secret string) *CookieAuth {
@@ -56,6 +58,7 @@ func NewCookieAuth(f FindUserFunc, secret string) *CookieAuth {
 	ca.AuthPassed = ca.Authorized
 	ca.AuthFailed = ca.Unauthorized
 	ca.AuthRequired = ca.Unauthorized
+	ca.GetCookieMaxAge = ca.getCookieMaxAge
 
 	return ca
 }
@@ -74,34 +77,34 @@ func (ca *CookieAuth) Handle(c *xin.Context) {
 		return
 	}
 
-	user, err := ca.FindUser(c, username)
+	au, err := ca.FindUser(c, username)
 	if err != nil {
 		c.Logger.Errorf("CookieAuth: %v", err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
-	if user == nil || password != user.GetPassword() {
+	if au == nil || password != au.GetPassword() {
 		ca.AuthFailed(c)
 		return
 	}
 
+	ca.AuthPassed(c, au)
+}
+
+// Authorized set user to context and cookie then call c.Next()
+func (ca *CookieAuth) Authorized(c *xin.Context, au AuthUser) {
+	// set user to context
+	c.Set(ca.AuthUserKey, au)
+
 	// save or refresh cookie
-	err = ca.SaveUserPassToCookie(c, username, password)
+	err := ca.SaveUserPassToCookie(c, au)
 	if err != nil {
 		c.Logger.Errorf("CookieAuth: %v", err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
-	// set user to context
-	c.Set(ca.AuthUserKey, user)
-
-	ca.AuthPassed(c)
-}
-
-// Authorized just call c.Next()
-func (ca *CookieAuth) Authorized(c *xin.Context) {
 	c.Next()
 }
 
@@ -151,31 +154,42 @@ func (ca *CookieAuth) GetUserPassFromCookie(c *xin.Context) (username, password 
 			return
 		}
 
-		username, password, ok = ca.decode(auth)
-		if !ok {
-			c.Logger.Warnf("Invalid Cookie Auth %q", auth)
+		username, password, err = ca.decode(auth, ca.GetCookieMaxAge(c))
+		if err != nil {
+			c.Logger.Warnf("Invalid Cookie Auth %q: %v", auth, err)
+			return
 		}
+
+		ok = true
 	}
 	return
 }
 
-func (ca *CookieAuth) SaveUserPassToCookie(c *xin.Context, username, password string) error {
-	val, err := ca.encrypt(username, password)
+func (ca *CookieAuth) SaveUserPassToCookie(c *xin.Context, au AuthUser) error {
+	user, pass, age := au.GetUsername(), au.GetPassword(), ca.GetCookieMaxAge(c)
+
+	val, err := ca.encrypt(user, pass, age)
 	if err != nil {
 		return err
 	}
 
-	c.SetCookie(&http.Cookie{
+	ck := &http.Cookie{
 		Name:     ca.CookieName,
 		Value:    val,
-		MaxAge:   int(ca.CookieMaxAge.Seconds()),
+		MaxAge:   int(age.Seconds()),
 		Path:     ca.CookiePath,
 		Domain:   ca.CookieDomain,
 		Secure:   ca.CookieSecure,
 		HttpOnly: ca.CookieHttpOnly,
 		SameSite: ca.CookieSameSite,
-	})
+	}
+
+	c.SetCookie(ck)
 	return nil
+}
+
+func (ca *CookieAuth) getCookieMaxAge(c *xin.Context) time.Duration {
+	return ca.CookieMaxAge
 }
 
 func (ca *CookieAuth) DeleteCookie(c *xin.Context) {
@@ -191,44 +205,44 @@ func (ca *CookieAuth) DeleteCookie(c *xin.Context) {
 	})
 }
 
-func (ca *CookieAuth) encrypt(username, password string) (string, error) {
-	auth := ca.encode(username, password)
+func (ca *CookieAuth) encrypt(username, password string, maxage time.Duration) (string, error) {
+	auth := ca.encode(username, password, maxage)
 	return ca.Cryptor.EncryptString(auth)
 }
 
-func (ca *CookieAuth) encode(username, password string) string {
+func (ca *CookieAuth) encode(username, password string, maxage time.Duration) string {
 	now := num.Ltoa(time.Now().UnixMilli())
-	raw := fmt.Sprintf("%d\n%s\n%s", ca.CookieMaxAge.Milliseconds(), username, password)
+	raw := fmt.Sprintf("%d\n%s\n%s", maxage.Milliseconds(), username, password)
 	unsalt := base64.RawURLEncoding.EncodeToString(str.UnsafeBytes(raw))
 	salted := cpt.Salt(cpt.SecretChars, now, unsalt)
 	auth := fmt.Sprintf("%s\n%s", now, salted)
 	return auth
 }
 
-func (ca *CookieAuth) decode(auth string) (username, password string, ok bool) {
+func (ca *CookieAuth) decode(auth string, maxage time.Duration) (string, string, error) {
 	timestamp, salted, ok := str.CutByte(auth, '\n')
 	if !ok {
-		return
+		return "", "", errors.New("no timestamp")
 	}
 
 	unsalt := cpt.Unsalt(cpt.SecretChars, timestamp, salted)
 	bs, err := base64.RawURLEncoding.DecodeString(unsalt)
 	if err != nil {
-		return
+		return "", "", err
 	}
 
 	raw := str.UnsafeString(bs)
 
 	ss := str.FieldsByte(raw, '\n')
 	if len(ss) != 3 {
-		return
+		return "", "", errors.New("invalid - " + raw)
 	}
 
 	duration := num.Atol(ss[0])
 
 	// cookie maxage check
-	if ca.CookieMaxAge.Milliseconds() != duration {
-		return
+	if maxage.Milliseconds() != duration {
+		return "", "", fmt.Errorf("cookie max age %d != %d", maxage.Milliseconds(), duration)
 	}
 
 	now := time.Now().UnixMilli()
@@ -239,8 +253,9 @@ func (ca *CookieAuth) decode(auth string) (username, password string, ok bool) {
 
 	// timestamp check
 	created := num.Atol(timestamp)
-	if created >= start && created <= after {
-		username, password, ok = ss[1], ss[2], true
+	if created < start || created > after {
+		return "", "", errors.New("timestamp expired")
 	}
-	return
+
+	return ss[1], ss[2], nil
 }

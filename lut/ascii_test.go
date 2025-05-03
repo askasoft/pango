@@ -20,17 +20,17 @@ var (
 	// fullLetter 全角英字: ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ
 	fullLetter = ("ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ")
 
-	// halfSymbol 半角記号: !""""#$%&'()*+,----./:;<=>?@[\\]^_`{|}~~
-	halfSymbol = (" !\"\"\"\"#$%&'()*+,----./:;<=>?@[\\\\]^_`{|}~~")
+	// halfSymbol 半角記号: !""""#$%&'()*+,----./:;<=>?@[\]^_`{|}~~
+	halfSymbol = (" !\"\"\"\"#$%&'()*+,----./:;<=>?@[\\]^_`{|}~~")
 
-	// fullSymbol 全角記号: ！″＂”“＃＄％＆’（）＊＋，－ー‐−．／：；＜＝＞？＠［＼￥］＾＿｀｛｜｝～〜
-	fullSymbol = ("　！″＂”“＃＄％＆’（）＊＋，－ー‐−．／：；＜＝＞？＠［＼￥］＾＿｀｛｜｝～〜")
+	// fullSymbol 全角記号: ！″＂”“＃＄％＆’（）＊＋，－ー‐−．／：；＜＝＞？＠［＼］＾＿｀｛｜｝～〜
+	fullSymbol = ("　！″＂”“＃＄％＆’（）＊＋，－ー‐−．／：；＜＝＞？＠［＼］＾＿｀｛｜｝～〜")
 
 	// halfASCII 半角: !"#$%&'()*+,-./0123456789:<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~~
 	halfASCII      = halfNumber + halfLetter + halfSymbol
 	halfASCIIRunes = []rune(halfASCII)
 
-	// fullASCII 全角: ！“”＃＄％＆’（）＊＋，－．／０１２３４５６７８９：；＜＝＞？＠ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ［￥］＾＿｀ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ｛｜｝～〜
+	// fullASCII 全角: ！“”＃＄％＆’（）＊＋，－．／０１２３４５６７８９：；＜＝＞？＠ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ［］＾＿｀ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ｛｜｝～〜
 	fullASCII      = fullNumber + fullLetter + fullSymbol
 	fullASCIIRunes = []rune(fullASCII)
 )
@@ -49,8 +49,6 @@ func specialZ(c rune) rune {
 		return '＇'
 	case '\u00a0':
 		return '\u3000'
-	case '￥':
-		return '＼'
 	case 'ー', '‐', '−':
 		return '－'
 	default:
@@ -89,10 +87,19 @@ func testPrint(t *testing.T, name, zens, hans string, fz2h func(c rune) rune, fh
 	}
 }
 
-func TestASCIIPair(t *testing.T) {
+func TestASCIIPairNumber(t *testing.T) {
 	testASCII(t, "Number", fullNumber, halfNumber)
+}
+
+func TestASCIIPairLetter(t *testing.T) {
 	testASCII(t, "Letter", fullLetter, halfLetter)
+}
+
+func TestASCIIPairSymbol(t *testing.T) {
 	testASCII(t, "Symbol", fullSymbol, halfSymbol)
+}
+
+func TestASCIIPairASCII(t *testing.T) {
 	testASCII(t, "ASCII", fullASCII, halfASCII)
 }
 
@@ -204,6 +211,36 @@ func TestIsVariableWidth(t *testing.T) {
 		a := IsVariableWidth(c.s)
 		if a != c.w {
 			t.Errorf("[%d] IsVariableWidth(%q) = %v, want %v", i, c.s, a, c.w)
+		}
+	}
+}
+
+func TestCompareFold(t *testing.T) {
+	tcs := []struct {
+		s, t string
+		out  int
+	}{
+		{"abc", "abc", 0},
+		{"ABcd", "Aｂcd", 0},
+		{"123abc", "12３ABC", 0},
+		{"abc", "xyz", -1},
+		{"abc", "XYZ", -1},
+		{"αβδ", "ΑΒΔ", 0},
+		{"abcdefghijk", "abcdefghijX", -1},
+		{"abcdefghijk", "abcdefghij\u212A", 0},
+		{"abcdefghijK", "abcdefghij\u212A", 0},
+		{"abcdefghijkz", "abcdefghij\u212Ay", 1},
+		{"abcdefghijKz", "abcdefghij\u212Ay", 1},
+		{"1", "2", -1},
+		{"utf-8", "US-ASCII", 1},
+	}
+
+	for _, tt := range tcs {
+		if out := CompareFold(tt.s, tt.t); out != tt.out {
+			t.Errorf("CompareFold(%#q, %#q) = %v, want %v", tt.s, tt.t, out, tt.out)
+		}
+		if out := CompareFold(tt.t, tt.s); out != -tt.out {
+			t.Errorf("CompareFold(%#q, %#q) = %v, want %v", tt.t, tt.s, out, -tt.out)
 		}
 	}
 }

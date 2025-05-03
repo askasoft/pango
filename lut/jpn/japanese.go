@@ -581,9 +581,9 @@ hasUnicode:
 	return -1
 }
 
-// CompareFoldKana returns an integer comparing two strings case&kana-insensitive.
+// CompareFold returns an integer comparing two strings case & width & kana insensitive.
 // The result will be 0 if a==b, -1 if a < b, and +1 if a > b.
-func CompareFoldKana(s, t string) int {
+func CompareFold(s, t string) int {
 	// ASCII fast path
 	i := 0
 	for ; i < len(s) && i < len(t); i++ {
@@ -676,8 +676,8 @@ hasUnicode:
 		if tr >= 0x30a1 && tr <= 0x30f6 {
 			tr -= 0x60
 		}
-		sr = unicode.ToLower(sr)
-		tr = unicode.ToLower(tr)
+		sr = unicode.ToLower(lut.ToASCIIRune(sr))
+		tr = unicode.ToLower(lut.ToASCIIRune(tr))
 		switch {
 		case sr < tr:
 			return -1

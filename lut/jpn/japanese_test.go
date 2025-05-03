@@ -323,7 +323,7 @@ func TestCompareKana(t *testing.T) {
 	}
 }
 
-func TestCompareFoldKana(t *testing.T) {
+func TestCompareFold(t *testing.T) {
 	tcs := []struct {
 		s, t string
 		out  int
@@ -331,8 +331,8 @@ func TestCompareFoldKana(t *testing.T) {
 		{"ぁあぃいぅうぇえぉお", "ァアィイゥウェエォオ", 0},
 		{"abcdぁあぃいぅうぇえぉおefghij", "aBcdァアィイゥウェエォオeFghij", 0},
 		{"abc", "abc", 0},
-		{"ABcd", "ABcd", 0},
-		{"123abc", "123ABC", 0},
+		{"ABcd", "Aｂcd", 0},
+		{"123abc", "12３ABC", 0},
 		{"abc", "xyz", -1},
 		{"abc", "XYZ", -1},
 		{"αβδ", "ΑΒΔ", 0},
@@ -346,11 +346,11 @@ func TestCompareFoldKana(t *testing.T) {
 	}
 
 	for _, tt := range tcs {
-		if out := CompareFoldKana(tt.s, tt.t); out != tt.out {
-			t.Errorf("CompareFoldKana(%#q, %#q) = %v, want %v", tt.s, tt.t, out, tt.out)
+		if out := CompareFold(tt.s, tt.t); out != tt.out {
+			t.Errorf("CompareFold(%#q, %#q) = %v, want %v", tt.s, tt.t, out, tt.out)
 		}
-		if out := CompareFoldKana(tt.t, tt.s); out != -tt.out {
-			t.Errorf("CompareFoldKana(%#q, %#q) = %v, want %v", tt.t, tt.s, out, -tt.out)
+		if out := CompareFold(tt.t, tt.s); out != -tt.out {
+			t.Errorf("CompareFold(%#q, %#q) = %v, want %v", tt.t, tt.s, out, -tt.out)
 		}
 	}
 }

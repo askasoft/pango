@@ -94,7 +94,7 @@ func (s *Sender) dial(host string, port int) error {
 	addr := host + ":" + strconv.Itoa(port)
 	conn, err := net.DialTimeout("tcp", addr, s.Timeout)
 	if err != nil {
-		return fmt.Errorf("Failed to dial %s - %w", addr, err)
+		return fmt.Errorf("email: failed to dial %s - %w", addr, err)
 	}
 
 	if s.SSL {

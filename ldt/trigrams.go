@@ -94,7 +94,7 @@ func count(s string) map[string]int {
 			s = s[z:]
 		}
 
-		if !(c2 == ' ' && (c1 == ' ' || c3 == ' ')) {
+		if c2 != ' ' || (c1 != ' ' && c3 != ' ') {
 			trigram := string([]rune{c1, c2, c3})
 			trigrams[trigram]++
 		}

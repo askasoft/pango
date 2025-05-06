@@ -104,8 +104,8 @@ func (hd *HTTPDumper) dumpResponse(w io.Writer, id string, req *http.Request, hd
 		ProtoMajor: req.ProtoMajor,
 		ProtoMinor: req.ProtoMinor,
 	}
-	res.StatusCode = hdw.ResponseWriter.Status()
-	res.Header = hdw.ResponseWriter.Header()
+	res.StatusCode = hdw.Status()
+	res.Header = hdw.Header()
 	res.Body = io.NopCloser(hdw.bb)
 	res.Write(bb) //nolint: errcheck
 

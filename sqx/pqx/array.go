@@ -622,7 +622,7 @@ func scanLinearArray(src, del []byte, typ string) (elems [][]byte, err error) {
 		return nil, err
 	}
 	if len(dims) > 1 {
-		return nil, fmt.Errorf("pqx: cannot convert ARRAY%s to %s", strings.Replace(fmt.Sprint(dims), " ", "][", -1), typ)
+		return nil, fmt.Errorf("pqx: cannot convert ARRAY%s to %s", strings.ReplaceAll(fmt.Sprint(dims), " ", "]["), typ)
 	}
 	return elems, err
 }

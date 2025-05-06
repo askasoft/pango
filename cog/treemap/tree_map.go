@@ -199,12 +199,12 @@ func (tm *TreeMap[K, V]) SetIfAbsent(key K, value V) (ov V, ok bool) {
 
 // SetEntries set items from key-value items array, override the existing items
 func (tm *TreeMap[K, V]) SetEntries(pairs ...cog.P[K, V]) {
-	imap.SetMapPairs[K, V](tm, pairs...)
+	imap.SetMapPairs(tm, pairs...)
 }
 
 // Copy copy items from another map am, override the existing items
 func (tm *TreeMap[K, V]) Copy(am cog.Map[K, V]) {
-	imap.CopyMap[K, V](tm, am)
+	imap.CopyMap(tm, am)
 }
 
 // Remove remove the item with key k,
@@ -466,9 +466,10 @@ func (tm *TreeMap[K, V]) deleteNode(p *TreeMapNode[K, V]) *TreeMapNode[K, V] {
 		}
 
 		if p.parent != nil {
-			if p == p.parent.left {
+			switch p {
+			case p.parent.left:
 				p.parent.left = nil
-			} else if p == p.parent.right {
+			case p.parent.right:
 				p.parent.right = nil
 			}
 			p.parent = nil
@@ -629,11 +630,11 @@ func (tm *TreeMap[K, V]) debug() string {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(tm)
 func (tm *TreeMap[K, V]) MarshalJSON() ([]byte, error) {
-	return jsonmap.JsonMarshalMap[K, V](tm)
+	return jsonmap.JsonMarshalMap(tm)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, tm)
 func (tm *TreeMap[K, V]) UnmarshalJSON(data []byte) error {
 	tm.Clear()
-	return jsonmap.JsonUnmarshalMap[K, V](data, tm)
+	return jsonmap.JsonUnmarshalMap(data, tm)
 }

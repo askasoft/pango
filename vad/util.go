@@ -219,7 +219,7 @@ var splitParamsRegex = regexp.MustCompile(`'[^']*'|\S+`)
 func splits(param string) []string {
 	vals := splitParamsRegex.FindAllString(param, -1)
 	for i := 0; i < len(vals); i++ {
-		vals[i] = strings.Replace(vals[i], "'", "", -1)
+		vals[i] = strings.ReplaceAll(vals[i], "'", "")
 	}
 	return vals
 }

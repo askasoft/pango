@@ -185,7 +185,7 @@ func New() *Engine {
 		trees:                  make(methodTrees, 0, 9),
 		secureJSONPrefix:       ")]}',\n",
 	}
-	engine.RouterGroup.engine = engine
+	engine.engine = engine
 	engine.pool.New = func() any {
 		return engine.allocateContext(engine.maxParams)
 	}

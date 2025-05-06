@@ -38,7 +38,7 @@ type Event struct {
 
 // Encode encode text event
 func Encode(writer io.Writer, event Event) error {
-	w := checkWriter(writer)
+	w := wrapWriter(writer)
 	writeID(w, event.ID)
 	writeEvent(w, event.Event)
 	writeRetry(w, event.Retry)

@@ -15,10 +15,10 @@ type Attachment struct {
 // NewAttachment new a email attachment
 func NewAttachment(cid string, name string, data io.Reader) (*Attachment, error) {
 	if len(name) == 0 {
-		return nil, errors.New("Empty name of email attachment")
+		return nil, errors.New("email: empty name of email attachment")
 	}
 	if data == nil {
-		return nil, errors.New("Null data of email attachment")
+		return nil, errors.New("email: nil data of email attachment")
 	}
 
 	return &Attachment{Cid: cid, Name: name, Data: data}, nil

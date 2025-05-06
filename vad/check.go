@@ -239,7 +239,9 @@ func IsISBN(s string, version int) bool {
 	sanitized := str.RemoveAny(s, " -")
 	var checksum int32
 	var i int32
-	if version == 10 {
+
+	switch version {
+	case 10:
 		if !rxISBN10.MatchString(sanitized) {
 			return false
 		}
@@ -255,7 +257,7 @@ func IsISBN(s string, version int) bool {
 			return true
 		}
 		return false
-	} else if version == 13 {
+	case 13:
 		if !rxISBN13.MatchString(sanitized) {
 			return false
 		}
@@ -264,8 +266,9 @@ func IsISBN(s string, version int) bool {
 			checksum += factor[i%2] * int32(sanitized[i]-'0')
 		}
 		return (int32(sanitized[12]-'0'))-((10-(checksum%10))%10) == 0
+	default:
+		return IsISBN(s, 10) || IsISBN(s, 13)
 	}
-	return IsISBN(s, 10) || IsISBN(s, 13)
 }
 
 // IsJSON checks if the string is valid JSON (note: uses json.Unmarshal).

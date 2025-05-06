@@ -1,60 +1,75 @@
-run:
-  timeout: 5m
-
+version: "2"
 linters:
   enable:
     - asciicheck
     - copyloopvar
     - dogsled
     - durationcheck
-    - errcheck
     - errorlint
-    - gofmt
-    - goimports
     - misspell
     - nilerr
     - nolintlint
     - revive
     - wastedassign
-
-issues:
-  exclude-dirs:
-    - z
-  exclude-rules:
-    - linters:
-        - gosec
-        - structcheck
-        - unused
-      text: "`data` is unused"
-    - linters:
-        - staticcheck
-      text: "SA1019:"
-    - linters:
-        - revive
-      text: "empty-block:"
-    - linters:
-        - revive
-      text: "exported:"
-    - linters:
-        - revive
-      text: "redefines-builtin-id:"
-    - linters:
-        - revive
-      text: "time-naming:"
-    - linters:
-        - revive
-      text: "unused-parameter:"
-    - linters:
-        - revive
-      text: "var-naming:"
-    - path: ldt/profiles\.go
-      linters:
-        - misspell
-    - path: _test\.go
-      linters: # security is not make sense in tests
-        - deadcode
-        - errcheck
-        - errorlint
-        - revive
-        - staticcheck
-        - wastedassign
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - gosec
+          - structcheck
+          - unused
+        text: '`data` is unused'
+      - linters:
+          - staticcheck
+        text: 'SA1019:'
+      - linters:
+          - revive
+        text: 'empty-block:'
+      - linters:
+          - revive
+        text: 'exported:'
+      - linters:
+          - revive
+        text: 'redefines-builtin-id:'
+      - linters:
+          - revive
+        text: 'time-naming:'
+      - linters:
+          - revive
+        text: 'unused-parameter:'
+      - linters:
+          - revive
+        text: 'var-naming:'
+      - linters:
+          - misspell
+          - staticcheck
+        path: ldt/profiles\.go
+      - linters:
+          - deadcode
+          - errcheck
+          - errorlint
+          - revive
+          - staticcheck
+          - wastedassign
+        path: _test\.go
+    paths:
+      - z
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - z
+      - third_party$
+      - builtin$
+      - examples$

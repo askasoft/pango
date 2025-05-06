@@ -315,10 +315,10 @@ func (b *Builder) buildSelect() string {
 		if i > 0 {
 			sb.WriteString(", ")
 		}
-		sb.WriteString(b.Quoter.Quote(col))
+		sb.WriteString(b.Quote(col))
 	}
 	sb.WriteString(" FROM ")
-	sb.WriteString(b.Quoter.Quote(b.table))
+	sb.WriteString(b.Quote(b.table))
 
 	for _, j := range b.joins {
 		sb.WriteByte(' ')
@@ -347,7 +347,7 @@ func (b *Builder) buildUpdate() string {
 	sb := &strings.Builder{}
 
 	sb.WriteString("UPDATE ")
-	sb.WriteString(b.Quoter.Quote(b.table))
+	sb.WriteString(b.Quote(b.table))
 	sb.WriteString(" SET ")
 
 	for i, col := range b.columns {
@@ -355,7 +355,7 @@ func (b *Builder) buildUpdate() string {
 			sb.WriteString(", ")
 		}
 
-		sb.WriteString(b.Quoter.Quote(col))
+		sb.WriteString(b.Quote(col))
 		sb.WriteString(" = ")
 
 		if i < len(b.values) {
@@ -375,14 +375,14 @@ func (b *Builder) buildInsert() string {
 	sb := &strings.Builder{}
 
 	sb.WriteString("INSERT INTO ")
-	sb.WriteString(b.Quoter.Quote(b.table))
+	sb.WriteString(b.Quote(b.table))
 	if len(b.columns) > 0 {
 		sb.WriteString(" (")
 		for i, col := range b.columns {
 			if i > 0 {
 				sb.WriteString(", ")
 			}
-			sb.WriteString(b.Quoter.Quote(col))
+			sb.WriteString(b.Quote(col))
 		}
 		sb.WriteString(")")
 	}
@@ -405,7 +405,7 @@ func (b *Builder) buildDelete() string {
 	sb := &strings.Builder{}
 
 	sb.WriteString("DELETE FROM ")
-	sb.WriteString(b.Quoter.Quote(b.table))
+	sb.WriteString(b.Quote(b.table))
 
 	b.appendWhere(sb)
 	b.appendReturning(sb)
@@ -427,7 +427,7 @@ func (b *Builder) appendReturning(sb *strings.Builder) {
 			if i > 0 {
 				sb.WriteString(", ")
 			}
-			sb.WriteString(b.Quoter.Quote(col))
+			sb.WriteString(b.Quote(col))
 		}
 	}
 }

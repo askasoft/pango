@@ -68,7 +68,7 @@ func IsLetter(s string) bool {
 	l := len(s)
 	for i := 0; i < l; i++ {
 		b := s[i]
-		if !((b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z')) {
+		if (b < 'a' || b > 'z') && (b < 'A' || b > 'Z') {
 			return false
 		}
 	}
@@ -84,7 +84,7 @@ func IsLetterNumber(s string) bool {
 	l := len(s)
 	for i := 0; i < l; i++ {
 		b := s[i]
-		if !((b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || (b >= '0' && b <= '9')) {
+		if (b < 'a' || b > 'z') && (b < 'A' || b > 'Z') && (b < '0' || b > '9') {
 			return false
 		}
 	}
@@ -261,7 +261,7 @@ func IsHexadecimal(s string) bool {
 	l := len(s)
 	for i := 0; i < l; i++ {
 		b := s[i]
-		if !((b >= 'a' && b <= 'f') || (b >= 'A' && b <= 'F') || (b >= '0' && b <= '9')) {
+		if (b < 'a' || b > 'f') && (b < 'A' || b > 'F') && (b < '0' || b > '9') {
 			return false
 		}
 	}

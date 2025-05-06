@@ -91,8 +91,8 @@ func binarySearch(l []uint16, c uint16) bool {
 	return false
 }
 
-var errEOB = errors.New("End of input buffer")
-var errBadChar = errors.New("Decode a bad char")
+var errEOB = errors.New("cdt: end of input buffer")
+var errBadChar = errors.New("cdt: decode a bad char")
 
 type charDecoder_sjis struct {
 }

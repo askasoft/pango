@@ -9,12 +9,12 @@ import (
 
 func GetProperty(o any, k string) (v any, err error) {
 	if !IsPtrType(o) {
-		return nil, fmt.Errorf("%T is not a pointer", o)
+		return nil, fmt.Errorf("ref: %T is not a pointer", o)
 	}
 
 	defer func() {
 		if er := recover(); er != nil {
-			err = fmt.Errorf("GetProperty(%T, %q): %v", o, k, er)
+			err = fmt.Errorf("ref: GetProperty(%T, %q): %v", o, k, er)
 		}
 	}()
 
@@ -39,17 +39,17 @@ func GetProperty(o any, k string) (v any, err error) {
 		return
 	}
 
-	return nil, fmt.Errorf("Missing property %q of %v", k, r.Type())
+	return nil, fmt.Errorf("ref: missing property %q of %v", k, r.Type())
 }
 
 func SetProperty(o any, k string, v any) (err error) {
 	if !IsPtrType(o) {
-		return fmt.Errorf("%T is not a pointer", o)
+		return fmt.Errorf("ref: %T is not a pointer", o)
 	}
 
 	defer func() {
 		if er := recover(); er != nil {
-			err = fmt.Errorf("SetProperty(%T, %q, %T): %v", o, k, v, er)
+			err = fmt.Errorf("ref: SetProperty(%T, %q, %T): %v", o, k, v, er)
 		}
 	}()
 
@@ -86,5 +86,5 @@ func SetProperty(o any, k string, v any) (err error) {
 		return nil
 	}
 
-	return fmt.Errorf("Missing property %q of %v", k, r.Type())
+	return fmt.Errorf("ref: missing property %q of %v", k, r.Type())
 }

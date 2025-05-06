@@ -59,7 +59,7 @@ func (rcw *responseCompressWriter) checkHeader() {
 		return
 	}
 
-	h := rcw.ResponseWriter.Header()
+	h := rcw.Header()
 	if h.Get("Content-Encoding") != "" {
 		rcw.state = rcwStateSkip
 		return
@@ -144,7 +144,7 @@ func (rcw *responseCompressWriter) checkBuffer(data []byte) (err error) {
 }
 
 func (rcw *responseCompressWriter) modifyHeader() {
-	h := rcw.ResponseWriter.Header()
+	h := rcw.Header()
 
 	h.Del("Content-Length")
 	h.Set("Content-Encoding", rcw.enc)

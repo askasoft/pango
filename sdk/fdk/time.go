@@ -27,12 +27,12 @@ func ParseDate(s string) (*Date, error) {
 }
 
 func (d *Date) String() string {
-	return d.Time.Format(DateFormat)
+	return d.Format(DateFormat)
 }
 
 func (d *Date) MarshalJSON() ([]byte, error) {
 	bs := make([]byte, 0, len(jsonDateFormat))
-	bs = d.Time.AppendFormat(bs, jsonDateFormat)
+	bs = d.AppendFormat(bs, jsonDateFormat)
 	return bs, nil
 }
 

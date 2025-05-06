@@ -58,10 +58,10 @@ func (log *Log) configJSON(filename string) error {
 				return err
 			}
 		} else {
-			return fmt.Errorf("Invalid writer configuration: %v", v)
+			return fmt.Errorf("log: invalid writer configuration: %v", v)
 		}
 	} else {
-		return errors.New("Missing writer configuration")
+		return errors.New("log: missing writer configuration")
 	}
 	return nil
 }
@@ -110,10 +110,10 @@ func (log *Log) configINI(filename string) (err error) {
 				return err
 			}
 		} else {
-			return fmt.Errorf("Invalid writer configuration: %v", v)
+			return fmt.Errorf("log: invalid writer configuration: %v", v)
 		}
 	} else {
-		return fmt.Errorf("Missing writer configuration")
+		return fmt.Errorf("log: missing writer configuration")
 	}
 	return nil
 }
@@ -123,7 +123,7 @@ func (log *Log) configGetIntValue(m map[string]any, k string) (int, error) {
 		if v != nil {
 			n, err := cas.ToInt(v)
 			if err != nil {
-				return 0, fmt.Errorf("Invalid %s value %v: %w", k, v, err)
+				return 0, fmt.Errorf("log: invalid %s value %v: %w", k, v, err)
 			}
 			return n, nil
 		}
@@ -145,7 +145,7 @@ func (log *Log) configLogLevels(lls map[string]any) error {
 				}
 			}
 		} else {
-			return fmt.Errorf("Invalid level %v", v)
+			return fmt.Errorf("log: invalid level %v", v)
 		}
 	}
 
@@ -160,7 +160,7 @@ func (log *Log) configLogWriter(a []any, async int) (err error) {
 			if n, ok := c["_"]; ok {
 				w := CreateWriter(n.(string))
 				if w == nil {
-					return fmt.Errorf("Invalid writer name: %v", n)
+					return fmt.Errorf("log: invalid writer name: %v", n)
 				}
 				if err = ConfigWriter(w, c); err != nil {
 					return err
@@ -177,14 +177,14 @@ func (log *Log) configLogWriter(a []any, async int) (err error) {
 				}
 				ws = append(ws, w)
 			} else {
-				return fmt.Errorf("Missing writer type: %v", c)
+				return fmt.Errorf("log: missing writer type: %v", c)
 			}
 		} else {
-			return fmt.Errorf("Invalid writer item: %v", i)
+			return fmt.Errorf("log: invalid writer item: %v", i)
 		}
 	}
 	if len(ws) == 0 {
-		return fmt.Errorf("Empty writer configuration: %v", a)
+		return fmt.Errorf("log: empty writer configuration: %v", a)
 	}
 
 	var lw Writer

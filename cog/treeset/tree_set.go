@@ -545,9 +545,10 @@ func (ts *TreeSet[T]) deleteNode(p *treeSetNode[T]) *treeSetNode[T] {
 		}
 
 		if p.parent != nil {
-			if p == p.parent.left {
+			switch p {
+			case p.parent.left:
 				p.parent.left = nil
-			} else if p == p.parent.right {
+			case p.parent.right:
 				p.parent.right = nil
 			}
 			p.parent = nil
@@ -708,11 +709,11 @@ func (ts *TreeSet[T]) debug() string {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(ts)
 func (ts *TreeSet[T]) MarshalJSON() ([]byte, error) {
-	return jsoncol.JsonMarshalCol[T](ts)
+	return jsoncol.JsonMarshalCol(ts)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, ts)
 func (ts *TreeSet[T]) UnmarshalJSON(data []byte) error {
 	ts.Clear()
-	return jsoncol.JsonUnmarshalCol[T](data, ts)
+	return jsoncol.JsonUnmarshalCol(data, ts)
 }

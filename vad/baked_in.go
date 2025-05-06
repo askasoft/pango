@@ -1755,7 +1755,7 @@ func isBtw(fl FieldLevel) bool {
 		if field.Type().ConvertibleTo(timeType) {
 			p1, p2 := asTime2(param)
 			t := field.Convert(timeType).Interface().(time.Time)
-			return !(p1.After(t) || p2.Before(t))
+			return !p1.After(t) && !p2.Before(t)
 		}
 	}
 

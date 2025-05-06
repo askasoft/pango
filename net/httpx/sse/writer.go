@@ -1,6 +1,10 @@
 package sse
 
-import "io"
+import (
+	"io"
+
+	"github.com/askasoft/pango/str"
+)
 
 type stringWriter interface {
 	io.Writer
@@ -11,11 +15,11 @@ type stringWrapper struct {
 	io.Writer
 }
 
-func (w stringWrapper) WriteString(str string) (int, error) {
-	return w.Writer.Write([]byte(str))
+func (w stringWrapper) WriteString(s string) (int, error) {
+	return w.Write(str.UnsafeBytes(s))
 }
 
-func checkWriter(writer io.Writer) stringWriter {
+func wrapWriter(writer io.Writer) stringWriter {
 	if w, ok := writer.(stringWriter); ok {
 		return w
 	}

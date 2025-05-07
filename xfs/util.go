@@ -84,34 +84,31 @@ func CleanOutdatedLocalFiles(dir string, before time.Time, loggers ...log.Logger
 	for _, de := range des {
 		path := filepath.Join(dir, de.Name())
 
+		fi, err := de.Info()
+		if err != nil {
+			log.Errorf("DirEntry('%s').Info() failed: %v", path, err)
+			continue
+		}
+
 		if de.IsDir() {
 			CleanOutdatedLocalFiles(path, before, logger)
-			err := fsu.DirIsEmpty(path)
+
+			err = fsu.DirIsEmpty(path)
 			if errors.Is(err, fsu.ErrDirNotEmpty) {
 				continue
 			}
 
 			if err != nil {
 				log.Errorf("DirIsEmpty('%s') failed: %v", path, err)
-			} else {
-				if err := os.Remove(path); err != nil {
-					log.Errorf("Remove('%s') failed: %v", path, err)
-				} else {
-					log.Debugf("Remove('%s') OK", path)
-				}
+				continue
 			}
-			continue
 		}
 
-		if fi, err := de.Info(); err != nil {
-			log.Errorf("DirEntry('%s').Info() failed: %v", path, err)
-		} else {
-			if fi.ModTime().Before(before) {
-				if err := os.Remove(path); err != nil {
-					log.Errorf("Remove('%s') failed: %v", path, err)
-				} else {
-					log.Debugf("Remove('%s') OK", path)
-				}
+		if fi.ModTime().Before(before) {
+			if err := os.Remove(path); err != nil {
+				log.Errorf("Remove('%s') failed: %v", path, err)
+			} else {
+				log.Debugf("Remove('%s') OK", path)
 			}
 		}
 	}

@@ -66,7 +66,9 @@ type TestString struct {
 	MaxLen    string `validate:"maxlen=10"`
 	LenMinMax string `validate:"minlen=1,maxlen=10"`
 	BtwLen    string `validate:"btwlen=1~10"`
-	Regexp    string `validate:"regexp=[0-9].*"`
+	Regexp    string `validate:"regexp"`
+	ReMatch   string `validate:"rematch=[0-9].*"`
+	WcMatch   string `validate:"wcmatch=a*b?c"`
 	OmitEmpty string `validate:"omitempty,minlen=1,maxlen=10"`
 	Boolean   string `validate:"boolean"`
 	Sub       *SubTest
@@ -7262,7 +7264,9 @@ func TestStructStringValidation(t *testing.T) {
 		MaxLen:    "1234567890",
 		LenMinMax: "12345",
 		BtwLen:    "12345",
-		Regexp:    "1234567890",
+		Regexp:    "[0-9].*",
+		ReMatch:   "1234567890",
+		WcMatch:   "ab,c",
 		Boolean:   "true",
 		OmitEmpty: "",
 		Sub: &SubTest{
@@ -7291,7 +7295,9 @@ func TestStructStringValidation(t *testing.T) {
 		MaxLen:    "12345678901",
 		LenMinMax: "",
 		BtwLen:    "",
-		Regexp:    "a",
+		Regexp:    `url\((?!['"]?(?:data|http|https):)['"]?([^'"\)]*)['"]?\)`,
+		ReMatch:   "a",
+		WcMatch:   "a",
 		OmitEmpty: "12345678901",
 		Boolean:   "nope",
 		Sub: &SubTest{
@@ -7311,7 +7317,7 @@ func TestStructStringValidation(t *testing.T) {
 
 	// Assert Top Level
 	assertNotEqual(t, errs, nil)
-	assertEqual(t, len(errs.(ValidationErrors)), 12)
+	assertEqual(t, len(errs.(ValidationErrors)), 14)
 
 	// Assert Fields
 	AssertError(t, errs, "TestString.Required", "TestString.Required", "Required", "Required", "required")
@@ -7321,6 +7327,8 @@ func TestStructStringValidation(t *testing.T) {
 	AssertError(t, errs, "TestString.LenMinMax", "TestString.LenMinMax", "LenMinMax", "LenMinMax", "minlen")
 	AssertError(t, errs, "TestString.BtwLen", "TestString.BtwLen", "BtwLen", "BtwLen", "btwlen")
 	AssertError(t, errs, "TestString.Regexp", "TestString.Regexp", "Regexp", "Regexp", "regexp")
+	AssertError(t, errs, "TestString.ReMatch", "TestString.ReMatch", "ReMatch", "ReMatch", "rematch")
+	AssertError(t, errs, "TestString.WcMatch", "TestString.WcMatch", "WcMatch", "WcMatch", "wcmatch")
 	AssertError(t, errs, "TestString.OmitEmpty", "TestString.OmitEmpty", "OmitEmpty", "OmitEmpty", "maxlen")
 	AssertError(t, errs, "TestString.Boolean", "TestString.Boolean", "Boolean", "Boolean", "boolean")
 

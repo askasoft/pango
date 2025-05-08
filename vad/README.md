@@ -112,12 +112,14 @@ Baked-in Validations
 | multibyte | Multi-Byte Characters |
 | contains | Contains |
 | containsany | Contains Any |
-| endsnotwith | Ends With |
+| endsnotwith | Ends Not With |
 | endswith | Ends With |
 | excludes | Excludes |
 | excludesall | Excludes All |
 | startsnotwith | Starts Not With |
 | startswith | Starts With |
+| rematch | Regular Expression Match |
+| wcmatch | Wildcard Expression Match |
 
 ### Format:
 | Tag | Description |
@@ -147,6 +149,7 @@ Baked-in Validations
 | longitude | Longitude |
 | postcode_iso3166_alpha2 | Postcode |
 | postcode_iso3166_alpha2_field | Postcode |
+| regexp | Regular Expression |
 | rgb | RGB String |
 | rgba | RGBA String |
 | ssn | Social Security Number SSN |
@@ -197,7 +200,6 @@ Baked-in Validations
 | excluded_without | Excluded Without |
 | excluded_without_all | Excluded Without All |
 | unique | Unique |
-| regexp | Regular Expression Match |
 
 #### Aliases:
 | Tag | Description |

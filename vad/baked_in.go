@@ -13,6 +13,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/str/wildcard"
 )
 
 // Func accepts a FieldLevel interface for all validation needs. The return
@@ -127,6 +128,8 @@ var (
 		"base64":                        isBase64,
 		"base64url":                     isBase64URL,
 		"regexp":                        isRegexp,
+		"rematch":                       regexpMatch,
+		"wcmatch":                       wildcardMatch,
 		"contains":                      contains,
 		"containsany":                   containsAny,
 		"excludes":                      excludes,
@@ -498,12 +501,27 @@ func contains(fl FieldLevel) bool {
 	return strings.Contains(fl.Field().String(), fl.Param())
 }
 
-// isRegexp is the validation function for validating that the field's value match the regular expression specified within the param.
+// isRegexp is the validation function for validating that the field's value is a valid regular expression.
 func isRegexp(fl FieldLevel) bool {
 	isStringField("regexp", fl)
 
+	_, err := regexp.Compile(fl.Field().String())
+	return err == nil
+}
+
+// regexpMatch is the validation function for validating that the field's value match the regular expression specified within the param.
+func regexpMatch(fl FieldLevel) bool {
+	isStringField("rematch", fl)
+
 	re := regexp.MustCompile(fl.Param())
 	return re.MatchString(fl.Field().String())
+}
+
+// wildcardMatch is the validation function for validating that the field's value match the wildcard expression specified within the param.
+func wildcardMatch(fl FieldLevel) bool {
+	isStringField("wcmatch", fl)
+
+	return wildcard.Match(fl.Param(), fl.Field().String())
 }
 
 // startsWith is the validation function for validating that the field's value starts with the text specified within the param.

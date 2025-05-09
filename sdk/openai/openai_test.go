@@ -48,6 +48,39 @@ func TestOpenAICreateChatCompletion(t *testing.T) {
 		t.Fatalf("OpenAI.CreateChatCompletion(): %v", err)
 	}
 
+	fmt.Println("-------------------------------------------")
+	fmt.Println(res)
+	fmt.Println(res.Usage.String())
+}
+
+func TestOpenAIWebSearchTool(t *testing.T) {
+	oai := testNewOpenAI(t)
+	if oai == nil {
+		return
+	}
+
+	req := &ChatCompletionRequest{
+		Model: "gpt-4o-search-preview",
+		Messages: []*ChatMessage{
+			{Role: RoleUser, Content: "今年春アニメのおすすめは？"},
+		},
+		WebSearchOptions: &WebSearchOptions{
+			SearchContextSize: "medium",
+			UserLocation: &UserLocation{
+				Type: "approximate",
+				Approximate: &Approximate{
+					Country: "JP",
+				},
+			},
+		},
+	}
+
+	res, err := oai.CreateChatCompletion(context.TODO(), req)
+	if err != nil {
+		t.Fatalf("OpenAI.CreateChatCompletion(): %v", err)
+	}
+
+	fmt.Println("-------------------------------------------")
 	fmt.Println(res)
 	fmt.Println(res.Usage.String())
 }

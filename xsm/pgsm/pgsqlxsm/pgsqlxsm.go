@@ -15,9 +15,7 @@ type ssm struct {
 }
 
 func SM(db *sqlx.DB) xsm.SchemaManager {
-	return &ssm{
-		db: db,
-	}
+	return &ssm{db}
 }
 
 func (ssm *ssm) ExistsSchema(s string) (bool, error) {
@@ -26,11 +24,11 @@ func (ssm *ssm) ExistsSchema(s string) (bool, error) {
 	}
 
 	sqb := ssm.db.Builder()
-	sqb.Select("nspname").From(pgsm.TablePgNamespace).Where("nspname = ?", s)
+	sqb.Select("nspname").From("pg_catalog.pg_namespace").Eq("nspname", s)
 	sql, args := sqb.Build()
 
-	pn := &pgsm.PgNamesapce{}
-	err := ssm.db.Get(pn, sql, args...)
+	var sn string
+	err := ssm.db.Get(&sn, sql, args...)
 	if err != nil {
 		if errors.Is(err, sqlx.ErrNoRows) {
 			return false, nil
@@ -42,7 +40,9 @@ func (ssm *ssm) ExistsSchema(s string) (bool, error) {
 
 func (ssm *ssm) ListSchemas() ([]string, error) {
 	sqb := ssm.db.Builder()
-	sqb.Select("nspname").From(pgsm.TablePgNamespace).Where("nspname NOT LIKE ?", sqx.StringLike("_")).Order("nspname", false)
+	sqb.Select("nspname").From("pg_catalog.pg_namespace")
+	sqb.NotLike("nspname", sqx.StringLike("_"))
+	sqb.Order("nspname")
 	sql, args := sqb.Build()
 
 	rows, err := ssm.db.Queryx(sql, args...)
@@ -51,16 +51,15 @@ func (ssm *ssm) ListSchemas() ([]string, error) {
 	}
 	defer rows.Close()
 
-	var ss []string
+	var sn string
 
-	pn := &pgsm.PgNamesapce{}
+	var ss []string
 	for rows.Next() {
-		if err = rows.StructScan(pn); err != nil {
+		if err = rows.Scan(&sn); err != nil {
 			return nil, err
 		}
-		ss = append(ss, pn.Nspname)
+		ss = append(ss, sn)
 	}
-
 	return ss, nil
 }
 
@@ -95,20 +94,18 @@ func (ssm *ssm) DeleteSchema(name string) error {
 	return err
 }
 
-func (ssm *ssm) buildQuery(sq *xsm.SchemaQuery) *sqlx.Builder {
-	sqb := ssm.db.Builder()
-
-	sqb.From(pgsm.TablePgNamespace)
-	sqb.Where("nspname NOT LIKE ?", sqx.StringLike("_"))
-
+func (ssm *ssm) addQuery(sqb *sqlx.Builder, sq *xsm.SchemaQuery) {
+	sqb.From("pg_catalog.pg_namespace")
+	sqb.NotLike("nspname", sqx.StringLike("_"))
 	if sq.Name != "" {
-		sqb.Where("nspname LIKE ?", sqx.StringLike(sq.Name))
+		sqb.ILike("nspname", sqx.StringLike(sq.Name))
 	}
-	return sqb
 }
 
 func (ssm *ssm) CountSchemas(sq *xsm.SchemaQuery) (total int, err error) {
-	sqb := ssm.buildQuery(sq).Count()
+	sqb := ssm.db.Builder()
+	sqb.Count()
+	ssm.addQuery(sqb, sq)
 	sql, args := sqb.Build()
 
 	err = ssm.db.Get(&total, sql, args...)
@@ -116,12 +113,13 @@ func (ssm *ssm) CountSchemas(sq *xsm.SchemaQuery) (total int, err error) {
 }
 
 func (ssm *ssm) FindSchemas(sq *xsm.SchemaQuery) (schemas []*xsm.SchemaInfo, err error) {
-	sqb := ssm.buildQuery(sq)
+	sqb := ssm.db.Builder()
 	sqb.Select(
 		"nspname AS name",
 		"COALESCE((SELECT SUM(pg_relation_size(oid)) FROM pg_catalog.pg_class WHERE relnamespace = pg_namespace.oid), 0) AS size",
 		"COALESCE(obj_description(oid, 'pg_namespace'), '') AS comment",
 	)
+	ssm.addQuery(sqb, sq)
 
 	sqb.Order(sq.Col, sq.IsDesc())
 	if sq.Col != "name" {

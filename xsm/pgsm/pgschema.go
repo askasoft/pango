@@ -6,14 +6,6 @@ import (
 	"github.com/askasoft/pango/sqx"
 )
 
-const (
-	TablePgNamespace = "pg_catalog.pg_namespace"
-)
-
-type PgNamesapce struct {
-	Nspname string
-}
-
 func SQLCreateSchema(name string) string {
 	return "CREATE SCHEMA " + name
 }

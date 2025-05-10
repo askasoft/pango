@@ -11,6 +11,10 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+type pgNamesapce struct {
+	Nspname string
+}
+
 type gsm struct {
 	db *gorm.DB
 }
@@ -26,8 +30,8 @@ func (gsm *gsm) ExistsSchema(s string) (bool, error) {
 		return false, nil
 	}
 
-	pn := &pgsm.PgNamesapce{}
-	err := gsm.db.Table(pgsm.TablePgNamespace).Where("nspname = ?", s).Select("nspname").Take(pn).Error
+	pn := &pgNamesapce{}
+	err := gsm.db.Table("pg_catalog.pg_namespace").Where("nspname = ?", s).Select("nspname").Take(pn).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
@@ -38,7 +42,7 @@ func (gsm *gsm) ExistsSchema(s string) (bool, error) {
 }
 
 func (gsm *gsm) ListSchemas() ([]string, error) {
-	tx := gsm.db.Table(pgsm.TablePgNamespace).Where("nspname NOT LIKE ?", sqx.StringLike("_")).Select("nspname").Order("nspname asc")
+	tx := gsm.db.Table("pg_catalog.pg_namespace").Where("nspname NOT LIKE ?", sqx.StringLike("_")).Select("nspname").Order("nspname asc")
 	rows, err := tx.Rows()
 	if err != nil {
 		return nil, err
@@ -47,7 +51,7 @@ func (gsm *gsm) ListSchemas() ([]string, error) {
 
 	var ss []string
 
-	pn := &pgsm.PgNamesapce{}
+	pn := &pgNamesapce{}
 	for rows.Next() {
 		if err = tx.ScanRows(rows, pn); err != nil {
 			return nil, err
@@ -87,7 +91,7 @@ func (gsm *gsm) DeleteSchema(name string) error {
 }
 
 func (gsm *gsm) buildQuery(sq *xsm.SchemaQuery) *gorm.DB {
-	tx := gsm.db.Table(pgsm.TablePgNamespace)
+	tx := gsm.db.Table("pg_catalog.pg_namespace")
 
 	tx = tx.Where("nspname NOT LIKE ?", sqx.StringLike("_"))
 	if sq.Name != "" {

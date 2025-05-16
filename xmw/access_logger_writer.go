@@ -9,48 +9,45 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/askasoft/pango/iox"
+	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/tmu"
 	"github.com/askasoft/pango/xin"
 )
 
 // AccessLogTimeFormat default log time format
-const AccessLogTimeFormat = "2006-01-02T15:04:05.000"
+const AccessLogTimeFormat = "2006-01-02T15:04:05.000Z07:00"
 
 // AccessLogTextFormat default text log format
 // TIME STATUS LATENCY SIZE CLIENT_IP REMOTE_ADDR METHOD HOST URL HEADER(User-Agent)
-const AccessLogTextFormat = "text:%t\t%S\t%T\t%B\t%c\t%r\t%m\t%h\t%u\t%h{User-Agent}%n"
+const AccessLogTextFormat = "text:%t\t%S\t%D\t%B\t%c\t%r\t%m\t%s://%h%u\t%h{User-Agent}%n"
 
 // AccessLogJSONFormat default json log format
-const AccessLogJSONFormat = `json:{"when": %t, "server": %H, "status": %S, "latency": %T, "size": %B, "client_ip": %c, "remote_addr": %r, "method": %m, "host": %h, "url": %u, "user_agent": %h{User-Agent}}%n`
-
-type AccessLogCtx struct {
-	Start time.Time
-	End   time.Time
-	Ctx   *xin.Context
-}
+const AccessLogJSONFormat = `json:{"when": %t, "server": %H, "status": %S, "latency": %T, "size": %B, "client_ip": %c, "remote_addr": %r, "method": %m, "scheme": %s, "host": %h, "url": %u, "user_agent": %h{User-Agent}}%n`
 
 // AccessLogWriter access log writer for XIN
 //
-//	%t{format} - Request start time, if {format} is omitted, '2006-01-02T15:04:05.000' is used.
+//	%t{format} - Request start time, if {format} is omitted, '2006-01-02T15:04:05.000Z07:00' is used.
 //	%c - Client IP ([X-Forwarded-For, X-Real-Ip] or RemoteIP())
 //	%r - Remote IP:Port (%a)
 //	%u - Request URL
 //	%p - Request protocol
+//	%s - Request scheme (http, https)
 //	%m - Request method (GET, POST, etc.)
 //	%q - Query string (prepended with a '?' if it exists)
 //	%h - Request host
 //	%h{name} - Request header
 //	%A - Server listen address
-//	%T - Time taken to process the request, in milliseconds
-//	%S - HTTP status code of the response
+//	%D - Time taken to process the request, duration format string
+//	%T - Time taken to process the request, number in milliseconds
+//	%S - Response status code
 //	%B - Response body length (%L)
 //	%H - Local hostname
 //	%H{name} - Response header
 //	%n: EOL(Windows: "\r\n", Other: "\n")
 type AccessLogWriter interface {
-	Write(*AccessLogCtx)
+	Write(*xin.Context)
 }
 
 // NewAccessLogMultiWriter create a multi writer
@@ -64,9 +61,9 @@ type AccessLogMultiWriter struct {
 }
 
 // Write write the access log to multiple writers.
-func (mw *AccessLogMultiWriter) Write(alc *AccessLogCtx) {
+func (mw *AccessLogMultiWriter) Write(c *xin.Context) {
 	for _, w := range mw.Writers {
-		w.Write(alc)
+		w.Write(c)
 	}
 }
 
@@ -83,7 +80,7 @@ func NewAccessLogWriter(writer io.Writer, format string) AccessLogWriter {
 	return NewAccessLogTextWriter(writer, format)
 }
 
-type fmtfunc func(p *AccessLogCtx) string
+type fmtfunc func(c *xin.Context) string
 
 // NewAccessLogTextWriter create text style writer for AccessLogger
 func NewAccessLogTextWriter(writer io.Writer, format string) *AccessLogTextWriter {
@@ -104,8 +101,8 @@ func (altw *AccessLogTextWriter) SetOutput(w io.Writer) {
 }
 
 // Write write the access log
-func (altw *AccessLogTextWriter) Write(alc *AccessLogCtx) {
-	writeAccessLog(altw.writer, alc, altw.formats)
+func (altw *AccessLogTextWriter) Write(c *xin.Context) {
+	writeAccessLog(altw.writer, c, altw.formats)
 }
 
 // SetFormat set the access alw format
@@ -141,6 +138,8 @@ func (altw *AccessLogTextWriter) SetFormat(format string) {
 			fmt = requestURL
 		case 'p':
 			fmt = requestProto
+		case 's':
+			fmt = requestScheme
 		case 'm':
 			fmt = requestMethod
 		case 'q':
@@ -162,8 +161,10 @@ func (altw *AccessLogTextWriter) SetFormat(format string) {
 			fmt = listenAddr
 		case 'S':
 			fmt = statusCode
+		case 'D':
+			fmt = latencyDuration
 		case 'T':
-			fmt = latency
+			fmt = latencyMillis
 		case 'B', 'L':
 			fmt = responseBodyLen
 		case 'H':
@@ -210,8 +211,8 @@ func (aljw *AccessLogJSONWriter) SetOutput(w io.Writer) {
 }
 
 // Write write the access log
-func (aljw *AccessLogJSONWriter) Write(alc *AccessLogCtx) {
-	writeAccessLog(aljw.writer, alc, aljw.formats)
+func (aljw *AccessLogJSONWriter) Write(c *xin.Context) {
+	writeAccessLog(aljw.writer, c, aljw.formats)
 }
 
 // SetFormat set the access alw format
@@ -247,6 +248,8 @@ func (aljw *AccessLogJSONWriter) SetFormat(format string) {
 			fmt = quotefmtc(requestURL)
 		case 'p':
 			fmt = quotefmtc(requestProto)
+		case 's':
+			fmt = quotefmtc(requestScheme)
 		case 'm':
 			fmt = quotefmtc(requestMethod)
 		case 'q':
@@ -269,8 +272,10 @@ func (aljw *AccessLogJSONWriter) SetFormat(format string) {
 			fmt = quotefmtc(listenAddr)
 		case 'S':
 			fmt = statusCode
+		case 'D':
+			fmt = quotefmtc(latencyDuration)
 		case 'T':
-			fmt = latency
+			fmt = latencyMillis
 		case 'B', 'L':
 			fmt = responseBodyLen
 		case 'H':
@@ -300,10 +305,10 @@ func (aljw *AccessLogJSONWriter) SetFormat(format string) {
 
 // -------------------------------------------------
 
-func writeAccessLog(w io.Writer, alc *AccessLogCtx, fmts []fmtfunc) {
+func writeAccessLog(w io.Writer, c *xin.Context, fmts []fmtfunc) {
 	bb := &bytes.Buffer{}
 	for _, f := range fmts {
-		s := f(alc)
+		s := f(c)
 		bb.WriteString(s)
 	}
 	w.Write(bb.Bytes()) //nolint: errcheck
@@ -324,41 +329,49 @@ func getFormatOption(format string, i *int) string {
 // -------------------------------------------------
 
 func quotefmtc(ff fmtfunc) fmtfunc {
-	return func(p *AccessLogCtx) string {
-		return fmt.Sprintf("%q", ff(p))
+	return func(c *xin.Context) string {
+		return fmt.Sprintf("%q", ff(c))
 	}
 }
 
 func strfmtc(s string) fmtfunc {
-	return func(p *AccessLogCtx) string {
+	return func(c *xin.Context) string {
 		return s
 	}
 }
 
 func timefmtc(layout string) fmtfunc {
-	return func(p *AccessLogCtx) string {
-		return p.Start.Format(layout)
+	return func(c *xin.Context) string {
+		return c.GetTime(AccessLogStartKey).Format(layout)
 	}
 }
 
-func eolfmt(p *AccessLogCtx) string {
+func eolfmt(c *xin.Context) string {
 	return iox.EOL
 }
 
-func latency(p *AccessLogCtx) string {
-	return strconv.FormatInt(p.End.Sub(p.Start).Milliseconds(), 10)
+func latencyDuration(c *xin.Context) string {
+	s := c.GetTime(AccessLogStartKey)
+	e := c.GetTime(AccessLogEndKey)
+	return tmu.HumanDuration(e.Sub(s))
 }
 
-func clientIP(p *AccessLogCtx) string {
-	return p.Ctx.ClientIP()
+func latencyMillis(c *xin.Context) string {
+	s := c.GetTime(AccessLogStartKey)
+	e := c.GetTime(AccessLogEndKey)
+	return strconv.FormatInt(e.Sub(s).Milliseconds(), 10)
 }
 
-func remoteAddr(p *AccessLogCtx) string {
-	return p.Ctx.Request.RemoteAddr
+func clientIP(c *xin.Context) string {
+	return c.ClientIP()
 }
 
-func listenAddr(p *AccessLogCtx) string {
-	ctx := p.Ctx.Request.Context()
+func remoteAddr(c *xin.Context) string {
+	return c.Request.RemoteAddr
+}
+
+func listenAddr(c *xin.Context) string {
+	ctx := c.Request.Context()
 	addr, ok := ctx.Value(http.LocalAddrContextKey).(net.Addr)
 	if ok {
 		return addr.String()
@@ -366,42 +379,46 @@ func listenAddr(p *AccessLogCtx) string {
 	return ""
 }
 
-func requestURL(p *AccessLogCtx) string {
-	return p.Ctx.Request.URL.String()
+func requestURL(c *xin.Context) string {
+	return c.Request.URL.String()
 }
 
-func requestHost(p *AccessLogCtx) string {
-	return p.Ctx.Request.Host
+func requestHost(c *xin.Context) string {
+	return c.Request.Host
 }
 
-func requestProto(p *AccessLogCtx) string {
-	return p.Ctx.Request.Proto
+func requestProto(c *xin.Context) string {
+	return c.Request.Proto
 }
 
-func requestMethod(p *AccessLogCtx) string {
-	return p.Ctx.Request.Method
+func requestScheme(c *xin.Context) string {
+	return str.If(c.IsSecure(), "https", "http")
 }
 
-func requestQuery(p *AccessLogCtx) string {
-	return p.Ctx.Request.URL.RawQuery
+func requestMethod(c *xin.Context) string {
+	return c.Request.Method
+}
+
+func requestQuery(c *xin.Context) string {
+	return c.Request.URL.RawQuery
 }
 
 func requestHeader(name string) fmtfunc {
-	return func(p *AccessLogCtx) string {
-		return p.Ctx.Request.Header.Get(name)
+	return func(c *xin.Context) string {
+		return c.Request.Header.Get(name)
 	}
 }
 
-func statusCode(p *AccessLogCtx) string {
-	return strconv.Itoa(p.Ctx.Writer.Status())
+func statusCode(c *xin.Context) string {
+	return strconv.Itoa(c.Writer.Status())
 }
 
-func responseBodyLen(p *AccessLogCtx) string {
-	return strconv.Itoa(p.Ctx.Writer.Size())
+func responseBodyLen(c *xin.Context) string {
+	return strconv.Itoa(c.Writer.Size())
 }
 
 func responseHeader(name string) fmtfunc {
-	return func(p *AccessLogCtx) string {
-		return p.Ctx.Writer.Header().Get(name)
+	return func(c *xin.Context) string {
+		return c.Writer.Header().Get(name)
 	}
 }

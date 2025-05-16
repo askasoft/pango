@@ -7,6 +7,11 @@ import (
 	"github.com/askasoft/pango/xin"
 )
 
+const (
+	AccessLogStartKey = "X_ACCESS_START"
+	AccessLogEndKey   = "X_ACCESS_END"
+)
+
 // AccessLogger access logger middleware for XIN
 type AccessLogger struct {
 	writer   AccessLogWriter
@@ -37,13 +42,11 @@ func (al *AccessLogger) Handle(c *xin.Context) {
 		return
 	}
 
-	alc := &AccessLogCtx{Start: time.Now(), Ctx: c}
-
+	c.Set(AccessLogStartKey, time.Now())
 	c.Next()
+	c.Set(AccessLogEndKey, time.Now())
 
-	alc.End = time.Now()
-
-	w.Write(alc)
+	w.Write(c)
 }
 
 // SetWriter set the access logger writer

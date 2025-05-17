@@ -51,10 +51,7 @@ func (hm *HashMap[K, V]) IsEmpty() bool {
 
 // Clear clears the map
 func (hm *HashMap[K, V]) Clear() {
-	// for AsHashMap()
-	for k := range hm.hash {
-		delete(hm.hash, k)
-	}
+	clear(hm.hash)
 }
 
 //-----------------------------------------------------------
@@ -118,12 +115,12 @@ func (hm *HashMap[K, V]) SetIfAbsent(key K, value V) (ov V, ok bool) {
 
 // SetEntries set items from key-value items array, override the existing items
 func (hm *HashMap[K, V]) SetEntries(pairs ...cog.P[K, V]) {
-	imap.SetMapPairs[K, V](hm, pairs...)
+	imap.SetMapPairs(hm, pairs...)
 }
 
 // Copy copy items from another map am, override the existing items
 func (hm *HashMap[K, V]) Copy(am cog.Map[K, V]) {
-	imap.CopyMap[K, V](hm, am)
+	imap.CopyMap(hm, am)
 }
 
 // Remove remove the item with key k,
@@ -240,12 +237,12 @@ func (hm *HashMap[K, V]) String() string {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(lm)
 func (hm *HashMap[K, V]) MarshalJSON() ([]byte, error) {
-	return jsonmap.JsonMarshalMap[K, V](hm)
+	return jsonmap.JsonMarshalMap(hm)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, lm)
 func (hm *HashMap[K, V]) UnmarshalJSON(data []byte) error {
 	hm.Clear()
 	hm.lazyInit()
-	return jsonmap.JsonUnmarshalMap[K, V](data, hm)
+	return jsonmap.JsonUnmarshalMap(data, hm)
 }

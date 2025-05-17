@@ -186,9 +186,7 @@ func New() *Engine {
 		secureJSONPrefix:       ")]}',\n",
 	}
 	engine.engine = engine
-	engine.pool.New = func() any {
-		return engine.allocateContext(engine.maxParams)
-	}
+	engine.pool.New = engine.allocateContext
 	engine.SetTrustedProxies(IntranetCIDRs) //nolint: errcheck
 	return engine
 }
@@ -201,10 +199,17 @@ func Default() *Engine {
 	return engine
 }
 
-func (engine *Engine) allocateContext(maxParams uint16) *Context {
-	v := make(Params, 0, maxParams)
+func (engine *Engine) allocateContext() any {
+	v := make(Params, 0, engine.maxParams)
 	skippedNodes := make([]skippedNode, 0, engine.maxSections)
-	return &Context{engine: engine, params: &v, skippedNodes: &skippedNodes, Logger: engine.Logger.GetLogger("XINC")}
+
+	c := &Context{
+		engine:       engine,
+		params:       &v,
+		skippedNodes: &skippedNodes,
+		Logger:       engine.Logger.GetLogger("XINC"),
+	}
+	return c
 }
 
 // SecureJSONPrefix sets the secureJSONPrefix used in Context.SecureJSON.
@@ -363,10 +368,10 @@ func (engine *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	c := engine.pool.Get().(*Context)
 	c.writermem.reset(w, c.Logger)
 	c.Request = req
-	c.reset()
 
 	engine.handleHTTPRequest(c)
 
+	c.reset()
 	engine.pool.Put(c)
 }
 
@@ -374,16 +379,16 @@ func (engine *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 // This can be done by setting c.Request.URL.Path to your new target.
 // Disclaimer: You can loop yourself to deal with this, use wisely.
 func (engine *Engine) HandleContext(c *Context) {
-	oldIndexValue := c.index
-	oldHandlers := c.handlers
-	c.reset()
+	oi, oh := c.index, c.handlers
+
 	engine.handleHTTPRequest(c)
 
-	c.index = oldIndexValue
-	c.handlers = oldHandlers
+	c.index, c.handlers = oi, oh
 }
 
 func (engine *Engine) handleHTTPRequest(c *Context) {
+	c.reset()
+
 	httpMethod := c.Request.Method
 	rPath := c.Request.URL.Path
 	unescape := false

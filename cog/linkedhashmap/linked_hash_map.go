@@ -46,7 +46,7 @@ func (lm *LinkedHashMap[K, V]) IsEmpty() bool {
 
 // Clear clears the map
 func (lm *LinkedHashMap[K, V]) Clear() {
-	lm.hash = nil
+	clear(lm.hash)
 	lm.head = nil
 	lm.tail = nil
 }
@@ -120,12 +120,12 @@ func (lm *LinkedHashMap[K, V]) SetIfAbsent(key K, value V) (ov V, ok bool) {
 
 // SetEntries set items from key-value items array, override the existing items
 func (lm *LinkedHashMap[K, V]) SetEntries(pairs ...cog.P[K, V]) {
-	imap.SetMapPairs[K, V](lm, pairs...)
+	imap.SetMapPairs(lm, pairs...)
 }
 
 // Copy copy items from another map am, override the existing items
 func (lm *LinkedHashMap[K, V]) Copy(am cog.Map[K, V]) {
-	imap.CopyMap[K, V](lm, am)
+	imap.CopyMap(lm, am)
 }
 
 // Remove remove the item with key k,
@@ -333,11 +333,11 @@ func (lm *LinkedHashMap[K, V]) deleteNode(ln *LinkedMapNode[K, V]) {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(lm)
 func (lm *LinkedHashMap[K, V]) MarshalJSON() ([]byte, error) {
-	return jsonmap.JsonMarshalMap[K, V](lm)
+	return jsonmap.JsonMarshalMap(lm)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, lm)
 func (lm *LinkedHashMap[K, V]) UnmarshalJSON(data []byte) error {
 	lm.Clear()
-	return jsonmap.JsonUnmarshalMap[K, V](data, lm)
+	return jsonmap.JsonUnmarshalMap(data, lm)
 }

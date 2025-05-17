@@ -50,7 +50,7 @@ func (ls *LinkedHashSet[T]) IsEmpty() bool {
 
 // Clear clears set ls.
 func (ls *LinkedHashSet[T]) Clear() {
-	ls.hash = nil
+	clear(ls.hash)
 	ls.head = nil
 	ls.tail = nil
 }
@@ -484,7 +484,7 @@ func (ls *LinkedHashSet[T]) Swap(i, j int) {
 
 // Sort Sorts this set according to the order induced by the specified Comparator.
 func (ls *LinkedHashSet[T]) Sort(less cog.Less[T]) {
-	isort.Sort[T](ls, less)
+	isort.Sort(ls, less)
 }
 
 // Head get the first item of set.
@@ -660,11 +660,11 @@ func (ls *LinkedHashSet[T]) checkSizeIndex(index int) int {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(ls)
 func (ls *LinkedHashSet[T]) MarshalJSON() ([]byte, error) {
-	return jsoncol.JsonMarshalCol[T](ls)
+	return jsoncol.JsonMarshalCol(ls)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, ls)
 func (ls *LinkedHashSet[T]) UnmarshalJSON(data []byte) error {
 	ls.Clear()
-	return jsoncol.JsonUnmarshalCol[T](data, ls)
+	return jsoncol.JsonUnmarshalCol(data, ls)
 }

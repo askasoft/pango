@@ -301,7 +301,7 @@ func (c *cache[K, V]) Clean() {
 // Clear Remove all items from the cache.
 func (c *cache[K, V]) Clear() {
 	c.mu.Lock()
-	c.items = map[K]Item[V]{}
+	clear(c.items)
 	c.mu.Unlock()
 }
 

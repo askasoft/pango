@@ -61,14 +61,14 @@ type Context struct {
 	// locale string for the context of each request.
 	Locale string
 
-	// attrs is a key/value pair exclusively for the context of each request.
-	attrs map[string]any
-
 	// Errors is a list of errors attached to all the handlers/middlewares who used this context.
 	Errors []error
 
 	// Accepted defines a list of manually accepted formats for content negotiation.
 	Accepted []string
+
+	// attrs is a key/value pair exclusively for the context of each request.
+	attrs map[string]any
 
 	// queryCache caches the query result from c.Request.URL.Query().
 	queryCache url.Values
@@ -90,12 +90,13 @@ func (c *Context) reset() {
 	c.Params = c.Params[:0]
 	c.handlers = nil
 	c.index = -1
-
 	c.fullPath = ""
+
 	c.Locale = ""
-	c.attrs = nil
 	c.Errors = c.Errors[:0]
 	c.Accepted = nil
+
+	clear(c.attrs)
 	c.queryCache = nil
 	c.formCache = nil
 	*c.params = (*c.params)[:0]

@@ -44,7 +44,7 @@ func (hs *HashSet[T]) IsEmpty() bool {
 
 // Clear clears the hash set.
 func (hs *HashSet[T]) Clear() {
-	hs.hash = nil
+	clear(hs.hash)
 }
 
 // Add Add the item v to the set
@@ -295,11 +295,11 @@ func (hs *HashSet[T]) String() string {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(hs)
 func (hs *HashSet[T]) MarshalJSON() ([]byte, error) {
-	return jsoncol.JsonMarshalCol[T](hs)
+	return jsoncol.JsonMarshalCol(hs)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, hs)
 func (hs *HashSet[T]) UnmarshalJSON(data []byte) error {
 	hs.Clear()
-	return jsoncol.JsonUnmarshalCol[T](data, hs)
+	return jsoncol.JsonUnmarshalCol(data, hs)
 }

@@ -1,7 +1,6 @@
 package vad
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -12,6 +11,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/str/wildcard"
 )
@@ -19,20 +19,6 @@ import (
 // Func accepts a FieldLevel interface for all validation needs. The return
 // value should be true when validation succeeds.
 type Func func(fl FieldLevel) bool
-
-// FuncCtx accepts a context.Context and FieldLevel interface for all
-// validation needs. The return value should be true when validation succeeds.
-type FuncCtx func(ctx context.Context, fl FieldLevel) bool
-
-// wrapFunc wraps noramal Func makes it compatible with FuncCtx
-func wrapFunc(fn Func) FuncCtx {
-	if fn == nil {
-		return nil // be sure not to wrap a bad function.
-	}
-	return func(ctx context.Context, fl FieldLevel) bool {
-		return fn(fl)
-	}
-}
 
 var (
 	restrictedTags = map[string]struct{}{
@@ -202,12 +188,7 @@ func isOneOf(fl FieldLevel) bool {
 	default:
 		panic(fmt.Sprintf("oneof: bad field type %T", field.Interface()))
 	}
-	for _, o := range vs {
-		if o == v {
-			return true
-		}
-	}
-	return false
+	return asg.Contains(vs, v)
 }
 
 // isUnique is the validation function for validating if each array|slice|map value is unique
@@ -225,8 +206,7 @@ func isUnique(fl FieldLevel) bool {
 
 		if param == "" {
 			m := reflect.MakeMap(reflect.MapOf(elem, v.Type()))
-
-			for i := 0; i < field.Len(); i++ {
+			for i := range field.Len() {
 				m.SetMapIndex(reflect.Indirect(field.Index(i)), v)
 			}
 			return field.Len() == m.Len()
@@ -243,13 +223,12 @@ func isUnique(fl FieldLevel) bool {
 		}
 
 		m := reflect.MakeMap(reflect.MapOf(sfTyp, v.Type()))
-		for i := 0; i < field.Len(); i++ {
+		for i := range field.Len() {
 			m.SetMapIndex(reflect.Indirect(reflect.Indirect(field.Index(i)).FieldByName(param)), v)
 		}
 		return field.Len() == m.Len()
 	case reflect.Map:
 		m := reflect.MakeMap(reflect.MapOf(field.Type().Elem(), v.Type()))
-
 		for _, k := range field.MapKeys() {
 			m.SetMapIndex(field.MapIndex(k), v)
 		}

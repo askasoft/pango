@@ -2,7 +2,6 @@ package vad
 
 import (
 	"bytes"
-	"context"
 	"database/sql"
 	"database/sql/driver"
 	"encoding/base64"
@@ -788,7 +787,7 @@ func TestStructPartial(t *testing.T) {
 
 	// the following should all return no errors as everything is valid in
 	// the default state
-	errs := validate.StructPartialCtx(context.Background(), tPartial, p1...)
+	errs := validate.StructPartial(tPartial, p1...)
 	assertEqual(t, errs, nil)
 
 	errs = validate.StructPartial(tPartial, p2...)
@@ -798,7 +797,7 @@ func TestStructPartial(t *testing.T) {
 	errs = validate.StructPartial(tPartial.SubSlice[0], p3...)
 	assertEqual(t, errs, nil)
 
-	errs = validate.StructExceptCtx(context.Background(), tPartial, p1...)
+	errs = validate.StructExcept(tPartial, p1...)
 	assertEqual(t, errs, nil)
 
 	errs = validate.StructExcept(tPartial, p2...)
@@ -1036,7 +1035,7 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "ltecsfield")
 	AssertError(t, errs, "Test.Array", "Test.Array", "Array", "Array", "ltecsfield")
 
-	errs = validate.VarWithValueCtx(context.Background(), 1, "", "ltecsfield")
+	errs = validate.VarWithValue(1, "", "ltecsfield")
 	assertNotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "ltecsfield")
 
@@ -2229,7 +2228,7 @@ func TestSQLValue2Validation(t *testing.T) {
 	AssertError(t, errs, "", "", "", "", "required")
 
 	val.Name = "Valid Name"
-	errs = validate.VarCtx(context.Background(), val, "required")
+	errs = validate.Var(val, "required")
 	assertEqual(t, errs, nil)
 
 	val.Name = "errorme"
@@ -5939,10 +5938,6 @@ func TestAddFunctions(t *testing.T) {
 		return true
 	}
 
-	fnCtx := func(ctx context.Context, fl FieldLevel) bool {
-		return true
-	}
-
 	validate := New()
 
 	validate.RegisterValidation("new", fn)
@@ -5952,8 +5947,6 @@ func TestAddFunctions(t *testing.T) {
 	assertPanicMatches(t, func() { validate.RegisterValidation("new", nil) }, "function cannot be empty")
 
 	validate.RegisterValidation("new", fn)
-
-	validate.RegisterValidationCtx("new", fnCtx)
 
 	assertPanicMatches(t, func() { validate.RegisterValidation("dive", fn) }, "Tag 'dive' either contains restricted characters or is the same as a restricted tag needed for normal operation")
 }
@@ -7813,7 +7806,7 @@ func TestStructFiltered(t *testing.T) {
 
 	// the following should all return no errors as everything is valid in
 	// the default state
-	errs := validate.StructFilteredCtx(context.Background(), tPartial, p1)
+	errs := validate.StructFiltered(tPartial, p1)
 	assertEqual(t, errs, nil)
 
 	errs = validate.StructFiltered(tPartial, p2)
@@ -8276,38 +8269,6 @@ func TestFieldLevelName(t *testing.T) {
 	assertEqual(t, alt4, "Array2")
 	assertEqual(t, res5, "json5")
 	assertEqual(t, alt5, "Map2")
-}
-
-func TestValidateStructRegisterCtx(t *testing.T) {
-	var ctxVal string
-
-	fnCtx := func(ctx context.Context, fl FieldLevel) bool {
-		ctxVal = ctx.Value(&ctxVal).(string)
-		return true
-	}
-
-	var ctxSlVal string
-	slFn := func(ctx context.Context, sl StructLevel) {
-		ctxSlVal = ctx.Value(&ctxSlVal).(string)
-	}
-
-	type Test struct {
-		Field string `validate:"val"`
-	}
-
-	var tst Test
-
-	validate := New()
-	validate.RegisterValidationCtx("val", fnCtx)
-
-	validate.RegisterStructValidationCtx(slFn, Test{})
-
-	ctx := context.WithValue(context.Background(), &ctxVal, "testval")
-	ctx = context.WithValue(ctx, &ctxSlVal, "slVal")
-	errs := validate.StructCtx(ctx, tst)
-	assertEqual(t, errs, nil)
-	assertEqual(t, ctxVal, "testval")
-	assertEqual(t, ctxSlVal, "slVal")
 }
 
 func TestHostnameRFC952Validation(t *testing.T) {

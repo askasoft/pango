@@ -1,23 +1,11 @@
 package vad
 
 import (
-	"context"
 	"reflect"
 )
 
 // StructLevelFunc accepts all values needed for struct level validation
 type StructLevelFunc func(sl StructLevel)
-
-// StructLevelFuncCtx accepts all values needed for struct level validation
-// but also allows passing of contextual validation information via context.Context.
-type StructLevelFuncCtx func(ctx context.Context, sl StructLevel)
-
-// wrapStructLevelFunc wraps normal StructLevelFunc makes it compatible with StructLevelFuncCtx
-func wrapStructLevelFunc(fn StructLevelFunc) StructLevelFuncCtx {
-	return func(ctx context.Context, sl StructLevel) {
-		fn(sl)
-	}
-}
 
 // StructLevel contains all the information and helper functions
 // to validate a struct

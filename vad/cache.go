@@ -72,7 +72,7 @@ func (tc *tagCache) Set(key string, value *cTag) {
 type cStruct struct {
 	name   string
 	fields []*cField
-	fn     StructLevelFuncCtx
+	fn     StructLevelFunc
 }
 
 type cField struct {
@@ -90,7 +90,7 @@ type cTag struct {
 	param                string
 	keys                 *cTag // only populated when using tag's 'keys' and 'endkeys' for map key validation
 	next                 *cTag
-	fn                   FuncCtx
+	fn                   Func
 	typeof               tagType
 	hasTag               bool
 	hasAlias             bool

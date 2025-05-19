@@ -969,7 +969,6 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 		Int       int
 		Uint      uint
 		Float     float64
-		Array     []string
 	}
 
 	type Test struct {
@@ -979,7 +978,6 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 		Int       int        `validate:"ltecsfield=Inner.Int"`
 		Uint      uint       `validate:"ltecsfield=Inner.Uint"`
 		Float     float64    `validate:"ltecsfield=Inner.Float"`
-		Array     []string   `validate:"ltecsfield=Inner.Array"`
 	}
 
 	now := time.Now().UTC()
@@ -991,7 +989,6 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 		Int:       13,
 		Uint:      13,
 		Float:     1.13,
-		Array:     []string{"val1", "val2"},
 	}
 
 	test := &Test{
@@ -1001,7 +998,6 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 		Int:       12,
 		Uint:      12,
 		Float:     1.12,
-		Array:     []string{"val1"},
 	}
 
 	errs = validate.Struct(test)
@@ -1012,7 +1008,6 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 	test.Int = 13
 	test.Uint = 13
 	test.Float = 1.13
-	test.Array = []string{"val1", "val2"}
 
 	errs = validate.Struct(test)
 	assertEqual(t, errs, nil)
@@ -1024,7 +1019,6 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 	test.Int = 14
 	test.Uint = 14
 	test.Float = 1.14
-	test.Array = []string{"val1", "val2", "val3"}
 
 	errs = validate.Struct(test)
 	assertNotEqual(t, errs, nil)
@@ -1033,7 +1027,6 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "ltecsfield")
 	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "ltecsfield")
 	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "ltecsfield")
-	AssertError(t, errs, "Test.Array", "Test.Array", "Array", "Array", "ltecsfield")
 
 	errs = validate.VarWithValue(1, "", "ltecsfield")
 	assertNotEqual(t, errs, nil)
@@ -1042,13 +1035,12 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 	// this test is for the WARNING about unforeseen validation issues.
 	errs = validate.VarWithValue(test, now, "ltecsfield")
 	assertNotEqual(t, errs, nil)
-	assertEqual(t, len(errs.(ValidationErrors)), 6)
+	assertEqual(t, len(errs.(ValidationErrors)), 5)
 	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "ltecsfield")
 	AssertError(t, errs, "Test.String", "Test.String", "String", "String", "ltecsfield")
 	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "ltecsfield")
 	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "ltecsfield")
 	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "ltecsfield")
-	AssertError(t, errs, "Test.Array", "Test.Array", "Array", "Array", "ltecsfield")
 
 	type Other struct {
 		Value string
@@ -1136,7 +1128,6 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 		Int       int
 		Uint      uint
 		Float     float64
-		Array     []string
 	}
 
 	type Test struct {
@@ -1146,7 +1137,6 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 		Int       int        `validate:"ltcsfield=Inner.Int"`
 		Uint      uint       `validate:"ltcsfield=Inner.Uint"`
 		Float     float64    `validate:"ltcsfield=Inner.Float"`
-		Array     []string   `validate:"ltcsfield=Inner.Array"`
 	}
 
 	now := time.Now().UTC()
@@ -1158,7 +1148,6 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 		Int:       13,
 		Uint:      13,
 		Float:     1.13,
-		Array:     []string{"val1", "val2"},
 	}
 
 	test := &Test{
@@ -1168,7 +1157,6 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 		Int:       12,
 		Uint:      12,
 		Float:     1.12,
-		Array:     []string{"val1"},
 	}
 
 	errs = validate.Struct(test)
@@ -1179,7 +1167,6 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 	test.Int = 13
 	test.Uint = 13
 	test.Float = 1.13
-	test.Array = []string{"val1", "val2"}
 
 	errs = validate.Struct(test)
 	assertNotEqual(t, errs, nil)
@@ -1188,7 +1175,6 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "ltcsfield")
 	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "ltcsfield")
 	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "ltcsfield")
-	AssertError(t, errs, "Test.Array", "Test.Array", "Array", "Array", "ltcsfield")
 
 	errs = validate.VarWithValue(1, "", "ltcsfield")
 	assertNotEqual(t, errs, nil)
@@ -1202,7 +1188,6 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "ltcsfield")
 	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "ltcsfield")
 	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "ltcsfield")
-	AssertError(t, errs, "Test.Array", "Test.Array", "Array", "Array", "ltcsfield")
 
 	type Other struct {
 		Value string
@@ -1302,7 +1287,6 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 		Int       int        `validate:"gtecsfield=Inner.Int"`
 		Uint      uint       `validate:"gtecsfield=Inner.Uint"`
 		Float     float64    `validate:"gtecsfield=Inner.Float"`
-		Array     []string   `validate:"gtecsfield=Inner.Array"`
 	}
 
 	now := time.Now().UTC()
@@ -1314,7 +1298,6 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 		Int:       13,
 		Uint:      13,
 		Float:     1.13,
-		Array:     []string{"val1", "val2"},
 	}
 
 	test := &Test{
@@ -1324,7 +1307,6 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 		Int:       14,
 		Uint:      14,
 		Float:     1.14,
-		Array:     []string{"val1", "val2", "val3"},
 	}
 
 	errs = validate.Struct(test)
@@ -1335,7 +1317,6 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 	test.Int = 13
 	test.Uint = 13
 	test.Float = 1.13
-	test.Array = []string{"val1", "val2"}
 
 	errs = validate.Struct(test)
 	assertEqual(t, errs, nil)
@@ -1347,7 +1328,6 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 	test.Int = 12
 	test.Uint = 12
 	test.Float = 1.12
-	test.Array = []string{"val1"}
 
 	errs = validate.Struct(test)
 	assertNotEqual(t, errs, nil)
@@ -1356,7 +1336,6 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "gtecsfield")
 	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "gtecsfield")
 	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "gtecsfield")
-	AssertError(t, errs, "Test.Array", "Test.Array", "Array", "Array", "gtecsfield")
 
 	errs = validate.VarWithValue(1, "", "gtecsfield")
 	assertNotEqual(t, errs, nil)
@@ -1370,7 +1349,6 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "gtecsfield")
 	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "gtecsfield")
 	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "gtecsfield")
-	AssertError(t, errs, "Test.Array", "Test.Array", "Array", "Array", "gtecsfield")
 
 	type Other struct {
 		Value string
@@ -1458,7 +1436,6 @@ func TestCrossStructGtFieldValidation(t *testing.T) {
 		Int       int
 		Uint      uint
 		Float     float64
-		Array     []string
 	}
 
 	type Test struct {
@@ -1468,7 +1445,6 @@ func TestCrossStructGtFieldValidation(t *testing.T) {
 		Int       int        `validate:"gtcsfield=Inner.Int"`
 		Uint      uint       `validate:"gtcsfield=Inner.Uint"`
 		Float     float64    `validate:"gtcsfield=Inner.Float"`
-		Array     []string   `validate:"gtcsfield=Inner.Array"`
 	}
 
 	now := time.Now().UTC()
@@ -1480,7 +1456,6 @@ func TestCrossStructGtFieldValidation(t *testing.T) {
 		Int:       13,
 		Uint:      13,
 		Float:     1.13,
-		Array:     []string{"val1", "val2"},
 	}
 
 	test := &Test{
@@ -1490,7 +1465,6 @@ func TestCrossStructGtFieldValidation(t *testing.T) {
 		Int:       14,
 		Uint:      14,
 		Float:     1.14,
-		Array:     []string{"val1", "val2", "val3"},
 	}
 
 	errs = validate.Struct(test)
@@ -1501,7 +1475,6 @@ func TestCrossStructGtFieldValidation(t *testing.T) {
 	test.Int = 13
 	test.Uint = 13
 	test.Float = 1.13
-	test.Array = []string{"val1", "val2"}
 
 	errs = validate.Struct(test)
 	assertNotEqual(t, errs, nil)
@@ -1510,7 +1483,6 @@ func TestCrossStructGtFieldValidation(t *testing.T) {
 	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "gtcsfield")
 	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "gtcsfield")
 	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "gtcsfield")
-	AssertError(t, errs, "Test.Array", "Test.Array", "Array", "Array", "gtcsfield")
 
 	errs = validate.VarWithValue(1, "", "gtcsfield")
 	assertNotEqual(t, errs, nil)
@@ -1524,7 +1496,6 @@ func TestCrossStructGtFieldValidation(t *testing.T) {
 	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "gtcsfield")
 	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "gtcsfield")
 	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "gtcsfield")
-	AssertError(t, errs, "Test.Array", "Test.Array", "Array", "Array", "gtcsfield")
 
 	type Other struct {
 		Value string
@@ -1647,15 +1618,12 @@ func TestCrossStructNeFieldValidation(t *testing.T) {
 	j = 1
 	k = 1.543
 	b := true
-	arr := []string{"test"}
 
 	s2 := "abcd"
 	i2 := 1
 	j2 = 1
 	k2 = 1.543
 	b2 := true
-	arr2 := []string{"test"}
-	arr3 := []string{"test", "test2"}
 	now2 := now
 
 	errs = validate.VarWithValue(s, s2, "necsfield")
@@ -1678,16 +1646,9 @@ func TestCrossStructNeFieldValidation(t *testing.T) {
 	assertNotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "necsfield")
 
-	errs = validate.VarWithValue(arr2, arr, "necsfield")
-	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "necsfield")
-
 	errs = validate.VarWithValue(now2, now, "necsfield")
 	assertNotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "necsfield")
-
-	errs = validate.VarWithValue(arr3, arr, "necsfield")
-	assertEqual(t, errs, nil)
 
 	type SInner struct {
 		Name string
@@ -1817,7 +1778,6 @@ func TestCrossStructEqFieldValidation(t *testing.T) {
 	j = 1
 	k = 1.543
 	b := true
-	arr := []string{"test"}
 
 	var j2 uint64
 	var k2 float64
@@ -1826,8 +1786,6 @@ func TestCrossStructEqFieldValidation(t *testing.T) {
 	j2 = 1
 	k2 = 1.543
 	b2 := true
-	arr2 := []string{"test"}
-	arr3 := []string{"test", "test2"}
 	now2 := now
 
 	errs = validate.VarWithValue(s, s2, "eqcsfield")
@@ -1845,15 +1803,8 @@ func TestCrossStructEqFieldValidation(t *testing.T) {
 	errs = validate.VarWithValue(b2, b, "eqcsfield")
 	assertEqual(t, errs, nil)
 
-	errs = validate.VarWithValue(arr2, arr, "eqcsfield")
-	assertEqual(t, errs, nil)
-
 	errs = validate.VarWithValue(now2, now, "eqcsfield")
 	assertEqual(t, errs, nil)
-
-	errs = validate.VarWithValue(arr3, arr, "eqcsfield")
-	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "eqcsfield")
 
 	type SInner struct {
 		Name string
@@ -2708,7 +2659,7 @@ func TestBadKeyValidation(t *testing.T) {
 
 	validate := New()
 
-	assertPanicMatches(t, func() { _ = validate.Struct(tst) }, "Undefined validation function ' ' on field 'Name'")
+	assertPanicMatches(t, func() { _ = validate.Struct(tst) }, "undefined validation function ' ' on field 'Name'")
 
 	type Test2 struct {
 		Name string `validate:"required,,len=2"`
@@ -2718,7 +2669,7 @@ func TestBadKeyValidation(t *testing.T) {
 		Name: "test",
 	}
 
-	assertPanicMatches(t, func() { _ = validate.Struct(tst2) }, "Invalid validation tag on field 'Name'")
+	assertPanicMatches(t, func() { _ = validate.Struct(tst2) }, "invalid validation tag on field 'Name'")
 }
 
 func TestInterfaceErrValidation(t *testing.T) {
@@ -4058,7 +4009,6 @@ func TestIsNeFieldValidation(t *testing.T) {
 	j = 1
 	k = 1.543
 	b := true
-	arr := []string{"test"}
 	now := time.Now().UTC()
 
 	var j2 uint64
@@ -4068,8 +4018,6 @@ func TestIsNeFieldValidation(t *testing.T) {
 	j2 = 2
 	k2 = 1.5434456
 	b2 := false
-	arr2 := []string{"test", "test2"}
-	arr3 := []string{"test"}
 	now2 := now
 
 	errs = validate.VarWithValue(s, s2, "nefield")
@@ -4087,14 +4035,7 @@ func TestIsNeFieldValidation(t *testing.T) {
 	errs = validate.VarWithValue(b2, b, "nefield")
 	assertEqual(t, errs, nil)
 
-	errs = validate.VarWithValue(arr2, arr, "nefield")
-	assertEqual(t, errs, nil)
-
 	errs = validate.VarWithValue(now2, now, "nefield")
-	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "nefield")
-
-	errs = validate.VarWithValue(arr3, arr, "nefield")
 	assertNotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "nefield")
 
@@ -4292,7 +4233,6 @@ func TestIsEqFieldValidation(t *testing.T) {
 	j = 1
 	k = 1.543
 	b := true
-	arr := []string{"test"}
 	now := time.Now().UTC()
 
 	var j2 uint64
@@ -4302,8 +4242,6 @@ func TestIsEqFieldValidation(t *testing.T) {
 	j2 = 1
 	k2 = 1.543
 	b2 := true
-	arr2 := []string{"test"}
-	arr3 := []string{"test", "test2"}
 	now2 := now
 
 	errs = validate.VarWithValue(s, s2, "eqfield")
@@ -4321,15 +4259,8 @@ func TestIsEqFieldValidation(t *testing.T) {
 	errs = validate.VarWithValue(b2, b, "eqfield")
 	assertEqual(t, errs, nil)
 
-	errs = validate.VarWithValue(arr2, arr, "eqfield")
-	assertEqual(t, errs, nil)
-
 	errs = validate.VarWithValue(now2, now, "eqfield")
 	assertEqual(t, errs, nil)
-
-	errs = validate.VarWithValue(arr3, arr, "eqfield")
-	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "eqfield")
 
 	type Test struct {
 		Start *time.Time `validate:"eqfield=End"`
@@ -6413,11 +6344,6 @@ func TestIsLt(t *testing.T) {
 	var errs error
 	validate := New()
 
-	myMap := map[string]string{}
-	errs = validate.Var(myMap, "lt=0")
-	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "lt")
-
 	f := 1.23
 	errs = validate.Var(f, "lt=0")
 	assertNotEqual(t, errs, nil)
@@ -6756,8 +6682,8 @@ func TestOrTag(t *testing.T) {
 
 	s = "this is right, but a blank or isn't"
 
-	assertPanicMatches(t, func() { _ = validate.Var(s, "rgb||len=13") }, "Invalid validation tag on field ''")
-	assertPanicMatches(t, func() { _ = validate.Var(s, "rgb|rgbaa|len=13") }, "Undefined validation function 'rgbaa' on field ''")
+	assertPanicMatches(t, func() { _ = validate.Var(s, "rgb||len=13") }, "invalid validation tag on field ''")
+	assertPanicMatches(t, func() { _ = validate.Var(s, "rgb|rgbaa|len=13") }, "undefined validation function 'rgbaa' on field ''")
 
 	v2 := New()
 	v2.RegisterTagNameFunc(func(fld reflect.StructField) string {
@@ -7565,7 +7491,7 @@ func TestInvalidValidatorFunction(t *testing.T) {
 		Test: "1",
 	}
 
-	assertPanicMatches(t, func() { _ = validate.Var(s.Test, "zzxxBadFunction") }, "Undefined validation function 'zzxxBadFunction' on field ''")
+	assertPanicMatches(t, func() { _ = validate.Var(s.Test, "zzxxBadFunction") }, "undefined validation function 'zzxxBadFunction' on field ''")
 }
 
 func TestCustomFieldName(t *testing.T) {
@@ -8469,15 +8395,15 @@ func TestFQDNValidation(t *testing.T) {
 	}
 }
 
-func TestIsDefault(t *testing.T) {
+func TestIsEmpty(t *testing.T) {
 	validate := New()
 
 	type Inner struct {
-		String string `validate:"isdefault"`
+		String string `validate:"isempty"`
 	}
 	type Test struct {
-		String string `validate:"isdefault"`
-		Inner  *Inner `validate:"isdefault"`
+		String string `validate:"isempty"`
+		Inner  *Inner `validate:"isempty"`
 	}
 
 	var tt Test
@@ -8492,7 +8418,7 @@ func TestIsDefault(t *testing.T) {
 	fe := errs.(ValidationErrors)[0]
 	assertEqual(t, fe.Field(), "Inner")
 	assertEqual(t, fe.Namespace(), "Test.Inner")
-	assertEqual(t, fe.Tag(), "isdefault")
+	assertEqual(t, fe.Tag(), "isempty")
 
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
@@ -8503,11 +8429,11 @@ func TestIsDefault(t *testing.T) {
 	})
 
 	type Inner2 struct {
-		String string `validate:"isdefault"`
+		String string `validate:"isempty"`
 	}
 
 	type Test2 struct {
-		Inner Inner2 `validate:"isdefault" json:"inner"`
+		Inner Inner2 `validate:"isempty" json:"inner"`
 	}
 
 	var t2 Test2
@@ -8521,7 +8447,7 @@ func TestIsDefault(t *testing.T) {
 	fe = errs.(ValidationErrors)[0]
 	assertEqual(t, fe.Field(), "inner")
 	assertEqual(t, fe.Namespace(), "Test2.inner")
-	assertEqual(t, fe.Tag(), "isdefault")
+	assertEqual(t, fe.Tag(), "isempty")
 }
 
 func TestUniqueValidation(t *testing.T) {

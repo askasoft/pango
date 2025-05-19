@@ -85,6 +85,18 @@ func (v *validate) validateStruct(parent reflect.Value, current reflect.Value, t
 	}
 }
 
+// omitEmpty is the validation function for validating if the current field's value is not the default static value.
+// check recursively if the field is a pointer.
+func omitEmpty(fl FieldLevel) bool {
+	field := fl.Field()
+	switch field.Kind() {
+	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
+		return field.IsNil()
+	default:
+		return !field.IsValid() || field.Interface() == reflect.Zero(field.Type()).Interface()
+	}
+}
+
 // traverseField validates any field, be it a struct or single field, ensures it's validity and passes it along to be validated via it's tag options
 func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns []byte, structNs []byte, cf *cField, ct *cTag) {
 	var typ reflect.Type
@@ -167,7 +179,7 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 					v.cf = cf
 					v.ct = ct
 
-					if !ct.fn(v) {
+					if err := ct.fn(v); err != nil {
 						v.str1 = string(append(ns, cf.altName...))
 
 						if v.v.hasTagNameFunc {
@@ -189,6 +201,7 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 								param:          ct.param,
 								kind:           kind,
 								typ:            typ,
+								cause:          err,
 							},
 						)
 						return
@@ -237,7 +250,7 @@ OUTER:
 			v.cf = cf
 			v.ct = ct
 
-			if isEmpty(v) {
+			if omitEmpty(v) {
 				return
 			}
 
@@ -332,7 +345,8 @@ OUTER:
 				v.cf = cf
 				v.ct = ct
 
-				if ct.fn(v) {
+				err := ct.fn(v)
+				if err == nil {
 					// drain rest of the 'or' values, then continue or leave
 					for {
 						ct = ct.next
@@ -366,47 +380,43 @@ OUTER:
 					}
 
 					if ct.hasAlias {
-						v.errs = append(v.errs,
-							&fieldError{
-								v:              v.v,
-								tag:            ct.aliasTag,
-								actualTag:      ct.actualAliasTag,
-								ns:             v.str1,
-								structNs:       v.str2,
-								fieldLen:       uint8(len(cf.altName)),
-								structfieldLen: uint8(len(cf.name)),
-								value:          getValue(current),
-								param:          ct.param,
-								kind:           kind,
-								typ:            typ,
-							},
-						)
+						v.errs = append(v.errs, &fieldError{
+							v:              v.v,
+							tag:            ct.aliasTag,
+							actualTag:      ct.actualAliasTag,
+							ns:             v.str1,
+							structNs:       v.str2,
+							fieldLen:       uint8(len(cf.altName)),
+							structfieldLen: uint8(len(cf.name)),
+							value:          getValue(current),
+							param:          ct.param,
+							kind:           kind,
+							typ:            typ,
+							cause:          err,
+						})
 					} else {
 						tVal := string(v.misc)[1:]
 
-						v.errs = append(v.errs,
-							&fieldError{
-								v:              v.v,
-								tag:            tVal,
-								actualTag:      tVal,
-								ns:             v.str1,
-								structNs:       v.str2,
-								fieldLen:       uint8(len(cf.altName)),
-								structfieldLen: uint8(len(cf.name)),
-								value:          getValue(current),
-								param:          ct.param,
-								kind:           kind,
-								typ:            typ,
-							},
-						)
+						v.errs = append(v.errs, &fieldError{
+							v:              v.v,
+							tag:            tVal,
+							actualTag:      tVal,
+							ns:             v.str1,
+							structNs:       v.str2,
+							fieldLen:       uint8(len(cf.altName)),
+							structfieldLen: uint8(len(cf.name)),
+							value:          getValue(current),
+							param:          ct.param,
+							kind:           kind,
+							typ:            typ,
+							cause:          err,
+						})
 					}
-
 					return
 				}
 
 				ct = ct.next
 			}
-
 		default:
 			// set Field Level fields
 			v.slflParent = parent
@@ -414,7 +424,7 @@ OUTER:
 			v.cf = cf
 			v.ct = ct
 
-			if !ct.fn(v) {
+			if err := ct.fn(v); err != nil {
 				v.str1 = string(append(ns, cf.altName...))
 
 				if v.v.hasTagNameFunc {
@@ -423,22 +433,20 @@ OUTER:
 					v.str2 = v.str1
 				}
 
-				v.errs = append(v.errs,
-					&fieldError{
-						v:              v.v,
-						tag:            ct.aliasTag,
-						actualTag:      ct.tag,
-						ns:             v.str1,
-						structNs:       v.str2,
-						fieldLen:       uint8(len(cf.altName)),
-						structfieldLen: uint8(len(cf.name)),
-						value:          getValue(current),
-						param:          ct.param,
-						kind:           kind,
-						typ:            typ,
-					},
-				)
-
+				v.errs = append(v.errs, &fieldError{
+					v:              v.v,
+					tag:            ct.aliasTag,
+					actualTag:      ct.tag,
+					ns:             v.str1,
+					structNs:       v.str2,
+					fieldLen:       uint8(len(cf.altName)),
+					structfieldLen: uint8(len(cf.name)),
+					value:          getValue(current),
+					param:          ct.param,
+					kind:           kind,
+					typ:            typ,
+					cause:          err,
+				})
 				return
 			}
 			ct = ct.next

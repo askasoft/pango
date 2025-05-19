@@ -22,8 +22,8 @@ const (
 )
 
 const (
-	invalidValidation   = "Invalid validation tag on field '%s'"
-	undefinedValidation = "Undefined validation function '%s' on field '%s'"
+	invalidValidation   = "invalid validation tag on field '%s'"
+	undefinedValidation = "undefined validation function '%s' on field '%s'"
 	keysTagNotDefined   = "'" + endKeysTag + "' tag encountered without a corresponding '" + keysTag + "' tag"
 )
 
@@ -90,7 +90,7 @@ type cTag struct {
 	param                string
 	keys                 *cTag // only populated when using tag's 'keys' and 'endkeys' for map key validation
 	next                 *cTag
-	fn                   Func
+	fn                   FuncEx
 	typeof               tagType
 	hasTag               bool
 	hasAlias             bool
@@ -245,7 +245,7 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 			current.typeof = typeNoStructLevel
 
 		default:
-			if t == isdefault {
+			if t == isempty {
 				current.typeof = typeIsDefault
 			}
 			// if a pipe character is needed within the param you must use the utf8Pipe representation "0x7C"

@@ -130,6 +130,9 @@ type FieldError interface {
 
 	// Error returns the FieldError's message
 	Error() string
+
+	// Cause returns the cause error
+	Cause() error
 }
 
 // fieldError contains a single field's validation error along
@@ -147,6 +150,7 @@ type fieldError struct {
 	param          string
 	kind           reflect.Kind
 	typ            reflect.Type
+	cause          error
 }
 
 // Tag returns the validation tag that failed.
@@ -220,4 +224,9 @@ func (fe *fieldError) Type() reflect.Type {
 // Error returns the fieldError's error message
 func (fe *fieldError) Error() string {
 	return fmt.Sprintf(fieldErrMsg, fe.ns, fe.Field(), fe.tag)
+}
+
+// Cause returns the fieldError's cause error
+func (fe *fieldError) Cause() error {
+	return fe.cause
 }

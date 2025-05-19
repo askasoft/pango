@@ -19,7 +19,7 @@ const (
 	structOnlyTag         = "structonly"
 	noStructLevelTag      = "nostructlevel"
 	omitempty             = "omitempty"
-	isdefault             = "isdefault"
+	isempty               = "isempty"
 	requiredWithoutAllTag = "required_without_all"
 	requiredWithoutTag    = "required_without"
 	requiredWithTag       = "required_with"
@@ -66,7 +66,7 @@ type CustomTypeFunc func(field reflect.Value) any
 type TagNameFunc func(field reflect.StructField) string
 
 type internalValidationFuncWrapper struct {
-	fn                 Func
+	fn                 FuncEx
 	runValidationOnNil bool
 }
 
@@ -105,15 +105,15 @@ func New() *Validate {
 	}
 
 	// must copy validators for separate validations to be used in each instance
-	for k, val := range bakedInValidators {
+	for k, fn := range bakedInValidators {
 		switch k {
 		// these require that even if the value is nil that the validation should run, omitempty still overrides this behaviour
 		case requiredIfTag, requiredUnlessTag, requiredWithTag, requiredWithAllTag, requiredWithoutTag, requiredWithoutAllTag,
 			excludedWithTag, excludedWithAllTag, excludedWithoutTag, excludedWithoutAllTag:
-			v.registerValidation(k, val, true, true)
+			v.registerValidation(k, wrapFunc(k, fn), true, true)
 		default:
 			// no need to error check here, baked in will always be valid
-			v.registerValidation(k, val, true, false)
+			v.registerValidation(k, wrapFunc(k, fn), true, false)
 		}
 	}
 
@@ -159,6 +159,15 @@ func (v *Validate) RegisterTagNameFunc(fn TagNameFunc) {
 // - if the key already exists, the previous validation function will be replaced.
 // - this method is not thread-safe it is intended that these all be registered prior to any validation
 func (v *Validate) RegisterValidation(tag string, fn Func, callValidationEvenIfNull ...bool) {
+	v.RegisterValidationEx(tag, wrapFunc(tag, fn), callValidationEvenIfNull...)
+}
+
+// RegisterValidation adds a validation with the given tag
+//
+// NOTES:
+// - if the key already exists, the previous validation function will be replaced.
+// - this method is not thread-safe it is intended that these all be registered prior to any validation
+func (v *Validate) RegisterValidationEx(tag string, fn FuncEx, callValidationEvenIfNull ...bool) {
 	var nilCheckable bool
 	if len(callValidationEvenIfNull) > 0 {
 		nilCheckable = callValidationEvenIfNull[0]
@@ -166,7 +175,7 @@ func (v *Validate) RegisterValidation(tag string, fn Func, callValidationEvenIfN
 	v.registerValidation(tag, fn, false, nilCheckable)
 }
 
-func (v *Validate) registerValidation(tag string, fn Func, bakedIn bool, nilCheckable bool) {
+func (v *Validate) registerValidation(tag string, fn FuncEx, bakedIn bool, nilCheckable bool) {
 	if len(tag) == 0 {
 		panic("tag cannot be empty")
 	}

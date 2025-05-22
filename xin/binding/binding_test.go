@@ -445,6 +445,20 @@ func createFormPostRequestForMap(t *testing.T) *http.Request {
 	return req
 }
 
+func createFormPostRequestForMap2(t *testing.T) *http.Request {
+	req, err := http.NewRequest("POST", "/?map_foo=getfoo", bytes.NewBufferString("map_foo.a=123&map_foo.b=234"))
+	assert.NoError(t, err)
+	req.Header.Set("Content-Type", MIMEPOSTForm)
+	return req
+}
+
+func createFormPostRequestForMap3(t *testing.T) *http.Request {
+	req, err := http.NewRequest("POST", "/?map_foo=getfoo", bytes.NewBufferString("map_foo[a]=123&map_foo[b]=234"))
+	assert.NoError(t, err)
+	req.Header.Set("Content-Type", MIMEPOSTForm)
+	return req
+}
+
 func createFormPostRequestForMapFail(t *testing.T) *http.Request {
 	req, err := http.NewRequest("POST", "/?map_foo=getfoo", bytes.NewBufferString("map_foo=hello"))
 	assert.NoError(t, err)
@@ -569,7 +583,28 @@ func TestBindingFormPostForMap(t *testing.T) {
 	var obj FooStructForMapType
 	err := FormPost.Bind(req, &obj)
 	assert.NoError(t, err)
-	assert.Equal(t, float64(123), obj.MapFoo["bar"].(float64))
+	assert.NotNil(t, obj.MapFoo)
+	assert.Equal(t, float64(123), obj.MapFoo["bar"])
+}
+
+func TestBindingFormPostForMap2(t *testing.T) {
+	req := createFormPostRequestForMap2(t)
+	var obj FooStructForMapType
+	err := FormPost.Bind(req, &obj)
+	assert.NoError(t, err)
+	assert.NotNil(t, obj.MapFoo)
+	assert.Equal(t, "123", obj.MapFoo["a"])
+	assert.Equal(t, "234", obj.MapFoo["b"])
+}
+
+func TestBindingFormPostForMap3(t *testing.T) {
+	req := createFormPostRequestForMap3(t)
+	var obj FooStructForMapType
+	err := FormPost.Bind(req, &obj)
+	assert.NoError(t, err)
+	assert.NotNil(t, obj.MapFoo)
+	assert.Equal(t, "123", obj.MapFoo["a"])
+	assert.Equal(t, "234", obj.MapFoo["b"])
 }
 
 func TestBindingFormPostForMapFail(t *testing.T) {
@@ -1078,6 +1113,9 @@ func testBodyBindingStringMap(t *testing.T, b Binding, path, badPath, body, badB
 
 	objInt := make(map[string]int)
 	req = requestWithBody("POST", path, body)
+	if b.Name() == "form" {
+		req.Header.Add("Content-Type", MIMEPOSTForm)
+	}
 	err = b.Bind(req, &objInt)
 	assert.Error(t, err)
 }

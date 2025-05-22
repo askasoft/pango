@@ -137,7 +137,7 @@ func TestMappingUnknownFieldType(t *testing.T) {
 		be0 := bes[0]
 		assert.Equal(t, "U", be0.Field)
 		assert.Equal(t, []string{"unknown"}, be0.Values)
-		assert.Equal(t, errUnknownType, be0.Unwrap())
+		assert.Equal(t, ErrUnknownType, be0.Unwrap())
 	} else {
 		t.Errorf("missing binding errors: %v", err)
 	}
@@ -177,6 +177,31 @@ func TestMappingFormWithEmptyToDefault(t *testing.T) {
 	err := mapForm(&s, map[string][]string{"field": {""}})
 	assert.NoError(t, err)
 	assert.Equal(t, "DefVal", s.F)
+}
+
+func TestMappingFormToMapField(t *testing.T) {
+	var s struct {
+		Foo map[string]any `form:"foo"`
+	}
+
+	err := mapForm(&s, map[string][]string{"foo[a]": {"1"}, "foo.b": {"2"}})
+	assert.NoError(t, err)
+	assert.Equal(t, "1", s.Foo["a"])
+	assert.Equal(t, "2", s.Foo["b"])
+
+	s.Foo = nil
+	err = mapForm(&s, map[string][]string{"foo": {`{"a":"1", "b":"2"}`}})
+	assert.NoError(t, err)
+	assert.Equal(t, "1", s.Foo["a"])
+	assert.Equal(t, "2", s.Foo["b"])
+
+	s.Foo = nil
+	err = mapForm(&s, map[string][]string{"foo": {`{"a":"1", "b":"2"}`}, "foo[c]": {"3"}, "foo.d": {"4"}})
+	assert.NoError(t, err)
+	assert.Equal(t, "1", s.Foo["a"])
+	assert.Equal(t, "2", s.Foo["b"])
+	assert.Equal(t, "3", s.Foo["c"])
+	assert.Equal(t, "4", s.Foo["d"])
 }
 
 func TestMapFormWithTag(t *testing.T) {

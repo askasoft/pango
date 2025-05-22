@@ -11,12 +11,13 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/lut"
+	"github.com/askasoft/pango/ref"
 	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/tmu"
 )
 
 var (
-	errUnknownType = errors.New("unknown type")
+	ErrUnknownType = errors.New("unknown type")
 
 	// ErrConvertMapStringSlice can not covert to map[string][]string
 	ErrConvertMapStringSlice = errors.New("can not convert to map slices of strings")
@@ -42,11 +43,13 @@ var emptyField = reflect.StructField{}
 func mapFormByTag(ptr any, form map[string][]string, tag string) error {
 	// Check if ptr is a map
 	ptrVal := reflect.ValueOf(ptr)
+
 	var pointed any
 	if ptrVal.Kind() == reflect.Ptr {
 		ptrVal = ptrVal.Elem()
 		pointed = ptrVal.Interface()
 	}
+
 	if ptrVal.Kind() == reflect.Map && ptrVal.Type().Key().Kind() == reflect.String {
 		if pointed != nil {
 			ptr = pointed
@@ -59,14 +62,14 @@ func mapFormByTag(ptr any, form map[string][]string, tag string) error {
 
 // setter tries to set value on a walking by fields of a struct
 type setter interface {
-	TrySet(value reflect.Value, field reflect.StructField, key string, opt *setOptions) (isSet bool, err *FieldBindError)
+	TrySet(rsf reflect.StructField, field reflect.Value, key string, opt *setOptions) (isSet bool, err *FieldBindError)
 }
 
 type formSource map[string][]string
 
 // TrySet tries to set a value by request's form source (like map[string][]string)
-func (form formSource) TrySet(value reflect.Value, field reflect.StructField, key string, opt *setOptions) (isSet bool, err *FieldBindError) {
-	return setByForm(value, field, form, key, opt)
+func (form formSource) TrySet(rsf reflect.StructField, field reflect.Value, key string, opt *setOptions) (isSet bool, err *FieldBindError) {
+	return setByForm(rsf, field, form, key, opt)
 }
 
 func mappingByPtr(ptr any, setter setter, tag string) error {
@@ -148,21 +151,21 @@ func getStructFieldPrefix(prefix string, field reflect.StructField, tag string) 
 
 type setOptions struct {
 	valid    bool   // to valid utf-8
-	strip    bool   // strip leading trailing whitespace
+	strip    bool   // strip leading trailing whitespace, remove empty string
 	ascii    bool   // convert full width runes to ascii rune
 	lower    bool   // convert to lower case
 	upper    bool   // convert to upper case
 	defaults string // default value
 }
 
-func tryToSetValue(prefix string, value reflect.Value, field reflect.StructField, setter setter, tag string) (isSet bool, err *FieldBindError) {
+func tryToSetValue(prefix string, value reflect.Value, rsf reflect.StructField, setter setter, tag string) (isSet bool, err *FieldBindError) {
 	var key, opts string
 
-	key = field.Tag.Get(tag)
+	key = rsf.Tag.Get(tag)
 	key, opts = head(key, ",")
 
 	if key == "" { // default value is FieldName
-		key = field.Name
+		key = rsf.Name
 	}
 
 	if key == "" { // when field is "emptyField" variable
@@ -194,7 +197,7 @@ func tryToSetValue(prefix string, value reflect.Value, field reflect.StructField
 		key = prefix + "." + key
 	}
 
-	return setter.TrySet(value, field, key, setOpts)
+	return setter.TrySet(rsf, value, key, setOpts)
 }
 
 func alterFormKey(key string) string {
@@ -224,7 +227,26 @@ func alterFormKey(key string) string {
 	return sb.String()
 }
 
-func setByForm(value reflect.Value, field reflect.StructField, form map[string][]string, key string, opt *setOptions) (isSet bool, be *FieldBindError) {
+func trimFormValues(vs []string, opt *setOptions) []string {
+	if opt.valid {
+		vs = str.ToValidUTF8s(vs, "")
+	}
+	if opt.strip {
+		vs = str.RemoveEmpties(str.Strips(vs))
+	}
+	if opt.ascii {
+		vs = lut.ToASCIIs(vs)
+	}
+	if opt.lower {
+		vs = str.ToLowers(vs)
+	}
+	if opt.upper {
+		vs = str.ToUppers(vs)
+	}
+	return vs
+}
+
+func getFormValues(form map[string][]string, key string, opt *setOptions) ([]string, bool) {
 	vs, ok := form[key]
 	if !ok {
 		akey := alterFormKey(key)
@@ -234,56 +256,58 @@ func setByForm(value reflect.Value, field reflect.StructField, form map[string][
 	}
 
 	if ok {
-		if opt.valid {
-			vs = str.ToValidUTF8s(vs, "")
-		}
-		if opt.strip {
-			vs = str.RemoveEmpties(str.Strips(vs))
-		}
-		if opt.ascii {
-			vs = lut.ToASCIIs(vs)
-		}
-		if opt.lower {
-			vs = str.ToLowers(vs)
-		}
-		if opt.upper {
-			vs = str.ToUppers(vs)
-		}
+		vs = trimFormValues(vs, opt)
 	}
 
-	if !ok && opt.defaults == "" {
-		return
-	}
+	return vs, ok
+}
 
-	var err error
-	switch value.Kind() {
+func setByForm(rsf reflect.StructField, field reflect.Value, form map[string][]string, key string, opt *setOptions) (isSet bool, be *FieldBindError) {
+	var (
+		vs  []string
+		ok  bool
+		err error
+	)
+
+	switch field.Kind() {
+	case reflect.Map:
+		vs, isSet, err = setMap(field, form, key, opt)
 	case reflect.Slice:
+		vs, ok = getFormValues(form, key, opt)
 		if !ok {
+			if opt.defaults == "" {
+				return
+			}
 			vs = []string{opt.defaults}
 		}
-		isSet, err = true, setSlice(vs, value, field)
+		isSet, err = true, setSlice(rsf, field, vs)
 	case reflect.Array:
+		vs, ok = getFormValues(form, key, opt)
 		if !ok {
+			if opt.defaults == "" {
+				return
+			}
 			vs = []string{opt.defaults}
 		}
-		if len(vs) != value.Len() {
-			isSet, err = false, fmt.Errorf("%q is not valid value for %s", vs, value.Type().String())
+		if len(vs) != field.Len() {
+			isSet, err = false, fmt.Errorf("%q is not valid value for %s", vs, field.Type().String())
 		} else {
-			isSet, err = true, setArray(vs, value, field)
+			isSet, err = true, setArray(rsf, field, vs)
 		}
 	default:
-		var val string
-		if !ok {
-			val = opt.defaults
+		vs, ok = getFormValues(form, key, opt)
+		if !ok && opt.defaults == "" {
+			return
 		}
 
+		var val string
 		if len(vs) > 0 {
 			val = vs[0]
-			if val == "" {
-				val = opt.defaults
-			}
 		}
-		isSet, err = true, setWithProperType(val, value, field)
+		if val == "" {
+			val = opt.defaults
+		}
+		isSet, err = true, setWithProperType(rsf, field, val)
 	}
 
 	if err != nil {
@@ -296,61 +320,61 @@ func setByForm(value reflect.Value, field reflect.StructField, form map[string][
 	return
 }
 
-func setWithProperType(val string, value reflect.Value, field reflect.StructField) error {
-	switch value.Kind() {
+func setWithProperType(rsf reflect.StructField, field reflect.Value, val string) error {
+	switch field.Kind() {
 	case reflect.Int:
-		return setIntField(val, 0, value)
+		return setIntField(field, val, 0)
 	case reflect.Int8:
-		return setIntField(val, 8, value)
+		return setIntField(field, val, 8)
 	case reflect.Int16:
-		return setIntField(val, 16, value)
+		return setIntField(field, val, 16)
 	case reflect.Int32:
-		return setIntField(val, 32, value)
+		return setIntField(field, val, 32)
 	case reflect.Int64:
-		switch value.Interface().(type) {
+		switch field.Interface().(type) {
 		case time.Duration:
-			return setTimeDuration(val, value)
+			return setTimeDuration(field, val)
 		}
-		return setIntField(val, 64, value)
+		return setIntField(field, val, 64)
 	case reflect.Uint:
-		return setUintField(val, 0, value)
+		return setUintField(field, val, 0)
 	case reflect.Uint8:
-		return setUintField(val, 8, value)
+		return setUintField(field, val, 8)
 	case reflect.Uint16:
-		return setUintField(val, 16, value)
+		return setUintField(field, val, 16)
 	case reflect.Uint32:
-		return setUintField(val, 32, value)
+		return setUintField(field, val, 32)
 	case reflect.Uint64:
-		return setUintField(val, 64, value)
+		return setUintField(field, val, 64)
 	case reflect.Bool:
-		return setBoolField(val, value)
+		return setBoolField(field, val)
 	case reflect.Float32:
-		return setFloatField(val, 32, value)
+		return setFloatField(field, val, 32)
 	case reflect.Float64:
-		return setFloatField(val, 64, value)
+		return setFloatField(field, val, 64)
 	case reflect.String:
-		return setStringField(val, value)
+		return setStringField(field, val)
 	case reflect.Struct:
-		switch value.Interface().(type) {
+		switch field.Interface().(type) {
 		case time.Time:
-			return setTimeField(val, field, value)
+			return setTimeField(rsf, field, val)
 		case multipart.FileHeader:
 			return nil
 		}
-		return json.Unmarshal(str.UnsafeBytes(val), value.Addr().Interface())
+		return json.Unmarshal(str.UnsafeBytes(val), field.Addr().Interface())
 	case reflect.Map:
-		return json.Unmarshal(str.UnsafeBytes(val), value.Addr().Interface())
+		return json.Unmarshal(str.UnsafeBytes(val), field.Addr().Interface())
 	case reflect.Ptr:
-		if !value.Elem().IsValid() {
-			value.Set(reflect.New(value.Type().Elem()))
+		if !field.Elem().IsValid() {
+			field.Set(reflect.New(field.Type().Elem()))
 		}
-		return setWithProperType(val, value.Elem(), field)
+		return setWithProperType(rsf, field.Elem(), val)
 	default:
-		return errUnknownType
+		return ErrUnknownType
 	}
 }
 
-func setIntField(val string, bitSize int, field reflect.Value) error {
+func setIntField(field reflect.Value, val string, bitSize int) error {
 	if val == "" {
 		field.SetInt(0)
 		return nil
@@ -363,7 +387,7 @@ func setIntField(val string, bitSize int, field reflect.Value) error {
 	return err
 }
 
-func setUintField(val string, bitSize int, field reflect.Value) error {
+func setUintField(field reflect.Value, val string, bitSize int) error {
 	if val == "" {
 		field.SetUint(0)
 		return nil
@@ -376,7 +400,7 @@ func setUintField(val string, bitSize int, field reflect.Value) error {
 	return err
 }
 
-func setBoolField(val string, field reflect.Value) error {
+func setBoolField(field reflect.Value, val string) error {
 	if val == "" {
 		field.SetBool(false)
 		return nil
@@ -389,7 +413,7 @@ func setBoolField(val string, field reflect.Value) error {
 	return err
 }
 
-func setFloatField(val string, bitSize int, field reflect.Value) error {
+func setFloatField(field reflect.Value, val string, bitSize int) error {
 	if val == "" {
 		field.SetFloat(0)
 		return nil
@@ -402,18 +426,18 @@ func setFloatField(val string, bitSize int, field reflect.Value) error {
 	return err
 }
 
-func setStringField(val string, field reflect.Value) error {
+func setStringField(field reflect.Value, val string) error {
 	field.SetString(val)
 	return nil
 }
 
-func setTimeField(val string, field reflect.StructField, value reflect.Value) error {
+func setTimeField(rsf reflect.StructField, field reflect.Value, val string) error {
 	if val == "" {
-		value.Set(reflect.ValueOf(time.Time{}))
+		field.Set(reflect.ValueOf(time.Time{}))
 		return nil
 	}
 
-	tf := strings.ToLower(field.Tag.Get("time_format"))
+	tf := strings.ToLower(rsf.Tag.Get("time_format"))
 
 	switch tf {
 	case "unix", "unixmilli", "unixmicro", "unixnano":
@@ -434,16 +458,16 @@ func setTimeField(val string, field reflect.StructField, value reflect.Value) er
 			t = time.Unix(n, 0)
 		}
 
-		value.Set(reflect.ValueOf(t))
+		field.Set(reflect.ValueOf(t))
 		return nil
 	}
 
 	loc := time.Local
-	if isUTC, _ := strconv.ParseBool(field.Tag.Get("time_utc")); isUTC {
+	if isUTC, _ := strconv.ParseBool(rsf.Tag.Get("time_utc")); isUTC {
 		loc = time.UTC
 	}
 
-	if locTag := field.Tag.Get("time_location"); locTag != "" {
+	if locTag := rsf.Tag.Get("time_location"); locTag != "" {
 		tl, err := time.LoadLocation(locTag)
 		if err != nil {
 			return err
@@ -457,7 +481,7 @@ func setTimeField(val string, field reflect.StructField, value reflect.Value) er
 			return err
 		}
 
-		value.Set(reflect.ValueOf(t))
+		field.Set(reflect.ValueOf(t))
 		return nil
 	}
 
@@ -466,34 +490,98 @@ func setTimeField(val string, field reflect.StructField, value reflect.Value) er
 		return err
 	}
 
-	value.Set(reflect.ValueOf(t))
+	field.Set(reflect.ValueOf(t))
 	return nil
 }
 
-func setArray(vals []string, value reflect.Value, field reflect.StructField) error {
+func setMap(field reflect.Value, form map[string][]string, key string, opt *setOptions) ([]string, bool, error) {
+	vs, ok := getFormValues(form, key, opt)
+	if ok {
+		for _, val := range vs {
+			if err := json.Unmarshal(str.UnsafeBytes(val), field.Addr().Interface()); err != nil {
+				return vs, false, err
+			}
+		}
+	}
+
+	mt := field.Type()
+	if field.IsNil() {
+		field.Set(reflect.MakeMap(mt))
+	}
+
+	px1, px2 := key+"[", key+"."
+	for k, ps := range form {
+		if str.EndsWithByte(k, ']') {
+			if !str.StartsWith(k, px1) {
+				continue
+			}
+			k = k[len(px1) : len(k)-1]
+		} else {
+			if !str.StartsWith(k, px2) {
+				continue
+			}
+			k = k[len(px2):]
+		}
+
+		ps = trimFormValues(ps, opt)
+		if opt.strip && len(ps) == 0 {
+			continue
+		}
+
+		vs = append(vs, ps...)
+
+		kv := reflect.ValueOf(k)
+
+		var val any
+		switch len(ps) {
+		case 0:
+			val = ""
+		case 1:
+			val = ps[0]
+		default:
+			val = ps
+		}
+
+		vv := reflect.ValueOf(val)
+		vt := reflect.TypeOf(val)
+		if vt.Kind() != mt.Elem().Kind() {
+			cv, err := ref.CastTo(val, mt.Elem())
+			if err != nil {
+				return vs, false, fmt.Errorf("map: invalid value type - %w", err)
+			}
+			vv = reflect.ValueOf(cv)
+		}
+		field.SetMapIndex(kv, vv)
+		ok = true
+	}
+
+	return vs, ok, nil
+}
+
+func setSlice(rsf reflect.StructField, field reflect.Value, vals []string) error {
+	slice := reflect.MakeSlice(field.Type(), len(vals), len(vals))
+	if err := setArray(rsf, slice, vals); err != nil {
+		return err
+	}
+	field.Set(slice)
+	return nil
+}
+
+func setArray(rsf reflect.StructField, field reflect.Value, vals []string) error {
 	for i, s := range vals {
-		if err := setWithProperType(s, value.Index(i), field); err != nil {
+		if err := setWithProperType(rsf, field.Index(i), s); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func setSlice(vals []string, value reflect.Value, field reflect.StructField) error {
-	slice := reflect.MakeSlice(value.Type(), len(vals), len(vals))
-	if err := setArray(vals, slice, field); err != nil {
-		return err
-	}
-	value.Set(slice)
-	return nil
-}
-
-func setTimeDuration(val string, value reflect.Value) error {
+func setTimeDuration(field reflect.Value, val string) error {
 	d, err := time.ParseDuration(val)
 	if err != nil {
 		return err
 	}
-	value.Set(reflect.ValueOf(d))
+	field.Set(reflect.ValueOf(d))
 	return nil
 }
 
@@ -505,27 +593,35 @@ func head(str, sep string) (head string, tail string) {
 	return str[:idx], str[idx+len(sep):]
 }
 
-func setFormMap(ptr any, form map[string][]string) error {
-	el := reflect.TypeOf(ptr).Elem()
+func setFormMap(dict any, form map[string][]string) error {
+	el := reflect.TypeOf(dict).Elem()
 
 	if el.Kind() == reflect.Slice {
-		ptrMap, ok := ptr.(map[string][]string)
+		m, ok := dict.(map[string][]string)
 		if !ok {
 			return ErrConvertMapStringSlice
 		}
-		for k, v := range form {
-			ptrMap[k] = v
-		}
 
+		for k, v := range form {
+			m[k] = v
+		}
 		return nil
 	}
 
-	ptrMap, ok := ptr.(map[string]string)
-	if !ok {
-		return ErrConvertToMapString
-	}
-	for k, v := range form {
-		ptrMap[k] = v[len(v)-1] // pick last
+	if m, ok := dict.(map[string]string); ok {
+		for k, v := range form {
+			if len(v) > 0 {
+				m[k] = v[len(v)-1] // pick last
+			}
+		}
+	} else {
+		for k, v := range form {
+			if len(v) > 0 {
+				if _, err := ref.MapSet(dict, k, v[len(v)-1]); err != nil {
+					return err
+				}
+			}
+		}
 	}
 
 	return nil

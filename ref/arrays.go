@@ -64,7 +64,7 @@ func ArraySet(a any, i int, v any) (any, error) {
 		}
 
 		vv := reflect.ValueOf(v)
-		if vv.Type().Kind() != at.Elem().Kind() {
+		if vv.Type() != at.Elem() {
 			cv, err := CastTo(v, at.Elem())
 			if err != nil {
 				return nil, fmt.Errorf("ArraySet(): invalid value type - %w", err)
@@ -94,7 +94,7 @@ func SliceAdd(a any, vs ...any) (any, error) {
 		rvs := make([]reflect.Value, len(vs))
 		for i, v := range vs {
 			vv := reflect.ValueOf(v)
-			if vv.Type().Kind() != at.Elem().Kind() {
+			if vv.Type() != at.Elem() {
 				cv, err := CastTo(v, at.Elem())
 				if err != nil {
 					return nil, fmt.Errorf("SliceAdd(): invalid value type - %w", err)

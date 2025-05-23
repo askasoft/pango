@@ -3,6 +3,7 @@ package xmw
 import (
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/url"
 	"time"
@@ -17,6 +18,11 @@ import (
 const (
 	AuthCookieName             = "X_AUTH"
 	AuthRedirectOriginURLQuery = "origin"
+)
+
+var (
+	errTimestampMissing = errors.New("timestamp missing")
+	errTimestampExpired = errors.New("timestamp expired")
 )
 
 // CookieAuth cookie authenticator
@@ -155,7 +161,11 @@ func (ca *CookieAuth) GetUserPassFromCookie(c *xin.Context) (username, password 
 
 		username, password, err = ca.decode(auth, ca.GetCookieMaxAge(c))
 		if err != nil {
-			c.Logger.Warnf("Invalid Cookie Auth %q: %v", auth, err)
+			if errors.Is(err, errTimestampExpired) {
+				c.Logger.Debugf("Invalid Cookie Auth %q: %v", auth, err)
+			} else {
+				c.Logger.Warnf("Invalid Cookie Auth %q: %v", auth, err)
+			}
 			return
 		}
 
@@ -219,7 +229,7 @@ func (ca *CookieAuth) encode(username, password string) string {
 func (ca *CookieAuth) decode(auth string, maxage time.Duration) (string, string, error) {
 	timestamp, salted, ok := str.CutByte(auth, '\n')
 	if !ok {
-		return "", "", errors.New("no timestamp")
+		return "", "", errTimestampMissing
 	}
 
 	unsalt := cpt.Unsalt(cpt.SecretChars, timestamp, salted)
@@ -236,14 +246,14 @@ func (ca *CookieAuth) decode(auth string, maxage time.Duration) (string, string,
 	// -+ 60s for different time on cluster servers
 	start, after := now-(maxage.Milliseconds()/1000)-delta, now+delta
 	if created < start || created > after {
-		return "", "", errors.New("timestamp expired")
+		return "", "", errTimestampExpired
 	}
 
 	// extract username and password
 	raw := str.UnsafeString(bs)
 	username, password, ok := str.CutByte(raw, '\n')
 	if !ok {
-		return "", "", errors.New("invalid - " + raw)
+		return "", "", fmt.Errorf("%q", raw)
 	}
 
 	return username, password, nil

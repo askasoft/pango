@@ -42,7 +42,6 @@ type CookieAuth struct {
 	OriginURLQuery  string
 	AuthPassed      func(c *xin.Context, au AuthUser)
 	AuthFailed      xin.HandlerFunc
-	AuthRequired    xin.HandlerFunc
 	GetCookieMaxAge func(c *xin.Context) time.Duration
 }
 
@@ -62,34 +61,58 @@ func NewCookieAuth(f FindUserFunc, secret string) *CookieAuth {
 	}
 	ca.AuthPassed = ca.Authorized
 	ca.AuthFailed = ca.Unauthorized
-	ca.AuthRequired = ca.Unauthorized
 	ca.GetCookieMaxAge = ca.getCookieMaxAge
 
 	return ca
 }
 
-// Handle process xin request
-func (ca *CookieAuth) Handle(c *xin.Context) {
+func (ca *CookieAuth) Authenticate(c *xin.Context) (next bool, au AuthUser, err error) {
 	if _, ok := c.Get(ca.AuthUserKey); ok {
 		// already authenticated
-		c.Next()
+		next = true
 		return
 	}
 
 	username, password, ok := ca.GetUserPassFromCookie(c)
 	if !ok {
-		ca.AuthRequired(c)
 		return
 	}
 
-	au, err := ca.FindUser(c, username)
+	au, err = ca.FindUser(c, username)
+	if err != nil || au == nil {
+		return
+	}
+
+	if password != au.GetPassword() {
+		au = nil
+		return
+	}
+
+	// set user to context
+	c.Set(ca.AuthUserKey, au)
+
+	// save or refresh cookie
+	err = ca.SaveUserPassToCookie(c, au)
+
+	return
+}
+
+// Handle process xin request
+func (ca *CookieAuth) Handle(c *xin.Context) {
+	next, au, err := ca.Authenticate(c)
 	if err != nil {
 		c.Logger.Errorf("CookieAuth: %v", err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
-	if au == nil || password != au.GetPassword() {
+	if next {
+		// already authenticated
+		c.Next()
+		return
+	}
+
+	if au == nil {
 		ca.AuthFailed(c)
 		return
 	}
@@ -97,19 +120,7 @@ func (ca *CookieAuth) Handle(c *xin.Context) {
 	ca.AuthPassed(c, au)
 }
 
-// Authorized set user to context and cookie then call c.Next()
 func (ca *CookieAuth) Authorized(c *xin.Context, au AuthUser) {
-	// set user to context
-	c.Set(ca.AuthUserKey, au)
-
-	// save or refresh cookie
-	err := ca.SaveUserPassToCookie(c, au)
-	if err != nil {
-		c.Logger.Errorf("CookieAuth: %v", err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
 	c.Next()
 }
 

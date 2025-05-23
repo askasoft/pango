@@ -20,12 +20,11 @@ type FindUserFunc func(c *xin.Context, username string) (AuthUser, error)
 
 // BasicAuth basic http authenticator
 type BasicAuth struct {
-	Realm        string
-	FindUser     FindUserFunc
-	AuthUserKey  string
-	AuthPassed   func(c *xin.Context, au AuthUser)
-	AuthFailed   xin.HandlerFunc
-	AuthRequired xin.HandlerFunc
+	Realm       string
+	FindUser    FindUserFunc
+	AuthUserKey string
+	AuthPassed  func(c *xin.Context, au AuthUser)
+	AuthFailed  xin.HandlerFunc
 }
 
 func NewBasicAuth(f FindUserFunc) *BasicAuth {
@@ -35,33 +34,54 @@ func NewBasicAuth(f FindUserFunc) *BasicAuth {
 	}
 	ba.AuthPassed = ba.Authorized
 	ba.AuthFailed = ba.Unauthorized
-	ba.AuthRequired = ba.Unauthorized
 
 	return ba
 }
 
-// Handle process xin request
-func (ba *BasicAuth) Handle(c *xin.Context) {
+func (ba *BasicAuth) Authenticate(c *xin.Context) (next bool, au AuthUser, err error) {
 	if _, ok := c.Get(ba.AuthUserKey); ok {
 		// already authenticated
-		c.Next()
+		next = true
 		return
 	}
 
 	username, password, ok := c.Request.BasicAuth()
 	if !ok {
-		ba.AuthRequired(c)
 		return
 	}
 
-	au, err := ba.FindUser(c, username)
+	au, err = ba.FindUser(c, username)
+	if err != nil || au == nil {
+		return
+	}
+
+	if password != au.GetPassword() {
+		au = nil
+		return
+	}
+
+	// set user to context
+	c.Set(ba.AuthUserKey, au)
+
+	return
+}
+
+// Handle process xin request
+func (ba *BasicAuth) Handle(c *xin.Context) {
+	next, au, err := ba.Authenticate(c)
 	if err != nil {
 		c.Logger.Errorf("BasicAuth: %v", err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
-	if au == nil || password != au.GetPassword() {
+	if next {
+		// already authenticated
+		c.Next()
+		return
+	}
+
+	if au == nil {
 		ba.AuthFailed(c)
 		return
 	}
@@ -71,7 +91,6 @@ func (ba *BasicAuth) Handle(c *xin.Context) {
 
 // Authorized set user to context then call c.Next()
 func (ba *BasicAuth) Authorized(c *xin.Context, au AuthUser) {
-	c.Set(ba.AuthUserKey, au)
 	c.Next()
 }
 

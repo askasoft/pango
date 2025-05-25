@@ -12,7 +12,7 @@ type tagType uint8
 const (
 	typeDefault tagType = iota
 	typeOmitEmpty
-	typeIsDefault
+	typeIsEmpty
 	typeNoStructLevel
 	typeStructOnly
 	typeDive
@@ -246,7 +246,7 @@ func (v *Validate) parseFieldTagsRecursive(tag string, fieldName string, alias s
 
 		default:
 			if t == isempty {
-				current.typeof = typeIsDefault
+				current.typeof = typeIsEmpty
 			}
 			// if a pipe character is needed within the param you must use the utf8Pipe representation "0x7C"
 			orVals := strings.Split(t, orSeparator)

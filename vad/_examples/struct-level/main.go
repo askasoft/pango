@@ -108,8 +108,8 @@ func UserStructLevelValidation(sl vad.StructLevel) {
 	user := sl.Current().Interface().(User)
 
 	if len(user.FirstName) == 0 && len(user.LastName) == 0 {
-		sl.ReportError(user.FirstName, "fname", "FirstName", "fnameorlname", "")
-		sl.ReportError(user.LastName, "lname", "LastName", "fnameorlname", "")
+		sl.ReportError(user.FirstName, "fname", "FirstName", "fnameorlname", "", nil)
+		sl.ReportError(user.LastName, "lname", "LastName", "fnameorlname", "", nil)
 	}
 
 	// plus can do more, even with different tag than "fnameorlname"

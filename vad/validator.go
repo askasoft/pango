@@ -22,8 +22,6 @@ type validate struct {
 	cf             *cField       // StructLevel & FieldLevel
 	ct             *cTag         // StructLevel & FieldLevel
 	misc           []byte        // misc reusable
-	str1           string        // misc reusable
-	str2           string        // misc reusable
 	fldIsPointer   bool          // StructLevel & FieldLevel
 	isPartial      bool
 	hasExcludes    bool
@@ -110,39 +108,38 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 			return
 		}
 
-		if ct.typeof == typeOmitEmpty || ct.typeof == typeIsDefault {
+		if ct.typeof == typeOmitEmpty || ct.typeof == typeIsEmpty {
 			return
 		}
 
 		if ct.hasTag {
 			if kind == reflect.Invalid {
-				v.str1 = string(append(ns, cf.altName...))
+				vns := string(append(ns, cf.altName...))
+				sns := vns
 				if v.v.hasTagNameFunc {
-					v.str2 = string(append(structNs, cf.name...))
-				} else {
-					v.str2 = v.str1
+					sns = string(append(structNs, cf.name...))
 				}
 				v.errs = append(v.errs,
 					&fieldError{
 						v:              v.v,
 						tag:            ct.aliasTag,
 						actualTag:      ct.tag,
-						ns:             v.str1,
-						structNs:       v.str2,
+						ns:             vns,
+						structNs:       sns,
 						fieldLen:       uint8(len(cf.altName)),
 						structfieldLen: uint8(len(cf.name)),
 						param:          ct.param,
 						kind:           kind,
+						cause:          errInvalidField,
 					},
 				)
 				return
 			}
 
-			v.str1 = string(append(ns, cf.altName...))
+			vns := string(append(ns, cf.altName...))
+			sns := vns
 			if v.v.hasTagNameFunc {
-				v.str2 = string(append(structNs, cf.name...))
-			} else {
-				v.str2 = v.str1
+				sns = string(append(structNs, cf.name...))
 			}
 			if !ct.runValidationWhenNil {
 				v.errs = append(v.errs,
@@ -150,14 +147,15 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 						v:              v.v,
 						tag:            ct.aliasTag,
 						actualTag:      ct.tag,
-						ns:             v.str1,
-						structNs:       v.str2,
+						ns:             vns,
+						structNs:       sns,
 						fieldLen:       uint8(len(cf.altName)),
 						structfieldLen: uint8(len(cf.name)),
 						value:          getValue(current),
 						param:          ct.param,
 						kind:           kind,
 						typ:            current.Type(),
+						cause:          errNilField,
 					},
 				)
 				return
@@ -172,7 +170,7 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 					goto CONTINUE
 				}
 
-				if ct.typeof == typeIsDefault {
+				if ct.typeof == typeIsEmpty {
 					// set Field Level fields
 					v.slflParent = parent
 					v.flField = current
@@ -180,12 +178,10 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 					v.ct = ct
 
 					if err := ct.fn(v); err != nil {
-						v.str1 = string(append(ns, cf.altName...))
-
+						vns := string(append(ns, cf.altName...))
+						sns := vns
 						if v.v.hasTagNameFunc {
-							v.str2 = string(append(structNs, cf.name...))
-						} else {
-							v.str2 = v.str1
+							sns = string(append(structNs, cf.name...))
 						}
 
 						v.errs = append(v.errs,
@@ -193,8 +189,8 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 								v:              v.v,
 								tag:            ct.aliasTag,
 								actualTag:      ct.tag,
-								ns:             v.str1,
-								structNs:       v.str2,
+								ns:             vns,
+								structNs:       sns,
 								fieldLen:       uint8(len(cf.altName)),
 								structfieldLen: uint8(len(cf.name)),
 								value:          getValue(current),
@@ -371,12 +367,10 @@ OUTER:
 
 				if ct.isBlockEnd || ct.next == nil {
 					// if we get here, no valid 'or' value and no more tags
-					v.str1 = string(append(ns, cf.altName...))
-
+					vns := string(append(ns, cf.altName...))
+					sns := vns
 					if v.v.hasTagNameFunc {
-						v.str2 = string(append(structNs, cf.name...))
-					} else {
-						v.str2 = v.str1
+						sns = string(append(structNs, cf.name...))
 					}
 
 					if ct.hasAlias {
@@ -384,8 +378,8 @@ OUTER:
 							v:              v.v,
 							tag:            ct.aliasTag,
 							actualTag:      ct.actualAliasTag,
-							ns:             v.str1,
-							structNs:       v.str2,
+							ns:             vns,
+							structNs:       sns,
 							fieldLen:       uint8(len(cf.altName)),
 							structfieldLen: uint8(len(cf.name)),
 							value:          getValue(current),
@@ -401,8 +395,8 @@ OUTER:
 							v:              v.v,
 							tag:            tVal,
 							actualTag:      tVal,
-							ns:             v.str1,
-							structNs:       v.str2,
+							ns:             vns,
+							structNs:       sns,
 							fieldLen:       uint8(len(cf.altName)),
 							structfieldLen: uint8(len(cf.name)),
 							value:          getValue(current),
@@ -425,20 +419,18 @@ OUTER:
 			v.ct = ct
 
 			if err := ct.fn(v); err != nil {
-				v.str1 = string(append(ns, cf.altName...))
-
+				vns := string(append(ns, cf.altName...))
+				sns := vns
 				if v.v.hasTagNameFunc {
-					v.str2 = string(append(structNs, cf.name...))
-				} else {
-					v.str2 = v.str1
+					sns = string(append(structNs, cf.name...))
 				}
 
 				v.errs = append(v.errs, &fieldError{
 					v:              v.v,
 					tag:            ct.aliasTag,
 					actualTag:      ct.tag,
-					ns:             v.str1,
-					structNs:       v.str2,
+					ns:             vns,
+					structNs:       sns,
 					fieldLen:       uint8(len(cf.altName)),
 					structfieldLen: uint8(len(cf.name)),
 					value:          getValue(current),

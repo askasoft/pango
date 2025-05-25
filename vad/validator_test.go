@@ -257,7 +257,7 @@ func StructValidationTestStructSuccess(sl StructLevel) {
 	st := sl.Current().Interface().(TestStruct)
 
 	if st.String != "good value" {
-		sl.ReportError(st.String, "StringVal", "String", "badvalueteststruct", "good value")
+		sl.ReportError(st.String, "StringVal", "String", "badvalueteststruct", "good value", nil)
 	}
 }
 
@@ -265,7 +265,7 @@ func StructValidationTestStruct(sl StructLevel) {
 	st := sl.Current().Interface().(TestStruct)
 
 	if st.String != "bad value" {
-		sl.ReportError(st.String, "StringVal", "String", "badvalueteststruct", "bad value")
+		sl.ReportError(st.String, "StringVal", "String", "badvalueteststruct", "bad value", nil)
 	}
 }
 
@@ -273,7 +273,7 @@ func StructValidationNoTestStructCustomName(sl StructLevel) {
 	st := sl.Current().Interface().(TestStruct)
 
 	if st.String != "bad value" {
-		sl.ReportError(st.String, "String", "", "badvalueteststruct", "bad value")
+		sl.ReportError(st.String, "String", "", "badvalueteststruct", "bad value", nil)
 	}
 }
 
@@ -281,7 +281,7 @@ func StructValidationTestStructInvalid(sl StructLevel) {
 	st := sl.Current().Interface().(TestStruct)
 
 	if st.String != "bad value" {
-		sl.ReportError(nil, "StringVal", "String", "badvalueteststruct", "bad value")
+		sl.ReportError(nil, "StringVal", "String", "badvalueteststruct", "bad value", nil)
 	}
 }
 
@@ -328,7 +328,7 @@ func StructLevelInvalidError(sl StructLevel) {
 	s := sl.Current().Interface().(StructLevelInvalidErr)
 
 	if top.Value == s.Value {
-		sl.ReportError(nil, "Value", "Value", "required", "")
+		sl.ReportError(nil, "Value", "Value", "required", "", nil)
 	}
 }
 

@@ -1,13 +1,15 @@
 package vad
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
 )
 
-const (
-	fieldErrMsg = "Key: '%s' Error:Field validation for '%s' failed on the '%s' tag"
+var (
+	errInvalidField = errors.New("vad: invalid field")
+	errNilField     = errors.New("vad: nil field")
 )
 
 // InvalidValidationError describes an invalid argument passed to
@@ -179,18 +181,7 @@ func (fe *fieldError) StructNamespace() string {
 // Field returns the field's name with the tag name taking precedence over the
 // field's actual name.
 func (fe *fieldError) Field() string {
-
 	return fe.ns[len(fe.ns)-int(fe.fieldLen):]
-	// // return fe.field
-	// fld := fe.ns[len(fe.ns)-int(fe.fieldLen):]
-
-	// log.Println("FLD:", fld)
-
-	// if len(fld) > 0 && fld[:1] == "." {
-	// 	return fld[1:]
-	// }
-
-	// return fld
 }
 
 // StructField returns the field's actual name from the struct, when able to determine.
@@ -199,8 +190,7 @@ func (fe *fieldError) StructField() string {
 	return fe.structNs[len(fe.structNs)-int(fe.structfieldLen):]
 }
 
-// Value returns the actual field's value in case needed for creating the error
-// message
+// Value returns the actual field's value in case needed for creating the error message
 func (fe *fieldError) Value() any {
 	return fe.value
 }
@@ -223,7 +213,7 @@ func (fe *fieldError) Type() reflect.Type {
 
 // Error returns the fieldError's error message
 func (fe *fieldError) Error() string {
-	return fmt.Sprintf(fieldErrMsg, fe.ns, fe.Field(), fe.tag)
+	return fmt.Sprintf("vad: validation for '%s' failed on the '%s' tag", fe.ns, fe.tag)
 }
 
 // Cause returns the fieldError's cause error

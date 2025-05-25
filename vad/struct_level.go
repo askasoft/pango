@@ -40,7 +40,7 @@ type StructLevel interface {
 	//
 	// tag can be an existing validation tag or just something you make up
 	// and process on the flip side it's up to you.
-	ReportError(field any, fieldName, structFieldName string, tag, param string)
+	ReportError(field any, fieldName, structFieldName string, tag, param string, err error)
 
 	// ReportValidationErrors reports an error just by passing ValidationErrors
 	//
@@ -92,19 +92,17 @@ func (v *validate) ExtractType(field reflect.Value) (reflect.Value, reflect.Kind
 }
 
 // ReportError reports an error just by passing the field and tag information
-func (v *validate) ReportError(field any, fieldName, structFieldName, tag, param string) {
+func (v *validate) ReportError(field any, fieldName, structFieldName, tag, param string, err error) {
 	fv, kind, _ := v.extractTypeInternal(reflect.ValueOf(field), false)
 
 	if len(structFieldName) == 0 {
 		structFieldName = fieldName
 	}
 
-	v.str1 = string(append(v.ns, fieldName...))
-
+	vns := string(append(v.ns, fieldName...))
+	sns := vns
 	if v.v.hasTagNameFunc || fieldName != structFieldName {
-		v.str2 = string(append(v.actualNs, structFieldName...))
-	} else {
-		v.str2 = v.str1
+		sns = string(append(v.actualNs, structFieldName...))
 	}
 
 	if kind == reflect.Invalid {
@@ -113,12 +111,13 @@ func (v *validate) ReportError(field any, fieldName, structFieldName, tag, param
 				v:              v.v,
 				tag:            tag,
 				actualTag:      tag,
-				ns:             v.str1,
-				structNs:       v.str2,
+				ns:             vns,
+				structNs:       sns,
 				fieldLen:       uint8(len(fieldName)),
 				structfieldLen: uint8(len(structFieldName)),
 				param:          param,
 				kind:           kind,
+				cause:          err,
 			},
 		)
 		return
@@ -129,14 +128,15 @@ func (v *validate) ReportError(field any, fieldName, structFieldName, tag, param
 			v:              v.v,
 			tag:            tag,
 			actualTag:      tag,
-			ns:             v.str1,
-			structNs:       v.str2,
+			ns:             vns,
+			structNs:       sns,
 			fieldLen:       uint8(len(fieldName)),
 			structfieldLen: uint8(len(structFieldName)),
 			value:          fv.Interface(),
 			param:          param,
 			kind:           kind,
 			typ:            fv.Type(),
+			cause:          err,
 		},
 	)
 }

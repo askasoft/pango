@@ -3,8 +3,9 @@ package vad
 import (
 	"fmt"
 	"reflect"
-	"strconv"
 	"unsafe"
+
+	"github.com/askasoft/pango/num"
 )
 
 // per validate construct
@@ -21,7 +22,6 @@ type validate struct {
 	flField        reflect.Value // StructLevel & FieldLevel
 	cf             *cField       // StructLevel & FieldLevel
 	ct             *cTag         // StructLevel & FieldLevel
-	misc           []byte        // misc reusable
 	fldIsPointer   bool          // StructLevel & FieldLevel
 	isPartial      bool
 	hasExcludes    bool
@@ -262,55 +262,29 @@ OUTER:
 			// traverse slice or map here or panic ;)
 			switch kind {
 			case reflect.Slice, reflect.Array:
-				var i64 int64
 				reusableCF := &cField{}
 
 				for i := 0; i < current.Len(); i++ {
-					i64 = int64(i)
-
-					v.misc = append(v.misc[0:0], cf.name...)
-					v.misc = append(v.misc, '[')
-					v.misc = strconv.AppendInt(v.misc, i64, 10)
-					v.misc = append(v.misc, ']')
-
-					reusableCF.name = string(v.misc)
+					reusableCF.name = cf.name + "[" + num.Itoa(i) + "]"
 
 					if cf.namesEqual {
 						reusableCF.altName = reusableCF.name
 					} else {
-						v.misc = append(v.misc[0:0], cf.altName...)
-						v.misc = append(v.misc, '[')
-						v.misc = strconv.AppendInt(v.misc, i64, 10)
-						v.misc = append(v.misc, ']')
-
-						reusableCF.altName = string(v.misc)
+						reusableCF.altName = cf.altName + "[" + num.Itoa(i) + "]"
 					}
 					v.traverseField(parent, current.Index(i), ns, structNs, reusableCF, ct)
 				}
 
 			case reflect.Map:
-				var pv string
 				reusableCF := &cField{}
 
 				for _, key := range current.MapKeys() {
-					pv = fmt.Sprintf("%v", key.Interface())
-
-					v.misc = append(v.misc[0:0], cf.name...)
-					v.misc = append(v.misc, '[')
-					v.misc = append(v.misc, pv...)
-					v.misc = append(v.misc, ']')
-
-					reusableCF.name = string(v.misc)
+					reusableCF.name = fmt.Sprintf("%s[%v]", cf.name, key.Interface())
 
 					if cf.namesEqual {
 						reusableCF.altName = reusableCF.name
 					} else {
-						v.misc = append(v.misc[0:0], cf.altName...)
-						v.misc = append(v.misc, '[')
-						v.misc = append(v.misc, pv...)
-						v.misc = append(v.misc, ']')
-
-						reusableCF.altName = string(v.misc)
+						reusableCF.altName = fmt.Sprintf("%s[%v]", cf.altName, key.Interface())
 					}
 
 					if ct != nil && ct.typeof == typeKeys && ct.keys != nil {
@@ -333,7 +307,7 @@ OUTER:
 			return
 
 		case typeOr:
-			v.misc = v.misc[0:0]
+			var misc []byte
 			for {
 				// set Field Level fields
 				v.slflParent = parent
@@ -357,12 +331,12 @@ OUTER:
 					}
 				}
 
-				v.misc = append(v.misc, '|')
-				v.misc = append(v.misc, ct.tag...)
+				misc = append(misc, '|')
+				misc = append(misc, ct.tag...)
 
 				if ct.hasParam {
-					v.misc = append(v.misc, '=')
-					v.misc = append(v.misc, ct.param...)
+					misc = append(misc, '=')
+					misc = append(misc, ct.param...)
 				}
 
 				if ct.isBlockEnd || ct.next == nil {
@@ -389,7 +363,7 @@ OUTER:
 							cause:          err,
 						})
 					} else {
-						tVal := string(v.misc)[1:]
+						tVal := string(misc[1:])
 
 						v.errs = append(v.errs, &fieldError{
 							v:              v.v,

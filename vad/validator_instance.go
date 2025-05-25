@@ -123,7 +123,6 @@ func New() *Validate {
 				v:        v,
 				ns:       make([]byte, 0, 64),
 				actualNs: make([]byte, 0, 64),
-				misc:     make([]byte, 32),
 			}
 		},
 	}
@@ -337,13 +336,14 @@ func (v *Validate) StructPartial(s any, fields ...string) (err error) {
 	typ := val.Type()
 	name := typ.Name()
 
+	var misc []byte
 	for _, k := range fields {
 		flds := strings.Split(k, namespaceSeparator)
 		if len(flds) > 0 {
-			vd.misc = append(vd.misc[0:0], name...)
+			misc = append(misc[0:0], name...)
 			// Don't append empty name for unnamed structs
-			if len(vd.misc) != 0 {
-				vd.misc = append(vd.misc, '.')
+			if len(misc) != 0 {
+				misc = append(misc, '.')
 			}
 
 			for _, s := range flds {
@@ -351,22 +351,22 @@ func (v *Validate) StructPartial(s any, fields ...string) (err error) {
 
 				if idx != -1 {
 					for idx != -1 {
-						vd.misc = append(vd.misc, s[:idx]...)
-						vd.includeExclude[string(vd.misc)] = struct{}{}
+						misc = append(misc, s[:idx]...)
+						vd.includeExclude[string(misc)] = struct{}{}
 
 						idx2 := strings.Index(s, rightBracket)
 						idx2++
-						vd.misc = append(vd.misc, s[idx:idx2]...)
-						vd.includeExclude[string(vd.misc)] = struct{}{}
+						misc = append(misc, s[idx:idx2]...)
+						vd.includeExclude[string(misc)] = struct{}{}
 						s = s[idx2:]
 						idx = strings.Index(s, leftBracket)
 					}
 				} else {
-					vd.misc = append(vd.misc, s...)
-					vd.includeExclude[string(vd.misc)] = struct{}{}
+					misc = append(misc, s...)
+					vd.includeExclude[string(misc)] = struct{}{}
 				}
 
-				vd.misc = append(vd.misc, '.')
+				misc = append(misc, '.')
 			}
 		}
 	}
@@ -411,16 +411,17 @@ func (v *Validate) StructExcept(s any, fields ...string) (err error) {
 	typ := val.Type()
 	name := typ.Name()
 
+	var misc []byte
 	for _, key := range fields {
-		vd.misc = vd.misc[0:0]
+		misc = misc[0:0]
 
 		if len(name) > 0 {
-			vd.misc = append(vd.misc, name...)
-			vd.misc = append(vd.misc, '.')
+			misc = append(misc, name...)
+			misc = append(misc, '.')
 		}
 
-		vd.misc = append(vd.misc, key...)
-		vd.includeExclude[string(vd.misc)] = struct{}{}
+		misc = append(misc, key...)
+		vd.includeExclude[string(misc)] = struct{}{}
 	}
 
 	vd.validateStruct(top, val, typ, vd.ns[0:0], vd.actualNs[0:0], nil)

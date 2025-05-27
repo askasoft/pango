@@ -132,7 +132,3 @@ func saveResponse(res *http.Response, path string) error {
 
 	return fsu.WriteReader(path, res.Body, fsu.FileMode(0660))
 }
-
-func shouldRetry(re *ResultError) bool {
-	return re.StatusCode == http.StatusTooManyRequests || (re.StatusCode >= 500 && re.StatusCode <= 599)
-}

@@ -50,8 +50,6 @@ func GetRetryAfter(a any) time.Duration {
 
 // RetryForError loop max `retries` count to call api().
 // returns the error if api() returns a non Retryable error.
-// returns the error if abort() returns error.
-// call SleepForRetry(sleep, after, abort), if api() returns a Retryable error.
 func RetryForError(ctx context.Context, api func() error, retries int, logger log.Logger) error {
 	err := api()
 	if err == nil {

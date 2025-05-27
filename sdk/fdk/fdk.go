@@ -3,7 +3,6 @@ package fdk
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -27,7 +26,7 @@ type FDK struct {
 
 	MaxRetries  int
 	RetryAfter  time.Duration
-	ShouldRetry func(*ResultError) bool // default retry on (status = 429 || (status >= 500 && status <= 599))
+	ShouldRetry func(error) bool // default retry on not canceled error or (status = 429 || (status >= 500 && status <= 599))
 }
 
 // Endpoint formats endpoint url
@@ -65,10 +64,14 @@ func (fdk *FDK) call(req *http.Request) (res *http.Response, err error) {
 
 	res, err = client.Do(req)
 	if err != nil {
-		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-			return res, err
+		fsr := fdk.ShouldRetry
+		if fsr == nil {
+			fsr = shouldRetry
 		}
-		return res, sdk.NewRetryError(err, fdk.RetryAfter)
+		if fsr(err) {
+			err = sdk.NewRetryError(err, fdk.RetryAfter)
+		}
+		return res, err
 	}
 
 	httplog.TraceHttpResponse(fdk.Logger, res, rid)
@@ -89,13 +92,13 @@ func (fdk *FDK) doCall(req *http.Request, result any) error {
 	return fdk.decodeResponse(res, result)
 }
 
-func (fdk *FDK) decodeResponse(res *http.Response, obj any) error {
+func (fdk *FDK) decodeResponse(res *http.Response, result any) error {
 	defer iox.DrainAndClose(res.Body)
 
 	decoder := json.NewDecoder(res.Body)
 	if res.StatusCode == http.StatusOK || res.StatusCode == http.StatusCreated || res.StatusCode == http.StatusNoContent {
-		if obj != nil {
-			return decoder.Decode(obj)
+		if result != nil {
+			return decoder.Decode(result)
 		}
 		return nil
 	}

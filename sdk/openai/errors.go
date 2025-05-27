@@ -1,7 +1,10 @@
 package openai
 
 import (
+	"context"
+	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 )
@@ -68,4 +71,12 @@ func (re *ResultError) Error() string {
 	}
 
 	return es
+}
+
+func shouldRetry(err error) bool {
+	var re *ResultError
+	if errors.As(err, &re) {
+		return re.StatusCode == http.StatusTooManyRequests || (re.StatusCode >= 500 && re.StatusCode <= 599)
+	}
+	return !errors.Is(err, context.Canceled)
 }

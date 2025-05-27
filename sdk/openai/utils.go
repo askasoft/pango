@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"net/http"
 
 	"github.com/askasoft/pango/str"
 )
@@ -33,8 +32,4 @@ func buildJsonRequest(a any) (io.Reader, string, error) {
 
 	buf := bytes.NewReader(body)
 	return buf, contentTypeJSON, nil
-}
-
-func shouldRetry(re *ResultError) bool {
-	return re.StatusCode == http.StatusTooManyRequests || (re.StatusCode >= 500 && re.StatusCode <= 599)
 }

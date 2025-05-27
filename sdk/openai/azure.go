@@ -3,7 +3,6 @@ package openai
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -25,7 +24,7 @@ type AzureOpenAI struct {
 
 	MaxRetries  int
 	RetryAfter  time.Duration
-	ShouldRetry func(*ResultError) bool // default retry on (status = 429 || (status >= 500 && status <= 599))
+	ShouldRetry func(error) bool // default retry on not canceled error or (status = 429 || (status >= 500 && status <= 599))
 }
 
 func (aoai *AzureOpenAI) endpoint(format string, a ...any) string {
@@ -46,10 +45,7 @@ func (aoai *AzureOpenAI) call(req *http.Request) (res *http.Response, err error)
 
 	res, err = client.Do(req)
 	if err != nil {
-		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-			return res, err
-		}
-		return res, sdk.NewRetryError(err, aoai.RetryAfter)
+		return res, err
 	}
 
 	httplog.TraceHttpResponse(aoai.Logger, res, rid)
@@ -65,10 +61,18 @@ func (aoai *AzureOpenAI) authenticate(req *http.Request) {
 }
 
 func (aoai *AzureOpenAI) doCall(req *http.Request, result any) error {
+	sr := aoai.ShouldRetry
+	if sr == nil {
+		sr = shouldRetry
+	}
+
 	aoai.authenticate(req)
 
 	res, err := aoai.call(req)
 	if err != nil {
+		if sr(err) {
+			return sdk.NewRetryError(err, aoai.RetryAfter)
+		}
 		return err
 	}
 
@@ -86,12 +90,7 @@ func (aoai *AzureOpenAI) doCall(req *http.Request, result any) error {
 	}
 	_ = decoder.Decode(re)
 
-	fsr := aoai.ShouldRetry
-	if fsr == nil {
-		fsr = shouldRetry
-	}
-
-	if fsr(re) {
+	if sr(re) {
 		re.RetryAfter = aoai.RetryAfter
 	}
 	return re

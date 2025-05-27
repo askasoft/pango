@@ -3,7 +3,6 @@ package openai
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
@@ -24,7 +23,7 @@ type OpenAI struct {
 
 	MaxRetries  int
 	RetryAfter  time.Duration
-	ShouldRetry func(*ResultError) bool // default retry on (status = 429 || (status >= 500 && status <= 599))
+	ShouldRetry func(error) bool // default retry on not canceled error or (status = 429 || (status >= 500 && status <= 599))
 }
 
 func (oai *OpenAI) endpoint(format string, a ...any) string {
@@ -45,10 +44,7 @@ func (oai *OpenAI) call(req *http.Request) (res *http.Response, err error) {
 
 	res, err = client.Do(req)
 	if err != nil {
-		if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-			return res, err
-		}
-		return res, sdk.NewRetryError(err, oai.RetryAfter)
+		return res, err
 	}
 
 	httplog.TraceHttpResponse(oai.Logger, res, rid)
@@ -64,10 +60,18 @@ func (oai *OpenAI) authenticate(req *http.Request) {
 }
 
 func (oai *OpenAI) doCall(req *http.Request, result any) error {
+	sr := oai.ShouldRetry
+	if sr == nil {
+		sr = shouldRetry
+	}
+
 	oai.authenticate(req)
 
 	res, err := oai.call(req)
 	if err != nil {
+		if sr(err) {
+			return sdk.NewRetryError(err, oai.RetryAfter)
+		}
 		return err
 	}
 	defer iox.DrainAndClose(res.Body)
@@ -86,12 +90,7 @@ func (oai *OpenAI) doCall(req *http.Request, result any) error {
 	}
 	_ = decoder.Decode(re)
 
-	fsr := oai.ShouldRetry
-	if fsr == nil {
-		fsr = shouldRetry
-	}
-
-	if fsr(re) {
+	if sr(re) {
 		re.RetryAfter = oai.RetryAfter
 	}
 	return re

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -170,8 +169,8 @@ var (
 		"postcode_iso3166_alpha2":       isPostcodeByIso3166Alpha2,
 		"postcode_iso3166_alpha2_field": isPostcodeByIso3166Alpha2Field,
 		"swiftcode":                     isSwiftCode,
-		"semver":                        isSemverFormat,
-		"dns_rfc1035_label":             isDnsRFC1035LabelFormat,
+		"semver":                        isSemver,
+		"dns_rfc1035_label":             isDnsRFC1035Label,
 	}
 )
 
@@ -430,7 +429,7 @@ func isUUID(fl FieldLevel) bool {
 func isULID(fl FieldLevel) bool {
 	mustStringField("ulid", fl)
 
-	return uLIDRegex.MatchString(fl.Field().String())
+	return IsULID(fl.Field().String())
 }
 
 // isISBN is the validation function for validating if the field's value is a valid v10 or v13 ISBN.
@@ -776,7 +775,7 @@ func isHttpxURL(fl FieldLevel) bool {
 func isE164(fl FieldLevel) bool {
 	mustStringField("e164", fl)
 
-	return e164Regex.MatchString(fl.Field().String())
+	return IsE164(fl.Field().String())
 }
 
 // isEmail is the validation function for validating if the current field's value is a valid email address.
@@ -1451,20 +1450,19 @@ func isBtw(fl FieldLevel) bool {
 func isHostnameRFC952(fl FieldLevel) bool {
 	mustStringField("hostname", fl)
 
-	return hostnameRegexRFC952.MatchString(fl.Field().String())
+	return IsHostnameRFC952(fl.Field().String())
 }
 
 func isHostnameRFC1123(fl FieldLevel) bool {
 	mustStringField("hostname_rfc1123", fl)
 
-	return hostnameRegexRFC1123.MatchString(fl.Field().String())
+	return IsHostnameRFC1123(fl.Field().String())
 }
 
 func isFQDN(fl FieldLevel) bool {
 	mustStringField("fqdn", fl)
 
-	val := fl.Field().String()
-	return val != "" && fqdnRegexRFC1123.MatchString(val)
+	return IsFQDN(fl.Field().String())
 }
 
 // isJSON is the validation function for validating if the current field's value is a valid json string.
@@ -1499,22 +1497,7 @@ func isJWT(fl FieldLevel) bool {
 func isHostnamePort(fl FieldLevel) bool {
 	mustStringField("hostname_port", fl)
 
-	val := fl.Field().String()
-	host, port, err := net.SplitHostPort(val)
-	if err != nil {
-		return false
-	}
-
-	// Port must be a iny <= 65535.
-	if portNum, err := strconv.ParseInt(port, 10, 32); err != nil || portNum > 65535 || portNum < 1 {
-		return false
-	}
-
-	// If host is specified, it should match a DNS name
-	if host != "" {
-		return hostnameRegexRFC1123.MatchString(host)
-	}
-	return true
+	return IsHostnamePort(fl.Field().String())
 }
 
 // isLowercase is the validation function for validating if the current field's value is a lowercase string.
@@ -1577,18 +1560,18 @@ func isSwiftCode(fl FieldLevel) bool {
 	return IsSwiftCode(fl.Field().String())
 }
 
-// isSemverFormat is the validation function for validating if the current field's value is a valid semver version, defined in Semantic Versioning 2.0.0
-func isSemverFormat(fl FieldLevel) bool {
+// isSemver is the validation function for validating if the current field's value is a valid semver version, defined in Semantic Versioning 2.0.0
+func isSemver(fl FieldLevel) bool {
 	mustStringField("semver", fl)
 
-	return semverRegex.MatchString(fl.Field().String())
+	return IsSemver(fl.Field().String())
 }
 
-// isDnsRFC1035LabelFormat is the validation function
+// isDnsRFC1035Label is the validation function
 // for validating if the current field's value is
 // a valid dns RFC 1035 label, defined in RFC 1035.
-func isDnsRFC1035LabelFormat(fl FieldLevel) bool {
+func isDnsRFC1035Label(fl FieldLevel) bool {
 	mustStringField("dns_rfc1035_label", fl)
 
-	return dnsRegexRFC1035Label.MatchString(fl.Field().String())
+	return IsDnsRFC1035Label(fl.Field().String())
 }

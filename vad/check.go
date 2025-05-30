@@ -16,6 +16,11 @@ func IsFileName(s string) bool {
 	return !str.ContainsAny(s, `\/:*?"<>|`)
 }
 
+// IsE164 is the validation function for validating if the current field's value is a valid e.164 formatted phone number.
+func IsE164(s string) bool {
+	return rxE164.MatchString(s)
+}
+
 // IsEmail checks if the string is an email.
 func IsEmail(s string) bool {
 	return rxEmail.MatchString(s)
@@ -193,6 +198,11 @@ func IsUUID(s string) bool {
 	return rxUUID.MatchString(s)
 }
 
+// IsULID is the validation function for validating if the field's value is a valid ULID.
+func IsULID(s string) bool {
+	return rxULID.MatchString(s)
+}
+
 // IsCreditCard checks if the string is a credit card.
 func IsCreditCard(s string) bool {
 	sanitized := str.RemoveAny(s, " -")
@@ -314,6 +324,43 @@ func IsDNSName(s string) bool {
 		return false
 	}
 	return !IsIP(s) && rxDNSName.MatchString(s)
+}
+
+// IsDnsRFC1035Label is the validation function
+// for validating if the current field's value is
+// a valid dns RFC 1035 label, defined in RFC 1035.
+func IsDnsRFC1035Label(s string) bool {
+	return rxDnsRFC1035Label.MatchString(s)
+}
+
+func IsHostnameRFC952(s string) bool {
+	return rxHostnameRFC952.MatchString(s)
+}
+
+func IsHostnameRFC1123(s string) bool {
+	return rxHostnameRFC1123.MatchString(s)
+}
+
+func IsHostnamePort(s string) bool {
+	host, port, err := net.SplitHostPort(s)
+	if err != nil {
+		return false
+	}
+
+	// Port must be a iny <= 65535.
+	if portNum, err := strconv.ParseInt(port, 10, 32); err != nil || portNum > 65535 || portNum < 1 {
+		return false
+	}
+
+	// If host is specified, it should match a DNS name
+	if host != "" {
+		return IsHostnameRFC1123(host)
+	}
+	return true
+}
+
+func IsFQDN(s string) bool {
+	return rxFqdnRFC1123.MatchString(s)
 }
 
 // IsHash checks if a string is a hash of type algorithm.
@@ -601,7 +648,7 @@ func IsJSONArray(s string) bool {
 
 // IsBitcoinAddress is the validation function for validating if the field's value is a valid btc address
 func IsBitcoinAddress(address string) bool {
-	if !btcAddressRegex.MatchString(address) {
+	if !rxBtcAddress.MatchString(address) {
 		return false
 	}
 
@@ -634,7 +681,7 @@ func IsBitcoinAddress(address string) bool {
 
 // IsBitcoinBech32Address is the validation function for validating if the field's value is a valid bech32 btc address
 func IsBitcoinBech32Address(address string) bool {
-	if !btcLowerAddressRegexBech32.MatchString(address) && !btcUpperAddressRegexBech32.MatchString(address) {
+	if !rxBtcBech32LowerAddress.MatchString(address) && !rxBtcBech32UpperAddress.MatchString(address) {
 		return false
 	}
 
@@ -707,4 +754,9 @@ func IsBitcoinBech32Address(address string) bool {
 	}
 
 	return true
+}
+
+// IsSemver is the validation function for validating if the current field's value is a valid semver version, defined in Semantic Versioning 2.0.0
+func IsSemver(s string) bool {
+	return rxSemver.MatchString(s)
 }

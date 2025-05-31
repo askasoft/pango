@@ -14,7 +14,7 @@ type SqlxLogger struct {
 	Logger          log.Logger
 	DefaultSQLLevel log.Level
 	ErrorSQLLevel   log.Level
-	SelectSQLLevel  log.Level
+	WriteSQLLevel   log.Level
 	SlowSQLLevel    log.Level
 	SlowThreshold   time.Duration
 	TraceErrNoRows  bool
@@ -25,9 +25,9 @@ type SqlxLogger struct {
 func NewSqlxLogger(logger log.Logger, slowSQL time.Duration) *SqlxLogger {
 	sl := &SqlxLogger{
 		Logger:          logger,
-		DefaultSQLLevel: log.LevelInfo,
+		DefaultSQLLevel: log.LevelDebug,
 		ErrorSQLLevel:   log.LevelError,
-		SelectSQLLevel:  log.LevelDebug,
+		WriteSQLLevel:   log.LevelInfo,
 		SlowSQLLevel:    log.LevelWarn,
 		SlowThreshold:   slowSQL,
 	}
@@ -48,6 +48,15 @@ func (sl *SqlxLogger) printf(lvl log.Level, msg string, data ...any) {
 
 		sl.Logger.Write(le)
 	}
+}
+
+func (sl *SqlxLogger) getSQLLogLevel(sql string) log.Level {
+	sql = str.StripLeft(sql)
+	if str.StartsWithFold(sql, "SELECT") || str.StartsWithFold(sql, "Prepare") ||
+		str.StartsWithFold(sql, "Begin") || str.StartsWithFold(sql, "Commit") {
+		return sl.DefaultSQLLevel
+	}
+	return sl.WriteSQLLevel
 }
 
 // Trace print sql message
@@ -74,12 +83,12 @@ func (sl *SqlxLogger) Trace(begin time.Time, sql string, rows int64, err error) 
 			sl.printf(sl.SlowSQLLevel, "SLOW >= %v [%d: %v] %s", sl.SlowThreshold, rows, elapsed, sql)
 		}
 	default:
-		lvl := sl.DefaultSQLLevel
-		if f := sl.GetSQLLogLevel; f != nil {
-			lvl = f(sql)
-		} else if str.StartsWithFold(str.StripLeft(sql), "SELECT") {
-			lvl = sl.SelectSQLLevel
+		f := sl.GetSQLLogLevel
+		if f == nil {
+			f = sl.getSQLLogLevel
 		}
+
+		lvl := f(sql)
 		if sl.Logger.IsLevelEnabled(lvl) {
 			if rows < 0 {
 				sl.printf(lvl, "[%v] %s", elapsed, sql)

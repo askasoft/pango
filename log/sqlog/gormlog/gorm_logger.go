@@ -16,7 +16,7 @@ type GormLogger struct {
 	Logger                   log.Logger
 	DefaultSQLLevel          log.Level
 	ErrorSQLLevel            log.Level
-	SelectSQLLevel           log.Level
+	WriteSQLLevel            log.Level
 	SlowSQLLevel             log.Level
 	SlowThreshold            time.Duration
 	TraceRecordNotFoundError bool
@@ -28,9 +28,9 @@ type GormLogger struct {
 func NewGormLogger(logger log.Logger, slowSQL time.Duration) *GormLogger {
 	gl := &GormLogger{
 		Logger:          logger,
-		DefaultSQLLevel: log.LevelInfo,
+		DefaultSQLLevel: log.LevelDebug,
 		ErrorSQLLevel:   log.LevelError,
-		SelectSQLLevel:  log.LevelDebug,
+		WriteSQLLevel:   log.LevelInfo,
 		SlowSQLLevel:    log.LevelWarn,
 		SlowThreshold:   slowSQL,
 	}
@@ -73,6 +73,14 @@ func (gl *GormLogger) printf(lvl log.Level, msg string, data ...any) {
 	}
 }
 
+func (gl *GormLogger) getSQLLogLevel(sql string) log.Level {
+	sql = str.StripLeft(sql)
+	if str.StartsWithFold(sql, "SELECT") {
+		return gl.DefaultSQLLevel
+	}
+	return gl.WriteSQLLevel
+}
+
 // Trace print sql message
 func (gl *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (string, int64), err error) {
 	elapsed := time.Since(begin)
@@ -100,12 +108,13 @@ func (gl *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (str
 		}
 	default:
 		sql, rows := fc()
-		lvl := gl.DefaultSQLLevel
-		if f := gl.GetSQLLogLevel; f != nil {
-			lvl = f(sql)
-		} else if str.StartsWithFold(str.StripLeft(sql), "SELECT") {
-			lvl = gl.SelectSQLLevel
+
+		f := gl.GetSQLLogLevel
+		if f == nil {
+			f = gl.getSQLLogLevel
 		}
+
+		lvl := f(sql)
 		if gl.Logger.IsLevelEnabled(lvl) {
 			if rows < 0 {
 				gl.printf(lvl, "[%v] %s", elapsed, sql)

@@ -40,7 +40,6 @@ type TokenProtector struct {
 // default methods: DELETE, PATCH, POST, PUT
 func NewTokenProtector(secret string) *TokenProtector {
 	tp := &TokenProtector{
-		Cryptor:        ccpt.NewAes128CBCCryptor(secret),
 		Expires:        time.Hour * 24,
 		AttrKey:        TokenAttrKey,
 		ParamName:      TokenParamName,
@@ -50,11 +49,12 @@ func NewTokenProtector(secret string) *TokenProtector {
 		CookieMaxAge:   time.Hour * 24 * 30, // 30 days
 		CookieHttpOnly: true,
 		CookieSameSite: http.SameSiteStrictMode,
-		AbortStatus:    http.StatusBadRequest,
+		AbortStatus:    http.StatusForbidden,
 		methods:        newStringSet(http.MethodDelete, http.MethodPatch, http.MethodPost, http.MethodPut),
 	}
+	tp.AbortFunc = tp.abort
+	tp.SetSecret(secret)
 
-	tp.AbortFunc = tp.failed
 	return tp
 }
 
@@ -87,7 +87,7 @@ func (tp *TokenProtector) Handle(c *xin.Context) {
 	c.Next()
 }
 
-func (tp *TokenProtector) failed(c *xin.Context) {
+func (tp *TokenProtector) abort(c *xin.Context) {
 	c.AbortWithStatus(tp.AbortStatus)
 }
 

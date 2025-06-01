@@ -47,7 +47,6 @@ type CookieAuth struct {
 
 func NewCookieAuth(f FindUserFunc, secret string) *CookieAuth {
 	ca := &CookieAuth{
-		Cryptor:        ccpt.NewAes128CBCCryptor(secret),
 		FindUser:       f,
 		CookieName:     AuthCookieName,
 		CookiePath:     "/",
@@ -62,8 +61,14 @@ func NewCookieAuth(f FindUserFunc, secret string) *CookieAuth {
 	ca.AuthPassed = ca.Authorized
 	ca.AuthFailed = ca.Unauthorized
 	ca.GetCookieMaxAge = ca.getCookieMaxAge
+	ca.SetSecret(secret)
 
 	return ca
+}
+
+// SetSecret Set the Cryptor secret
+func (ca *CookieAuth) SetSecret(secret string) {
+	ca.Cryptor = ccpt.NewAes128CBCCryptor(secret)
 }
 
 func (ca *CookieAuth) Authenticate(c *xin.Context) (next bool, au AuthUser, err error) {

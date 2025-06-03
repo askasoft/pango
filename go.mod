@@ -18,7 +18,7 @@ require (
 	golang.org/x/net v0.40.0
 	golang.org/x/sys v0.33.0
 	golang.org/x/text v0.25.0
-	gorm.io/driver/postgres v1.5.11
+	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.30.0
 )
 

@@ -18,21 +18,31 @@ import (
 // {{MapGet m "a" }} // return 1
 // {{MapGet m 1 "c" }} // return 4
 func MapGet(dict any, keys ...any) (any, error) {
-	if dict == nil || len(keys) == 0 {
-		return nil, nil
+	mv := reflect.ValueOf(dict)
+	if mv.Kind() != reflect.Map {
+		return nil, fmt.Errorf("ref: %T is not a map", dict)
 	}
 
-	mt := reflect.TypeOf(dict)
-	if mt.Kind() != reflect.Map {
-		return nil, fmt.Errorf("MapGet(): invalid map - %v", mt)
+	val, err := mapGet(mv, keys[0])
+	if err != nil {
+		return val, err
 	}
 
+	// if there is more keys, handle this recursively
+	if len(keys) > 1 && val != nil {
+		return MapGet(val, keys[1:]...)
+	}
+	return val, nil
+}
+
+func mapGet(mv reflect.Value, key any) (any, error) {
 	// check whether keys[0] type equals to dict key type
 	// if they are different, make conversion
-	kv := reflect.ValueOf(keys[0])
-	kt := reflect.TypeOf(keys[0])
+	mt := mv.Type()
+	kv := reflect.ValueOf(key)
+	kt := reflect.TypeOf(key)
 	if kt != mt.Key() {
-		cv, err := CastTo(keys[0], mt.Key())
+		cv, err := CastTo(key, mt.Key())
 		if err != nil {
 			return nil, fmt.Errorf("MapGet(): invalid key type - %w", err)
 		}
@@ -40,28 +50,26 @@ func MapGet(dict any, keys ...any) (any, error) {
 		kv = reflect.ValueOf(cv)
 	}
 
-	mv := reflect.ValueOf(dict)
 	vv := mv.MapIndex(kv)
 	if !vv.IsValid() {
 		return nil, nil
 	}
 
-	val := vv.Interface()
-
-	// if there is more keys, handle this recursively
-	if len(keys) > 1 {
-		return MapGet(val, keys[1:]...)
-	}
-	return val, nil
+	return vv.Interface(), nil
 }
 
 // MapSet setting value to the map
 func MapSet(dict any, key, val any) (any, error) {
-	mt := reflect.TypeOf(dict)
-	if mt.Kind() != reflect.Map {
-		return nil, fmt.Errorf("MapSet(): invalid map type - %v", mt)
+	mv := reflect.ValueOf(dict)
+	if mv.Kind() != reflect.Map {
+		return nil, fmt.Errorf("ref: %T is not a map", dict)
 	}
 
+	return mapSet(mv, key, val)
+}
+
+func mapSet(mv reflect.Value, key, val any) (any, error) {
+	mt := mv.Type()
 	kv := reflect.ValueOf(key)
 	kt := reflect.TypeOf(key)
 	if kt != mt.Key() {
@@ -84,7 +92,6 @@ func MapSet(dict any, key, val any) (any, error) {
 		vv = reflect.ValueOf(cv)
 	}
 
-	mv := reflect.ValueOf(dict)
 	mv.SetMapIndex(kv, vv)
 	return nil, nil
 }

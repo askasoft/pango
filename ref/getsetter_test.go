@@ -12,7 +12,7 @@ type testObject struct {
 	StrSlice []string
 }
 
-func TestSetProperty(t *testing.T) {
+func TestSetGetProperty(t *testing.T) {
 	cs := []struct {
 		o *testObject
 		k string

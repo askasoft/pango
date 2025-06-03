@@ -89,19 +89,19 @@ func assertLogConfig(t *testing.T, lg *log.Log) {
 		}
 		assertLogEqual(t, `w.Color`, false, w.Color)
 
-		f, ok := w.Filter.(*log.MultiFilter)
+		af, ok := w.Filter.(*log.AndFilter)
 		if !ok {
-			t.Fatalf("Not MultiFilter")
+			t.Fatalf("Not AndFilter")
 		}
-		assertLogEqual(t, `len(f.Filters)`, 2, len(f.Filters))
+		assertLogEqual(t, `len(af.Filters)`, 2, len(af.Filters))
 
-		nf, ok := f.Filters[0].(*log.NameFilter)
+		nf, ok := af.Filters[0].(*log.NameFilter)
 		if !ok {
 			t.Fatalf("Not NameFilter")
 		}
 		assertLogEqual(t, `nf.Name`, "out", nf.Name)
 
-		lf, ok := f.Filters[1].(*log.LevelFilter)
+		lf, ok := af.Filters[1].(*log.LevelFilter)
 		if !ok {
 			t.Fatalf("Not LevelFilter")
 		}
@@ -132,11 +132,23 @@ func assertLogConfig(t *testing.T, lg *log.Log) {
 		assertLogEqual(t, `w.Addr`, "localhost:9999", w.Addr)
 		assertLogEqual(t, `w.Timeout`, time.Second*5, w.Timeout)
 
-		f, ok := w.Filter.(*log.LevelFilter)
+		of, ok := w.Filter.(*log.OrFilter)
+		if !ok {
+			t.Fatalf("Not OrFilter")
+		}
+		assertLogEqual(t, `len(of.Filters)`, 2, len(of.Filters))
+
+		nf, ok := of.Filters[0].(*log.NameFilter)
+		if !ok {
+			t.Fatalf("Not NameFilter")
+		}
+		assertLogEqual(t, `nf.Name`, "tcp", nf.Name)
+
+		lf, ok := of.Filters[1].(*log.LevelFilter)
 		if !ok {
 			t.Fatalf("Not LevelFilter")
 		}
-		assertLogEqual(t, `f.Level`, log.LevelDebug, f.Level)
+		assertLogEqual(t, `lf.Level`, log.LevelError, lf.Level)
 	}
 
 	i++

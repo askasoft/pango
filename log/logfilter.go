@@ -1,8 +1,6 @@
 package log
 
 import (
-	"strings"
-
 	"github.com/askasoft/pango/str"
 )
 
@@ -56,14 +54,14 @@ func NewNameNotFilter(name string) Filter {
 	return &NameNotFilter{Name: name}
 }
 
-// MultiFilter a multiple filter
-type MultiFilter struct {
+// AndFilter a AND multiple filter
+type AndFilter struct {
 	Filters []Filter
 }
 
-// Reject filter event by multiple filters
-func (mf *MultiFilter) Reject(le *Event) bool {
-	for _, f := range mf.Filters {
+// Reject reject event if any filter reject it
+func (af *AndFilter) Reject(le *Event) bool {
+	for _, f := range af.Filters {
 		if f.Reject(le) {
 			return true
 		}
@@ -71,9 +69,29 @@ func (mf *MultiFilter) Reject(le *Event) bool {
 	return false
 }
 
-// NewMultiFilter create a multiple filter
-func NewMultiFilter(fs ...Filter) *MultiFilter {
-	return &MultiFilter{Filters: fs}
+// NewAndFilter create a AND multiple filter
+func NewAndFilter(fs ...Filter) *AndFilter {
+	return &AndFilter{Filters: fs}
+}
+
+// OrFilter a OR multiple filter
+type OrFilter struct {
+	Filters []Filter
+}
+
+// Reject accept event if any filter accept it
+func (of *OrFilter) Reject(le *Event) bool {
+	for _, f := range of.Filters {
+		if !f.Reject(le) {
+			return false
+		}
+	}
+	return true
+}
+
+// NewOrFilter create a OR multiple filter
+func NewOrFilter(fs ...Filter) *OrFilter {
+	return &OrFilter{Filters: fs}
 }
 
 // FilterCreator filter create function
@@ -94,17 +112,23 @@ func CreateFilter(name string, conf string) Filter {
 	return nil
 }
 
-// NewLogFilter create a log filter by the configuration string 'c'
-func NewLogFilter(c string) Filter {
+// ParseFilter parse filter expression "name:condition" to create a log filter
+func ParseFilter(expr string) Filter {
+	name, conf, ok := str.CutByte(expr, ':')
+	if ok {
+		return CreateFilter(name, conf)
+	}
+	return nil
+}
+
+func parseAndFilter(expr string) Filter {
 	fs := []Filter{}
-	ss := strings.Split(c, " ")
+
+	ss := str.Fields(expr)
 	for _, s := range ss {
-		cs := strings.Split(s, ":")
-		if len(cs) == 2 {
-			f := CreateFilter(cs[0], cs[1])
-			if f != nil {
-				fs = append(fs, f)
-			}
+		f := ParseFilter(s)
+		if f != nil {
+			fs = append(fs, f)
 		}
 	}
 
@@ -114,7 +138,28 @@ func NewLogFilter(c string) Filter {
 	if len(fs) == 1 {
 		return fs[0]
 	}
-	return &MultiFilter{Filters: fs}
+	return &AndFilter{Filters: fs}
+}
+
+// NewLogFilter parse filter expression to create a log filter
+func NewLogFilter(expr string) Filter {
+	fs := []Filter{}
+
+	ss := str.Split(expr, "||")
+	for _, s := range ss {
+		f := parseAndFilter(s)
+		if f != nil {
+			fs = append(fs, f)
+		}
+	}
+
+	if len(fs) < 1 {
+		return nil
+	}
+	if len(fs) == 1 {
+		return fs[0]
+	}
+	return &OrFilter{Filters: fs}
 }
 
 type FilterSupport struct {

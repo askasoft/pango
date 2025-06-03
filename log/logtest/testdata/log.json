@@ -18,7 +18,7 @@
 		"addr": "localhost:9999",
 		"timeout": "5s",
 		"format": "%l - %m%n%T",
-		"filter": "level:debug"
+		"filter": "name:tcp || level:error"
 	}, {
 		"_": "file",
 		"_async": 1000,

@@ -55,7 +55,7 @@ func TestConsoleFilterName(t *testing.T) {
 func TestConsoleFilterMulti(t *testing.T) {
 	log := NewLog()
 	sw := &StreamWriter{Color: true}
-	sw.Filter = NewMultiFilter(NewLevelFilter(LevelWarn), NewNameFilter("out"))
+	sw.SetFilter("level:warn name:out")
 	sw.SetFormat("[%c] %l - %m%n")
 	log.SetWriter(sw)
 

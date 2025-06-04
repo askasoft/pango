@@ -237,7 +237,7 @@ func TestIncrementWithInt(t *testing.T) {
 func TestIncrementWithInt8(t *testing.T) {
 	tc := testNewCache()
 	tc.Set("tint8", int8(1))
-	x := tc.Increment("tint8", 2)
+	x := tc.Increment("tint8", int8(2))
 	if x != int8(3) {
 		t.Error("tint8 is not 3:", x)
 	}
@@ -246,7 +246,7 @@ func TestIncrementWithInt8(t *testing.T) {
 func TestIncrementWithInt16(t *testing.T) {
 	tc := testNewCache()
 	tc.Set("tint16", int16(1))
-	x := tc.Increment("tint16", 2)
+	x := tc.Increment("tint16", int16(2))
 	if x != int16(3) {
 		t.Error("tint16 is not 3:", x)
 	}
@@ -255,7 +255,7 @@ func TestIncrementWithInt16(t *testing.T) {
 func TestIncrementWithInt32(t *testing.T) {
 	tc := testNewCache()
 	tc.Set("tint32", int32(1))
-	x := tc.Increment("tint32", 2)
+	x := tc.Increment("tint32", int32(2))
 	if x != int32(3) {
 		t.Error("tint32 is not 3:", x)
 	}
@@ -264,7 +264,7 @@ func TestIncrementWithInt32(t *testing.T) {
 func TestIncrementWithInt64(t *testing.T) {
 	tc := testNewCache()
 	tc.Set("tint64", int64(1))
-	x := tc.Increment("tint64", 2)
+	x := tc.Increment("tint64", int64(2))
 	if x != int64(3) {
 		t.Error("tint64 is not 3:", x)
 	}
@@ -273,7 +273,7 @@ func TestIncrementWithInt64(t *testing.T) {
 func TestIncrementWithUint(t *testing.T) {
 	tc := testNewCache()
 	tc.Set("tuint", uint(1))
-	x := tc.Increment("tuint", 2)
+	x := tc.Increment("tuint", uint(2))
 	if x != uint(3) {
 		t.Error("tuint is not 3:", x)
 	}
@@ -282,7 +282,7 @@ func TestIncrementWithUint(t *testing.T) {
 func TestIncrementWithUint8(t *testing.T) {
 	tc := testNewCache()
 	tc.Set("tuint8", uint8(1))
-	x := tc.Increment("tuint8", 2)
+	x := tc.Increment("tuint8", uint8(2))
 	if x != uint8(3) {
 		t.Error("tuint8 is not 3:", x)
 	}
@@ -291,7 +291,7 @@ func TestIncrementWithUint8(t *testing.T) {
 func TestIncrementWithUint16(t *testing.T) {
 	tc := testNewCache()
 	tc.Set("tuint16", uint16(1))
-	x := tc.Increment("tuint16", 2)
+	x := tc.Increment("tuint16", uint16(2))
 	if x != uint16(3) {
 		t.Error("tuint16 is not 3:", x)
 	}
@@ -300,7 +300,7 @@ func TestIncrementWithUint16(t *testing.T) {
 func TestIncrementWithUint32(t *testing.T) {
 	tc := testNewCache()
 	tc.Set("tuint32", uint32(1))
-	x := tc.Increment("tuint32", 2)
+	x := tc.Increment("tuint32", uint32(2))
 	if x != uint32(3) {
 		t.Error("tuint32 is not 3:", x)
 	}
@@ -309,7 +309,7 @@ func TestIncrementWithUint32(t *testing.T) {
 func TestIncrementWithUint64(t *testing.T) {
 	tc := testNewCache()
 	tc.Set("tuint64", uint64(1))
-	x := tc.Increment("tuint64", 2)
+	x := tc.Increment("tuint64", uint64(2))
 	if x != uint64(3) {
 		t.Error("tuint64 is not 3:", x)
 	}

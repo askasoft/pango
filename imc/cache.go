@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/askasoft/pango/num/mathx"
+	"github.com/askasoft/pango/cal"
 )
 
 // Worker interface for cached item to control it's expiration
@@ -353,7 +353,7 @@ func (c *cache[K, V]) Increment(k K, n V) V {
 		return n
 	}
 
-	v, err := mathx.Add(item.Val, n)
+	v, err := cal.Add(item.Val, n)
 	if err != nil {
 		panic(fmt.Errorf("item '%v' cannot increment: %w", k, err))
 	}

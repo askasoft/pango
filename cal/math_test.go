@@ -1,4 +1,4 @@
-package mathx
+package cal
 
 import (
 	"errors"

@@ -24,6 +24,7 @@ Pango is a GO development utility library.
 | [doc/xpdf](./doc/xpdf/)          | a pdftotxt (poppler-utils) command wrapper package |
 | [fsu](./fsu/)                    | a file system utility package           |
 | [fsw](./fsw/)                    | a file system watcher (fsnotify) wrapper package |
+| [gel](./gel/)                    | a Golang Expression Language package based on https://github.com/pandafw/panda |
 | [gwp](./gwp/)                    | a go-routine worker pool package based on https://github.com/gammazero/workerpool |
 | [imc](./imc/)                    | a simple in-memory cache package based on https://github.com/patrickmn/go-cache |
 | [ini](./ini/)                    | a INI file read/write package           |

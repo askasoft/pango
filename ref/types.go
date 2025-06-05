@@ -61,10 +61,30 @@ var (
 	TypeFloat64StrMap = reflect.TypeOf(map[float64]string{})
 )
 
+// IsStringType return true if v is an string
+func IsStringType(v any) bool {
+	switch v.(type) {
+	case string:
+		return true
+	default:
+		return false
+	}
+}
+
 // IsIntType return true if v is an integer
 func IsIntType(v any) bool {
 	switch v.(type) {
-	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+	case int, int8, int16, int32, int64:
+		return true
+	default:
+		return false
+	}
+}
+
+// IsUintType return true if v is an integer
+func IsUintType(v any) bool {
+	switch v.(type) {
+	case uint, uint8, uint16, uint32, uint64:
 		return true
 	default:
 		return false

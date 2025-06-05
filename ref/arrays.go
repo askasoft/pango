@@ -30,23 +30,25 @@ func ArrayLen(a any) (int, error) {
 //
 // {{ArrayGet a 0 1 }} // return "0,1"
 func ArrayGet(a any, idxs ...int) (any, error) {
-	if a == nil || len(idxs) == 0 {
-		return nil, nil
+	if len(idxs) == 0 {
+		return nil, errors.New("ArrayGet(): missing argument index")
 	}
 
 	av := reflect.ValueOf(a)
 	switch av.Kind() {
 	case reflect.Slice, reflect.Array:
-		if idxs[0] < 0 || idxs[0] > av.Len() {
+		idx := idxs[0]
+		if idx < 0 || idx > av.Len() {
 			return nil, errors.New("ArrayGet(): invalid index")
 		}
 
-		r := av.Index(idxs[0]).Interface()
+		val := av.Index(idx).Interface()
+
 		// if there is more keys, handle this recursively
 		if len(idxs) > 1 {
-			return ArrayGet(r, idxs[1:]...)
+			return ArrayGet(val, idxs[1:]...)
 		}
-		return r, nil
+		return val, nil
 	default:
 		return nil, errors.New("ArrayGet(): invalid array or slice")
 	}

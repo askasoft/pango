@@ -1,6 +1,7 @@
 package ref
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 )
@@ -18,6 +19,10 @@ import (
 // {{MapGet m "a" }} // return 1
 // {{MapGet m 1 "c" }} // return 4
 func MapGet(dict any, keys ...any) (any, error) {
+	if len(keys) == 0 {
+		return nil, errors.New("MapGet(): missing argument key")
+	}
+
 	mv := reflect.ValueOf(dict)
 	if mv.Kind() != reflect.Map {
 		return nil, fmt.Errorf("ref: %T is not a map", dict)

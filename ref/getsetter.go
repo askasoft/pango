@@ -1,6 +1,7 @@
 package ref
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -8,19 +9,28 @@ import (
 )
 
 func GetProperty(o any, k string) (any, error) {
-	rv := reflect.ValueOf(o)
+	if k == "" {
+		return nil, errors.New("ref: empty property name")
+	}
 
+	rv := reflect.ValueOf(o)
 	switch rv.Kind() {
+	case reflect.Pointer:
+		re := rv.Elem()
+		switch re.Kind() {
+		case reflect.Map:
+			return mapGet(re, k)
+		default:
+			return getProperty(rv, k)
+		}
 	case reflect.Map:
 		return mapGet(rv, k)
-	case reflect.Ptr:
-		return getProperty(rv, k)
 	default:
-		return nil, fmt.Errorf("ref: %T is not a pointer", o)
+		return getProperty(rv, k)
 	}
 }
 
-func getProperty(rv reflect.Value, k string) (v any, err error) {
+func getProperty(rv reflect.Value, k string) (ret any, err error) {
 	defer func() {
 		if er := recover(); er != nil {
 			err = fmt.Errorf("ref: GetProperty(%v, %q): %v", rv.Type(), k, er)
@@ -29,38 +39,72 @@ func getProperty(rv reflect.Value, k string) (v any, err error) {
 
 	p := str.Capitalize(k)
 
-	m := rv.MethodByName("Get" + p)
-	if m.IsValid() && m.Type().NumIn() == 0 && (m.Type().NumOut() == 1 || m.Type().NumOut() == 2) {
-		rs := m.Call(nil)
-		v = rs[0].Interface()
-		if len(rs) == 2 {
-			if er, ok := rs[1].Interface().(error); ok {
-				err = er
+	{
+		fn := "Get" + p
+		mv := rv.MethodByName(fn)
+		if mv.IsValid() {
+			mt := mv.Type()
+			if mt.NumIn() != 0 || (mt.NumOut() != 1 && mt.NumOut() != 2) {
+				return nil, fmt.Errorf("ref: invalid getter method %q of %v", fn, rv.Type())
 			}
+
+			rs := mv.Call(nil)
+			ret = rs[0].Interface()
+			if len(rs) == 2 {
+				if er, ok := rs[1].Interface().(error); ok {
+					err = er
+				}
+			}
+			return
 		}
-		return
 	}
 
-	f := rv.Elem().FieldByName(p)
-	if f.IsValid() {
-		v = f.Interface()
-		return
+	{
+		mv := rv.MethodByName(p)
+		if mv.IsValid() {
+			ret = mv.Interface()
+			return
+		}
 	}
 
-	return nil, fmt.Errorf("ref: missing property %q of %v", k, rv.Type())
+	if rv.Kind() == reflect.Pointer {
+		rv = rv.Elem()
+	}
+
+	if rv.Kind() != reflect.Struct {
+		return nil, fmt.Errorf("ref: missing field %q of %v", p, rv.Type())
+	}
+
+	fv := rv.FieldByName(k)
+	if !fv.IsValid() {
+		return nil, fmt.Errorf("ref: missing field %q of %v", p, rv.Type())
+	}
+
+	ret = fv.Interface()
+	return
 }
 
 func SetProperty(o any, k string, v any) error {
-	rv := reflect.ValueOf(o)
+	if k == "" {
+		return errors.New("ref: empty property name")
+	}
 
+	rv := reflect.ValueOf(o)
 	switch rv.Kind() {
+	case reflect.Pointer:
+		re := rv.Elem()
+		switch re.Kind() {
+		case reflect.Map:
+			_, err := mapSet(re, k, v)
+			return err
+		default:
+			return setProperty(rv, k, v)
+		}
 	case reflect.Map:
 		_, err := mapSet(rv, k, v)
 		return err
-	case reflect.Ptr:
-		return setProperty(rv, k, v)
 	default:
-		return fmt.Errorf("ref: %T is not a pointer", o)
+		return setProperty(rv, k, v)
 	}
 }
 
@@ -73,25 +117,35 @@ func setProperty(rv reflect.Value, k string, v any) (err error) {
 
 	p := str.Capitalize(k)
 
-	m := rv.MethodByName("Set" + p)
-	if m.IsValid() && m.Type().NumIn() == 1 {
-		t := m.Type().In(0)
+	{
+		fn := "Set" + p
+		mv := rv.MethodByName(fn)
+		if mv.IsValid() {
+			mt := mv.Type()
+			if mt.NumIn() != 1 {
+				return fmt.Errorf("ref: invalid setter method %q of %v", fn, rv.Type())
+			}
 
-		i, err := CastTo(v, t)
-		if err != nil {
-			return err
-		}
-
-		rs := m.Call([]reflect.Value{reflect.ValueOf(i)})
-		for _, r := range rs {
-			if err, ok := r.Interface().(error); ok {
+			av, err := CastTo(v, mv.Type().In(0))
+			if err != nil {
 				return err
 			}
+
+			rs := mv.Call([]reflect.Value{reflect.ValueOf(av)})
+			for _, r := range rs {
+				if err, ok := r.Interface().(error); ok {
+					return err
+				}
+			}
+			return nil
 		}
-		return nil
 	}
 
-	f := rv.Elem().FieldByName(p)
+	if rv.Kind() == reflect.Pointer {
+		rv = rv.Elem()
+	}
+
+	f := rv.FieldByName(p)
 	if f.IsValid() && f.CanSet() {
 		t := f.Type()
 		cv, err := CastTo(v, t)
@@ -103,5 +157,5 @@ func setProperty(rv reflect.Value, k string, v any) (err error) {
 		return nil
 	}
 
-	return fmt.Errorf("ref: missing property %q of %v", k, rv.Type())
+	return fmt.Errorf("ref: missing field %q of %v", k, rv.Type())
 }

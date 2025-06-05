@@ -34,16 +34,12 @@ func CreateWriter(name string) Writer {
 func ConfigWriter(w Writer, c map[string]any) error {
 	for k, v := range c {
 		if k != "" && k[0] != '_' && v != nil {
-			if err := setWriterProp(w, k, v); err != nil {
+			if err := ref.SetProperty(w, k, v); err != nil {
 				return err
 			}
 		}
 	}
 	return nil
-}
-
-func setWriterProp(w Writer, k string, v any) (err error) {
-	return ref.SetProperty(w, k, v)
 }
 
 // safeWrite safe write log event

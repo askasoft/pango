@@ -52,3 +52,86 @@ func TestIsZero(t *testing.T) {
 		})
 	}
 }
+
+type Example struct {
+	Value    int
+	Multiply func(a, b int) int
+}
+
+func (e Example) Greet(name string) string {
+	return "Hello, " + name
+}
+
+func (e *Example) Sum(a, b int) int {
+	return a + b + e.Value
+}
+
+func TestInvokeMethod_MethodCall(t *testing.T) {
+	obj := &Example{Value: 2}
+
+	result, err := InvokeMethod(obj, "Sum", 3, 5)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(result) != 1 || result[0] != 10 {
+		t.Errorf("expected result 10, got %v", result)
+	}
+}
+
+func TestInvokeMethod_FieldFuncCall(t *testing.T) {
+	obj := Example{
+		Multiply: func(a, b int) int {
+			return a * b
+		},
+	}
+
+	result, err := InvokeMethod(obj, "Multiply", 4, 5)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(result) != 1 || result[0] != 20 {
+		t.Errorf("expected 20, got %v", result)
+	}
+}
+
+func TestInvokeMethod_EmptyName(t *testing.T) {
+	_, err := InvokeMethod(Example{}, "")
+	if err == nil || err.Error() != "ref: empty function name" {
+		t.Errorf("expected error for empty method name, got %v", err)
+	}
+}
+
+func TestInvokeMethod_InvalidMethodName(t *testing.T) {
+	_, err := InvokeMethod(Example{}, "DoesNotExist")
+	if err == nil { // just check error presence
+		t.Errorf("expected error for missing method, got nil")
+	}
+}
+
+func TestInvokeMethod_InvalidArgCount(t *testing.T) {
+	obj := Example{
+		Multiply: func(a, b int) int {
+			return a * b
+		},
+	}
+
+	_, err := InvokeMethod(obj, "Multiply", 3) // missing one argument
+	if err == nil {
+		t.Errorf("expected error for argument count mismatch, got %v", err)
+	}
+}
+
+func TestInvokeMethod_InvalidArgType(t *testing.T) {
+	obj := Example{
+		Multiply: func(a, b int) int {
+			return a * b
+		},
+	}
+
+	_, err := InvokeMethod(obj, "Multiply", "three", "five") // wrong types
+	if err == nil {
+		t.Error("expected error for invalid argument types, got nil")
+	}
+}

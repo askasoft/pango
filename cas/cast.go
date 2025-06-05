@@ -14,6 +14,10 @@ func ToDuration(v any) (d time.Duration, err error) {
 	}
 
 	switch o := v.(type) {
+	case time.Duration:
+		return o, nil
+	case *time.Duration:
+		return *o, nil
 	case string:
 		if o == "" {
 			return
@@ -59,6 +63,10 @@ func ToTime(v any) (t time.Time, err error) {
 	}
 
 	switch o := v.(type) {
+	case time.Time:
+		return o, nil
+	case *time.Time:
+		return *o, nil
 	case string:
 		if o == "" {
 			return

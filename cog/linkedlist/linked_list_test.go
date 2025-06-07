@@ -15,6 +15,7 @@ import (
 
 func TestLinkedListInterface(t *testing.T) {
 	var _ cog.List[int] = NewLinkedList[int]()
+	var _ cog.Stack[int] = NewLinkedList[int]()
 	var _ cog.Queue[int] = NewLinkedList[int]()
 	var _ cog.Deque[int] = NewLinkedList[int]()
 	var _ cog.Sortable[int] = NewLinkedList[int]()

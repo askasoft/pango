@@ -386,6 +386,14 @@ func (al *ArrayList[T]) Tail() (v T) {
 }
 
 //--------------------------------------------------------------------
+// implements Stack interface
+
+// Pop Retrieves and removes the tail of this list, or returns (nil, false) if this list is empty.
+func (al *ArrayList[T]) Pop() (T, bool) {
+	return al.PollTail()
+}
+
+//--------------------------------------------------------------------
 // implements Queue interface
 
 // Peek get the first item of list.

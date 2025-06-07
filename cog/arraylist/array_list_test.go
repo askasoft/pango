@@ -15,6 +15,7 @@ import (
 
 func TestArrayListInterface(t *testing.T) {
 	var _ cog.List[int] = NewArrayList(1)
+	var _ cog.Stack[int] = NewArrayList(1)
 	var _ cog.Queue[int] = NewArrayList(1)
 	var _ cog.Deque[int] = NewArrayList(1)
 	var _ cog.SortIF[int] = NewArrayList(1)

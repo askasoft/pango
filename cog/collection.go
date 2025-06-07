@@ -226,13 +226,22 @@ type Map[K any, V any] interface {
 	Eachable[K, V]
 }
 
-// IterableMap a iterable map interface
+// IterableMap A iterable map interface
 type IterableMap[K any, V any] interface {
 	Map[K, V]
 
 	ReverseEachable[K, V]
 
 	Iterable2[K, V]
+}
+
+// Stack A stack interface
+type Stack[T any] interface {
+	// Pop Retrieves and removes the tail of this queue, or returns (nil, false) if this stack is empty.
+	Pop() (T, bool)
+
+	// Push add item v to the tail of stack
+	Push(v T)
 }
 
 // Queue A queue interface

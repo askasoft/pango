@@ -572,6 +572,23 @@ func (rb *RingBuffer[T]) Tail() (v T) {
 }
 
 //--------------------------------------------------------------------
+// implements Stack interface
+
+// Pop Retrieves and removes the tail of RingBuffer, or returns (nil, false) if this RingBufer is empty.
+func (rb *RingBuffer[T]) Pop() (T, bool) {
+	return rb.PollTail()
+}
+
+// MustPop Retrieves and removes the tail of RingBuffer, panic if this RingBuffer is empty.
+func (rb *RingBuffer[T]) MustPop() T {
+	if v, ok := rb.Pop(); ok {
+		return v
+	}
+
+	panic("RingBuffer: MustPop() called on empty buffer")
+}
+
+//--------------------------------------------------------------------
 // implements Queue interface
 
 // Peek get the first item of RingBuffer.
@@ -594,22 +611,22 @@ func (rb *RingBuffer[T]) Pushs(vs ...T) {
 	rb.Inserts(rb.len, vs...)
 }
 
-// MustPeek Retrieves, but does not remove, the head of this queue, panic if this queue is empty.
+// MustPeek Retrieves, but does not remove the head of RingBuffer, panic if this RingBuffer is empty.
 func (rb *RingBuffer[T]) MustPeek() T {
 	if v, ok := rb.Peek(); ok {
 		return v
 	}
 
-	panic("RingBuffer: MustPeek() called on empty queue")
+	panic("RingBuffer: MustPeek() called on empty buffer")
 }
 
-// MustPoll Retrieves and removes the head of this queue, panic if this queue is empty.
+// MustPoll Retrieves and removes the head of RingBuffer, panic if this RingBuffer is empty.
 func (rb *RingBuffer[T]) MustPoll() T {
 	if v, ok := rb.Poll(); ok {
 		return v
 	}
 
-	panic("RingBuffer: MustPoll() called on empty queue")
+	panic("RingBuffer: MustPoll() called on empty buffer")
 }
 
 //--------------------------------------------------------------------

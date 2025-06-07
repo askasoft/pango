@@ -16,6 +16,7 @@ import (
 
 func TestRingBufferInterface(t *testing.T) {
 	var _ cog.List[int] = NewRingBuffer[int]()
+	var _ cog.Stack[int] = NewRingBuffer[int]()
 	var _ cog.Queue[int] = NewRingBuffer[int]()
 	var _ cog.Deque[int] = NewRingBuffer[int]()
 	var _ cog.SortIF[int] = NewRingBuffer[int]()

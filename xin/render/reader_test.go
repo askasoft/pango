@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/askasoft/pango/test/assert"
+	"github.com/askasoft/pango/test/require"
 )
 
 func TestReaderRenderNoHeaders(t *testing.T) {
@@ -61,7 +61,7 @@ func TestRenderReaderNoContentLength(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, body, w.Body.String())
 	assert.Equal(t, "image/png", w.Header().Get("Content-Type"))
-	assert.NotContains(t, "Content-Length", w.Header())
+	assert.Equal(t, "", w.Header().Get("Content-Length"))
 	assert.Equal(t, headers["Content-Disposition"], w.Header().Get("Content-Disposition"))
 	assert.Equal(t, headers["x-request-id"], w.Header().Get("x-request-id"))
 }

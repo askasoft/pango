@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/askasoft/pango/test/assert"
 )
 
 func TestDecodeSingle1(t *testing.T) {
@@ -18,7 +18,7 @@ id: 123456789010
 data: a very nice one`))
 
 	assert.NoError(t, err)
-	assert.Len(t, events, 1)
+	assert.Len(t, events, 2)
 	assert.Equal(t, events[0].Event, "message")
 	assert.Equal(t, events[0].ID, "123456789010")
 }

@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/askasoft/pango/test/assert"
 	"github.com/askasoft/pango/tpl"
-	"github.com/stretchr/testify/assert"
 )
 
 // testNewHttpServer create a http.Server instance

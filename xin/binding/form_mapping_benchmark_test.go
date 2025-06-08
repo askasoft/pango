@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/askasoft/pango/test/assert"
 )
 
 var form = map[string][]string{

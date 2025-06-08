@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/askasoft/pango/test/assert"
 )
 
 // TestPanicWithAbort assert that panic has been recovered even if context.Abort was used.

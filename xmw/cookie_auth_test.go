@@ -5,8 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/askasoft/pango/test/assert"
 	"github.com/askasoft/pango/xin"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestCookieAuthSucceed(t *testing.T) {

@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/askasoft/pango/test/assert"
 )
 
 func TestRouterInvalidStatic(t *testing.T) {

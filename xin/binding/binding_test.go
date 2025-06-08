@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/askasoft/pango/test/assert"
+	"github.com/askasoft/pango/test/require"
 )
 
 type appkey struct {

@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/askasoft/pango/test/assert"
 )
 
 // testRunFd attaches the router to a http.Server and starts listening and serving HTTP requests

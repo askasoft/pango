@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/askasoft/pango/test/assert"
 	"github.com/askasoft/pango/vad"
-	"github.com/stretchr/testify/assert"
 )
 
 type testInterface interface {

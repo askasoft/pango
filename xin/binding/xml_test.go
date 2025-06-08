@@ -3,8 +3,8 @@ package binding
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/askasoft/pango/test/assert"
+	"github.com/askasoft/pango/test/require"
 )
 
 func TestXMLBindingBindBody(t *testing.T) {

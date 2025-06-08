@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/askasoft/pango/test/assert"
 )
 
 var _ setter = formSource(nil)
@@ -362,15 +362,15 @@ func TestMappingPtrField(t *testing.T) {
 	err = mappingByPtr(&req1, formSource{"items": {`{"key": 1}`}}, "form")
 	assert.NoError(t, err)
 	assert.Len(t, req1.Items, 1)
-	assert.EqualValues(t, 1, req1.Items[0].Key)
+	assert.Equal(t, int64(1), req1.Items[0].Key)
 
 	// With 2 items.
 	var req2 ptrRequest
 	err = mappingByPtr(&req2, formSource{"items": {`{"key": 1}`, `{"key": 2}`}}, "form")
 	assert.NoError(t, err)
 	assert.Len(t, req2.Items, 2)
-	assert.EqualValues(t, 1, req2.Items[0].Key)
-	assert.EqualValues(t, 2, req2.Items[1].Key)
+	assert.Equal(t, int64(1), req2.Items[0].Key)
+	assert.Equal(t, int64(2), req2.Items[1].Key)
 }
 
 func TestMappingMapField(t *testing.T) {

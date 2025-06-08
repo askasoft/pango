@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/test/assert"
 	"github.com/askasoft/pango/xin"
-	"github.com/stretchr/testify/assert"
 )
 
 type testAccount struct {

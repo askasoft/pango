@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/askasoft/pango/test/assert"
 )
 
 type cleanPathTest struct {
@@ -82,7 +82,7 @@ func TestPathCleanMallocs(t *testing.T) {
 
 	for _, test := range cleanTests {
 		allocs := testing.AllocsPerRun(100, func() { cleanPath(test.result) })
-		assert.EqualValues(t, allocs, 0)
+		assert.Equal(t, float64(0), allocs)
 	}
 }
 

@@ -19,8 +19,8 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/net/httpx/sse"
+	"github.com/askasoft/pango/test/assert"
 	"github.com/askasoft/pango/xin/binding"
-	"github.com/stretchr/testify/assert"
 )
 
 // Unit tests TODO
@@ -163,7 +163,7 @@ func TestContextReset(t *testing.T) {
 	assert.Len(t, c.Errors, 0)
 	assert.Empty(t, c.Errors)
 	assert.Len(t, c.Params, 0)
-	assert.EqualValues(t, c.index, -1)
+	assert.Equal(t, c.index, -1)
 	assert.Equal(t, c.Writer.(*responseWriter), &c.writermem)
 }
 
@@ -215,13 +215,13 @@ func TestContextSetGetValues(t *testing.T) {
 	var a any = 1
 	c.Set("intInterface", a)
 
-	assert.Exactly(t, c.MustGet("string").(string), "this is a string")
-	assert.Exactly(t, c.MustGet("int32").(int32), int32(-42))
-	assert.Exactly(t, c.MustGet("int64").(int64), int64(42424242424242))
-	assert.Exactly(t, c.MustGet("uint64").(uint64), uint64(42))
-	assert.Exactly(t, c.MustGet("float32").(float32), float32(4.2))
-	assert.Exactly(t, c.MustGet("float64").(float64), 4.2)
-	assert.Exactly(t, c.MustGet("intInterface").(int), 1)
+	assert.Equal(t, c.MustGet("string").(string), "this is a string")
+	assert.Equal(t, c.MustGet("int32").(int32), int32(-42))
+	assert.Equal(t, c.MustGet("int64").(int64), int64(42424242424242))
+	assert.Equal(t, c.MustGet("uint64").(uint64), uint64(42))
+	assert.Equal(t, c.MustGet("float32").(float32), float32(4.2))
+	assert.Equal(t, c.MustGet("float64").(float64), 4.2)
+	assert.Equal(t, c.MustGet("intInterface").(int), 1)
 }
 
 func TestContextGetString(t *testing.T) {
@@ -522,7 +522,7 @@ func TestContextQueryAndPostForm(t *testing.T) {
 	assert.NoError(t, c.Bind(&obj))
 	assert.Equal(t, "bar", obj.Foo, "bar")
 	assert.Equal(t, "main", obj.ID, "main")
-	assert.Equal(t, 11, obj.Page, 11)
+	assert.Equal(t, 11, obj.Page, "11")
 	assert.Empty(t, obj.Both)
 	assert.Equal(t, []string{"first", "second"}, obj.Array)
 

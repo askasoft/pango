@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/askasoft/pango/net/httpx/sse"
-	"github.com/stretchr/testify/assert"
+	"github.com/askasoft/pango/test/assert"
 )
 
 func TestMiddlewareGeneralCase(t *testing.T) {

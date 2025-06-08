@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/askasoft/pango/test/assert"
 	"github.com/askasoft/pango/xin/binding"
 	"github.com/askasoft/pango/xin/validate"
-	"github.com/stretchr/testify/assert"
 )
 
 func requestWithBody(method, path, body string) (req *http.Request) {

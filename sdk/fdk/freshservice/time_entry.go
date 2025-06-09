@@ -85,6 +85,9 @@ type TimeEntryCreate struct {
 
 	// The user/agent to whom this time-entry is assigned
 	AgentID int64 `json:"agent_id,omitempty"`
+
+	// Key value pairs containing the names and values of custom fields.
+	CustomFields map[string]any `json:"custom_fields,omitempty"`
 }
 
 func (te *TimeEntryCreate) String() string {

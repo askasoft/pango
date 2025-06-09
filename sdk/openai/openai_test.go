@@ -85,6 +85,37 @@ func TestOpenAIWebSearchTool(t *testing.T) {
 	fmt.Println(res.Usage.String())
 }
 
+func TestOpenAIImageAnalyze(t *testing.T) {
+	oai := testNewOpenAI(t)
+	if oai == nil {
+		return
+	}
+
+	req := &ChatCompletionRequest{
+		Model: "gpt-4.1",
+		Messages: []*ChatMessage{
+			{
+				Role: RoleUser,
+				Content: []*MessageContent{
+					{Type: "text", Text: "画像の中に「個人情報が含まれているかどうか」を判定してください。"},
+					{Type: "image_url", ImageURL: &ImageURL{
+						URL: "https://s3.amazonaws.com/cdn.freshdesk.com/data/helpdesk/attachments/production/50012396079/original/j3UQrTiD9AcapYi98QjFjTKXptsLq4TSBA.png?1720516588",
+					}},
+				},
+			},
+		},
+	}
+
+	res, err := oai.CreateChatCompletion(context.TODO(), req)
+	if err != nil {
+		t.Fatalf("OpenAI.CreateChatCompletion(): %v", err)
+	}
+
+	fmt.Println("-------------------------------------------")
+	fmt.Println(res)
+	fmt.Println(res.Usage.String())
+}
+
 func TestOpenAICreateTextEmbeddingsAda002(t *testing.T) {
 	oai := testNewOpenAI(t)
 	if oai == nil {

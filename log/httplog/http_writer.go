@@ -15,6 +15,7 @@ import (
 // HTTPWriter implements log Writer Interface and batch send log messages to webhook.
 type HTTPWriter struct {
 	log.BatchSupport
+	log.RetrySupport
 	log.FilterSupport
 	log.FormatSupport
 
@@ -52,20 +53,38 @@ func (hw *HTTPWriter) SetTimeout(timeout string) error {
 // Write cache log message, flush if needed
 func (hw *HTTPWriter) Write(le *log.Event) {
 	if hw.Reject(le) {
-		return
+		le = nil
 	}
 
-	hw.BatchWrite(le, hw.flush)
+	if hw.Retries > 0 {
+		hw.RetryWrite(le, hw.write)
+	} else {
+		hw.BatchWrite(le, hw.flush)
+	}
 }
 
 // Flush flush cached events
 func (hw *HTTPWriter) Flush() {
-	hw.BatchFlush(hw.flush)
+	if hw.Retries > 0 {
+		hw.RetryFlush(hw.write)
+	} else {
+		hw.BatchFlush(hw.flush)
+	}
 }
 
 // Close flush and close the writer
 func (hw *HTTPWriter) Close() {
 	hw.Flush()
+}
+
+func (hw *HTTPWriter) write(le *log.Event) error {
+	hw.initClient()
+
+	hw.Buffer.Reset()
+	lf := hw.GetFormatter(le, log.JSONFmtDefault)
+	lf.Write(&hw.Buffer, le)
+
+	return hw.send()
 }
 
 func (hw *HTTPWriter) flush(eb *log.EventBuffer) error {

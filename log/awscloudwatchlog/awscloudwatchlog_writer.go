@@ -37,7 +37,7 @@ type AWSCloudWatchLogWriter struct {
 // Write cache log message, flush if needed
 func (aw *AWSCloudWatchLogWriter) Write(le *log.Event) {
 	if aw.Reject(le) {
-		return
+		le = nil
 	}
 
 	aw.BatchWrite(le, aw.flush)

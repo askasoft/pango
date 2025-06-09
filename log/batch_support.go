@@ -11,7 +11,7 @@ type BatchSupport struct {
 	BatchCount  int           // flush events if events count >= BatchCount
 	CacheCount  int           // the maximun cacheable event count
 	FlushLevel  Level         // flush events if event <= FlushLevel
-	FlushDelta  time.Duration // flush events if [current log event time] - [first log event time] >= FlushDelta
+	FlushDelta  time.Duration // flush events if [time.Now()] - [first log event time] >= FlushDelta
 	BatchBuffer EventBuffer
 }
 
@@ -20,28 +20,35 @@ func (bs *BatchSupport) SetFlushLevel(lvl string) {
 	bs.FlushLevel = ParseLevel(lvl)
 }
 
-func (bs *BatchSupport) shouldFlush(le *Event) bool {
+func (bs *BatchSupport) shouldFlush() bool {
+	if bs.BatchBuffer.IsEmpty() {
+		return false
+	}
+
 	if bs.BatchBuffer.Len() >= bs.BatchCount {
 		return true
 	}
-	if le.Level <= bs.FlushLevel {
-		return true
+
+	for it := bs.BatchBuffer.Iterator(); it.Next(); {
+		if it.Value().Level <= bs.FlushLevel {
+			return true
+		}
 	}
 
-	if bs.FlushDelta > 0 && bs.BatchBuffer.Len() > 1 {
+	if bs.FlushDelta > 0 {
 		if fle, ok := bs.BatchBuffer.Peek(); ok {
-			if le.Time.Sub(fle.Time) >= bs.FlushDelta {
-				return true
-			}
+			return time.Since(fle.Time) >= bs.FlushDelta
 		}
 	}
 	return false
 }
 
 func (bs *BatchSupport) BatchWrite(le *Event, flush func(*EventBuffer) error) {
-	bs.BatchBuffer.Push(le)
+	if le != nil {
+		bs.BatchBuffer.Push(le)
+	}
 
-	if bs.shouldFlush(le) {
+	if bs.shouldFlush() {
 		if err := flush(&bs.BatchBuffer); err != nil {
 			internal.Perror(err)
 			if bs.BatchBuffer.Len() > bs.CacheCount {

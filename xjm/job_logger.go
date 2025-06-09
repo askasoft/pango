@@ -31,7 +31,7 @@ func NewJobLogWriter(jmr JobManager, jid int64) *JobLogWriter {
 // Write write log event.
 func (jw *JobLogWriter) Write(le *log.Event) {
 	if jw.Reject(le) {
-		return
+		le = nil
 	}
 
 	jw.BatchWrite(le, jw.flush)

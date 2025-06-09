@@ -199,7 +199,7 @@ func ffTrace(le *log.Event) any {
 // Write cache log message, flush if needed
 func (sw *SQLWriter) Write(le *log.Event) {
 	if sw.Reject(le) {
-		return
+		le = nil
 	}
 
 	sw.BatchWrite(le, sw.flush)

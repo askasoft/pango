@@ -44,7 +44,7 @@ POST pango_logs/_delete_by_query
 
 // Test OpenSearch log writer
 // set OPENSEARCH_URL=https://localhost:9200/pango_logs
-func TestHTTPWriter(t *testing.T) {
+func TestOpenSearchWriter(t *testing.T) {
 	url := os.Getenv("OPENSEARCH_URL")
 	if len(url) < 1 {
 		t.Skip("OPENSEARCH_URL not set")
@@ -58,7 +58,7 @@ func TestHTTPWriter(t *testing.T) {
 	lg.SetProp("HOST", "localhost")
 	lg.SetProp("VERSION", "1.0")
 
-	ww := &HTTPWriter{
+	hw := &HTTPWriter{
 		URL:         url,
 		ContentType: "application/json",
 		Insecure:    true,
@@ -66,11 +66,11 @@ func TestHTTPWriter(t *testing.T) {
 		Password:    "admin",
 		Timeout:     time.Millisecond * 300,
 	}
-	ww.SetFormat(`json:{"time": %t{2006-01-02T15:04:05.000Z07:00}, "level": %l, "host":%x{HOST}, "version":%x{VERSON}, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
+	hw.SetFormat(`json:{"time": %t{2006-01-02T15:04:05.000Z07:00}, "level": %l, "host":%x{HOST}, "version":%x{VERSON}, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
 
-	ww.Filter = log.NewLevelFilter(log.LevelDebug)
+	hw.Filter = log.NewLevelFilter(log.LevelDebug)
 	lg.SetWriter(log.NewMultiWriter(
-		ww,
+		hw,
 		&log.StreamWriter{Color: true},
 	))
 
@@ -86,7 +86,7 @@ func TestHTTPWriter(t *testing.T) {
 
 // Test OpenSearch batch log writer
 // set OPENSEARCH_URL=https://localhost:9200/pango_logs
-func TestWebhookBatchWriter(t *testing.T) {
+func TestOpenSearchBatchWriter(t *testing.T) {
 	url := os.Getenv("OPENSEARCH_URL")
 	if len(url) < 1 {
 		t.Skip("OPENSEARCH_URL not set")
@@ -100,7 +100,7 @@ func TestWebhookBatchWriter(t *testing.T) {
 	lg.SetProp("HOST", "localhost")
 	lg.SetProp("VERSION", "1.0")
 
-	ww := &HTTPWriter{
+	hw := &HTTPWriter{
 		URL:         url,
 		ContentType: "application/json",
 		Insecure:    true,
@@ -114,11 +114,11 @@ func TestWebhookBatchWriter(t *testing.T) {
 			FlushDelta: time.Second,
 		},
 	}
-	ww.SetFormat(`json:{"create": {}}%n{"time": %t{2006-01-02T15:04:05.000Z07:00}, "level": %l, "host":%x{HOST}, "version":%x{VERSON}, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
+	hw.SetFormat(`json:{"create": {}}%n{"time": %t{2006-01-02T15:04:05.000Z07:00}, "level": %l, "host":%x{HOST}, "version":%x{VERSON}, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
 
-	ww.Filter = log.NewLevelFilter(log.LevelDebug)
+	hw.Filter = log.NewLevelFilter(log.LevelDebug)
 	lg.SetWriter(log.NewMultiWriter(
-		ww,
+		hw,
 		&log.StreamWriter{Color: true},
 	))
 
@@ -134,6 +134,43 @@ func TestWebhookBatchWriter(t *testing.T) {
 
 	lg.Error("This is a HTTPWriter(batch) error log")
 	lg.Fatal("This is a HTTPWriter(batch) fatal log")
+
+	lg.Close()
+}
+
+// Test teams log writer
+func TestTeamsWriter(t *testing.T) {
+	url := os.Getenv("TEAMS_WEBHOOK")
+	if len(url) < 1 {
+		t.Skip("TEAMS_WEBHOOK not set")
+		return
+	}
+
+	lg := log.NewLog()
+	lg.SetLevel(log.LevelTrace)
+	lg.SetProp("HOST", "localhost")
+	lg.SetProp("VERSION", "1.0")
+
+	hw := &HTTPWriter{
+		URL:         url,
+		ContentType: "application/json",
+		Timeout:     time.Millisecond * 300,
+	}
+	hw.SetFormat(`json:{"time": %t{2006-01-02T15:04:05.000Z07:00}, "level": %l, "host":%x{HOST}, "version":%x{VERSON}, "name": %c, "file": %S, "line": %L, "func": %F, "msg": %m, "trace": %T}%n`)
+	hw.Retries = 1
+
+	hw.Filter = log.NewLevelFilter(log.LevelError)
+	lg.SetWriter(log.NewMultiWriter(
+		hw,
+		&log.StreamWriter{Color: true},
+	))
+
+	lg.Trace("This is a HTTPWriter trace log")
+	lg.Debug("This is a HTTPWriter debug log")
+	lg.Info("This is a HTTPWriter info log")
+	lg.Warn("This is a HTTPWriter warn log")
+	lg.Error("This is a HTTPWriter error log")
+	lg.Fatal("This is a HTTPWriter fatal log")
 
 	lg.Close()
 }

@@ -10,6 +10,10 @@ type RetrySupport struct {
 
 func (rs *RetrySupport) RetryWrite(le *Event, write func(*Event) error) {
 	err := rs.retry(write)
+	if le == nil {
+		return
+	}
+
 	if err == nil {
 		err = write(le)
 		if err != nil {

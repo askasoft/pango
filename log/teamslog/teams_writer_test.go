@@ -13,16 +13,17 @@ func skipTest(t *testing.T, msg string) {
 	t.Skip(msg)
 }
 
+// https://techcommunity.microsoft.com/discussions/teamsdeveloper/simple-workflow-to-replace-teams-incoming-webhooks/4225270
 func TestTeamsWriter(t *testing.T) {
-	wh := os.Getenv("TEAMS_WEBHOOK")
-	if wh == "" {
+	url := os.Getenv("TEAMS_WEBHOOK")
+	if url == "" {
 		skipTest(t, "TEAMS_WEBHOOK not set")
 		return
 	}
 
 	lg := log.NewLog()
 	lg.SetLevel(log.LevelTrace)
-	sw := &TeamsWriter{Webhook: wh}
+	sw := &TeamsWriter{Webhook: url}
 	sw.Filter = log.NewLevelFilter(log.LevelInfo)
 	lg.SetWriter(sw)
 

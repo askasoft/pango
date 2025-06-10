@@ -28,6 +28,22 @@ func TestTeamsWriter(t *testing.T) {
 	lg.SetWriter(sw)
 
 	lg.Debug("This is a teams **debug** log")
+	lg.Info("This is a teams **info** log. detail: This is detail message.")
+}
+
+func TestTeamsWriterAdaptive(t *testing.T) {
+	url := os.Getenv("TEAMS_WEBHOOK_ADAPTIVE")
+	if url == "" {
+		skipTest(t, "TEAMS_WEBHOOK not set")
+		return
+	}
+
+	lg := log.NewLog()
+	lg.SetLevel(log.LevelTrace)
+	sw := &TeamsWriter{Webhook: url, Style: "adaptive"}
+	sw.Filter = log.NewLevelFilter(log.LevelInfo)
+	lg.SetWriter(sw)
+
+	lg.Debug("This is a teams **debug** log")
 	lg.Info("This is a teams **info** log. \ndetail: This is detail message.")
-	// lg.Warn("This is a teams **warn** log. detail: \n\nThis is detail message.")
 }

@@ -72,6 +72,22 @@ func (tw *TeamsWriter) write(le *log.Event) (err error) {
 	title, text := tw.format(le)
 
 	switch tw.Style {
+	case "hero":
+		if len(tw.message.Attachments) == 0 {
+			tw.message.Type = "message"
+			tw.message.Attachments = []any{
+				map[string]any{
+					"contentType": "application/vnd.microsoft.card.hero",
+					"content": map[string]any{
+						"title": "",
+						"text":  "",
+					},
+				},
+			}
+		}
+		content := tw.message.Attachments[0].(map[string]any)["content"].(map[string]any)
+		content["title"] = title
+		content["text"] = text
 	case "adaptive":
 		if len(tw.message.Attachments) == 0 {
 			tw.message.Type = "message"
@@ -81,27 +97,32 @@ func (tw *TeamsWriter) write(le *log.Event) (err error) {
 					"content": map[string]any{
 						"$schema": "https://adaptivecards.io/schemas/adaptive-card.json",
 						"type":    "AdaptiveCard",
-						"version": "1.5",
+						"version": "1.4",
 						"body": []map[string]any{
 							{
 								"type":  "TextBlock",
-								"text":  "",
-								"wrap":  true,
 								"style": "heading",
+								"wrap":  true,
+								"text":  "",
 							},
 							{
-								"type":        "CodeBlock",
-								"codeSnippet": "",
+								"type": "RichTextBlock",
+								"inlines": []map[string]any{
+									{
+										"type":     "TextRun",
+										"fontType": "Monospace",
+										"text":     "",
+									},
+								},
 							},
 						},
 					},
 				},
 			}
 		}
-
 		body := tw.message.Attachments[0].(map[string]any)["content"].(map[string]any)["body"].([]map[string]any)
 		body[0]["text"] = title
-		body[1]["codeSnippet"] = text
+		body[1]["inlines"].([]map[string]any)[0]["text"] = text
 	default:
 		tw.message.Title, tw.message.Text = title, text
 	}

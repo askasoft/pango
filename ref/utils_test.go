@@ -135,3 +135,77 @@ func TestInvokeMethod_InvalidArgType(t *testing.T) {
 		t.Error("expected error for invalid argument types, got nil")
 	}
 }
+
+// Sample struct for testing
+type TestStruct struct {
+	Name   string
+	Age    int
+	hidden bool // unexported, should not appear
+}
+
+func TestStructFieldsToMap_StructValue(t *testing.T) {
+	obj := TestStruct{Name: "Alice", Age: 30, hidden: true}
+
+	m, err := StructFieldsToMap(obj)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(m) != 2 {
+		t.Fatalf("expected 2 exported fields, got %d", len(m))
+	}
+
+	if m["Name"] != "Alice" {
+		t.Errorf("expected Name to be 'Alice', got %v", m["Name"])
+	}
+	if m["Age"] != 30 {
+		t.Errorf("expected Age to be 30, got %v", m["Age"])
+	}
+	if _, ok := m["hidden"]; ok {
+		t.Error("unexported field 'hidden' should not be present")
+	}
+}
+
+func TestStructFieldsToMap_StructPointer(t *testing.T) {
+	obj := &TestStruct{Name: "Bob", Age: 25}
+
+	m, err := StructFieldsToMap(obj)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(m) != 2 || m["Name"] != "Bob" || m["Age"] != 25 {
+		t.Errorf("unexpected map output: %v", m)
+	}
+}
+
+func TestStructFieldsToMap_InvalidInput(t *testing.T) {
+	cases := []struct {
+		input any
+	}{
+		{input: "not a struct"},
+		{input: 123},
+		{input: []string{"a", "b"}},
+		{input: nil},
+	}
+
+	for _, c := range cases {
+		_, err := StructFieldsToMap(c.input)
+		if err == nil {
+			t.Errorf("expected error for input %T, got nil", c.input)
+		}
+	}
+}
+
+func TestStructFieldsToMap_EmptyStruct(t *testing.T) {
+	type Empty struct{}
+	obj := Empty{}
+
+	m, err := StructFieldsToMap(obj)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(m) != 0 {
+		t.Errorf("expected empty map, got %v", m)
+	}
+}

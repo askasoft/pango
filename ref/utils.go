@@ -87,3 +87,37 @@ func InvokeMethod(obj any, name string, args ...any) ([]any, error) {
 	}
 	return rets, nil
 }
+
+func StructFieldsToMap(obj any) (map[string]any, error) {
+	rv := reflect.Indirect(reflect.ValueOf(obj))
+
+	if rv.Kind() != reflect.Struct {
+		return nil, fmt.Errorf("ref: %T is not a struct", obj)
+	}
+
+	rt := rv.Type()
+	fn := rt.NumField()
+	m := make(map[string]any, fn)
+
+	for i := range fn {
+		ft := rt.Field(i)
+		if ft.IsExported() {
+			m[ft.Name] = rv.Field(i).Interface()
+		}
+	}
+	return m, nil
+}
+
+func IterStructFields(obj any, itf func(reflect.StructField, reflect.Value)) error {
+	rv := reflect.Indirect(reflect.ValueOf(obj))
+
+	if rv.Kind() != reflect.Struct {
+		return fmt.Errorf("ref: %T is not a struct", obj)
+	}
+
+	rt := rv.Type()
+	for i := range rt.NumField() {
+		itf(rt.Field(i), rv.Field(i))
+	}
+	return nil
+}

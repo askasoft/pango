@@ -3,6 +3,7 @@ package xmw
 import (
 	"crypto/md5" //nolint: gosec
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -15,6 +16,14 @@ import (
 	"github.com/askasoft/pango/xin"
 )
 
+// DigestKey is the key for digest parameters saved in context
+const DigestKey = "X_DIGEST"
+
+var (
+	errDigestParamMissing = errors.New("da: digest parameter missing")
+	errDigestParamInvalid = errors.New("da: digest parameter invalid")
+)
+
 // DigestAuth digest http authenticator
 type DigestAuth struct {
 	Realm        string
@@ -22,9 +31,8 @@ type DigestAuth struct {
 	NonceExpires time.Duration
 	FindUser     FindUserFunc
 	AuthUserKey  string
-	AuthPassed   xin.HandlerFunc
+	AuthPassed   func(c *xin.Context, au AuthUser)
 	AuthFailed   xin.HandlerFunc
-	AuthRequired xin.HandlerFunc
 
 	noncer *cpt.Tokener
 }
@@ -37,45 +45,62 @@ func NewDigestAuth(f FindUserFunc) *DigestAuth {
 	}
 	da.AuthPassed = da.Authorized
 	da.AuthFailed = da.Unauthorized
-	da.AuthRequired = da.Unauthorized
 	da.noncer = cpt.NewTokener(8, 16)
 
 	return da
 }
 
-// Handle process xin request
-func (da *DigestAuth) Handle(c *xin.Context) {
+func (da *DigestAuth) Authenticate(c *xin.Context) (next bool, au AuthUser, err error) {
 	if _, ok := c.Get(da.AuthUserKey); ok {
 		// already authenticated
-		c.Next()
+		next = true
 		return
 	}
 
 	dap := da.getDigestAuthParams(c)
 	if dap == nil {
-		da.AuthRequired(c)
+		da.AuthFailed(c)
 		return
 	}
 
-	user, err := da.checkUserPass(c, dap)
+	c.Set(DigestKey, dap)
+
+	au, err = da.FindUser(c, dap["username"], dap["response"])
+	if err != nil || au == nil {
+		return
+	}
+
+	// set user to context
+	c.Set(da.AuthUserKey, au)
+
+	return
+}
+
+// Handle process xin request
+func (da *DigestAuth) Handle(c *xin.Context) {
+	next, au, err := da.Authenticate(c)
 	if err != nil {
 		c.Logger.Errorf("DigestAuth: %v", err)
 		c.AbortWithStatus(http.StatusInternalServerError)
 		return
 	}
 
-	if user == nil {
+	if next {
+		// already authenticated
+		c.Next()
+		return
+	}
+
+	if au == nil {
 		da.AuthFailed(c)
 		return
 	}
 
-	c.Set(AuthUserKey, user)
-	da.AuthPassed(c)
-
+	da.AuthPassed(c, au)
 }
 
 // Authorized just call c.Next()
-func (da *DigestAuth) Authorized(c *xin.Context) {
+func (da *DigestAuth) Authorized(c *xin.Context, au AuthUser) {
 	c.Next()
 }
 
@@ -169,58 +194,59 @@ func (da *DigestAuth) checkURI(c *xin.Context, uri string) bool {
 func (da *DigestAuth) checkNonce(c *xin.Context, nonce string) bool {
 	t, err := da.noncer.ParseToken(nonce)
 	if err != nil {
-		c.Logger.Debugf("Digest auth nonce %q is invalid", nonce)
+		c.Logger.Debugf("DigestAuth nonce %q is invalid", nonce)
 		return false
 	}
 	bs, err := base64.RawURLEncoding.DecodeString(t.Secret())
 	if err != nil {
-		c.Logger.Debugf("Digest auth nonce %q contains invalid secret", t.String())
+		c.Logger.Debugf("DigestAuth nonce %q contains invalid secret", t.String())
 		return false
 	}
 	if str.UnsafeString(bs) != c.ClientIP() {
-		c.Logger.Debugf("Digest auth %q does not match request client IP %s", t.String(), c.ClientIP())
+		c.Logger.Debugf("DigestAuth %q does not match request client IP %s", t.String(), c.ClientIP())
 		return false
 	}
 	if da.NonceExpires.Seconds() > 0 && t.Timestamp().Add(da.NonceExpires).Before(time.Now()) {
-		c.Logger.Debugf("Digest auth nonce %q is expired", t.String())
+		c.Logger.Debugf("DigestAuth nonce %q is expired", t.String())
 		return false
 	}
 	return true
 }
 
-func (da *DigestAuth) checkUserPass(c *xin.Context, auth map[string]string) (any, error) {
-	digest := md5.New() //nolint: gosec
+func (da *DigestAuth) VerifyPassword(c *xin.Context, password string) (bool, error) {
+	var dap map[string]string
 
-	// find user
-	user, err := da.FindUser(c, auth["username"])
-	if user == nil || err != nil {
-		return nil, err
+	val, ok := c.Get(DigestKey)
+	if !ok {
+		return false, errDigestParamMissing
+	}
+	if dap, ok = val.(map[string]string); !ok {
+		return false, errDigestParamInvalid
 	}
 
-	pass := user.GetPassword()
+	digest := md5.New() //nolint: gosec
 
 	// hash password
-	ha1 := auth["username"] + ":" + da.Realm + ":" + pass
-
+	ha1 := dap["username"] + ":" + da.Realm + ":" + password
 	digest.Reset()
 	digest.Write(str.UnsafeBytes(ha1))
 	ha1 = fmt.Sprintf("%x", digest.Sum(nil))
 
-	ha2 := c.Request.Method + ":" + auth["uri"]
+	ha2 := c.Request.Method + ":" + dap["uri"]
 	digest.Reset()
 	digest.Write(str.UnsafeBytes(ha2))
 	ha2 = fmt.Sprintf("%x", digest.Sum(nil))
 
-	kd := strings.Join([]string{ha1, auth["nonce"], auth["nc"], auth["cnonce"], auth["qop"], ha2}, ":")
+	kd := strings.Join([]string{ha1, dap["nonce"], dap["nc"], dap["cnonce"], dap["qop"], ha2}, ":")
 	digest.Reset()
 	digest.Write(str.UnsafeBytes(kd))
 	kd = fmt.Sprintf("%x", digest.Sum(nil))
 
-	// check password
-	if kd == auth["response"] {
-		return user, nil
+	// verify password
+	if kd == dap["response"] {
+		return true, nil
 	}
 
-	c.Logger.Debugf("Digest auth response %q is invalid", auth["response"])
-	return nil, nil
+	c.Logger.Debugf("DigestAuth response %q is invalid", dap["response"])
+	return false, nil
 }

@@ -16,7 +16,7 @@ type AuthUser interface {
 	GetPassword() string
 }
 
-type FindUserFunc func(c *xin.Context, username string) (AuthUser, error)
+type FindUserFunc func(c *xin.Context, username, password string) (AuthUser, error)
 
 // BasicAuth basic http authenticator
 type BasicAuth struct {
@@ -50,13 +50,8 @@ func (ba *BasicAuth) Authenticate(c *xin.Context) (next bool, au AuthUser, err e
 		return
 	}
 
-	au, err = ba.FindUser(c, username)
+	au, err = ba.FindUser(c, username, password)
 	if err != nil || au == nil {
-		return
-	}
-
-	if password != au.GetPassword() {
-		au = nil
 		return
 	}
 

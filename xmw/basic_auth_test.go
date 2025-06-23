@@ -25,8 +25,8 @@ func (ta *testAccount) GetPassword() string {
 
 type testAccounts map[string]*testAccount
 
-func (tas testAccounts) FindUser(c *xin.Context, username string) (AuthUser, error) {
-	if ta, ok := tas[username]; ok {
+func (tas testAccounts) FindUser(c *xin.Context, username, password string) (AuthUser, error) {
+	if ta, ok := tas[username]; ok && ta.password == password {
 		return ta, nil
 	}
 	return nil, nil

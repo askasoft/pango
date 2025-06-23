@@ -21,27 +21,27 @@ const (
 )
 
 var (
-	errTimestampMissing = errors.New("timestamp missing")
-	errTimestampExpired = errors.New("timestamp expired")
+	errTimestampMissing = errors.New("ca: timestamp missing")
+	errTimestampExpired = errors.New("ca: timestamp expired")
 )
 
 // CookieAuth cookie authenticator
 type CookieAuth struct {
 	Cryptor        cpt.Cryptor // cryptor to encode/decode cookie, MUST concurrent safe
 	FindUser       FindUserFunc
-	CookieName     string
-	CookieMaxAge   time.Duration
-	CookieDomain   string
-	CookiePath     string
-	CookieSecure   bool
-	CookieHttpOnly bool
-	CookieSameSite http.SameSite
+	AuthUserKey    string
+	RedirectURL    string
+	OriginURLQuery string
+	AuthPassed     func(c *xin.Context, au AuthUser)
+	AuthFailed     xin.HandlerFunc
 
-	AuthUserKey     string
-	RedirectURL     string
-	OriginURLQuery  string
-	AuthPassed      func(c *xin.Context, au AuthUser)
-	AuthFailed      xin.HandlerFunc
+	CookieName      string
+	CookieMaxAge    time.Duration
+	CookieDomain    string
+	CookiePath      string
+	CookieSecure    bool
+	CookieHttpOnly  bool
+	CookieSameSite  http.SameSite
 	GetCookieMaxAge func(c *xin.Context) time.Duration
 }
 
@@ -83,13 +83,8 @@ func (ca *CookieAuth) Authenticate(c *xin.Context) (next bool, au AuthUser, err 
 		return
 	}
 
-	au, err = ca.FindUser(c, username)
+	au, err = ca.FindUser(c, username, password)
 	if err != nil || au == nil {
-		return
-	}
-
-	if password != au.GetPassword() {
-		au = nil
 		return
 	}
 

@@ -196,6 +196,20 @@ func TestTreeSetEach(t *testing.T) {
 	})
 }
 
+func TestTreeSetSeq(t *testing.T) {
+	ehs := NewTreeSet(cmp.Compare[string], "a", "b", "c", "a", "b", "c")
+	ahs := NewTreeSet(cmp.Compare[string])
+	for s := range ehs.Seq() {
+		ahs.Add(s)
+	}
+
+	w := fmt.Sprint(ehs.Values())
+	a := fmt.Sprint(ahs.Values())
+	if a != w {
+		t.Errorf("Each():\nWANT: %s\n GOT: %s", w, a)
+	}
+}
+
 func TestTreeSetIteratorNextOnEmpty(t *testing.T) {
 	tset := NewTreeSet(cmp.Compare[string])
 	it := tset.Iterator()

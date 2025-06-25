@@ -2,6 +2,7 @@ package hashset
 
 import (
 	"fmt"
+	"iter"
 
 	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/cog"
@@ -254,6 +255,17 @@ func (hs *HashSet[T]) Each(f func(int, T) bool) {
 			return
 		}
 		i++
+	}
+}
+
+// Seq returns a iter.Seq[T] for range
+func (hs *HashSet[T]) Seq() iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for k := range hs.hash {
+			if !yield(k) {
+				return
+			}
+		}
 	}
 }
 

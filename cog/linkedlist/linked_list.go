@@ -3,6 +3,7 @@ package linkedlist
 import (
 	"encoding/json"
 	"fmt"
+	"iter"
 
 	"github.com/askasoft/pango/cog"
 	"github.com/askasoft/pango/cog/internal/iarray"
@@ -256,6 +257,17 @@ func (ll *LinkedList[T]) ReverseEach(f func(int, T) bool) {
 // Iterator returns a iterator for the list
 func (ll *LinkedList[T]) Iterator() cog.Iterator[T] {
 	return &linkedListIterator[T]{list: ll}
+}
+
+// Seq returns a iter.Seq[T] for range
+func (ll *LinkedList[T]) Seq() iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for ln := ll.head; ln != nil; ln = ln.next {
+			if !yield(ln.value) {
+				return
+			}
+		}
+	}
 }
 
 //-----------------------------------------------------------

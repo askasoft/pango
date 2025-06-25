@@ -3,6 +3,7 @@ package ringbuffer
 import (
 	"encoding/json"
 	"fmt"
+	"iter"
 
 	"github.com/askasoft/pango/cog"
 	"github.com/askasoft/pango/cog/internal/iarray"
@@ -305,6 +306,31 @@ func (rb *RingBuffer[T]) ReverseEach(f func(int, T) bool) {
 // Iterator returns a iterator for the RingBuffer
 func (rb *RingBuffer[T]) Iterator() cog.Iterator[T] {
 	return &ringBufferIterator[T]{rb, -1, -1}
+}
+
+// Seq returns a iter.Seq[T] for range
+func (rb *RingBuffer[T]) Seq() iter.Seq[T] {
+	return func(yield func(T) bool) {
+		if rb.head <= rb.tail {
+			for i := rb.head; i <= rb.tail; i++ {
+				if !yield(rb.data[i]) {
+					return
+				}
+			}
+		} else {
+			l := len(rb.data)
+			for i := rb.head; i < l; i++ {
+				if !yield(rb.data[i]) {
+					return
+				}
+			}
+			for i := 0; i <= rb.tail; i++ {
+				if !yield(rb.data[i]) {
+					return
+				}
+			}
+		}
+	}
 }
 
 //-----------------------------------------------------------

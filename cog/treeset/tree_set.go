@@ -2,6 +2,7 @@ package treeset
 
 import (
 	"encoding/json"
+	"iter"
 
 	"github.com/askasoft/pango/cog"
 	"github.com/askasoft/pango/cog/internal/iarray"
@@ -267,6 +268,17 @@ func (ts *TreeSet[T]) ReverseEach(f func(int, T) bool) {
 // Iterator returns a iterator for the set
 func (ts *TreeSet[T]) Iterator() cog.Iterator[T] {
 	return &treeSetIterator[T]{tree: ts}
+}
+
+// Seq returns a iter.Seq[T] for range
+func (ts *TreeSet[T]) Seq() iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for tn := ts.head(); tn != nil; tn = tn.next() {
+			if !yield(tn.value) {
+				return
+			}
+		}
+	}
 }
 
 //----------------------------------------------------------------

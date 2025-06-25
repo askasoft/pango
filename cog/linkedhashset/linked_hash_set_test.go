@@ -319,6 +319,20 @@ func TestLinkedHashSetEach(t *testing.T) {
 	})
 }
 
+func TestLinkedHashSetSeq(t *testing.T) {
+	ehs := NewLinkedHashSet("a", "b", "c", "a", "b", "c")
+	ahs := NewLinkedHashSet[string]()
+	for s := range ehs.Seq() {
+		ahs.Add(s)
+	}
+
+	w := fmt.Sprint(ehs.Values())
+	a := fmt.Sprint(ahs.Values())
+	if a != w {
+		t.Errorf("Each():\nWANT: %s\n GOT: %s", w, a)
+	}
+}
+
 func TestLinkedHashSetIteratorNextOnEmpty(t *testing.T) {
 	lset := NewLinkedHashSet[int]()
 	it := lset.Iterator()

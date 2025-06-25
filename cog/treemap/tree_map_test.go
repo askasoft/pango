@@ -260,6 +260,7 @@ func TestTreeMapEach(t *testing.T) {
 	m.Set("c", 3)
 	m.Set("a", 1)
 	m.Set("b", 2)
+
 	count := 0
 	m.Each(func(key string, value int) bool {
 		count++
@@ -284,6 +285,37 @@ func TestTreeMapEach(t *testing.T) {
 		}
 		return true
 	})
+}
+
+func TestHashMapSeq(t *testing.T) {
+	m := NewTreeMap[string, int](cmp.Compare[string])
+	m.Set("c", 3)
+	m.Set("a", 1)
+	m.Set("b", 2)
+
+	count := 0
+	for key, value := range m.Seq() {
+		count++
+		if actualValue, expectedValue := count, value; actualValue != expectedValue {
+			t.Errorf("Got %v expected %v", actualValue, expectedValue)
+		}
+		switch value {
+		case 1:
+			if actualValue, expectedValue := key, "a"; actualValue != expectedValue {
+				t.Errorf("Got %v expected %v", actualValue, expectedValue)
+			}
+		case 2:
+			if actualValue, expectedValue := key, "b"; actualValue != expectedValue {
+				t.Errorf("Got %v expected %v", actualValue, expectedValue)
+			}
+		case 3:
+			if actualValue, expectedValue := key, "c"; actualValue != expectedValue {
+				t.Errorf("Got %v expected %v", actualValue, expectedValue)
+			}
+		default:
+			t.Errorf("Too many")
+		}
+	}
 }
 
 func TestTreeMapHeadAndTail(t *testing.T) {

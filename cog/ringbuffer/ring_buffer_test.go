@@ -621,6 +621,32 @@ func TestRingBufferEach(t *testing.T) {
 	})
 }
 
+func TestRingBufferSeq(t *testing.T) {
+	list := NewRingBuffer[string]()
+	list.AddAll("a", "b", "c")
+
+	index := 0
+	for value := range list.Seq() {
+		switch index {
+		case 0:
+			if av, ev := value, "a"; av != ev {
+				t.Errorf("Got %v expected %v", av, ev)
+			}
+		case 1:
+			if av, ev := value, "b"; av != ev {
+				t.Errorf("Got %v expected %v", av, ev)
+			}
+		case 2:
+			if av, ev := value, "c"; av != ev {
+				t.Errorf("Got %v expected %v", av, ev)
+			}
+		default:
+			t.Errorf("Too many")
+		}
+		index++
+	}
+}
+
 func TestRingBufferIteratorPrevOnEmpty(t *testing.T) {
 	list := NewRingBuffer[int]()
 	it := list.Iterator()

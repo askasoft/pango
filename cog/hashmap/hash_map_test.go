@@ -162,6 +162,39 @@ func TestHashMapRemove(t *testing.T) {
 	}
 }
 
+func TestHashMapEach(t *testing.T) {
+	em := NewHashMap[int, string]()
+	em.Set(0, "a")
+	em.Set(1, "b")
+	em.Set(2, "c")
+
+	am := NewHashMap[int, string]()
+	em.Each(func(i int, s string) bool {
+		am.Set(i, s)
+		return true
+	})
+
+	if !testHashMapSameEntries(em.Entries(), am.Entries()) {
+		t.Errorf("Each():\nWANT: %s\n GOT: %s", em.String(), am.String())
+	}
+}
+
+func TestHashMapSeq(t *testing.T) {
+	em := NewHashMap[int, string]()
+	em.Set(0, "a")
+	em.Set(1, "b")
+	em.Set(2, "c")
+
+	am := NewHashMap[int, string]()
+	for i, s := range em.Seq() {
+		am.Set(i, s)
+	}
+
+	if !testHashMapSameEntries(em.Entries(), am.Entries()) {
+		t.Errorf("Seq():\nWANT: %s\n GOT: %s", em.String(), am.String())
+	}
+}
+
 func TestHashMapJSON(t *testing.T) {
 	cs := []struct {
 		s string

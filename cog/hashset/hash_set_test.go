@@ -2,6 +2,7 @@ package hashset
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"sort"
 	"testing"
@@ -322,6 +323,45 @@ func TestHashSetAddSet(t *testing.T) {
 		if !(s1.Contains(i)) {
 			t.Errorf("Set should contains %d", i)
 		}
+	}
+}
+
+func TestHashSetEach(t *testing.T) {
+	ehs := NewHashSet("a", "b", "c")
+	ahs := NewHashSet[string]()
+	ehs.Each(func(i int, s string) bool {
+		ahs.Add(s)
+		return true
+	})
+
+	evs := ehs.Values()
+	sort.Strings(evs)
+	w := fmt.Sprint(evs)
+
+	avs := ahs.Values()
+	sort.Strings(avs)
+	a := fmt.Sprint(avs)
+	if a != w {
+		t.Errorf("Each():\nWANT: %s\n GOT: %s", w, a)
+	}
+}
+
+func TestHashSetSeq(t *testing.T) {
+	ehs := NewHashSet("a", "b", "c")
+	ahs := NewHashSet[string]()
+	for s := range ehs.Seq() {
+		ahs.Add(s)
+	}
+
+	evs := ehs.Values()
+	sort.Strings(evs)
+	w := fmt.Sprint(evs)
+
+	avs := ahs.Values()
+	sort.Strings(avs)
+	a := fmt.Sprint(avs)
+	if a != w {
+		t.Errorf("Each():\nWANT: %s\n GOT: %s", w, a)
 	}
 }
 

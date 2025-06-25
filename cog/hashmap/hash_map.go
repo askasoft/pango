@@ -3,6 +3,7 @@ package hashmap
 import (
 	"encoding/json"
 	"fmt"
+	"iter"
 
 	"github.com/askasoft/pango/cog"
 	"github.com/askasoft/pango/cog/internal/imap"
@@ -217,6 +218,17 @@ func (hm *HashMap[K, V]) Each(f func(K, V) bool) {
 	for k, v := range hm.hash {
 		if !f(k, v) {
 			return
+		}
+	}
+}
+
+// Seq returns a iter.Seq[K, V] for range
+func (hm *HashMap[K, V]) Seq() iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		for k, v := range hm.hash {
+			if !yield(k, v) {
+				return
+			}
 		}
 	}
 }

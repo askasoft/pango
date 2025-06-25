@@ -629,6 +629,7 @@ func TestLinkedHashMapEach(t *testing.T) {
 	m.Set("c", 1)
 	m.Set("a", 2)
 	m.Set("b", 3)
+
 	count := 0
 	m.Each(func(key string, value int) bool {
 		count++
@@ -653,6 +654,37 @@ func TestLinkedHashMapEach(t *testing.T) {
 		}
 		return true
 	})
+}
+
+func TestLinkedHashMapSeq(t *testing.T) {
+	m := NewLinkedHashMap[string, int]()
+	m.Set("c", 1)
+	m.Set("a", 2)
+	m.Set("b", 3)
+
+	count := 0
+	for key, value := range m.Seq() {
+		count++
+		if av, ev := count, value; av != ev {
+			t.Errorf("Got %v expected %v", av, ev)
+		}
+		switch value {
+		case 1:
+			if av, ev := key, "c"; av != ev {
+				t.Errorf("Got %v expected %v", av, ev)
+			}
+		case 2:
+			if av, ev := key, "a"; av != ev {
+				t.Errorf("Got %v expected %v", av, ev)
+			}
+		case 3:
+			if av, ev := key, "b"; av != ev {
+				t.Errorf("Got %v expected %v", av, ev)
+			}
+		default:
+			t.Errorf("Too many")
+		}
+	}
 }
 
 func TestLinkedHashMapIteratorNextOnEmpty(t *testing.T) {

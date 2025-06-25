@@ -3,6 +3,7 @@ package treemap
 import (
 	"encoding/json"
 	"fmt"
+	"iter"
 
 	"github.com/askasoft/pango/cog"
 	"github.com/askasoft/pango/cog/internal/imap"
@@ -243,6 +244,17 @@ func (tm *TreeMap[K, V]) ReverseEach(f func(K, V) bool) {
 	for tn := tm.tail(); tn != nil; tn = tn.prev() {
 		if !f(tn.key, tn.value) {
 			return
+		}
+	}
+}
+
+// Seq returns a iter.Seq[K, V] for range
+func (tm *TreeMap[K, V]) Seq() iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		for tn := tm.head(); tn != nil; tn = tn.next() {
+			if !yield(tn.key, tn.value) {
+				return
+			}
 		}
 	}
 }

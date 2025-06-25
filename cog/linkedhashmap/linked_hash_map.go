@@ -3,6 +3,7 @@ package linkedhashmap
 import (
 	"encoding/json"
 	"fmt"
+	"iter"
 
 	"github.com/askasoft/pango/cog"
 	"github.com/askasoft/pango/cog/internal/imap"
@@ -248,6 +249,17 @@ func (lm *LinkedHashMap[K, V]) IteratorOf(k K) cog.Iterator2[K, V] {
 		return &linkedHashMapIterator[K, V]{lmap: lm, node: ln}
 	}
 	return nil
+}
+
+// Seq returns a iter.Seq[K, V] for range
+func (lm *LinkedHashMap[K, V]) Seq() iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		for ln := lm.head; ln != nil; ln = ln.next {
+			if !yield(ln.key, ln.value) {
+				return
+			}
+		}
+	}
 }
 
 //-----------------------------------------------------------

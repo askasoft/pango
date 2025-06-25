@@ -3,6 +3,7 @@ package arraylist
 import (
 	"encoding/json"
 	"fmt"
+	"iter"
 
 	"github.com/askasoft/pango/cog"
 	"github.com/askasoft/pango/cog/internal/iarray"
@@ -268,6 +269,17 @@ func (al *ArrayList[T]) ReverseEach(f func(int, T) bool) {
 // Iterator returns a iterator for the list
 func (al *ArrayList[T]) Iterator() cog.Iterator[T] {
 	return &arrayListIterator[T]{al, -1, -1}
+}
+
+// Seq returns a iter.Seq[T] for range
+func (al *ArrayList[T]) Seq() iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for _, v := range al.data {
+			if !yield(v) {
+				return
+			}
+		}
+	}
 }
 
 //-----------------------------------------------------------

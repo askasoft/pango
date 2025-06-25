@@ -1,5 +1,7 @@
 package cog
 
+import "iter"
+
 // Eachable a key/value each interface for collection
 type Eachable[K any, V any] interface {
 	// Each call f for each key/value in the collection
@@ -57,4 +59,14 @@ type Iterator2[K any, V any] interface {
 
 	// Key returns the current item's key.
 	Key() K
+}
+
+type Seqable[T any] interface {
+	// Seq returns a iter.Seq[T] for range
+	Seq() iter.Seq[T]
+}
+
+type Seqable2[K any, V any] interface {
+	// Seq returns a iter.Seq2[K, V] for range
+	Seq() iter.Seq2[K, V]
 }

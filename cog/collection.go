@@ -103,6 +103,8 @@ type Collection[T any] interface {
 	Values() []T
 
 	Eachable[int, T]
+
+	Seqable[T]
 }
 
 // Set a set interface
@@ -224,6 +226,8 @@ type Map[K any, V any] interface {
 	Entries() []P[K, V]
 
 	Eachable[K, V]
+
+	Seqable2[K, V]
 }
 
 // IterableMap A iterable map interface

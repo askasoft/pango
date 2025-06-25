@@ -3,6 +3,7 @@ package linkedhashset
 import (
 	"encoding/json"
 	"fmt"
+	"iter"
 
 	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/cog"
@@ -265,6 +266,17 @@ func (ls *LinkedHashSet[T]) ReverseEach(f func(int, T) bool) {
 // Iterator returns a iterator for the set
 func (ls *LinkedHashSet[T]) Iterator() cog.Iterator[T] {
 	return &linkedHashSetIterator[T]{lset: ls}
+}
+
+// Seq returns a iter.Seq[T] for range
+func (ls *LinkedHashSet[T]) Seq() iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for ln := ls.head; ln != nil; ln = ln.next {
+			if !yield(ln.value) {
+				return
+			}
+		}
+	}
 }
 
 //-----------------------------------------------------------

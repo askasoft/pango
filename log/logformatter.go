@@ -417,11 +417,11 @@ func ffTrace(le *Event) string {
 }
 
 func ffMsg(le *Event) string {
-	return le.Msg
+	return le.Message
 }
 
 func ffQmsg(le *Event) string {
-	return strconv.Quote(le.Msg)
+	return strconv.Quote(le.Message)
 }
 
 func ffEol(le *Event) string {

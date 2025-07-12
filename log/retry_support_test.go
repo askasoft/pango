@@ -24,7 +24,7 @@ func (trw *testRetryWriter) write(le *Event) error {
 	if trw.count%trw.error == 0 {
 		return fmt.Errorf("testRetryWriter: %d", trw.count)
 	}
-	trw.msgs = append(trw.msgs, le.Msg)
+	trw.msgs = append(trw.msgs, le.Message)
 	return nil
 }
 

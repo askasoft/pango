@@ -11,9 +11,9 @@ const benchmarkTestEventCount = 10000
 
 func BenchmarkLogEventNewWithStackTrace(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		for n := 0; n < benchmarkTestEventCount; n++ {
+		for range benchmarkTestEventCount {
 			le := &Event{}
-			le.Msg = ""
+			le.Message = ""
 			le.Level = LevelError
 			le.CallerDepth(5, true)
 		}
@@ -22,9 +22,9 @@ func BenchmarkLogEventNewWithStackTrace(b *testing.B) {
 
 func BenchmarkLogEventNewWithoutStackTrace(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		for n := 0; n < benchmarkTestEventCount; n++ {
+		for range benchmarkTestEventCount {
 			le := &Event{}
-			le.Msg = ""
+			le.Message = ""
 			le.Level = LevelError
 			le.CallerDepth(5, false)
 		}
@@ -33,9 +33,9 @@ func BenchmarkLogEventNewWithoutStackTrace(b *testing.B) {
 
 func BenchmarkLogEventNewWithoutPool(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		for n := 0; n < benchmarkTestEventCount; n++ {
+		for range benchmarkTestEventCount {
 			le := &Event{}
-			le.Msg = ""
+			le.Message = ""
 			le.CallerDepth(5, false)
 		}
 	}
@@ -52,9 +52,9 @@ var testEventPool = sync.Pool{
 
 func BenchmarkLogEventNewWithPool(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		for n := 0; n < benchmarkTestEventCount; n++ {
+		for range benchmarkTestEventCount {
 			le := testEventPool.Get().(*Event)
-			le.Msg = ""
+			le.Message = ""
 			le.CallerDepth(5, false)
 			testEventPool.Put(le)
 		}
@@ -74,7 +74,7 @@ func BenchmarkLogEventNewWithPoolParallel(b *testing.B) {
 		for pb.Next() {
 			le := eventPool.Get().(*Event)
 			le.Level = LevelInfo
-			le.Msg = "simple"
+			le.Message = "simple"
 			le.Time = time.Now()
 			TextFmtSimple.Write(sb, le)
 			eventPool.Put(le)
@@ -88,7 +88,7 @@ func BenchmarkLogEventNewWithoutPoolParallel(b *testing.B) {
 		for pb.Next() {
 			le := &Event{}
 			le.Level = LevelInfo
-			le.Msg = "simple"
+			le.Message = "simple"
 			le.Time = time.Now()
 			TextFmtSimple.Write(sb, le)
 		}

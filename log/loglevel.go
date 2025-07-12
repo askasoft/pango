@@ -14,44 +14,25 @@ const (
 	LevelTrace
 )
 
+var (
+	levelStrings = []string{"NONE", "FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE"}
+	levelPrefixs = []string{"N", "F", "E", "W", "I", "D", "T"}
+)
+
 // String return level string
 func (l Level) String() string {
-	switch l {
-	case LevelFatal:
-		return "FATAL"
-	case LevelError:
-		return "ERROR"
-	case LevelWarn:
-		return "WARN"
-	case LevelInfo:
-		return "INFO"
-	case LevelDebug:
-		return "DEBUG"
-	case LevelTrace:
-		return "TRACE"
-	default:
-		return "NONE"
+	if l < LevelNone || l > LevelTrace {
+		return "UNKNOWN"
 	}
+	return levelStrings[l]
 }
 
 // Prefix return level prefix
 func (l Level) Prefix() string {
-	switch l {
-	case LevelFatal:
-		return "F"
-	case LevelError:
-		return "E"
-	case LevelWarn:
-		return "W"
-	case LevelInfo:
-		return "I"
-	case LevelDebug:
-		return "D"
-	case LevelTrace:
-		return "T"
-	default:
-		return "N"
+	if l < LevelNone || l > LevelTrace {
+		return "U"
 	}
+	return levelPrefixs[l]
 }
 
 // ParseLevel parse level from string

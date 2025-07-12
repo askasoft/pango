@@ -41,7 +41,7 @@ func (tw *testConcurrentDetectWriter) do() {
 func (tw *testConcurrentDetectWriter) Write(le *Event) {
 	tw.do()
 
-	ss := str.Split(le.Msg, " ")
+	ss := str.Split(le.Message, " ")
 	k, _ := strconv.Atoi(ss[0])
 	c, _ := strconv.ParseInt(ss[1], 10, 64)
 	tw.counts[k] = c

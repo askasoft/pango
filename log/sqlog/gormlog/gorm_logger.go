@@ -61,11 +61,11 @@ func (gl *GormLogger) Error(ctx context.Context, msg string, data ...any) {
 func (gl *GormLogger) printf(lvl log.Level, msg string, data ...any) {
 	if gl.Logger.IsLevelEnabled(lvl) {
 		le := &log.Event{
-			Name:  gl.Logger.GetName(),
-			Props: gl.Logger.GetProps(),
-			Level: lvl,
-			Msg:   fmt.Sprintf(msg, data...),
-			Time:  time.Now(),
+			Name:    gl.Logger.GetName(),
+			Props:   gl.Logger.GetProps(),
+			Level:   lvl,
+			Message: fmt.Sprintf(msg, data...),
+			Time:    time.Now(),
 		}
 		le.CallerStop("gorm.io", gl.Logger.GetTraceLevel() >= lvl)
 

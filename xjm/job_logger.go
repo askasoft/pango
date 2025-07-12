@@ -62,7 +62,7 @@ func (jw *JobLogWriter) flush(eb *log.EventBuffer) error {
 		jl.JID = jw.jid
 		jl.Time = le.Time
 		jl.Level = le.Level.Prefix()
-		jl.Message = le.Msg
+		jl.Message = le.Message
 		n++
 	}
 

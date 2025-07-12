@@ -16,15 +16,15 @@ type EventBuffer = ringbuffer.RingBuffer[*Event]
 
 // Event log event
 type Event struct {
-	Name  string
-	Props map[string]any
-	Level Level
-	Msg   string
-	Time  time.Time
-	File  string
-	Line  int
-	Func  string
-	Trace string
+	Name    string
+	Props   map[string]any
+	Level   Level
+	Time    time.Time
+	Message string
+	File    string
+	Line    int
+	Func    string
+	Trace   string
 }
 
 // CallerDepth get caller filename and line number
@@ -96,14 +96,13 @@ func (le *Event) CallerStop(stop string, trace bool) {
 
 func NewEvent(logger Logger, lvl Level, msg string) *Event {
 	le := &Event{
-		Name:  logger.GetName(),
-		Props: logger.GetProps(),
-		Level: lvl,
-		Msg:   msg,
-		Time:  time.Now(),
-		File:  "???",
-		Func:  "???",
-		Line:  0,
+		Name:    logger.GetName(),
+		Props:   logger.GetProps(),
+		Level:   lvl,
+		Time:    time.Now(),
+		File:    "???",
+		Func:    "???",
+		Message: msg,
 	}
 	if logger.GetCallerDepth() > 0 {
 		le.CallerDepth(logger.GetCallerDepth(), logger.GetTraceLevel() >= lvl)

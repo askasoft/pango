@@ -508,7 +508,7 @@ func TestFileRotateDailyInit(t *testing.T) {
 
 	// check init rotated files
 	tm = yes
-	for {
+	{
 		sp := strings.ReplaceAll(path, ".log", fmt.Sprintf("-%s.log", tm.Format("20060102")))
 		bs, _ := os.ReadFile(sp)
 
@@ -517,8 +517,6 @@ func TestFileRotateDailyInit(t *testing.T) {
 		if a != e {
 			t.Errorf("TestFileRotateDailyInit\n expect: %q, actual: %q", e, a)
 		}
-
-		break
 	}
 
 	// check rotated files

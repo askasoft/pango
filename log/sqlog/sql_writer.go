@@ -123,7 +123,7 @@ func (sw *SQLWriter) SetParameter(format string) {
 			p = ffTrace
 		case 'm':
 			p = func(le *log.Event) any {
-				return le.Msg
+				return le.Message
 			}
 		case 'M':
 			o := getOption(format, &i)

@@ -17,7 +17,7 @@ import (
 // EOL windows: "\r\n" other: "\n"
 var EOL = iox.EOL
 
-const defaultTimeFormat = "2006-01-02T15:04:05.000"
+const defaultTimeFormat = "2006-01-02T15:04:05.000Z07:00"
 
 // Formatter log formatter interface
 type Formatter interface {
@@ -51,7 +51,7 @@ func NewLogFormatter(format string) Formatter {
 
 // NewTextFormatter create a Text Formatter instance
 // Text Format
-// %t{format}: time, if {format} is omitted, '2006-01-02T15:04:05.000' will be used
+// %t{format}: time, if {format} is omitted, '2006-01-02T15:04:05.000Z07:00' will be used
 // %c{format}: logger name
 // %p{format}: log level prefix
 // %l{format}: log level string
@@ -87,7 +87,7 @@ func newTextFormatter(format string) *TextFormatter {
 
 // NewJSONFormatter create a Json Formatter instance
 // JSON Format
-// %t{format}: time, if {format} is omitted, '2006-01-02T15:04:05.000' will be used
+// %t{format}: time, if {format} is omitted, '2006-01-02T15:04:05.000Z07:00' will be used
 // %c{format}: logger name
 // %p{format}: log level prefix
 // %l{format}: log level string

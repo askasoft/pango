@@ -52,18 +52,14 @@ func (sm *StatsMonitor) Start() {
 
 	sm.Logger.Info("ossmonitor: start")
 
-	go sm.start()
+	sm.timer = time.AfterFunc(sm.Interval, sm.monitor)
 }
 
-func (sm *StatsMonitor) start() {
-	sm.timer = time.NewTimer(sm.Interval)
-	for {
-		if _, ok := <-sm.timer.C; !ok {
-			break
-		}
-
+func (sm *StatsMonitor) monitor() {
+	if timer := sm.timer; timer != nil {
 		sm.Collect()
-		sm.timer.Reset(sm.Interval)
+
+		timer.Reset(sm.Interval)
 	}
 }
 

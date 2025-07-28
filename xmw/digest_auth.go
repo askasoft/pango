@@ -16,8 +16,10 @@ import (
 	"github.com/askasoft/pango/xin"
 )
 
-// DigestKey is the key for digest parameters saved in context
-const DigestKey = "X_DIGEST"
+const (
+	DigestAuthCtxKey = "X_DIGEST" // Key for digest parameters saved in context
+	DigestAuthPrefix = "Digest "  // Digest Authentication Prefix
+)
 
 var (
 	errDigestParamMissing = errors.New("da: digest parameter missing")
@@ -43,37 +45,11 @@ func NewDigestAuth(f FindUserFunc) *DigestAuth {
 		NonceExpires: time.Minute * 5,
 		FindUser:     f,
 	}
-	da.AuthPassed = da.Authorized
+	da.AuthPassed = da.authorized
 	da.AuthFailed = da.Unauthorized
 	da.noncer = cpt.NewTokener(8, 16)
 
 	return da
-}
-
-func (da *DigestAuth) Authenticate(c *xin.Context) (next bool, au AuthUser, err error) {
-	if _, ok := c.Get(da.AuthUserKey); ok {
-		// already authenticated
-		next = true
-		return
-	}
-
-	dap := da.getDigestAuthParams(c)
-	if dap == nil {
-		da.AuthFailed(c)
-		return
-	}
-
-	c.Set(DigestKey, dap)
-
-	au, err = da.FindUser(c, dap["username"], dap["response"])
-	if err != nil || au == nil {
-		return
-	}
-
-	// set user to context
-	c.Set(da.AuthUserKey, au)
-
-	return
 }
 
 // Handle process xin request
@@ -99,8 +75,7 @@ func (da *DigestAuth) Handle(c *xin.Context) {
 	da.AuthPassed(c, au)
 }
 
-// Authorized just call c.Next()
-func (da *DigestAuth) Authorized(c *xin.Context, au AuthUser) {
+func (da *DigestAuth) authorized(c *xin.Context, au AuthUser) {
 	c.Next()
 }
 
@@ -114,21 +89,46 @@ func (da *DigestAuth) Unauthorized(c *xin.Context) {
 	c.AbortWithStatus(http.StatusUnauthorized)
 }
 
-// getDigestAuthParams parses Authorization header from the
+func (da *DigestAuth) Authenticate(c *xin.Context) (next bool, au AuthUser, err error) {
+	if _, ok := c.Get(da.AuthUserKey); ok {
+		// already authenticated
+		next = true
+		return
+	}
+
+	dap := da.digestRequestAuth(c)
+	if dap == nil {
+		da.AuthFailed(c)
+		return
+	}
+
+	c.Set(DigestAuthCtxKey, dap)
+
+	au, err = da.FindUser(c, dap["username"], dap["response"])
+	if err != nil || au == nil {
+		return
+	}
+
+	// set user to context
+	c.Set(da.AuthUserKey, au)
+
+	return
+}
+
+// digestRequestAuth parses Authorization header from the
 // http.Request. Returns a map of auth parameters or nil if the header
 // is not a valid parsable Digest auth header.
-func (da *DigestAuth) getDigestAuthParams(c *xin.Context) map[string]string {
+func (da *DigestAuth) digestRequestAuth(c *xin.Context) map[string]string {
 	auth := c.Request.Header.Get("Authorization")
 	if auth == "" {
 		return nil
 	}
 
-	const prefix = "Digest "
-	if !str.StartsWithFold(auth, prefix) {
+	if !str.StartsWithFold(auth, DigestAuthPrefix) {
 		return nil
 	}
 
-	dap := httpx.ParsePairs(auth[len(prefix):])
+	dap := httpx.ParsePairs(auth[len(DigestAuthPrefix):])
 	if len(dap) == 0 {
 		return nil
 	}
@@ -216,7 +216,7 @@ func (da *DigestAuth) checkNonce(c *xin.Context, nonce string) bool {
 func (da *DigestAuth) VerifyPassword(c *xin.Context, password string) (bool, error) {
 	var dap map[string]string
 
-	val, ok := c.Get(DigestKey)
+	val, ok := c.Get(DigestAuthCtxKey)
 	if !ok {
 		return false, errDigestParamMissing
 	}

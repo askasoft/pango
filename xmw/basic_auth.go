@@ -8,15 +8,9 @@ import (
 	"github.com/askasoft/pango/xin"
 )
 
-// AuthUserKey is the key for user credential authenticated saved in context
-const AuthUserKey = "X_AUTH_USER"
-
-type AuthUser interface {
-	GetUsername() string
-	GetPassword() string
-}
-
-type FindUserFunc func(c *xin.Context, username, password string) (AuthUser, error)
+const (
+	BasicAuthPrefix = "Basic " // Basic Authentication Prefix
+)
 
 // BasicAuth basic http authenticator
 type BasicAuth struct {
@@ -32,33 +26,10 @@ func NewBasicAuth(f FindUserFunc) *BasicAuth {
 		AuthUserKey: AuthUserKey,
 		FindUser:    f,
 	}
-	ba.AuthPassed = ba.Authorized
+	ba.AuthPassed = ba.authorized
 	ba.AuthFailed = ba.Unauthorized
 
 	return ba
-}
-
-func (ba *BasicAuth) Authenticate(c *xin.Context) (next bool, au AuthUser, err error) {
-	if _, ok := c.Get(ba.AuthUserKey); ok {
-		// already authenticated
-		next = true
-		return
-	}
-
-	username, password, ok := c.Request.BasicAuth()
-	if !ok {
-		return
-	}
-
-	au, err = ba.FindUser(c, username, password)
-	if err != nil || au == nil {
-		return
-	}
-
-	// set user to context
-	c.Set(ba.AuthUserKey, au)
-
-	return
 }
 
 // Handle process xin request
@@ -84,8 +55,7 @@ func (ba *BasicAuth) Handle(c *xin.Context) {
 	ba.AuthPassed(c, au)
 }
 
-// Authorized set user to context then call c.Next()
-func (ba *BasicAuth) Authorized(c *xin.Context, au AuthUser) {
+func (ba *BasicAuth) authorized(c *xin.Context, au AuthUser) {
 	c.Next()
 }
 
@@ -93,4 +63,27 @@ func (ba *BasicAuth) Authorized(c *xin.Context, au AuthUser) {
 func (ba *BasicAuth) Unauthorized(c *xin.Context) {
 	c.Header("WWW-Authenticate", "Basic realm="+strconv.Quote(str.IfEmpty(ba.Realm, "Authorization Required")))
 	c.AbortWithStatus(http.StatusUnauthorized)
+}
+
+func (ba *BasicAuth) Authenticate(c *xin.Context) (next bool, au AuthUser, err error) {
+	if _, ok := c.Get(ba.AuthUserKey); ok {
+		// already authenticated
+		next = true
+		return
+	}
+
+	username, password, ok := c.Request.BasicAuth()
+	if !ok {
+		return
+	}
+
+	au, err = ba.FindUser(c, username, password)
+	if err != nil || au == nil {
+		return
+	}
+
+	// set user to context
+	c.Set(ba.AuthUserKey, au)
+
+	return
 }

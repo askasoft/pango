@@ -58,7 +58,7 @@ func NewCookieAuth(f FindUserFunc, secret string) *CookieAuth {
 		RedirectURL:    "/",
 		OriginURLQuery: AuthRedirectOriginURLQuery,
 	}
-	ca.AuthPassed = ca.Authorized
+	ca.AuthPassed = ca.authorized
 	ca.AuthFailed = ca.Unauthorized
 	ca.GetCookieMaxAge = ca.getCookieMaxAge
 	ca.SetSecret(secret)
@@ -69,6 +69,45 @@ func NewCookieAuth(f FindUserFunc, secret string) *CookieAuth {
 // SetSecret Set the Cryptor secret
 func (ca *CookieAuth) SetSecret(secret string) {
 	ca.Cryptor = ccpt.NewAes128CBCCryptor(secret)
+}
+
+// Handle process xin request
+func (ca *CookieAuth) Handle(c *xin.Context) {
+	next, au, err := ca.Authenticate(c)
+	if err != nil {
+		c.Logger.Errorf("CookieAuth: %v", err)
+		c.AbortWithStatus(http.StatusInternalServerError)
+		return
+	}
+
+	if next {
+		// already authenticated
+		c.Next()
+		return
+	}
+
+	if au == nil {
+		ca.AuthFailed(c)
+		return
+	}
+
+	ca.AuthPassed(c, au)
+}
+
+func (ca *CookieAuth) authorized(c *xin.Context, au AuthUser) {
+	c.Next()
+}
+
+// Unauthorized redirect or abort with status 401
+func (ca *CookieAuth) Unauthorized(c *xin.Context) {
+	u := ca.BuildRedirectURL(c)
+	if u != "" {
+		c.Abort()
+		c.Redirect(http.StatusTemporaryRedirect, u)
+		return
+	}
+
+	c.AbortWithStatus(http.StatusUnauthorized)
 }
 
 func (ca *CookieAuth) Authenticate(c *xin.Context) (next bool, au AuthUser, err error) {
@@ -95,45 +134,6 @@ func (ca *CookieAuth) Authenticate(c *xin.Context) (next bool, au AuthUser, err 
 	err = ca.SaveUserPassToCookie(c, au)
 
 	return
-}
-
-// Handle process xin request
-func (ca *CookieAuth) Handle(c *xin.Context) {
-	next, au, err := ca.Authenticate(c)
-	if err != nil {
-		c.Logger.Errorf("CookieAuth: %v", err)
-		c.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-
-	if next {
-		// already authenticated
-		c.Next()
-		return
-	}
-
-	if au == nil {
-		ca.AuthFailed(c)
-		return
-	}
-
-	ca.AuthPassed(c, au)
-}
-
-func (ca *CookieAuth) Authorized(c *xin.Context, au AuthUser) {
-	c.Next()
-}
-
-// Unauthorized redirect or abort with status 401
-func (ca *CookieAuth) Unauthorized(c *xin.Context) {
-	u := ca.BuildRedirectURL(c)
-	if u != "" {
-		c.Abort()
-		c.Redirect(http.StatusTemporaryRedirect, u)
-		return
-	}
-
-	c.AbortWithStatus(http.StatusUnauthorized)
 }
 
 func (ca *CookieAuth) BuildRedirectURL(c *xin.Context) string {

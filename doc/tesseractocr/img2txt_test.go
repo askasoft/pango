@@ -1,9 +1,8 @@
-package ocrx
+package tesseractocr
 
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -33,7 +32,7 @@ func testSkip(t *testing.T) {
 	}
 }
 
-func TestExtractTextFromPdfFile(t *testing.T) {
+func TestPdfFileTextifyString(t *testing.T) {
 	testSkip(t)
 
 	cs := []string{"jpn.jpg"}
@@ -41,15 +40,15 @@ func TestExtractTextFromPdfFile(t *testing.T) {
 	for i, c := range cs {
 		ln := str.SubstrBeforeByte(c, '.')
 		fn := testFilename(c)
-		a, err := ExtractTextFromImgFile(context.Background(), fn, ln)
+		a, err := ImgFileTextifyString(context.Background(), fn, ln)
 		if err != nil {
-			fmt.Printf("[%d] ExtractTextFromImgFile(%s): %v\n", i, fn, err)
+			t.Errorf("[%d] ImgFileTextifyString(%s): %v\n", i, fn, err)
 		} else {
 			w := string(testReadFile(t, c+".txt"))
 
 			a = str.RemoveByte(a, '\r')
 			if w != a {
-				t.Errorf("[%d] ExtractTextFromImgFile(%s):\nACTUAL: %q\n  WANT: %q\n", i, fn, a, w)
+				t.Errorf("[%d] ImgFileTextifyString(%s):\nACTUAL: %q\n  WANT: %q\n", i, fn, a, w)
 				fsu.WriteString(fn+".out", a, fsu.FileMode(0660))
 			} else {
 				os.Remove(fn + ".out")
@@ -58,7 +57,7 @@ func TestExtractTextFromPdfFile(t *testing.T) {
 	}
 }
 
-func TestExtractStringFromImgReader(t *testing.T) {
+func TestImgReaderTextify(t *testing.T) {
 	testSkip(t)
 
 	cs := []string{"jpn.jpg"}
@@ -68,22 +67,22 @@ func TestExtractStringFromImgReader(t *testing.T) {
 		fn := testFilename(c)
 		fr, err := os.Open(fn)
 		if err != nil {
-			t.Errorf("[%d] TestExtractStringFromImgReader(%s): %v\n", i, fn, err)
+			t.Errorf("[%d] ImgReaderTextify(%s): %v\n", i, fn, err)
 			continue
 		}
 		defer fr.Close()
 
 		bw := &bytes.Buffer{}
-		err = ExtractStringFromImgReader(context.Background(), bw, fr, ln)
+		err = ImgReaderTextify(context.Background(), bw, fr, ln)
 		if err != nil {
-			fmt.Printf("[%d] TestExtractStringFromImgReader(%s): %v\n", i, fn, err)
+			t.Errorf("[%d] ImgReaderTextify(%s): %v\n", i, fn, err)
 			continue
 		}
 
 		w := string(testReadFile(t, c+".txt"))
 		a := str.RemoveByte(bw.String(), '\r')
 		if w != a {
-			t.Errorf("[%d] TestExtractStringFromImgReader(%s):\nACTUAL: %q\n  WANT: %q\n", i, fn, a, w)
+			t.Errorf("[%d] ImgReaderTextify(%s):\nACTUAL: %q\n  WANT: %q\n", i, fn, a, w)
 			fsu.WriteString(fn+".out", a, fsu.FileMode(0660))
 		} else {
 			os.Remove(fn + ".out")

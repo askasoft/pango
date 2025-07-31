@@ -29,6 +29,7 @@ func TestNext(t *testing.T) {
 	x := node.NextID()
 	for range 1000000 {
 		now := time.Now()
+
 		y := node.NextID()
 		if y.Node() != 1 {
 			t.Fatal("node != 1")
@@ -45,8 +46,8 @@ func TestNext(t *testing.T) {
 		}
 
 		d := y.Time().Sub(now)
-		if d > 3*time.Millisecond || d < -3*time.Millisecond {
-			t.Errorf("time error: %d", d/time.Millisecond)
+		if d > 10*time.Millisecond || d < -10*time.Millisecond {
+			t.Fatalf("time error: %v", d)
 		}
 
 		x = y

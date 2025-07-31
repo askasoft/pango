@@ -168,9 +168,9 @@ func PptxZipReaderTextify(w io.Writer, zr *zip.Reader, options ...string) error 
 }
 
 func pptxSlideTextify(w io.Writer, r io.Reader) error {
-	xd := xml.NewDecoder(r)
+	var sb strings.Builder
 
-	sb := &strings.Builder{}
+	xd := xml.NewDecoder(r)
 
 	wp, wt := false, false
 	for {

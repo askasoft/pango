@@ -1,7 +1,7 @@
 package ini
 
 import (
-	"bufio"
+	"io"
 	"strings"
 	"time"
 
@@ -255,70 +255,68 @@ func (sec *Section) Merge(src *Section) {
 // String write section to string
 func (sec *Section) String() string {
 	sb := &strings.Builder{}
-	bw := bufio.NewWriter(sb)
-	sec.Write(bw, iox.EOL) //nolint: errcheck
-	bw.Flush()
+	sec.Write(sb, iox.EOL) //nolint: errcheck
 	return sb.String()
 }
 
 // Write output section to the writer
-func (sec *Section) Write(bw *bufio.Writer, eol string) error {
+func (sec *Section) Write(w io.Writer, eol string) error {
 	// comments
-	if err := sec.writeComments(bw, sec.comments, eol); err != nil {
+	if err := sec.writeComments(w, sec.comments, eol); err != nil {
 		return err
 	}
 
 	// section name
-	if err := sec.writeSectionName(bw, eol); err != nil {
+	if err := sec.writeSectionName(w, eol); err != nil {
 		return err
 	}
 
 	// section entries
-	if err := sec.writeSectionEntries(bw, eol); err != nil {
+	if err := sec.writeSectionEntries(w, eol); err != nil {
 		return err
 	}
 
 	// blank line
-	if _, err := bw.WriteString(eol); err != nil {
+	if _, err := io.WriteString(w, eol); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (sec *Section) writeComments(bw *bufio.Writer, comments []string, eol string) (err error) {
+func (sec *Section) writeComments(w io.Writer, comments []string, eol string) (err error) {
 	for _, s := range comments {
-		if _, err = bw.WriteString(s); err != nil {
+		if _, err = io.WriteString(w, s); err != nil {
 			return
 		}
-		if _, err = bw.WriteString(eol); err != nil {
+		if _, err = io.WriteString(w, eol); err != nil {
 			return
 		}
 	}
 	return
 }
 
-func (sec *Section) writeSectionName(bw *bufio.Writer, eol string) (err error) {
+func (sec *Section) writeSectionName(w io.Writer, eol string) (err error) {
 	if sec.name != "" {
-		if err = bw.WriteByte('['); err != nil {
+		if _, err = w.Write([]byte{'['}); err != nil {
 			return
 		}
-		if _, err = bw.WriteString(sec.name); err != nil {
+		if _, err = io.WriteString(w, sec.name); err != nil {
 			return
 		}
-		if err = bw.WriteByte(']'); err != nil {
+		if _, err = w.Write([]byte{']'}); err != nil {
 			return
 		}
 	}
-	_, err = bw.WriteString(eol)
+	_, err = io.WriteString(w, eol)
 	return
 }
 
-func (sec *Section) writeSectionEntries(bw *bufio.Writer, eol string) (err error) {
+func (sec *Section) writeSectionEntries(w io.Writer, eol string) (err error) {
 	for sei := sec.entries.Iterator(); sei.Next(); {
 		es := sei.Value()
 		for it := es.Iterator(); it.Next(); {
-			if err = sec.writeSectionEntry(bw, sei.Key(), it.Value(), eol); err != nil {
+			if err = sec.writeSectionEntry(w, sei.Key(), it.Value(), eol); err != nil {
 				return err
 			}
 		}
@@ -326,25 +324,25 @@ func (sec *Section) writeSectionEntries(bw *bufio.Writer, eol string) (err error
 	return err
 }
 
-func (sec *Section) writeSectionEntry(bw *bufio.Writer, key string, ve *Entry, eol string) (err error) {
+func (sec *Section) writeSectionEntry(w io.Writer, key string, ve *Entry, eol string) (err error) {
 	if len(ve.Comments) > 0 {
-		if _, err = bw.WriteString(eol); err != nil {
+		if _, err = io.WriteString(w, eol); err != nil {
 			return
 		}
-		if err = sec.writeComments(bw, ve.Comments, eol); err != nil {
+		if err = sec.writeComments(w, ve.Comments, eol); err != nil {
 			return
 		}
 	}
 
-	if _, err = bw.WriteString(key); err != nil {
+	if _, err = io.WriteString(w, key); err != nil {
 		return
 	}
-	if _, err = bw.WriteString(" = "); err != nil {
+	if _, err = io.WriteString(w, " = "); err != nil {
 		return
 	}
-	if _, err = bw.WriteString(quote(ve.Value)); err != nil {
+	if _, err = io.WriteString(w, quote(ve.Value)); err != nil {
 		return
 	}
-	_, err = bw.WriteString(eol)
+	_, err = io.WriteString(w, eol)
 	return
 }

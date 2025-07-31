@@ -169,9 +169,9 @@ func DocxZipReaderTextify(w io.Writer, zr *zip.Reader) error {
 }
 
 func docxTextify(w io.Writer, r io.Reader) error {
-	xd := xml.NewDecoder(r)
+	var sb strings.Builder
 
-	sb := &strings.Builder{}
+	xd := xml.NewDecoder(r)
 
 	wp, wt, wd := false, false, false
 	for {

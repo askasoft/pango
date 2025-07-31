@@ -30,7 +30,8 @@ func RepeatByte(b byte, count int) string {
 		panic("str: RepeatByte output length overflow")
 	}
 
-	sb := &strings.Builder{}
+	var sb Builder
+
 	sb.Grow(count)
 	for sb.Len() < count {
 		sb.WriteByte(b)
@@ -57,7 +58,8 @@ func RepeatRune(r rune, count int) string {
 		panic("str: RepeatRune count causes overflow")
 	}
 
-	sb := &strings.Builder{}
+	var sb Builder
+
 	sb.Grow(size)
 	for sb.Len() < size {
 		sb.WriteRune(r)

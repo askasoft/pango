@@ -110,6 +110,17 @@ func IndexFunc[T any](a []T, f func(T) bool) int {
 	return -1
 }
 
+// FindFunc returns the first item satisfying f(a[i]), or (zero,false) if none do.
+func FindFunc[T any](a []T, f func(T) bool) (v T, ok bool) {
+	for _, e := range a {
+		if f(e) {
+			v, ok = e, true
+			return
+		}
+	}
+	return
+}
+
 // Delete removes the elements a[i:j] from a, returning the modified slice.
 // Delete panics if a[i:j] is not a valid slice of a.
 // Delete is O(len(a)-j), so if many items must be deleted, it is better to

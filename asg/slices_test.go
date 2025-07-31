@@ -215,6 +215,22 @@ func BenchmarkIndexFunc_Large(b *testing.B) {
 	}
 }
 
+func TestFindFunc(t *testing.T) {
+	for _, test := range indexTests {
+		if got, ok := FindFunc(test.s, equalToIndex(equal[int], test.v)); ok != (test.want != -1) || (test.want == -1 && got != 0) || (test.want != -1 && got != test.s[test.want]) {
+			t.Errorf("IndexFunc(%v, equalToIndex(equal[int], %v)) = (%d, %v), want %d", test.s, test.v, got, ok, test.want)
+		}
+	}
+
+	s1 := []string{"hi", "HI"}
+	if got, ok := FindFunc(s1, equalToIndex(equal[string], "HI")); !ok || got != "HI" {
+		t.Errorf("FindFunc(%v, equalToIndex(equal[string], %q)) = (%q, %v), want (%q, %v)", s1, "HI", got, ok, "HI", true)
+	}
+	if got, ok := FindFunc(s1, equalToIndex(strings.EqualFold, "HI")); !ok || got != "hi" {
+		t.Errorf("FindFunc(%v, equalToIndex(strings.EqualFold, %q)) = (%q, %v), want (%q, %v)", s1, "HI", got, ok, "hi", true)
+	}
+}
+
 func TestContains(t *testing.T) {
 	for _, test := range indexTests {
 		if got := Contains(test.s, test.v); got != (test.want != -1) {

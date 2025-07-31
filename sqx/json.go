@@ -18,6 +18,16 @@ func (jo *JSONObject) Scan(value any) error {
 	return JSONScan(value, jo)
 }
 
+type JSONStringObject map[string]string
+
+func (jso JSONStringObject) Value() (driver.Value, error) {
+	return json.Marshal(jso)
+}
+
+func (jso *JSONStringObject) Scan(value any) error {
+	return JSONScan(value, jso)
+}
+
 type JSONArray []any
 
 func (ja JSONArray) Value() (driver.Value, error) {

@@ -461,8 +461,11 @@ type TicketCreate struct {
 	// HTML content of the ticket resolution note
 	ResolutionNotesHTML string `json:"resolution_notes_html,omitempty"`
 
-	CreatedAt *Time
-	UpdatedAt *Time
+	// Ticket creation timestamp
+	CreatedAt *Time `json:"created_at,omitempty"`
+
+	// Ticket updated timestamp
+	UpdatedAt *Time `json:"updated_at,omitempty"`
 }
 
 func (t *TicketCreate) AddAttachment(path string, data ...[]byte) {

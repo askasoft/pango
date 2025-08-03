@@ -44,8 +44,8 @@ func GetLogger(name string) Logger {
 }
 
 // GetOutputer return a io.Writer for go log.SetOutput
-// callerDepth: default is 1 (means +1)
-// if the outputer is used by go std log, set callerDepth to 2
+// callerSkip: default is 1 (means +1)
+// if the outputer is used by go std log, set callerSkip to 2
 // example:
 //
 //	import (
@@ -53,8 +53,8 @@ func GetLogger(name string) Logger {
 //	  "github.com/askasoft/pango/log"
 //	)
 //	golog.SetOutput(log.Outputer("GO", log.LevelInfo, 2))
-func GetOutputer(name string, lvl Level, callerDepth ...int) Outputer {
-	return _log.GetOutputer(name, lvl, callerDepth...)
+func GetOutputer(name string, lvl Level, callerSkip ...int) Outputer {
+	return _log.GetOutputer(name, lvl, callerSkip...)
 }
 
 // GetWriter get the writer
@@ -87,14 +87,14 @@ func SetLevels(lvls map[string]Level) {
 	_log.SetLevels(lvls)
 }
 
-// GetCallerDepth return the logger's caller depth
-func GetCallerDepth() int {
-	return _log.GetCallerDepth()
+// GetCallerSkip return the logger's caller skip
+func GetCallerSkip() int {
+	return _log.GetCallerSkip()
 }
 
-// SetCallerDepth set the logger's caller depth (!!SLOW!!), 0: disable runtime.Caller()
-func SetCallerDepth(d int) {
-	_log.SetCallerDepth(d)
+// SetCallerSkip set the logger's caller skip (!!SLOW!!), 0: disable runtime.Caller()
+func SetCallerSkip(n int) {
+	_log.SetCallerSkip(n)
 }
 
 // GetProp get logger property

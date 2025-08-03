@@ -7,12 +7,12 @@ import (
 // Logger logger interface
 type Logger interface {
 	GetLogger(name string) Logger
-	GetOutputer(name string, lvl Level, callerDepth ...int) Outputer
+	GetOutputer(name string, lvl Level, callerSkip ...int) Outputer
 	GetName() string
 	GetLevel() Level
 	GetTraceLevel() Level
-	GetCallerDepth() int
-	SetCallerDepth(d int)
+	GetCallerSkip() int
+	SetCallerSkip(n int)
 	GetProp(k string) any
 	SetProp(k string, v any)
 	GetProps() map[string]any
@@ -45,7 +45,7 @@ type Logger interface {
 type logger struct {
 	log   *Log
 	name  string
-	depth int
+	skip  int
 	props map[string]any
 }
 
@@ -54,14 +54,14 @@ func (lg *logger) GetLogger(name string) Logger {
 	return &logger{
 		log:   lg.log,
 		name:  str.IfEmpty(name, "_"),
-		depth: lg.depth,
+		skip:  lg.skip,
 		props: lg.props,
 	}
 }
 
 // Outputer return a io.Writer for go log.SetOutput
-// callerDepth: default is 1 (means +1)
-// if the outputer is used by go std log, set callerDepth to 2
+// callerSkip: default is 1 (means +1)
+// if the outputer is used by go std log, set callerSkip to 2
 // example:
 //
 //	import (
@@ -69,8 +69,8 @@ func (lg *logger) GetLogger(name string) Logger {
 //	  "github.com/askasoft/pango/log"
 //	)
 //	golog.SetOutput(log.Outputer("GO", log.LevelInfo, 3))
-func (lg *logger) GetOutputer(name string, lvl Level, callerDepth ...int) Outputer {
-	return lg.log.GetOutputer(name, lvl, callerDepth...)
+func (lg *logger) GetOutputer(name string, lvl Level, callerSkip ...int) Outputer {
+	return lg.log.GetOutputer(name, lvl, callerSkip...)
 }
 
 // GetName return the logger's name
@@ -78,14 +78,14 @@ func (lg *logger) GetName() string {
 	return lg.name
 }
 
-// GetCallerDepth return the logger's depth
-func (lg *logger) GetCallerDepth() int {
-	return lg.depth
+// GetCallerSkip return the logger's caller skip
+func (lg *logger) GetCallerSkip() int {
+	return lg.skip
 }
 
-// SetCallerDepth set the logger's caller depth (!!SLOW!!), 0: disable runtime.Caller()
-func (lg *logger) SetCallerDepth(d int) {
-	lg.depth = d
+// SetCallerSkip set the logger's caller skip (!!SLOW!!), 0: disable runtime.Caller()
+func (lg *logger) SetCallerSkip(n int) {
+	lg.skip = n
 }
 
 // GetLevel return the logger's level
@@ -241,7 +241,7 @@ func (lg *logger) Write(le *Event) {
 func (lg *logger) _log(lvl Level, v ...any) {
 	if lg.IsLevelEnabled(lvl) {
 		s := _printv(v...)
-		le := NewEvent(lg, lvl, s)
+		le := newLogEvent(lg, lvl, s)
 		lg.log._write(le)
 	}
 }
@@ -249,7 +249,7 @@ func (lg *logger) _log(lvl Level, v ...any) {
 func (lg *logger) _logf(lvl Level, f string, v ...any) {
 	if lg.IsLevelEnabled(lvl) {
 		s := _printf(f, v...)
-		le := NewEvent(lg, lvl, s)
+		le := newLogEvent(lg, lvl, s)
 		lg.log._write(le)
 	}
 }

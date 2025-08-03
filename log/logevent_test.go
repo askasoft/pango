@@ -10,7 +10,7 @@ import (
 func TestEventCaller(t *testing.T) {
 	le := NewEvent(&logger{}, LevelInfo, "caller")
 	le.Time = time.Time{}
-	le.CallerDepth(2, false)
+	le.CallerSkip(2, false)
 
 	if le.File != "logevent_test.go" {
 		t.Errorf("le.file = %v, want %v", le.File, "logevent_test.go")
@@ -26,7 +26,7 @@ func TestEventCaller(t *testing.T) {
 func TestEventJsonMarshall(t *testing.T) {
 	le := NewEvent(&logger{}, LevelInfo, "caller")
 	le.Time = time.Now()
-	le.CallerDepth(2, false)
+	le.CallerSkip(2, false)
 
 	bs, _ := json.Marshal(le)
 	fmt.Println(string(bs))

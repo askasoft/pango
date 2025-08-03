@@ -15,7 +15,7 @@ func BenchmarkLogEventNewWithStackTrace(b *testing.B) {
 			le := &Event{}
 			le.Message = ""
 			le.Level = LevelError
-			le.CallerDepth(5, true)
+			le.CallerSkip(5, true)
 		}
 	}
 }
@@ -26,7 +26,7 @@ func BenchmarkLogEventNewWithoutStackTrace(b *testing.B) {
 			le := &Event{}
 			le.Message = ""
 			le.Level = LevelError
-			le.CallerDepth(5, false)
+			le.CallerSkip(5, false)
 		}
 	}
 }
@@ -36,7 +36,7 @@ func BenchmarkLogEventNewWithoutPool(b *testing.B) {
 		for range benchmarkTestEventCount {
 			le := &Event{}
 			le.Message = ""
-			le.CallerDepth(5, false)
+			le.CallerSkip(5, false)
 		}
 	}
 }
@@ -55,7 +55,7 @@ func BenchmarkLogEventNewWithPool(b *testing.B) {
 		for range benchmarkTestEventCount {
 			le := testEventPool.Get().(*Event)
 			le.Message = ""
-			le.CallerDepth(5, false)
+			le.CallerSkip(5, false)
 			testEventPool.Put(le)
 		}
 	}

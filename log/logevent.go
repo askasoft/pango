@@ -31,15 +31,15 @@ type Event struct {
 	Trace   string
 }
 
-// CallerDepth get caller filename and line number
-func (le *Event) CallerDepth(depth int, trace bool) {
-	dep := 1
+// CallerSkip get caller filename and line number
+func (le *Event) CallerSkip(skip int, trace bool) {
+	depth := 1
 	if trace {
-		dep = MaxCallerFrames
+		depth = MaxCallerFrames
 	}
 
-	rpc := make([]uintptr, dep)
-	n := runtime.Callers(depth, rpc)
+	rpc := make([]uintptr, depth)
+	n := runtime.Callers(skip, rpc)
 	if n > 0 {
 		frames := runtime.CallersFrames(rpc[:n])
 		frame, next := frames.Next()
@@ -94,8 +94,9 @@ func (le *Event) buildTrace(frames *runtime.Frames, frame runtime.Frame, next bo
 	}
 }
 
+// NewEvent create a log event without caller information
 func NewEvent(logger Logger, lvl Level, msg string) *Event {
-	le := &Event{
+	return &Event{
 		Name:    logger.GetName(),
 		Props:   logger.GetProps(),
 		Level:   lvl,
@@ -104,8 +105,12 @@ func NewEvent(logger Logger, lvl Level, msg string) *Event {
 		Func:    "???",
 		Message: msg,
 	}
-	if logger.GetCallerDepth() > 0 {
-		le.CallerDepth(logger.GetCallerDepth(), logger.GetTraceLevel() >= lvl)
+}
+
+func newLogEvent(logger Logger, lvl Level, msg string) *Event {
+	le := NewEvent(logger, lvl, msg)
+	if logger.GetCallerSkip() > 0 {
+		le.CallerSkip(logger.GetCallerSkip(), logger.GetTraceLevel() >= lvl)
 	}
 	return le
 }

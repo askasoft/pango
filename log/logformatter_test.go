@@ -35,7 +35,7 @@ func TestTextFormatDefault(t *testing.T) {
 	tf := TextFmtDefault
 	le := NewEvent(&logger{name: "TEXT"}, LevelInfo, "default")
 	le.Time = time.Time{}.UTC()
-	le.CallerDepth(2, false)
+	le.CallerSkip(2, false)
 
 	assertFormatEvent(t, tf, le, `0001-01-01T00:00:00.000Z INFO  TEXT logformatter_test.go:`+
 		strconv.Itoa(le.Line)+` log.TestTextFormatDefault() - default`+EOL)
@@ -119,7 +119,7 @@ func TestNewTextFormatDefault(t *testing.T) {
 	tf := NewTextFormatter("DEFAULT")
 	le := NewEvent(&logger{name: "TEXT"}, LevelInfo, "default")
 	le.Time = time.Time{}.UTC()
-	le.CallerDepth(2, false)
+	le.CallerSkip(2, false)
 
 	assertFormatEvent(t, tf, le, `0001-01-01T00:00:00.000Z INFO  TEXT logformatter_test.go:`+
 		strconv.Itoa(le.Line)+` log.TestNewTextFormatDefault() - default`+EOL)
@@ -129,7 +129,7 @@ func TestNewLogFormatTextDefault(t *testing.T) {
 	tf := NewLogFormatter("text:DEFAULT")
 	le := NewEvent(&logger{name: "TEXT"}, LevelInfo, "default")
 	le.Time = time.Time{}.UTC()
-	le.CallerDepth(2, false)
+	le.CallerSkip(2, false)
 
 	assertFormatEvent(t, tf, le, `0001-01-01T00:00:00.000Z INFO  TEXT logformatter_test.go:`+
 		strconv.Itoa(le.Line)+` log.TestNewLogFormatTextDefault() - default`+EOL)
@@ -139,7 +139,7 @@ func TestJSONFormatDefault(t *testing.T) {
 	jf := JSONFmtDefault
 	le := NewEvent(&logger{name: "JSON"}, LevelInfo, "default")
 	le.Time = time.Now()
-	le.CallerDepth(2, false)
+	le.CallerSkip(2, false)
 
 	host, _ := os.Hostname()
 	assertFormatEvent(t, jf, le, `{"time": "`+le.Time.Format(defaultTimeFormat)+
@@ -184,7 +184,7 @@ func TestNewJSONFormatDefault(t *testing.T) {
 	jf := NewJSONFormatter("DEFAULT")
 	le := NewEvent(&logger{name: "JSON"}, LevelInfo, "default")
 	le.Time = time.Now()
-	le.CallerDepth(2, false)
+	le.CallerSkip(2, false)
 
 	host, _ := os.Hostname()
 	assertFormatEvent(t, jf, le, `{"time": "`+le.Time.Format(defaultTimeFormat)+
@@ -196,7 +196,7 @@ func TestNewLogFormatJSONDefault(t *testing.T) {
 	jf := NewLogFormatter("json:DEFAULT")
 	le := NewEvent(&logger{name: "JSON"}, LevelInfo, "default")
 	le.Time = time.Now()
-	le.CallerDepth(2, false)
+	le.CallerSkip(2, false)
 
 	host, _ := os.Hostname()
 	assertFormatEvent(t, jf, le, `{"time": "`+le.Time.Format(defaultTimeFormat)+

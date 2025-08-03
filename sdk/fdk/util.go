@@ -110,7 +110,7 @@ func copyResponse(res *http.Response) ([]byte, error) {
 	defer iox.DrainAndClose(res.Body)
 
 	if res.StatusCode != http.StatusOK {
-		return nil, &ResultError{StatusCode: res.StatusCode, Status: res.Status}
+		return nil, newResultError(res)
 	}
 
 	buf := &bytes.Buffer{}
@@ -122,7 +122,7 @@ func saveResponse(res *http.Response, path string) error {
 	defer iox.DrainAndClose(res.Body)
 
 	if res.StatusCode != http.StatusOK {
-		return &ResultError{StatusCode: res.StatusCode, Status: res.Status}
+		return newResultError(res)
 	}
 
 	dir := filepath.Dir(path)

@@ -103,7 +103,7 @@ func (fdk *FDK) decodeResponse(res *http.Response, result any) error {
 		return nil
 	}
 
-	re := &ResultError{StatusCode: res.StatusCode, Status: res.Status}
+	re := newResultError(res)
 	if res.StatusCode != http.StatusNotFound {
 		_ = decoder.Decode(re)
 	}

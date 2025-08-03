@@ -84,10 +84,7 @@ func (oai *OpenAI) doCall(req *http.Request, result any) error {
 		return nil
 	}
 
-	re := &ResultError{
-		Status:     res.Status,
-		StatusCode: res.StatusCode,
-	}
+	re := newResultError(res)
 	_ = decoder.Decode(re)
 
 	if sr(re) {

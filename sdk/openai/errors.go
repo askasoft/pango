@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -49,10 +50,21 @@ func (de *DetailError) Error() string {
 }
 
 type ResultError struct {
+	Method     string       `json:"-"` // http request method
+	URL        *url.URL     `json:"-"` // http request URL
 	StatusCode int          `json:"-"` // http status code
 	Status     string       `json:"-"` // http status
 	Detail     *DetailError `json:"error,omitempty"`
 	RetryAfter time.Duration
+}
+
+func newResultError(res *http.Response) *ResultError {
+	return &ResultError{
+		Method:     res.Request.Method,
+		URL:        res.Request.URL,
+		StatusCode: res.StatusCode,
+		Status:     res.Status,
+	}
 }
 
 func (re *ResultError) GetRetryAfter() time.Duration {
@@ -63,11 +75,13 @@ func (re *ResultError) Error() string {
 	es := re.Status
 
 	if re.RetryAfter > 0 {
-		es = fmt.Sprintf("%s (Retry After %s)", es, re.RetryAfter)
+		es += " (Retry After " + re.RetryAfter.String() + ")"
 	}
 
+	es += " (" + re.Method + " " + re.URL.String() + ")"
+
 	if re.Detail != nil {
-		es = es + " - " + re.Detail.Error()
+		es += " - " + re.Detail.Error()
 	}
 
 	return es

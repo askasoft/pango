@@ -44,7 +44,7 @@ func (sl *SqlxLogger) printf(lvl log.Level, msg string, data ...any) {
 			Message: fmt.Sprintf(msg, data...),
 			Time:    time.Now(),
 		}
-		le.CallerStop("/pango/sqx/sqlx/", sl.Logger.GetTraceLevel() >= lvl)
+		le.CallerStop("/sqx/sqlx/", sl.Logger.GetTraceLevel() >= lvl)
 
 		sl.Logger.Write(le)
 	}

@@ -11,6 +11,10 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
+var (
+	MaxCallerFrames = 50
+)
+
 // EventBuffer a event buffer
 type EventBuffer = ringbuffer.RingBuffer[*Event]
 
@@ -31,40 +35,28 @@ type Event struct {
 func (le *Event) CallerDepth(depth int, trace bool) {
 	dep := 1
 	if trace {
-		dep = 30
+		dep = MaxCallerFrames
 	}
 
 	rpc := make([]uintptr, dep)
 	n := runtime.Callers(depth, rpc)
 	if n > 0 {
-		frames := runtime.CallersFrames(rpc)
+		frames := runtime.CallersFrames(rpc[:n])
 		frame, next := frames.Next()
-		_, le.Func = path.Split(frame.Function)
 		_, le.File = path.Split(frame.File)
+		_, le.Func = path.Split(frame.Function)
 		le.Line = frame.Line
-		if next {
-			var sb strings.Builder
-			for ; next; frame, next = frames.Next() {
-				sb.WriteString(frame.File)
-				sb.WriteString(":")
-				sb.WriteString(strconv.Itoa(frame.Line))
-				sb.WriteString(" ")
-				sb.WriteString(frame.Function)
-				sb.WriteString("()")
-				sb.WriteString(EOL)
-			}
-			le.Trace = sb.String()
-		}
+		le.buildTrace(frames, frame, next)
 	}
 }
 
 // CallerStop get caller filename and line number
 func (le *Event) CallerStop(stop string, trace bool) {
-	rpc := make([]uintptr, 30)
+	rpc := make([]uintptr, MaxCallerFrames)
 	n := runtime.Callers(2, rpc)
 	if n > 0 {
 		found := false
-		frames := runtime.CallersFrames(rpc)
+		frames := runtime.CallersFrames(rpc[:n])
 		for frame, next := frames.Next(); next; frame, next = frames.Next() {
 			if str.Contains(frame.File, stop) {
 				found = true
@@ -72,25 +64,33 @@ func (le *Event) CallerStop(stop string, trace bool) {
 			}
 
 			if found {
-				_, le.Func = path.Split(frame.Function)
 				_, le.File = path.Split(frame.File)
+				_, le.Func = path.Split(frame.Function)
 				le.Line = frame.Line
-				if trace && next {
-					var sb strings.Builder
-					for ; next; frame, next = frames.Next() {
-						sb.WriteString(frame.File)
-						sb.WriteString(":")
-						sb.WriteString(strconv.Itoa(frame.Line))
-						sb.WriteString(" ")
-						sb.WriteString(frame.Function)
-						sb.WriteString("()")
-						sb.WriteString(EOL)
-					}
-					le.Trace = sb.String()
+
+				if trace {
+					le.buildTrace(frames, frame, next)
 				}
 				break
 			}
 		}
+	}
+}
+
+func (le *Event) buildTrace(frames *runtime.Frames, frame runtime.Frame, next bool) {
+	// ignore last frame 'runtime.goexit()'
+	if next {
+		var sb strings.Builder
+		for ; next; frame, next = frames.Next() {
+			sb.WriteString(frame.File)
+			sb.WriteString(":")
+			sb.WriteString(strconv.Itoa(frame.Line))
+			sb.WriteString(" ")
+			sb.WriteString(frame.Function)
+			sb.WriteString("()")
+			sb.WriteString(EOL)
+		}
+		le.Trace = sb.String()
 	}
 }
 

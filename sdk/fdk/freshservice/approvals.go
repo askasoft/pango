@@ -31,9 +31,9 @@ func (lao *ListApprovalsOption) Values() Values {
 }
 
 func (fs *Freshservice) ListApprovals(ctx context.Context, lao *ListApprovalsOption) ([]*Approval, bool, error) {
-	url := fs.endpoint("/approvals")
+	url := fs.Endpoint("/approvals")
 	result := &approvalsResult{}
-	next, err := fs.doList(ctx, url, lao, result)
+	next, err := fs.DoList(ctx, url, lao, result)
 	return result.Approvals, next, err
 }
 

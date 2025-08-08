@@ -8,16 +8,16 @@ import "context"
 type ListAgentRolesOption = PageOption
 
 func (fs *Freshservice) GetAgentRole(ctx context.Context, id int64) (*AgentRole, error) {
-	url := fs.endpoint("/roles/%d", id)
+	url := fs.Endpoint("/roles/%d", id)
 	result := &agentRoleResult{}
-	err := fs.doGet(ctx, url, result)
+	err := fs.DoGet(ctx, url, result)
 	return result.Role, err
 }
 
 func (fs *Freshservice) ListAgentRoles(ctx context.Context, laro *ListAgentRolesOption) ([]*AgentRole, bool, error) {
-	url := fs.endpoint("/roles")
+	url := fs.Endpoint("/roles")
 	result := &agentRolesResult{}
-	next, err := fs.doList(ctx, url, laro, result)
+	next, err := fs.DoList(ctx, url, laro, result)
 	return result.Roles, next, err
 }
 

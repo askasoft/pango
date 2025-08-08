@@ -56,27 +56,27 @@ func ToJSONIndent(o any) string {
 
 type Freshservice fdk.FDK
 
-func (fs *Freshservice) endpoint(format string, a ...any) string {
+func (fs *Freshservice) Endpoint(format string, a ...any) string {
 	return (*fdk.FDK)(fs).Endpoint(format, a...)
 }
 
-func (fs *Freshservice) doGet(ctx context.Context, url string, result any) error {
+func (fs *Freshservice) DoGet(ctx context.Context, url string, result any) error {
 	return (*fdk.FDK)(fs).DoGet(ctx, url, result)
 }
 
-func (fs *Freshservice) doList(ctx context.Context, url string, lo ListOption, result any) (bool, error) {
+func (fs *Freshservice) DoList(ctx context.Context, url string, lo ListOption, result any) (bool, error) {
 	return (*fdk.FDK)(fs).DoList(ctx, url, lo, result)
 }
 
-func (fs *Freshservice) doPost(ctx context.Context, url string, source, result any) error {
+func (fs *Freshservice) DoPost(ctx context.Context, url string, source, result any) error {
 	return (*fdk.FDK)(fs).DoPost(ctx, url, source, result)
 }
 
-func (fs *Freshservice) doPut(ctx context.Context, url string, source, result any) error {
+func (fs *Freshservice) DoPut(ctx context.Context, url string, source, result any) error {
 	return (*fdk.FDK)(fs).DoPut(ctx, url, source, result)
 }
 
-func (fs *Freshservice) doDelete(ctx context.Context, url string) error {
+func (fs *Freshservice) DoDelete(ctx context.Context, url string) error {
 	return (*fdk.FDK)(fs).DoDelete(ctx, url)
 }
 
@@ -97,12 +97,12 @@ func (fs *Freshservice) SaveFileNoAuth(ctx context.Context, url string, path str
 }
 
 func (fs *Freshservice) DownloadAttachment(ctx context.Context, aid int64) ([]byte, error) {
-	url := fs.endpoint("/attachments/%d", aid)
+	url := fs.Endpoint("/attachments/%d", aid)
 	return fs.Download(ctx, url)
 }
 
 func (fs *Freshservice) SaveAttachment(ctx context.Context, aid int64, path string) error {
-	url := fs.endpoint("/attachments/%d", aid)
+	url := fs.Endpoint("/attachments/%d", aid)
 	return fs.SaveFile(ctx, url, path)
 }
 

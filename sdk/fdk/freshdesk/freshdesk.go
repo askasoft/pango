@@ -56,27 +56,27 @@ func ToJSONIndent(o any) string {
 
 type Freshdesk fdk.FDK
 
-func (fd *Freshdesk) endpoint(format string, a ...any) string {
+func (fd *Freshdesk) Endpoint(format string, a ...any) string {
 	return (*fdk.FDK)(fd).Endpoint(format, a...)
 }
 
-func (fd *Freshdesk) doGet(ctx context.Context, url string, result any) error {
+func (fd *Freshdesk) DoGet(ctx context.Context, url string, result any) error {
 	return (*fdk.FDK)(fd).DoGet(ctx, url, result)
 }
 
-func (fd *Freshdesk) doList(ctx context.Context, url string, lo ListOption, result any) (bool, error) {
+func (fd *Freshdesk) DoList(ctx context.Context, url string, lo ListOption, result any) (bool, error) {
 	return (*fdk.FDK)(fd).DoList(ctx, url, lo, result)
 }
 
-func (fd *Freshdesk) doPost(ctx context.Context, url string, source, result any) error {
+func (fd *Freshdesk) DoPost(ctx context.Context, url string, source, result any) error {
 	return (*fdk.FDK)(fd).DoPost(ctx, url, source, result)
 }
 
-func (fd *Freshdesk) doPut(ctx context.Context, url string, source, result any) error {
+func (fd *Freshdesk) DoPut(ctx context.Context, url string, source, result any) error {
 	return (*fdk.FDK)(fd).DoPut(ctx, url, source, result)
 }
 
-func (fd *Freshdesk) doDelete(ctx context.Context, url string) error {
+func (fd *Freshdesk) DoDelete(ctx context.Context, url string) error {
 	return (*fdk.FDK)(fd).DoDelete(ctx, url)
 }
 
@@ -97,15 +97,15 @@ func (fd *Freshdesk) SaveFileNoAuth(ctx context.Context, url string, path string
 }
 
 func (fd *Freshdesk) DeleteAttachment(ctx context.Context, aid int64) error {
-	url := fd.endpoint("/attachments/%d", aid)
-	return fd.doDelete(ctx, url)
+	url := fd.Endpoint("/attachments/%d", aid)
+	return fd.DoDelete(ctx, url)
 }
 
 // GetJob get job detail
 func (fd *Freshdesk) GetJob(ctx context.Context, jid string) (*Job, error) {
-	url := fd.endpoint("/jobs/%s", jid)
+	url := fd.Endpoint("/jobs/%s", jid)
 	job := &Job{}
-	err := fd.doGet(ctx, url, job)
+	err := fd.DoGet(ctx, url, job)
 	return job, err
 }
 

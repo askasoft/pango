@@ -8,16 +8,16 @@ import "context"
 type ListRolesOption = PageOption
 
 func (fd *Freshdesk) GetRole(ctx context.Context, rid int64) (*Role, error) {
-	url := fd.endpoint("/roles/%d", rid)
+	url := fd.Endpoint("/roles/%d", rid)
 	role := &Role{}
-	err := fd.doGet(ctx, url, role)
+	err := fd.DoGet(ctx, url, role)
 	return role, err
 }
 
 func (fd *Freshdesk) ListRoles(ctx context.Context, lro *ListRolesOption) ([]*Role, bool, error) {
-	url := fd.endpoint("/roles")
+	url := fd.Endpoint("/roles")
 	roles := []*Role{}
-	next, err := fd.doList(ctx, url, lro, &roles)
+	next, err := fd.DoList(ctx, url, lro, &roles)
 	return roles, next, err
 }
 

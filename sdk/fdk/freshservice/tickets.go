@@ -79,9 +79,9 @@ func (fto *FilterTicketsOption) Values() Values {
 type ListConversationsOption = PageOption
 
 func (fs *Freshservice) CreateTicket(ctx context.Context, ticket *TicketCreate) (*Ticket, error) {
-	url := fs.endpoint("/tickets")
+	url := fs.Endpoint("/tickets")
 	result := &ticketResult{}
-	if err := fs.doPost(ctx, url, ticket, result); err != nil {
+	if err := fs.DoPost(ctx, url, ticket, result); err != nil {
 		return nil, err
 	}
 	return result.Ticket, nil
@@ -90,13 +90,13 @@ func (fs *Freshservice) CreateTicket(ctx context.Context, ticket *TicketCreate) 
 // GetTicket Get a Ticket
 // include: conversations, requester, requested_for, stats, problem, assets, change, related_tickets
 func (fs *Freshservice) GetTicket(ctx context.Context, tid int64, include ...string) (*Ticket, error) {
-	url := fs.endpoint("/tickets/%d", tid)
+	url := fs.Endpoint("/tickets/%d", tid)
 	if len(include) > 0 {
 		s := strings.Join(include, ",")
 		url += "?include=" + s
 	}
 	result := &ticketResult{}
-	err := fs.doGet(ctx, url, result)
+	err := fs.DoGet(ctx, url, result)
 	return result.Ticket, err
 }
 
@@ -148,9 +148,9 @@ func (fs *Freshservice) GetTicket(ctx context.Context, tid int64, include ...str
 // 3. Date and date_time fields to be enclosed in single quotes('yyyy-mm-dd')
 // 4. only :> and :< are supported for date and date_time fields. Both fields expect input in the same format as 'yyyy-mm-dd'
 func (fs *Freshservice) FilterTickets(ctx context.Context, fto *FilterTicketsOption) ([]*Ticket, bool, error) {
-	url := fs.endpoint("/tickets/filter")
+	url := fs.Endpoint("/tickets/filter")
 	result := &ticketResult{}
-	next, err := fs.doList(ctx, url, fto, result)
+	next, err := fs.DoList(ctx, url, fto, result)
 	return result.Tickets, next, err
 }
 
@@ -190,9 +190,9 @@ func (fs *Freshservice) IterFilterTickets(ctx context.Context, fto *FilterTicket
 // 2. Use 'include' to embed additional details in the response. Each include will consume an additional 2 credits. For example if you embed the stats information you will be charged a total of 3 API credits (1 credit for the API call, and 2 credits for the additional stats embedding).
 // 3. By default, only tickets from the primary workspace will be returned for accounts with the 'Workspaces' feature enabled. For tickets from other workspaces, use the workspace_id filter.
 func (fs *Freshservice) ListTickets(ctx context.Context, lto *ListTicketsOption) ([]*Ticket, bool, error) {
-	url := fs.endpoint("/tickets")
+	url := fs.Endpoint("/tickets")
 	result := &ticketResult{}
-	next, err := fs.doList(ctx, url, lto, result)
+	next, err := fs.DoList(ctx, url, lto, result)
 	return result.Tickets, next, err
 }
 
@@ -233,29 +233,29 @@ func (fs *Freshservice) IterTickets(ctx context.Context, lto *ListTicketsOption,
 // Query Parameters	Handle
 // bypass_mandatory: To bypass mandatory fields check while updating the ticket except for requester_id, source. Any business rules trying to mandate certain fields will also be bypassed. All fields configured as mandatory upon closing or resolving the ticket will be skipped while updating the ticket. This can only be passed by an admin.
 func (fs *Freshservice) UpdateTicket(ctx context.Context, tid int64, ticket *TicketUpdate) (*Ticket, error) {
-	url := fs.endpoint("/tickets/%d", tid)
+	url := fs.Endpoint("/tickets/%d", tid)
 	result := &ticketResult{}
-	if err := fs.doPut(ctx, url, ticket, result); err != nil {
+	if err := fs.DoPut(ctx, url, ticket, result); err != nil {
 		return nil, err
 	}
 	return result.Ticket, nil
 }
 
 func (fs *Freshservice) DeleteTicket(ctx context.Context, tid int64) error {
-	url := fs.endpoint("/tickets/%d", tid)
-	return fs.doDelete(ctx, url)
+	url := fs.Endpoint("/tickets/%d", tid)
+	return fs.DoDelete(ctx, url)
 }
 
 func (fs *Freshservice) DeleteTicketAttachment(ctx context.Context, tid, aid int64) error {
-	url := fs.endpoint("/tickets/%d/attachments/%d", tid, aid)
-	return fs.doDelete(ctx, url)
+	url := fs.Endpoint("/tickets/%d/attachments/%d", tid, aid)
+	return fs.DoDelete(ctx, url)
 }
 
 // Restore a Ticket
 // The API mentioned previously. If you deleted some tickets and regret doing so now, this API will help you restore them.
 func (fs *Freshservice) Restore(ctx context.Context, tid int64) error {
-	url := fs.endpoint("/tickets/%d/restore", tid)
-	return fs.doPut(ctx, url, nil, nil)
+	url := fs.Endpoint("/tickets/%d/restore", tid)
+	return fs.DoPut(ctx, url, nil, nil)
 }
 
 // Create a Child Ticket
@@ -266,25 +266,25 @@ func (fs *Freshservice) Restore(ctx context.Context, tid int64) error {
 // 3. Association of child tickets to a deleted or a spammed ticket is not allowed.
 // 4. Nesting of a child ticket under another child ticket is not supported.
 func (fs *Freshservice) CreateChildTicket(ctx context.Context, tid int64, ticket *Ticket) (*Ticket, error) {
-	url := fs.endpoint("/tickets/%d/create_child_ticket", tid)
+	url := fs.Endpoint("/tickets/%d/create_child_ticket", tid)
 	result := &ticketResult{}
-	if err := fs.doPost(ctx, url, ticket, result); err != nil {
+	if err := fs.DoPost(ctx, url, ticket, result); err != nil {
 		return nil, err
 	}
 	return result.Ticket, nil
 }
 
 func (fs *Freshservice) ListTicketFields(ctx context.Context) ([]*TicketField, error) {
-	url := fs.endpoint("/ticket_form_fields")
+	url := fs.Endpoint("/ticket_form_fields")
 	result := &ticketFieldResult{}
-	err := fs.doGet(ctx, url, result)
+	err := fs.DoGet(ctx, url, result)
 	return result.TicketFields, err
 }
 
 func (fs *Freshservice) GetTicketActivities(ctx context.Context, tid int64) ([]*TicketActivity, error) {
-	url := fs.endpoint("/tickets/%d/activities", tid)
+	url := fs.Endpoint("/tickets/%d/activities", tid)
 	result := &ticketActivitiesResult{}
-	err := fs.doGet(ctx, url, result)
+	err := fs.DoGet(ctx, url, result)
 	return result.TicketActivities, err
 }
 
@@ -292,18 +292,18 @@ func (fs *Freshservice) GetTicketActivities(ctx context.Context, tid int64) ([]*
 // Conversation
 
 func (fs *Freshservice) CreateReply(ctx context.Context, tid int64, reply *Reply) (*Conversation, error) {
-	url := fs.endpoint("/tickets/%d/reply", tid)
+	url := fs.Endpoint("/tickets/%d/reply", tid)
 	result := &conversationResult{}
-	if err := fs.doPost(ctx, url, reply, result); err != nil {
+	if err := fs.DoPost(ctx, url, reply, result); err != nil {
 		return nil, err
 	}
 	return result.Conversation, nil
 }
 
 func (fs *Freshservice) CreateNote(ctx context.Context, tid int64, note *Note) (*Conversation, error) {
-	url := fs.endpoint("/tickets/%d/notes", tid)
+	url := fs.Endpoint("/tickets/%d/notes", tid)
 	result := &conversationResult{}
-	if err := fs.doPost(ctx, url, note, result); err != nil {
+	if err := fs.DoPost(ctx, url, note, result); err != nil {
 		return nil, err
 	}
 	return result.Conversation, nil
@@ -312,28 +312,28 @@ func (fs *Freshservice) CreateNote(ctx context.Context, tid int64, note *Note) (
 // Update a Conversation
 // Only public & private notes can be edited.
 func (fs *Freshservice) UpdateConversation(ctx context.Context, cid int64, note *Note) (*Conversation, error) {
-	url := fs.endpoint("/conversations/%d", cid)
+	url := fs.Endpoint("/conversations/%d", cid)
 	result := &conversationResult{}
-	if err := fs.doPut(ctx, url, note, result); err != nil {
+	if err := fs.DoPut(ctx, url, note, result); err != nil {
 		return nil, err
 	}
 	return result.Conversation, nil
 }
 
 func (fs *Freshservice) DeleteConversation(ctx context.Context, cid int64) error {
-	url := fs.endpoint("/conversations/%d", cid)
-	return fs.doDelete(ctx, url)
+	url := fs.Endpoint("/conversations/%d", cid)
+	return fs.DoDelete(ctx, url)
 }
 
 func (fs *Freshservice) DeleteConversationAttachment(ctx context.Context, cid, aid int64) error {
-	url := fs.endpoint("/conversations/%d/attachments/%d", cid, aid)
-	return fs.doDelete(ctx, url)
+	url := fs.Endpoint("/conversations/%d/attachments/%d", cid, aid)
+	return fs.DoDelete(ctx, url)
 }
 
 func (fs *Freshservice) ListTicketConversations(ctx context.Context, tid int64, lco *ListConversationsOption) ([]*Conversation, bool, error) {
-	url := fs.endpoint("/tickets/%d/conversations", tid)
+	url := fs.Endpoint("/tickets/%d/conversations", tid)
 	result := &conversationsResult{}
-	next, err := fs.doList(ctx, url, lco, result)
+	next, err := fs.DoList(ctx, url, lco, result)
 	return result.Conversations, next, err
 }
 

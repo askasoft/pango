@@ -142,9 +142,9 @@ type AutomationAction struct {
 	URL             string             `json:"url,omitempty"`              //	URL for the HTTP request
 	NoteBody        string             `json:"note_body,omitempty"`        // 	Content of the note added by the rule
 	NotifyAgents    []int64            `json:"notify_agents,omitempty"`    // IDs of agents to be notified
-	FwdTo           string             `json:"Fwd_to,omitempty"`           // Forward the ticket to an email address
-	FwdCc           string             `json:"Fwd_cc,omitempty"`           // Forward the ticket to an email address
-	FwdBcc          string             `json:"Fwd_bcc,omitempty"`          // Forward the ticket to an email address
+	FwdTo           []string           `json:"fwd_to,omitempty"`           // Forward the ticket to an email address
+	FwdCc           string             `json:"fwd_cc,omitempty"`           // Forward the ticket to an email address
+	FwdBcc          string             `json:"fwd_bcc,omitempty"`          // Forward the ticket to an email address
 	FwdNoteBody     string             `json:"fwd_note_body,omitempty"`    // Forward the ticket to an email address
 	PushTo          AutomationPushTo   `json:"push_to,omitempty"`          // Channel through which the message will be sent. Possible options are:	“Slack”	“Office365”
 	SlackText       string             `json:"slack_text,omitempty"`       // Content of the message sent to slack

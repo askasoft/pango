@@ -62,25 +62,25 @@ func (fao *FilterAgentsOption) Values() Values {
 }
 
 func (fs *Freshservice) CreateAgent(ctx context.Context, agent *AgentCreate) (*Agent, error) {
-	url := fs.endpoint("/agents")
+	url := fs.Endpoint("/agents")
 	result := &agentResult{}
-	if err := fs.doPost(ctx, url, agent, result); err != nil {
+	if err := fs.DoPost(ctx, url, agent, result); err != nil {
 		return nil, err
 	}
 	return result.Agent, nil
 }
 
 func (fs *Freshservice) GetAgent(ctx context.Context, id int64) (*Agent, error) {
-	url := fs.endpoint("/agents/%d", id)
+	url := fs.Endpoint("/agents/%d", id)
 	result := &agentResult{}
-	err := fs.doGet(ctx, url, result)
+	err := fs.DoGet(ctx, url, result)
 	return result.Agent, err
 }
 
 func (fs *Freshservice) ListAgents(ctx context.Context, lao *ListAgentsOption) ([]*Agent, bool, error) {
-	url := fs.endpoint("/agents")
+	url := fs.Endpoint("/agents")
 	result := &agentsResult{}
-	next, err := fs.doList(ctx, url, lao, result)
+	next, err := fs.DoList(ctx, url, lao, result)
 	return result.Agents, next, err
 }
 
@@ -145,9 +145,9 @@ func (fs *Freshservice) IterAgents(ctx context.Context, lao *ListAgentsOption, i
 // created_at	date	Date (YYYY-MM-DD) when the agent is created.
 // updated_at	date	Date (YYYY-MM-DD) when the agent is updated.
 func (fs *Freshservice) FilterAgents(ctx context.Context, fao *FilterAgentsOption) ([]*Agent, bool, error) {
-	url := fs.endpoint("/agents")
+	url := fs.Endpoint("/agents")
 	result := &agentsResult{}
-	next, err := fs.doList(ctx, url, fao, result)
+	next, err := fs.DoList(ctx, url, fao, result)
 	return result.Agents, next, err
 }
 
@@ -185,9 +185,9 @@ func (fs *Freshservice) IterFilterAgents(ctx context.Context, fao *FilterAgentsO
 // Note:
 // can_see_all_tickets_from_associated_departments will automatically be set to false unless it is explicitly set to true in the payload, irrespective of the previous value of the field.
 func (fs *Freshservice) UpdateAgent(ctx context.Context, id int64, agent *AgentUpdate) (*Agent, error) {
-	url := fs.endpoint("/agents/%d", id)
+	url := fs.Endpoint("/agents/%d", id)
 	result := &agentResult{}
-	if err := fs.doPut(ctx, url, agent, result); err != nil {
+	if err := fs.DoPut(ctx, url, agent, result); err != nil {
 		return nil, err
 	}
 	return result.Agent, nil
@@ -196,23 +196,23 @@ func (fs *Freshservice) UpdateAgent(ctx context.Context, id int64, agent *AgentU
 // Deactivate a Agent
 // This operation allows you to deactivate a agent.
 func (fs *Freshservice) DeactivateAgent(ctx context.Context, id int64) error {
-	url := fs.endpoint("/agents/%d", id)
-	return fs.doDelete(ctx, url)
+	url := fs.Endpoint("/agents/%d", id)
+	return fs.DoDelete(ctx, url)
 }
 
 // Forget a Agent
 // This operation allows you to permanently delete a agent and the tickets that they requested.
 func (fs *Freshservice) ForgetAgent(ctx context.Context, id int64) error {
-	url := fs.endpoint("/agents/%d/forget", id)
-	return fs.doDelete(ctx, url)
+	url := fs.Endpoint("/agents/%d/forget", id)
+	return fs.DoDelete(ctx, url)
 }
 
 // Reactivate a Agent
 // This operation allows you to reactivate a particular deactivated agent.
 func (fs *Freshservice) ReactivateAgent(ctx context.Context, id int64) (*Agent, error) {
-	url := fs.endpoint("/agents/%d/reactivate", id)
+	url := fs.Endpoint("/agents/%d/reactivate", id)
 	result := &agentResult{}
-	if err := fs.doPut(ctx, url, nil, result); err != nil {
+	if err := fs.DoPut(ctx, url, nil, result); err != nil {
 		return nil, err
 	}
 	return result.Agent, nil
@@ -220,17 +220,17 @@ func (fs *Freshservice) ReactivateAgent(ctx context.Context, id int64) (*Agent, 
 
 // Convert a particular agent into a requester.
 func (fs *Freshservice) ConvertAgentToRequester(ctx context.Context, id int64) (*Agent, error) {
-	url := fs.endpoint("/agents/%d/convert_to_requester", id)
+	url := fs.Endpoint("/agents/%d/convert_to_requester", id)
 	result := &agentResult{}
-	if err := fs.doPut(ctx, url, nil, result); err != nil {
+	if err := fs.DoPut(ctx, url, nil, result); err != nil {
 		return nil, err
 	}
 	return result.Agent, nil
 }
 
 func (fs *Freshservice) GetAgentFields(ctx context.Context) ([]*AgentField, error) {
-	url := fs.endpoint("/agent_fields")
+	url := fs.Endpoint("/agent_fields")
 	result := &agentFieldsResult{}
-	err := fs.doGet(ctx, url, result)
+	err := fs.DoGet(ctx, url, result)
 	return result.AgentFields, err
 }

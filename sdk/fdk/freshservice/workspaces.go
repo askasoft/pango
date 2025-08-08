@@ -8,16 +8,16 @@ import "context"
 type ListWorkspacesOption = PageOption
 
 func (fs *Freshservice) GetWorkspace(ctx context.Context, id int64) (*Workspace, error) {
-	url := fs.endpoint("/workspaces/%d", id)
+	url := fs.Endpoint("/workspaces/%d", id)
 	result := &workspaceResult{}
-	err := fs.doGet(ctx, url, result)
+	err := fs.DoGet(ctx, url, result)
 	return result.Workspace, err
 }
 
 func (fs *Freshservice) ListWorkspaces(ctx context.Context, lwo *ListWorkspacesOption) ([]*Workspace, bool, error) {
-	url := fs.endpoint("/workspaces")
+	url := fs.Endpoint("/workspaces")
 	result := &workspacesResult{}
-	next, err := fs.doList(ctx, url, lwo, result)
+	next, err := fs.DoList(ctx, url, lwo, result)
 	return result.Workspaces, next, err
 }
 

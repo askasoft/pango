@@ -8,16 +8,16 @@ import "context"
 type ListProductsOption = PageOption
 
 func (fd *Freshdesk) GetProduct(ctx context.Context, id int64) (*Product, error) {
-	url := fd.endpoint("/products/%d", id)
+	url := fd.Endpoint("/products/%d", id)
 	product := &Product{}
-	err := fd.doGet(ctx, url, product)
+	err := fd.DoGet(ctx, url, product)
 	return product, err
 }
 
 func (fd *Freshdesk) ListProducts(ctx context.Context, lpo *ListProductsOption) ([]*Product, bool, error) {
-	url := fd.endpoint("/products")
+	url := fd.Endpoint("/products")
 	products := []*Product{}
-	next, err := fd.doList(ctx, url, lpo, &products)
+	next, err := fd.DoList(ctx, url, lpo, &products)
 	return products, next, err
 }
 

@@ -21,7 +21,6 @@ func TestAutomationAPIs(t *testing.T) {
 		if err != nil {
 			t.Fatalf("ERROR: %v", err)
 		}
-		fd.Logger.Debug(rule)
-		break
+		fd.Logger.Info(rule)
 	}
 }

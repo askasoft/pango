@@ -8,9 +8,9 @@ import "context"
 type ListAutomationRulesOption = PageOption
 
 func (fd *Freshdesk) ListAutomationRules(ctx context.Context, aType AutomationType, laro *ListAutomationRulesOption) ([]*AutomationRule, bool, error) {
-	url := fd.endpoint("/automations/%d/rules", aType)
+	url := fd.Endpoint("/automations/%d/rules", aType)
 	rules := []*AutomationRule{}
-	next, err := fd.doList(ctx, url, laro, &rules)
+	next, err := fd.DoList(ctx, url, laro, &rules)
 	return rules, next, err
 }
 
@@ -44,30 +44,30 @@ func (fd *Freshdesk) IterAutomationRules(ctx context.Context, aType AutomationTy
 }
 
 func (fd *Freshdesk) GetAutomationRule(ctx context.Context, aType AutomationType, rid int64) (*AutomationRule, error) {
-	url := fd.endpoint("/automations/%d/rules/%d", aType, rid)
+	url := fd.Endpoint("/automations/%d/rules/%d", aType, rid)
 	rule := &AutomationRule{}
-	err := fd.doGet(ctx, url, rule)
+	err := fd.DoGet(ctx, url, rule)
 	return rule, err
 }
 
 func (fd *Freshdesk) DeleteAutomationRule(ctx context.Context, aType AutomationType, rid int64) error {
-	url := fd.endpoint("/automations/%d/rules/%d", aType, rid)
-	return fd.doDelete(ctx, url)
+	url := fd.Endpoint("/automations/%d/rules/%d", aType, rid)
+	return fd.DoDelete(ctx, url)
 }
 
 func (fd *Freshdesk) CreateAutomationRule(ctx context.Context, aType AutomationType, rule *AutomationRuleCreate) (*AutomationRule, error) {
-	url := fd.endpoint("/automations/%d/rules", aType)
+	url := fd.Endpoint("/automations/%d/rules", aType)
 	result := &AutomationRule{}
-	if err := fd.doPost(ctx, url, rule, result); err != nil {
+	if err := fd.DoPost(ctx, url, rule, result); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
 func (fd *Freshdesk) UpdateAutomationRule(ctx context.Context, aType AutomationType, rid int64, rule *AutomationRuleUpdate) (*AutomationRule, error) {
-	url := fd.endpoint("/automations/%d/rules/%d", aType, rid)
+	url := fd.Endpoint("/automations/%d/rules/%d", aType, rid)
 	result := &AutomationRule{}
-	if err := fd.doPut(ctx, url, rule, result); err != nil {
+	if err := fd.DoPut(ctx, url, rule, result); err != nil {
 		return nil, err
 	}
 	return result, nil

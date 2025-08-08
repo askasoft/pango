@@ -8,25 +8,25 @@ import "context"
 type ListGroupsOption = PageOption
 
 func (fd *Freshdesk) GetGroup(ctx context.Context, gid int64) (*Group, error) {
-	url := fd.endpoint("/groups/%d", gid)
+	url := fd.Endpoint("/groups/%d", gid)
 	group := &Group{}
-	err := fd.doGet(ctx, url, group)
+	err := fd.DoGet(ctx, url, group)
 	return group, err
 }
 
 func (fd *Freshdesk) CreateGroup(ctx context.Context, group *GroupCreate) (*Group, error) {
-	url := fd.endpoint("/groups")
+	url := fd.Endpoint("/groups")
 	result := &Group{}
-	if err := fd.doPost(ctx, url, group, result); err != nil {
+	if err := fd.DoPost(ctx, url, group, result); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
 func (fd *Freshdesk) ListGroups(ctx context.Context, lgo *ListGroupsOption) ([]*Group, bool, error) {
-	url := fd.endpoint("/groups")
+	url := fd.Endpoint("/groups")
 	groups := []*Group{}
-	next, err := fd.doList(ctx, url, lgo, &groups)
+	next, err := fd.DoList(ctx, url, lgo, &groups)
 	return groups, next, err
 }
 
@@ -60,15 +60,15 @@ func (fd *Freshdesk) IterGroups(ctx context.Context, lgo *ListGroupsOption, igf 
 }
 
 func (fd *Freshdesk) UpdateGroup(ctx context.Context, gid int64, group *GroupUpdate) (*Group, error) {
-	url := fd.endpoint("/groups/%d", gid)
+	url := fd.Endpoint("/groups/%d", gid)
 	result := &Group{}
-	if err := fd.doPut(ctx, url, group, result); err != nil {
+	if err := fd.DoPut(ctx, url, group, result); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
 func (fd *Freshdesk) DeleteGroup(ctx context.Context, gid int64) error {
-	url := fd.endpoint("/groups/%d", gid)
-	return fd.doDelete(ctx, url)
+	url := fd.Endpoint("/groups/%d", gid)
+	return fd.DoDelete(ctx, url)
 }

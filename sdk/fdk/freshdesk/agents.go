@@ -40,16 +40,16 @@ func (lao *ListAgentsOption) Values() Values {
 }
 
 func (fd *Freshdesk) GetAgent(ctx context.Context, aid int64) (*Agent, error) {
-	url := fd.endpoint("/agents/%d", aid)
+	url := fd.Endpoint("/agents/%d", aid)
 	agent := &Agent{}
-	err := fd.doGet(ctx, url, agent)
+	err := fd.DoGet(ctx, url, agent)
 	return agent, err
 }
 
 func (fd *Freshdesk) ListAgents(ctx context.Context, lao *ListAgentsOption) ([]*Agent, bool, error) {
-	url := fd.endpoint("/agents")
+	url := fd.Endpoint("/agents")
 	agents := []*Agent{}
-	next, err := fd.doList(ctx, url, lao, &agents)
+	next, err := fd.DoList(ctx, url, lao, &agents)
 	return agents, next, err
 }
 
@@ -83,38 +83,38 @@ func (fd *Freshdesk) IterAgents(ctx context.Context, lao *ListAgentsOption, iaf 
 }
 
 func (fd *Freshdesk) CreateAgent(ctx context.Context, agent *AgentCreate) (*Agent, error) {
-	url := fd.endpoint("/agents")
+	url := fd.Endpoint("/agents")
 	result := &Agent{}
-	if err := fd.doPost(ctx, url, agent, result); err != nil {
+	if err := fd.DoPost(ctx, url, agent, result); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
 func (fd *Freshdesk) UpdateAgent(ctx context.Context, aid int64, agent *AgentUpdate) (*Agent, error) {
-	url := fd.endpoint("/agents/%d", aid)
+	url := fd.Endpoint("/agents/%d", aid)
 	result := &Agent{}
-	if err := fd.doPut(ctx, url, agent, result); err != nil {
+	if err := fd.DoPut(ctx, url, agent, result); err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
 func (fd *Freshdesk) DeleteAgent(ctx context.Context, aid int64) error {
-	url := fd.endpoint("/agents/%d", aid)
-	return fd.doDelete(ctx, url)
+	url := fd.Endpoint("/agents/%d", aid)
+	return fd.DoDelete(ctx, url)
 }
 
 func (fd *Freshdesk) GetCurrentAgent(ctx context.Context) (*Agent, error) {
-	url := fd.endpoint("/agents/me")
+	url := fd.Endpoint("/agents/me")
 	agent := &Agent{}
-	err := fd.doGet(ctx, url, agent)
+	err := fd.DoGet(ctx, url, agent)
 	return agent, err
 }
 
 func (fd *Freshdesk) SearchAgents(ctx context.Context, keyword string) ([]*Agent, error) {
-	url := fd.endpoint("/agents/autocomplete?term=%s", url.QueryEscape(keyword))
+	url := fd.Endpoint("/agents/autocomplete?term=%s", url.QueryEscape(keyword))
 	agents := []*Agent{}
-	err := fd.doGet(ctx, url, &agents)
+	err := fd.DoGet(ctx, url, &agents)
 	return agents, err
 }

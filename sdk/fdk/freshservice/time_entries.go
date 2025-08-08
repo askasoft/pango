@@ -15,9 +15,9 @@ type ListTimeEntriesOption = PageOption
 // 2. time_spent can be set only if timer_running is false or not set.
 // POST  /api/v2/tickets/[ticket_id]/time_entries
 func (fs *Freshservice) CreateTimeEntry(ctx context.Context, tid int64, tm *TimeEntryCreate) (*TimeEntry, error) {
-	url := fs.endpoint("/tickets/%d/time_entries", tid)
+	url := fs.Endpoint("/tickets/%d/time_entries", tid)
 	result := &timeEntryResult{}
-	if err := fs.doPost(ctx, url, tm, result); err != nil {
+	if err := fs.DoPost(ctx, url, tm, result); err != nil {
 		return nil, err
 	}
 	return result.TimeEntry, nil
@@ -27,9 +27,9 @@ func (fs *Freshservice) CreateTimeEntry(ctx context.Context, tid int64, tm *Time
 // This API call helps to list a particular Time Entry.
 // GET  /api/v2/tickets/[ticket_id]/time_entries/[id]
 func (fs *Freshservice) GetTimeEntry(ctx context.Context, tid, teid int64) (*TimeEntry, error) {
-	url := fs.endpoint("/tickets/%d/time_entries/%d", tid, teid)
+	url := fs.Endpoint("/tickets/%d/time_entries/%d", tid, teid)
 	result := &timeEntryResult{}
-	err := fs.doGet(ctx, url, result)
+	err := fs.DoGet(ctx, url, result)
 	return result.TimeEntry, err
 }
 
@@ -37,9 +37,9 @@ func (fs *Freshservice) GetTimeEntry(ctx context.Context, tid, teid int64) (*Tim
 // This API helps to view all time entries of a particular ticket.
 // GET  /api/v2/tickets/[ticket_id]/time_entries
 func (fs *Freshservice) ListTicketTimeEntries(ctx context.Context, tid int64, lteo *ListTimeEntriesOption) ([]*TimeEntry, bool, error) {
-	url := fs.endpoint("/tickets/%d/time_entries", tid)
+	url := fs.Endpoint("/tickets/%d/time_entries", tid)
 	result := &timeEntriesResult{}
-	next, err := fs.doList(ctx, url, lteo, result)
+	next, err := fs.DoList(ctx, url, lteo, result)
 	return result.TimeEntries, next, err
 }
 
@@ -77,15 +77,15 @@ func (fs *Freshservice) IterTicketTimeEntries(ctx context.Context, tid int64, lt
 // Note:
 // 1. For a running timer, time_spent cannot be updated without stopping it.
 func (fs *Freshservice) UpdateTimeEntry(ctx context.Context, tid, teid int64, tm *TimeEntryUpdate) (*TimeEntry, error) {
-	url := fs.endpoint("/tickets/%d/time_entries/%d", tid, teid)
+	url := fs.Endpoint("/tickets/%d/time_entries/%d", tid, teid)
 	result := &timeEntryResult{}
-	if err := fs.doPut(ctx, url, tm, result); err != nil {
+	if err := fs.DoPut(ctx, url, tm, result); err != nil {
 		return nil, err
 	}
 	return result.TimeEntry, nil
 }
 
 func (fs *Freshservice) DeleteTimeEntry(ctx context.Context, tid, teid int64) error {
-	url := fs.endpoint("/tickets/%d/time_entries/%d", tid, teid)
-	return fs.doDelete(ctx, url)
+	url := fs.Endpoint("/tickets/%d/time_entries/%d", tid, teid)
+	return fs.DoDelete(ctx, url)
 }

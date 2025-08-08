@@ -389,23 +389,11 @@ type TicketCreate struct {
 	// The channel through which the ticket was created
 	Source TicketSource `json:"source,omitempty"`
 
-	// Set to true if the ticket has been deleted/trashed. Deleted tickets will not be displayed in any views except the "deleted" filter
-	Deleted bool `json:"deleted,omitempty"`
-
-	// Set to true if the ticket has been marked as spam
-	Spam bool `json:"spam,omitempty"`
-
 	// Timestamp that denotes when the ticket is due to be resolved
 	DueBy *Time `json:"due_by,omitempty"`
 
 	// Timestamp that denotes when the first response is due
 	FrDueBy *Time `json:"fr_due_by,omitempty"`
-
-	// Set to true if the ticket has been escalated for any reason
-	IsEscalated bool `json:"is_escalated,omitempty"`
-
-	// Set to true if the ticket has been escalated as the result of first response time being breached
-	FrEscalated bool `json:"fr_escalated,omitempty"`
 
 	// Email addresses to which the ticket was originally sent
 	ToEmails []string `json:"to_emails,omitempty"`
@@ -430,9 +418,6 @@ type TicketCreate struct {
 
 	// HTML content of the ticket
 	Description string `json:"description,omitempty"`
-
-	// Content of the ticket in plain text
-	DescriptionText string `json:"description_text,omitempty"`
 
 	// Tags that have been associated with the ticket
 	Tags *[]string `json:"tags,omitempty"`
@@ -484,25 +469,29 @@ func (t *TicketCreate) Values() Values {
 	vs.SetInt64("requester_id", t.RequesterID)
 	vs.SetString("email", t.Email)
 	vs.SetString("phone", t.Phone)
-	vs.SetInt64("email_config_id", t.EmailConfigID)
-	vs.SetString("subject", t.Subject)
 	vs.SetString("type", t.Type)
+	vs.SetInt("source", (int)(t.Source))
 	vs.SetInt("status", (int)(t.Status))
 	vs.SetInt("priority", (int)(t.Priority))
+	vs.SetInt("urgency", int(t.Urgency))
+	vs.SetInt("impact", int(t.Impact))
+	vs.SetString("subject", t.Subject)
 	vs.SetString("description", t.Description)
 	vs.SetInt64("responder_id", t.ResponderID)
 	vs.SetStrings("cc_emails", t.CcEmails)
 	vs.SetTimePtr("due_by", t.DueBy)
 	vs.SetTimePtr("fr_due_by", t.FrDueBy)
+	vs.SetInt64("email_config_id", t.EmailConfigID)
 	vs.SetInt64("group_id", t.GroupID)
 	vs.SetInt64("workspace_id", t.WorkspaceID)
 	vs.SetInt64("department_id", t.DepartmentID)
-	vs.SetInt("source", (int)(t.Source))
-	vs.SetStringsPtr("tags", t.Tags)
 	vs.SetString("category", t.Category)
 	vs.SetString("sub_category", t.SubCategory)
 	vs.SetString("item_category", t.ItemCategory)
+	vs.SetStringsPtr("tags", t.Tags)
 	vs.SetMap("custom_fields", t.CustomFields)
+	vs.SetString("resolution_notes", t.ResolutionNotes)
+	vs.SetString("resolution_notes_html", t.ResolutionNotesHTML)
 	vs.SetTimePtr("created_at", t.CreatedAt)
 	vs.SetTimePtr("updated_at", t.UpdatedAt)
 

@@ -349,9 +349,6 @@ type ticketResult struct {
 }
 
 type TicketCreate struct {
-	// Unique ID of the ticket
-	ID int64 `json:"id,omitempty"`
-
 	// ID of the workspace to which the ticket belongs.
 	// The attribute is applicable only for accounts with the 'Workspaces' feature enabled.
 	WorkspaceID int64 `json:"workspace_id,omitempty"`
@@ -453,6 +450,10 @@ type TicketCreate struct {
 	UpdatedAt *Time `json:"updated_at,omitempty"`
 }
 
+func (t *TicketCreate) String() string {
+	return toString(t)
+}
+
 func (t *TicketCreate) AddAttachment(path string, data ...[]byte) {
 	a := NewAttachment(path, data...)
 	t.Attachments = append(t.Attachments, a)
@@ -496,10 +497,6 @@ func (t *TicketCreate) Values() Values {
 	vs.SetTimePtr("updated_at", t.UpdatedAt)
 
 	return vs
-}
-
-func (t *TicketCreate) String() string {
-	return toString(t)
 }
 
 type TicketUpdate = TicketCreate

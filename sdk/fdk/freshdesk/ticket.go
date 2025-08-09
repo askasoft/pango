@@ -258,9 +258,6 @@ func (t *Ticket) String() string {
 }
 
 type TicketCreate struct {
-	// Unique ID of the ticket
-	ID int64 `json:"id,omitempty"`
-
 	// Name of the requester
 	Name string `json:"name,omitempty"`
 
@@ -346,6 +343,10 @@ type TicketCreate struct {
 	LookupParameter string `json:"lookup_parameter,omitempty"`
 }
 
+func (t *TicketCreate) String() string {
+	return toString(t)
+}
+
 func (t *TicketCreate) AddAttachment(path string, data ...[]byte) {
 	a := NewAttachment(path, data...)
 	t.Attachments = append(t.Attachments, a)
@@ -389,11 +390,84 @@ func (t *TicketCreate) Values() Values {
 	return vs
 }
 
-func (t *TicketCreate) String() string {
+type TicketUpdate = TicketCreate
+
+type OutboundEmail struct {
+	// Name of the requester
+	Name string `json:"name,omitempty"`
+
+	// Email address of the requester. If no contact exists with this email address in Freshdesk, it will be added as a new contact.
+	Email string `json:"email,omitempty"`
+
+	// Helps categorize the ticket according to the different kinds of issues your support team deals with.
+	Type string `json:"type,omitempty"`
+
+	// Status of the ticket
+	Status TicketStatus `json:"status,omitempty"`
+
+	// Priority of the ticket
+	Priority TicketPriority `json:"priority,omitempty"`
+
+	// Subject of the ticket
+	Subject string `json:"subject,omitempty"`
+
+	// HTML content of the ticket
+	Description string `json:"description,omitempty"`
+
+	// Tags that have been associated with the ticket
+	Tags *[]string `json:"tags,omitempty"`
+
+	// Ticket attachments. The total size of these attachments cannot exceed 15MB.
+	Attachments []*Attachment `json:"attachments,omitempty"`
+
+	// Key value pairs containing the names and values of custom fields.
+	CustomFields map[string]any `json:"custom_fields,omitempty"`
+
+	// Timestamp that denotes when the ticket is due to be resolved
+	DueBy *Time `json:"due_by,omitempty"`
+
+	// Timestamp that denotes when the first response is due
+	FrDueBy *Time `json:"fr_due_by,omitempty"`
+
+	// ID of email config which is used for this ticket. (i.e., support@yourcompany.com/sales@yourcompany.com)
+	EmailConfigID int64 `json:"email_config_id,omitempty"`
+
+	// ID of the group to which the ticket has been assigned
+	GroupID int64 `json:"group_id,omitempty"`
+}
+
+func (t *OutboundEmail) String() string {
 	return toString(t)
 }
 
-type TicketUpdate = TicketCreate
+func (t *OutboundEmail) AddAttachment(path string, data ...[]byte) {
+	a := NewAttachment(path, data...)
+	t.Attachments = append(t.Attachments, a)
+}
+
+func (t *OutboundEmail) Files() Files {
+	return ((Attachments)(t.Attachments)).Files()
+}
+
+func (t *OutboundEmail) Values() Values {
+	vs := Values{}
+
+	vs.SetString("name", t.Name)
+	vs.SetString("email", t.Email)
+	vs.SetString("subject", t.Subject)
+	vs.SetString("type", t.Type)
+	vs.SetInt("status", (int)(t.Status))
+	vs.SetInt("priority", (int)(t.Priority))
+	vs.SetString("description", t.Description)
+	vs.SetMap("custom_fields", t.CustomFields)
+	vs.SetTimePtr("due_by", t.DueBy)
+	vs.SetTimePtr("fr_due_by", t.FrDueBy)
+	vs.SetInt64("email_config_id", t.EmailConfigID)
+	vs.SetInt64("group_id", t.GroupID)
+	vs.SetStringsPtr("tags", t.Tags)
+
+	return vs
+}
 
 type TicketProperties struct {
 	// Support email from which the reply should be sent

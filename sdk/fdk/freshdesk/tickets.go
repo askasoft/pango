@@ -90,6 +90,15 @@ func (fd *Freshdesk) CreateTicket(ctx context.Context, ticket *TicketCreate) (*T
 	return result, nil
 }
 
+func (fd *Freshdesk) CreateOutboundEmail(ctx context.Context, ticket *OutboundEmail) (*Ticket, error) {
+	url := fd.Endpoint("/tickets/outbound_email")
+	result := &Ticket{}
+	if err := fd.DoPost(ctx, url, ticket, result); err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 // GetTicket Get a Ticket
 // include: conversations, requester, company, stats
 func (fd *Freshdesk) GetTicket(ctx context.Context, tid int64, include ...string) (*Ticket, error) {

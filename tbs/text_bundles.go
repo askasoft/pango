@@ -6,7 +6,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"time"
 
@@ -122,10 +121,10 @@ func (tbs *TextBundles) GetBundle(locale string) *ini.Ini {
 }
 
 // get get the target locale string
-func (tbs *TextBundles) get(locale, section, name string) (string, bool) {
+func (tbs *TextBundles) get(locale, sect, name string) (string, bool) {
 	for locale != "" {
 		if bundle, ok := tbs.bundles[locale]; ok {
-			if sec := bundle.GetSection(section); sec != nil {
+			if sec := bundle.GetSection(sect); sec != nil {
 				if val := sec.Get(name); val != "" {
 					return val, ok
 				}
@@ -140,7 +139,7 @@ func (tbs *TextBundles) get(locale, section, name string) (string, bool) {
 	}
 
 	if bundle, ok := tbs.bundles[""]; ok {
-		if sec := bundle.GetSection(section); sec != nil {
+		if sec := bundle.GetSection(sect); sec != nil {
 			if val := sec.Get(name); val != "" {
 				return val, ok
 			}
@@ -177,17 +176,14 @@ func (tbs *TextBundles) GetFloat(locale, key string, defs ...float64) float64 {
 // GetText get the locale text by key.
 // if not found, returns the first non-empty value from defs.
 func (tbs *TextBundles) GetText(locale, key string, defs ...string) string {
-	section := ""
-	name := key
+	sect, name := "", key
 
-	dot := str.LastIndexByte(name, '.')
-	if dot >= 0 {
-		section = name[:dot]
-		name = name[dot+1:]
+	if i := str.LastIndexByte(key, '.'); i >= 0 {
+		sect, name = key[:i], key[i+1:]
 	}
 
-	if value, ok := tbs.get(locale, section, name); ok {
-		return value
+	if val, ok := tbs.get(locale, sect, name); ok {
+		return val
 	}
 
 	return str.NonEmpty(defs...)
@@ -196,24 +192,12 @@ func (tbs *TextBundles) GetText(locale, key string, defs ...string) string {
 // Format use fmt.Sprintf to format the locale text by key and args.
 func (tbs *TextBundles) Format(locale, key string, args ...any) string {
 	format := tbs.GetText(locale, key)
+
 	if format == "" || len(args) == 0 {
 		return format
 	}
 
-	params := make([]any, 0, len(args))
-	for _, arg := range args {
-		if arg != nil {
-			val := reflect.ValueOf(arg)
-			if val.Kind() == reflect.Slice {
-				for i := 0; i < val.Len(); i++ {
-					params = append(params, val.Index(i).Interface())
-				}
-			} else {
-				params = append(params, arg)
-			}
-		}
-	}
-	return fmt.Sprintf(format, params...)
+	return fmt.Sprintf(format, args...)
 }
 
 // Replace use strings.Replacer to translate content to the locale language.

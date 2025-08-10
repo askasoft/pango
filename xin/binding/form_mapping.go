@@ -150,6 +150,7 @@ func getStructFieldPrefix(prefix string, field reflect.StructField, tag string) 
 
 type options struct {
 	defaults string // default value
+	split    bool   // split to slice
 	valid    bool   // to valid utf-8
 	strip    bool   // strip leading trailing whitespace, remove empty string
 	ascii    bool   // convert full width runes to ascii rune
@@ -177,6 +178,8 @@ func tryToSetValue(prefix string, value reflect.Value, rsf reflect.StructField, 
 		switch k {
 		case "default":
 			opts.defaults = v
+		case "split":
+			opts.split = true
 		case "valid":
 			opts.valid = true
 		case "strip":
@@ -225,6 +228,13 @@ func alterFormKey(key string) string {
 }
 
 func trimFormValues(vs []string, opts options) []string {
+	if opts.split {
+		var ss []string
+		for _, v := range vs {
+			ss = append(ss, str.Fields(v)...)
+		}
+		vs = ss
+	}
 	if opts.valid {
 		vs = str.ToValidUTF8s(vs, "")
 	}
@@ -259,6 +269,17 @@ func getFormValues(form map[string][]string, key string, opts options) ([]string
 	return vs, ok
 }
 
+func getFormValuesOrDefaults(form map[string][]string, key string, opts options) (vs []string, ok bool) {
+	vs, ok = getFormValues(form, key, opts)
+	if !ok {
+		if opts.defaults == "" {
+			return
+		}
+		ok, vs = true, trimFormValues([]string{opts.defaults}, opts)
+	}
+	return
+}
+
 func setByForm(rsf reflect.StructField, field reflect.Value, form map[string][]string, key string, opts options) (isSet bool, be *FieldBindError) {
 	var (
 		vs  []string
@@ -270,21 +291,15 @@ func setByForm(rsf reflect.StructField, field reflect.Value, form map[string][]s
 	case reflect.Map:
 		vs, isSet, err = setMap(field, form, key, opts)
 	case reflect.Slice:
-		vs, ok = getFormValues(form, key, opts)
+		vs, ok = getFormValuesOrDefaults(form, key, opts)
 		if !ok {
-			if opts.defaults == "" {
-				return
-			}
-			vs = []string{opts.defaults}
+			return
 		}
 		isSet, err = true, setSlice(rsf, field, vs)
 	case reflect.Array:
-		vs, ok = getFormValues(form, key, opts)
+		vs, ok = getFormValuesOrDefaults(form, key, opts)
 		if !ok {
-			if opts.defaults == "" {
-				return
-			}
-			vs = []string{opts.defaults}
+			return
 		}
 		if len(vs) != field.Len() {
 			isSet, err = false, fmt.Errorf("%q is not valid value for %s", vs, field.Type().String())
@@ -292,17 +307,14 @@ func setByForm(rsf reflect.StructField, field reflect.Value, form map[string][]s
 			isSet, err = true, setArray(rsf, field, vs)
 		}
 	default:
-		vs, ok = getFormValues(form, key, opts)
-		if !ok && opts.defaults == "" {
+		vs, ok = getFormValuesOrDefaults(form, key, opts)
+		if !ok {
 			return
 		}
 
 		var val string
 		if len(vs) > 0 {
 			val = vs[0]
-		}
-		if val == "" {
-			val = opts.defaults
 		}
 		isSet, err = true, setWithProperType(rsf, field, val)
 	}

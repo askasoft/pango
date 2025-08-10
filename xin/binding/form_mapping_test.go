@@ -174,7 +174,7 @@ func TestMappingFormWithEmptyToDefault(t *testing.T) {
 	var s struct {
 		F string `form:"field,default=DefVal"`
 	}
-	err := mapForm(&s, map[string][]string{"field": {""}})
+	err := mapForm(&s, map[string][]string{})
 	assert.NoError(t, err)
 	assert.Equal(t, "DefVal", s.F)
 }
@@ -275,8 +275,8 @@ func TestMappingTimeDuration(t *testing.T) {
 
 func TestMappingSlice(t *testing.T) {
 	var s struct {
-		Slice  []int    `form:"slice,strip,ascii,default=9"`
-		Lslice []string `form:"lslice,lower,default=A"`
+		Slice  []int    `form:"slice,strip,ascii,split,default=9 8"`
+		Lslice []string `form:"lslice,lower,split,default=A B"`
 		Uslice []string `form:"uslice,upper,default=a"`
 		Vslice []string `form:"vslice,valid"`
 	}
@@ -284,20 +284,21 @@ func TestMappingSlice(t *testing.T) {
 	// default value
 	err := mappingByPtr(&s, formSource{}, "form")
 	assert.NoError(t, err)
-	assert.Equal(t, []int{9}, s.Slice)
-	assert.Equal(t, []string{"A"}, s.Lslice)
-	assert.Equal(t, []string{"a"}, s.Uslice)
+	assert.Equal(t, []int{9, 8}, s.Slice)
+	assert.Equal(t, []string{"a", "b"}, s.Lslice)
+	assert.Equal(t, []string{"A"}, s.Uslice)
 
 	// ok
 	err = mappingByPtr(&s, formSource{
-		"slice":  {"３", "", " 4 "},
+		"slice":  {"３", "", " 4 ", "5 6"},
 		"lslice": {"A", "", " B "},
 		"uslice": {"a", "", " b "},
 		"vslice": {"a", "a\xffb\xC0\xAFc\xff", " b "},
 	}, "form")
 	assert.NoError(t, err)
-	assert.Equal(t, []int{3, 4}, s.Slice)
-	assert.Equal(t, []string{"a", "", " b "}, s.Lslice)
+	assert.Equal(t, []int{3, 4, 5, 6}, s.Slice)
+	assert.Equal(t, []string{"a", "b"}, s.Lslice)
+	assert.Equal(t, []string{"A", "", " B "}, s.Uslice)
 	assert.Equal(t, []string{"a", "abc", " b "}, s.Vslice)
 
 	// error

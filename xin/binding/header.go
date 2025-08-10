@@ -22,6 +22,6 @@ func mapHeader(ptr any, h map[string][]string) error {
 
 type headerSource map[string][]string
 
-func (hs headerSource) TrySet(rsf reflect.StructField, field reflect.Value, key string, opt *setOptions) (bool, *FieldBindError) {
+func (hs headerSource) TrySet(rsf reflect.StructField, field reflect.Value, key string, opt options) (bool, *FieldBindError) {
 	return setByForm(rsf, field, hs, textproto.CanonicalMIMEHeaderKey(key), opt)
 }

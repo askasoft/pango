@@ -47,6 +47,13 @@ func (lco *ListContactsOption) Values() Values {
 	return q
 }
 
+type FilterContactsOption = FilterOption
+
+type FilterContactsResult struct {
+	Total   int        `json:"total"`
+	Results []*Contact `json:"results"`
+}
+
 func (fd *Freshdesk) CreateContact(ctx context.Context, contact *ContactCreate) (*Contact, error) {
 	url := fd.Endpoint("/contacts")
 	result := &Contact{}
@@ -121,11 +128,21 @@ func (fd *Freshdesk) IterContacts(ctx context.Context, lco *ListContactsOption, 
 	return nil
 }
 
-func (fd *Freshdesk) SearchContacts(ctx context.Context, keyword string) ([]*Contact, error) {
+func (fd *Freshdesk) SearchContacts(ctx context.Context, keyword string) ([]*User, error) {
 	url := fd.Endpoint("/contacts/autocomplete?term=%s", url.QueryEscape(keyword))
-	contacts := []*Contact{}
+	contacts := []*User{}
 	err := fd.DoGet(ctx, url, &contacts)
 	return contacts, err
+}
+
+// FilterContacts Use custom contact fields that you have created in your account to filter through the contacts and get a list of contacts matching the specified contact fields.
+// Format: "(contact_field:integer OR contact_field:'string') AND contact_field:boolean"
+// See: https://developers.freshdesk.com/api/#filter_contacts
+func (fd *Freshdesk) FilterContacts(ctx context.Context, fco *FilterContactsOption) ([]*Contact, int, error) {
+	url := fd.Endpoint("/search/contacts")
+	fcr := &FilterContactsResult{}
+	_, err := fd.DoList(ctx, url, fco, fcr)
+	return fcr.Results, fcr.Total, err
 }
 
 func (fd *Freshdesk) RestoreContact(ctx context.Context, cid int64) error {

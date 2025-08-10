@@ -26,6 +26,24 @@ const (
 	OrderDesc OrderType = "desc"
 )
 
+type FilterOption struct {
+	Query   string
+	Page    int
+	PerPage int
+}
+
+func (fo *FilterOption) IsNil() bool {
+	return fo == nil
+}
+
+func (fo *FilterOption) Values() Values {
+	q := Values{}
+	q.SetString("query", fo.Query)
+	q.SetInt("page", fo.Page)
+	q.SetInt("per_page", fo.PerPage)
+	return q
+}
+
 func ParseDate(s string) (*Date, error) {
 	return fdk.ParseDate(s)
 }

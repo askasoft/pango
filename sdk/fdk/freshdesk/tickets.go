@@ -57,21 +57,7 @@ func (lto *ListTicketsOption) Values() Values {
 	return q
 }
 
-type FilterTicketsOption struct {
-	Query string
-	Page  int
-}
-
-func (fto *FilterTicketsOption) IsNil() bool {
-	return fto == nil
-}
-
-func (fto *FilterTicketsOption) Values() Values {
-	q := Values{}
-	q.SetString("query", fto.Query)
-	q.SetInt("page", fto.Page)
-	return q
-}
+type FilterTicketsOption = FilterOption
 
 type FilterTicketsResult struct {
 	Total   int       `json:"total"`

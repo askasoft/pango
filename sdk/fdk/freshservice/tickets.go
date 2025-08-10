@@ -57,23 +57,7 @@ func (lto *ListTicketsOption) Values() Values {
 	return q
 }
 
-type FilterTicketsOption struct {
-	Query   string
-	Page    int
-	PerPage int
-}
-
-func (fto *FilterTicketsOption) IsNil() bool {
-	return fto == nil
-}
-
-func (fto *FilterTicketsOption) Values() Values {
-	q := Values{}
-	q.SetString("query", fto.Query)
-	q.SetInt("page", fto.Page)
-	q.SetInt("per_page", fto.PerPage)
-	return q
-}
+type FilterTicketsOption = FilterOption
 
 // PerPage: 1 ~ 100, default: 30
 type ListConversationsOption = PageOption

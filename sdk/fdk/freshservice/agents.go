@@ -43,23 +43,7 @@ func (lao *ListAgentsOption) Values() Values {
 	return q
 }
 
-type FilterAgentsOption struct {
-	Query   string
-	Page    int
-	PerPage int
-}
-
-func (fao *FilterAgentsOption) IsNil() bool {
-	return fao == nil
-}
-
-func (fao *FilterAgentsOption) Values() Values {
-	q := Values{}
-	q.SetString("query", fao.Query)
-	q.SetInt("page", fao.Page)
-	q.SetInt("per_page", fao.PerPage)
-	return q
-}
+type FilterAgentsOption = FilterOption
 
 func (fs *Freshservice) CreateAgent(ctx context.Context, agent *AgentCreate) (*Agent, error) {
 	url := fs.Endpoint("/agents")

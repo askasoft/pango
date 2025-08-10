@@ -15,6 +15,18 @@ type OtherCompany struct {
 	ViewAllTickets bool `json:"view_all_tickets,omitempty"`
 }
 
+type User struct {
+	ID     int64  `json:"id,omitempty"`
+	Name   string `json:"name,omitempty"`
+	Phone  string `json:"phone,omitempty"`
+	Mobile string `json:"email,omitempty"`
+	Avatar string `json:"avatar,omitempty"`
+}
+
+func (u *User) String() string {
+	return toString(u)
+}
+
 type Contact struct {
 	ID int64 `json:"id,omitempty"`
 

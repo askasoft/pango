@@ -112,9 +112,9 @@ func (fd *Freshdesk) GetCurrentAgent(ctx context.Context) (*Agent, error) {
 	return agent, err
 }
 
-func (fd *Freshdesk) SearchAgents(ctx context.Context, keyword string) ([]*Agent, error) {
+func (fd *Freshdesk) SearchAgents(ctx context.Context, keyword string) ([]*User, error) {
 	url := fd.Endpoint("/agents/autocomplete?term=%s", url.QueryEscape(keyword))
-	agents := []*Agent{}
+	agents := []*User{}
 	err := fd.DoGet(ctx, url, &agents)
 	return agents, err
 }

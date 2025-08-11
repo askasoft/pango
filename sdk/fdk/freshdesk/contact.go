@@ -90,9 +90,6 @@ type Contact struct {
 	// Additional companies associated with the contact
 	OtherCompanies []any `json:"other_companies,omitempty"`
 
-	// IDs of the companies associated with the contact (only used by MergeContact)
-	CompanyIDs int64 `json:"company_ids,omitempty"`
-
 	// Return by MakeAgent()
 	Agent *Agent `json:"agent,omitempty"`
 
@@ -216,9 +213,36 @@ type ContactsMerge struct {
 
 	// Contains attributes that need to be updated in the primary contact during merge (optional)
 	// email, phone, mobile, twitter_id, unique_external_id, other_emails, company_ids
-	Contact *Contact `json:"contact,omitempty"`
+	Contact *ContactMerge `json:"contact,omitempty"`
 }
 
 func (cm *ContactsMerge) String() string {
+	return toString(cm)
+}
+
+type ContactMerge struct {
+	// Primary email address of the contact. If you want to associate additional email(s) with this contact, use the other_emails attribute
+	Email string `json:"email,omitempty"`
+
+	// Telephone number of the contact
+	Phone string `json:"phone,omitempty"`
+
+	// Mobile number of the contact
+	Mobile string `json:"mobile,omitempty"`
+
+	// Twitter handle of the contact
+	TwitterID string `json:"twitter_id,omitempty"`
+
+	// External ID of the contact
+	UniqueExternalID string `json:"unique_external_id,omitempty"`
+
+	// Additional emails associated with the contact
+	OtherEmails []string `json:"other_emails,omitempty"`
+
+	// IDs of the companies associated with the contact
+	CompanyIDs int64 `json:"company_ids,omitempty"`
+}
+
+func (cm *ContactMerge) String() string {
 	return toString(cm)
 }

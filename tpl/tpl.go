@@ -124,6 +124,7 @@ func Functions() FuncMap {
 		"Left":       str.Left,
 		"Mid":        str.Mid,
 		"Right":      str.Right,
+		"Capitalize": str.Capitalize,
 		"Ellipsis":   str.Ellipsis,
 		"Ellipsiz":   str.Ellipsiz,
 		"Lower":      str.ToLower,

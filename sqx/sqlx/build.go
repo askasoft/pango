@@ -281,9 +281,10 @@ func (b *Builder) Limit(limit int) *Builder {
 func (b *Builder) StructSelect(a any, omits ...string) *Builder {
 	sm := b.mpr.TypeMap(reflect.TypeOf(a))
 	for _, fi := range sm.Index {
-		if !fi.Embedded && !asg.Contains(omits, fi.Name) {
-			b.sqb.Select(fi.Name)
+		if b.isIgnoredField(fi, omits...) {
+			continue
 		}
+		b.sqb.Select(fi.Name)
 	}
 	return b
 }
@@ -301,9 +302,10 @@ func (b *Builder) StructSelect(a any, omits ...string) *Builder {
 func (b *Builder) StructPrefixSelect(a any, prefix string, omits ...string) *Builder {
 	sm := b.mpr.TypeMap(reflect.TypeOf(a))
 	for _, fi := range sm.Index {
-		if !fi.Embedded && !asg.Contains(omits, fi.Name) {
-			b.sqb.Select(prefix + fi.Name)
+		if b.isIgnoredField(fi, omits...) {
+			continue
 		}
+		b.sqb.Select(prefix + fi.Name)
 	}
 	return b
 }
@@ -322,9 +324,24 @@ func (b *Builder) StructPrefixSelect(a any, prefix string, omits ...string) *Bui
 func (b *Builder) StructNames(a any, omits ...string) *Builder {
 	sm := b.mpr.TypeMap(reflect.TypeOf(a))
 	for _, fi := range sm.Index {
-		if !fi.Embedded && !asg.Contains(omits, fi.Name) {
-			b.sqb.Name(fi.Name)
+		if b.isIgnoredField(fi, omits...) {
+			continue
 		}
+		b.sqb.Name(fi.Name)
 	}
 	return b
+}
+
+func (b *Builder) isIgnoredField(fi *ref.FieldInfo, omits ...string) bool {
+	if fi.Embedded || asg.Contains(omits, fi.Name) {
+		return true
+	}
+
+	for fi = fi.Parent; fi != nil && fi.Path != ""; fi = fi.Parent {
+		if !fi.Embedded && !asg.Contains(omits, fi.Name) {
+			return true
+		}
+	}
+
+	return false
 }

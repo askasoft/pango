@@ -33,7 +33,7 @@ func (a *BoolArray) Scan(src any) error {
 }
 
 func (a *BoolArray) scanBytes(src []byte) error {
-	elems, err := scanLinearArray(src, []byte{','}, "BoolArray")
+	elems, err := scanLinearArray(src, "BoolArray")
 	if err != nil {
 		return err
 	}
@@ -112,7 +112,7 @@ func (a *Float64Array) Scan(src any) error {
 }
 
 func (a *Float64Array) scanBytes(src []byte) error {
-	elems, err := scanLinearArray(src, []byte{','}, "Float64Array")
+	elems, err := scanLinearArray(src, "Float64Array")
 	if err != nil {
 		return err
 	}
@@ -178,7 +178,7 @@ func (a *Float32Array) Scan(src any) error {
 }
 
 func (a *Float32Array) scanBytes(src []byte) error {
-	elems, err := scanLinearArray(src, []byte{','}, "Float32Array")
+	elems, err := scanLinearArray(src, "Float32Array")
 	if err != nil {
 		return err
 	}
@@ -245,7 +245,7 @@ func (a *Int64Array) Scan(src any) error {
 }
 
 func (a *Int64Array) scanBytes(src []byte) error {
-	elems, err := scanLinearArray(src, []byte{','}, "Int64Array")
+	elems, err := scanLinearArray(src, "Int64Array")
 	if err != nil {
 		return err
 	}
@@ -310,7 +310,7 @@ func (a *Int32Array) Scan(src any) error {
 }
 
 func (a *Int32Array) scanBytes(src []byte) error {
-	elems, err := scanLinearArray(src, []byte{','}, "Int32Array")
+	elems, err := scanLinearArray(src, "Int32Array")
 	if err != nil {
 		return err
 	}
@@ -377,7 +377,7 @@ func (a *IntArray) Scan(src any) error {
 }
 
 func (a *IntArray) scanBytes(src []byte) error {
-	elems, err := scanLinearArray(src, []byte{','}, "IntArray")
+	elems, err := scanLinearArray(src, "IntArray")
 	if err != nil {
 		return err
 	}
@@ -444,7 +444,7 @@ func (a *StringArray) Scan(src any) error {
 }
 
 func (a *StringArray) scanBytes(src []byte) error {
-	elems, err := scanLinearArray(src, []byte{','}, "StringArray")
+	elems, err := scanLinearArray(src, "StringArray")
 	if err != nil {
 		return err
 	}
@@ -511,7 +511,7 @@ func appendArrayQuotedBytes(b, v []byte) []byte {
 // See http://www.postgresql.org/docs/current/static/arrays.html#ARRAYS-IO
 var null = []byte("NULL")
 
-func parseArray(src, del []byte) (dims []int, elems [][]byte, err error) {
+func parseArray(src []byte) (dims []int, elems [][]byte, err error) {
 	var depth, i int
 
 	if len(src) < 1 || src[0] != '{' {
@@ -565,7 +565,7 @@ Element:
 			}
 		default:
 			for start := i; i < len(src); i++ {
-				if bytes.HasPrefix(src[i:], del) || src[i] == '}' {
+				if src[i] == ',' || src[i] == '}' {
 					elem := src[start:i]
 					if len(elem) == 0 {
 						return nil, nil, fmt.Errorf("pqx: unable to parse array; unexpected %q at offset %d", src[i], i)
@@ -581,9 +581,9 @@ Element:
 	}
 
 	for i < len(src) {
-		if bytes.HasPrefix(src[i:], del) && depth > 0 {
+		if src[i] == ',' && depth > 0 {
 			dims[depth-1]++
-			i += len(del)
+			i++
 			goto Element
 		} else if src[i] == '}' && depth > 0 {
 			dims[depth-1]++
@@ -616,8 +616,8 @@ Close:
 	return
 }
 
-func scanLinearArray(src, del []byte, typ string) (elems [][]byte, err error) {
-	dims, elems, err := parseArray(src, del)
+func scanLinearArray(src []byte, typ string) (elems [][]byte, err error) {
+	dims, elems, err := parseArray(src)
 	if err != nil {
 		return nil, err
 	}

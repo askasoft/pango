@@ -25,7 +25,7 @@ type Attachment struct {
 }
 
 func (a *Attachment) String() string {
-	return ToJSONIndent(a)
+	return toString(a)
 }
 
 func (a *Attachment) Field() string {

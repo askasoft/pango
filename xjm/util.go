@@ -4,8 +4,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 
+	"github.com/askasoft/pango/doc/jsonx"
 	"github.com/askasoft/pango/str"
 )
+
+func toString(o any) string {
+	return jsonx.Prettify(o)
+}
 
 func Encode(v any) (string, error) {
 	if v == nil {
@@ -63,12 +68,4 @@ func MustDecode(p string, v any) {
 	if err != nil {
 		panic(err)
 	}
-}
-
-func toString(o any) string {
-	bs, err := json.MarshalIndent(o, "", "  ")
-	if err != nil {
-		return err.Error()
-	}
-	return string(bs)
 }

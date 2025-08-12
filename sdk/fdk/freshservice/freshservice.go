@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/askasoft/pango/doc/jsonx"
 	"github.com/askasoft/pango/sdk/fdk"
 )
 
@@ -61,15 +62,7 @@ func NewAttachment(file string, data ...[]byte) *Attachment {
 }
 
 func toString(o any) string {
-	return fdk.ToJSONIndent(o)
-}
-
-func ToJSON(o any) string {
-	return fdk.ToJSON(o)
-}
-
-func ToJSONIndent(o any) string {
-	return fdk.ToJSONIndent(o)
+	return jsonx.Prettify(o)
 }
 
 type Freshservice fdk.FDK

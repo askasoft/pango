@@ -310,7 +310,7 @@ func (cc *ChatCompletionRequest) MessageRuneCount() int {
 }
 
 func (cc *ChatCompletionRequest) String() string {
-	return toJSONIndent(cc)
+	return toString(cc)
 }
 
 type ChoiceAudio struct {
@@ -452,6 +452,10 @@ type ChatCompletionResponse struct {
 	Usage             ChatUsage     `json:"usage,omitempty"`
 }
 
+func (cc *ChatCompletionResponse) String() string {
+	return toString(cc)
+}
+
 // Answer return first choice content
 func (cc *ChatCompletionResponse) Answer() string {
 	if len(cc.Choices) > 0 {
@@ -466,8 +470,4 @@ func (cc *ChatCompletionResponse) ChoiceRuneCount() int {
 		cnt += str.RuneCount(c.Message.Content)
 	}
 	return cnt
-}
-
-func (cc *ChatCompletionResponse) String() string {
-	return toJSONIndent(cc)
 }

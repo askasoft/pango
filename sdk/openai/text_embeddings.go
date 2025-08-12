@@ -17,7 +17,7 @@ type TextEmbeddingsRequest struct {
 }
 
 func (te *TextEmbeddingsRequest) String() string {
-	return toJSONIndent(te)
+	return toString(te)
 }
 
 func (te *TextEmbeddingsRequest) InputRuneCount() int {
@@ -52,7 +52,7 @@ type TextEmbeddingsResponse struct {
 }
 
 func (te *TextEmbeddingsResponse) String() string {
-	return toJSONIndent(te)
+	return toString(te)
 }
 
 func (te *TextEmbeddingsResponse) Embedding() []float64 {

@@ -5,23 +5,15 @@ import (
 	"encoding/json"
 	"io"
 
-	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/doc/jsonx"
 )
 
 const (
 	contentTypeJSON = `application/json; charset="utf-8"`
 )
 
-func toJSONIndent(o any) string {
-	if o == nil {
-		return ""
-	}
-
-	bs, err := json.MarshalIndent(o, "", "  ")
-	if err != nil {
-		return err.Error()
-	}
-	return str.UnsafeString(bs)
+func toString(o any) string {
+	return jsonx.Prettify(o)
 }
 
 func buildJsonRequest(a any) (io.Reader, string, error) {

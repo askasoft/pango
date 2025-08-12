@@ -9,38 +9,18 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/askasoft/pango/doc/jsonx"
 	"github.com/askasoft/pango/fsu"
 	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/net/httpx"
-	"github.com/askasoft/pango/str"
 )
 
 const (
 	contentTypeJSON = `application/json; charset="utf-8"`
 )
 
-func ToJSONIndent(o any) string {
-	if o == nil {
-		return ""
-	}
-
-	bs, err := json.MarshalIndent(o, "", "  ")
-	if err != nil {
-		return err.Error()
-	}
-	return str.UnsafeString(bs)
-}
-
-func ToJSON(o any) string {
-	if o == nil {
-		return ""
-	}
-
-	bs, err := json.Marshal(o)
-	if err != nil {
-		return err.Error()
-	}
-	return str.UnsafeString(bs)
+func toString(o any) string {
+	return jsonx.Prettify(o)
 }
 
 func addMultipartValues(mw *httpx.MultipartWriter, vs Values) error {

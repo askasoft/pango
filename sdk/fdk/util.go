@@ -19,6 +19,10 @@ const (
 	contentTypeJSON = `application/json; charset="utf-8"`
 )
 
+type CustomRequest interface {
+	RequestBody() (io.Reader, string, error)
+}
+
 func toString(o any) string {
 	return jsonx.Prettify(o)
 }
@@ -47,17 +51,22 @@ func buildRequest(a any) (io.Reader, string, error) {
 		return nil, "", nil
 	}
 
+	if bb, ok := a.(CustomRequest); ok {
+		return bb.RequestBody()
+	}
+
 	if wf, ok := a.(WithFiles); ok {
 		fs := wf.Files()
 		if len(fs) > 0 {
 			vs := wf.Values()
-			return buildFileRequest(vs, fs)
+			return BuildMultipartRequest(vs, fs)
 		}
 	}
-	return buildJsonRequest(a)
+
+	return BuildJSONRequest(a)
 }
 
-func buildFileRequest(vs Values, fs Files) (io.Reader, string, error) {
+func BuildMultipartRequest(vs Values, fs Files) (io.Reader, string, error) {
 	buf := &bytes.Buffer{}
 	mw := httpx.NewMultipartWriter(buf)
 
@@ -76,7 +85,7 @@ func buildFileRequest(vs Values, fs Files) (io.Reader, string, error) {
 	return buf, contentType, nil
 }
 
-func buildJsonRequest(a any) (io.Reader, string, error) {
+func BuildJSONRequest(a any) (io.Reader, string, error) {
 	body, err := json.Marshal(a)
 	if err != nil {
 		return nil, "", err

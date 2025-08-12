@@ -131,32 +131,4 @@ func (a *AgentCreate) String() string {
 	return toString(a)
 }
 
-// func (aq *AgentRequest) Files() Files {
-// 	if aq.Avatar != nil {
-// 		return Files{aq.Avatar}
-// 	}
-// 	return nil
-// }
-
-// func (aq *AgentRequest) Values() Values {
-// 	vs := Values{}
-
-// 	vs.SetBool("occasional", aq.Occasional)
-// 	vs.SetString("signature", aq.Signature)
-// 	vs.SetInt("ticket_scope", aq.TicketScope)
-// 	vs.SetString("agent_type", aq.AgentType)
-// 	vs.SetInt64s("skill_ids", aq.SkillIDs)
-// 	vs.SetInt64s("group_ids", aq.GroupIDs)
-// 	vs.SetInt64s("role_ids", aq.RoleIDs)
-
-// 	vs.SetString("name", aq.Name)
-// 	vs.SetString("email", aq.Email)
-// 	vs.SetString("phone", aq.Phone)
-// 	vs.SetString("mobile", aq.Mobile)
-// 	vs.SetString("job_title", aq.JobTitle)
-// 	vs.SetString("language", aq.Language)
-// 	vs.SetString("time_zone", aq.TimeZone)
-// 	return vs
-// }
-
 type AgentUpdate = AgentCreate

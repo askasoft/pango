@@ -1,4 +1,4 @@
-package tesseractocr
+package tesseract
 
 import (
 	"bytes"

@@ -3,7 +3,7 @@ package cdt
 import (
 	"testing"
 
-	"github.com/askasoft/pango/fsu"
+	"github.com/askasoft/pango/iox/fsu"
 )
 
 var files = []string{

@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 
 	"github.com/askasoft/pango/doc/jsonx"
-	"github.com/askasoft/pango/fsu"
 	"github.com/askasoft/pango/iox"
+	"github.com/askasoft/pango/iox/fsu"
 	"github.com/askasoft/pango/net/httpx"
 )
 

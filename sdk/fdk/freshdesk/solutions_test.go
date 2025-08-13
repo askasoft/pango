@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/askasoft/pango/bye"
-	"github.com/askasoft/pango/fsu"
+	"github.com/askasoft/pango/iox/fsu"
 	"github.com/askasoft/pango/str"
 )
 

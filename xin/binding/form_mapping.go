@@ -239,7 +239,7 @@ func trimFormValues(vs []string, opts options) []string {
 		vs = str.ToValidUTF8s(vs, "")
 	}
 	if opts.strip {
-		vs = str.RemoveEmpties(str.Strips(vs))
+		vs = str.Strips(vs)
 	}
 	if opts.ascii {
 		vs = lut.ToASCIIs(vs)
@@ -301,7 +301,7 @@ func setByForm(rsf reflect.StructField, field reflect.Value, form map[string][]s
 		if !ok {
 			return
 		}
-		if len(vs) != field.Len() {
+		if len(vs) > field.Len() {
 			isSet, err = false, fmt.Errorf("%q is not valid value for %s", vs, field.Type().String())
 		} else {
 			isSet, err = true, setArray(rsf, field, vs)
@@ -312,10 +312,7 @@ func setByForm(rsf reflect.StructField, field reflect.Value, form map[string][]s
 			return
 		}
 
-		var val string
-		if len(vs) > 0 {
-			val = vs[0]
-		}
+		val := str.NonEmpty(vs...)
 		isSet, err = true, setWithProperType(rsf, field, val)
 	}
 

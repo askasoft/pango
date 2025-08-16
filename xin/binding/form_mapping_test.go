@@ -307,24 +307,29 @@ func TestMappingSlice(t *testing.T) {
 }
 
 func TestMappingArray(t *testing.T) {
-	var s struct {
+	type a struct {
 		Array [2]int `form:"array,strip,default=9"`
 	}
 
-	// wrong default
-	err := mappingByPtr(&s, formSource{}, "form")
-	assert.Error(t, err)
-
-	// ok
-	err = mappingByPtr(&s, formSource{"array": {"3", "", " 4 "}}, "form")
+	// ok - exact values
+	s := &a{}
+	err := mappingByPtr(s, formSource{"array": {"", " 2 "}}, "form")
 	assert.NoError(t, err)
-	assert.Equal(t, [2]int{3, 4}, s.Array)
+	assert.Equal(t, [2]int{0, 2}, s.Array)
 
-	// error - not enough vals
-	err = mappingByPtr(&s, formSource{"array": {"3"}}, "form")
+	// ok - less values
+	s = &a{}
+	err = mappingByPtr(s, formSource{"array": {" 1 "}}, "form")
+	assert.NoError(t, err)
+	assert.Equal(t, [2]int{1, 0}, s.Array)
+
+	// error - too many vals
+	s = &a{}
+	err = mappingByPtr(&s, formSource{"array": {"1", "2", "3"}}, "form")
 	assert.Error(t, err)
 
 	// error - wrong value
+	s = &a{}
 	err = mappingByPtr(&s, formSource{"array": {"wrong"}}, "form")
 	assert.Error(t, err)
 }

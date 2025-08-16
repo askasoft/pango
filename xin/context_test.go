@@ -523,7 +523,7 @@ func TestContextQueryAndPostForm(t *testing.T) {
 	assert.Equal(t, "bar", obj.Foo, "bar")
 	assert.Equal(t, "main", obj.ID, "main")
 	assert.Equal(t, 11, obj.Page, "11")
-	assert.Empty(t, obj.Both)
+	assert.Equal(t, "GET", obj.Both)
 	assert.Equal(t, []string{"first", "second"}, obj.Array)
 
 	values, ok := c.GetQueryArray("array[]")

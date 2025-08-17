@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/askasoft/pango/iox/fsu"
+	"github.com/askasoft/pango/fsu"
 )
 
 func TestHTMLFileTextifyString(t *testing.T) {

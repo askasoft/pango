@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/askasoft/pango/iox/fsu"
+	"github.com/askasoft/pango/fsu"
 )
 
 func testNewTextTpls() *TextTemplates {

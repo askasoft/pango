@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/askasoft/pango/fsu"
 	"github.com/askasoft/pango/iox"
-	"github.com/askasoft/pango/iox/fsu"
 )
 
 //go:embed testdata

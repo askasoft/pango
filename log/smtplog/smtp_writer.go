@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/log"
-	"github.com/askasoft/pango/log/internal"
 	"github.com/askasoft/pango/net/email"
 	"github.com/askasoft/pango/str"
 )
@@ -75,7 +74,7 @@ func (sw *SMTPWriter) Close() {
 
 	if sw.sender != nil {
 		if err := sw.sender.Close(); err != nil {
-			internal.Perrorf("smtplog: Close(%s:%d): %v", sw.Host, sw.Port, err)
+			log.Perrorf("smtplog: Close(%s:%d): %v", sw.Host, sw.Port, err)
 		}
 		sw.sender = nil
 	}

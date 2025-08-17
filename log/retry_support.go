@@ -1,7 +1,5 @@
 package log
 
-import "github.com/askasoft/pango/log/internal"
-
 // RetrySupport cache event if write failed, and retry write when the next log event come.
 type RetrySupport struct {
 	Retries     int
@@ -17,7 +15,7 @@ func (rs *RetrySupport) RetryWrite(le *Event, write func(*Event) error) {
 	if err == nil {
 		err = write(le)
 		if err != nil {
-			internal.Perror(err)
+			Perror(err)
 		}
 	}
 
@@ -36,7 +34,7 @@ func (rs *RetrySupport) RetryFlush(write func(*Event) error) {
 func (rs *RetrySupport) retry(write func(*Event) error) error {
 	for le, ok := rs.RetryBuffer.Peek(); ok; le, ok = rs.RetryBuffer.Peek() {
 		if err := write(le); err != nil {
-			internal.Perror(err)
+			Perror(err)
 			return err
 		}
 		rs.RetryBuffer.Poll()

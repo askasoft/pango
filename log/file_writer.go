@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/askasoft/pango/log/internal"
 	"github.com/askasoft/pango/num"
 )
 
@@ -55,7 +54,7 @@ func (fw *FileWriter) Write(le *Event) {
 	}
 
 	if err := fw.write(le); err != nil {
-		internal.Perror(err)
+		Perror(err)
 	}
 }
 
@@ -94,7 +93,7 @@ func (fw *FileWriter) sync() {
 	if file != nil {
 		err := file.Sync()
 		if err != nil {
-			internal.Perrorf("filelog: Sync('%s'): %v", fw.Path, err)
+			Perrorf("filelog: Sync('%s'): %v", fw.Path, err)
 		}
 	}
 }
@@ -112,7 +111,7 @@ func (fw *FileWriter) Close() {
 	if file != nil {
 		err := file.Close()
 		if err != nil {
-			internal.Perrorf("filelog: Close('%s'): %v", fw.Path, err)
+			Perrorf("filelog: Close('%s'): %v", fw.Path, err)
 		}
 		fw.file = nil
 	}
@@ -232,7 +231,7 @@ func (fw *FileWriter) rotate(tm time.Time) {
 
 	// close file before rename
 	if err := fw.file.Close(); err != nil {
-		internal.Perrorf("filelog: Close('%s'): %v", fw.Path, err)
+		Perrorf("filelog: Close('%s'): %v", fw.Path, err)
 		return
 	}
 	fw.file = nil
@@ -240,7 +239,7 @@ func (fw *FileWriter) rotate(tm time.Time) {
 	// Rename the file to its new found name
 	// even if occurs error, we MUST guarantee to restart new logger
 	if err := os.Rename(fw.Path, path); err != nil {
-		internal.Perrorf("filelog: Rename('%s' -> '%s'): %v", fw.Path, path, err)
+		Perrorf("filelog: Rename('%s' -> '%s'): %v", fw.Path, path, err)
 		return
 	}
 
@@ -285,13 +284,13 @@ func (fw *FileWriter) nextFile(pre string) (path string) {
 					if os.IsNotExist(err) {
 						break
 					} else if err != nil {
-						internal.Perrorf("filelog: Remove('%s'): %v", pg, err)
+						Perrorf("filelog: Remove('%s'): %v", pg, err)
 					}
 				} else {
 					break
 				}
 			} else if err != nil {
-				internal.Perrorf("filelog: Remove('%s'): %v", p, err)
+				Perrorf("filelog: Remove('%s'): %v", p, err)
 			}
 		}
 	}
@@ -304,7 +303,7 @@ func (fw *FileWriter) compressFile(src string) {
 
 	f, err := os.Open(src)
 	if err != nil {
-		internal.Perrorf("filelog: Open('%s'): %v", src, err)
+		Perrorf("filelog: Open('%s'): %v", src, err)
 		return
 	}
 	defer f.Close()
@@ -313,7 +312,7 @@ func (fw *FileWriter) compressFile(src string) {
 	// a previous attempt to compress the log file.
 	gzf, err := os.OpenFile(dst, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, os.FileMode(fw.FilePerm))
 	if err != nil {
-		internal.Perrorf("filelog: OpenFile('%s'): %v", dst, err)
+		Perrorf("filelog: OpenFile('%s'): %v", dst, err)
 		return
 	}
 	defer gzf.Close()
@@ -321,21 +320,21 @@ func (fw *FileWriter) compressFile(src string) {
 	gz := gzip.NewWriter(gzf)
 
 	if _, err := io.Copy(gz, f); err != nil {
-		internal.Perrorf("filelog: gzip('%s'): %v", dst, err)
+		Perrorf("filelog: gzip('%s'): %v", dst, err)
 		return
 	}
 	if err := gz.Close(); err != nil {
-		internal.Perrorf("filelog: gzip.Close('%s'): %v", dst, err)
+		Perrorf("filelog: gzip.Close('%s'): %v", dst, err)
 		return
 	}
 	if err := gzf.Close(); err != nil {
-		internal.Perrorf("filelog: Close('%s'): %v", dst, err)
+		Perrorf("filelog: Close('%s'): %v", dst, err)
 		return
 	}
 
 	f.Close()
 	if err := os.Remove(src); err != nil {
-		internal.Perrorf("filelog: Remove('%s'): %v", src, err)
+		Perrorf("filelog: Remove('%s'): %v", src, err)
 	}
 }
 
@@ -349,14 +348,14 @@ func (fw *FileWriter) deleteOutdatedFiles() {
 
 	f, err := os.Open(fw.dir)
 	if err != nil {
-		internal.Perrorf("filelog: Open('%s'): %v", fw.dir, err)
+		Perrorf("filelog: Open('%s'): %v", fw.dir, err)
 		return
 	}
 	defer f.Close()
 
 	des, err := f.ReadDir(-1)
 	if err != nil {
-		internal.Perrorf("filelog: ReadDir('%s'): %v", fw.dir, err)
+		Perrorf("filelog: ReadDir('%s'): %v", fw.dir, err)
 		return
 	}
 
@@ -371,7 +370,7 @@ func (fw *FileWriter) deleteOutdatedFiles() {
 			if strings.HasPrefix(name, fw.prefix) && strings.HasSuffix(name, fw.suffix) {
 				path := filepath.Join(fw.dir, fi.Name())
 				if err := os.Remove(path); err != nil {
-					internal.Perrorf("filelog: Remove('%s'): %v", path, err)
+					Perrorf("filelog: Remove('%s'): %v", path, err)
 				}
 			}
 		}

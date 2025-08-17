@@ -5,8 +5,6 @@ import (
 	"io"
 	"net"
 	"time"
-
-	"github.com/askasoft/pango/log/internal"
 )
 
 // ConnWriter implements Writer.
@@ -39,7 +37,7 @@ func (cw *ConnWriter) Write(le *Event) {
 	}
 
 	if err := cw.write(le); err != nil {
-		internal.Perror(err)
+		Perror(err)
 	}
 }
 
@@ -79,7 +77,7 @@ func (cw *ConnWriter) Close() {
 	if cw.conn != nil {
 		err := cw.conn.Close()
 		if err != nil {
-			internal.Perrorf("connlog: (%s:%s) Close(): %v", cw.Net, cw.Addr, err)
+			Perrorf("connlog: (%s:%s) Close(): %v", cw.Net, cw.Addr, err)
 		}
 		cw.conn = nil
 	}

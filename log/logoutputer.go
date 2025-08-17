@@ -6,7 +6,7 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
-// Outputer interface for io.Writer, gorm.logger.Writer
+// Outputer interface for io.Writer
 type Outputer interface {
 	io.Writer
 	Printf(format string, args ...any)
@@ -24,7 +24,7 @@ func (o *outputer) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-// Write gorm.logger.Writer implement
+// Printf printf implement
 func (o *outputer) Printf(format string, args ...any) {
 	o.logger.Logf(o.level, format, args...)
 }

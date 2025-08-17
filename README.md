@@ -54,17 +54,8 @@ Pango is a GO development utility library.
 | [wcu](./wcu/)                    | a internal language charset utility package |
 | [whk/slack](./whk/slack/)        | a slack webhook sender package          |
 | [whk/teams](./whk/teams/)        | a teams webhook sender package          |
-| [xfs](./xfs/)                    | a app file system package |
 | [xin](./xin/)                    | a web framework based on https://github.com/gin-gonic/gin |
-| [xjm](./xjm/)                    | a app job manage package |
 | [xmw](./xmw/)                    | a middleware package for xin |
-| [xsw](./xsw/)                    | a app database schema utility package |
 | [xvw](./xvw/)                    | a tag library for GO template |
-
-
-### How to install?
-
-	go get github.com/askasoft/pango
-
 
 

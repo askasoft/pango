@@ -18,10 +18,8 @@ Pango is a GO development utility library.
 | [cog/ccg](./cog/ccg/)            | a Generic Concurrent Queue package      |
 | [doc/csvx](./doc/csvx/)          | a CSV utility (struct scan) package     |
 | [doc/htmlx](./doc/htmlx/)        | a html parse/textify package            |
-| [doc/ocrx/tesseract](./doc/ocrx/tesseract/) | a tesseract ocr command wrapper package |
 | [doc/ooxml](./doc/ooxml/)        | a ooxml text extract utility package |
 | [doc/xmlx](./doc/xmlx/)          | a xml to map decoder package based on https://github.com/sbabiv/xml2map |
-| [doc/xpdf](./doc/xpdf/)          | a poppler-utils command wrapper package |
 | [fsu](./fsu/)                    | a file system utility package           |
 | [fsw](./fsw/)                    | a file system watcher (fsnotify) wrapper package |
 | [gel](./gel/)                    | a Golang Expression Language package based on https://github.com/pandafw/panda |

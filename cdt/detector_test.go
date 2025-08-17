@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/askasoft/pango/iox/fsu"
+	"github.com/askasoft/pango/fsu"
 )
 
 func testFilename(name string) string {

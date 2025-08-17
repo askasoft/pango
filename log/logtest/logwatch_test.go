@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/askasoft/pango/fsu"
 	"github.com/askasoft/pango/fsw"
 	"github.com/askasoft/pango/iox"
-	"github.com/askasoft/pango/iox/fsu"
 	"github.com/askasoft/pango/log"
 )
 

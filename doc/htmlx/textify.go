@@ -73,8 +73,9 @@ type Textifier struct {
 	tw io.Writer          // text writer
 	pw *iox.ProxyWriter   // proxy writer
 	cw *iox.CompactWriter // compact writer
-	ln int                // ol>li number
 	lv int                // ol/ul/dir/menu level
+	lt string             // ol list type
+	ln int                // ol>li number
 	th bool               // thead
 	td int                // td count
 }
@@ -342,12 +343,13 @@ func (tf *Textifier) Ol(n *html.Node) error {
 		return err
 	}
 	tf.lv++
-	ln := tf.ln
-	tf.ln = 1
+	lt, ln := tf.lt, tf.ln
+	tf.lt = GetNodeAttrValue(n, "type")
+	tf.ln = num.Atoi(GetNodeAttrValue(n, "start"), 1)
 	if err := tf.Deep(n); err != nil {
 		return err
 	}
-	tf.ln = ln
+	tf.lt, tf.ln = lt, ln
 	tf.lv--
 	return nil
 }
@@ -372,7 +374,20 @@ func (tf *Textifier) Li(n *html.Node) error {
 		return err
 	}
 	if tf.ln > 0 {
-		if _, err := tf.pw.WriteString(num.Itoa(tf.ln)); err != nil {
+		var s string
+		switch tf.lt {
+		case "a":
+			s = str.ToLower(num.IntToAlpha(tf.ln))
+		case "A":
+			s = num.IntToAlpha(tf.ln)
+		case "i":
+			s = str.ToLower(num.IntToRoman(tf.ln))
+		case "I":
+			s = num.IntToRoman(tf.ln)
+		default:
+			s = num.Itoa(tf.ln)
+		}
+		if _, err := tf.pw.WriteString(s); err != nil {
 			return err
 		}
 		if _, err := tf.pw.WriteString("."); err != nil {

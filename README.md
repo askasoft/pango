@@ -5,7 +5,7 @@
 
 
 
-Pango is a GO development utility library.
+Pango is a development library for GO.
 
 | **Package**                      | **Description**                         |
 | :------------------------------- | :-------------------------------------- |

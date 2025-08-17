@@ -37,6 +37,7 @@ Pango is a GO development utility library.
 | [oss](./oss/)                    | a os stats collect utility package based on https://github.com/mackerelio/go-osstat |
 | [ran](./ran/)                    | a random utility package                |
 | [ref](./ref/)                    | a GO reflect utility package            |
+| [ret](./ret/)                    | a retry utility package                 |
 | [rex](./rex/)                    | a GO regexp utility package            |
 | [sch](./sch/)                    | a scheduler utility package             |
 | [sqx/sqlx](./sqx/sqlx)           | a sql package based on https://github.com/jmoiron/sqlx |

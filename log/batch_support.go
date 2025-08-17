@@ -2,8 +2,6 @@ package log
 
 import (
 	"time"
-
-	"github.com/askasoft/pango/log/internal"
 )
 
 // BatchSupport support event cache and flush events on FlushLevel or BatchCount reached.
@@ -50,7 +48,7 @@ func (bs *BatchSupport) BatchWrite(le *Event, flush func(*EventBuffer) error) {
 
 	if bs.shouldFlush() {
 		if err := flush(&bs.BatchBuffer); err != nil {
-			internal.Perror(err)
+			Perror(err)
 			if bs.BatchBuffer.Len() > bs.CacheCount {
 				bs.BatchBuffer.Poll()
 			}
@@ -66,6 +64,6 @@ func (bs *BatchSupport) BatchFlush(flush func(*EventBuffer) error) {
 	}
 
 	if err := flush(&bs.BatchBuffer); err != nil {
-		internal.Perror(err)
+		Perror(err)
 	}
 }

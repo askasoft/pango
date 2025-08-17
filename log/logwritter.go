@@ -1,7 +1,6 @@
 package log
 
 import (
-	"github.com/askasoft/pango/log/internal"
 	"github.com/askasoft/pango/ref"
 )
 
@@ -46,7 +45,7 @@ func ConfigWriter(w Writer, c map[string]any) error {
 func safeWrite(lw Writer, le *Event) {
 	defer func() {
 		if r := recover(); r != nil {
-			internal.Perror(r)
+			Perror(r)
 		}
 	}()
 
@@ -57,7 +56,7 @@ func safeWrite(lw Writer, le *Event) {
 func safeFlush(lw Writer) {
 	defer func() {
 		if r := recover(); r != nil {
-			internal.Perror(r)
+			Perror(r)
 		}
 	}()
 
@@ -68,7 +67,7 @@ func safeFlush(lw Writer) {
 func safeClose(lw Writer) {
 	defer func() {
 		if r := recover(); r != nil {
-			internal.Perror(r)
+			Perror(r)
 		}
 	}()
 

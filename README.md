@@ -5,7 +5,7 @@
 
 
 
-Pango is a GO development utility library.
+Pango is a development library for GO.
 
 | **Package**                      | **Description**                         |
 | :------------------------------- | :-------------------------------------- |
@@ -18,17 +18,15 @@ Pango is a GO development utility library.
 | [cog/ccg](./cog/ccg/)            | a Generic Concurrent Queue package      |
 | [doc/csvx](./doc/csvx/)          | a CSV utility (struct scan) package     |
 | [doc/htmlx](./doc/htmlx/)        | a html parse/textify package            |
-| [doc/ocrx/tesseract](./doc/ocrx/tesseract/) | a tesseract ocr command wrapper package |
 | [doc/ooxml](./doc/ooxml/)        | a ooxml text extract utility package |
 | [doc/xmlx](./doc/xmlx/)          | a xml to map decoder package based on https://github.com/sbabiv/xml2map |
-| [doc/xpdf](./doc/xpdf/)          | a poppler-utils command wrapper package |
 | [gel](./gel/)                    | a Golang Expression Language package based on https://github.com/pandafw/panda |
 | [gwp](./gwp/)                    | a go-routine worker pool package based on https://github.com/gammazero/workerpool |
+| [fsu](./fsu/)                    | a file system utility package           |
+| [fsw](./fsw/)                    | a file system watcher (fsnotify) wrapper package |
 | [imc](./imc/)                    | a simple in-memory cache package based on https://github.com/patrickmn/go-cache |
 | [ini](./ini/)                    | a INI file read/write package           |
 | [iox](./iox/)                    | a IO utility package                    |
-| [iox/fsu](./iox/fsu/)            | a file system utility package           |
-| [iox/fsw](./iox/fsw/)            | a file system watcher (fsnotify) wrapper package |
 | [ldt](./ldt/)                    | a language detection package based on http://github.com/saintfish/chardet |
 | [log](./log/)                    | a Log package like Log4j                |
 | [lut](./lut/)                    | a language utility package              |
@@ -39,11 +37,9 @@ Pango is a GO development utility library.
 | [oss](./oss/)                    | a os stats collect utility package based on https://github.com/mackerelio/go-osstat |
 | [ran](./ran/)                    | a random utility package                |
 | [ref](./ref/)                    | a GO reflect utility package            |
-| [rex](./rex/)                    | a GO regexp utility package            |
+| [rex](./rex/)                    | a GO regexp utility package             |
+| [ret](./ret/)                    | a retry utility package                 |
 | [sch](./sch/)                    | a scheduler utility package             |
-| [sdk/openai](./sdk/openai/)      | a simple sdk package for openai         |
-| [sdk/fdk/freshdesk](./sdk/fdk/freshdesk/) | a sdk package for freshdesk    |
-| [sdk/fdk/freshservice](./sdk/fdk/freshservice/) | a sdk package for freshservice |
 | [sqx/sqlx](./sqx/sqlx)           | a sql package based on https://github.com/jmoiron/sqlx |
 | [srv](./srv/)                    | a package for linux/windows service |
 | [str](./str/)                    | a strings package wrapper and provides some useful utility functions      |
@@ -54,17 +50,4 @@ Pango is a GO development utility library.
 | [wcu](./wcu/)                    | a internal language charset utility package |
 | [whk/slack](./whk/slack/)        | a slack webhook sender package          |
 | [whk/teams](./whk/teams/)        | a teams webhook sender package          |
-| [xfs](./xfs/)                    | a app file system package |
-| [xin](./xin/)                    | a web framework based on https://github.com/gin-gonic/gin |
-| [xjm](./xjm/)                    | a app job manage package |
-| [xmw](./xmw/)                    | a middleware package for xin |
-| [xsw](./xsw/)                    | a app database schema utility package |
-| [xvw](./xvw/)                    | a tag library for GO template |
-
-
-### How to install?
-
-	go get github.com/askasoft/pango
-
-
 

@@ -41,9 +41,6 @@ Pango is a GO development utility library.
 | [ref](./ref/)                    | a GO reflect utility package            |
 | [rex](./rex/)                    | a GO regexp utility package            |
 | [sch](./sch/)                    | a scheduler utility package             |
-| [sdk/openai](./sdk/openai/)      | a simple sdk package for openai         |
-| [sdk/fdk/freshdesk](./sdk/fdk/freshdesk/) | a sdk package for freshdesk    |
-| [sdk/fdk/freshservice](./sdk/fdk/freshservice/) | a sdk package for freshservice |
 | [sqx/sqlx](./sqx/sqlx)           | a sql package based on https://github.com/jmoiron/sqlx |
 | [srv](./srv/)                    | a package for linux/windows service |
 | [str](./str/)                    | a strings package wrapper and provides some useful utility functions      |

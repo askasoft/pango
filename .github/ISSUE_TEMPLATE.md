@@ -13,37 +13,12 @@
 ```
 package main
 
-import (
-	"github.com/askasoft/pango/xin"
-)
-
 func main() {
-	g := xin.Default()
-	g.GET("/hello/:name", func(c *xin.Context) {
-		c.String(200, "Hello %s", c.Param("name"))
-	})
-	g.Run(":9000")
 }
-```
-
-## Expectations
-
-<!-- Your expectation result of 'curl' command, like -->
-```
-$ curl http://localhost:8201/hello/world
-Hello world
-```
-
-## Actual result
-
-<!-- Actual result showing the problem -->
-```
-$ curl -i http://localhost:8201/hello/world
-<YOUR RESULT>
 ```
 
 ## Environment
 
 - go version:
-- xin version (or commit ref):
+- pango version (or commit ref):
 - operating system:

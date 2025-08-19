@@ -53,11 +53,11 @@ func Sections() []*Section {
 	return _ini.Sections()
 }
 
-// Section return a section with the specified name.
+// SectionN return a section with the specified name.
 // if the section does not exists, create and add it to ini.
-// func Section(name string) *Section {
-// 	return _ini.Section(name)
-// }
+func SectionN(name string) *Section {
+	return _ini.Section(name)
+}
 
 // GetSection return a section with the specified name or nil if section not exists
 func GetSection(name string) *Section {

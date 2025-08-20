@@ -55,7 +55,4 @@ Pango is a GO development utility library.
 | [whk/slack](./whk/slack/)        | a slack webhook sender package          |
 | [whk/teams](./whk/teams/)        | a teams webhook sender package          |
 | [xin](./xin/)                    | a web framework based on https://github.com/gin-gonic/gin |
-| [xmw](./xmw/)                    | a middleware package for xin |
-| [xvw](./xvw/)                    | a tag library for GO template |
-
 

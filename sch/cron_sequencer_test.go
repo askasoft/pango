@@ -25,8 +25,32 @@ func testCronSequencer(t *testing.T, cron string, sdt string, ns []string) {
 	}
 }
 
-func TestCronEvery10Min0(t *testing.T) {
+func TestCronEvery1Min(t *testing.T) {
+	testCronSequencer(t, "0 * * * * *", "2000-01-01T00:00:00", []string{
+		"2000-01-01T00:01:00",
+		"2000-01-01T00:02:00",
+		"2000-01-01T00:03:00",
+		"2000-01-01T00:04:00",
+		"2000-01-01T00:05:00",
+		"2000-01-01T00:06:00",
+		"2000-01-01T00:07:00",
+	})
+}
+
+func TestCronEvery10Min_(t *testing.T) {
 	testCronSequencer(t, "0 */10 * * * *", "2000-01-01T01:01:01", []string{
+		"2000-01-01T01:10:00",
+		"2000-01-01T01:20:00",
+		"2000-01-01T01:30:00",
+		"2000-01-01T01:40:00",
+		"2000-01-01T01:50:00",
+		"2000-01-01T02:00:00",
+		"2000-01-01T02:10:00",
+	})
+}
+
+func TestCronEvery10Min0(t *testing.T) {
+	testCronSequencer(t, "0 0/10 * * * *", "2000-01-01T01:01:01", []string{
 		"2000-01-01T01:10:00",
 		"2000-01-01T01:20:00",
 		"2000-01-01T01:30:00",
@@ -107,5 +131,16 @@ func TestCronMonthRange(t *testing.T) {
 		"2000-01-04T10:00:00",
 		"2000-01-10T09:00:00",
 		"2000-01-10T10:00:00",
+	})
+}
+
+func TestCronMonthDay31(t *testing.T) {
+	testCronSequencer(t, "0 0 2 31 * *", "2000-01-01T01:01:01", []string{
+		"2000-01-31T02:00:00",
+		"2000-03-31T02:00:00",
+		"2000-05-31T02:00:00",
+		"2000-07-31T02:00:00",
+		"2000-08-31T02:00:00",
+		"2000-10-31T02:00:00",
 	})
 }

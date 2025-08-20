@@ -75,10 +75,10 @@ func (ct *CronTrigger) NextExecutionTime(task *Task) time.Time {
 	return ct.Next(date)
 }
 
-func NewCronTrigger(cron string) *CronTrigger {
+func NewCronTrigger(cron string, location ...*time.Location) (*CronTrigger, error) {
 	ct := &CronTrigger{}
-	if err := ct.Parse(cron); err != nil {
-		panic(err)
+	if err := ct.Parse(cron, location...); err != nil {
+		return nil, err
 	}
-	return ct
+	return ct, nil
 }

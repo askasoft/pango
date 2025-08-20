@@ -21,7 +21,7 @@ const (
 )
 
 type CronSequencer struct {
-	Location    *time.Location
+	location    *time.Location
 	expression  string
 	seconds     [60]bool
 	minutes     [60]bool
@@ -31,19 +31,25 @@ type CronSequencer struct {
 	months      [13]bool
 }
 
-func NewCronSequencer(cron string) *CronSequencer {
+func NewCronSequencer(cron string, location ...*time.Location) (*CronSequencer, error) {
 	cs := &CronSequencer{}
-	if err := cs.Parse(cron); err != nil {
-		panic(err)
+
+	if err := cs.Parse(cron, location...); err != nil {
+		return nil, err
 	}
-	return cs
+
+	return cs, nil
 }
 
 func (cs *CronSequencer) Cron() string {
 	return cs.expression
 }
 
-// Parse parse the cron exception
+func (cs *CronSequencer) String() string {
+	return cs.expression
+}
+
+// Parse parse the cron expression
 // ┌───────────── second (0 - 59)
 // │ ┌───────────── minute (0 - 59)
 // │ │ ┌───────────── hour (0 - 23)
@@ -57,10 +63,13 @@ func (cs *CronSequencer) Cron() string {
 // Comma ( , ): used to separate items of a list. For example, "MON,WED,FRI".
 // Dash ( - ) : used to define ranges. For example, "1-10"
 // Slash (/)  : combined with ranges to specify step values. For example, */5 in the minutes field indicates every 5 minutes It is shorthand for the more verbose POSIX form "5,10,15,20,25,30,35,40,45,50,55,00"
-func (cs *CronSequencer) Parse(expression string) (err error) {
+func (cs *CronSequencer) Parse(expression string, location ...*time.Location) (err error) {
 	cs.expression = expression
-	if cs.Location == nil {
-		cs.Location = time.Local
+	if len(location) > 0 {
+		cs.location = location[0]
+	}
+	if cs.location == nil {
+		cs.location = time.Local
 	}
 
 	fields := str.Fields(expression)
@@ -392,7 +401,7 @@ func (cs *CronSequencer) setField(date time.Time, field int, value int) time.Tim
 
 	vs[field] = value
 
-	return time.Date(vs[0], time.Month(vs[1]+1), vs[2]+1, vs[3], vs[4], vs[5], 0, cs.Location)
+	return time.Date(vs[0], time.Month(vs[1]+1), vs[2]+1, vs[3], vs[4], vs[5], 0, cs.location)
 }
 
 // Reset the calendar setting all the fields provided to zero.
@@ -403,5 +412,5 @@ func (cs *CronSequencer) reset(date time.Time, fields []int) time.Time {
 		vs[field] = 0
 	}
 
-	return time.Date(vs[0], time.Month(vs[1]+1), vs[2]+1, vs[3], vs[4], vs[5], 0, cs.Location)
+	return time.Date(vs[0], time.Month(vs[1]+1), vs[2]+1, vs[3], vs[4], vs[5], 0, cs.location)
 }

@@ -12,6 +12,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/askasoft/pango/asg"
+	"github.com/askasoft/pango/sch"
 	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/str/wildcard"
 )
@@ -165,6 +166,7 @@ var (
 		"uppercase":                     isUppercase,
 		"datetime":                      isDatetime,
 		"duration":                      isDuration,
+		"cron":                          isCron,
 		"timezone":                      isTimeZone,
 		"postcode_iso3166_alpha2":       isPostcodeByIso3166Alpha2,
 		"postcode_iso3166_alpha2_field": isPostcodeByIso3166Alpha2Field,
@@ -1530,6 +1532,14 @@ func isDuration(fl FieldLevel) bool {
 	mustStringField("duration", fl)
 
 	_, err := time.ParseDuration(fl.Field().String())
+	return err == nil
+}
+
+// isCron is the validation function for validating if the current field's value is a valid cron expression.
+func isCron(fl FieldLevel) bool {
+	mustStringField("cron", fl)
+
+	_, err := sch.NewCronSequencer(fl.Field().String())
 	return err == nil
 }
 

@@ -130,6 +130,7 @@ Baked-in Validations
 | btc_addr_bech32 | Bitcoin Bech32 Address (segwit) |
 | datetime | Datetime |
 | duration | Duration |
+| cron | Cron Expression |
 | e164 | e164 formatted phone number |
 | email | E-mail String
 | hexadecimal | Hexadecimal String |

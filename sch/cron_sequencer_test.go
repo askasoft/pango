@@ -3,25 +3,37 @@ package sch
 import (
 	"testing"
 	"time"
+
+	"github.com/askasoft/pango/str"
 )
 
 const testCronTimeFormat = "2006-01-02T15:04:05"
 
-func testCronSequencer(t *testing.T, cron string, sdt string, ns []string) {
+func testCronNext(t *testing.T, cron string, sdt string, ns []string) {
 	cs := &CronSequencer{}
 	err := cs.Parse(cron)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	d, _ := time.Parse(testCronTimeFormat, sdt)
-
+	d, err := time.Parse(testCronTimeFormat, sdt)
+	if err != nil {
+		t.Fatal(err)
+	}
 	for i, sw := range ns {
 		d = cs.Next(d)
 		sa := d.Format(testCronTimeFormat)
 		if sw != sa {
 			t.Errorf("[%d] Got %v, want %v", i, sa, sw)
 		}
+	}
+}
+
+func testCronSequencer(t *testing.T, cron string, sdt string, ns []string) {
+	testCronNext(t, cron, sdt, ns)
+
+	if str.StartsWith(cron, "0 ") {
+		testCronNext(t, cron[2:], sdt, ns)
 	}
 }
 
@@ -120,6 +132,39 @@ func TestCronEveryDay(t *testing.T) {
 		"2000-01-31T09:00:00",
 		"2000-02-01T09:00:00",
 		"2000-02-02T09:00:00",
+	})
+}
+
+func TestCronEverySundayDay0(t *testing.T) {
+	testCronSequencer(t, "0 0 2 * * 0", "2025-02-09T01:01:01", []string{
+		"2025-02-09T02:00:00",
+		"2025-02-16T02:00:00",
+		"2025-02-23T02:00:00",
+		"2025-03-02T02:00:00",
+		"2025-03-09T02:00:00",
+		"2025-03-16T02:00:00",
+	})
+}
+
+func TestCronEverySundayDay7(t *testing.T) {
+	testCronSequencer(t, "0 0 2 * * 7", "2025-02-09T01:01:01", []string{
+		"2025-02-09T02:00:00",
+		"2025-02-16T02:00:00",
+		"2025-02-23T02:00:00",
+		"2025-03-02T02:00:00",
+		"2025-03-09T02:00:00",
+		"2025-03-16T02:00:00",
+	})
+}
+
+func TestCronEverySundayDayA(t *testing.T) {
+	testCronSequencer(t, "0 0 2 * * SUN", "2025-02-09T01:01:01", []string{
+		"2025-02-09T02:00:00",
+		"2025-02-16T02:00:00",
+		"2025-02-23T02:00:00",
+		"2025-03-02T02:00:00",
+		"2025-03-09T02:00:00",
+		"2025-03-16T02:00:00",
 	})
 }
 

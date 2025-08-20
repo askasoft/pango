@@ -20,6 +20,20 @@ const (
 	fieldSecond
 )
 
+// CronSequencer a cron expression parser and time calculator
+// ┌───────────── second (0 - 59) (omittable)
+// │ ┌───────────── minute (0 - 59)
+// │ │ ┌───────────── hour (0 - 23)
+// │ │ │ ┌───────────── day of the month (1 - 31)
+// │ │ │ │ ┌───────────── month (1 - 12)
+// │ │ │ │ │ ┌───────────── day of the week (0 - 6) (Sunday to Saturday; 7 is also Sunday)
+// │ │ │ │ │ │
+// │ │ │ │ │ │
+// │ │ │ │ │ │
+// * * * * * *
+// Comma ( , ): used to separate items of a list. For example, "MON,WED,FRI".
+// Dash ( - ) : used to define ranges. For example, "1-10"
+// Slash (/)  : combined with ranges to specify step values. For example, */5 in the minutes field indicates every 5 minutes It is shorthand for the more verbose POSIX form "5,10,15,20,25,30,35,40,45,50,55,00"
 type CronSequencer struct {
 	location    *time.Location
 	expression  string
@@ -50,19 +64,6 @@ func (cs *CronSequencer) String() string {
 }
 
 // Parse parse the cron expression
-// ┌───────────── second (0 - 59)
-// │ ┌───────────── minute (0 - 59)
-// │ │ ┌───────────── hour (0 - 23)
-// │ │ │ ┌───────────── day of the month (1 - 31)
-// │ │ │ │ ┌───────────── month (1 - 12)
-// │ │ │ │ │ ┌───────────── day of the week (0 - 6) (Sunday to Saturday; 7 is also Sunday)
-// │ │ │ │ │ │
-// │ │ │ │ │ │
-// │ │ │ │ │ │
-// * * * * * *
-// Comma ( , ): used to separate items of a list. For example, "MON,WED,FRI".
-// Dash ( - ) : used to define ranges. For example, "1-10"
-// Slash (/)  : combined with ranges to specify step values. For example, */5 in the minutes field indicates every 5 minutes It is shorthand for the more verbose POSIX form "5,10,15,20,25,30,35,40,45,50,55,00"
 func (cs *CronSequencer) Parse(expression string, location ...*time.Location) (err error) {
 	cs.expression = expression
 	if len(location) > 0 {
@@ -73,37 +74,47 @@ func (cs *CronSequencer) Parse(expression string, location ...*time.Location) (e
 	}
 
 	fields := str.Fields(expression)
-	if len(fields) != 6 {
-		err = fmt.Errorf("cron expression must consist of 6 fields (found %d in %q)", len(fields), expression)
+	if z := len(fields); z < 5 || z > 6 {
+		err = fmt.Errorf("cron: expression must consist of 5-6 fields (found %d in %q)", z, expression)
 		return
 	}
 
-	err = cs.setNumberHits(cs.seconds[:], fields[0], 0, 59)
+	i := 0
+	if len(fields) == 6 {
+		err = cs.setNumberHits(cs.seconds[:], fields[i], 0, 59)
+		i++
+	} else {
+		err = cs.setNumberHits(cs.seconds[:], "0", 0, 59)
+	}
 	if err != nil {
 		return
 	}
 
-	err = cs.setNumberHits(cs.minutes[:], fields[1], 0, 59)
+	err = cs.setNumberHits(cs.minutes[:], fields[i], 0, 59)
 	if err != nil {
 		return
 	}
+	i++
 
-	err = cs.setNumberHits(cs.hours[:], fields[2], 0, 23)
+	err = cs.setNumberHits(cs.hours[:], fields[i], 0, 23)
 	if err != nil {
 		return
 	}
+	i++
 
-	err = cs.setDaysOfMonth(cs.daysOfMonth[:], fields[3])
+	err = cs.setDaysOfMonth(cs.daysOfMonth[:], fields[i])
 	if err != nil {
 		return
 	}
+	i++
 
-	err = cs.setMonths(cs.months[:], fields[4])
+	err = cs.setMonths(cs.months[:], fields[i])
 	if err != nil {
 		return
 	}
+	i++
 
-	err = cs.setDays(cs.daysOfWeek[:], cs.replaceOrdinals(fields[5], weekdayAbbrs), 7)
+	err = cs.setDays(cs.daysOfWeek[:], cs.replaceOrdinals(fields[i], weekdayAbbrs), 7)
 	if err != nil {
 		return
 	}
@@ -158,6 +169,10 @@ func (cs *CronSequencer) replaceOrdinals(value string, alias []string) string {
 }
 
 func (cs *CronSequencer) setNumberHits(bits []bool, value string, min, max int) error {
+	for i := min; i <= max; i++ {
+		bits[i] = false
+	}
+
 	fields := str.FieldsRune(value, ',')
 	for _, field := range fields {
 		if !str.ContainsByte(field, '/') {
@@ -172,7 +187,7 @@ func (cs *CronSequencer) setNumberHits(bits []bool, value string, min, max int) 
 		} else {
 			split := str.FieldsRune(field, '/')
 			if len(split) != 2 {
-				return fmt.Errorf("invalid format of field %q in expression %q", field, cs.expression)
+				return fmt.Errorf("cron: invalid format of field %q in expression %q", field, cs.expression)
 			}
 
 			start, end, err := cs.getRange(split[0], min, max)
@@ -186,7 +201,7 @@ func (cs *CronSequencer) setNumberHits(bits []bool, value string, min, max int) 
 
 			delta, err := strconv.Atoi(split[1])
 			if err != nil {
-				return fmt.Errorf("invalid number of field %q in expression %q", field, cs.expression)
+				return fmt.Errorf("cron: invalid number of field %q in expression %q", field, cs.expression)
 			}
 			for i := start; i <= end; i += delta {
 				bits[i] = true
@@ -206,36 +221,36 @@ func (cs *CronSequencer) getRange(field string, min, max int) (start, end int, e
 	if !str.ContainsByte(field, '-') {
 		start, err = strconv.Atoi(field)
 		if err != nil {
-			err = fmt.Errorf("invalid range number of field %q in expression %q", field, cs.expression)
+			err = fmt.Errorf("cron: invalid range number of field %q in expression %q", field, cs.expression)
 			return
 		}
 		end = start
 	} else {
 		split := str.FieldsRune(field, '-')
 		if len(split) > 2 {
-			err = fmt.Errorf("invalid range format of field %q in expression %q", field, cs.expression)
+			err = fmt.Errorf("cron: invalid range format of field %q in expression %q", field, cs.expression)
 			return
 		}
 
 		start, err = strconv.Atoi(split[0])
 		if err != nil {
-			err = fmt.Errorf("invalid range number of field %q in expression %q", field, cs.expression)
+			err = fmt.Errorf("cron: invalid range number of field %q in expression %q", field, cs.expression)
 			return
 		}
 		end, err = strconv.Atoi(split[1])
 		if err != nil {
-			err = fmt.Errorf("invalid range number of field %q in expression %q", field, cs.expression)
+			err = fmt.Errorf("cron: invalid range number of field %q in expression %q", field, cs.expression)
 			return
 		}
 	}
 
 	if start > max || end > max {
-		err = fmt.Errorf("exceeded maximum range (%d) of field %q in expression %q", max, field, cs.expression)
+		err = fmt.Errorf("cron: exceeded maximum range (%d) of field %q in expression %q", max, field, cs.expression)
 		return
 	}
 
 	if start < min || end < min {
-		err = fmt.Errorf("exceeded minimum range (%d) of field %q in expression %q", min, field, cs.expression)
+		err = fmt.Errorf("cron: exceeded minimum range (%d) of field %q in expression %q", min, field, cs.expression)
 		return
 	}
 
@@ -319,7 +334,7 @@ func (cs *CronSequencer) doNext(date time.Time, dot int) time.Time {
 	date, updateMonth := cs.findNextMonth(date, month, resets)
 	if month != updateMonth {
 		if date.Year()-dot > 4 {
-			panic("Invalid cron expression \"" + cs.expression + "\" led to runaway search for next trigger")
+			panic("cron: invalid cron expression \"" + cs.expression + "\" led to runaway search for next trigger")
 		}
 		date = cs.doNext(date, dot)
 	}
@@ -338,7 +353,7 @@ func (cs *CronSequencer) findNextDay(date time.Time, dayOfMonth, dayOfWeek int, 
 		date = cs.reset(date, resets)
 	}
 	if count >= limit {
-		panic("Overflow in day for expression \"" + cs.expression + "\"")
+		panic("cron: overflow in day for expression \"" + cs.expression + "\"")
 	}
 
 	return date, dayOfMonth

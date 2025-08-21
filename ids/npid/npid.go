@@ -47,7 +47,7 @@ func getFirstPrivateIPv4Addr() (ip4 uint32) {
 
 	idx := math.MaxInt
 	for _, i := range ifaces {
-		if ip4 != 0 || i.Index > idx {
+		if ip4 != 0 && i.Index > idx {
 			continue
 		}
 		if i.Flags&net.FlagLoopback != 0 || i.Flags&net.FlagRunning == 0 {
@@ -58,10 +58,11 @@ func getFirstPrivateIPv4Addr() (ip4 uint32) {
 		if err != nil {
 			continue
 		}
+
 		for _, addr := range addrs {
 			if ipnet, ok := addr.(*net.IPNet); ok && ipnet.IP.IsPrivate() {
 				if ipv4 := ipnet.IP.To4(); ipv4 != nil {
-					ip4 = netx.IPv4ToInt(ipv4)
+					idx, ip4 = i.Index, netx.IPv4ToInt(ipv4)
 					break
 				}
 			}

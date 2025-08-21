@@ -1,7 +1,11 @@
  Pango
 =====================================================================
 
-![](./logo.png) [![Build Status](https://github.com/askasoft/pango/actions/workflows/build.yml/badge.svg)](https://github.com/askasoft/pango/actions?query=branch%3Amaster) [![codecov](https://codecov.io/gh/askasoft/pango/branch/master/graph/badge.svg)](https://codecov.io/gh/askasoft/pango) [![MIT](https://img.shields.io/badge/license-MIT-green)](https://opensource.org/licenses/MIT) ![](/logo.png)
+![](./logo.png) 
+[![Build Status](https://github.com/askasoft/pango/actions/workflows/build.yml/badge.svg)](https://github.com/askasoft/pango/actions?query=branch%3Amaster) 
+[![codecov](https://codecov.io/gh/askasoft/pango/branch/master/graph/badge.svg)](https://codecov.io/gh/askasoft/pango) 
+[![MIT](https://img.shields.io/badge/license-MIT-green)](https://opensource.org/licenses/MIT) 
+![](/logo.png) 
 
 
 
@@ -24,6 +28,8 @@ Pango is a development library for GO.
 | [fsw](./fsw/)                    | a file system watcher (fsnotify) wrapper package |
 | [gel](./gel/)                    | a Golang Expression Language package based on https://github.com/pandafw/panda |
 | [gwp](./gwp/)                    | a go-routine worker pool package based on https://github.com/gammazero/workerpool |
+| [ids/npid](./ids/npid)           | a ID generator based on machine network private IP and process ID |
+| [ids/snowflake](./ids/snowflake) | a very simple Twitter snowflake ID generator |
 | [imc](./imc/)                    | a simple in-memory cache package based on https://github.com/patrickmn/go-cache |
 | [ini](./ini/)                    | a INI file read/write package           |
 | [iox](./iox/)                    | a IO utility package                    |

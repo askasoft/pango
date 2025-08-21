@@ -8,6 +8,12 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
+func Read(bs []byte) {
+	if _, err := crand.Read(bs); err != nil {
+		_, _ = mrand.Read(bs) //nolint: gosec
+	}
+}
+
 func RandInt() int {
 	return int(RandInt63())
 }
@@ -69,12 +75,10 @@ func RandString(size int, chars ...string) string {
 	n := len(cs)
 
 	bs := make([]byte, size)
-	if _, err := crand.Read(bs); err != nil {
-		_, _ = mrand.Read(bs) //nolint: gosec
-	}
+	Read(bs)
 
-	for i := 0; i < size; i++ {
-		bs[i] = cs[int(bs[i])%n]
+	for i, b := range bs {
+		bs[i] = cs[int(b)%n]
 	}
 
 	return str.UnsafeString(bs)

@@ -77,7 +77,7 @@ func NewFileWatcher() *FileWatcher {
 }
 
 // Start start file watching go-routine
-func (fw *FileWatcher) Start() (err error) {
+func (fw *FileWatcher) Start() error {
 	if fw.fsnotify != nil {
 		return nil
 	}
@@ -152,8 +152,7 @@ func (fw *FileWatcher) Add(path string, op Op, callback func(string, Op)) error 
 		if log != nil {
 			log.Debugf("fswatch: watch file '%s' ", path)
 		}
-		err := fsn.Add(path)
-		if err != nil {
+		if err := fsn.Add(path); err != nil {
 			return err
 		}
 	}
@@ -169,8 +168,7 @@ func (fw *FileWatcher) Remove(path string) error {
 		if log != nil {
 			log.Debugf("fswatch: unwatch file '%s'", path)
 		}
-		err := fsn.Remove(path)
-		if err != nil {
+		if err := fsn.Remove(path); err != nil {
 			return err
 		}
 	}
@@ -206,7 +204,7 @@ func (fw *FileWatcher) doRecursive(root string, watch bool) error {
 		return nil
 	}
 
-	err := filepath.Walk(root, func(path string, fi os.FileInfo, err error) error {
+	return filepath.Walk(root, func(path string, fi os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -229,7 +227,6 @@ func (fw *FileWatcher) doRecursive(root string, watch bool) error {
 		}
 		return nil
 	})
-	return err
 }
 
 func (fw *FileWatcher) findCallbacks(fe *fileevent) (cbs []func(string, Op)) {

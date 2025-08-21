@@ -11,6 +11,8 @@ import (
 	"github.com/askasoft/pango/asg"
 )
 
+var HTMLTemplateExtensions = []string{".tpl", ".html", ".gohtml"}
+
 // HTMLTemplates html template engine
 type HTMLTemplates struct {
 	extensions []string // template extensions
@@ -33,7 +35,7 @@ func NewHTMLTemplates(extensions ...string) *HTMLTemplates {
 // Extensions sets template entensions.
 func (ht *HTMLTemplates) Extensions(extensions ...string) {
 	if len(extensions) == 0 {
-		extensions = []string{".tpl", ".html", ".gohtml"}
+		extensions = HTMLTemplateExtensions
 	}
 	ht.extensions = extensions
 }

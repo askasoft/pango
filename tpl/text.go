@@ -11,6 +11,8 @@ import (
 	"github.com/askasoft/pango/asg"
 )
 
+var TextTemplateExtensions = []string{".tpl", ".txt", ".gotxt"}
+
 // TextTemplates text template engine
 type TextTemplates struct {
 	extensions []string // template extensions
@@ -32,7 +34,7 @@ func NewTextTemplates(extensions ...string) *TextTemplates {
 // Extensions sets template entensions.
 func (tt *TextTemplates) Extensions(extensions ...string) {
 	if len(extensions) == 0 {
-		extensions = []string{".tpl", ".txt", ".gotxt"}
+		extensions = TextTemplateExtensions
 	}
 	tt.extensions = extensions
 }

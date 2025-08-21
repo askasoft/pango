@@ -16,6 +16,8 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
+var TextBundlesExtensions = []string{".ini", ".txt"}
+
 // TextBundles a localized text resource bundle container
 type TextBundles struct {
 	Extensions []string  // file extensions
@@ -27,7 +29,7 @@ type TextBundles struct {
 // NewTextBundles returns a new TextBundles instance
 func NewTextBundles(extensions ...string) *TextBundles {
 	if len(extensions) == 0 {
-		extensions = []string{".ini", ".txt"}
+		extensions = TextBundlesExtensions
 	}
 	return &TextBundles{
 		Extensions: extensions,

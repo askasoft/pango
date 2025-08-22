@@ -10,8 +10,7 @@ import (
 const testCronTimeFormat = "2006-01-02T15:04:05"
 
 func testCronNext(t *testing.T, cron string, sdt string, ns []string) {
-	cs := &CronSequencer{}
-	err := cs.Parse(cron)
+	cs, err := ParseCron(cron)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -105,7 +104,7 @@ func TestCronHour(t *testing.T) {
 }
 
 func TestCronHourRange(t *testing.T) {
-	testCronSequencer(t, "0 0 8-10 * * *", "2000-01-01T01:01:01", []string{
+	testCronSequencer(t, "0 0 10-8 * * *", "2000-01-01T01:01:01", []string{
 		"2000-01-01T08:00:00",
 		"2000-01-01T09:00:00",
 		"2000-01-01T10:00:00",
@@ -168,14 +167,30 @@ func TestCronEverySundayDayA(t *testing.T) {
 	})
 }
 
-func TestCronMonthRange(t *testing.T) {
-	testCronSequencer(t, "0 0 9-10 * * MON-TUE", "2000-01-01T01:01:01", []string{
-		"2000-01-03T09:00:00",
-		"2000-01-03T10:00:00",
-		"2000-01-04T09:00:00",
-		"2000-01-04T10:00:00",
-		"2000-01-10T09:00:00",
-		"2000-01-10T10:00:00",
+func TestCronHourDayRange(t *testing.T) {
+	testCronSequencer(t, "0 0 9-10 * * MON-TUE", "2000-01-17T01:01:01", []string{
+		"2000-01-17T09:00:00",
+		"2000-01-17T10:00:00",
+		"2000-01-18T09:00:00",
+		"2000-01-18T10:00:00",
+		"2000-01-24T09:00:00",
+		"2000-01-24T10:00:00",
+		"2000-01-25T09:00:00",
+		"2000-01-25T10:00:00",
+		"2000-01-31T09:00:00",
+		"2000-01-31T10:00:00",
+		"2000-02-01T09:00:00",
+		"2000-02-01T10:00:00",
+	})
+}
+
+func TestCronEveryMondayDay1(t *testing.T) {
+	testCronSequencer(t, "0 0 2 1 * *", "2025-11-10T01:01:01", []string{
+		"2025-12-01T02:00:00",
+		"2026-01-01T02:00:00",
+		"2026-02-01T02:00:00",
+		"2026-03-01T02:00:00",
+		"2026-04-01T02:00:00",
 	})
 }
 

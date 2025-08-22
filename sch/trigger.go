@@ -28,20 +28,20 @@ func (dt *DelayedTrigger) NextExecutionTime(task *Task) time.Time {
 	return time.Time{}
 }
 
-type PeriodicTrigger struct {
-	Period       time.Duration
+type RepeatTrigger struct {
+	Duratiuon    time.Duration
 	InitialDelay time.Duration
 	FixedRate    bool
 }
 
-func (pt *PeriodicTrigger) NextExecutionTime(task *Task) time.Time {
+func (rt *RepeatTrigger) NextExecutionTime(task *Task) time.Time {
 	if task.ScheduledTime.IsZero() {
-		return time.Now().Add(pt.InitialDelay)
+		return time.Now().Add(rt.InitialDelay)
 	}
 
-	if pt.FixedRate {
+	if rt.FixedRate {
 		for {
-			st := task.ScheduledTime.Add(pt.Period)
+			st := task.ScheduledTime.Add(rt.Duratiuon)
 			if st.After(task.CompletionTime) {
 				return st
 			}
@@ -52,11 +52,15 @@ func (pt *PeriodicTrigger) NextExecutionTime(task *Task) time.Time {
 	if date.IsZero() {
 		date = time.Now()
 	}
-	return date.Add(pt.Period)
+	return date.Add(rt.Duratiuon)
 }
 
 type CronTrigger struct {
-	CronSequencer
+	cron Cron
+}
+
+func (ct *CronTrigger) Cron() string {
+	return ct.cron.String()
 }
 
 func (ct *CronTrigger) NextExecutionTime(task *Task) time.Time {
@@ -72,13 +76,48 @@ func (ct *CronTrigger) NextExecutionTime(task *Task) time.Time {
 		}
 	}
 
-	return ct.Next(date)
+	return ct.cron.Next(date)
 }
 
-func NewCronTrigger(cron string, location ...*time.Location) (*CronTrigger, error) {
-	ct := &CronTrigger{}
-	if err := ct.Parse(cron, location...); err != nil {
+func NewCronTrigger(expr string, location ...*time.Location) (*CronTrigger, error) {
+	cron, err := ParseCron(expr, location...)
+	if err != nil {
 		return nil, err
 	}
-	return ct, nil
+	return &CronTrigger{cron}, nil
+}
+
+type PeriodicTrigger struct {
+	periodic Periodic
+	crontrig *CronTrigger
+}
+
+func (pt *PeriodicTrigger) Periodic() string {
+	return pt.periodic.String()
+}
+
+func (pt *PeriodicTrigger) Cron() string {
+	return pt.crontrig.Cron()
+}
+
+func (pt *PeriodicTrigger) NextExecutionTime(task *Task) time.Time {
+	return pt.crontrig.NextExecutionTime(task)
+}
+
+func NewPeriodicTrigger(periodic string, location ...*time.Location) (*PeriodicTrigger, error) {
+	p, err := ParsePeriodic(periodic)
+	if err != nil {
+		return nil, err
+	}
+
+	ct, err := NewCronTrigger(p.Cron(), location...)
+	if err != nil {
+		return nil, err
+	}
+
+	pt := &PeriodicTrigger{
+		periodic: p,
+		crontrig: ct,
+	}
+	return pt, nil
 }

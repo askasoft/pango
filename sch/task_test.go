@@ -10,11 +10,11 @@ import (
 
 const testTimeFormat = "2006-01-02T15:04:05.000"
 
-func TestPeriodicTriggerTask(t *testing.T) {
+func TestRepeatTriggerTask(t *testing.T) {
 	cnt := 0
 	task := Task{
 		Logger:  log.NewLog().GetLogger("TASK"),
-		Trigger: &PeriodicTrigger{Period: time.Millisecond * 500},
+		Trigger: &RepeatTrigger{Duratiuon: time.Millisecond * 500},
 		Callback: func() {
 			cnt++
 			fmt.Printf("[%d] call %s\n", cnt, time.Now().Format(testTimeFormat))
@@ -32,11 +32,11 @@ func TestPeriodicTriggerTask(t *testing.T) {
 	task.Stop()
 }
 
-func TestPeriodicTriggerTaskStop(t *testing.T) {
+func TestRepeatTriggerTaskStop(t *testing.T) {
 	cnt := 0
 	task := Task{
 		Logger:  log.NewLog().GetLogger("TASK"),
-		Trigger: &PeriodicTrigger{Period: time.Millisecond * 500},
+		Trigger: &RepeatTrigger{Duratiuon: time.Millisecond * 500},
 		Callback: func() {
 			cnt++
 			fmt.Printf("[%d] call %s\n", cnt, time.Now().Format(testTimeFormat))
@@ -55,11 +55,11 @@ func TestPeriodicTriggerTaskStop(t *testing.T) {
 	}
 }
 
-func TestPeriodicTriggerTaskStopStart(t *testing.T) {
+func TestRepeatTriggerTaskStopStart(t *testing.T) {
 	cnt := 0
 	task := Task{
 		Logger:  log.NewLog().GetLogger("TASK"),
-		Trigger: &PeriodicTrigger{Period: time.Millisecond * 300},
+		Trigger: &RepeatTrigger{Duratiuon: time.Millisecond * 300},
 		Callback: func() {
 			cnt++
 			fmt.Printf("[%d] begin %s\n", cnt, time.Now().Format(testTimeFormat))
@@ -86,11 +86,11 @@ func TestPeriodicTriggerTaskStopStart(t *testing.T) {
 	time.Sleep(time.Millisecond * 1000)
 }
 
-func TestFixedRatePeriodicTriggerTask(t *testing.T) {
+func TestFixedRateRepeatTriggerTask(t *testing.T) {
 	cnt := 0
 	task := Task{
 		Logger:  log.NewLog().GetLogger("TASK"),
-		Trigger: &PeriodicTrigger{Period: time.Millisecond * 400, FixedRate: true},
+		Trigger: &RepeatTrigger{Duratiuon: time.Millisecond * 400, FixedRate: true},
 		Callback: func() {
 			cnt++
 			fmt.Printf("[%d] call %s\n", cnt, time.Now().Format(testTimeFormat))

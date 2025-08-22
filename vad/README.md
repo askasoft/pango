@@ -131,6 +131,7 @@ Baked-in Validations
 | datetime | Datetime |
 | duration | Duration |
 | cron | Cron Expression |
+| periodic | Periodic Expression |
 | e164 | e164 formatted phone number |
 | email | E-mail String
 | hexadecimal | Hexadecimal String |

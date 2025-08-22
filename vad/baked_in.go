@@ -167,6 +167,7 @@ var (
 		"datetime":                      isDatetime,
 		"duration":                      isDuration,
 		"cron":                          isCron,
+		"periodic":                      isPeriodic,
 		"timezone":                      isTimeZone,
 		"postcode_iso3166_alpha2":       isPostcodeByIso3166Alpha2,
 		"postcode_iso3166_alpha2_field": isPostcodeByIso3166Alpha2Field,
@@ -1539,7 +1540,15 @@ func isDuration(fl FieldLevel) bool {
 func isCron(fl FieldLevel) bool {
 	mustStringField("cron", fl)
 
-	_, err := sch.NewCronSequencer(fl.Field().String())
+	_, err := sch.ParseCron(fl.Field().String())
+	return err == nil
+}
+
+// isPeriodic is the validation function for validating if the current field's value is a valid periodic expression.
+func isPeriodic(fl FieldLevel) bool {
+	mustStringField("periodic", fl)
+
+	_, err := sch.ParsePeriodic(fl.Field().String())
 	return err == nil
 }
 

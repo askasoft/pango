@@ -3,13 +3,38 @@ package sch
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/askasoft/pango/str"
 )
 
-var weekdayAbbrs = []string{"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"}
-var monthAbbrs = []string{"FOO", "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"}
+var (
+	weekdayAbbrs = strings.NewReplacer(
+		"SUN", "0",
+		"MON", "1",
+		"TUE", "2",
+		"WED", "3",
+		"THU", "4",
+		"FRI", "5",
+		"SAT", "6",
+	)
+
+	monthAbbrs = strings.NewReplacer(
+		"JAN", "1",
+		"FEB", "2",
+		"MAR", "3",
+		"APR", "4",
+		"MAY", "5",
+		"JUN", "6",
+		"JUL", "7",
+		"AUG", "8",
+		"SEP", "9",
+		"OCT", "10",
+		"NOV", "11",
+		"DEC", "12",
+	)
+)
 
 const (
 	_ = iota
@@ -21,12 +46,12 @@ const (
 )
 
 // Cron a cron expression parser and time calculator
-// ┌───────────── second (0 - 59) (omittable)
-// │ ┌───────────── minute (0 - 59)
-// │ │ ┌───────────── hour (0 - 23)
-// │ │ │ ┌───────────── day of the month (1 - 31)
-// │ │ │ │ ┌───────────── month (1 - 12)
-// │ │ │ │ │ ┌───────────── day of the week (0 - 6) (Sunday to Saturday; 7 is also Sunday)
+// ┌───────────── second (0-59) (omittable)
+// │ ┌───────────── minute (0-59)
+// │ │ ┌───────────── hour (0-23)
+// │ │ │ ┌───────────── day of the month (1-31, 32: last day of month)
+// │ │ │ │ ┌───────────── month (1-12)
+// │ │ │ │ │ ┌───────────── day of the week (0-6) (Sunday to Saturday; 7 is also Sunday)
 // │ │ │ │ │ │
 // │ │ │ │ │ │
 // │ │ │ │ │ │
@@ -117,7 +142,8 @@ func (cron *Cron) Parse(expression string, location ...*time.Location) error {
 
 func (cron *Cron) setDaysOfMonth(bits *uint64, field string) error {
 	// Days of month start with 1 (in Cron and Golang)
-	if err := cron.setDays(bits, field, 31); err != nil {
+	// Allow 32 as "last day of month"
+	if err := cron.setDays(bits, field, 32); err != nil {
 		return err
 	}
 
@@ -146,12 +172,8 @@ func (cron *Cron) setMonths(bits *uint64, value string) error {
 	return nil
 }
 
-func (cron *Cron) replaceOrdinals(value string, alias []string) string {
-	value = str.ToUpper(value)
-	for i, a := range alias {
-		value = str.ReplaceAll(value, a, strconv.Itoa(i))
-	}
-	return value
+func (cron *Cron) replaceOrdinals(value string, replacer *strings.Replacer) string {
+	return replacer.Replace(str.ToUpper(value))
 }
 
 func (cron *Cron) setNumberHits(bits *uint64, value string, min, max int) error {
@@ -179,7 +201,7 @@ func (cron *Cron) setNumberHits(bits *uint64, value string, min, max int) error 
 				return fmt.Errorf("cron: invalid number of field %q in expression %q", field, cron.expression)
 			}
 			for i := start; i <= end; i += delta {
-				*bits |= 1 << i
+				*bits |= uint64(1) << i
 			}
 		} else {
 			// Not an incrementer so it must be a range (possibly empty)
@@ -333,14 +355,29 @@ func (cron *Cron) doNext(date time.Time, dot int) time.Time {
 
 func (cron *Cron) findNextDay(date time.Time, dayOfMonth, dayOfWeek int, resets []int) (time.Time, int) {
 	count := 0
-	limit := 366
+	limit := 3650
 
-	for ; (cron.daysOfMonth&(1<<dayOfMonth) == 0 || cron.daysOfWeek&(1<<dayOfWeek) == 0) && count < limit; count++ {
+	for ; count < limit; count++ {
+		if cron.daysOfWeek&(1<<dayOfWeek) != 0 {
+			if cron.daysOfMonth&(1<<dayOfMonth) != 0 {
+				break
+			}
+
+			// If 32nd bit is set, treat it as "last day of month".
+			if cron.daysOfMonth&(uint64(1)<<32) != 0 {
+				// If today is the last day of the month, we can stop.
+				if dayOfMonth == time.Date(date.Year(), date.Month()+1, 0, 0, 0, 0, 0, date.Location()).Day() {
+					break
+				}
+			}
+		}
+
 		date = date.AddDate(0, 0, 1)
 		dayOfMonth = date.Day()
 		dayOfWeek = int(date.Weekday())
 		date = cron.reset(date, resets)
 	}
+
 	if count >= limit {
 		panic("cron: overflow in day for expression \"" + cron.expression + "\"")
 	}
@@ -392,7 +429,7 @@ func (cron *Cron) findNext(date time.Time, bits uint64, value int, field int, ne
 }
 
 func (cron *Cron) nextSetBit(bits uint64, start int) int {
-	var mask uint64 = 1 << start
+	mask := uint64(1) << start
 	for i := start; i < 64; i++ {
 		if (bits & mask) != 0 {
 			return i

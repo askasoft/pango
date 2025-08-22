@@ -15,13 +15,13 @@ const (
 
 // Periodic a periodic expression parser
 // ┌───────────── unit (d: daily, w: weekly, m: monthly)
-// │ ┌───────────── day (daily: 0, weekly: 1-7 monday to sunday, monthly: 1-31)
+// │ ┌───────────── day (daily: 0, weekly: 1-7 monday to sunday, monthly: 1-31,32 is last day of month)
 // │ │ ┌───────────── hour (0 - 23)
 // │ │ │
 // * * *
 type Periodic struct {
 	Unit rune // 'd': daily, 'w': weekly, 'm': monthly
-	Day  int  // 0 for daily, 1-7 for weekly, 1-31 for monthly
+	Day  int  // 0 for daily, 1-7 for weekly, 1-32 for monthly (32 is last day of month)
 	Hour int  // 0-23
 }
 
@@ -71,11 +71,11 @@ func (p *Periodic) Parse(expr string) (err error) {
 	case Daily:
 	case Weekly:
 		if p.Day < 1 || p.Day > 7 {
-			err = fmt.Errorf("periodic: invalid day %d (must be 1-7)", p.Day)
+			err = fmt.Errorf("periodic: invalid day %d (must be 1-7, MON to SUN)", p.Day)
 		}
 	case Monthly:
-		if p.Day < 1 || p.Day > 31 {
-			err = fmt.Errorf("periodic: invalid day %d (must be 1-31)", p.Day)
+		if p.Day < 1 || p.Day > 32 {
+			err = fmt.Errorf("periodic: invalid day %d (must be 1-32, 32 is last day of month)", p.Day)
 		}
 	default:
 		err = fmt.Errorf("periodic: invalid unit %c (must be one of %c, %c, %c)", p.Unit, Daily, Weekly, Monthly)

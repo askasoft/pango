@@ -1,8 +1,43 @@
 package tmu
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 var GeneralLayouts = []string{time.RFC3339, "2006-1-2 15:04:05", "2006-1-2", "15:04:05"}
+
+func LocalFormat(a any, f string) string {
+	if a == nil {
+		return ""
+	}
+
+	switch t := a.(type) {
+	case time.Time:
+		if !t.IsZero() {
+			return t.Local().Format(f)
+		}
+	case *time.Time:
+		if t != nil && !t.IsZero() {
+			return t.Local().Format(f)
+		}
+	default:
+		return fmt.Sprint(a)
+	}
+	return ""
+}
+
+func LocalFormatDateTime(a any) string {
+	return LocalFormat(a, time.DateTime)
+}
+
+func LocalFormatDate(a any) string {
+	return LocalFormat(a, time.DateOnly)
+}
+
+func LocalFormatTime(a any) string {
+	return LocalFormat(a, time.TimeOnly)
+}
 
 func ParseInLocation(value string, loc *time.Location, layouts ...string) (tt time.Time, err error) {
 	if len(layouts) == 0 {

@@ -14,7 +14,7 @@ func TestHumanSizeAny(t *testing.T) {
 	}{
 		{1234, "1.21 KB", nil},
 		{2345.0, "2.29 KB", nil},
-		{"1.1", "", errors.New("HumanSize: unknown type for '1.1' (string)")},
+		{"1.1", "", errors.New("size: unknown type for '1.1' (string)")},
 	}
 
 	for i, c := range cs {

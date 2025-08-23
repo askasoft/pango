@@ -99,7 +99,7 @@ func HumanSizeAny(n any, args ...any) (string, error) {
 	case float64:
 		return HumanSizeFloat(v, p, s), nil
 	default:
-		return "", fmt.Errorf("HumanSize: unknown type for '%v' (%T)", n, n)
+		return "", fmt.Errorf("size: unknown type for '%v' (%T)", n, n)
 	}
 }
 
@@ -144,11 +144,11 @@ func MustParseSizeF(size string) float64 {
 }
 
 func badSuffix(sfx string) (float64, error) {
-	return -1, fmt.Errorf("invalid suffix %q", sfx)
+	return -1, fmt.Errorf("size: invalid suffix %q", sfx)
 }
 
 func badSize(sz string) (float64, error) {
-	return -1, fmt.Errorf("invalid size %q", sz)
+	return -1, fmt.Errorf("size: invalid size %q", sz)
 }
 
 // Parses the human-readable size string into the amount it represents.

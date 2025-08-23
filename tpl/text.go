@@ -1,7 +1,6 @@
 package tpl
 
 import (
-	"fmt"
 	"io"
 	"io/fs"
 	"os"
@@ -9,6 +8,7 @@ import (
 	"text/template"
 
 	"github.com/askasoft/pango/asg"
+	"github.com/askasoft/pango/str"
 )
 
 var TextTemplateExtensions = []string{".tpl", ".txt", ".gotxt"}
@@ -79,9 +79,6 @@ func (tt *TextTemplates) Load(root string) (err error) {
 
 		return tt.loadFile(nil, root, path)
 	})
-	if err != nil {
-		return
-	}
 
 	return
 }
@@ -101,9 +98,6 @@ func (tt *TextTemplates) LoadFS(fsys fs.FS, root string) (err error) {
 
 		return tt.loadFile(fsys, root, path)
 	})
-	if err != nil {
-		return
-	}
 
 	return
 }
@@ -117,7 +111,7 @@ func (tt *TextTemplates) loadFile(fsys fs.FS, root, path string) error {
 
 	text, err := readFile(fsys, path)
 	if err != nil {
-		return fmt.Errorf("TextTemplates load template %q error: %w", path, err)
+		return err
 	}
 
 	path = toTemplateName(root, path, ext)
@@ -128,6 +122,23 @@ func (tt *TextTemplates) loadFile(fsys fs.FS, root, path string) error {
 }
 
 // Render render template with io.Writer
-func (tt *TextTemplates) Render(w io.Writer, name string, data any) error {
+// If locale is not empty, it will try to load locale template first.
+// For example, if locale is "zh-TW" and name is "hello", it will try to load template via the following order.
+// 1. "hello.zh-TW.tpl"
+// 2. "hello.zh.tpl"
+// 3. "hello.tpl"
+func (tt *TextTemplates) Render(w io.Writer, locale, name string, data any) error {
+	for locale != "" {
+		if t := tt.template.Lookup(name + "_" + locale); t != nil {
+			return t.Execute(w, data)
+		}
+
+		if l2, _, ok := str.LastCutByte(locale, '-'); ok {
+			locale = l2
+		} else {
+			break
+		}
+	}
+
 	return tt.template.ExecuteTemplate(w, name, data)
 }

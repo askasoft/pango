@@ -8,7 +8,7 @@
 <h1>Admin Page</h1>
 
 
-<p>Admin: Hello world!</p>
+<p>アドミン: Hello world!</p>
 
 <h2>Unescape</h2>
 <p>HTML:       <a>test</a> </p>

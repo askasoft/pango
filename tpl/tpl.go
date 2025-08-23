@@ -60,7 +60,12 @@ type Templates interface {
 	LoadFS(fsys fs.FS, root string) error
 
 	// Render render template with io.Writer
-	Render(w io.Writer, name string, data any) error
+	// If locale is not empty, it will try to load locale template first.
+	// For example, if locale is "zh-TW" and name is "hello", it will try to load template via the following order.
+	// 1. "hello.zh-TW.tpl"
+	// 2. "hello.zh.tpl"
+	// 3. "hello.tpl"
+	Render(w io.Writer, locale, name string, data any) error
 }
 
 // readFile read file content to string
@@ -73,7 +78,7 @@ func readFile(fsys fs.FS, path string) (text string, err error) {
 	}
 
 	if err != nil {
-		return "", fmt.Errorf("tpl: failed to read template %v, error: %w", path, err)
+		return "", fmt.Errorf("tpl: failed to read template '%s', error: %w", path, err)
 	}
 	return string(data), nil
 }

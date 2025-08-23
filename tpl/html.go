@@ -1,7 +1,6 @@
 package tpl
 
 import (
-	"fmt"
 	"html/template"
 	"io"
 	"io/fs"
@@ -9,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/askasoft/pango/asg"
+	"github.com/askasoft/pango/str"
 )
 
 var HTMLTemplateExtensions = []string{".tpl", ".html", ".gohtml"}
@@ -80,9 +80,6 @@ func (ht *HTMLTemplates) Load(root string) (err error) {
 
 		return ht.loadFile(nil, root, path)
 	})
-	if err != nil {
-		return
-	}
 
 	return
 }
@@ -102,9 +99,6 @@ func (ht *HTMLTemplates) LoadFS(fsys fs.FS, root string) (err error) {
 
 		return ht.loadFile(fsys, root, path)
 	})
-	if err != nil {
-		return
-	}
 
 	return
 }
@@ -118,7 +112,7 @@ func (ht *HTMLTemplates) loadFile(fsys fs.FS, root, path string) error {
 
 	text, err := readFile(fsys, path)
 	if err != nil {
-		return fmt.Errorf("HTMLTemplates load template %q error: %w", path, err)
+		return err
 	}
 
 	path = toTemplateName(root, path, ext)
@@ -129,6 +123,23 @@ func (ht *HTMLTemplates) loadFile(fsys fs.FS, root, path string) error {
 }
 
 // Render render template with io.Writer
-func (ht *HTMLTemplates) Render(w io.Writer, name string, data any) error {
+// If locale is not empty, it will try to load locale template first.
+// For example, if locale is "zh-TW" and name is "hello", it will try to load template via the following order.
+// 1. "hello.zh-TW.tpl"
+// 2. "hello.zh.tpl"
+// 3. "hello.tpl"
+func (ht *HTMLTemplates) Render(w io.Writer, locale, name string, data any) error {
+	for locale != "" {
+		if t := ht.template.Lookup(name + "_" + locale); t != nil {
+			return t.Execute(w, data)
+		}
+
+		if l2, _, ok := str.LastCutByte(locale, '-'); ok {
+			locale = l2
+		} else {
+			break
+		}
+	}
+
 	return ht.template.ExecuteTemplate(w, name, data)
 }

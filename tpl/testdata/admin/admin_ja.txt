@@ -1,6 +1,6 @@
 {{template "header" .}}
 
-<p>Admin: {{.Message}}</p>
+<p>アドミン: {{.Message}}</p>
 
 <h2>Unescape</h2>
 <p>HTML:       {{HTML "<a>test</a>"}} </p>

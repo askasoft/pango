@@ -26,6 +26,6 @@
 <p>MapSet('Array'): {{MapSet . "Array" (Array "a1" "a2")}}</p>
 <p>MapGet('Array'): {{MapGet . "Array" }}</p>
 <p>MapSet('Map'):   {{MapSet . "Map" (Map "k1" "v1" "k2" "v2")}}</p>
-<p>MapSet('Map'):   {{MapGet . "Map" }}</p>
+<p>MapGet('Map'):   {{MapGet . "Map" }}</p>
 
 {{template "footer"}}

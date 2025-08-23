@@ -9,7 +9,7 @@ import (
 // HTMLRender interface is to be implemented by HTMLProduction and HTMLDebug.
 type HTMLRender interface {
 	// Instance returns an HTML instance.
-	Instance(string, any) Render
+	Instance(locale, name string, data any) Render
 }
 
 // HTMLTemplates html templates interface for xin
@@ -30,25 +30,27 @@ func NewHTMLTemplates() HTMLTemplates {
 }
 
 // Instance implement xin interface
-func (html *htmlTemplates) Instance(name string, data any) Render {
+func (ht *htmlTemplates) Instance(locale, name string, data any) Render {
 	return htmlRender{
-		html: html,
-		name: name,
-		data: data,
+		htpls:  ht,
+		locale: locale,
+		name:   name,
+		data:   data,
 	}
 }
 
 // HTMLRender view render implement xin interface
 type htmlRender struct {
-	html *htmlTemplates
-	name string
-	data any
+	htpls  *htmlTemplates
+	locale string
+	name   string
+	data   any
 }
 
 // Render writes data with custom ContentType.
 func (r htmlRender) Render(w http.ResponseWriter) error {
 	r.WriteContentType(w)
-	return r.html.Render(w, r.name, r.data)
+	return r.htpls.Render(w, r.locale, r.name, r.data)
 }
 
 // WriteContentType write html content type

@@ -1,20 +1,20 @@
 {{template "header" .}}
 
-<p>Admin: {{.Message}}</p>
+<p>アドミン: {{.Message}}</p>
 
 <h2>Unescape</h2>
 <p>HTML:       {{HTML "<a>test</a>"}} </p>
-<p>HTMLAttr:   {{HTMLAttr "a&b&c"}} </p>
-<p>JS:         {{JS "var a = '<a></a>';"}} </p>
-<p>JSStr:      {{JSStr `var a = "<a></a>";`}} </p>
-<p>CSS:        {{CSS "a { color: red; }"}} </p>
-<p>URL:        {{URL "http://a.b.com/?a=1&b=2"}} </p>
-<p>Srcset:     {{Srcset "http://a.b.com/?a=1&b=2"}} </p>
+<p>HTMLAttr:   {{HTMLAttr "a&b&c" | HTML}} </p>
+<p>JS:         {{JS "var a = '<a></a>';" | HTML}} </p>
+<p>JSStr:      {{JSStr `var a = "<a></a>";` | HTML}} </p>
+<p>CSS:        {{CSS "a { color: red; }" | HTML}} </p>
+<p>URL:        {{URL "http://a.b.com/?a=1&b=2" | HTML}} </p>
+<p>Srcset:     {{Srcset "http://a.b.com/?a=1&b=2" | HTML}} </p>
 
 <h2>Format</h2>
 <p>Comma:      {{Comma 1234}}</p>
 <p>HumanSize:  {{HumanSize 1234}}</p>
-<p>JSON:       {{JSON .}}</p>
+<p>JSON:       {{JSON . | HTML}}</p>
 
 <h2>Math</h2>
 <p>Add:      {{Add 1 2 3 4}}</p>

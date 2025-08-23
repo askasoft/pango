@@ -34,7 +34,7 @@
 <p>MapSet('Array'): <no value></p>
 <p>MapGet('Array'): [a1 a2]</p>
 <p>MapSet('Map'):   <no value></p>
-<p>MapSet('Map'):   map[k1:v1 k2:v2]</p>
+<p>MapGet('Map'):   map[k1:v1 k2:v2]</p>
 
 
 <div>Copyright &copy; pango</div>

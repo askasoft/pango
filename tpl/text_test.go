@@ -6,7 +6,10 @@ import (
 	"testing"
 
 	"github.com/askasoft/pango/fsu"
+	"github.com/askasoft/pango/str"
 )
+
+var _ Templates = &TextTemplates{}
 
 func testNewTextTpls() *TextTemplates {
 	tt := NewTextTemplates()
@@ -14,16 +17,28 @@ func testNewTextTpls() *TextTemplates {
 	return tt
 }
 
-func testTextPage(t *testing.T, tt *TextTemplates, page string, ctx any) {
-	fexp := "testdata/" + page + ".txt.exp"
-	fout := "testdata/" + page + ".txt.out"
+func testTextPages(t *testing.T, tt *TextTemplates, page string, data map[string]any) {
+	for _, lang := range []string{"en", "ja", "ja-JP"} {
+		testTextPage(t, tt, lang, page, data)
+	}
+}
+
+func testTextPage(t *testing.T, tt *TextTemplates, lang, page string, data map[string]any) {
+	copy := make(map[string]any)
+	for k, v := range data {
+		copy[k] = v
+	}
+	data = copy
+
+	fexp := "testdata/" + page + str.If(lang == "", "", "_"+lang) + ".txt.exp"
+	fout := "testdata/" + page + str.If(lang == "", "", "_"+lang) + ".txt.out"
 
 	os.Remove(fout)
 
 	sb := &strings.Builder{}
-	err := tt.Render(sb, page, ctx)
+	err := tt.Render(sb, lang, page, data)
 	if err != nil {
-		t.Errorf(`tt.Render(sb, "index", ctx) = %v`, err)
+		t.Errorf(`tt.Render(sb, %q, %q) = %v`, lang, page, err)
 		return
 	}
 
@@ -37,44 +52,31 @@ func testTextPage(t *testing.T, tt *TextTemplates, page string, ctx any) {
 }
 
 func testTextLoad(t *testing.T, tt *TextTemplates) {
-	testTextPage(t, tt, "index", map[string]any{
+	testTextPage(t, tt, "", "index", map[string]any{
 		"Title":   "Front Page",
 		"Message": "Hello world!",
 	})
 
-	testTextPage(t, tt, "admin/admin", map[string]any{
+	testTextPages(t, tt, "admin/admin", map[string]any{
 		"Title":   "Admin Page",
 		"Message": "Hello world!",
 	})
 }
 
-func TestLoadText(t *testing.T) {
-	tt := testNewTextTpls()
-	root := "testdata"
+func TestTextTemplatesLoad(t *testing.T) {
+	roots := []string{"testdata", "./testdata"}
 
-	err := tt.Load(root)
-	if err != nil {
-		t.Errorf(`ht.Load(%q) = %v`, root, err)
-		return
+	for _, root := range roots {
+		tt := testNewTextTpls()
+		err := tt.Load(root)
+		if err != nil {
+			t.Fatalf(`ht.Load(%q) = %v`, root, err)
+		}
+		testTextLoad(t, tt)
 	}
-
-	testTextLoad(t, tt)
 }
 
-func TestLoadText2(t *testing.T) {
-	tt := testNewTextTpls()
-	root := "./testdata"
-
-	err := tt.Load(root)
-	if err != nil {
-		t.Errorf(`ht.Load(%q) = %v`, root, err)
-		return
-	}
-
-	testTextLoad(t, tt)
-}
-
-func TestFSLoadText(t *testing.T) {
+func TestTextTemplatesLoadFS(t *testing.T) {
 	tt := testNewTextTpls()
 	root := "testdata"
 

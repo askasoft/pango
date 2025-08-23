@@ -1028,8 +1028,7 @@ func (c *Context) Render(code int, r render.Render) {
 // It also updates the HTTP code and sets the Content-Type as "text/html".
 // See http://golang.org/doc/articles/wiki/
 func (c *Context) HTML(code int, name string, obj any) {
-	instance := c.engine.HTMLTemplates.Instance(name, obj)
-	c.Render(code, instance)
+	c.Render(code, c.engine.HTMLTemplates.Instance(c.Locale, name, obj))
 }
 
 // IndentedJSON serializes the given struct as pretty JSON (indented + endlines) into the response body.

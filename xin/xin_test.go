@@ -15,6 +15,7 @@ import (
 
 	"github.com/askasoft/pango/test/assert"
 	"github.com/askasoft/pango/tpl"
+	"github.com/askasoft/pango/xin/render"
 )
 
 // testNewHttpServer create a http.Server instance
@@ -76,19 +77,19 @@ func formatAsDate(t time.Time) string {
 }
 
 func testLoadHTML(t *testing.T, router *Engine) {
-	router.HTMLTemplates.Delims("{[{", "}]}")
+	ht := tpl.NewHTMLTemplates()
 
-	router.HTMLTemplates.Funcs(tpl.FuncMap{
+	ht.Delims("{[{", "}]}")
+	ht.Funcs(tpl.FuncMap{
 		"formatAsDate": formatAsDate,
 	})
-	err := router.HTMLTemplates.Load("./testdata/template/")
-	assert.NoError(t, err)
+	assert.NoError(t, ht.Load("./testdata/template/"))
+	router.HTMLRenderer = render.NewHTMLRenderer(ht)
 }
 
-func setupHTMLFiles(t *testing.T, tls bool, loadMethod func(*Engine)) *httptest.Server {
+func setupHTMLFiles(t *testing.T, tls bool) *httptest.Server {
 	router := New()
 	testLoadHTML(t, router)
-	loadMethod(router)
 	router.GET("/test", func(c *Context) {
 		c.HTML(http.StatusOK, "hello", map[string]string{"name": "world"})
 	})
@@ -110,13 +111,7 @@ func setupHTMLFiles(t *testing.T, tls bool, loadMethod func(*Engine)) *httptest.
 }
 
 func TestLoadHTMLGlobDebugMode(t *testing.T) {
-	ts := setupHTMLFiles(
-		t,
-		false,
-		func(router *Engine) {
-			router.HTMLTemplates.Load("./testdata/template/")
-		},
-	)
+	ts := setupHTMLFiles(t, false)
 	defer ts.Close()
 
 	res, err := http.Get(fmt.Sprintf("%s/test", ts.URL))
@@ -129,13 +124,8 @@ func TestLoadHTMLGlobDebugMode(t *testing.T) {
 }
 
 func TestLoadHTMLGlobTestMode(t *testing.T) {
-	ts := setupHTMLFiles(
-		t,
-		false,
-		func(router *Engine) {
-			router.HTMLTemplates.Load("./testdata/template/")
-		},
-	)
+	ts := setupHTMLFiles(t, false)
+
 	defer ts.Close()
 
 	res, err := http.Get(fmt.Sprintf("%s/test", ts.URL))
@@ -148,13 +138,7 @@ func TestLoadHTMLGlobTestMode(t *testing.T) {
 }
 
 func TestLoadHTMLGlobReleaseMode(t *testing.T) {
-	ts := setupHTMLFiles(
-		t,
-		false,
-		func(router *Engine) {
-			router.HTMLTemplates.Load("./testdata/template/")
-		},
-	)
+	ts := setupHTMLFiles(t, false)
 	defer ts.Close()
 
 	res, err := http.Get(fmt.Sprintf("%s/test", ts.URL))
@@ -167,13 +151,7 @@ func TestLoadHTMLGlobReleaseMode(t *testing.T) {
 }
 
 func TestLoadHTMLGlobUsingTLS(t *testing.T) {
-	ts := setupHTMLFiles(
-		t,
-		true,
-		func(router *Engine) {
-			router.HTMLTemplates.Load("./testdata/template/")
-		},
-	)
+	ts := setupHTMLFiles(t, true)
 	defer ts.Close()
 
 	// Use InsecureSkipVerify for avoiding `x509: certificate signed by unknown authority` error
@@ -193,13 +171,7 @@ func TestLoadHTMLGlobUsingTLS(t *testing.T) {
 }
 
 func TestLoadHTMLGlobFromFuncMap(t *testing.T) {
-	ts := setupHTMLFiles(
-		t,
-		false,
-		func(router *Engine) {
-			router.HTMLTemplates.Load("./testdata/template/")
-		},
-	)
+	ts := setupHTMLFiles(t, false)
 	defer ts.Close()
 
 	res, err := http.Get(fmt.Sprintf("%s/raw", ts.URL))

@@ -3,6 +3,9 @@ package xin
 import (
 	"net/http"
 	"testing"
+
+	"github.com/askasoft/pango/tpl"
+	"github.com/askasoft/pango/xin/render"
 )
 
 func BenchmarkOneRoute(B *testing.B) {
@@ -47,7 +50,9 @@ func BenchmarkOneRouteJSON(B *testing.B) {
 
 func BenchmarkOneRouteHTML(B *testing.B) {
 	router := New()
-	router.HTMLTemplates.Load("./testdata/template/")
+	ht := tpl.NewHTMLTemplates()
+	ht.Load("./testdata/template/")
+	router.HTMLRenderer = render.NewHTMLRenderer(ht)
 
 	router.GET("/html", func(c *Context) {
 		c.HTML(http.StatusOK, "hello", H{"name": "hola"})

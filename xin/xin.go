@@ -133,8 +133,8 @@ type Engine struct {
 	// ContextWithFallback enable fallback Context.Deadline(), Context.Done(), Context.Err() and Context.Value() when Context.Request.Context() is not nil.
 	ContextWithFallback bool
 
-	// HTMLTemplates html templates
-	HTMLTemplates render.HTMLTemplates
+	// HTMLRenderer html templates renderer
+	HTMLRenderer render.HTMLRenderer
 
 	// Validator struct validator
 	Validator validate.StructValidator
@@ -179,7 +179,6 @@ func New() *Engine {
 		RemoveExtraSlash:       false,
 		UnescapePathValues:     true,
 		MaxMultipartMemory:     defaultMultipartMemory,
-		HTMLTemplates:          render.NewHTMLTemplates(),
 		Validator:              validate.NewStructValidator(),
 		Logger:                 log.GetLogger("XIN"),
 		trees:                  make(methodTrees, 0, 9),

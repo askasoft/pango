@@ -5,17 +5,19 @@ import (
 	"testing"
 
 	"github.com/askasoft/pango/test/assert"
+	"github.com/askasoft/pango/tpl"
 )
 
 func TestRenderHTMLTemplate(t *testing.T) {
-	ht := NewHTMLTemplates()
+	ht := tpl.NewHTMLTemplates()
 	ht.Load("testdata")
 
+	hr := NewHTMLRenderer(ht)
 	for _, loc := range []string{"", "zh"} {
 		t.Run("loc="+loc, func(t *testing.T) {
 			w := httptest.NewRecorder()
 
-			r := ht.Instance(loc, "hello", map[string]any{
+			r := hr(loc, "hello", map[string]any{
 				"name": "alexandernyquist",
 			})
 
@@ -29,10 +31,11 @@ func TestRenderHTMLTemplate(t *testing.T) {
 }
 
 func TestRenderHTMLTemplateJA(t *testing.T) {
-	ht := NewHTMLTemplates()
+	ht := tpl.NewHTMLTemplates()
 	ht.Load("testdata")
 
-	r := ht.Instance("ja", "hello", map[string]any{
+	hr := NewHTMLRenderer(ht)
+	r := hr("ja", "hello", map[string]any{
 		"name": "alexandernyquist",
 	})
 

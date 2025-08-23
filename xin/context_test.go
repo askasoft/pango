@@ -1216,8 +1216,6 @@ func TestContextNegotiationWithHTML(t *testing.T) {
 	c.Request, _ = http.NewRequest("POST", "", nil)
 
 	testLoadHTML(t, router)
-	router.HTMLTemplates.Delims("{[{", "}]}")
-	router.HTMLTemplates.Load("./testdata/template/")
 
 	c.Negotiate(http.StatusOK, Negotiate{
 		Offered:  []string{MIMEHTML},

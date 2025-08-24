@@ -76,13 +76,13 @@ func TestCacheTimes(t *testing.T) {
 	tc.SetWithTTL("c", 3, 2*time.Second)
 	tc.SetWithTTL("d", 4, 3*time.Second)
 
-	<-time.After(2000 * time.Millisecond)
+	time.Sleep(1500 * time.Millisecond)
 	_, found = tc.Get("a")
 	if found {
 		t.Error("Found a when it should have been automatically deleted")
 	}
 
-	<-time.After(1000 * time.Millisecond)
+	time.Sleep(1000 * time.Millisecond)
 	_, found = tc.Get("c")
 	if found {
 		t.Error("Found c when it should have been automatically deleted")
@@ -98,7 +98,7 @@ func TestCacheTimes(t *testing.T) {
 		t.Error("Did not find d even though it was set to expire later than the default")
 	}
 
-	<-time.After(1000 * time.Millisecond)
+	time.Sleep(1000 * time.Millisecond)
 	_, found = tc.Get("d")
 	if found {
 		t.Error("Found d when it should have been automatically deleted (later than the default)")
@@ -418,10 +418,10 @@ func TestGetWithTTL(t *testing.T) {
 	} else if e2 := x.(int); e2+2 != 3 {
 		t.Error("e (which should be 1) plus 2 does not equal 3; value:", e2)
 	}
-	if expiration.Unix() != tc.items["e"].TTL {
+	if expiration.UnixMilli() != tc.items["e"].TTL {
 		t.Error("expiration for e is not the correct time")
 	}
-	if expiration.Unix() < time.Now().Unix() {
+	if expiration.UnixMilli() < time.Now().UnixMilli() {
 		t.Error("expiration for e is in the past")
 	}
 }

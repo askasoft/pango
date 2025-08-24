@@ -17,7 +17,7 @@ type Worker interface {
 
 type Item[V any] struct {
 	Val V     // Cache Value
-	TTL int64 // Time-To-Live (time.Unix)
+	TTL int64 // Time-To-Live (time.UnixMilli())
 }
 
 // Working returns true to prevent expired
@@ -35,7 +35,7 @@ func (item Item[V]) Expired() bool {
 		return false
 	}
 
-	return time.Now().Unix() > item.TTL
+	return time.Now().UnixMilli() > item.TTL
 }
 
 // ExpiredAt Returns true if the item has expired at time `t`.
@@ -139,15 +139,26 @@ type cache[K comparable, V any] struct {
 	janitor *janitor
 }
 
+// TTL returns the default TTL (time-to-live) for the cache.
+func (c *cache[K, V]) TTL() time.Duration {
+	return c.ttl
+}
+
+// SetTTL sets the default TTL (time-to-live) for the cache.
+// Existing items will not be affected.
+func (c *cache[K, V]) SetTTL(d time.Duration) {
+	c.ttl = d
+}
+
 func (c *cache[K, V]) timeToLive(d time.Duration) int64 {
 	if d <= 0 {
 		return 0
 	}
-	return time.Now().Add(d).Unix()
+	return time.Now().Add(d).UnixMilli()
 }
 
-func (c *cache[K, V]) set(k K, v V, t int64) {
-	c.items[k] = Item[V]{Val: v, TTL: t}
+func (c *cache[K, V]) set(k K, v V, d time.Duration) {
+	c.items[k] = Item[V]{Val: v, TTL: c.timeToLive(d)}
 }
 
 func (c *cache[K, V]) get(k K) (V, bool) {
@@ -180,13 +191,10 @@ func (c *cache[K, V]) Set(k K, v V) {
 }
 
 // Set an item to the cache, replacing any existing item.
-// If the duration is 0, the cache's default expiration time is used.
-// If it < 0, the item never expires.
+// If d <= 0, the item never expires.
 func (c *cache[K, V]) SetWithTTL(k K, v V, d time.Duration) {
-	t := c.timeToLive(d)
-
 	c.mu.Lock()
-	c.set(k, v, t)
+	c.set(k, v, d)
 	c.mu.Unlock()
 }
 
@@ -202,8 +210,7 @@ func (c *cache[K, V]) AddWithTTL(k K, v V, d time.Duration) bool {
 	c.mu.Lock()
 	_, ok := c.get(k)
 	if !ok {
-		t := c.timeToLive(d)
-		c.set(k, v, t)
+		c.set(k, v, d)
 	}
 
 	c.mu.Unlock()
@@ -222,8 +229,7 @@ func (c *cache[K, V]) ReplaceWithTTL(k K, v V, d time.Duration) bool {
 	c.mu.Lock()
 	_, ok := c.get(k)
 	if ok {
-		t := c.timeToLive(d)
-		c.set(k, v, t)
+		c.set(k, v, d)
 	}
 
 	c.mu.Unlock()
@@ -276,7 +282,7 @@ func (c *cache[K, V]) GetWithTTL(k K) (V, time.Time, bool) {
 
 	// Return the item and the expiration time
 	c.mu.RUnlock()
-	return item.Val, time.Unix(item.TTL, 0), true
+	return item.Val, time.UnixMilli(item.TTL), true
 }
 
 // Remove an item from the cache. Does nothing if the key is not in the cache.
@@ -349,7 +355,7 @@ func (c *cache[K, V]) Increment(k K, n V) V {
 
 	item, found := c.items[k]
 	if !found || item.Expired() {
-		c.set(k, n, c.timeToLive(c.ttl))
+		c.set(k, n, c.ttl)
 		return n
 	}
 

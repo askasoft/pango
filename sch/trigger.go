@@ -29,7 +29,7 @@ func (dt *DelayedTrigger) NextExecutionTime(task *Task) time.Time {
 }
 
 type RepeatTrigger struct {
-	Duratiuon    time.Duration
+	Duration     time.Duration
 	InitialDelay time.Duration
 	FixedRate    bool
 }
@@ -40,19 +40,17 @@ func (rt *RepeatTrigger) NextExecutionTime(task *Task) time.Time {
 	}
 
 	if rt.FixedRate {
+		now := time.Now()
+		next := task.ScheduledTime
 		for {
-			st := task.ScheduledTime.Add(rt.Duratiuon)
-			if st.After(task.CompletionTime) {
-				return st
+			next = next.Add(rt.Duration)
+			if next.After(now) {
+				return next
 			}
 		}
 	}
 
-	date := task.CompletionTime
-	if date.IsZero() {
-		date = time.Now()
-	}
-	return date.Add(rt.Duratiuon)
+	return time.Now().Add(rt.Duration)
 }
 
 type CronTrigger struct {
@@ -64,19 +62,7 @@ func (ct *CronTrigger) Cron() string {
 }
 
 func (ct *CronTrigger) NextExecutionTime(task *Task) time.Time {
-	date := task.CompletionTime
-	if date.IsZero() {
-		date = time.Now()
-	} else {
-		if !task.ScheduledTime.IsZero() && date.Before(task.ScheduledTime) {
-			// Previous task apparently executed too early...
-			// Let's simply use the last calculated execution time then,
-			// in order to prevent accidental re-fires in the same second.
-			date = task.ScheduledTime
-		}
-	}
-
-	return ct.cron.Next(date)
+	return ct.cron.Next(time.Now())
 }
 
 func NewCronTrigger(expr string, location ...*time.Location) (*CronTrigger, error) {

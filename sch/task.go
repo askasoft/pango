@@ -1,9 +1,11 @@
 package sch
 
 import (
+	"sync"
 	"sync/atomic"
 	"time"
 
+	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/ref"
 )
@@ -18,8 +20,18 @@ type Task struct {
 	CompletionTime time.Time
 	Error          any
 
+	mutex sync.Mutex
 	timer *time.Timer
 	count int32
+}
+
+func NewTask(name string, trigger Trigger, callback func(), logger ...log.Logger) *Task {
+	return &Task{
+		Name:     name,
+		Trigger:  trigger,
+		Callback: callback,
+		Logger:   asg.First(logger),
+	}
 }
 
 func (t *Task) callback() {
@@ -55,46 +67,51 @@ func (t *Task) run() {
 	t.callback()
 	t.CompletionTime = time.Now()
 
-	st := t.Trigger.NextExecutionTime(t)
-	if !st.IsZero() {
-		t.ScheduledTime = st
-		t.schedule()
-	}
+	t.start(false)
 
 	atomic.AddInt32(&t.count, -1)
 }
 
-func (t *Task) schedule() {
-	timer := t.timer
-	if timer != nil && !t.ScheduledTime.IsZero() {
-		if log := t.Logger; log != nil {
-			log.Infof("Schedule task %q %s() at %s", t.Name, ref.NameOfFunc(t.Callback), t.ScheduledTime.Format(time.RFC3339))
-		}
-
-		d := time.Until(t.ScheduledTime)
-		timer.Reset(d)
-	}
+func (t *Task) Start() {
+	t.start(true)
 }
 
-func (t *Task) Start() {
-	t.ScheduledTime = t.Trigger.NextExecutionTime(t)
+func (t *Task) start(force bool) {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
 
-	if t.timer == nil {
-		// create a fake timer to get timer instance
-		t.timer = time.AfterFunc(time.Hour, t.run)
+	if !force && t.timer == nil {
+		return
 	}
 
-	// reset timer
-	t.schedule()
+	t.ScheduledTime = t.Trigger.NextExecutionTime(t)
+	if t.ScheduledTime.IsZero() {
+		t.timer = nil
+		return
+	}
+
+	if log := t.Logger; log != nil {
+		log.Infof("Schedule task %q %s() at %s", t.Name, ref.NameOfFunc(t.Callback), t.ScheduledTime.Format(time.RFC3339))
+	}
+
+	if t.timer == nil {
+		t.timer = time.AfterFunc(time.Until(t.ScheduledTime), t.run)
+	} else {
+		t.timer.Reset(time.Until(t.ScheduledTime))
+	}
 }
 
 func (t *Task) Stop() bool {
-	timer := t.timer
-	if timer != nil {
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
+
+	if timer := t.timer; timer != nil {
 		if log := t.Logger; log != nil {
 			log.Infof("Stop task %q %s() at %s", t.Name, ref.NameOfFunc(t.Callback), t.ScheduledTime.Format(time.RFC3339))
 		}
+
 		t.timer = nil
+		t.ScheduledTime = time.Time{}
 		return timer.Stop()
 	}
 	return false

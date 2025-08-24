@@ -20,7 +20,7 @@ func (s *Scheduler) GetTask(name string) (*Task, bool) {
 	return s.tasks.Get(name)
 }
 
-// AddTask add a task
+// AddTask add or replace a task with same name
 func (s *Scheduler) AddTask(task *Task) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -31,14 +31,21 @@ func (s *Scheduler) AddTask(task *Task) {
 	s.tasks.Set(task.Name, task)
 }
 
+// RemoveTask remove a task by name
+// Returns the removed task and whether it was found.
+func (s *Scheduler) RemoveTask(name string) (*Task, bool) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	if s.tasks != nil {
+		return s.tasks.Remove(name)
+	}
+	return nil, false
+}
+
 // Schedule schedule a task and start it
 func (s *Scheduler) Schedule(name string, trigger Trigger, callback func()) {
-	task := &Task{
-		Name:     name,
-		Logger:   s.Logger,
-		Trigger:  trigger,
-		Callback: callback,
-	}
+	task := NewTask(name, trigger, callback, s.Logger)
 
 	task.Start()
 

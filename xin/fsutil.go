@@ -25,11 +25,6 @@ func FS(fsys fs.FS, browsable ...bool) http.FileSystem {
 	return httpx.FS(fsys, browsable...)
 }
 
-// FixedModTimeFS returns a FileSystem with fixed ModTime
-func FixedModTimeFS(hfs http.FileSystem, mt time.Time) http.FileSystem {
-	return httpx.FixedModTimeFS(hfs, mt)
-}
-
 func ServeFileHandler(filePath string) HandlerFunc {
 	return func(c *Context) {
 		http.ServeFile(c.Writer, c.Request, filePath)

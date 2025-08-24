@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"syscall"
+	"time"
 
 	"github.com/askasoft/pango/str"
 )
@@ -275,4 +276,51 @@ func WriteReader(filename string, src io.Reader, perm FileMode) error {
 // (before umask); otherwise WriteString truncates it before writing, without changing permissions.
 func WriteString(filename string, data string, perm FileMode) error {
 	return os.WriteFile(filename, str.UnsafeBytes(data), perm)
+}
+
+//----------------------------------------------------------------
+
+// FixedModTimeFS returns a fs.FS with fixed ModTime if the original
+// file's ModTime is zero.
+func FixedModTimeFS(fs fs.FS, mt time.Time) fs.FS {
+	return staticFS{fs, mt}
+}
+
+// staticFS a FileSystem with fixed ModTime
+type staticFS struct {
+	fs.FS
+	FixedModTime time.Time
+}
+
+// Open implements fs.FS.Open()
+func (sfs staticFS) Open(name string) (fs.File, error) {
+	file, err := sfs.FS.Open(name)
+	return staticFile{File: file, modTime: sfs.FixedModTime}, err
+}
+
+// staticFile a File with fixed ModTime
+type staticFile struct {
+	fs.File
+	modTime time.Time
+}
+
+// Stat implements fs.File.Stat()
+func (sf staticFile) Stat() (fs.FileInfo, error) {
+	fi, err := sf.File.Stat()
+	return staticFileInfo{FileInfo: fi, modTime: sf.modTime}, err
+}
+
+// staticFileInfo a FileInfo with fixed ModTime
+type staticFileInfo struct {
+	fs.FileInfo
+	modTime time.Time
+}
+
+// ModTime implements FileInfo.ModTime()
+func (sfi staticFileInfo) ModTime() time.Time {
+	mt := sfi.FileInfo.ModTime()
+	if mt.IsZero() {
+		return sfi.modTime
+	}
+	return mt
 }

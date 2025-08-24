@@ -58,6 +58,10 @@ func (tbs *TextBundles) Load(root string) error {
 // LoadFS glob and parse template files from FS
 func (tbs *TextBundles) LoadFS(fsys fs.FS, root string) error {
 	return fs.WalkDir(fsys, root, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
 		if d.IsDir() {
 			return nil
 		}

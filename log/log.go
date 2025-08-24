@@ -137,14 +137,18 @@ func IsFatalEnabled() bool {
 	return _log.IsFatalEnabled()
 }
 
-// Fatal log a message at fatal level.
-func Fatal(v ...any) {
+// Fatal print a message at fatal level, close the logs and call [os.Exit](code).
+func Fatal(code int, v ...any) {
 	_log._log(LevelFatal, v...)
+	_log.Close()
+	os.Exit(code)
 }
 
-// Fatalf format and log a message at fatal level.
-func Fatalf(f string, v ...any) {
+// Fatalf format and print a message at fatal level, close the logs and call [os.Exit](code).
+func Fatalf(code int, f string, v ...any) {
 	_log._logf(LevelFatal, f, v...)
+	_log.Close()
+	os.Exit(code)
 }
 
 // IsErrorEnabled is ERROR level enabled
@@ -152,12 +156,12 @@ func IsErrorEnabled() bool {
 	return _log.IsErrorEnabled()
 }
 
-// Error log a message at error level.
+// Error print a message at error level.
 func Error(v ...any) {
 	_log._log(LevelError, v...)
 }
 
-// Errorf format and log a message at error level.
+// Errorf format and print a message at error level.
 func Errorf(f string, v ...any) {
 	_log._logf(LevelError, f, v...)
 }
@@ -167,12 +171,12 @@ func IsWarnEnabled() bool {
 	return _log.IsWarnEnabled()
 }
 
-// Warn log a message at warning level.
+// Warn print a message at warning level.
 func Warn(v ...any) {
 	_log._log(LevelWarn, v...)
 }
 
-// Warnf format and log a message at warning level.
+// Warnf format and print a message at warning level.
 func Warnf(f string, v ...any) {
 	_log._logf(LevelWarn, f, v...)
 }
@@ -182,12 +186,12 @@ func IsInfoEnabled() bool {
 	return _log.IsInfoEnabled()
 }
 
-// Info log a message at info level.
+// Info print a message at info level.
 func Info(v ...any) {
 	_log._log(LevelInfo, v...)
 }
 
-// Infof format and log a message at info level.
+// Infof format and print a message at info level.
 func Infof(f string, v ...any) {
 	_log._logf(LevelInfo, f, v...)
 }
@@ -197,12 +201,12 @@ func IsDebugEnabled() bool {
 	return _log.IsDebugEnabled()
 }
 
-// Debug log a message at debug level.
+// Debug print a message at debug level.
 func Debug(v ...any) {
 	_log._log(LevelDebug, v...)
 }
 
-// Debugf format log a message at debug level.
+// Debugf format and print a message at debug level.
 func Debugf(f string, v ...any) {
 	_log._logf(LevelDebug, f, v...)
 }
@@ -212,12 +216,12 @@ func IsTraceEnabled() bool {
 	return _log.IsTraceEnabled()
 }
 
-// Trace log a message at trace level.
+// Trace print a message at trace level.
 func Trace(v ...any) {
 	_log._log(LevelTrace, v...)
 }
 
-// Tracef format and log a message at trace level.
+// Tracef format and print a message at trace level.
 func Tracef(f string, v ...any) {
 	_log._logf(LevelTrace, f, v...)
 }

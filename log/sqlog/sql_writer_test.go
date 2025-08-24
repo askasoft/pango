@@ -89,7 +89,6 @@ func TestSQLWriter(t *testing.T) {
 	lg.Info("This is a SQLWriter info log")
 	lg.Warn("This is a SQLWriter warn log")
 	lg.Error("This is a SQLWriter error log")
-	lg.Fatal("This is a SQLWriter fatal log")
 
 	lg.Close()
 }
@@ -136,7 +135,6 @@ func TestWebhookBatchWriter(t *testing.T) {
 	lg.Info("This is a SQLWriter(batch) info log3, should flush by FlushDelta")
 
 	lg.Error("This is a SQLWriter(batch) error log")
-	lg.Fatal("This is a SQLWriter(batch) fatal log")
 
 	lg.Close()
 }

@@ -14,6 +14,6 @@ func (bw *BridgeWriter) Flush() {
 func (bw *BridgeWriter) Close() {
 }
 
-func NewBridgeWriter(logger Logger) Writer {
+func NewBridgeWriter(logger Logger) *BridgeWriter {
 	return &BridgeWriter{logger}
 }

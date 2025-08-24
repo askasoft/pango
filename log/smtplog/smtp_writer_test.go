@@ -73,5 +73,5 @@ func TestSmtpWriter(t *testing.T) {
 		)
 	}
 
-	lg.Fatal("smtp log fatal test!")
+	lg.Error("smtp log error test!")
 }

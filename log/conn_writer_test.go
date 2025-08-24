@@ -84,8 +84,7 @@ func TestConnWriter(t *testing.T) {
 		"Hello Debug",
 		"Hello Info - Close!",
 		"Hello Warn",
-		"Hello Error",
-		"Hello Fatal - Close!",
+		"Hello Error - Close!",
 	}
 
 	i := 0
@@ -104,8 +103,6 @@ func TestConnWriter(t *testing.T) {
 	lg.Warn(ss[i])
 	i++
 	lg.Error(ss[i])
-	i++
-	lg.Fatal(ss[i])
 	time.Sleep(time.Millisecond * 500)
 
 	sigChan <- "done"

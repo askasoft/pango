@@ -4,6 +4,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/askasoft/pango/gog"
 	"github.com/askasoft/pango/iox"
 )
 
@@ -12,27 +13,29 @@ type StreamWriter struct {
 	FilterSupport
 	FormatSupport
 
-	Color  bool      //this filed is useful only when system's terminal supports color
-	Output io.Writer // log output
+	Color  bool      // this field is useful only when system's terminal supports color.
+	Output io.Writer // output writer. if nil, use os.Stdout as default or os.Stderr at Error level.
 }
 
-// Write write message in console.
+// Write write message to output writer.
+// If Output is nil, use os.Stdout as default or os.Stderr at Error level.
 func (sw *StreamWriter) Write(le *Event) {
 	if sw.Reject(le) {
 		return
 	}
 
-	if sw.Output == nil {
-		sw.Output = os.Stdout
+	out := sw.Output
+	if out == nil {
+		out = gog.If(le.Level > LevelError, os.Stdout, os.Stderr)
 	}
 
 	bs := sw.Format(le)
 	if sw.Color {
-		_, _ = sw.Output.Write(colors[le.Level])
-		_, _ = sw.Output.Write(bs)
-		_, _ = sw.Output.Write(colors[0])
+		_, _ = out.Write(colors[le.Level])
+		_, _ = out.Write(bs)
+		_, _ = out.Write(colors[0])
 	} else {
-		_, _ = sw.Output.Write(bs)
+		_, _ = out.Write(bs)
 	}
 }
 
@@ -55,22 +58,28 @@ var colors = [][]byte{
 }
 
 // NewConsoleWriter create a color console log writer
-func NewConsoleWriter() Writer {
-	return &StreamWriter{Output: os.Stdout, Color: true}
+func NewConsoleWriter() *StreamWriter {
+	return &StreamWriter{Color: true}
 }
 
 // NewStdoutWriter create a stdout log writer
-func NewStdoutWriter() Writer {
+func NewStdoutWriter() *StreamWriter {
 	return &StreamWriter{Output: os.Stdout}
 }
 
 // NewStderrWriter create a stderr writer
-func NewStderrWriter() Writer {
+func NewStderrWriter() *StreamWriter {
 	return &StreamWriter{Output: os.Stderr}
 }
 
 func init() {
-	RegisterWriter("console", NewConsoleWriter)
-	RegisterWriter("stdout", NewStdoutWriter)
-	RegisterWriter("stderr", NewStderrWriter)
+	RegisterWriter("console", func() Writer {
+		return NewConsoleWriter()
+	})
+	RegisterWriter("stdout", func() Writer {
+		return NewStdoutWriter()
+	})
+	RegisterWriter("stderr", func() Writer {
+		return NewStderrWriter()
+	})
 }

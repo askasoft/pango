@@ -2,6 +2,7 @@ package log
 
 import (
 	"fmt"
+	"os"
 	"runtime"
 	"sync"
 
@@ -204,12 +205,12 @@ func (log *Log) IsLevelEnabled(lvl Level) bool {
 	return log.level >= lvl
 }
 
-// Log log a message at specified level.
+// Log print a message at specified level.
 func (log *Log) Log(lvl Level, v ...any) {
 	log._log(lvl, v...)
 }
 
-// Logf format and log a message at specified level.
+// Logf format and print a message at specified level.
 func (log *Log) Logf(lvl Level, f string, v ...any) {
 	log._logf(lvl, f, v...)
 }
@@ -219,14 +220,18 @@ func (log *Log) IsFatalEnabled() bool {
 	return log.IsLevelEnabled(LevelFatal)
 }
 
-// Fatal log a message at fatal level.
-func (log *Log) Fatal(v ...any) {
+// Fatal print a message at fatal level, close the logs and call [os.Exit](code).
+func (log *Log) Fatal(code int, v ...any) {
 	log._log(LevelFatal, v...)
+	log.Close()
+	os.Exit(code)
 }
 
-// Fatalf format and log a message at fatal level.
-func (log *Log) Fatalf(f string, v ...any) {
+// Fatalf format and print a message at fatal level, close the logs and call [os.Exit](code).
+func (log *Log) Fatalf(code int, f string, v ...any) {
 	log._logf(LevelFatal, f, v...)
+	log.Close()
+	os.Exit(code)
 }
 
 // IsErrorEnabled is ERROR level enabled
@@ -234,12 +239,12 @@ func (log *Log) IsErrorEnabled() bool {
 	return log.IsLevelEnabled(LevelError)
 }
 
-// Error log a message at error level.
+// Error print a message at error level.
 func (log *Log) Error(v ...any) {
 	log._log(LevelError, v...)
 }
 
-// Errorf format and log a message at error level.
+// Errorf format and print a message at error level.
 func (log *Log) Errorf(f string, v ...any) {
 	log._logf(LevelError, f, v...)
 }
@@ -249,12 +254,12 @@ func (log *Log) IsWarnEnabled() bool {
 	return log.IsLevelEnabled(LevelWarn)
 }
 
-// Warn log a message at warning level.
+// Warn print a message at warning level.
 func (log *Log) Warn(v ...any) {
 	log._log(LevelWarn, v...)
 }
 
-// Warnf format and log a message at warning level.
+// Warnf format and print a message at warning level.
 func (log *Log) Warnf(f string, v ...any) {
 	log._logf(LevelWarn, f, v...)
 }
@@ -264,12 +269,12 @@ func (log *Log) IsInfoEnabled() bool {
 	return log.IsLevelEnabled(LevelInfo)
 }
 
-// Info log a message at info level.
+// Info print a message at info level.
 func (log *Log) Info(v ...any) {
 	log._log(LevelInfo, v...)
 }
 
-// Infof format and log a message at info level.
+// Infof format and print a message at info level.
 func (log *Log) Infof(f string, v ...any) {
 	log._logf(LevelInfo, f, v...)
 }
@@ -279,12 +284,12 @@ func (log *Log) IsDebugEnabled() bool {
 	return log.IsLevelEnabled(LevelDebug)
 }
 
-// Debug log a message at debug level.
+// Debug print a message at debug level.
 func (log *Log) Debug(v ...any) {
 	log._log(LevelDebug, v...)
 }
 
-// Debugf format log a message at debug level.
+// Debugf format and print a message at debug level.
 func (log *Log) Debugf(f string, v ...any) {
 	log._logf(LevelDebug, f, v...)
 }
@@ -294,12 +299,12 @@ func (log *Log) IsTraceEnabled() bool {
 	return log.IsLevelEnabled(LevelTrace)
 }
 
-// Trace log a message at trace level.
+// Trace print a message at trace level.
 func (log *Log) Trace(v ...any) {
 	log._log(LevelTrace, v...)
 }
 
-// Tracef format and log a message at trace level.
+// Tracef format and print a message at trace level.
 func (log *Log) Tracef(f string, v ...any) {
 	log._logf(LevelTrace, f, v...)
 }

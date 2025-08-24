@@ -79,7 +79,6 @@ func TestOpenSearchWriter(t *testing.T) {
 	lg.Info("This is a HTTPWriter info log")
 	lg.Warn("This is a HTTPWriter warn log")
 	lg.Error("This is a HTTPWriter error log")
-	lg.Fatal("This is a HTTPWriter fatal log")
 
 	lg.Close()
 }
@@ -133,7 +132,6 @@ func TestOpenSearchBatchWriter(t *testing.T) {
 	lg.Info("This is a HTTPWriter(batch) info log3, should flush by FlushDelta")
 
 	lg.Error("This is a HTTPWriter(batch) error log")
-	lg.Fatal("This is a HTTPWriter(batch) fatal log")
 
 	lg.Close()
 }
@@ -170,7 +168,6 @@ func TestTeamsWriter(t *testing.T) {
 	lg.Info("This is a HTTPWriter info log")
 	lg.Warn("This is a HTTPWriter warn log")
 	lg.Error("This is a HTTPWriter error log")
-	lg.Fatal("This is a HTTPWriter fatal log")
 
 	lg.Close()
 }

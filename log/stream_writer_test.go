@@ -5,15 +5,13 @@ import (
 )
 
 func testConsoleCalls(log Logger, loop int) {
-	for i := 0; i < loop; i++ {
-		log.Fatal("fatal<", i, ">")
+	for i := range loop {
 		log.Error("error<", i, ">")
 		log.Warn("warn <", i, ">")
 		log.Info("info <", i, ">")
 		log.Debug("debug<", i, ">")
 		log.Trace("trace<", i, ">")
 
-		log.Fatalf("fatal(%d)", i)
 		log.Errorf("error(%d)", i)
 		log.Warnf("warn (%d)", i)
 		log.Infof("info (%d)", i)

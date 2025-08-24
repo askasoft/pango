@@ -6,6 +6,8 @@ import (
 	"net/url"
 	"os"
 	"strings"
+
+	"github.com/askasoft/pango/bol"
 )
 
 // AppendPrefix returns a handler that serves HTTP requests by appending the
@@ -67,7 +69,8 @@ func FileServer(prefix string, hfs http.FileSystem, filePath string) http.Handle
 // a filesystem that prevents http.FileServer() to list the directory files.
 func Dir(root string, browsable ...bool) http.FileSystem {
 	fs := http.Dir(root)
-	if len(browsable) > 0 && browsable[0] {
+
+	if bol.NonFalse(browsable...) {
 		return fs
 	}
 	return onlyFilesFS{fs}
@@ -78,7 +81,8 @@ func Dir(root string, browsable ...bool) http.FileSystem {
 // a filesystem that prevents http.FileServer() to list the directory files.
 func FS(fsys fs.FS, browsable ...bool) http.FileSystem {
 	fs := http.FS(fsys)
-	if len(browsable) > 0 && browsable[0] {
+
+	if bol.NonFalse(browsable...) {
 		return fs
 	}
 	return onlyFilesFS{fs}

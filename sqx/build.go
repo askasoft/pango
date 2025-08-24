@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/askasoft/pango/asg"
+	"github.com/askasoft/pango/bol"
 	"github.com/askasoft/pango/num"
 	"github.com/askasoft/pango/ref"
 	"github.com/askasoft/pango/str"
@@ -278,7 +279,7 @@ func (b *Builder) Order(col string, desc ...bool) *Builder {
 	order := b.Quote(col)
 
 	if len(desc) > 0 {
-		order += str.If(desc[0], " DESC", " ASC")
+		order += str.If(bol.NonFalse(desc...), " DESC", " ASC")
 	}
 
 	b.orders = append(b.orders, order)

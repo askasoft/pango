@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/askasoft/pango/bol"
 )
 
 // Used as a workaround since we can't compare functions or their addresses
@@ -35,10 +37,7 @@ func getSkippedNodes() *[]skippedNode {
 }
 
 func checkRequests(t *testing.T, tree *node, requests testRequests, unescapes ...bool) {
-	unescape := false
-	if len(unescapes) >= 1 {
-		unescape = unescapes[0]
-	}
+	unescape := bol.NonFalse(unescapes...)
 
 	for _, request := range requests {
 		value := tree.getValue(request.path, getParams(), getSkippedNodes(), unescape)

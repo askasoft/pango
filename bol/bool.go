@@ -4,7 +4,7 @@ import (
 	"strconv"
 )
 
-// NonFalse returns first non-first value of defs if error.
+// NonFalse returns first non-false value of bs.
 func NonFalse(bs ...bool) bool {
 	for _, b := range bs {
 		if b {
@@ -14,8 +14,8 @@ func NonFalse(bs ...bool) bool {
 	return false
 }
 
-// Atob use strconv.ParseBool(s, 0, strconv.IntSize) to parse string 's' to int,
-// returns first non-first value of defs if error.
+// Atob use strconv.ParseBool(s) to parse string 's' to int,
+// returns first non-false value of defs if error.
 func Atob(s string, defs ...bool) bool {
 	if s == "" {
 		return NonFalse(defs...)
@@ -27,6 +27,7 @@ func Atob(s string, defs ...bool) bool {
 	return NonFalse(defs...)
 }
 
+// Btoa use strconv.FormatBool(b) to convert a boolean value to its string representation.
 func Btoa(b bool) string {
 	return strconv.FormatBool(b)
 }

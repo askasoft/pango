@@ -12,6 +12,7 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/askasoft/pango/bol"
 	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/cog/linkedhashmap"
 	"github.com/askasoft/pango/iox"
@@ -267,14 +268,10 @@ func (ini *Ini) LoadData(r io.Reader, multiple ...bool) (err error) {
 		return err
 	}
 
-	multi := false
-	if len(multiple) > 0 {
-		multi = multiple[0]
-	}
-
+	multi := bol.NonFalse(multiple...)
+	section := ini.GetSection("") // last section
 	linenum := 0                  // current line number
 	linecon := 0                  // line continue counter
-	section := ini.GetSection("") // last section
 
 	var (
 		buf      []byte       // line bytes

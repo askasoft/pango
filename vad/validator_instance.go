@@ -7,6 +7,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/askasoft/pango/bol"
 )
 
 const (
@@ -167,11 +169,7 @@ func (v *Validate) RegisterValidation(tag string, fn Func, callValidationEvenIfN
 // - if the key already exists, the previous validation function will be replaced.
 // - this method is not thread-safe it is intended that these all be registered prior to any validation
 func (v *Validate) RegisterValidationEx(tag string, fn FuncEx, callValidationEvenIfNull ...bool) {
-	var nilCheckable bool
-	if len(callValidationEvenIfNull) > 0 {
-		nilCheckable = callValidationEvenIfNull[0]
-	}
-	v.registerValidation(tag, fn, false, nilCheckable)
+	v.registerValidation(tag, fn, false, bol.NonFalse(callValidationEvenIfNull...))
 }
 
 func (v *Validate) registerValidation(tag string, fn FuncEx, bakedIn bool, nilCheckable bool) {

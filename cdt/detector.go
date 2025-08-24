@@ -4,6 +4,8 @@ package cdt
 import (
 	"errors"
 	"sort"
+
+	"github.com/askasoft/pango/bol"
 )
 
 // Result contains all the information that charset detector gives.
@@ -82,7 +84,7 @@ func NewHtmlDetector() *Detector {
 
 // NewDetector creates a Detector for plain text or html.
 func NewDetector(html ...bool) (d *Detector) {
-	if len(html) > 0 && html[0] {
+	if bol.NonFalse(html...) {
 		d = NewHtmlDetector()
 	} else {
 		d = NewTextDetector()

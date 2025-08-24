@@ -82,6 +82,12 @@ func EqualFunc[A any, B any](a []A, b []B, eq func(A, B) bool) bool {
 	return true
 }
 
+// First get first element of a slice.
+func First[T any](a []T) (v T) {
+	v, _ = Get(a, 0)
+	return
+}
+
 // Get get element at the specified index i.
 func Get[T any](a []T, i int) (v T, ok bool) {
 	if i >= 0 && i < len(a) {

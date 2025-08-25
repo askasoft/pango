@@ -280,47 +280,57 @@ func WriteString(filename string, data string, perm FileMode) error {
 
 //----------------------------------------------------------------
 
-// FixedModTimeFS returns a fs.FS with fixed ModTime if the original
-// file's ModTime is zero.
+// FixedModTimeFS returns a fs.FS with fixed ModTime if the original file's ModTime is zero.
 func FixedModTimeFS(fs fs.FS, mt time.Time) fs.FS {
-	return staticFS{fs, mt}
+	return fmtFS{fs, mt}
 }
 
-// staticFS a FileSystem with fixed ModTime
-type staticFS struct {
+// fmtFS a FileSystem with fixed ModTime
+type fmtFS struct {
 	fs.FS
 	FixedModTime time.Time
 }
 
 // Open implements fs.FS.Open()
-func (sfs staticFS) Open(name string) (fs.File, error) {
-	file, err := sfs.FS.Open(name)
-	return staticFile{File: file, modTime: sfs.FixedModTime}, err
+func (ffs fmtFS) Open(name string) (fs.File, error) {
+	file, err := ffs.FS.Open(name)
+	return fmtFile{File: file, modTime: ffs.FixedModTime}, err
 }
 
-// staticFile a File with fixed ModTime
-type staticFile struct {
+// fmtFile a File with fixed ModTime
+type fmtFile struct {
 	fs.File
 	modTime time.Time
 }
 
 // Stat implements fs.File.Stat()
-func (sf staticFile) Stat() (fs.FileInfo, error) {
-	fi, err := sf.File.Stat()
-	return staticFileInfo{FileInfo: fi, modTime: sf.modTime}, err
+func (ff fmtFile) Stat() (fs.FileInfo, error) {
+	fi, err := ff.File.Stat()
+	return fmtFileInfo{FileInfo: fi, modTime: ff.modTime}, err
 }
 
-// staticFileInfo a FileInfo with fixed ModTime
-type staticFileInfo struct {
+var errMissingSeek = errors.New("fsu: missing Seek method")
+
+// Seek implements io.Seeker.Seek()
+func (ff fmtFile) Seek(offset int64, whence int) (int64, error) {
+	s, ok := ff.File.(io.Seeker)
+	if !ok {
+		return 0, errMissingSeek
+	}
+	return s.Seek(offset, whence)
+}
+
+// fmtFileInfo a FileInfo with fixed ModTime
+type fmtFileInfo struct {
 	fs.FileInfo
 	modTime time.Time
 }
 
 // ModTime implements FileInfo.ModTime()
-func (sfi staticFileInfo) ModTime() time.Time {
-	mt := sfi.FileInfo.ModTime()
+func (ffi fmtFileInfo) ModTime() time.Time {
+	mt := ffi.FileInfo.ModTime()
 	if mt.IsZero() {
-		return sfi.modTime
+		return ffi.modTime
 	}
 	return mt
 }

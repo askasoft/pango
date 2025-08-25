@@ -7,24 +7,24 @@ import (
 func TestPeriodicCron(t *testing.T) {
 	tests := []struct {
 		name string
-		p    Periodic
+		expr string
 		want string
 	}{
-		{"daily", Periodic{Unit: Daily, Day: 0, Hour: 10}, "0 10 * * *"},
-		{"weekly", Periodic{Unit: Weekly, Day: 3, Hour: 8}, "0 8 * * 3"},
-		{"monthly", Periodic{Unit: Monthly, Day: 15, Hour: 22}, "0 22 15 * *"},
-		{"monthly last day", Periodic{Unit: Monthly, Day: 32, Hour: 22}, "0 22 32 * *"},
-		{"invalid", Periodic{Unit: 'x', Day: 0, Hour: 0}, ""},
+		{"daily", "d 0 10", "0 10 * * *"},
+		{"weekly", "w 3 8", "0 8 * * 3"},
+		{"monthly", "m 15 22", "0 22 15 * *"},
+		{"monthly last day", "m 32 22", "0 22 32 * *"},
+		{"invalid", "x 0 0", "x 0 0"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cron := tt.p.Cron()
-			if cron != tt.want {
-				t.Fatalf("Cron() = %q, want %q", cron, tt.want)
+			p, err := ParsePeriodic(tt.expr)
+			if p.Cron() != tt.want {
+				t.Fatalf("Cron() = %q, want %q", p.Cron(), tt.want)
 			}
-			if cron != "" {
-				if _, err := ParseCron(cron); err != nil {
+			if err == nil {
+				if _, err := ParseCron(p.Cron()); err != nil {
 					t.Fatalf("ParseCron() = %v, want nil", err)
 				}
 			}
@@ -33,7 +33,7 @@ func TestPeriodicCron(t *testing.T) {
 }
 
 func TestPeriodicString(t *testing.T) {
-	p := Periodic{Unit: Weekly, Day: 5, Hour: 14}
+	p := Periodic{"w 5 14"}
 	want := "w 5 14"
 	if got := p.String(); got != want {
 		t.Errorf("String() = %q, want %q", got, want)
@@ -44,28 +44,23 @@ func TestParsePeriodic(t *testing.T) {
 	tests := []struct {
 		name    string
 		expr    string
-		want    Periodic
 		wantErr bool
 	}{
 		{
 			name: "valid daily",
-			expr: "d 0 12",
-			want: Periodic{Unit: Daily, Day: 0, Hour: 12},
+			expr: "d 0 12,13",
 		},
 		{
 			name: "valid weekly",
-			expr: "w 3 8",
-			want: Periodic{Unit: Weekly, Day: 3, Hour: 8},
+			expr: "w 3,4 8-20",
 		},
 		{
 			name: "valid monthly",
-			expr: "m 15 23",
-			want: Periodic{Unit: Monthly, Day: 15, Hour: 23},
+			expr: "m 15-20 23,1-3",
 		},
 		{
 			name: "valid monthly last day",
 			expr: "m 32 23",
-			want: Periodic{Unit: Monthly, Day: 32, Hour: 23},
 		},
 		{
 			name:    "invalid field count",
@@ -98,10 +93,10 @@ func TestParsePeriodic(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := ParsePeriodic(tt.expr)
 			if (err != nil) != tt.wantErr {
-				t.Fatalf("ParsePeriodic() error = %v, wantErr %v", err, tt.wantErr)
+				t.Fatalf("ParsePeriodic(%q) = %v, wantErr %v", tt.expr, err, tt.wantErr)
 			}
-			if !tt.wantErr && got != tt.want {
-				t.Errorf("ParsePeriodic() = %+v, want %+v", got, tt.want)
+			if !tt.wantErr && got.expression != tt.expr {
+				t.Errorf("ParsePeriodic() = %q, want %q", got.expression, tt.expr)
 			}
 		})
 	}

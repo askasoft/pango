@@ -3,7 +3,6 @@ package sch
 import (
 	"fmt"
 
-	"github.com/askasoft/pango/num"
 	"github.com/askasoft/pango/str"
 )
 
@@ -19,10 +18,10 @@ const (
 // │ │ ┌───────────── hour (0 - 23)
 // │ │ │
 // * * *
+// Comma ( , ): used to separate items of a list. For example, "MON,WED,FRI".
+// Dash ( - ) : used to define ranges. For example, "1-10"
 type Periodic struct {
-	Unit rune // 'd': daily, 'w': weekly, 'm': monthly
-	Day  int  // 0 for daily, 1-7 for weekly, 1-32 for monthly (32 is last day of month)
-	Hour int  // 0-23
+	expression string // original expression
 }
 
 // ParsePeriodic parses a periodic expression.
@@ -33,24 +32,30 @@ func ParsePeriodic(expr string) (p Periodic, err error) {
 
 // Cron returns the cron expression for the periodic schedule.
 func (p *Periodic) Cron() string {
-	switch p.Unit {
-	case Daily:
-		return fmt.Sprintf("0 %d * * *", p.Hour)
-	case Weekly:
-		return fmt.Sprintf("0 %d * * %d", p.Hour, p.Day)
-	case Monthly:
-		return fmt.Sprintf("0 %d %d * *", p.Hour, p.Day)
-	default:
-		return ""
+	ss := str.Fields(str.ToLower(p.expression))
+
+	if len(ss) == 3 {
+		switch ss[0][0] {
+		case Daily:
+			return fmt.Sprintf("0 %s * * *", ss[2])
+		case Weekly:
+			return fmt.Sprintf("0 %s * * %s", ss[2], ss[1])
+		case Monthly:
+			return fmt.Sprintf("0 %s %s * *", ss[2], ss[1])
+		}
 	}
+
+	return p.expression
 }
 
 func (p *Periodic) String() string {
-	return fmt.Sprintf("%c %d %d", p.Unit, p.Day, p.Hour)
+	return p.expression
 }
 
 // Parse parses a periodic expression.
 func (p *Periodic) Parse(expr string) (err error) {
+	p.expression = expr
+
 	ss := str.Fields(str.ToLower(expr))
 
 	if len(ss) != 3 {
@@ -58,27 +63,36 @@ func (p *Periodic) Parse(expr string) (err error) {
 		return
 	}
 
-	p.Unit = rune(ss[0][0])
-	p.Day = num.Atoi(ss[1])
-	p.Hour = num.Atoi(ss[2])
+	unit := ss[0][0]
+	days := ss[1]
 
-	if p.Hour < 0 || p.Hour > 23 {
-		err = fmt.Errorf("periodic: invalid hour %d (must be 0-23)", p.Hour)
-		return
-	}
-
-	switch p.Unit {
+	switch unit {
 	case Daily:
 	case Weekly:
-		if p.Day < 1 || p.Day > 7 {
-			err = fmt.Errorf("periodic: invalid day %d (must be 1-7, MON to SUN)", p.Day)
-		}
+		err = p.checkDays("weekdays", days, 1, 7)
 	case Monthly:
-		if p.Day < 1 || p.Day > 32 {
-			err = fmt.Errorf("periodic: invalid day %d (must be 1-32, 32 is last day of month)", p.Day)
-		}
+		err = p.checkDays("days", days, 1, 32)
 	default:
-		err = fmt.Errorf("periodic: invalid unit %c (must be one of %c, %c, %c)", p.Unit, Daily, Weekly, Monthly)
+		err = fmt.Errorf("periodic: invalid unit %c (must be one of %c, %c, %c) in expression %q", unit, Daily, Weekly, Monthly, expr)
 	}
+
+	if err == nil {
+		err = p.checkHours(ss[2])
+	}
+
 	return
+}
+
+func (p *Periodic) checkDays(name, value string, min, max int) error {
+	if _, err := getNumberHits(name, value, min, max); err != nil {
+		return fmt.Errorf("periodic: %w in expression %q", err, p.expression)
+	}
+	return nil
+}
+
+func (p *Periodic) checkHours(value string) error {
+	if _, err := getNumberHits("hours", value, 0, 23); err != nil {
+		return fmt.Errorf("periodic: %w in expression %q", err, p.expression)
+	}
+	return nil
 }

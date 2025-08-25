@@ -97,22 +97,22 @@ func (cron *Cron) Parse(expression string, location ...*time.Location) error {
 
 	i := 0
 	if len(fields) == 6 {
-		if err := cron.setNumberHits(&cron.seconds, fields[i], 0, 59); err != nil {
+		if err := cron.setNumberHits(&cron.seconds, "seconds", fields[i], 0, 59); err != nil {
 			return err
 		}
 		i++
 	} else {
-		if err := cron.setNumberHits(&cron.seconds, "0", 0, 59); err != nil {
+		if err := cron.setNumberHits(&cron.seconds, "seconds", "0", 0, 59); err != nil {
 			return err
 		}
 	}
 
-	if err := cron.setNumberHits(&cron.minutes, fields[i], 0, 59); err != nil {
+	if err := cron.setNumberHits(&cron.minutes, "minutes", fields[i], 0, 59); err != nil {
 		return err
 	}
 	i++
 
-	if err := cron.setNumberHits(&cron.hours, fields[i], 0, 23); err != nil {
+	if err := cron.setNumberHits(&cron.hours, "hours", fields[i], 0, 23); err != nil {
 		return err
 	}
 	i++
@@ -127,7 +127,7 @@ func (cron *Cron) Parse(expression string, location ...*time.Location) error {
 	}
 	i++
 
-	if err := cron.setDays(&cron.daysOfWeek, cron.replaceOrdinals(fields[i], weekdayAbbrs), 7); err != nil {
+	if err := cron.setDays(&cron.daysOfWeek, "weekdays", cron.replaceOrdinals(fields[i], weekdayAbbrs), 7); err != nil {
 		return err
 	}
 
@@ -143,7 +143,7 @@ func (cron *Cron) Parse(expression string, location ...*time.Location) error {
 func (cron *Cron) setDaysOfMonth(bits *uint64, field string) error {
 	// Days of month start with 1 (in Cron and Golang)
 	// Allow 32 as "last day of month"
-	if err := cron.setDays(bits, field, 32); err != nil {
+	if err := cron.setDays(bits, "days", field, 32); err != nil {
 		return err
 	}
 
@@ -152,18 +152,18 @@ func (cron *Cron) setDaysOfMonth(bits *uint64, field string) error {
 	return nil
 }
 
-func (cron *Cron) setDays(bits *uint64, field string, max int) error {
+func (cron *Cron) setDays(bits *uint64, name, field string, max int) error {
 	if str.ContainsByte(field, '?') {
 		field = "*"
 	}
-	return cron.setNumberHits(bits, field, 0, max)
+	return cron.setNumberHits(bits, name, field, 0, max)
 }
 
 func (cron *Cron) setMonths(bits *uint64, value string) error {
 	value = cron.replaceOrdinals(value, monthAbbrs)
 
 	// Months start with 1 in Cron and golang
-	if err := cron.setNumberHits(bits, value, 1, 12); err != nil {
+	if err := cron.setNumberHits(bits, "month", value, 1, 12); err != nil {
 		return err
 	}
 
@@ -176,20 +176,28 @@ func (cron *Cron) replaceOrdinals(value string, replacer *strings.Replacer) stri
 	return replacer.Replace(str.ToUpper(value))
 }
 
-func (cron *Cron) setNumberHits(bits *uint64, value string, min, max int) error {
-	*bits = 0
+func (cron *Cron) setNumberHits(bits *uint64, name, value string, min, max int) (err error) {
+	*bits, err = getNumberHits(name, value, min, max)
+	if err != nil {
+		err = fmt.Errorf("cron: %w in expression %q", err, cron.expression)
+	}
+	return
+}
+
+func getNumberHits(name, value string, min, max int) (uint64, error) {
+	var bits uint64
 
 	fields := str.FieldsRune(value, ',')
 	for _, field := range fields {
 		if str.ContainsByte(field, '/') {
 			parts := str.FieldsRune(field, '/')
 			if len(parts) != 2 {
-				return fmt.Errorf("cron: invalid format of field %q in expression %q", field, cron.expression)
+				return 0, fmt.Errorf("invalid format of %s field %q", name, field)
 			}
 
-			start, end, err := cron.getRange(parts[0], min, max)
+			start, end, err := getRange(name, parts[0], min, max)
 			if err != nil {
-				return err
+				return 0, err
 			}
 
 			if !str.ContainsByte(parts[0], '-') {
@@ -198,26 +206,26 @@ func (cron *Cron) setNumberHits(bits *uint64, value string, min, max int) error 
 
 			delta, err := strconv.Atoi(parts[1])
 			if err != nil {
-				return fmt.Errorf("cron: invalid number of field %q in expression %q", field, cron.expression)
+				return 0, fmt.Errorf("invalid number of %s field %q", name, field)
 			}
 			for i := start; i <= end; i += delta {
-				*bits |= uint64(1) << i
+				bits |= uint64(1) << i
 			}
 		} else {
 			// Not an incrementer so it must be a range (possibly empty)
-			start, end, err := cron.getRange(field, min, max)
+			start, end, err := getRange(name, field, min, max)
 			if err != nil {
-				return err
+				return 0, err
 			}
 
 			mask := ((uint64(1) << (end - start + 1)) - 1) << start
-			*bits |= mask
+			bits |= mask
 		}
 	}
-	return nil
+	return bits, nil
 }
 
-func (cron *Cron) getRange(field string, min, max int) (start, end int, err error) {
+func getRange(name, field string, min, max int) (start, end int, err error) {
 	if str.ContainsByte(field, '*') {
 		start = min
 		end = max
@@ -227,25 +235,25 @@ func (cron *Cron) getRange(field string, min, max int) (start, end int, err erro
 	if str.ContainsByte(field, '-') {
 		parts := str.FieldsRune(field, '-')
 		if len(parts) > 2 {
-			err = fmt.Errorf("cron: invalid range format of field %q in expression %q", field, cron.expression)
+			err = fmt.Errorf("invalid range format of %s field %q", name, field)
 			return
 		}
 
 		start, err = strconv.Atoi(parts[0])
 		if err != nil {
-			err = fmt.Errorf("cron: invalid range number of field %q in expression %q", field, cron.expression)
+			err = fmt.Errorf("invalid range number of %s field %q", name, field)
 			return
 		}
 
 		end, err = strconv.Atoi(parts[1])
 		if err != nil {
-			err = fmt.Errorf("cron: invalid range number of field %q in expression %q", field, cron.expression)
+			err = fmt.Errorf("invalid range number of %s field %q", name, field)
 			return
 		}
 	} else {
 		start, err = strconv.Atoi(field)
 		if err != nil {
-			err = fmt.Errorf("cron: invalid range number of field %q in expression %q", field, cron.expression)
+			err = fmt.Errorf("invalid range number of %s field %q", name, field)
 			return
 		}
 		end = start
@@ -256,12 +264,12 @@ func (cron *Cron) getRange(field string, min, max int) (start, end int, err erro
 	}
 
 	if start > max || end > max {
-		err = fmt.Errorf("cron: exceeded maximum range (%d) of field %q in expression %q", max, field, cron.expression)
+		err = fmt.Errorf("exceeded maximum range (%d) of %s field %q", max, name, field)
 		return
 	}
 
 	if start < min || end < min {
-		err = fmt.Errorf("cron: exceeded minimum range (%d) of field %q in expression %q", min, field, cron.expression)
+		err = fmt.Errorf("exceeded minimum range (%d) of %s field %q", min, name, field)
 		return
 	}
 

@@ -278,6 +278,16 @@ func WriteString(filename string, data string, perm FileMode) error {
 	return os.WriteFile(filename, str.UnsafeBytes(data), perm)
 }
 
+// MustSubFS call fs.Sub() to return a subdirectory of the given file system.
+// panic if error.
+func MustSubFS(fsys fs.FS, dir string) fs.FS {
+	sub, err := fs.Sub(fsys, dir)
+	if err != nil {
+		panic(err)
+	}
+	return sub
+}
+
 //----------------------------------------------------------------
 
 // FixedModTimeFS returns a fs.FS with fixed ModTime if the original file's ModTime is zero.

@@ -27,6 +27,11 @@ func Stop() error {
 	return _fsw.Stop()
 }
 
+// Close stop file watching go-routine and removes all watches
+func Close() error {
+	return _fsw.Close()
+}
+
 // Add add a file to watch on specified operation op occurred
 func Add(path string, op Op, callback func(string, Op)) error {
 	return _fsw.Add(path, op, callback)

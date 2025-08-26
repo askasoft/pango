@@ -78,9 +78,9 @@ func assertTestFiles(t *testing.T, testdir string, files map[string]int) {
 
 func testCreateWatcher() (*FileWatcher, *log.Log) {
 	lg := log.NewLog()
-	sw := &log.StreamWriter{Color: true}
-	aw := log.NewAsyncWriter(sw, 100)
-	log.SetWriter(aw)
+	cw := log.NewConsoleWriter()
+	aw := log.NewAsyncWriter(cw, 100)
+	lg.SetWriter(aw)
 
 	fw := NewFileWatcher()
 	fw.Logger = lg.GetLogger("FSW")
@@ -184,6 +184,39 @@ func TestWatchAgain(t *testing.T) {
 	}
 
 	assertTestFiles(t, testdir, files)
+
+	lg.Close()
+}
+
+func TestWatchCloseInCallback(t *testing.T) {
+	testdir := "TestWatchCloseInCallback-" + strconv.Itoa(rand.Int())
+
+	os.RemoveAll(testdir)
+	defer os.RemoveAll(testdir)
+
+	os.MkdirAll(testdir, os.FileMode(0770))
+
+	fw, lg := testCreateWatcher()
+
+	callbacked := 0
+	fw.AddRecursive(testdir, OpModifies, func(path string, op Op) {
+		callbacked++
+		fw.Logger.Infof("#%d: %q [%v]", callbacked, path, op)
+		fw.Logger.Infof("#%d: Close()", callbacked)
+		fw.Close()
+	})
+
+	fw.Logger.Info("------------ Prepare ----------------")
+	prepareTestDir(fw.Logger, testdir)
+
+	fw.Logger.Info("------------ Start ----------------")
+	err := fw.Start()
+	if err != nil {
+		t.Errorf(`fw.Start() = %v`, err)
+		return
+	}
+
+	changeTestFiles(fw.Logger, testdir)
 
 	lg.Close()
 }

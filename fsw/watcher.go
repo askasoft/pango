@@ -1,6 +1,7 @@
 package fsw
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -8,6 +9,7 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/fsu"
+	"github.com/askasoft/pango/gog"
 	"github.com/askasoft/pango/log"
 	"github.com/fsnotify/fsnotify"
 )
@@ -15,24 +17,27 @@ import (
 // Op describes a set of file operations.
 type Op = fsnotify.Op
 
+// Callback callback function
+type Callback func(string, Op)
+
 const (
 	// OpNone none operation
 	OpNone = Op(0)
 
 	// OpCreate create operation
-	OpCreate = Op(fsnotify.Create)
+	OpCreate = fsnotify.Create
 
 	// OpWrite write operation
-	OpWrite = Op(fsnotify.Write)
+	OpWrite = fsnotify.Write
 
 	// OpRemove remove operation
-	OpRemove = Op(fsnotify.Remove)
+	OpRemove = fsnotify.Remove
 
 	// OpRename rename operation
-	OpRename = Op(fsnotify.Rename)
+	OpRename = fsnotify.Rename
 
 	// OpChmod chmod operation
-	OpChmod = Op(fsnotify.Chmod)
+	OpChmod = fsnotify.Chmod
 
 	// OpModifies modifies operations (OpCreate | OpWrite | OpRemove | OpRename)
 	OpModifies = OpCreate | OpWrite | OpRemove | OpRename
@@ -41,158 +46,112 @@ const (
 	OpALL = Op(0xFFFFFFFF)
 )
 
-type fileitem struct {
+type filewatch struct {
 	OpMask    Op
 	Recursive bool
-	Callback  func(string, Op)
+	Callback  Callback
 }
 
 type fileevent struct {
 	Name      string
 	Op        Op
 	Time      time.Time
-	Callbacks []func(string, Op)
+	Callbacks []Callback
 }
 
 // FileWatcher struct for file watching
 type FileWatcher struct {
-	Delay  time.Duration
-	Logger log.Logger
-
+	Logger   log.Logger
 	fsnotify *fsnotify.Watcher
-	items    map[string]*fileitem
-	events   map[string]*fileevent
-	mutex    sync.RWMutex
-	timer    *time.Timer
+	mutex    sync.RWMutex // watchs lock
+	watchs   map[string]*filewatch
+	events   map[string]*fileevent // buffered delay events
+	delay    time.Duration
 }
 
-// NewFileWatcher create a FileWatcher
-func NewFileWatcher() *FileWatcher {
+// NewFileWatcher create a FileWatcher with default 1sec delay.
+// Some editor use create->rename to save file,
+// This could raise 2 OpWrite events continuously,
+// delay some time to prevent duplicated event.
+func NewFileWatcher(delays ...time.Duration) *FileWatcher {
 	fw := &FileWatcher{
-		Delay:  time.Second,
-		items:  make(map[string]*fileitem),
+		watchs: make(map[string]*filewatch),
 		events: make(map[string]*fileevent),
+		delay:  time.Second,
 	}
+
+	if len(delays) > 0 {
+		fw.delay = delays[0]
+	}
+
 	return fw
 }
 
-// Start start file watching go-routine
-func (fw *FileWatcher) Start() error {
-	if fw.fsnotify != nil {
-		return nil
-	}
-
-	log := fw.Logger
-	if log != nil {
-		log.Info("fswatch: start")
-	}
-
-	fsn, err := fsnotify.NewWatcher()
-	if err != nil {
-		return err
-	}
-
-	fw.fsnotify = fsn
-	for path, fi := range fw.items {
-		if fi.Recursive {
-			if err = fw.doRecursive(path, true); err != nil {
-				return err
-			}
-		} else {
-			if log != nil {
-				log.Debugf("fswatch: watch file '%s'", path)
-			}
-			err = fsn.Add(path)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	// some editor use create->rename to save file,
-	// this could raise 2 OpWrite event continuously,
-	// delay some time to prevent duplicated event.
-	if fw.Delay.Milliseconds() > 0 {
-		fw.timer = time.AfterFunc(time.Hour, func() {
-			fw.delayCallbacks()
-		})
-	}
-
-	go fw.watch(fsn)
-	return nil
-}
-
-// Stop stop file watching go-routine
-func (fw *FileWatcher) Stop() error {
-	fsn := fw.fsnotify
-	if fsn == nil {
-		return nil
-	}
-
-	timer, log := fw.timer, fw.Logger
-
-	fw.timer = nil
-	fw.fsnotify = nil
-
-	if log != nil {
-		log.Info("fswatch: stop")
-	}
-	if timer != nil {
-		timer.Stop()
-	}
-
-	return fsn.Close()
-}
-
 // Add add a file to watch on specified operation op occurred
-func (fw *FileWatcher) Add(path string, op Op, callback func(string, Op)) error {
+func (fw *FileWatcher) Add(path string, op Op, callback Callback) error {
+	fw.mutex.Lock()
+	defer fw.mutex.Unlock()
+
 	path = filepath.Clean(path)
 	fsn, log := fw.fsnotify, fw.Logger
 	if fsn != nil {
 		if log != nil {
-			log.Debugf("fswatch: watch file '%s' ", path)
+			log.Debugf("fsw: %p watch file '%s' ", fsn, path)
 		}
 		if err := fsn.Add(path); err != nil {
-			return err
+			return fmt.Errorf("fsw: Add('%s') - %w", path, err)
 		}
 	}
-	fw.items[path] = &fileitem{OpMask: op, Callback: callback}
+
+	fw.watchs[path] = &filewatch{OpMask: op, Callback: callback}
 	return nil
 }
 
 // Remove stop watching the file
 func (fw *FileWatcher) Remove(path string) error {
+	fw.mutex.Lock()
+	defer fw.mutex.Unlock()
+
 	path = filepath.Clean(path)
 	fsn, log := fw.fsnotify, fw.Logger
 	if fsn != nil {
 		if log != nil {
-			log.Debugf("fswatch: unwatch file '%s'", path)
+			log.Debugf("fsw: %p unwatch file '%s'", fsn, path)
 		}
 		if err := fsn.Remove(path); err != nil {
-			return err
+			return fmt.Errorf("fsw: Remove('%s') - %w", path, err)
 		}
 	}
-	delete(fw.items, path)
+
+	delete(fw.watchs, path)
 	return nil
 }
 
 // AddRecursive add files and all sub-directories under the path to watch
-func (fw *FileWatcher) AddRecursive(path string, op Op, cb func(string, Op)) error {
+func (fw *FileWatcher) AddRecursive(path string, op Op, cb Callback) error {
+	fw.mutex.Lock()
+	defer fw.mutex.Unlock()
+
 	path = filepath.Clean(path)
 	if err := fw.doRecursive(path, true); err != nil {
 		return err
 	}
-	fw.items[path] = &fileitem{OpMask: op, Recursive: true, Callback: cb}
+
+	fw.watchs[path] = &filewatch{OpMask: op, Recursive: true, Callback: cb}
 	return nil
 }
 
 // RemoveRecursive stops watching the directory and all sub-directories.
 func (fw *FileWatcher) RemoveRecursive(path string) error {
+	fw.mutex.Lock()
+	defer fw.mutex.Unlock()
+
 	path = filepath.Clean(path)
 	if err := fw.doRecursive(path, false); err != nil {
 		return err
 	}
-	delete(fw.items, path)
+
+	delete(fw.watchs, path)
 	return nil
 }
 
@@ -211,17 +170,17 @@ func (fw *FileWatcher) doRecursive(root string, watch bool) error {
 		if fi.IsDir() {
 			if watch {
 				if log != nil {
-					log.Debugf("fswatch: watch dir '%s'", path)
+					log.Debugf("fsw: %p watch folder '%s'", fsn, path)
 				}
 				if err = fsn.Add(path); err != nil {
-					return err
+					return fmt.Errorf("fsw: Add('%s') - %w", path, err)
 				}
 			} else {
 				if log != nil {
-					log.Debugf("fswatch: unwatch dir '%s'", path)
+					log.Debugf("fsw: %p unwatch folder '%s'", fsn, path)
 				}
 				if err = fsn.Remove(path); err != nil {
-					return err
+					return fmt.Errorf("fsw: Remove('%s') - %w", path, err)
 				}
 			}
 		}
@@ -229,61 +188,128 @@ func (fw *FileWatcher) doRecursive(root string, watch bool) error {
 	})
 }
 
-func (fw *FileWatcher) findCallbacks(fe *fileevent) (cbs []func(string, Op)) {
-	for k, i := range fw.items {
-		if fe.Op&i.OpMask != 0 && strings.HasPrefix(fe.Name, k) {
-			cbs = append(cbs, i.Callback)
-		}
-	}
-	return
-}
+// Start start file watching go-routine
+func (fw *FileWatcher) Start() error {
+	fw.mutex.RLock()
+	defer fw.mutex.RUnlock()
 
-func (fw *FileWatcher) isRecursive(name string) bool {
-	for k, i := range fw.items {
-		if strings.HasPrefix(name, k) {
-			if i.Recursive {
-				return true
+	if fw.fsnotify != nil {
+		return nil
+	}
+
+	fsn, err := fsnotify.NewWatcher()
+	if err != nil {
+		return fmt.Errorf("fsw: create fsnotify - %w", err)
+	}
+
+	fw.fsnotify = fsn
+	for p, w := range fw.watchs {
+		if w.Recursive {
+			if err = fw.doRecursive(p, true); err != nil {
+				return err
+			}
+		} else {
+			if log := fw.Logger; log != nil {
+				log.Debugf("fsw: %p watch file '%s'", fsn, p)
+			}
+			if err = fsn.Add(p); err != nil {
+				return fmt.Errorf("fsw: Add('%s) - %w", p, err)
 			}
 		}
 	}
-	return false
+
+	go fw.watch(fsn)
+
+	return nil
+}
+
+// Stop stop file watching go-routine
+func (fw *FileWatcher) Stop() error {
+	fw.mutex.RLock()
+	defer fw.mutex.RUnlock()
+
+	return fw.stop()
+}
+
+// Close stop file watching go-routine and removes all watches
+func (fw *FileWatcher) Close() error {
+	fw.mutex.Lock()
+	defer fw.mutex.Unlock()
+
+	clear(fw.watchs)
+
+	return fw.stop()
+}
+
+func (fw *FileWatcher) stop() error {
+	fsn := fw.fsnotify
+	if fsn == nil {
+		return nil
+	}
+
+	fw.fsnotify = nil
+	if err := fsn.Close(); err != nil {
+		return fmt.Errorf("fsw: close fsnotify - %w", err)
+	}
+	return nil
 }
 
 func (fw *FileWatcher) watch(fsn *fsnotify.Watcher) {
+	timer := time.NewTimer(gog.If(fw.delay <= 0, time.Minute, fw.delay))
+
+	defer func() {
+		timer.Stop()
+		clear(fw.events)
+
+		if log := fw.Logger; log != nil {
+			log.Infof("fsw: %p watching stopped", fsn)
+		}
+	}()
+
+	if log := fw.Logger; log != nil {
+		log.Infof("fsw: %p start watching", fsn)
+	}
+
 	for {
 		select {
+		case <-timer.C:
+			if fw.delay > 0 {
+				fw.delayCallbacks()
+				timer.Reset(fw.delay)
+			}
 		case evt, ok := <-fsn.Events:
 			if !ok {
 				return
 			}
+
+			// check fsn to discard events after Stop()
 			if fsn == fw.fsnotify {
-				fw.doEvent(&evt)
+				fw.doEvent(evt)
 			}
 		case err, ok := <-fsn.Errors:
 			if !ok {
 				return
 			}
-			log := fw.Logger
-			if log != nil {
-				log.Errorf("fswatch: watch error: %v", err)
+			if log := fw.Logger; log != nil {
+				log.Errorf("fsw: %p watch error: %v", fsn, err)
 			}
 		}
 	}
 }
 
-func (fw *FileWatcher) doEvent(evt *fsnotify.Event) {
+func (fw *FileWatcher) doEvent(evt fsnotify.Event) {
 	fw.procEvent(evt)
 	fw.sendEvent(evt)
 }
 
 // procEvent add or remove watch file
-func (fw *FileWatcher) procEvent(evt *fsnotify.Event) {
+func (fw *FileWatcher) procEvent(evt fsnotify.Event) {
 	if evt.Op&OpCreate != 0 {
 		if err := fsu.DirExists(evt.Name); err == nil {
 			if fw.isRecursive(evt.Name) {
 				if err = fw.doRecursive(evt.Name, true); err != nil {
 					if log := fw.Logger; log != nil {
-						log.Errorf("fswatch: watch dir '%s' error: %v", evt.Name, err)
+						log.Errorf("fsw: watch dir '%s' error: %v", evt.Name, err)
 					}
 				}
 			}
@@ -291,74 +317,78 @@ func (fw *FileWatcher) procEvent(evt *fsnotify.Event) {
 	}
 }
 
-func (fw *FileWatcher) sendEvent(event *fsnotify.Event) {
-	timer := fw.timer
-	if timer == nil {
-		fe := &fileevent{Name: event.Name, Op: Op(event.Op), Time: time.Now()}
-		fe.Callbacks = fw.findCallbacks(fe)
-		if len(fe.Callbacks) > 0 {
-			fw.execCallbacks(fe)
-		}
-		return
-	}
+func (fw *FileWatcher) isRecursive(name string) bool {
+	fw.mutex.RLock()
+	defer fw.mutex.RUnlock()
 
-	fw.mutex.Lock()
-	defer fw.mutex.Unlock()
-
-	log := fw.Logger
-
-	fe := fw.events[event.Name]
-	if fe != nil {
-		fe.Time = time.Now()
-		fe.Op |= Op(event.Op)
-		if log != nil {
-			log.Debugf("fswatch: delay '%s' [%v] (%s) ", fe.Name, fe.Op, fe.Time)
-		}
-		return
-	}
-
-	fe = &fileevent{Name: event.Name, Op: Op(event.Op), Time: time.Now()}
-	fe.Callbacks = fw.findCallbacks(fe)
-	if len(fe.Callbacks) > 0 {
-		if log != nil {
-			log.Debugf("fswatch: queue '%s' [%v] (%s) ", fe.Name, fe.Op, fe.Time)
-		}
-		fw.events[event.Name] = fe
-		if len(fw.events) == 1 {
-			if log != nil {
-				log.Debugf("fswatch: reset timer (%s) ", fw.Delay)
+	for p, w := range fw.watchs {
+		if strings.HasPrefix(name, p) {
+			if w.Recursive {
+				return true
 			}
-			timer.Reset(fw.Delay)
 		}
 	}
+	return false
+}
+
+func (fw *FileWatcher) sendEvent(evt fsnotify.Event) {
+	if fw.delay <= 0 {
+		cbs := fw.findCallbacks(evt)
+		if len(cbs) > 0 {
+			fw.execCallbacks(evt.Name, evt.Op, cbs)
+		}
+		return
+	}
+
+	if fe, ok := fw.events[evt.Name]; ok {
+		fe.Time = time.Now()
+		fe.Op |= evt.Op
+
+		if log := fw.Logger; log != nil {
+			log.Debugf("fsw: delay '%s' [%v] (%s) ", fe.Name, fe.Op, fe.Time.Format(time.RFC3339))
+		}
+		return
+	}
+
+	cbs := fw.findCallbacks(evt)
+	if len(cbs) > 0 {
+		fe := &fileevent{Name: evt.Name, Op: evt.Op, Time: time.Now(), Callbacks: cbs}
+		fw.events[evt.Name] = fe
+
+		if log := fw.Logger; log != nil {
+			log.Debugf("fsw: queue '%s' [%v] (%s) ", fe.Name, fe.Op, fe.Time.Format(time.RFC3339))
+		}
+	}
+}
+
+func (fw *FileWatcher) findCallbacks(evt fsnotify.Event) (cbs []Callback) {
+	fw.mutex.RLock()
+	defer fw.mutex.RUnlock()
+
+	for p, w := range fw.watchs {
+		if evt.Op&w.OpMask != 0 && strings.HasPrefix(evt.Name, p) {
+			cbs = append(cbs, w.Callback)
+		}
+	}
+	return
 }
 
 func (fw *FileWatcher) delayCallbacks() {
-	fw.mutex.Lock()
-	defer fw.mutex.Unlock()
-
-	due := time.Now().Add(-fw.Delay)
+	due := time.Now().Add(-fw.delay)
 	for _, fe := range fw.events {
 		if fe.Time.Before(due) {
-			fw.execCallbacks(fe)
+			fw.execCallbacks(fe.Name, fe.Op, fe.Callbacks)
 			delete(fw.events, fe.Name)
 		}
 	}
-
-	if len(fw.events) > 0 {
-		if log := fw.Logger; log != nil {
-			log.Debugf("fswatch: reset timer (%s) ", fw.Delay)
-		}
-		fw.timer.Reset(fw.Delay)
-	}
 }
 
-func (fw *FileWatcher) execCallbacks(fe *fileevent) {
+func (fw *FileWatcher) execCallbacks(name string, op Op, cbs []Callback) {
 	if log := fw.Logger; log != nil {
-		log.Debugf("fswatch: execute callback '%s' [%v]", fe.Name, fe.Op)
+		log.Debugf("fsw: execute callback '%s' [%v]", name, op)
 	}
 
-	for _, cb := range fe.Callbacks {
-		cb(fe.Name, Op(fe.Op))
+	for _, cb := range cbs {
+		cb(name, op)
 	}
 }

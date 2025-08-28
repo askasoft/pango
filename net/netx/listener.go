@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// DumpListener a listener dump utility
+// DumpListener a payload dump listener
 type DumpListener struct {
 	net.Listener
 	Path       string // dump path
@@ -23,7 +23,7 @@ type DumpListener struct {
 	disabled bool // disable the dumper
 }
 
-// NewDumpListener wrap a net.conn for dump
+// NewDumpListener wrap a net.conn for dump payload
 func NewDumpListener(listener net.Listener, path string) *DumpListener {
 	return &DumpListener{
 		Listener:   listener,
@@ -79,39 +79,52 @@ func (dl *DumpListener) dump(conn net.Conn) net.Conn {
 	return dcon
 }
 
-// LimitListener a Listener that accepts at most n simultaneous
-// connections from the provided Listener.
-type LimitListener struct {
-	net.Listener
-	sema      chan struct{}
-	done      chan struct{} // no values sent; closed when Close is called
-	closeOnce sync.Once     // ensures the close chan is only closed once
+// LimitListener create a listener that accepts at most n simultaneous connections.
+func LimitListener(l net.Listener, n int) net.Listener {
+	return NewLimitedListener(l, n)
 }
 
-// NewLimitListener create a Listener that accepts at most cap(sema) simultaneous
+// LimitedListener a Listener that accepts at most n simultaneous
 // connections from the provided Listener.
-func NewLimitListener(l net.Listener, sema chan struct{}) *LimitListener {
-	return &LimitListener{
-		Listener: l,
-		sema:     sema,
-		done:     make(chan struct{}),
+type LimitedListener struct {
+	net.Listener
+	Semaphore chan struct{}
+	closeOnce sync.Once     // ensures the close chan is only closed once
+	done      chan struct{} // no values sent; closed when Close is called
+}
+
+// NewLimitedListener create a Listener that accepts at most cap(sema) simultaneous
+// connections from the provided Listener. n must greater or equal 0. n = 0 means unlimit.
+func NewLimitedListener(l net.Listener, n int) *LimitedListener {
+	if n < 0 {
+		panic("netx: LimitedListener(n) must greater or equal 0")
+	}
+	return &LimitedListener{
+		Listener:  l,
+		Semaphore: make(chan struct{}, n),
+		done:      make(chan struct{}),
 	}
 }
 
 // acquire acquires the limiting semaphore. Returns true if successfully
 // acquired, false if the listener is closed and the semaphore is not
 // acquired.
-func (ll *LimitListener) acquire() bool {
+func (ll *LimitedListener) acquire(semaphore chan<- struct{}) bool {
 	select {
 	case <-ll.done:
 		return false
-	case ll.sema <- struct{}{}:
+	case semaphore <- struct{}{}:
 		return true
 	}
 }
 
-func (ll *LimitListener) Accept() (net.Conn, error) {
-	if !ll.acquire() {
+func (ll *LimitedListener) Accept() (net.Conn, error) {
+	semaphore := ll.Semaphore
+	if cap(semaphore) == 0 {
+		return ll.Listener.Accept()
+	}
+
+	if !ll.acquire(semaphore) {
 		// If the semaphore isn't acquired because the listener was closed, expect
 		// that this call to accept won't block, but immediately return an error.
 		// If it instead returns a spurious connection (due to a bug in the
@@ -129,34 +142,32 @@ func (ll *LimitListener) Accept() (net.Conn, error) {
 		}
 	}
 
-	c, err := ll.Listener.Accept()
+	conn, err := ll.Listener.Accept()
 	if err != nil {
-		ll.release()
+		<-semaphore
 		return nil, err
 	}
-	return &limitListenerConn{Conn: c, release: ll.release}, nil
+	return &limitedListenerConn{Conn: conn, semaphore: semaphore}, nil
 }
 
-func (ll *LimitListener) release() {
-	<-ll.sema
-}
-
-func (ll *LimitListener) Close() error {
-	err := ll.Listener.Close()
+func (ll *LimitedListener) Close() (err error) {
+	err = ll.Listener.Close()
 	ll.closeOnce.Do(func() {
 		close(ll.done)
 	})
-	return err
+	return
 }
 
-type limitListenerConn struct {
+type limitedListenerConn struct {
 	net.Conn
-	releaseOnce sync.Once
-	release     func()
+	closeOnce sync.Once
+	semaphore <-chan struct{}
 }
 
-func (lc *limitListenerConn) Close() error {
-	err := lc.Conn.Close()
-	lc.releaseOnce.Do(lc.release)
-	return err
+func (lc *limitedListenerConn) Close() (err error) {
+	err = lc.Conn.Close()
+	lc.closeOnce.Do(func() {
+		<-lc.semaphore
+	})
+	return
 }

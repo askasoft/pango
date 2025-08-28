@@ -11,11 +11,11 @@ import (
 	"time"
 )
 
-func testLimitListener(l net.Listener, n int) net.Listener {
-	return NewLimitListener(l, make(chan struct{}, n))
+func testLimitedListener(l net.Listener, n int) net.Listener {
+	return NewLimitedListener(l, n)
 }
 
-func TestLimitListenerOverload(t *testing.T) {
+func TestLimitedListenerOverload(t *testing.T) {
 	const (
 		max      = 5
 		attempts = max * 2
@@ -26,7 +26,7 @@ func TestLimitListenerOverload(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	l = testLimitListener(l, max)
+	l = testLimitedListener(l, max)
 
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -116,7 +116,7 @@ func TestLimitListenerOverload(t *testing.T) {
 	}
 }
 
-func TestLimitListenerSaturation(t *testing.T) {
+func TestLimitedListenerSaturation(t *testing.T) {
 	const (
 		max             = 5
 		attemptsPerWave = max * 2
@@ -128,7 +128,7 @@ func TestLimitListenerSaturation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	l = testLimitListener(l, max)
+	l = testLimitedListener(l, max)
 
 	acceptDone := make(chan struct{})
 	defer func() {
@@ -145,7 +145,7 @@ func TestLimitListenerSaturation(t *testing.T) {
 		)
 		var wg sync.WaitGroup
 
-		do := func(c net.Conn, n int32) {
+		do := func(c net.Conn, _ int32) {
 			<-saturated
 			io.WriteString(c, msg)
 			atomic.AddInt32(&open, -1)
@@ -235,9 +235,9 @@ func (errorListener) Accept() (net.Conn, error) {
 var errFake = errors.New("fake error from errorListener")
 
 // This used to hang.
-func TestLimitListenerError(t *testing.T) {
+func TestLimitedListenerError(t *testing.T) {
 	const n = 2
-	ll := testLimitListener(errorListener{}, n)
+	ll := testLimitedListener(errorListener{}, n)
 	for i := 0; i < n+1; i++ {
 		_, err := ll.Accept()
 		if err != errFake {
@@ -246,13 +246,13 @@ func TestLimitListenerError(t *testing.T) {
 	}
 }
 
-func TestLimitListenerClose(t *testing.T) {
+func TestLimitedListenerClose(t *testing.T) {
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer ln.Close()
-	ln = testLimitListener(ln, 1)
+	ln = testLimitedListener(ln, 1)
 
 	errCh := make(chan error)
 	go func() {

@@ -3,6 +3,8 @@ package tmu
 import (
 	"fmt"
 	"time"
+
+	"github.com/askasoft/pango/str"
 )
 
 var GeneralLayouts = []string{time.RFC3339, "2006-1-2 15:04:05", "2006-1-2", "15:04:05"}
@@ -49,6 +51,8 @@ func ParseInLocation(value string, loc *time.Location, layouts ...string) (tt ti
 			return //nolint: nilerr
 		}
 	}
+
+	err = fmt.Errorf("tmu: cannot parse %q as [%s]", value, str.Join(layouts, ", "))
 	return
 }
 
@@ -62,6 +66,8 @@ func Parse(value string, layouts ...string) (tt time.Time, err error) {
 			return //nolint: nilerr
 		}
 	}
+
+	err = fmt.Errorf("tmu: cannot parse %q as [%s]", value, str.Join(layouts, ", "))
 	return
 }
 

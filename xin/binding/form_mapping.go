@@ -2,7 +2,6 @@ package binding
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"mime/multipart"
 	"reflect"
@@ -10,20 +9,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/lut"
 	"github.com/askasoft/pango/ref"
 	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/tmu"
-)
-
-var (
-	ErrUnknownType = errors.New("unknown type")
-
-	// ErrConvertMapStringSlice can not covert to map[string][]string
-	ErrConvertMapStringSlice = errors.New("can not convert to map slices of strings")
-
-	// ErrConvertToMapString can not convert to map[string]string
-	ErrConvertToMapString = errors.New("can not convert to map of strings")
 )
 
 func mapURI(ptr any, m map[string][]string) error {
@@ -50,7 +40,7 @@ func mapFormByTag(ptr any, form map[string][]string, tag string) error {
 		pointed = ptrVal.Interface()
 	}
 
-	if ptrVal.Kind() == reflect.Map && ptrVal.Type().Key().Kind() == reflect.String {
+	if ptrVal.Kind() == reflect.Map {
 		if pointed != nil {
 			ptr = pointed
 		}
@@ -302,7 +292,7 @@ func setByForm(rsf reflect.StructField, field reflect.Value, form map[string][]s
 			return
 		}
 		if len(vs) > field.Len() {
-			isSet, err = false, fmt.Errorf("%q is not valid value for %s", vs, field.Type().String())
+			isSet, err = false, fmt.Errorf("form: %q is not valid value for %s", vs, field.Type().String())
 		} else {
 			isSet, err = true, setArray(rsf, field, vs)
 		}
@@ -312,7 +302,8 @@ func setByForm(rsf reflect.StructField, field reflect.Value, form map[string][]s
 			return
 		}
 
-		val := str.NonEmpty(vs...)
+		val := asg.First(vs)
+
 		isSet, err = true, setWithProperType(rsf, field, val)
 	}
 
@@ -376,7 +367,7 @@ func setWithProperType(rsf reflect.StructField, field reflect.Value, val string)
 		}
 		return setWithProperType(rsf, field.Elem(), val)
 	default:
-		return ErrUnknownType
+		return fmt.Errorf("form: unknown type %v", field.Kind())
 	}
 }
 
@@ -515,6 +506,8 @@ func setMap(field reflect.Value, form map[string][]string, key string, opts opti
 		field.Set(reflect.MakeMap(mt))
 	}
 
+	mk, me := mt.Key(), mt.Elem()
+
 	px1, px2 := key+"[", key+"."
 	for k, ps := range form {
 		if str.EndsWithByte(k, ']') {
@@ -529,11 +522,18 @@ func setMap(field reflect.Value, form map[string][]string, key string, opts opti
 			k = k[len(px2):]
 		}
 
-		ps = trimFormValues(ps, opts)
-
-		vs = append(vs, ps...)
-
+		// convert key
 		kv := reflect.ValueOf(k)
+		if kv.Type() != mk {
+			cv, err := ref.CastTo(key, mk)
+			if err != nil {
+				return vs, false, fmt.Errorf("form: invalid map key type - %w", err)
+			}
+			kv = reflect.ValueOf(cv)
+		}
+
+		ps = trimFormValues(ps, opts)
+		vs = append(vs, ps...)
 
 		var val any
 		switch len(ps) {
@@ -545,15 +545,17 @@ func setMap(field reflect.Value, form map[string][]string, key string, opts opti
 			val = ps
 		}
 
+		// convert value
 		vv := reflect.ValueOf(val)
-		vt := reflect.TypeOf(val)
-		if vt.Kind() != mt.Elem().Kind() {
-			cv, err := ref.CastTo(val, mt.Elem())
+		if vv.Type() != me {
+			cv, err := ref.CastTo(val, me)
 			if err != nil {
-				return vs, false, fmt.Errorf("map: invalid value type - %w", err)
+				return vs, false, fmt.Errorf("form: invalid map value type - %w", err)
 			}
 			vv = reflect.ValueOf(cv)
 		}
+
+		// set map
 		field.SetMapIndex(kv, vv)
 		ok = true
 	}
@@ -589,33 +591,38 @@ func setTimeDuration(field reflect.Value, val string) error {
 }
 
 func setFormMap(dict any, form map[string][]string) error {
-	el := reflect.TypeOf(dict).Elem()
+	mt := reflect.TypeOf(dict)
+	me := mt.Elem()
 
-	if el.Kind() == reflect.Slice {
-		m, ok := dict.(map[string][]string)
-		if !ok {
-			return ErrConvertMapStringSlice
+	if me.Kind() == reflect.Slice {
+		// for most commonly used map[string][]string
+		if m, ok := dict.(map[string][]string); ok {
+			for k, vs := range form {
+				m[k] = vs
+			}
+			return nil
 		}
 
-		for k, v := range form {
-			m[k] = v
+		for k, vs := range form {
+			if _, err := ref.MapSet(dict, k, vs); err != nil {
+				return err
+			}
 		}
 		return nil
 	}
 
+	// for most commonly used map[string]string
 	if m, ok := dict.(map[string]string); ok {
-		for k, v := range form {
-			if len(v) > 0 {
-				m[k] = v[len(v)-1] // pick last
-			}
+		for k, vs := range form {
+			m[k] = asg.First(vs) // pick first
 		}
-	} else {
-		for k, v := range form {
-			if len(v) > 0 {
-				if _, err := ref.MapSet(dict, k, v[len(v)-1]); err != nil {
-					return err
-				}
-			}
+		return nil
+	}
+
+	for k, vs := range form {
+		v := asg.First(vs) // pick first
+		if _, err := ref.MapSet(dict, k, v); err != nil {
+			return err
 		}
 	}
 

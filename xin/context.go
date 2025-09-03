@@ -507,8 +507,8 @@ func (c *Context) Query(key string, defs ...string) string {
 //	("", false) == c.GetQuery("id")
 //	("", true) == c.GetQuery("lastname")
 func (c *Context) GetQuery(key string) (string, bool) {
-	if values, ok := c.GetQueryArray(key); ok {
-		return values[0], ok
+	if vs, ok := c.GetQueryArray(key); ok {
+		return vs[0], ok
 	}
 	return "", false
 }
@@ -572,14 +572,15 @@ func (c *Context) PostForm(key string, defs ...string) string {
 // GetPostForm is like PostForm(key). It returns the specified key from a POST urlencoded
 // form or multipart form when it exists `(value, true)` (even when the value is an empty string),
 // otherwise it returns ("", false).
-// For example, during a PATCH request to update the user's email:
+// Example:
 //
-// email=mail@example.com  -->  ("mail@example.com", true) := GetPostForm("email")
-// email=                  -->  ("", true) := GetPostForm("email")
-// =                       -->  ("", false) := GetPostForm("email")
+// k=a         -->  ("a", true) := GetPostForm("k")
+// k=a&k=b     -->  ("b", true) := GetPostForm("k")
+// k=          -->  ("", true) := GetPostForm("k")
+// =           -->  ("", false) := GetPostForm("k")
 func (c *Context) GetPostForm(key string) (string, bool) {
-	if values, ok := c.GetPostFormArray(key); ok {
-		return values[0], ok
+	if vs, ok := c.GetPostFormArray(key); ok {
+		return vs[0], ok
 	}
 	return "", false
 }

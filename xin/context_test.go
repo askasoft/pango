@@ -467,7 +467,7 @@ func TestContextDefaultQueryOnEmptyRequest(t *testing.T) {
 
 func TestContextQueryAndPostForm(t *testing.T) {
 	c, _ := CreateTestContext(httptest.NewRecorder())
-	body := bytes.NewBufferString("foo=bar&page=11&both=&foo=second")
+	body := bytes.NewBufferString("foo=bar&page=11&both=POST&foo=second")
 	c.Request, _ = http.NewRequest("POST", "/?both=GET"+
 		"&id=main&id=omit"+
 		"&array[]=first&array[]=second"+
@@ -489,9 +489,9 @@ func TestContextQueryAndPostForm(t *testing.T) {
 
 	value, ok = c.GetPostForm("both")
 	assert.True(t, ok)
-	assert.Empty(t, value)
-	assert.Empty(t, c.PostForm("both"))
-	assert.Empty(t, c.PostForm("both", "nothing"))
+	assert.Equal(t, "POST", value)
+	assert.Equal(t, "POST", c.PostForm("both"))
+	assert.Equal(t, "POST", c.PostForm("both", "nothing"))
 	assert.Equal(t, "GET", c.Query("both"), "GET")
 
 	value, ok = c.GetQuery("id")
@@ -523,7 +523,7 @@ func TestContextQueryAndPostForm(t *testing.T) {
 	assert.Equal(t, "bar", obj.Foo, "bar")
 	assert.Equal(t, "main", obj.ID, "main")
 	assert.Equal(t, 11, obj.Page, "11")
-	assert.Equal(t, "GET", obj.Both)
+	assert.Equal(t, "POST", obj.Both)
 	assert.Equal(t, []string{"first", "second"}, obj.Array)
 
 	values, ok := c.GetQueryArray("array[]")

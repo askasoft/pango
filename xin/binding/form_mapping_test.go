@@ -137,7 +137,7 @@ func TestMappingUnknownFieldType(t *testing.T) {
 		be0 := bes[0]
 		assert.Equal(t, "U", be0.Field)
 		assert.Equal(t, []string{"unknown"}, be0.Values)
-		assert.Equal(t, ErrUnknownType, be0.Unwrap())
+		assert.Contains(t, be0.Unwrap().Error(), "unknown type")
 	} else {
 		t.Errorf("missing binding errors: %v", err)
 	}
@@ -152,13 +152,34 @@ func TestMappingURI(t *testing.T) {
 	assert.Equal(t, int(6), s.F)
 }
 
-func TestMappingForm(t *testing.T) {
+func TestMappingFormStruct(t *testing.T) {
 	var s struct {
 		F int `form:"field"`
 	}
-	err := mapForm(&s, map[string][]string{"field": {"6"}})
+	err := mapForm(&s, map[string][]string{"field": {"6", "7"}})
 	assert.NoError(t, err)
 	assert.Equal(t, int(6), s.F)
+}
+
+func TestMappingFormMapStrInt(t *testing.T) {
+	m := make(map[string]int)
+	err := mapForm(m, map[string][]string{"field": {"6", "7"}})
+	assert.NoError(t, err)
+	assert.Equal(t, int(6), m["field"])
+}
+
+func TestMappingFormMapIntInt(t *testing.T) {
+	m := make(map[int]int)
+	err := mapForm(m, map[string][]string{"1": {"6", "7"}})
+	assert.NoError(t, err)
+	assert.Equal(t, int(6), m[1])
+}
+
+func TestMappingFormMapIntStrs(t *testing.T) {
+	m := make(map[int][]string)
+	err := mapForm(m, map[string][]string{"1": {"6", "7"}})
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"6", "7"}, m[1])
 }
 
 func TestMappingFormFieldNotSent(t *testing.T) {
@@ -379,7 +400,7 @@ func TestMappingPtrField(t *testing.T) {
 	assert.Equal(t, int64(2), req2.Items[1].Key)
 }
 
-func TestMappingMapField(t *testing.T) {
+func TestMappingMapFieldStr(t *testing.T) {
 	var s struct {
 		M map[string]int
 	}
@@ -387,6 +408,16 @@ func TestMappingMapField(t *testing.T) {
 	err := mappingByPtr(&s, formSource{"M": {`{"one": 1}`}}, "form")
 	assert.NoError(t, err)
 	assert.Equal(t, map[string]int{"one": 1}, s.M)
+}
+
+func TestMappingMapFieldInt(t *testing.T) {
+	var s struct {
+		M map[int]int
+	}
+
+	err := mappingByPtr(&s, formSource{"M": {`{"1": 10}`}}, "form")
+	assert.NoError(t, err)
+	assert.Equal(t, map[int]int{1: 10}, s.M)
 }
 
 func TestMappingIgnoredCircularRef(t *testing.T) {

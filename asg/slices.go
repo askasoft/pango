@@ -83,8 +83,20 @@ func EqualFunc[A any, B any](a []A, b []B, eq func(A, B) bool) bool {
 }
 
 // First get first element of a slice.
+// returns zero value if slice is empty.
 func First[T any](a []T) (v T) {
-	v, _ = Get(a, 0)
+	if len(a) > 0 {
+		v = a[0]
+	}
+	return
+}
+
+// Last get last element of a slice.
+// returns zero value if slice is empty.
+func Last[T any](a []T) (v T) {
+	if z := len(a); z > 0 {
+		v = a[z-1]
+	}
 	return
 }
 

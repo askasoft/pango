@@ -334,7 +334,7 @@ func TestBindingFormStringMap(t *testing.T) {
 	// Should pick the last value
 	testBodyBindingStringMap(t, Form,
 		"/", "",
-		`foo=something&foo=bar&hello=world`, "")
+		`foo=bar&foo=something&hello=world`, "")
 }
 
 func TestBindingFormStringSliceMap(t *testing.T) {
@@ -406,7 +406,7 @@ func TestBindingQueryStringMap(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, obj)
 	assert.Len(t, obj, 2)
-	assert.Equal(t, "2", obj["foo"])
+	assert.Equal(t, "bar", obj["foo"])
 	assert.Equal(t, "world", obj["hello"])
 }
 

@@ -20,7 +20,7 @@ import (
 // {{MapGet m 1 "c" }} // return 4
 func MapGet(dict any, keys ...any) (any, error) {
 	if len(keys) == 0 {
-		return nil, errors.New("MapGet(): missing argument key")
+		return nil, errors.New("ref: missing argument key")
 	}
 
 	mv := reflect.ValueOf(dict)
@@ -41,15 +41,16 @@ func MapGet(dict any, keys ...any) (any, error) {
 }
 
 func mapGet(mv reflect.Value, key any) (any, error) {
+	mt := mv.Type()
+	mk := mt.Key()
+
 	// check whether keys[0] type equals to dict key type
 	// if they are different, make conversion
-	mt := mv.Type()
 	kv := reflect.ValueOf(key)
-	kt := reflect.TypeOf(key)
-	if kt != mt.Key() {
-		cv, err := CastTo(key, mt.Key())
+	if kv.Type() != mk {
+		cv, err := CastTo(key, mk)
 		if err != nil {
-			return nil, fmt.Errorf("MapGet(): invalid key type - %w", err)
+			return nil, fmt.Errorf("ref: invalid map key type - %w", err)
 		}
 
 		kv = reflect.ValueOf(cv)
@@ -75,25 +76,23 @@ func MapSet(dict any, key, val any) (any, error) {
 
 func mapSet(mv reflect.Value, key, val any) (any, error) {
 	mt := mv.Type()
-	kv := reflect.ValueOf(key)
-	kt := reflect.TypeOf(key)
-	if kt != mt.Key() {
-		cv, err := CastTo(key, mt.Key())
-		if err != nil {
-			return nil, fmt.Errorf("MapSet(): invalid key type - %w", err)
-		}
+	mk, me := mt.Key(), mt.Elem()
 
+	kv := reflect.ValueOf(key)
+	if kv.Type() != mk {
+		cv, err := CastTo(key, mk)
+		if err != nil {
+			return nil, fmt.Errorf("ref: invalid map key type - %w", err)
+		}
 		kv = reflect.ValueOf(cv)
 	}
 
 	vv := reflect.ValueOf(val)
-	vt := reflect.TypeOf(val)
-	if vt != mt.Elem() {
-		cv, err := CastTo(val, mt.Elem())
+	if vv.Type() != me {
+		cv, err := CastTo(val, me)
 		if err != nil {
-			return nil, fmt.Errorf("MapSet(): invalid value type - %w", err)
+			return nil, fmt.Errorf("ref: invalid map value type - %w", err)
 		}
-
 		vv = reflect.ValueOf(cv)
 	}
 

@@ -15,6 +15,7 @@ import (
 	"github.com/askasoft/pango/sch"
 	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/str/wildcard"
+	"github.com/askasoft/pango/tmu"
 )
 
 // Func accepts a FieldLevel interface for all validation needs.
@@ -1532,7 +1533,7 @@ func isDatetime(fl FieldLevel) bool {
 func isDuration(fl FieldLevel) bool {
 	MustStringField("duration", fl)
 
-	_, err := time.ParseDuration(fl.Field().String())
+	_, err := tmu.ParseDuration(fl.Field().String())
 	return err == nil
 }
 

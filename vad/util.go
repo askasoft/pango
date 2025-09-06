@@ -253,7 +253,7 @@ func asInt2(param string) (int64, int64) {
 // asIntFromTimeDuration parses param as time.Duration and returns it as int64
 // or panics on error.
 func asIntFromTimeDuration(param string) int64 {
-	d, err := time.ParseDuration(param)
+	d, err := tmu.ParseDuration(param)
 	if err != nil {
 		// attempt parsing as an integer assuming nanosecond precision
 		return asInt(param)

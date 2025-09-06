@@ -7,6 +7,7 @@ import (
 
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/tmu"
 	"github.com/askasoft/pango/whk/slack"
 )
 
@@ -35,7 +36,7 @@ func (sw *SlackWriter) SetWebhook(webhook string) error {
 
 // SetTimeout set timeout
 func (sw *SlackWriter) SetTimeout(timeout string) error {
-	td, err := time.ParseDuration(timeout)
+	td, err := tmu.ParseDuration(timeout)
 	if err != nil {
 		return fmt.Errorf("SlackWriter: invalid timeout %q: %w", timeout, err)
 	}

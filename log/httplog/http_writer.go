@@ -10,6 +10,7 @@ import (
 	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/tmu"
 )
 
 // HTTPWriter implements log Writer Interface and batch send log messages to webhook.
@@ -42,7 +43,7 @@ func (hw *HTTPWriter) SetUrl(u string) error {
 
 // SetTimeout set timeout
 func (hw *HTTPWriter) SetTimeout(timeout string) error {
-	td, err := time.ParseDuration(timeout)
+	td, err := tmu.ParseDuration(timeout)
 	if err != nil {
 		return fmt.Errorf("httplog: invalid timeout %q: %w", timeout, err)
 	}

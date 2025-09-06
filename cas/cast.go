@@ -22,7 +22,7 @@ func ToDuration(v any) (d time.Duration, err error) {
 		if o == "" {
 			return
 		}
-		d, err = time.ParseDuration(o)
+		d, err = tmu.ParseDuration(o)
 	case int8:
 		d = time.Duration(o)
 	case int16:

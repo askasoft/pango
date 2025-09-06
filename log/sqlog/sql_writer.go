@@ -10,6 +10,7 @@ import (
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/sqx"
 	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/tmu"
 )
 
 // SQLWriter implements log Writer Interface and batch send log messages to database.
@@ -51,7 +52,7 @@ type argFmtFunc func(le *log.Event) any
 
 // SetConnMaxIdleTime set ConnMaxIdleTime
 func (sw *SQLWriter) SetConnMaxIdleTime(duration string) error {
-	td, err := time.ParseDuration(duration)
+	td, err := tmu.ParseDuration(duration)
 	if err != nil {
 		return fmt.Errorf("sqlog: invalid ConnMaxIdleTime %q: %w", duration, err)
 	}
@@ -62,7 +63,7 @@ func (sw *SQLWriter) SetConnMaxIdleTime(duration string) error {
 
 // SetConnMaxLifeTime set ConnMaxLifeTime
 func (sw *SQLWriter) SetConnMaxLifeTime(duration string) error {
-	td, err := time.ParseDuration(duration)
+	td, err := tmu.ParseDuration(duration)
 	if err != nil {
 		return fmt.Errorf("sqlog: invalid ConnMaxLifeTime %q: %w", duration, err)
 	}

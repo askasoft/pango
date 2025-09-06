@@ -5,6 +5,8 @@ import (
 	"io"
 	"net"
 	"time"
+
+	"github.com/askasoft/pango/tmu"
 )
 
 // ConnWriter implements Writer.
@@ -22,7 +24,7 @@ type ConnWriter struct {
 
 // SetTimeout set timeout
 func (cw *ConnWriter) SetTimeout(timeout string) error {
-	tmo, err := time.ParseDuration(timeout)
+	tmo, err := tmu.ParseDuration(timeout)
 	if err != nil {
 		return fmt.Errorf("connlog: invalid timeout: %w", err)
 	}

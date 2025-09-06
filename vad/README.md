@@ -129,7 +129,7 @@ Baked-in Validations
 | btc_addr | Bitcoin Address |
 | btc_addr_bech32 | Bitcoin Bech32 Address (segwit) |
 | datetime | Datetime |
-| duration | Duration |
+| duration | Duration (day support, e.g. "30d") |
 | cron | Cron Expression |
 | periodic | Periodic Expression |
 | e164 | e164 formatted phone number |

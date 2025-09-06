@@ -9958,7 +9958,7 @@ func TestDurationValidation(t *testing.T) {
 		expected bool
 	}{
 		{"600s", `duration`, true},
-		{"2008d", `duration`, false},
+		{"2008y", `duration`, false},
 	}
 
 	validate := New()

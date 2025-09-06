@@ -8,6 +8,7 @@ import (
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/net/email"
 	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/tmu"
 )
 
 // SMTPWriter implements log Writer Interface and send log message.
@@ -45,7 +46,7 @@ func (sw *SMTPWriter) SetCc(s string) error {
 
 // SetTimeout set timeout
 func (sw *SMTPWriter) SetTimeout(timeout string) error {
-	td, err := time.ParseDuration(timeout)
+	td, err := tmu.ParseDuration(timeout)
 	if err != nil {
 		return fmt.Errorf("smtplog: invalid timeout %q: %w", timeout, err)
 	}

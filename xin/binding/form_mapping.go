@@ -582,7 +582,7 @@ func setArray(rsf reflect.StructField, field reflect.Value, vals []string) error
 }
 
 func setTimeDuration(field reflect.Value, val string) error {
-	d, err := time.ParseDuration(val)
+	d, err := tmu.ParseDuration(val)
 	if err != nil {
 		return err
 	}

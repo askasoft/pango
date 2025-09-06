@@ -7,6 +7,7 @@ import (
 
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/tmu"
 	"github.com/askasoft/pango/whk/teams"
 )
 
@@ -36,7 +37,7 @@ func (tw *TeamsWriter) SetWebhook(webhook string) error {
 
 // SetTimeout set timeout
 func (tw *TeamsWriter) SetTimeout(timeout string) error {
-	td, err := time.ParseDuration(timeout)
+	td, err := tmu.ParseDuration(timeout)
 	if err != nil {
 		return fmt.Errorf("teamslog: invalid timeout %q: %w", timeout, err)
 	}

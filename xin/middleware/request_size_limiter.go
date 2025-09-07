@@ -10,9 +10,10 @@ import (
 
 // RequestSizeLimiter http request limit middleware
 type RequestSizeLimiter struct {
-	MaxBodySize  int64
-	DrainBody    bool // drain request body if we are under apache, otherwise the apache will return 502 Bad Gateway
-	BodyTooLarge func(c *xin.Context)
+	DrainBody      bool // drain request body if we are under apache, otherwise the apache will return 502 Bad Gateway
+	MaxBodySize    int64
+	GetMaxBodySize func(c *xin.Context) int64
+	BodyTooLarge   func(c *xin.Context)
 }
 
 // NewRequestSizeLimiter create a default RequestSizeLimiter middleware
@@ -22,18 +23,23 @@ func NewRequestSizeLimiter(maxBodySize int64) *RequestSizeLimiter {
 
 // Handle process xin request
 func (rsl *RequestSizeLimiter) Handle(c *xin.Context) {
-	if rsl.MaxBodySize <= 0 {
+	mbs := rsl.MaxBodySize
+	if gmbs := rsl.GetMaxBodySize; gmbs != nil {
+		mbs = gmbs(c)
+	}
+
+	if mbs <= 0 {
 		c.Next()
 		return
 	}
 
 	var err error
 
-	if c.Request.ContentLength > rsl.MaxBodySize {
-		err = &iox.MaxBytesError{Limit: rsl.MaxBodySize}
+	if c.Request.ContentLength > mbs {
+		err = &iox.MaxBytesError{Limit: mbs}
 	} else {
 		crb := c.Request.Body
-		mbr := iox.NewMaxBytesReader(crb, rsl.MaxBodySize)
+		mbr := iox.NewMaxBytesReader(crb, mbs)
 		c.Request.Body = mbr
 		c.Next()
 		c.Request.Body = crb

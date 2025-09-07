@@ -7091,6 +7091,19 @@ func TestDecimal(t *testing.T) {
 	assertEqual(t, errs, nil)
 }
 
+func TestSize(t *testing.T) {
+	validate := New()
+
+	s := "2.7MB"
+	errs := validate.Var(s, "size")
+	assertEqual(t, errs, nil)
+
+	s = "abc®"
+	errs = validate.Var(s, "size")
+	assertNotEqual(t, errs, nil)
+	AssertError(t, errs, "", "", "", "", "size")
+}
+
 func TestLetter(t *testing.T) {
 	validate := New()
 

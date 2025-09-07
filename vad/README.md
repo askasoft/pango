@@ -101,6 +101,7 @@ Baked-in Validations
 | number | ASCII Number |
 | numeric | Numeric |
 | decimal | Decimal |
+| size | Size (e.g. 2.75MB)
 | letter | ASCII Letter Only |
 | letternum | ASCII Letter or Number |
 | utfletter | Unicode Letter |

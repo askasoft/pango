@@ -12,6 +12,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/askasoft/pango/asg"
+	"github.com/askasoft/pango/num"
 	"github.com/askasoft/pango/sch"
 	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/str/wildcard"
@@ -102,6 +103,7 @@ var (
 		"decimal":                       isDecimal,
 		"numeric":                       isNumeric,
 		"number":                        isNumber,
+		"size":                          isSize,
 		"hexadecimal":                   isHexadecimal,
 		"hexcolor":                      isHexColor,
 		"rgb":                           isRGB,
@@ -859,6 +861,14 @@ func isDecimal(fl FieldLevel) bool {
 	default:
 		return str.IsDecimal(fl.Field().String())
 	}
+}
+
+// isSize is the validation function for validating if the current field's value is a valid size value.
+func isSize(fl FieldLevel) bool {
+	MustStringField("size", fl)
+
+	_, err := num.ParseSize(fl.Field().String())
+	return err == nil
 }
 
 // isLetter is the validation function for validating if the current field's value is a valid letter value.

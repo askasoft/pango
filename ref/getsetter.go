@@ -39,7 +39,9 @@ func getProperty(rv reflect.Value, k string) (ret any, err error) {
 
 	p := str.Capitalize(k)
 
-	for _, fn := range []string{"Get" + p, p} {
+	// use getter method (java-like)
+	{
+		fn := "Get" + p
 		mv := rv.MethodByName(fn)
 		if mv.IsValid() {
 			mt := mv.Type()
@@ -58,6 +60,15 @@ func getProperty(rv reflect.Value, k string) (ret any, err error) {
 		}
 	}
 
+	// get method
+	{
+		mv := rv.MethodByName(p)
+		if mv.IsValid() {
+			ret = mv.Interface()
+			return
+		}
+	}
+
 	if rv.Kind() == reflect.Pointer {
 		rv = rv.Elem()
 	}
@@ -66,6 +77,7 @@ func getProperty(rv reflect.Value, k string) (ret any, err error) {
 		return nil, fmt.Errorf("ref: missing field %q of %v", p, rv.Type())
 	}
 
+	// get field
 	fv := rv.FieldByName(k)
 	if !fv.IsValid() {
 		return nil, fmt.Errorf("ref: missing field %q of %v", p, rv.Type())

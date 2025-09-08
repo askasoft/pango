@@ -1,6 +1,6 @@
 module github.com/askasoft/pango
 
-go 1.23.0
+go 1.24.0
 
 require (
 	github.com/fsnotify/fsnotify v1.9.0
@@ -10,7 +10,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/mattn/go-sqlite3 v1.14.32
 	golang.org/x/net v0.43.0
-	golang.org/x/sys v0.35.0
+	golang.org/x/sys v0.36.0
 	golang.org/x/text v0.28.0
 )
 

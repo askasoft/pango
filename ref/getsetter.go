@@ -39,8 +39,7 @@ func getProperty(rv reflect.Value, k string) (ret any, err error) {
 
 	p := str.Capitalize(k)
 
-	{
-		fn := "Get" + p
+	for _, fn := range []string{"Get" + p, p} {
 		mv := rv.MethodByName(fn)
 		if mv.IsValid() {
 			mt := mv.Type()
@@ -55,14 +54,6 @@ func getProperty(rv reflect.Value, k string) (ret any, err error) {
 					err = er
 				}
 			}
-			return
-		}
-	}
-
-	{
-		mv := rv.MethodByName(p)
-		if mv.IsValid() {
-			ret = mv.Interface()
 			return
 		}
 	}

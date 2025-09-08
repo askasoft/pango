@@ -13,7 +13,6 @@ import (
 // RequestRateLimiter http request limit middleware
 type RequestRateLimiter struct {
 	Limit           int
-	Duration        time.Duration
 	TrustedClients  []*net.IPNet
 	TooManyRequests func(c *xin.Context)
 
@@ -22,12 +21,21 @@ type RequestRateLimiter struct {
 
 // NewRequestRateLimiter create a default RequestRateLimiter middleware
 func NewRequestRateLimiter(limit int, duration, cleanupInterval time.Duration) *RequestRateLimiter {
-	return &RequestRateLimiter{Limit: limit, Duration: duration, counts: imc.New[string, int](duration, cleanupInterval)}
+	return &RequestRateLimiter{Limit: limit, counts: imc.New[string, int](duration, cleanupInterval)}
+}
+
+func (rrl *RequestRateLimiter) Duration() time.Duration {
+	return rrl.counts.TTL()
+}
+
+func (rrl *RequestRateLimiter) SetDuration(d time.Duration) {
+	rrl.counts.SetTTL(d)
 }
 
 // Handle process xin request
 func (rrl *RequestRateLimiter) Handle(c *xin.Context) {
-	if rrl.Limit <= 0 {
+	limit := rrl.Limit
+	if limit <= 0 {
 		c.Next()
 		return
 	}
@@ -39,7 +47,7 @@ func (rrl *RequestRateLimiter) Handle(c *xin.Context) {
 	}
 
 	cnt := rrl.counts.Increment(cip, 1)
-	if cnt < rrl.Limit {
+	if cnt < limit {
 		c.Next()
 		return
 	}

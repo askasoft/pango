@@ -1059,12 +1059,12 @@ func TestContextRenderFile(t *testing.T) {
 	assert.NotEqual(t, "", w.Header().Get("Content-Type"))
 }
 
-func TestContextRenderFileFromFS(t *testing.T) {
+func TestContextRenderFileFS(t *testing.T) {
 	w := httptest.NewRecorder()
 	c, _ := CreateTestContext(w)
 
 	c.Request, _ = http.NewRequest("GET", "/some/path", nil)
-	c.FileFromFS("./xin.go", Dir("."))
+	c.FileFS(Dir("."), "./xin.go")
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Contains(t, w.Body.String(), "func New() *Engine {")
@@ -1074,13 +1074,26 @@ func TestContextRenderFileFromFS(t *testing.T) {
 	assert.Equal(t, "/some/path", c.Request.URL.Path)
 }
 
-func TestContextRenderAttachment(t *testing.T) {
+func TestContextRenderFileAttachment(t *testing.T) {
 	w := httptest.NewRecorder()
 	c, _ := CreateTestContext(w)
 	newFilename := "new_filename.go"
 
 	c.Request, _ = http.NewRequest("GET", "/", nil)
 	c.FileAttachment("./xin.go", newFilename)
+
+	assert.Equal(t, 200, w.Code)
+	assert.Contains(t, w.Body.String(), "func New() *Engine {")
+	assert.Equal(t, fmt.Sprintf("attachment; filename=\"%s\"", newFilename), w.Header().Get("Content-Disposition"))
+}
+
+func TestContextRenderFileFSAttachment(t *testing.T) {
+	w := httptest.NewRecorder()
+	c, _ := CreateTestContext(w)
+	newFilename := "new_filename.go"
+
+	c.Request, _ = http.NewRequest("GET", "/", nil)
+	c.FileFSAttachment(Dir("."), "./xin.go", newFilename)
 
 	assert.Equal(t, 200, w.Code)
 	assert.Contains(t, w.Body.String(), "func New() *Engine {")

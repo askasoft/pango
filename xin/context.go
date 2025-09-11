@@ -1120,8 +1120,8 @@ func (c *Context) File(filepath string) {
 	http.ServeFile(c.Writer, c.Request, filepath)
 }
 
-// FileFromFS writes the specified file from http.FileSystem into the body stream in an efficient way.
-func (c *Context) FileFromFS(filepath string, fs http.FileSystem) {
+// FileFS writes the specified file from http.FileSystem into the body stream in an efficient way.
+func (c *Context) FileFS(fs http.FileSystem, filepath string) {
 	defer func(old string) {
 		c.Request.URL.Path = old
 	}(c.Request.URL.Path)
@@ -1136,11 +1136,18 @@ func (c *Context) SetAttachmentHeader(filename string) {
 	httpx.SetAttachmentHeader(c.Writer.Header(), filename)
 }
 
-// FileAttachment writes the specified file into the body stream in an efficient way
-// On the client side, the file will typically be downloaded with the given filename
+// FileAttachment writes the specified file into the body stream in an efficient way.
+// On the client side, the file will typically be downloaded with the given filename.
 func (c *Context) FileAttachment(filepath, filename string) {
 	c.SetAttachmentHeader(filename)
-	http.ServeFile(c.Writer, c.Request, filepath)
+	c.File(filepath)
+}
+
+// FileFSAttachment writes the specified file from http.FileSystem into the body stream in an efficient way.
+// On the client side, the file will typically be downloaded with the given filename.
+func (c *Context) FileFSAttachment(fs http.FileSystem, filepath, filename string) {
+	c.SetAttachmentHeader(filename)
+	c.FileFS(fs, filepath)
 }
 
 // SSEvent writes a Server-Sent Event into the body stream.

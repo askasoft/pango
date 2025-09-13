@@ -39,6 +39,7 @@ Pango is a development library for GO.
 | [mag](./mag/)                    | a Generic map utility package           |
 | [net/email](./net/email/)        | a email sender package                  |
 | [net/httpx](./net/httpx/)        | a package for http                      |
+| [net/xmlrpc](./net/xmlrpc/)      | a XML-RPC client package based on https://github.com/kolo/xmlrpc |
 | [num](./num/)                    | a number data type utility package      |
 | [oss](./oss/)                    | a os stats collect utility package based on https://github.com/mackerelio/go-osstat |
 | [ran](./ran/)                    | a random utility package                |

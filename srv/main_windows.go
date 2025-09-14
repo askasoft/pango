@@ -10,10 +10,11 @@ import (
 )
 
 func PrintDefaultCommand(out io.Writer) {
-	fmt.Fprintln(out, "    install             install as windows service.")
-	fmt.Fprintln(out, "    remove              remove installed windows service.")
-	fmt.Fprintln(out, "    start               start the windows service.")
-	fmt.Fprintln(out, "    stop                stop the windows service.")
+	fmt.Fprintln(out, "    service <command>")
+	fmt.Fprintln(out, "      command=install   install as windows service.")
+	fmt.Fprintln(out, "      command=remove    remove installed windows service.")
+	fmt.Fprintln(out, "      command=start     start the windows service.")
+	fmt.Fprintln(out, "      command=stop      stop the windows service.")
 }
 
 func PrintDefaultOptions(out io.Writer) {
@@ -76,40 +77,49 @@ func Main(app App) {
 
 	arg := flag.Arg(0)
 	switch arg {
-	case "install":
-		err = installService(svcname, app.DisplayName(), app.Description())
-		if err == nil {
-			fmt.Printf("service %q installed\n", svcname)
-		} else {
-			fmt.Fprintf(os.Stderr, "Failed to %s service %q: %v\n", arg, svcname, err)
-			os.Exit(2)
+	case "service":
+		cmd := flag.Arg(1)
+		switch cmd {
+		case "install":
+			err = installService(svcname, app.DisplayName(), app.Description())
+			if err == nil {
+				fmt.Printf("service %q installed\n", svcname)
+			} else {
+				fmt.Fprintf(os.Stderr, "Failed to %s service %q: %v\n", arg, svcname, err)
+				os.Exit(2)
+			}
+		case "remove":
+			err = removeService(svcname)
+			if err == nil {
+				fmt.Printf("service %q removed\n", svcname)
+			} else {
+				fmt.Fprintf(os.Stderr, "Failed to %s service %q: %v\n", arg, svcname, err)
+				os.Exit(2)
+			}
+		case "start":
+			err = startService(svcname)
+			if err == nil {
+				fmt.Printf("service %q started\n", svcname)
+			} else {
+				fmt.Fprintf(os.Stderr, "Failed to %s service %q: %v\n", arg, svcname, err)
+				os.Exit(2)
+			}
+		case "stop":
+			err = controlService(svcname, svc.Stop, svc.Stopped)
+			if err == nil {
+				fmt.Printf("service %q stoped\n", svcname)
+			} else {
+				fmt.Fprintf(os.Stderr, "Failed to %s service %q: %v\n", arg, svcname, err)
+				os.Exit(2)
+			}
+		case "debug":
+			runService(app, svcname, true)
+		default:
+			flag.CommandLine.SetOutput(os.Stdout)
+			fmt.Fprintf(os.Stderr, "Invalid service command %q\n\n", cmd)
+			app.Usage()
+			os.Exit(1)
 		}
-	case "remove":
-		err = removeService(svcname)
-		if err == nil {
-			fmt.Printf("service %q removed\n", svcname)
-		} else {
-			fmt.Fprintf(os.Stderr, "Failed to %s service %q: %v\n", arg, svcname, err)
-			os.Exit(2)
-		}
-	case "start":
-		err = startService(svcname)
-		if err == nil {
-			fmt.Printf("service %q started\n", svcname)
-		} else {
-			fmt.Fprintf(os.Stderr, "Failed to %s service %q: %v\n", arg, svcname, err)
-			os.Exit(2)
-		}
-	case "stop":
-		err = controlService(svcname, svc.Stop, svc.Stopped)
-		if err == nil {
-			fmt.Printf("service %q stoped\n", svcname)
-		} else {
-			fmt.Fprintf(os.Stderr, "Failed to %s service %q: %v\n", arg, svcname, err)
-			os.Exit(2)
-		}
-	case "debug":
-		runService(app, svcname, true)
 	case "":
 		runStandalone(app)
 	default:
@@ -119,6 +129,7 @@ func Main(app App) {
 			flag.CommandLine.SetOutput(os.Stdout)
 			fmt.Fprintf(os.Stderr, "Invalid command %q\n\n", arg)
 			app.Usage()
+			os.Exit(1)
 		}
 	}
 

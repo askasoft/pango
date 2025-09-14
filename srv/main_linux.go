@@ -61,6 +61,7 @@ func Main(app App) {
 			flag.CommandLine.SetOutput(os.Stdout)
 			fmt.Fprintf(os.Stderr, "Invalid command %q\n\n", arg)
 			app.Usage()
+			os.Exit(1)
 		}
 	}
 }

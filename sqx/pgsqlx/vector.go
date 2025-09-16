@@ -1,4 +1,4 @@
-package pqx
+package pgsqlx
 
 import (
 	"database/sql/driver"

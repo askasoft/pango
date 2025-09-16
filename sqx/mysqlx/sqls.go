@@ -1,4 +1,4 @@
-package myx
+package mysqlx
 
 import "fmt"
 

@@ -62,11 +62,13 @@ func HumanDuration(d time.Duration) string {
 		sb.WriteByte('-')
 	}
 
-	if d < Second {
+	switch {
+	case d < Second:
 		// Special case: if duration is smaller than a second, use smaller units, like 1.2ms
 		switch {
 		case d < Microsecond:
-			fmt.Fprintf(&sb, "%dns", d)
+			sb.WriteString(num.Ltoa(int64(d)))
+			sb.WriteString("ns")
 		case d < Millisecond:
 			sb.WriteString(num.FtoaWithDigits(float64(d)/float64(Microsecond), 3))
 			sb.WriteString("µs")
@@ -74,23 +76,27 @@ func HumanDuration(d time.Duration) string {
 			sb.WriteString(num.FtoaWithDigits(float64(d)/float64(Millisecond), 3))
 			sb.WriteString("ms")
 		}
-	} else if d < Minute {
+	case d < Minute:
 		sb.WriteString(num.FtoaWithDigits(float64(d)/float64(Second), 3))
 		sb.WriteString("s")
-	} else {
+	default:
 		for d > Second {
 			switch {
 			case d > Day:
-				fmt.Fprintf(&sb, "%dd", d/Day)
+				sb.WriteString(num.Ltoa(int64(d / Day)))
+				sb.WriteByte('d')
 				d = d % Day
 			case d > Hour:
-				fmt.Fprintf(&sb, "%dh", d/Hour)
+				sb.WriteString(num.Ltoa(int64(d / Hour)))
+				sb.WriteByte('h')
 				d = d % Hour
 			case d > Minute:
-				fmt.Fprintf(&sb, "%dm", d/Minute)
+				sb.WriteString(num.Ltoa(int64(d / Minute)))
+				sb.WriteByte('m')
 				d = d % Minute
 			case d > Second:
-				fmt.Fprintf(&sb, "%ds", d/Second)
+				sb.WriteString(num.Ltoa(int64(d / Second)))
+				sb.WriteByte('s')
 				d = d % Second
 			}
 		}

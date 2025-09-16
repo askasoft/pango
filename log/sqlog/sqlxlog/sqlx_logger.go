@@ -8,6 +8,7 @@ import (
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/sqx/sqlx"
 	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/tmu"
 )
 
 type SqlxLogger struct {
@@ -64,16 +65,16 @@ func (sl *SqlxLogger) Trace(begin time.Time, sql string, rows int64, err error) 
 		}
 		if sl.Logger.IsLevelEnabled(lvl) {
 			if rows < 0 {
-				sl.printf(lvl, "%s [%v] %s", err, elapsed, sql)
+				sl.printf(lvl, "%s [%s] %s", err, tmu.HumanDuration(elapsed), sql)
 			} else {
-				sl.printf(lvl, "%s [%d: %v] %s", err, rows, elapsed, sql)
+				sl.printf(lvl, "%s [%d: %s] %s", err, rows, tmu.HumanDuration(elapsed), sql)
 			}
 		}
 	case sl.SlowThreshold != 0 && elapsed > sl.SlowThreshold && sl.Logger.IsLevelEnabled(sl.SlowSQLLevel):
 		if rows < 0 {
-			sl.printf(sl.SlowSQLLevel, "SLOW >= %v [%v] %s", sl.SlowThreshold, elapsed, sql)
+			sl.printf(sl.SlowSQLLevel, "SLOW >= %s [%s] %s", tmu.HumanDuration(sl.SlowThreshold), tmu.HumanDuration(elapsed), sql)
 		} else {
-			sl.printf(sl.SlowSQLLevel, "SLOW >= %v [%d: %v] %s", sl.SlowThreshold, rows, elapsed, sql)
+			sl.printf(sl.SlowSQLLevel, "SLOW >= %s [%d: %s] %s", tmu.HumanDuration(sl.SlowThreshold), rows, tmu.HumanDuration(elapsed), sql)
 		}
 	default:
 		f := sl.GetSQLLogLevel
@@ -84,9 +85,9 @@ func (sl *SqlxLogger) Trace(begin time.Time, sql string, rows int64, err error) 
 		lvl := f(sql)
 		if sl.Logger.IsLevelEnabled(lvl) {
 			if rows < 0 {
-				sl.printf(lvl, "[%v] %s", elapsed, sql)
+				sl.printf(lvl, "[%s] %s", tmu.HumanDuration(elapsed), sql)
 			} else {
-				sl.printf(lvl, "[%d: %v] %s", rows, elapsed, sql)
+				sl.printf(lvl, "[%d: %s] %s", rows, tmu.HumanDuration(elapsed), sql)
 			}
 		}
 	}

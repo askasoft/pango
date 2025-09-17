@@ -11,6 +11,7 @@ import (
 
 	"github.com/askasoft/pango/cas"
 	"github.com/askasoft/pango/mag"
+	"github.com/askasoft/pango/ref"
 	"github.com/askasoft/pango/str"
 )
 
@@ -191,13 +192,13 @@ func (binder Binder) Explain(sql string, args ...any) string {
 }
 
 const (
-	tmFmtWithMS = "2006-01-02 15:04:05.999"
-	tmFmtZero   = "0000-00-00 00:00:00"
-	nullStr     = "NULL"
+	tmFormat = "2006-01-02 15:04:05.999"
+	zeroTime = "0000-00-00 00:00:00"
+	nullStr  = "NULL"
 )
 
 // A list of Go types that should be converted to SQL primitives
-var convertibleTypes = []reflect.Type{reflect.TypeOf(time.Time{}), reflect.TypeOf(false), reflect.TypeOf([]byte{})}
+var convertibleTypes = []reflect.Type{ref.TypeTime, ref.TypeBool, ref.TypeBytes}
 
 func convert(v any) string {
 	switch v := v.(type) {
@@ -213,15 +214,15 @@ func convert(v any) string {
 		return s
 	case time.Time:
 		if v.IsZero() {
-			return "'" + tmFmtZero + "'"
+			return "'" + zeroTime + "'"
 		}
-		return "'" + v.Format(tmFmtWithMS) + "'"
+		return "'" + v.Local().Format(tmFormat) + "'"
 	case *time.Time:
 		if v != nil {
 			if v.IsZero() {
-				return "'" + tmFmtZero + "'"
+				return "'" + zeroTime + "'"
 			}
-			return "'" + v.Format(tmFmtWithMS) + "'"
+			return "'" + v.Local().Format(tmFormat) + "'"
 		}
 		return nullStr
 	case driver.Valuer:

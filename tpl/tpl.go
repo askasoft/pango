@@ -114,7 +114,8 @@ func Functions() FuncMap {
 
 		// math
 		"Add":      cal.Adds,
-		"Subtract": cal.Subtracts,
+		"Sub":      cal.Subs,
+		"Mod":      cal.Mods,
 		"Multiply": cal.Multiplys,
 		"Divide":   cal.Divides,
 

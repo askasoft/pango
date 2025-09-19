@@ -18,7 +18,7 @@
 
 <h2>Math</h2>
 <p>Add:      {{Add 1 2 3 4}}</p>
-<p>Subtract: {{Subtract 11 1 2 3 4}}</p>
+<p>Sub:      {{Sub 11 1 2 3 4}}</p>
 <p>Multiply: {{Multiply 1 2 3 4}}</p>
 <p>Divide:   {{Divide 48 1 2 3 4}}</p>
 

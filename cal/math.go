@@ -105,15 +105,15 @@ func Add(a, b any) (any, error) {
 		nb, err := cas.ToFloat64(b)
 		return na + nb, err
 	default:
-		return a, fmt.Errorf("Add: unknown type for '%T'", a)
+		return a, fmt.Errorf("add: unknown type for '%T'", a)
 	}
 }
 
-// Subtracts returns the result of a - b[0] - b[1] ...
-func Subtracts(a any, b ...any) (r any, err error) {
+// Subs returns the result of a - b[0] - b[1] ...
+func Subs(a any, b ...any) (r any, err error) {
 	r = a
 	for _, v := range b {
-		r, err = Subtract(r, v)
+		r, err = Sub(r, v)
 		if err != nil {
 			return
 		}
@@ -121,8 +121,8 @@ func Subtracts(a any, b ...any) (r any, err error) {
 	return
 }
 
-// Subtract returns the result of a - b
-func Subtract(a, b any) (any, error) {
+// Sub subtract returns the result of a - b
+func Sub(a, b any) (any, error) {
 	v, err := cast(a, b)
 	if err != nil {
 		return a, err
@@ -169,7 +169,7 @@ func Subtract(a, b any) (any, error) {
 		nb, err := cas.ToFloat64(b)
 		return na - nb, err
 	default:
-		return a, fmt.Errorf("Subtract: unknown type for '%T'", a)
+		return a, fmt.Errorf("subtract: unknown type for '%T'", a)
 	}
 }
 
@@ -201,7 +201,7 @@ func Negate(a any) (any, error) {
 	case float64:
 		return -na, nil
 	default:
-		return a, fmt.Errorf("Negate: unknown type for '%T'", a)
+		return a, fmt.Errorf("negate: unknown type for '%T'", a)
 	}
 }
 
@@ -262,7 +262,7 @@ func Multiply(a, b any) (any, error) {
 		nb, err := cas.ToFloat64(b)
 		return na * nb, err
 	default:
-		return a, fmt.Errorf("Multiply: unknown type for '%T'", a)
+		return a, fmt.Errorf("multiply: unknown type for '%T'", a)
 	}
 }
 
@@ -323,7 +323,7 @@ func Divide(a, b any) (any, error) {
 		nb, err := cas.ToFloat64(b)
 		return na / nb, err
 	default:
-		return a, fmt.Errorf("Divide: unknown type for '%T'", a)
+		return a, fmt.Errorf("divide: unknown type for '%T'", a)
 	}
 }
 
@@ -379,6 +379,6 @@ func Mod(a, b any) (any, error) {
 		nb, err := cas.ToInt64(b)
 		return int64(na) / nb, err
 	default:
-		return a, fmt.Errorf("Mod: unknown type for '%T'", a)
+		return a, fmt.Errorf("mod: unknown type for '%T'", a)
 	}
 }

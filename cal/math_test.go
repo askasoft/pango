@@ -32,7 +32,7 @@ func TestAdd(t *testing.T) {
 	}
 }
 
-func TestSubtract(t *testing.T) {
+func TestSub(t *testing.T) {
 	cs := []struct {
 		a, b, w any
 		e       error
@@ -46,13 +46,13 @@ func TestSubtract(t *testing.T) {
 		{2, 1.0, 1.0, nil},
 		{uint(2), 1.0, 1.0, nil},
 		{2.0, 1.0, 1.0, nil},
-		{"foo", 2, "foo", errors.New("Subtract: unknown type for 'string'")},
+		{"foo", 2, "foo", errors.New("subtract: unknown type for 'string'")},
 	}
 
 	for i, c := range cs {
-		r, e := Subtract(c.a, c.b)
+		r, e := Sub(c.a, c.b)
 		if c.w != r || fmt.Sprint(c.e) != fmt.Sprint(e) {
-			t.Errorf("[%d] Subtract(%v, %v) = (%T, %v, %v), want: (%T, %v, %v)", i, c.a, c.b, r, r, e, c.w, c.w, c.e)
+			t.Errorf("[%d] Sub(%v, %v) = (%T, %v, %v), want: (%T, %v, %v)", i, c.a, c.b, r, r, e, c.w, c.w, c.e)
 		}
 	}
 }
@@ -120,7 +120,7 @@ func TestMultiply(t *testing.T) {
 		{3.0, 2, 6.0, nil},
 		{uint(3), 2.0, 6.0, nil},
 		{3.0, 2.0, 6.0, nil},
-		{"foo", 2, "foo", errors.New("Multiply: unknown type for 'string'")},
+		{"foo", 2, "foo", errors.New("multiply: unknown type for 'string'")},
 	}
 
 	for i, c := range cs {
@@ -145,7 +145,7 @@ func TestDivide(t *testing.T) {
 		{10, 2.0, 5.0, nil},
 		{uint(10), 2.0, 5.0, nil},
 		{10.0, 2.0, 5.0, nil},
-		{"foo", 2, "foo", errors.New("Divide: unknown type for 'string'")},
+		{"foo", 2, "foo", errors.New("divide: unknown type for 'string'")},
 	}
 
 	for i, c := range cs {

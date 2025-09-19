@@ -98,7 +98,7 @@ func (ms *mathSub) Calculate(ec elCtx) (any, error) {
 		return cal.Negate(rval)
 	}
 
-	return cal.Subtract(lval, rval)
+	return cal.Sub(lval, rval)
 }
 
 type mathMul struct {

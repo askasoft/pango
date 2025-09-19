@@ -75,7 +75,7 @@ func TestFindAndGetHtmlLang(t *testing.T) {
 func TestFindAndGetHeadTitle(t *testing.T) {
 	cs := []string{"utf-8.html", "shift-jis.html"}
 
-	w := "タイトル"
+	w := "タ(イ)トル"
 
 	for i, c := range cs {
 		fn := testFilename(c)

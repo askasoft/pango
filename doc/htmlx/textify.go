@@ -1,7 +1,6 @@
 package htmlx
 
 import (
-	"fmt"
 	"io"
 	"strings"
 
@@ -67,10 +66,16 @@ func isSpace(r rune) bool {
 	return r <= 0x20
 }
 
+type textWriter interface {
+	io.Writer
+	io.StringWriter
+}
+
 type Textifier struct {
 	Custom func(tf *Textifier, n *html.Node) (bool, error)
+	Escape func(s string) string
 
-	tw io.Writer          // text writer
+	tw textWriter         // text writer
 	pw *iox.ProxyWriter   // proxy writer
 	cw *iox.CompactWriter // compact writer
 	lv int                // ol/ul/dir/menu level
@@ -84,11 +89,16 @@ func NewTextifier(w io.Writer) *Textifier {
 	pw := &iox.ProxyWriter{W: w}
 	cw := iox.NewCompactWriter(pw, isSpace, ' ')
 	tf := &Textifier{
-		tw: cw,
-		pw: pw,
-		cw: cw,
+		Escape: noescape,
+		tw:     cw,
+		pw:     pw,
+		cw:     cw,
 	}
 	return tf
+}
+
+func noescape(s string) string {
+	return s
 }
 
 func (tf *Textifier) Textify(n *html.Node) error {
@@ -169,9 +179,13 @@ func (tf *Textifier) Textify(n *html.Node) error {
 	}
 }
 
-func (tf *Textifier) Text(s string) error {
-	_, err := iox.WriteString(tf.tw, s)
-	return err
+func (tf *Textifier) Text(ss ...string) error {
+	for _, s := range ss {
+		if _, err := tf.tw.WriteString(tf.Escape(s)); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (tf *Textifier) Eol() error {
@@ -221,8 +235,10 @@ func (tf *Textifier) HbrDeep(n *html.Node, x int) error {
 	if err := tf.Eol(); err != nil {
 		return err
 	}
-	s := str.RepeatRune('#', x) + " "
-	if _, err := tf.pw.Write(str.UnsafeBytes(s)); err != nil {
+	if _, err := iox.RepeatWriteString(tf.pw, "#", x); err != nil {
+		return err
+	}
+	if _, err := tf.pw.WriteString(" "); err != nil {
 		return err
 	}
 	tf.cw.Reset(true)
@@ -246,18 +262,45 @@ func (tf *Textifier) A(n *html.Node) error {
 	text := str.Strip(sa.String())
 
 	if href == text {
-		return tf.Text(" " + href + " ")
+		return tf.Text(" ", href, " ")
 	}
 
-	_, err := fmt.Fprintf(tf.tw, " [%s](%s) ", text, href)
-	return err
+	if _, err := tf.pw.WriteString(" ["); err != nil {
+		return err
+	}
+	if _, err := tf.pw.WriteString(text); err != nil {
+		return err
+	}
+	if _, err := tf.pw.WriteString(" ]("); err != nil {
+		return err
+	}
+	if err := tf.Text(href); err != nil {
+		return err
+	}
+	if _, err := tf.pw.WriteString(") "); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (tf *Textifier) Img(n *html.Node) error {
 	src := str.Strip(GetNodeAttrValue(n, "src"))
 	if src != "" {
 		alt := str.Strip(GetNodeAttrValue(n, "alt"))
-		if _, err := fmt.Fprintf(tf.tw, " ![%s](%s) ", alt, src); err != nil {
+
+		if _, err := tf.pw.WriteString(" !["); err != nil {
+			return err
+		}
+		if err := tf.Text(alt); err != nil {
+			return err
+		}
+		if _, err := tf.pw.WriteString(" ]("); err != nil {
+			return err
+		}
+		if err := tf.Text(src); err != nil {
+			return err
+		}
+		if _, err := tf.pw.WriteString(") "); err != nil {
 			return err
 		}
 	}
@@ -277,7 +320,7 @@ func (tf *Textifier) WbrDeep(n *html.Node) error {
 
 func (tf *Textifier) Title(n *html.Node) error {
 	s := Stringify(n)
-	if _, err := tf.pw.WriteString(s); err != nil {
+	if err := tf.Text(s); err != nil {
 		return err
 	}
 	if err := tf.Eol(); err != nil {
@@ -300,7 +343,7 @@ func (tf *Textifier) Thead(n *html.Node) error {
 }
 
 func (tf *Textifier) Tr(n *html.Node) error {
-	if _, err := iox.WriteString(tf.pw, "| "); err != nil {
+	if _, err := tf.pw.WriteString("| "); err != nil {
 		return err
 	}
 	tf.cw.Reset(true)
@@ -313,7 +356,7 @@ func (tf *Textifier) Tr(n *html.Node) error {
 		return err
 	}
 	if tf.th {
-		if _, err := tf.pw.Write([]byte{'|'}); err != nil {
+		if _, err := tf.pw.WriteString("|"); err != nil {
 			return err
 		}
 		for range tf.td {

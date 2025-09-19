@@ -1,5 +1,5 @@
-タイトル
-============
+タ(イ)トル
+==============
 
 
 # H1です。
@@ -18,7 +18,7 @@ PREです。
 	LINE2です。
 
 
-https://google.com/ [Aです。](https://a.com/) [Bです。](https://b.com/) ![x.png](./x.png) ![a.png](./a.png) ![b.png](./b.png) 
+https://google.com/(abc)  [Aです。 ](https://a.com/(a))  [Bです。 ](https://b.com/(b))   ![(x).png ](./(x).png)   ![a.png ](./a.png)  ![b.png ](./b.png)  
 
 1. OL.LI(1) 
 	- OL.UL.LI(1)

@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/askasoft/pango/gog"
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/tmu"
@@ -18,8 +19,10 @@ type SlackWriter struct {
 	log.FormatSupport
 	log.SubjectSuport
 
-	Webhook string
-	Timeout time.Duration
+	Webhook      string
+	Timeout      time.Duration
+	MaxSubLength int // default: 200
+	MaxMsgLength int // default: 2000
 
 	message slack.Message
 }
@@ -89,9 +92,13 @@ func (sw *SlackWriter) format(le *log.Event) (sub, msg string) {
 	sbs := sw.SubFormat(le)
 	sub = str.UnsafeString(sbs)
 	sub = slack.EscapeString(sub)
+	msl := gog.If(sw.MaxSubLength <= 0, 200, sw.MaxSubLength)
+	sub = str.Ellipsis(sub, msl)
 
 	mbs := sw.Format(le)
 	msg = str.UnsafeString(mbs)
+	mml := gog.If(sw.MaxMsgLength <= 0, 2000, sw.MaxMsgLength)
+	msg = str.Ellipsis(msg, mml)
 	return
 }
 

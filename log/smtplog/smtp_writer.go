@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/askasoft/pango/gog"
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/net/email"
 	"github.com/askasoft/pango/str"
@@ -18,12 +19,14 @@ type SMTPWriter struct {
 	log.FormatSupport
 	log.SubjectSuport
 
-	Host     string
-	Port     int
-	Insecure bool
-	Username string
-	Password string
-	Timeout  time.Duration
+	Host         string
+	Port         int
+	Insecure     bool
+	Username     string
+	Password     string
+	Timeout      time.Duration
+	MaxSubLength int // default: 200
+	MaxMsgLength int // default: 2000
 
 	email  email.Email       // email
 	sender *email.SMTPSender // email sender
@@ -114,9 +117,13 @@ func (sw *SMTPWriter) write(le *log.Event) (err error) {
 func (sw *SMTPWriter) format(le *log.Event) (sub, msg string) {
 	sbs := sw.SubFormat(le)
 	sub = str.UnsafeString(sbs)
+	msl := gog.If(sw.MaxSubLength <= 0, 200, sw.MaxSubLength)
+	sub = str.Ellipsis(sub, msl)
 
 	mbs := sw.Format(le)
 	msg = str.UnsafeString(mbs)
+	mml := gog.If(sw.MaxMsgLength <= 0, 2000, sw.MaxMsgLength)
+	msg = str.Ellipsis(msg, mml)
 	return
 }
 

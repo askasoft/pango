@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/askasoft/pango/gog"
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/tmu"
@@ -18,9 +19,11 @@ type TeamsWriter struct {
 	log.FormatSupport
 	log.SubjectSuport
 
-	Webhook string
-	Timeout time.Duration
-	Style   string
+	Webhook      string
+	Timeout      time.Duration
+	Style        string
+	MaxSubLength int // default: 200
+	MaxMsgLength int // default: 2000
 
 	message teams.Message
 }
@@ -138,9 +141,13 @@ func (tw *TeamsWriter) write(le *log.Event) (err error) {
 func (tw *TeamsWriter) format(le *log.Event) (sub, msg string) {
 	sbs := tw.SubFormat(le)
 	sub = str.UnsafeString(sbs)
+	msl := gog.If(tw.MaxSubLength <= 0, 200, tw.MaxSubLength)
+	sub = str.Ellipsis(sub, msl)
 
 	mbs := tw.Format(le)
 	msg = str.UnsafeString(mbs)
+	mml := gog.If(tw.MaxMsgLength <= 0, 2000, tw.MaxMsgLength)
+	msg = str.Ellipsis(msg, mml)
 	return
 }
 

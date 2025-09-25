@@ -93,5 +93,5 @@ func TestPanicInCustomRecovery(t *testing.T) {
 
 	w := performRequest(router, "GET", "/recovery")
 	assert.Equal(t, http.StatusBadRequest, w.Code)
-	assert.Equal(t, e, w.Body.String())
+	assert.Equal(t, fmt.Sprintf("%s%d %s", e, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError)), w.Body.String())
 }

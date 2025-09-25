@@ -1,10 +1,8 @@
 package xin
 
 import (
-	"errors"
 	"net"
 	"net/http"
-	"os"
 
 	"github.com/askasoft/pango/str"
 )
@@ -27,36 +25,34 @@ func CustomRecovery(r RecoveryFunc) HandlerFunc {
 }
 
 func defaultRecover(c *Context, err any) {
-	loggerRecover(c, err)
-	c.AbortWithStatus(http.StatusInternalServerError)
-}
-
-func loggerRecover(c *Context, err any) {
-	c.Logger.Errorf("Panic (//%s%s): %v", c.Request.Host, c.Request.URL, err)
-}
-
-func doRecovery(c *Context, err any, r RecoveryFunc) {
 	if IsBrokenPipeError(err) {
-		c.Logger.Debugf("Abort: %v", err)
+		c.Logger.Warnf("Broken (//%s%s): %v", c.Request.Host, c.Request.URL, err)
 
 		// connection is dead, we can't write a status to it.
 		c.Abort()
 		return
 	}
 
-	r(c, err)
+	c.Logger.Errorf("Panic (//%s%s): %v", c.Request.Host, c.Request.URL, err)
+	c.AbortWithStatus(http.StatusInternalServerError)
 }
 
 func Recover(c *Context, r RecoveryFunc) {
 	defer func() {
 		if err := recover(); err != nil {
-			doRecovery(c, err, loggerRecover)
+			defaultRecover(c, err)
 		}
 	}()
 
 	if err := recover(); err != nil {
-		doRecovery(c, err, r)
+		r(c, err)
 	}
+}
+
+var BrokenPipeErrors = []string{
+	"broken pipe",
+	"connection reset by peer",
+	"i/o timeout",
 }
 
 // IsBrokenPipeError Check for a broken connection error
@@ -65,9 +61,9 @@ func IsBrokenPipeError(err any) bool {
 		// Check for a broken connection, as it is not really a
 		// condition that warrants a panic stack trace.
 		if ne, ok := err.(*net.OpError); ok {
-			var se *os.SyscallError
-			if errors.As(ne, &se) {
-				if str.ContainsFold(se.Error(), "broken pipe") || str.ContainsFold(se.Error(), "connection reset by peer") {
+			se := ne.Unwrap().Error()
+			for _, s := range BrokenPipeErrors {
+				if str.ContainsFold(s, se) {
 					return true
 				}
 			}

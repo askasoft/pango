@@ -64,23 +64,11 @@ func (c *Client) Call(ctx context.Context, method string, result any, params ...
 	return err
 }
 
-func (c *Client) call(req *http.Request) (res *http.Response, err error) {
+func (c *Client) call(req *http.Request) (*http.Response, error) {
 	client := &http.Client{
 		Transport: c.Transport,
 		Timeout:   c.Timeout,
 	}
 
-	if log := c.Logger; log != nil {
-		log.Debugf("%s %s", req.Method, req.URL)
-	}
-
-	rid := httplog.TraceHttpRequest(c.Logger, req)
-
-	res, err = client.Do(req)
-	if err != nil {
-		return res, err
-	}
-
-	httplog.TraceHttpResponse(c.Logger, res, rid)
-	return res, nil
+	return httplog.TraceClientDo(c.Logger, client, req)
 }

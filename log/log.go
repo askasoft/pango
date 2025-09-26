@@ -8,12 +8,12 @@
 //
 // Use it like this:
 //
-//	log.Fatal("fatal")
-//	log.Error("error")
-//	log.Warn("warning")
-//	log.Info("info")
-//	log.Debug("debug")
 //	log.Trace("trace")
+//	log.Debug("debug")
+//	log.Info("info")
+//	log.Warn("warning")
+//	log.Error("error")
+//	log.Fatal(1, "fatal")
 //
 // A Logger with name:
 //
@@ -36,6 +36,11 @@ var _log = NewLog()
 // Default returns the default Log instance used by the package-level functions.
 func Default() *Log {
 	return _log
+}
+
+// Clone create a copy of the default Log instance with console writer
+func Clone() *Log {
+	return _log.Clone()
 }
 
 // Config config log by configuration file

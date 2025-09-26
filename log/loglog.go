@@ -28,7 +28,7 @@ type Log struct {
 
 var emptyProps = make(map[string]any)
 
-// NewLog returns a new Log.
+// NewLog returns a new Log with console writer
 func NewLog() *Log {
 	log := &Log{
 		name:   "_",
@@ -37,7 +37,7 @@ func NewLog() *Log {
 		level:  LevelTrace,
 		trace:  LevelError,
 		levels: make(map[string]Level),
-		writer: NewStdoutWriter(),
+		writer: NewConsoleWriter(),
 	}
 
 	runtime.SetFinalizer(log, finalClose)
@@ -46,6 +46,27 @@ func NewLog() *Log {
 
 func finalClose(log *Log) {
 	log.Close()
+}
+
+// Clone create a copy of the log with console writer
+func (log *Log) Clone() *Log {
+	lg := &Log{
+		name:   log.name,
+		skip:   log.skip,
+		props:  log.props,
+		level:  log.level,
+		trace:  log.trace,
+		levels: log.levels,
+		writer: NewConsoleWriter(),
+	}
+
+	runtime.SetFinalizer(lg, finalClose)
+	return lg
+}
+
+// GetLevels get the logger levels
+func (log *Log) GetLevels() map[string]Level {
+	return log.levels
 }
 
 // SetLevels set the logger levels

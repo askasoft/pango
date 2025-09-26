@@ -4,6 +4,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/askasoft/pango/bol"
 	"github.com/askasoft/pango/gog"
 	"github.com/askasoft/pango/iox"
 )
@@ -57,9 +58,9 @@ var colors = [][]byte{
 	[]byte(iox.ConsoleColor.Gray),    // Trace
 }
 
-// NewConsoleWriter create a color console log writer
-func NewConsoleWriter() *StreamWriter {
-	return &StreamWriter{Color: true}
+// NewConsoleWriter create a console log writer
+func NewConsoleWriter(color ...bool) *StreamWriter {
+	return &StreamWriter{Color: bol.NonFalse(color...)}
 }
 
 // NewStdoutWriter create a stdout log writer

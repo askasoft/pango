@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestMatch(t *testing.T) {
+func TestContains(t *testing.T) {
 	cs := []struct {
 		p string
 		s string
@@ -42,9 +42,9 @@ func TestMatch(t *testing.T) {
 		// Test case - 5.
 		// Test case with a no "*". In this case the p and s should be the same.
 		{
-			p: "s3:ListBucketMultipartUploads",
+			p: "s3:ListBucket/MultipartUploads",
 			s: "s3:ListBucket",
-			w: false,
+			w: true,
 		},
 		// Test case - 6.
 		// Test case with a no "*". In this case the p and s should be the same.
@@ -116,7 +116,7 @@ func TestMatch(t *testing.T) {
 		{
 			p: "my-bucket/In*/Ka*/Ban",
 			s: "my-bucket/India/Karnataka/Bangalore",
-			w: false,
+			w: true,
 		},
 		// Test case - 16.
 		// Test case with prefixes and wildcard expanded for all "*".
@@ -208,13 +208,13 @@ func TestMatch(t *testing.T) {
 		{
 			p: "my-bucket/abc????",
 			s: "my-bucket/abc",
-			w: false,
+			w: true,
 		},
 		// Test case - 30.
 		{
 			p: "my-bucket/abc????",
 			s: "my-bucket/abcde",
-			w: false,
+			w: true,
 		},
 		// Test case - 31.
 		{
@@ -227,7 +227,7 @@ func TestMatch(t *testing.T) {
 		{
 			p: "my-bucket/abc?",
 			s: "my-bucket/abc",
-			w: false,
+			w: true,
 		},
 		{
 			p: "my-bucket/abc?",
@@ -243,7 +243,7 @@ func TestMatch(t *testing.T) {
 		{
 			p: "my-bucket/mnop*?",
 			s: "my-bucket/mnop",
-			w: false,
+			w: true,
 		},
 		// Test case 36.
 		{
@@ -261,7 +261,7 @@ func TestMatch(t *testing.T) {
 		{
 			p: "my-bucket/mnop*?",
 			s: "my-bucket/mnop",
-			w: false,
+			w: true,
 		},
 		// Test case 39.
 		{
@@ -285,7 +285,7 @@ func TestMatch(t *testing.T) {
 		{
 			p: "my-bucket/mnop*?and",
 			s: "my-bucket/mnopand",
-			w: false,
+			w: true,
 		},
 		// Test case 43.
 		{
@@ -297,7 +297,7 @@ func TestMatch(t *testing.T) {
 		{
 			p: "my-bucket/mnop*?",
 			s: "my-bucket/mn",
-			w: false,
+			w: true,
 		},
 		// Test case 45.
 		{
@@ -327,7 +327,7 @@ func TestMatch(t *testing.T) {
 		{
 			p: "my-bucket/mnop*?and",
 			s: "my-bucket/mnopand",
-			w: false,
+			w: true,
 		},
 		// Test case 50.
 		{
@@ -339,7 +339,7 @@ func TestMatch(t *testing.T) {
 		{
 			p: "my-bucket/mnop*?and",
 			s: "my-bucket/mnopqanda",
-			w: false,
+			w: true,
 		},
 		// Test case 52.
 		{
@@ -356,9 +356,9 @@ func TestMatch(t *testing.T) {
 	}
 
 	for i, c := range cs {
-		a := Match(c.p, c.s)
+		a := Contains(c.p, c.s)
 		if c.w != a {
-			t.Errorf("%d: Match(%q, %q) = %v, want: %v", i+1, c.p, c.s, a, c.w)
+			t.Errorf("%d: Contains(%q, %q) = %v, want: %v", i+1, c.p, c.s, a, c.w)
 		}
 
 		if c.w {
@@ -367,15 +367,15 @@ func TestMatch(t *testing.T) {
 			if foldText == c.s {
 				foldText = strings.ToLower(c.s)
 			}
-			a = MatchFold(c.p, foldText)
+			a = ContainsFold(c.p, foldText)
 			if c.w != a {
-				t.Errorf("%d: MatchFold(%q, %q) = %v, want: %v", i+1, c.p, foldText, a, c.w)
+				t.Errorf("%d: ContainsFold(%q, %q) = %v, want: %v", i+1, c.p, foldText, a, c.w)
 			}
 		}
 	}
 }
 
-func TestMatchSimple(t *testing.T) {
+func TestContainsSimple(t *testing.T) {
 	cs := []struct {
 		p string
 		s string
@@ -414,7 +414,7 @@ func TestMatchSimple(t *testing.T) {
 		{
 			p: "s3:ListBucketMultipartUploads",
 			s: "s3:ListBucket",
-			w: false,
+			w: true,
 		},
 		// Test case - 6.
 		// Test case with a no "*". In this case the p and s should be the same.
@@ -486,7 +486,7 @@ func TestMatchSimple(t *testing.T) {
 		{
 			p: "my-bucket/In*/Ka*/Ban",
 			s: "my-bucket/India/Karnataka/Bangalore",
-			w: false,
+			w: true,
 		},
 		// Test case - 16.
 		// Test case with prefixes and wildcard expanded for all "*".
@@ -535,9 +535,9 @@ func TestMatchSimple(t *testing.T) {
 	}
 
 	for i, c := range cs {
-		a := MatchSimple(c.p, c.s)
+		a := ContainsSimple(c.p, c.s)
 		if c.w != a {
-			t.Errorf("%d: MatchSimple(%q, %q) = %v, want: %v", i+1, c.p, c.s, a, c.w)
+			t.Errorf("%d: ContainsSimple(%q, %q) = %v, want: %v", i+1, c.p, c.s, a, c.w)
 		}
 
 		if c.w {
@@ -546,9 +546,9 @@ func TestMatchSimple(t *testing.T) {
 			if foldText == c.s {
 				foldText = strings.ToLower(c.s)
 			}
-			a = MatchSimpleFold(c.p, foldText)
+			a = ContainsSimpleFold(c.p, foldText)
 			if c.w != a {
-				t.Errorf("%d: MatchSimpleFold(%q, %q) = %v, want: %v", i+1, c.p, foldText, a, c.w)
+				t.Errorf("%d: ContainsSimpleFold(%q, %q) = %v, want: %v", i+1, c.p, foldText, a, c.w)
 			}
 		}
 	}

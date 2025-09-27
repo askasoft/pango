@@ -6,19 +6,24 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
+type equal func(a, b rune) bool
+
+func runeEqual(a, b rune) bool {
+	return a == b
+}
+
 // MatchSimple - finds whether the text matches/satisfies the pattern string.
 // supports only '*' wildcard in the pattern.
 // considers a file system path as a flat name space.
 func MatchSimple(pattern, s string) bool {
-	if pattern == "" {
-		return s == pattern
-	}
-	if pattern == "*" {
+	switch pattern {
+	case "":
+		return pattern == s
+	case "*":
 		return true
+	default:
+		return deepMatchSimple(pattern, s, runeEqual)
 	}
-
-	// Does only wildcard '*' match.
-	return deepMatchSimple(pattern, s)
 }
 
 // MatchSimpleFold - finds whether the text matches/satisfies the pattern string.
@@ -26,15 +31,14 @@ func MatchSimple(pattern, s string) bool {
 // case insensitive.
 // considers a file system path as a flat name space.
 func MatchSimpleFold(pattern, s string) bool {
-	if pattern == "" {
-		return s == pattern
-	}
-	if pattern == "*" {
+	switch pattern {
+	case "":
+		return pattern == s
+	case "*":
 		return true
+	default:
+		return deepMatchSimple(pattern, s, str.RuneEqualFold)
 	}
-
-	// Does only wildcard '*' match.
-	return deepMatchSimpleFold(pattern, s)
 }
 
 // Match -  finds whether the text matches/satisfies the pattern string.
@@ -42,53 +46,49 @@ func MatchSimpleFold(pattern, s string) bool {
 // case insensitive.
 // unlike path.Match(), considers a path as a flat name space while matching the pattern.
 func Match(pattern, s string) bool {
-	if pattern == "" {
-		return s == pattern
-	}
-
-	if pattern == "*" {
+	switch pattern {
+	case "":
+		return pattern == s
+	case "*":
 		return true
+	default:
+		return deepMatchWild(pattern, s, runeEqual)
 	}
-
-	// Does extended wildcard '*' and '?' match.
-	return deepMatchWild(pattern, s)
 }
 
 // MatchFold -  finds whether the text matches/satisfies the pattern string.
 // supports  '*' and '?' wildcards in the pattern string.
 // unlike path.Match(), considers a path as a flat name space while matching the pattern.
 func MatchFold(pattern, s string) bool {
-	if pattern == "" {
-		return s == pattern
-	}
-
-	if pattern == "*" {
+	switch pattern {
+	case "":
+		return pattern == s
+	case "*":
 		return true
+	default:
+		return deepMatchWild(pattern, s, str.RuneEqualFold)
 	}
-
-	// Does extended wildcard '*' and '?' match.
-	return deepMatchWildFold(pattern, s)
 }
 
-func skipAsterisk(pattern string) string {
-	for len(pattern) > 1 && pattern[1] == '*' {
-		pattern = pattern[1:]
+func skipAsterisk(p string) string {
+	for len(p) > 1 && p[1] == '*' {
+		p = p[1:]
 	}
-	return pattern
+	return p
 }
 
-func deepMatchSimple(pattern, s string) bool {
-	for len(pattern) > 0 {
-		pc, pz := utf8.DecodeRuneInString(pattern)
+func deepMatchSimple(p, s string, eq equal) bool {
+	for len(p) > 0 {
+		pc, pz := utf8.DecodeRuneInString(p)
 		switch pc {
 		case '*':
-			pattern = skipAsterisk(pattern)
-			if deepMatchSimple(pattern[pz:], s) {
+			p = skipAsterisk(p)
+			if deepMatchSimple(p[pz:], s, eq) {
 				return true
 			}
 			if len(s) > 0 {
 				_, sz := utf8.DecodeRuneInString(s)
-				return deepMatchSimple(pattern, s[sz:])
+				return deepMatchSimple(p, s[sz:], eq)
 			}
 			return false
 		default:
@@ -96,57 +96,27 @@ func deepMatchSimple(pattern, s string) bool {
 				return false
 			}
 			sc, sz := utf8.DecodeRuneInString(s)
-			if sc != pc {
+			if !eq(sc, pc) {
 				return false
 			}
-			s = s[sz:]
-			pattern = pattern[pz:]
+			p, s = p[pz:], s[sz:]
 		}
 	}
-	return len(s) == 0 && len(pattern) == 0
+	return len(s) == 0 && len(p) == 0
 }
 
-func deepMatchSimpleFold(pattern, s string) bool {
-	for len(pattern) > 0 {
-		pc, pz := utf8.DecodeRuneInString(pattern)
+func deepMatchWild(p, s string, eq equal) bool {
+	for len(p) > 0 {
+		pc, pz := utf8.DecodeRuneInString(p)
 		switch pc {
 		case '*':
-			pattern = skipAsterisk(pattern)
-			if deepMatchSimpleFold(pattern[pz:], s) {
+			p = skipAsterisk(p)
+			if deepMatchWild(p[pz:], s, eq) {
 				return true
 			}
 			if len(s) > 0 {
 				_, sz := utf8.DecodeRuneInString(s)
-				return deepMatchSimpleFold(pattern, s[sz:])
-			}
-			return false
-		default:
-			if len(s) == 0 {
-				return false
-			}
-			sc, sz := utf8.DecodeRuneInString(s)
-			if !str.RuneEqualFold(sc, pc) {
-				return false
-			}
-			s = s[sz:]
-			pattern = pattern[pz:]
-		}
-	}
-	return len(s) == 0 && len(pattern) == 0
-}
-
-func deepMatchWild(pattern, s string) bool {
-	for len(pattern) > 0 {
-		pc, pz := utf8.DecodeRuneInString(pattern)
-		switch pc {
-		case '*':
-			pattern = skipAsterisk(pattern)
-			if deepMatchWild(pattern[pz:], s) {
-				return true
-			}
-			if len(s) > 0 {
-				_, sz := utf8.DecodeRuneInString(s)
-				return deepMatchWild(pattern, s[sz:])
+				return deepMatchWild(p, s[sz:], eq)
 			}
 			return false
 		case '?':
@@ -154,55 +124,17 @@ func deepMatchWild(pattern, s string) bool {
 				return false
 			}
 			_, sz := utf8.DecodeRuneInString(s)
-			s = s[sz:]
-			pattern = pattern[pz:]
+			p, s = p[pz:], s[sz:]
 		default:
 			if len(s) == 0 {
 				return false
 			}
 			sc, sz := utf8.DecodeRuneInString(s)
-			if sc != pc {
+			if !eq(sc, pc) {
 				return false
 			}
-			s = s[sz:]
-			pattern = pattern[pz:]
+			p, s = p[pz:], s[sz:]
 		}
 	}
-	return len(s) == 0 && len(pattern) == 0
-}
-
-func deepMatchWildFold(pattern, s string) bool {
-	for len(pattern) > 0 {
-		pc, pz := utf8.DecodeRuneInString(pattern)
-		switch pc {
-		case '*':
-			pattern = skipAsterisk(pattern)
-			if deepMatchWildFold(pattern[pz:], s) {
-				return true
-			}
-			if len(s) > 0 {
-				_, sz := utf8.DecodeRuneInString(s)
-				return deepMatchWildFold(pattern, s[sz:])
-			}
-			return false
-		case '?':
-			if len(s) == 0 {
-				return false
-			}
-			_, sz := utf8.DecodeRuneInString(s)
-			s = s[sz:]
-			pattern = pattern[pz:]
-		default:
-			if len(s) == 0 {
-				return false
-			}
-			sc, sz := utf8.DecodeRuneInString(s)
-			if !str.RuneEqualFold(sc, pc) {
-				return false
-			}
-			s = s[sz:]
-			pattern = pattern[pz:]
-		}
-	}
-	return len(s) == 0 && len(pattern) == 0
+	return len(s) == 0 && len(p) == 0
 }

@@ -65,8 +65,11 @@ func (v *Vector) Scan(src any) (err error) {
 		return v.Parse(str.UnsafeString(src))
 	case string:
 		return v.Parse(src)
+	case nil:
+		*v = nil
+		return nil
 	default:
-		return fmt.Errorf("unsupported data type: %T", src)
+		return fmt.Errorf("pgsqlx: cannot convert %T to Vector", src)
 	}
 }
 

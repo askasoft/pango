@@ -27,9 +27,9 @@ func (a *BoolArray) Scan(src any) error {
 	case nil:
 		*a = nil
 		return nil
+	default:
+		return fmt.Errorf("pgsqlx: cannot convert %T to BoolArray", src)
 	}
-
-	return fmt.Errorf("pqx: cannot convert %T to BoolArray", src)
 }
 
 func (a *BoolArray) scanBytes(src []byte) error {
@@ -43,7 +43,7 @@ func (a *BoolArray) scanBytes(src []byte) error {
 		b := make(BoolArray, len(elems))
 		for i, v := range elems {
 			if len(v) != 1 {
-				return fmt.Errorf("pqx: could not parse boolean array index %d: invalid boolean %q", i, v)
+				return fmt.Errorf("pgsqlx: could not parse boolean array index %d: invalid boolean %q", i, v)
 			}
 			switch v[0] {
 			case 't':
@@ -51,7 +51,7 @@ func (a *BoolArray) scanBytes(src []byte) error {
 			case 'f':
 				b[i] = false
 			default:
-				return fmt.Errorf("pqx: could not parse boolean array index %d: invalid boolean %q", i, v)
+				return fmt.Errorf("pgsqlx: could not parse boolean array index %d: invalid boolean %q", i, v)
 			}
 		}
 		*a = b
@@ -106,9 +106,9 @@ func (a *Float64Array) Scan(src any) error {
 	case nil:
 		*a = nil
 		return nil
+	default:
+		return fmt.Errorf("pgsqlx: cannot convert %T to Float64Array", src)
 	}
-
-	return fmt.Errorf("pqx: cannot convert %T to Float64Array", src)
 }
 
 func (a *Float64Array) scanBytes(src []byte) error {
@@ -122,7 +122,7 @@ func (a *Float64Array) scanBytes(src []byte) error {
 		b := make(Float64Array, len(elems))
 		for i, v := range elems {
 			if b[i], err = strconv.ParseFloat(str.UnsafeString(v), 64); err != nil {
-				return fmt.Errorf("pqx: parsing array element index %d: %w", i, err)
+				return fmt.Errorf("pgsqlx: parsing array element index %d: %w", i, err)
 			}
 		}
 		*a = b
@@ -172,9 +172,9 @@ func (a *Float32Array) Scan(src any) error {
 	case nil:
 		*a = nil
 		return nil
+	default:
+		return fmt.Errorf("pgsqlx: cannot convert %T to Float32Array", src)
 	}
-
-	return fmt.Errorf("pqx: cannot convert %T to Float32Array", src)
 }
 
 func (a *Float32Array) scanBytes(src []byte) error {
@@ -189,7 +189,7 @@ func (a *Float32Array) scanBytes(src []byte) error {
 		for i, v := range elems {
 			var x float64
 			if x, err = strconv.ParseFloat(str.UnsafeString(v), 32); err != nil {
-				return fmt.Errorf("pqx: parsing array element index %d: %w", i, err)
+				return fmt.Errorf("pgsqlx: parsing array element index %d: %w", i, err)
 			}
 			b[i] = float32(x)
 		}
@@ -239,9 +239,9 @@ func (a *Int64Array) Scan(src any) error {
 	case nil:
 		*a = nil
 		return nil
+	default:
+		return fmt.Errorf("pgsqlx: cannot convert %T to Int64Array", src)
 	}
-
-	return fmt.Errorf("pqx: cannot convert %T to Int64Array", src)
 }
 
 func (a *Int64Array) scanBytes(src []byte) error {
@@ -255,7 +255,7 @@ func (a *Int64Array) scanBytes(src []byte) error {
 		b := make(Int64Array, len(elems))
 		for i, v := range elems {
 			if b[i], err = strconv.ParseInt(str.UnsafeString(v), 10, 64); err != nil {
-				return fmt.Errorf("pqx: parsing array element index %d: %w", i, err)
+				return fmt.Errorf("pgsqlx: parsing array element index %d: %w", i, err)
 			}
 		}
 		*a = b
@@ -304,9 +304,9 @@ func (a *Int32Array) Scan(src any) error {
 	case nil:
 		*a = nil
 		return nil
+	default:
+		return fmt.Errorf("pgsqlx: cannot convert %T to Int32Array", src)
 	}
-
-	return fmt.Errorf("pqx: cannot convert %T to Int32Array", src)
 }
 
 func (a *Int32Array) scanBytes(src []byte) error {
@@ -321,7 +321,7 @@ func (a *Int32Array) scanBytes(src []byte) error {
 		for i, v := range elems {
 			x, err := strconv.ParseInt(str.UnsafeString(v), 10, 32)
 			if err != nil {
-				return fmt.Errorf("pqx: parsing array element index %d: %w", i, err)
+				return fmt.Errorf("pgsqlx: parsing array element index %d: %w", i, err)
 			}
 			b[i] = int32(x)
 		}
@@ -371,9 +371,9 @@ func (a *IntArray) Scan(src any) error {
 	case nil:
 		*a = nil
 		return nil
+	default:
+		return fmt.Errorf("pgsqlx: cannot convert %T to Int32Array", src)
 	}
-
-	return fmt.Errorf("pqx: cannot convert %T to Int32Array", src)
 }
 
 func (a *IntArray) scanBytes(src []byte) error {
@@ -388,7 +388,7 @@ func (a *IntArray) scanBytes(src []byte) error {
 		for i, v := range elems {
 			x, err := strconv.ParseInt(str.UnsafeString(v), 10, strconv.IntSize)
 			if err != nil {
-				return fmt.Errorf("pqx: parsing array element index %d: %w", i, err)
+				return fmt.Errorf("pgsqlx: parsing array element index %d: %w", i, err)
 			}
 			b[i] = int(x)
 		}
@@ -438,9 +438,9 @@ func (a *StringArray) Scan(src any) error {
 	case nil:
 		*a = nil
 		return nil
+	default:
+		return fmt.Errorf("pgsqlx: cannot convert %T to StringArray", src)
 	}
-
-	return fmt.Errorf("pqx: cannot convert %T to StringArray", src)
 }
 
 func (a *StringArray) scanBytes(src []byte) error {
@@ -454,7 +454,7 @@ func (a *StringArray) scanBytes(src []byte) error {
 		b := make(StringArray, len(elems))
 		for i, v := range elems {
 			if b[i] = str.UnsafeString(v); v == nil {
-				return fmt.Errorf("pqx: parsing array element index %d: cannot convert nil to string", i)
+				return fmt.Errorf("pgsqlx: parsing array element index %d: cannot convert nil to string", i)
 			}
 		}
 		*a = b
@@ -515,7 +515,7 @@ func parseArray(src []byte) (dims []int, elems [][]byte, err error) {
 	var depth, i int
 
 	if len(src) < 1 || src[0] != '{' {
-		return nil, nil, fmt.Errorf("pqx: unable to parse array; expected %q at offset %d", '{', 0)
+		return nil, nil, fmt.Errorf("pgsqlx: unable to parse array; expected %q at offset %d", '{', 0)
 	}
 
 Open:
@@ -568,7 +568,7 @@ Element:
 				if src[i] == ',' || src[i] == '}' {
 					elem := src[start:i]
 					if len(elem) == 0 {
-						return nil, nil, fmt.Errorf("pqx: unable to parse array; unexpected %q at offset %d", src[i], i)
+						return nil, nil, fmt.Errorf("pgsqlx: unable to parse array; unexpected %q at offset %d", src[i], i)
 					}
 					if bytes.Equal(elem, null) {
 						elem = nil
@@ -590,7 +590,7 @@ Element:
 			depth--
 			i++
 		} else {
-			return nil, nil, fmt.Errorf("pqx: unable to parse array; unexpected %q at offset %d", src[i], i)
+			return nil, nil, fmt.Errorf("pgsqlx: unable to parse array; unexpected %q at offset %d", src[i], i)
 		}
 	}
 
@@ -600,16 +600,16 @@ Close:
 			depth--
 			i++
 		} else {
-			return nil, nil, fmt.Errorf("pqx: unable to parse array; unexpected %q at offset %d", src[i], i)
+			return nil, nil, fmt.Errorf("pgsqlx: unable to parse array; unexpected %q at offset %d", src[i], i)
 		}
 	}
 	if depth > 0 {
-		err = fmt.Errorf("pqx: unable to parse array; expected %q at offset %d", '}', i)
+		err = fmt.Errorf("pgsqlx: unable to parse array; expected %q at offset %d", '}', i)
 	}
 	if err == nil {
 		for _, d := range dims {
 			if (len(elems) % d) != 0 {
-				err = fmt.Errorf("pqx: multidimensional arrays must have elements with matching dimensions")
+				err = fmt.Errorf("pgsqlx: multidimensional arrays must have elements with matching dimensions")
 			}
 		}
 	}
@@ -622,7 +622,7 @@ func scanLinearArray(src []byte, typ string) (elems [][]byte, err error) {
 		return nil, err
 	}
 	if len(dims) > 1 {
-		return nil, fmt.Errorf("pqx: cannot convert ARRAY%s to %s", strings.ReplaceAll(fmt.Sprint(dims), " ", "]["), typ)
+		return nil, fmt.Errorf("pgsqlx: cannot convert ARRAY%s to %s", strings.ReplaceAll(fmt.Sprint(dims), " ", "]["), typ)
 	}
 	return elems, err
 }

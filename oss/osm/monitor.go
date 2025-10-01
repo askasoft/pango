@@ -50,7 +50,7 @@ func (sm *StatsMonitor) Start() {
 		return
 	}
 
-	sm.Logger.Info("ossmonitor: start")
+	sm.Logger.Info("osm: monitor start")
 
 	sm.timer = time.AfterFunc(sm.Interval, sm.monitor)
 }
@@ -66,7 +66,7 @@ func (sm *StatsMonitor) monitor() {
 // Stop stop monitor
 func (sm *StatsMonitor) Stop() {
 	if timer := sm.timer; timer != nil {
-		sm.Logger.Info("ossmonitor: stop")
+		sm.Logger.Info("osm: monitor stop")
 
 		timer.Stop()
 		sm.timer = nil
@@ -105,7 +105,7 @@ func (sm *StatsMonitor) collectDisk() {
 		return
 	}
 
-	sm.Logger.Infof("ossmonitor: collect disk usage %s", du.String())
+	sm.Logger.Infof("osm: collect disk usage %s", du.String())
 
 	sm.disks.Push(du.Available)
 	if sm.disks.Len() > sm.DiskCount {
@@ -115,7 +115,7 @@ func (sm *StatsMonitor) collectDisk() {
 	if sm.disks.Len() == sm.DiskCount {
 		daa := calcAverage(sm.disks)
 		if daa < uint64(sm.DiskFree) {
-			sm.Logger.Errorf("insufficient free disk space %s", num.HumanSize(du.Available))
+			sm.Logger.Warnf("osm: insufficient free disk space %s", num.HumanSize(du.Available))
 
 			sm.disks.Clear()
 			sm.disks.Push(du.Available)
@@ -134,7 +134,7 @@ func (sm *StatsMonitor) collectCPUUsage() {
 		return
 	}
 
-	sm.Logger.Infof("ossmonitor: collect cpu statistics %s", cs.String())
+	sm.Logger.Infof("osm: collect cpu statistics %s", cs.String())
 
 	thisCPUStats := cs
 	cs.Subtract(&sm.lastCPUStats)
@@ -151,7 +151,7 @@ func (sm *StatsMonitor) collectCPUUsage() {
 	if sm.cpus.Len() == sm.CPUCount {
 		cua := calcAverage(sm.cpus)
 		if cua > sm.CPUUsage {
-			sm.Logger.Errorf("cpu usage %.2f%% is too high", cua*100)
+			sm.Logger.Warnf("osm: cpu usage %.2f%% is too high", cua*100)
 
 			sm.cpus.Clear()
 			sm.cpus.Push(cs.CPUUsage())
@@ -170,7 +170,7 @@ func (sm *StatsMonitor) collectMemUsage() {
 		return
 	}
 
-	sm.Logger.Infof("ossmonitor: collect memory statistics %s", ms.String())
+	sm.Logger.Infof("osm: collect memory statistics %s", ms.String())
 
 	sm.mems.Push(ms.Usage())
 	if sm.mems.Len() > sm.MemCount {
@@ -180,7 +180,7 @@ func (sm *StatsMonitor) collectMemUsage() {
 	if sm.mems.Len() == sm.MemCount {
 		mua := calcAverage(sm.mems)
 		if mua > sm.MemUsage {
-			sm.Logger.Errorf("memory usage %.2f%% is too high", mua*100)
+			sm.Logger.Warnf("osm: memory usage %.2f%% is too high", mua*100)
 
 			sm.mems.Clear()
 			sm.mems.Push(ms.Usage())

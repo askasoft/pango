@@ -6,61 +6,61 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
-// ContainsSimple - finds whether the pattern string contains the text.
+// StartsWithSimple - finds whether the pattern string contains the text.
 // supports only '*' wildcard in the pattern.
-func ContainsSimple(pattern, s string) bool {
+func StartsWithSimple(pattern, s string) bool {
 	switch pattern {
 	case "":
 		return pattern == s
 	case "*":
 		return true
 	default:
-		return deepContainsSimple(pattern, s, runeEqual)
+		return deepStartsWithSimple(pattern, s, runeEqual)
 	}
 }
 
-// ContainsSimpleFold - finds whether the pattern string contains the text.
+// StartsWithSimpleFold - finds whether the pattern string contains the text.
 // supports only '*' wildcard in the pattern.
 // case insensitive.
-func ContainsSimpleFold(pattern, s string) bool {
+func StartsWithSimpleFold(pattern, s string) bool {
 	switch pattern {
 	case "":
 		return pattern == s
 	case "*":
 		return true
 	default:
-		return deepContainsSimple(pattern, s, str.RuneEqualFold)
+		return deepStartsWithSimple(pattern, s, str.RuneEqualFold)
 	}
 }
 
-// Contains - finds whether the pattern string contains the text.
+// StartsWith - finds whether the pattern string contains the text.
 // supports  '*' and '?' wildcards in the pattern string.
 // case insensitive.
-func Contains(pattern, s string) bool {
+func StartsWith(pattern, s string) bool {
 	switch pattern {
 	case "":
 		return pattern == s
 	case "*":
 		return true
 	default:
-		return deepContainsWild(pattern, s, runeEqual)
+		return deepStartsWithWild(pattern, s, runeEqual)
 	}
 }
 
-// ContainsFold - finds whether the pattern string contains the text.
+// StartsWithFold - finds whether the pattern string contains the text.
 // supports  '*' and '?' wildcards in the pattern string.
-func ContainsFold(pattern, s string) bool {
+func StartsWithFold(pattern, s string) bool {
 	switch pattern {
 	case "":
 		return pattern == s
 	case "*":
 		return true
 	default:
-		return deepContainsWild(pattern, s, str.RuneEqualFold)
+		return deepStartsWithWild(pattern, s, str.RuneEqualFold)
 	}
 }
 
-func deepContainsSimple(p, s string, eq equal) bool {
+func deepStartsWithSimple(p, s string, eq equal) bool {
 	for len(p) > 0 {
 		pc, pz := utf8.DecodeRuneInString(p)
 		switch pc {
@@ -80,7 +80,7 @@ func deepContainsSimple(p, s string, eq equal) bool {
 	return len(s) == 0
 }
 
-func deepContainsWild(p, s string, eq equal) bool {
+func deepStartsWithWild(p, s string, eq equal) bool {
 	for len(p) > 0 {
 		pc, pz := utf8.DecodeRuneInString(p)
 		switch pc {

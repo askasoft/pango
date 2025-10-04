@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestContains(t *testing.T) {
+func TestStartsWith(t *testing.T) {
 	cs := []struct {
 		p string
 		s string
@@ -356,9 +356,9 @@ func TestContains(t *testing.T) {
 	}
 
 	for i, c := range cs {
-		a := Contains(c.p, c.s)
+		a := StartsWith(c.p, c.s)
 		if c.w != a {
-			t.Errorf("%d: Contains(%q, %q) = %v, want: %v", i+1, c.p, c.s, a, c.w)
+			t.Errorf("%d: StartsWith(%q, %q) = %v, want: %v", i+1, c.p, c.s, a, c.w)
 		}
 
 		if c.w {
@@ -367,15 +367,15 @@ func TestContains(t *testing.T) {
 			if foldText == c.s {
 				foldText = strings.ToLower(c.s)
 			}
-			a = ContainsFold(c.p, foldText)
+			a = StartsWithFold(c.p, foldText)
 			if c.w != a {
-				t.Errorf("%d: ContainsFold(%q, %q) = %v, want: %v", i+1, c.p, foldText, a, c.w)
+				t.Errorf("%d: StartsWithFold(%q, %q) = %v, want: %v", i+1, c.p, foldText, a, c.w)
 			}
 		}
 	}
 }
 
-func TestContainsSimple(t *testing.T) {
+func TestStartsWithSimple(t *testing.T) {
 	cs := []struct {
 		p string
 		s string
@@ -535,9 +535,9 @@ func TestContainsSimple(t *testing.T) {
 	}
 
 	for i, c := range cs {
-		a := ContainsSimple(c.p, c.s)
+		a := StartsWithSimple(c.p, c.s)
 		if c.w != a {
-			t.Errorf("%d: ContainsSimple(%q, %q) = %v, want: %v", i+1, c.p, c.s, a, c.w)
+			t.Errorf("%d: StartsWithSimple(%q, %q) = %v, want: %v", i+1, c.p, c.s, a, c.w)
 		}
 
 		if c.w {
@@ -546,9 +546,9 @@ func TestContainsSimple(t *testing.T) {
 			if foldText == c.s {
 				foldText = strings.ToLower(c.s)
 			}
-			a = ContainsSimpleFold(c.p, foldText)
+			a = StartsWithSimpleFold(c.p, foldText)
 			if c.w != a {
-				t.Errorf("%d: ContainsSimpleFold(%q, %q) = %v, want: %v", i+1, c.p, foldText, a, c.w)
+				t.Errorf("%d: StartsWithSimpleFold(%q, %q) = %v, want: %v", i+1, c.p, foldText, a, c.w)
 			}
 		}
 	}

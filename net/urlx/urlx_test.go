@@ -1,6 +1,7 @@
 package urlx
 
 import (
+	"net/url"
 	"testing"
 )
 
@@ -36,5 +37,56 @@ func TestParentURL(t *testing.T) {
 		if err != nil {
 			t.Errorf("#%d ParentURL(%q)\n     = %s\nWANT: %s", i, c.s, a, c.w)
 		}
+	}
+}
+
+func TestEncodeQuery(t *testing.T) {
+	tests := []struct {
+		name string
+		kvs  []string
+		want string
+	}{
+		{
+			name: "empty input",
+			kvs:  nil,
+			want: "",
+		},
+		{
+			name: "single pair",
+			kvs:  []string{"key", "value"},
+			want: "?key=value",
+		},
+		{
+			name: "multiple pairs",
+			kvs:  []string{"a", "1", "b", "2", "c", "3"},
+			want: "?a=1&b=2&c=3",
+		},
+		{
+			name: "special characters escaped",
+			kvs:  []string{"key with space", "value/with?symbols"},
+			want: "?key+with+space=value%2Fwith%3Fsymbols",
+		},
+		{
+			name: "odd number of elements (trailing key only)",
+			kvs:  []string{"onlykey"},
+			want: "?onlykey=",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := EncodeQuery(tt.kvs...)
+			if got != tt.want {
+				t.Errorf("EncodeQuery(%v) = %q, want %q", tt.kvs, got, tt.want)
+			}
+
+			// validate query syntax if not empty
+			if got != "" {
+				_, err := url.Parse(got)
+				if err != nil {
+					t.Errorf("invalid query string: %v", err)
+				}
+			}
+		})
 	}
 }

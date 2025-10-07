@@ -12,7 +12,7 @@ func runeEqual(a, b rune) bool {
 	return a == b
 }
 
-// MatchSimple - finds whether the text matches/satisfies the pattern string.
+// MatchSimple tests whether the string s matches/satisfies the pattern string.
 // supports only '*' wildcard in the pattern.
 // considers a file system path as a flat name space.
 func MatchSimple(pattern, s string) bool {
@@ -26,7 +26,7 @@ func MatchSimple(pattern, s string) bool {
 	}
 }
 
-// MatchSimpleFold - finds whether the text matches/satisfies the pattern string.
+// MatchSimpleFold tests whether the string s matches/satisfies the pattern string.
 // supports only '*' wildcard in the pattern.
 // case insensitive.
 // considers a file system path as a flat name space.
@@ -41,7 +41,7 @@ func MatchSimpleFold(pattern, s string) bool {
 	}
 }
 
-// Match -  finds whether the text matches/satisfies the pattern string.
+// Match tests whether the string s matches/satisfies the pattern string.
 // supports  '*' and '?' wildcards in the pattern string.
 // case insensitive.
 // unlike path.Match(), considers a path as a flat name space while matching the pattern.
@@ -56,7 +56,7 @@ func Match(pattern, s string) bool {
 	}
 }
 
-// MatchFold -  finds whether the text matches/satisfies the pattern string.
+// MatchFold tests whether the string s matches/satisfies the pattern string.
 // supports  '*' and '?' wildcards in the pattern string.
 // unlike path.Match(), considers a path as a flat name space while matching the pattern.
 func MatchFold(pattern, s string) bool {

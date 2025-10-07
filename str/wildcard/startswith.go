@@ -6,7 +6,14 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
-// StartsWithSimple - finds whether the pattern string contains the text.
+// HasPrefixSimple tests whether the pattern string begins with prefix s.
+// supports only '*' wildcard in the pattern.
+// alias for StartsWithSimple.
+func HasPrefixSimple(pattern, s string) bool {
+	return StartsWithSimple(pattern, s)
+}
+
+// StartsWithSimple tests whether the pattern string begins with prefix s.
 // supports only '*' wildcard in the pattern.
 func StartsWithSimple(pattern, s string) bool {
 	switch pattern {
@@ -19,9 +26,15 @@ func StartsWithSimple(pattern, s string) bool {
 	}
 }
 
-// StartsWithSimpleFold - finds whether the pattern string contains the text.
-// supports only '*' wildcard in the pattern.
-// case insensitive.
+// HasPrefixSimpleFold tests whether the pattern string begins with prefix s.
+// supports only '*' wildcard in the pattern. case insensitive.
+// alias for StartsWithSimpleFold.
+func HasPrefixSimpleFold(pattern, s string) bool {
+	return StartsWithSimpleFold(pattern, s)
+}
+
+// StartsWithSimpleFold tests whether the pattern string begins with prefix s.
+// supports only '*' wildcard in the pattern. case insensitive.
 func StartsWithSimpleFold(pattern, s string) bool {
 	switch pattern {
 	case "":
@@ -33,9 +46,15 @@ func StartsWithSimpleFold(pattern, s string) bool {
 	}
 }
 
-// StartsWith - finds whether the pattern string contains the text.
+// HasPrefix tests whether the pattern string begins with prefix s.
 // supports  '*' and '?' wildcards in the pattern string.
-// case insensitive.
+// alias for StartsWith.
+func HasPrefix(pattern, s string) bool {
+	return StartsWith(pattern, s)
+}
+
+// StartsWith tests whether the pattern string begins with prefix s.
+// supports  '*' and '?' wildcards in the pattern string.
 func StartsWith(pattern, s string) bool {
 	switch pattern {
 	case "":
@@ -47,8 +66,15 @@ func StartsWith(pattern, s string) bool {
 	}
 }
 
-// StartsWithFold - finds whether the pattern string contains the text.
-// supports  '*' and '?' wildcards in the pattern string.
+// HasPrefixFold tests whether the pattern string begins with prefix s.
+// supports  '*' and '?' wildcards in the pattern string. case insensitive.
+// alias for StartsWithFold.
+func HasPrefixFold(pattern, s string) bool {
+	return StartsWithFold(pattern, s)
+}
+
+// StartsWithFold tests whether the pattern string begins with prefix s.
+// supports  '*' and '?' wildcards in the pattern string. case insensitive.
 func StartsWithFold(pattern, s string) bool {
 	switch pattern {
 	case "":

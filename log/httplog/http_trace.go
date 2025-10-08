@@ -54,8 +54,12 @@ func TraceClientDo(logger log.Logger, hc *http.Client, req *http.Request) (*http
 	et := time.Now()
 
 	if res.StatusCode >= 400 {
-		bs, _ := httputil.DumpResponse(res, true)
-		logger.Warnf("%s %s - %s (%s) [%s]\n%s", req.Method, req.URL, res.Status, tmu.HumanDuration(et.Sub(st)), num.HumanSize(res.ContentLength), str.UnsafeString(bs))
+		if res.StatusCode == 404 {
+			logger.Warnf("%s %s - %s (%s) [%s]", req.Method, req.URL, res.Status, tmu.HumanDuration(et.Sub(st)), num.HumanSize(res.ContentLength))
+		} else {
+			bs, _ := httputil.DumpResponse(res, true)
+			logger.Warnf("%s %s - %s (%s) [%s]\n%s", req.Method, req.URL, res.Status, tmu.HumanDuration(et.Sub(st)), num.HumanSize(res.ContentLength), str.UnsafeString(bs))
+		}
 		return res, err
 	}
 

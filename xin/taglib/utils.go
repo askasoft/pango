@@ -251,7 +251,7 @@ func AsList(a any) List {
 				return anyslice2list(cv.([]any))
 			}
 		}
-		panic(fmt.Errorf("tags: invalid 'List' argument: %T", o))
+		panic(fmt.Errorf("taglib: invalid 'List' argument: %T", o))
 	}
 }
 
@@ -436,6 +436,41 @@ type Values interface {
 	Contains(any) bool
 }
 
+func ToValues(a any) Values {
+	switch o := a.(type) {
+	case Values:
+		return o
+	case string:
+		return strslice2values([]string{o})
+	case int:
+		return xslice2values[int]([]int{o})
+	case int8:
+		return xslice2values[int8]([]int8{o})
+	case int16:
+		return xslice2values[int16]([]int16{o})
+	case int32:
+		return xslice2values[int32]([]int32{o})
+	case int64:
+		return xslice2values[int64]([]int64{o})
+	case uint:
+		return xslice2values[uint]([]uint{o})
+	case uint8:
+		return xslice2values[uint8]([]uint8{o})
+	case uint16:
+		return xslice2values[uint16]([]uint16{o})
+	case uint32:
+		return xslice2values[uint32]([]uint32{o})
+	case uint64:
+		return xslice2values[uint64]([]uint64{o})
+	case float32:
+		return xslice2values[float32]([]float32{o})
+	case float64:
+		return xslice2values[float64]([]float64{o})
+	default:
+		return AsValues([]any{o})
+	}
+}
+
 func AsValues(a any) Values {
 	switch o := a.(type) {
 	case Values:
@@ -541,7 +576,7 @@ func AsValues(a any) Values {
 				return anyslice2values(cv.([]any))
 			}
 		}
-		panic(fmt.Errorf("tags: invalid 'Values' argument: %T", o))
+		panic(fmt.Errorf("taglib: invalid 'Values' argument: %T", o))
 	}
 }
 

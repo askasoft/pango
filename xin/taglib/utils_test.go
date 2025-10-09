@@ -36,6 +36,8 @@ func TestAsListStr(t *testing.T) {
 	}{
 		{"1", true},
 		{"-1", false},
+		{1, true},
+		{-1, false},
 	}
 
 	for i, c := range cs {
@@ -91,6 +93,8 @@ func TestAsListInt(t *testing.T) {
 		k any
 		w bool
 	}{
+		{"1", true},
+		{"-1", false},
 		{1, true},
 		{-1, false},
 	}
@@ -143,6 +147,8 @@ func TestAsValuesStr(t *testing.T) {
 	}{
 		{"1", true},
 		{"-1", false},
+		{1, true},
+		{-1, false},
 	}
 
 	for i, c := range cs {
@@ -179,6 +185,8 @@ func TestAsValuesInt(t *testing.T) {
 		k any
 		w bool
 	}{
+		{"1", true},
+		{"-1", false},
 		{1, true},
 		{-1, false},
 	}
@@ -241,6 +249,31 @@ func TestAsValuesAny(t *testing.T) {
 		aes := strings.Join(as, ",")
 		if wes != aes {
 			t.Errorf("[%d] %T Each() = %v, want %v", i, c, aes, wes)
+		}
+	}
+}
+
+func TestToValues(t *testing.T) {
+	type C struct {
+		k any
+		w bool
+	}
+
+	cs := []struct {
+		v  any
+		cs []C
+	}{
+		{"1", []C{{"1", true}, {1, true}, {-1, false}}},
+		{2, []C{{"2", true}, {2, true}, {-1, false}}},
+	}
+
+	for i, c := range cs {
+		vs := ToValues(c.v)
+
+		for _, ct := range c.cs {
+			if ok := vs.Contains(ct.k); ok != ct.w {
+				t.Errorf("[%d] %T Contains(%v) = %v, want %v", i, c, ct.k, ok, ct.w)
+			}
 		}
 	}
 }

@@ -27,7 +27,7 @@ func (sr *SelectRenderer) SetList(list any) {
 }
 
 func (sr *SelectRenderer) SetValue(value any) {
-	sr.Values = AsValues([]any{value})
+	sr.Values = ToValues(value)
 }
 
 func (sr *SelectRenderer) SetValues(values any) {

@@ -1,7 +1,6 @@
 package xin
 
 import (
-	"net"
 	"net/http"
 
 	"github.com/askasoft/pango/str"
@@ -56,16 +55,14 @@ var BrokenPipeErrors = []string{
 }
 
 // IsBrokenPipeError Check for a broken connection error
-func IsBrokenPipeError(err any) bool {
-	if err != nil {
+func IsBrokenPipeError(e any) bool {
+	if err, ok := e.(error); ok {
 		// Check for a broken connection, as it is not really a
 		// condition that warrants a panic stack trace.
-		if ne, ok := err.(*net.OpError); ok {
-			se := ne.Unwrap().Error()
-			for _, s := range BrokenPipeErrors {
-				if str.ContainsFold(s, se) {
-					return true
-				}
+		se := err.Error()
+		for _, s := range BrokenPipeErrors {
+			if str.ContainsFold(s, se) {
+				return true
 			}
 		}
 	}

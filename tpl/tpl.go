@@ -108,9 +108,10 @@ func Functions() FuncMap {
 		"Srcset":   funcs.Srcset,
 
 		// format
-		"JSON":      funcs.JSON,
-		"Comma":     num.CommaAny,
-		"HumanSize": num.HumanSizeAny,
+		"JSON":          funcs.JSON,
+		"Comma":         num.CommaAny,
+		"HumanSize":     num.HumanSizeAny,
+		"HumanDuration": tmu.HumanDuration,
 
 		// math
 		"Add":      cal.Adds,

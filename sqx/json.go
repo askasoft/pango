@@ -5,12 +5,17 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/askasoft/pango/doc/jsonx"
 	"github.com/askasoft/pango/ref"
 )
 
 var ErrNotBytes = errors.New("sqx: type assertion to []byte failed")
 
 type JSONObject map[string]any
+
+func (jo JSONObject) String() string {
+	return jsonx.Prettify(jo)
+}
 
 func (jo JSONObject) Value() (driver.Value, error) {
 	if jo == nil {
@@ -24,6 +29,10 @@ func (jo *JSONObject) Scan(value any) error {
 }
 
 type JSONStringObject map[string]string
+
+func (jso JSONStringObject) String() string {
+	return jsonx.Prettify(jso)
+}
 
 func (jso JSONStringObject) Value() (driver.Value, error) {
 	if jso == nil {
@@ -49,7 +58,15 @@ func (ja *JSONArray) Scan(value any) error {
 	return JSONScan(value, ja)
 }
 
+func (ja JSONArray) String() string {
+	return jsonx.Prettify(ja)
+}
+
 type JSONStringArray []string
+
+func (jsa JSONStringArray) String() string {
+	return jsonx.Prettify(jsa)
+}
 
 func (jsa JSONStringArray) Value() (driver.Value, error) {
 	if jsa == nil {
@@ -64,6 +81,10 @@ func (jsa *JSONStringArray) Scan(value any) error {
 
 type JSONIntArray []int
 
+func (jia JSONIntArray) String() string {
+	return jsonx.Prettify(jia)
+}
+
 func (jia JSONIntArray) Value() (driver.Value, error) {
 	if jia == nil {
 		return nil, nil
@@ -76,6 +97,10 @@ func (jia *JSONIntArray) Scan(value any) error {
 }
 
 type JSONInt64Array []int64
+
+func (jia JSONInt64Array) String() string {
+	return jsonx.Prettify(jia)
+}
 
 func (jia JSONInt64Array) Value() (driver.Value, error) {
 	if jia == nil {

@@ -3,8 +3,10 @@ package sqlx
 import (
 	"context"
 	"database/sql"
+	"reflect"
 	"time"
 
+	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/ref"
 	"github.com/askasoft/pango/sqx"
 	"github.com/askasoft/pango/str"
@@ -296,6 +298,32 @@ func (ext *ext) SupportLastInsertID() bool {
 // Builder returns a new sql builder
 func (ext *ext) Builder() *Builder {
 	return &Builder{mpr: ext.mapper, sqb: sqx.Builder{Binder: ext.binder, Quoter: ext.quoter}}
+}
+
+// StructFields returns struct mapped fields
+func (ext *ext) StructFields(a any, omits ...string) (fields []string) {
+	sm := ext.mapper.TypeMap(reflect.TypeOf(a))
+	for _, fi := range sm.Index {
+		if isIgnoredField(fi, omits...) {
+			continue
+		}
+		fields = append(fields, fi.Name)
+	}
+	return
+}
+
+func isIgnoredField(fi *ref.FieldInfo, omits ...string) bool {
+	if fi.Embedded || asg.Contains(omits, fi.Name) {
+		return true
+	}
+
+	for fi = fi.Parent; fi != nil && fi.Path != ""; fi = fi.Parent {
+		if !fi.Embedded && !asg.Contains(omits, fi.Name) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // NewDB returns a new sqlx DB wrapper for a pre-existing *sql.DB.  The

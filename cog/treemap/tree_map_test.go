@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/askasoft/pango/cog"
+	"github.com/askasoft/pango/str"
 )
 
 func TestTreeMapInterface(t *testing.T) {
@@ -256,7 +257,7 @@ func TestTreeMapCeiling(t *testing.T) {
 }
 
 func TestTreeMapEach(t *testing.T) {
-	m := NewTreeMap[string, int](cmp.Compare[string])
+	m := NewTreeMap[string, int](str.Compare)
 	m.Set("c", 3)
 	m.Set("a", 1)
 	m.Set("b", 2)
@@ -288,7 +289,7 @@ func TestTreeMapEach(t *testing.T) {
 }
 
 func TestHashMapSeq(t *testing.T) {
-	m := NewTreeMap[string, int](cmp.Compare[string])
+	m := NewTreeMap[string, int](str.Compare)
 	m.Set("c", 3)
 	m.Set("a", 1)
 	m.Set("b", 2)
@@ -386,7 +387,7 @@ func TestTreeMapCeilingAndFloor(t *testing.T) {
 }
 
 func TestTreeMapIteratorNextOnEmpty(t *testing.T) {
-	m := NewTreeMap[string, string](cmp.Compare[string])
+	m := NewTreeMap[string, string](str.Compare)
 	it := m.Iterator()
 	if it.Next() {
 		t.Errorf("Shouldn't iterate on empty map")
@@ -394,7 +395,7 @@ func TestTreeMapIteratorNextOnEmpty(t *testing.T) {
 }
 
 func TestTreeMapIteratorPrevOnEmpty(t *testing.T) {
-	m := NewTreeMap[string, string](cmp.Compare[string])
+	m := NewTreeMap[string, string](str.Compare)
 	it := m.Iterator()
 	if it.Prev() {
 		t.Errorf("Shouldn't iterate on empty map")
@@ -791,7 +792,7 @@ func TestTreeMapMarshal(t *testing.T) {
 	}
 
 	for i := 0; i < 10; i++ {
-		original := NewTreeMap[string, string](cmp.Compare[string])
+		original := NewTreeMap[string, string](str.Compare)
 		original.Set("d", "4")
 		original.Set("e", "5")
 		original.Set("c", "3")
@@ -806,7 +807,7 @@ func TestTreeMapMarshal(t *testing.T) {
 		}
 		assert(original, "B", t)
 
-		deserialized := NewTreeMap[string, string](cmp.Compare[string])
+		deserialized := NewTreeMap[string, string](str.Compare)
 		err = json.Unmarshal(serialized, &deserialized)
 		if err != nil {
 			t.Errorf("Got error %v", err)

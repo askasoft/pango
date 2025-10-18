@@ -25,6 +25,16 @@ func NewReplacer(oldnew ...string) *Replacer {
 	return strings.NewReplacer(oldnew...)
 }
 
+// Compare returns an integer comparing two strings lexicographically.
+// The result will be 0 if a==b, -1 if a < b, and +1 if a > b.
+//
+// Use Compare when you need to perform a three-way comparison (with
+// [slices.SortFunc], for example). It is usually clearer and always faster
+// to use the built-in string comparison operators ==, <, >, and so on.
+func Compare(a, b string) int {
+	return strings.Compare(a, b)
+}
+
 // Count counts the number of non-overlapping instances of substr in s.
 // If substr is an empty string, Count returns 1 + the number of Unicode code points in s.
 func Count(s, substr string) int {

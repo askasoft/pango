@@ -1,7 +1,6 @@
 package str
 
 import (
-	"bytes"
 	"strings"
 	"unicode"
 	"unicode/utf8"
@@ -41,12 +40,6 @@ func IfEmpty(a, b string) string {
 		return b
 	}
 	return a
-}
-
-// Compare returns an integer comparing two strings lexicographically.
-// The result will be 0 if a==b, -1 if a < b, and +1 if a > b.
-func Compare(a, b string) int {
-	return bytes.Compare(UnsafeBytes(a), UnsafeBytes(b))
 }
 
 // CompareFold returns an integer comparing two strings case-insensitive.

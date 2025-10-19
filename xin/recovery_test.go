@@ -48,7 +48,7 @@ func TestPanicWithBrokenPipe(t *testing.T) {
 				c.String(expectCode, expectMsg)
 
 				// Oops. Client connection closed
-				e := &net.OpError{Err: &os.SyscallError{Err: errno}}
+				e := &net.OpError{Op: "write", Err: &os.SyscallError{Err: errno}}
 				panic(e)
 			})
 

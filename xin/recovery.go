@@ -61,7 +61,7 @@ func IsBrokenPipeError(e any) bool {
 		// condition that warrants a panic stack trace.
 		se := err.Error()
 		for _, s := range BrokenPipeErrors {
-			if str.ContainsFold(s, se) {
+			if str.ContainsFold(se, s) {
 				return true
 			}
 		}

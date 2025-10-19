@@ -23,6 +23,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/ref"
 	"github.com/askasoft/pango/sqx"
 	"github.com/askasoft/pango/str"
@@ -419,6 +420,13 @@ func TestEmbeddedStructs(t *testing.T) {
 
 	RunWithSchema(defaultSchema, t, func(db *DB, t *testing.T, now string) {
 		loadDefaultFixture(db, t)
+
+		sfields := db.StructFields(&PersonPlace{}, "country")
+		wfields := []string{"first_name", "last_name", "email", "added_at", "city", "telcode"}
+		if !asg.Equal(sfields, wfields) {
+			t.Fatalf("StructFields(PersonPlace) = %v, wants: %v", sfields, wfields)
+		}
+
 		peopleAndPlaces := []PersonPlace{}
 		err := db.Select(
 			&peopleAndPlaces,
@@ -437,9 +445,7 @@ func TestEmbeddedStructs(t *testing.T) {
 		}
 
 		// test embedded structs with StructScan
-		rows, err := db.Queryx(
-			`SELECT person.*, place.* FROM
-         person natural join place`)
+		rows, err := db.Queryx(`SELECT person.*, place.* FROM person natural join place`)
 		if err != nil {
 			t.Error(err)
 		}
@@ -464,8 +470,7 @@ func TestEmbeddedStructs(t *testing.T) {
 		peopleAndPlacesPtrs := []PersonPlacePtr{}
 		err = db.Select(
 			&peopleAndPlacesPtrs,
-			`SELECT person.*, place.* FROM
-             person natural join place`)
+			`SELECT person.*, place.* FROM person natural join place`)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -479,6 +484,12 @@ func TestEmbeddedStructs(t *testing.T) {
 		}
 
 		// test "deep nesting"
+		sfields = db.StructFields(&Loop3{}, "added_at")
+		wfields = []string{"first_name", "last_name", "email"}
+		if !asg.Equal(sfields, wfields) {
+			t.Fatalf("StructFields(Loop3) = %v, wants: %v", sfields, wfields)
+		}
+
 		l3s := []Loop3{}
 		err = db.Select(&l3s, `select * from person`)
 		if err != nil {

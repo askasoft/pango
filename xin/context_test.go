@@ -714,13 +714,6 @@ func TestContextGetCookie(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestContextBodyAllowedForStatus(t *testing.T) {
-	assert.False(t, false, bodyAllowedForStatus(http.StatusProcessing))
-	assert.False(t, false, bodyAllowedForStatus(http.StatusNoContent))
-	assert.False(t, false, bodyAllowedForStatus(http.StatusNotModified))
-	assert.True(t, true, bodyAllowedForStatus(http.StatusInternalServerError))
-}
-
 type TestPanicRender struct{}
 
 func (*TestPanicRender) Render(http.ResponseWriter) error {

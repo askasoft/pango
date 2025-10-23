@@ -4,6 +4,19 @@ import (
 	"net/http"
 )
 
+// BodyAllowedForStatus is a copy of http.bodyAllowedForStatus non-exported function.
+func BodyAllowedForStatus(status int) bool {
+	switch {
+	case status >= 100 && status <= 199:
+		return false
+	case status == http.StatusNoContent:
+		return false
+	case status == http.StatusNotModified:
+		return false
+	}
+	return true
+}
+
 // IsStatusClientError check status is client side error (400-499)
 func IsStatusClientError(status int) bool {
 	return status >= 400 && status <= 499

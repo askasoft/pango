@@ -949,19 +949,6 @@ func (c *Context) IsWebsocket() bool {
 /******** RESPONSE RENDERING ********/
 /************************************/
 
-// bodyAllowedForStatus is a copy of http.bodyAllowedForStatus non-exported function.
-func bodyAllowedForStatus(status int) bool {
-	switch {
-	case status >= 100 && status <= 199:
-		return false
-	case status == http.StatusNoContent:
-		return false
-	case status == http.StatusNotModified:
-		return false
-	}
-	return true
-}
-
 // Status sets the HTTP response code.
 func (c *Context) Status(code int) {
 	c.Writer.WriteHeader(code)
@@ -1014,7 +1001,7 @@ func (c *Context) Cookie(name string) (string, error) {
 func (c *Context) Render(code int, r render.Render) {
 	c.Status(code)
 
-	if !bodyAllowedForStatus(code) {
+	if !httpx.BodyAllowedForStatus(code) {
 		r.WriteContentType(c.Writer)
 		c.Writer.WriteHeaderNow()
 		return

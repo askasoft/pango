@@ -252,6 +252,11 @@ func (b *Builder) Returns(cols ...string) *Builder {
 	return b
 }
 
+func (b *Builder) Orders(order string, defaults ...string) *Builder {
+	b.sqb.Orders(order, defaults...)
+	return b
+}
+
 func (b *Builder) Order(order string, desc ...bool) *Builder {
 	b.sqb.Order(order, desc...)
 	return b

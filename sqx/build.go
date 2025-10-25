@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/askasoft/pango/asg"
-	"github.com/askasoft/pango/bol"
 	"github.com/askasoft/pango/num"
 	"github.com/askasoft/pango/ref"
 	"github.com/askasoft/pango/str"
@@ -279,10 +278,40 @@ func (b *Builder) Order(col string, desc ...bool) *Builder {
 	order := b.Quote(col)
 
 	if len(desc) > 0 {
-		order += str.If(bol.NonFalse(desc...), " DESC", " ASC")
+		order += str.If(asg.First(desc), " DESC", " ASC")
 	}
 
 	b.orders = append(b.orders, order)
+	return b
+}
+
+func (b *Builder) addOrder(o string) {
+	desc := str.StartsWithByte(o, '-')
+	if desc {
+		o = o[1:]
+	}
+	b.Order(o, desc)
+}
+
+func (b *Builder) Orders(order string, defaults ...string) *Builder {
+	orders := str.FieldsByte(order, ',')
+	defods := str.FieldsByte(str.Join(defaults, ","), ',')
+
+	for _, o := range orders {
+		b.addOrder(o)
+
+		if len(defods) > 0 {
+			o = str.TrimPrefix(o, "-")
+
+			defods = asg.DeleteFunc(defods, func(s string) bool {
+				return o == str.TrimPrefix(s, "-")
+			})
+		}
+	}
+
+	for _, o := range defods {
+		b.addOrder(o)
+	}
 	return b
 }
 

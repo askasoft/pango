@@ -39,25 +39,25 @@ func GetBundle(locale string) *ini.Ini {
 }
 
 // GetBool get a bool value of the key from the text bundle.
-// if not found or convert error, returns the first non-false value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func GetBool(locale, key string, defs ...bool) bool {
 	return _tbs.GetBool(locale, key, defs...)
 }
 
 // GetInt get a int value of the key from the text bundle.
-// if not found or convert error, returns the first non-zero value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func GetInt(locale, key string, defs ...int) int {
 	return _tbs.GetInt(locale, key, defs...)
 }
 
 // GetInt64 get a int64 value of the key from the text bundle.
-// if not found or convert error, returns the first non-zero value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func GetInt64(locale, key string, defs ...int64) int64 {
 	return _tbs.GetInt64(locale, key, defs...)
 }
 
 // GetFloat get a float64 value of the key from the text bundle.
-// if not found or convert error, returns the first non-zero value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func GetFloat(locale, key string, defs ...float64) float64 {
 	return _tbs.GetFloat(locale, key, defs...)
 }

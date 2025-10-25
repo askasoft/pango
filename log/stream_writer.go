@@ -4,7 +4,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/askasoft/pango/bol"
+	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/gog"
 	"github.com/askasoft/pango/iox"
 )
@@ -60,7 +60,7 @@ var colors = [][]byte{
 
 // NewConsoleWriter create a console log writer
 func NewConsoleWriter(color ...bool) *StreamWriter {
-	return &StreamWriter{Color: bol.NonFalse(color...)}
+	return &StreamWriter{Color: asg.First(color)}
 }
 
 // NewStdoutWriter create a stdout log writer

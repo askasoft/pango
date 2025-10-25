@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/bol"
 	"github.com/askasoft/pango/cog/linkedhashmap"
 	"github.com/askasoft/pango/cog/linkedlist"
@@ -140,38 +141,35 @@ func (sec *Section) GetString(key string, defs ...string) string {
 	if e != nil && e.Value != "" {
 		return e.Value
 	}
-	if len(defs) > 0 {
-		return defs[0]
-	}
-	return ""
+	return asg.First(defs)
 }
 
 // GetBool get a bool value of the key from the section
-// if not found or convert error, returns the first non-false value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func (sec *Section) GetBool(key string, defs ...bool) bool {
 	return bol.Atob(sec.GetString(key), defs...)
 }
 
 // GetInt get a int value of the key from the section
-// if not found or convert error, returns the first non-zero value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func (sec *Section) GetInt(key string, defs ...int) int {
 	return num.Atoi(sec.GetString(key), defs...)
 }
 
 // GetInt64 get a int64 value of the key from the section
-// if not found or convert error, returns the first non-zero value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func (sec *Section) GetInt64(key string, defs ...int64) int64 {
 	return num.Atol(sec.GetString(key), defs...)
 }
 
 // GetFloat get a float value of the key from the section
-// if not found or convert error, returns the first non-zero value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func (sec *Section) GetFloat(key string, defs ...float64) float64 {
 	return num.Atof(sec.GetString(key), defs...)
 }
 
 // GetSize get a int64 size value of the key from the section
-// if not found or convert error, returns the first non-zero value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func (sec *Section) GetSize(key string, defs ...int64) int64 {
 	e := sec.GetEntry(key)
 	if e != nil && e.Value != "" {
@@ -179,17 +177,11 @@ func (sec *Section) GetSize(key string, defs ...int64) int64 {
 			return sz
 		}
 	}
-
-	for _, d := range defs {
-		if d != 0 {
-			return d
-		}
-	}
-	return 0
+	return asg.First(defs)
 }
 
 // GetDuration get a time.Duration value of the key from the section.
-// if not found or convert error, returns the first non-zero value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func (sec *Section) GetDuration(key string, defs ...time.Duration) time.Duration {
 	return tmu.Atod(sec.GetString(key), defs...)
 }

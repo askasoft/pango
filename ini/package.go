@@ -95,43 +95,43 @@ func Get(sec, key string) string {
 }
 
 // GetString get a string value of the key from the section sec
-// if not found, returns the default defs[0] string value
+// if not found, returns the default defs[0] string value.
 func GetString(sec, key string, defs ...string) string {
 	return _ini.GetString(sec, key, defs...)
 }
 
 // GetInt get a int value of the key from the section sec
-// if not found or convert error, returns the first non-zero value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func GetInt(sec, key string, defs ...int) int {
 	return _ini.GetInt(sec, key, defs...)
 }
 
 // GetInt64 get a int64 value of the key from the section sec
-// if not found or convert error, returns the first non-zero value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func GetInt64(sec, key string, defs ...int64) int64 {
 	return _ini.GetInt64(sec, key, defs...)
 }
 
 // GetFloat get a float value of the key from the section sec
-// if not found or convert error, returns the first non-zero value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func GetFloat(sec, key string, defs ...float64) float64 {
 	return _ini.GetFloat(sec, key, defs...)
 }
 
 // GetBool get a bool value of the key from the section sec
-// if not found or convert error, returns the first non-false value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func GetBool(sec, key string, defs ...bool) bool {
 	return _ini.GetBool(sec, key, defs...)
 }
 
 // GetSize get a int64 size value of the key from the section sec
-// if not found or convert error, returns the first non-zero value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func GetSize(sec, key string, defs ...int64) int64 {
 	return _ini.GetSize(sec, key, defs...)
 }
 
 // GetDuration get a time.Duration value of the key from the section sec
-// if not found or convert error, returns the first non-zero value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func GetDuration(sec, key string, defs ...time.Duration) time.Duration {
 	return _ini.GetDuration(sec, key, defs...)
 }

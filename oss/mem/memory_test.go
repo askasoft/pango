@@ -2,7 +2,7 @@ package mem
 
 import "testing"
 
-func TestNonZero(t *testing.T) {
+func TestNotZero(t *testing.T) {
 	ms, err := GetMemoryStats()
 
 	if err != nil {

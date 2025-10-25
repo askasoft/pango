@@ -12,7 +12,7 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/askasoft/pango/bol"
+	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/bye"
 	"github.com/askasoft/pango/cog/linkedhashmap"
 	"github.com/askasoft/pango/iox"
@@ -169,37 +169,37 @@ func (ini *Ini) Get(sec, key string) string {
 }
 
 // GetString get a string value of the key from the section sec
-// if not found, returns the first non-empty string value from defs.
+// if not found, returns the default defs[0] value.
 func (ini *Ini) GetString(sec, key string, defs ...string) string {
 	return ini.section(sec).GetString(key, defs...)
 }
 
 // GetInt get a int value of the key from the section sec
-// if not found or convert error, returns the first non-zero value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func (ini *Ini) GetInt(sec, key string, defs ...int) int {
 	return ini.section(sec).GetInt(key, defs...)
 }
 
 // GetInt64 get a int64 value of the key from the section sec
-// if not found or convert error, returns the first non-zero value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func (ini *Ini) GetInt64(sec, key string, defs ...int64) int64 {
 	return ini.section(sec).GetInt64(key, defs...)
 }
 
 // GetFloat get a float value of the key from the section sec
-// if not found or convert error, returns the first non-zero value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func (ini *Ini) GetFloat(sec, key string, defs ...float64) float64 {
 	return ini.section(sec).GetFloat(key, defs...)
 }
 
 // GetBool get a bool value of the key from the section sec
-// if not found or convert error, returns the first non-false value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func (ini *Ini) GetBool(sec, key string, defs ...bool) bool {
 	return ini.section(sec).GetBool(key, defs...)
 }
 
 // GetSize get a int64 size value of the key from the section sec
-// if not found or convert error, returns the first non-zero value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func (ini *Ini) GetSize(sec, key string, defs ...int64) int64 {
 	return ini.section(sec).GetSize(key, defs...)
 }
@@ -210,7 +210,7 @@ func (ini *Ini) GetEntry(sec, key string) *Entry {
 }
 
 // GetDuration get a time.Duration value of the key from the section sec
-// if not found or convert error, returns the first non-zero value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func (ini *Ini) GetDuration(sec, key string, defs ...time.Duration) time.Duration {
 	return ini.section(sec).GetDuration(key, defs...)
 }
@@ -268,7 +268,7 @@ func (ini *Ini) LoadData(r io.Reader, multiple ...bool) (err error) {
 		return err
 	}
 
-	multi := bol.NonFalse(multiple...)
+	multi := asg.First(multiple)
 	section := ini.GetSection("") // last section
 	linenum := 0                  // current line number
 	linecon := 0                  // line continue counter

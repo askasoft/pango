@@ -6,26 +6,6 @@ import (
 	"unicode/utf8"
 )
 
-// NonEmpty return the first non-empty value of ss or a empty string.
-func NonEmpty(ss ...string) string {
-	for _, s := range ss {
-		if s != "" {
-			return s
-		}
-	}
-	return ""
-}
-
-// LastNonEmpty return the last non-empty value of ss or a empty string.
-func LastNonEmpty(ss ...string) string {
-	for i := len(ss) - 1; i >= 0; i-- {
-		if ss[i] != "" {
-			return ss[i]
-		}
-	}
-	return ""
-}
-
 // If return (b ? t : f)
 func If(b bool, t, f string) string {
 	if b {

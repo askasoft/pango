@@ -156,31 +156,31 @@ func (tbs *TextBundles) get(locale, sect, name string) (string, bool) {
 }
 
 // GetBool get a bool value of the key from the text bundle.
-// if not found or convert error, returns the first non-false value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func (tbs *TextBundles) GetBool(locale, key string, defs ...bool) bool {
 	return bol.Atob(tbs.GetText(locale, key), defs...)
 }
 
 // GetInt get a int value of the key from the text bundle.
-// if not found or convert error, returns the first non-zero value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func (tbs *TextBundles) GetInt(locale, key string, defs ...int) int {
 	return num.Atoi(tbs.GetText(locale, key), defs...)
 }
 
 // GetInt64 get a int64 value of the key from the text bundle.
-// if not found or convert error, returns the first non-zero value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func (tbs *TextBundles) GetInt64(locale, key string, defs ...int64) int64 {
 	return num.Atol(tbs.GetText(locale, key), defs...)
 }
 
 // GetFloat get a float64 value of the key from the text bundle.
-// if not found or convert error, returns the first non-zero value from defs.
+// if not found or convert error, returns the default defs[0] value.
 func (tbs *TextBundles) GetFloat(locale, key string, defs ...float64) float64 {
 	return num.Atof(tbs.GetText(locale, key), defs...)
 }
 
 // GetText get the locale text by key.
-// if not found, returns the first non-empty value from defs.
+// if not found, returns the default defs[0] value.
 func (tbs *TextBundles) GetText(locale, key string, defs ...string) string {
 	sect, name := "", key
 
@@ -192,7 +192,7 @@ func (tbs *TextBundles) GetText(locale, key string, defs ...string) string {
 		return val
 	}
 
-	return str.NonEmpty(defs...)
+	return asg.First(defs)
 }
 
 // Format use fmt.Sprintf to format the locale text by key and args.

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/askasoft/pango/bol"
+	"github.com/askasoft/pango/asg"
 )
 
 // Used as a workaround since we can't compare functions or their addresses
@@ -37,7 +37,7 @@ func getSkippedNodes() *[]skippedNode {
 }
 
 func checkRequests(t *testing.T, tree *node, requests testRequests, unescapes ...bool) {
-	unescape := bol.NonFalse(unescapes...)
+	unescape := asg.First(unescapes)
 
 	for _, request := range requests {
 		value := tree.getValue(request.path, getParams(), getSkippedNodes(), unescape)

@@ -5,19 +5,21 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/askasoft/pango/asg"
 )
 
 // Atoi use strconv.ParseInt(s, 0, strconv.IntSize) to parse string 's' to int,
-// return the first non-zero value of defs if error.
+// return the returns the default defs[0] value if error.
 func Atoi(s string, defs ...int) int {
 	if s == "" {
-		return NonZero(defs...)
+		return asg.First(defs)
 	}
 
 	if n, err := strconv.ParseInt(s, 0, strconv.IntSize); err == nil {
 		return int(n)
 	}
-	return NonZero(defs...)
+	return asg.First(defs)
 }
 
 // Itoa is equivalent to strconv.FormatInt(int64(n), 10).
@@ -26,16 +28,16 @@ func Itoa(n int) string {
 }
 
 // Atol use strconv.ParseInt(s, 0, 64) to parse string 's' to int64,
-// return the first non-zero value of defs if error.
+// return the returns the default defs[0] value if error.
 func Atol(s string, defs ...int64) int64 {
 	if s == "" {
-		return NonZero(defs...)
+		return asg.First(defs)
 	}
 
 	if n, err := strconv.ParseInt(s, 0, 64); err == nil {
 		return n
 	}
-	return NonZero(defs...)
+	return asg.First(defs)
 }
 
 // Itoa is equivalent to strconv.FormatInt(n, 10).
@@ -44,16 +46,16 @@ func Ltoa(n int64) string {
 }
 
 // Atol use strconv.ParseFloat(s, 64) to parse string 's' to float64,
-// return the first non-zero value of defs if error.
+// return the returns the default defs[0] value if error.
 func Atof(s string, defs ...float64) float64 {
 	if s == "" {
-		return NonZero(defs...)
+		return asg.First(defs)
 	}
 
 	if f, err := strconv.ParseFloat(s, 64); err == nil {
 		return f
 	}
-	return NonZero(defs...)
+	return asg.First(defs)
 }
 
 // Ftoa converts a float to a string with no trailing zeros.
@@ -180,14 +182,14 @@ func ParseRoman(s string) (int, error) {
 // RomanToInt converts a roman numeric string to integer.
 func RomanToInt(s string, defs ...int) int {
 	if s == "" {
-		return NonZero(defs...)
+		return asg.First(defs)
 	}
 
 	if n, err := ParseRoman(s); err == nil {
 		return n
 	}
 
-	return NonZero(defs...)
+	return asg.First(defs)
 }
 
 // FormatAlpha converts a positive integer to Excel-style column string.
@@ -241,12 +243,12 @@ func ParseAlpha(s string) (int, error) {
 // AlphaToInt converts a string like "A", "Z", "AA" to a number (Excel-style).
 func AlphaToInt(s string, defs ...int) int {
 	if s == "" {
-		return NonZero(defs...)
+		return asg.First(defs)
 	}
 
 	if n, err := ParseAlpha(s); err == nil {
 		return n
 	}
 
-	return NonZero(defs...)
+	return asg.First(defs)
 }

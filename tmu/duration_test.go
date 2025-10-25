@@ -12,7 +12,7 @@ func TestAtod(t *testing.T) {
 		n []time.Duration
 	}{
 		{time.Second, "1s", nil},
-		{time.Minute, "x", []time.Duration{0, time.Minute}},
+		{time.Minute, "x", []time.Duration{time.Minute}},
 	}
 
 	for i, c := range cs {

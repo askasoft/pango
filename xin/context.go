@@ -10,11 +10,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/net/httpx"
 	"github.com/askasoft/pango/net/httpx/sse"
 	"github.com/askasoft/pango/ref"
-	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/xin/binding"
 	"github.com/askasoft/pango/xin/render"
 )
@@ -482,7 +482,7 @@ func (c *Context) Querys() map[string][]string {
 }
 
 // Query returns the keyed url query value if it exists,
-// otherwise it returns first non-empty value of defs or an empty string `("")`.
+// otherwise it returns the default defs[0] value or an empty string `("")`.
 // It is shortcut for `c.Request.URL.Query().Get(key)`
 //
 //	    GET /path?id=1234&name=Manu&value=
@@ -494,7 +494,7 @@ func (c *Context) Query(key string, defs ...string) string {
 	if value, ok := c.GetQuery(key); ok {
 		return value
 	}
-	return str.NonEmpty(defs...)
+	return asg.First(defs)
 }
 
 // GetQuery is like Query(), it returns the keyed url query value
@@ -561,12 +561,12 @@ func (c *Context) PostForms() map[string][]string {
 }
 
 // PostForm returns the specified key from a POST urlencoded form or multipart form
-// when it exists, otherwise it returns the first non-empty value of defs or an empty string `("")`.
+// when it exists, otherwise it returns the default defs[0] value or an empty string `("")`.
 func (c *Context) PostForm(key string, defs ...string) string {
 	if value, ok := c.GetPostForm(key); ok {
 		return value
 	}
-	return str.NonEmpty(defs...)
+	return asg.First(defs)
 }
 
 // GetPostForm is like PostForm(key). It returns the specified key from a POST urlencoded

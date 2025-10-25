@@ -5,7 +5,7 @@ import (
 	"errors"
 	"sort"
 
-	"github.com/askasoft/pango/bol"
+	"github.com/askasoft/pango/asg"
 )
 
 // Result contains all the information that charset detector gives.
@@ -84,7 +84,7 @@ func NewHtmlDetector() *Detector {
 
 // NewDetector creates a Detector for plain text or html.
 func NewDetector(html ...bool) (d *Detector) {
-	if bol.NonFalse(html...) {
+	if asg.First(html) {
 		d = NewHtmlDetector()
 	} else {
 		d = NewTextDetector()

@@ -14,7 +14,7 @@ func TestAtoi(t *testing.T) {
 		{2, "02", nil},
 		{0660, "0660", nil},
 		{0xf, "0xf", nil},
-		{-1, "a", []int{0, -1}},
+		{-1, "a", []int{-1}},
 	}
 
 	for i, c := range cs {
@@ -35,7 +35,7 @@ func TestAtol(t *testing.T) {
 		{2, "02", nil},
 		{0660, "0660", nil},
 		{0xf, "0xf", nil},
-		{-1, "a", []int64{0, -1}},
+		{-1, "a", []int64{-1}},
 	}
 
 	for i, c := range cs {
@@ -53,7 +53,7 @@ func TestAtof(t *testing.T) {
 		n []float64
 	}{
 		{1, "1", nil},
-		{-1, "a", []float64{0, -1}},
+		{-1, "a", []float64{-1}},
 	}
 
 	for i, c := range cs {

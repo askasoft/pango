@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/askasoft/pango/bol"
+	"github.com/askasoft/pango/asg"
 )
 
 // StripPrefix returns a handler that serves HTTP requests by removing the
@@ -68,7 +68,7 @@ func RegexpReplace(expr, repl string, hh http.Handler) http.Handler {
 func Dir(root string, browsable ...bool) http.FileSystem {
 	fs := http.Dir(root)
 
-	if bol.NonFalse(browsable...) {
+	if asg.First(browsable) {
 		return fs
 	}
 	return onlyFilesFS{fs}
@@ -80,7 +80,7 @@ func Dir(root string, browsable ...bool) http.FileSystem {
 func FS(fsys fs.FS, browsable ...bool) http.FileSystem {
 	fs := http.FS(fsys)
 
-	if bol.NonFalse(browsable...) {
+	if asg.First(browsable) {
 		return fs
 	}
 	return onlyFilesFS{fs}

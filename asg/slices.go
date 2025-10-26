@@ -82,11 +82,15 @@ func EqualFunc[A any, B any](a []A, b []B, eq func(A, B) bool) bool {
 	return true
 }
 
-// First get first element of a slice.
-// returns zero value if slice is empty.
-func First[T any](a []T) (v T) {
-	if len(a) > 0 {
+// First get first element of a slice a.
+// returns first value of `d...` if slice `a` is empty.
+// returns zero value if slice `a` and `d` is empty.
+func First[T any](a []T, d ...T) (v T) {
+	switch {
+	case len(a) > 0:
 		v = a[0]
+	case len(d) > 0:
+		v = d[0]
 	}
 	return
 }

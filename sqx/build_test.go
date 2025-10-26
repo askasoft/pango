@@ -21,11 +21,12 @@ func TestBuilder_SelectSQL(t *testing.T) {
 		Where(`"id" = ?`, 10).
 		Orders("-id,name").
 		Limit(10).
-		Offset(5)
+		Offset(5).
+		ForUpdate()
 
 	sql, args := b.Build()
 
-	wantSQL := `SELECT "id", "name" FROM "users" WHERE "id" = ? ORDER BY "id" DESC, "name" ASC LIMIT 10 OFFSET 5`
+	wantSQL := `SELECT "id", "name" FROM "users" WHERE "id" = ? ORDER BY "id" DESC, "name" ASC LIMIT 10 OFFSET 5 FOR UPDATE`
 	if sql != wantSQL {
 		t.Errorf("unexpected SQL:\n got: %s\nwant: %s", sql, wantSQL)
 	}

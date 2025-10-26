@@ -74,6 +74,12 @@ func (b *Builder) Select(cols ...string) *Builder {
 	return b
 }
 
+// ForUpdate add 'FOR UPDATE' for SELECT
+func (b *Builder) ForUpdate(forUpdate ...bool) *Builder {
+	b.sqb.ForUpdate(forUpdate...)
+	return b
+}
+
 // Distinct set distinct keyword only for SELECT
 func (b *Builder) Distinct() *Builder {
 	b.sqb.Distinct()

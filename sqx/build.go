@@ -15,22 +15,24 @@ import (
 type Builder struct {
 	Binder
 	Quoter
-	command  sqlcmd
-	distinct bool
-	table    string
-	columns  []string
-	values   []string
-	joins    []string
-	wheres   []string
-	orders   []string
-	returns  []string
-	params   []any
-	offset   int
-	limit    int
+	command   sqlcmd
+	forUpdate bool
+	distinct  bool
+	table     string
+	columns   []string
+	values    []string
+	joins     []string
+	wheres    []string
+	orders    []string
+	returns   []string
+	params    []any
+	offset    int
+	limit     int
 }
 
 func (b *Builder) Reset() *Builder {
 	b.command = 0
+	b.forUpdate = false
 	b.distinct = false
 	b.table = ""
 	b.columns = b.columns[:0]
@@ -95,6 +97,12 @@ func (b *Builder) Select(cols ...string) *Builder {
 		return b.Columns("*")
 	}
 	return b.Columns(cols...)
+}
+
+// ForUpdate add 'FOR UPDATE' for SELECT
+func (b *Builder) ForUpdate(forUpdate ...bool) *Builder {
+	b.forUpdate = asg.First(forUpdate, true)
+	return b
 }
 
 // Distinct set distinct keyword only for SELECT
@@ -369,6 +377,9 @@ func (b *Builder) buildSelect() string {
 	if b.offset > 0 {
 		sb.WriteString(" OFFSET ")
 		sb.WriteString(num.Itoa(b.offset))
+	}
+	if b.forUpdate {
+		sb.WriteString(" FOR UPDATE")
 	}
 	return sb.String()
 }

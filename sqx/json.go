@@ -3,13 +3,12 @@ package sqx
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"errors"
+	"fmt"
 
 	"github.com/askasoft/pango/doc/jsonx"
 	"github.com/askasoft/pango/ref"
+	"github.com/askasoft/pango/str"
 )
-
-var ErrNotBytes = errors.New("sqx: type assertion to []byte failed")
 
 type JSONObject map[string]any
 
@@ -127,9 +126,12 @@ func JSONScan(value, dest any) error {
 		return json.Unmarshal(jsonNull, dest)
 	}
 
-	b, ok := value.([]byte)
-	if !ok {
-		return ErrNotBytes
+	switch v := value.(type) {
+	case []byte:
+		return json.Unmarshal(v, dest)
+	case string:
+		return json.Unmarshal(str.UnsafeBytes(v), dest)
+	default:
+		return fmt.Errorf("sqx: cannot scan %T to JSON", value)
 	}
-	return json.Unmarshal(b, dest)
 }

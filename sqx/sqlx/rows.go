@@ -38,7 +38,7 @@ func (r *Rows) StructScan(dest any) error {
 	v := reflect.ValueOf(dest)
 
 	if v.Kind() != reflect.Ptr {
-		return errors.New("must pass a pointer, not a value, to StructScan destination")
+		return errors.New("sqlx: must pass a pointer, not a value, to StructScan destination")
 	}
 
 	v = v.Elem()
@@ -52,8 +52,8 @@ func (r *Rows) StructScan(dest any) error {
 
 		r.fields = m.TraversalsByName(v.Type(), columns)
 		// if we are not unsafe and are missing fields, return an error
-		if f, err := missingFields(r.fields); err != nil && !r.unsafe {
-			return fmt.Errorf("missing destination name %s in %T", columns[f], dest)
+		if f, ok := missingFields(r.fields); ok && !r.unsafe {
+			return fmt.Errorf("sqlx: missing destination name %s in %T", columns[f], dest)
 		}
 		r.values = make([]any, len(columns))
 		r.started = true

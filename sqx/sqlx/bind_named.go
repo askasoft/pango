@@ -2,7 +2,6 @@ package sqlx
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -45,7 +44,7 @@ func bindArray(binder Binder, query string, arg any, m *ref.Mapper) (string, []a
 	arrayValue := reflect.ValueOf(arg)
 	arrayLen := arrayValue.Len()
 	if arrayLen == 0 {
-		return "", nil, fmt.Errorf("length of array is 0: %#v", arg)
+		return "", nil, fmt.Errorf("sqlx: length of array is 0: %#v", arg)
 	}
 
 	var arglist = make([]any, 0, len(names)*arrayLen)
@@ -112,7 +111,7 @@ func compileNamedQuery(binder Binder, qs string) (query string, names []string, 
 					continue
 				}
 
-				err = errors.New("unexpected `:` while reading named param at " + strconv.Itoa(i))
+				err = fmt.Errorf("sqlx: unexpected `:` while reading named param at %d", i)
 				return query, names, err
 			}
 
@@ -186,7 +185,7 @@ func bindNamedMapper(binder Binder, query string, arg any, m *ref.Mapper) (strin
 	case k == reflect.Map && t.Key().Kind() == reflect.String:
 		m, ok := convertMapStringInterface(arg)
 		if !ok {
-			return "", nil, fmt.Errorf("sqlx.bindNamedMapper: unsupported map type: %T", arg)
+			return "", nil, fmt.Errorf("sqlx: unsupported map type: %T", arg)
 		}
 		return bindMap(binder, query, m)
 	case k == reflect.Array || k == reflect.Slice:
@@ -228,7 +227,7 @@ func bindArgs(names []string, arg any, m *ref.Mapper) ([]any, error) {
 
 	err := m.TraversalsByNameFunc(v.Type(), names, func(i int, t []int) error {
 		if len(t) == 0 {
-			return fmt.Errorf("could not find name %q in %T", names[i], arg)
+			return fmt.Errorf("sqlx: could not find name %q in %T", names[i], arg)
 		}
 
 		val := ref.FieldByIndexesReadOnly(v, t)
@@ -247,7 +246,7 @@ func bindMapArgs(names []string, arg map[string]any) ([]any, error) {
 	for _, name := range names {
 		val, ok := arg[name]
 		if !ok {
-			return arglist, fmt.Errorf("could not find name %q in %#v", name, arg)
+			return arglist, fmt.Errorf("sqlx: could not find name %q in %#v", name, arg)
 		}
 		arglist = append(arglist, val)
 	}

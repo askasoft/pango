@@ -41,7 +41,7 @@ func (r *Row) Scan(dest ...any) error {
 	// don't care.
 	for _, dp := range dest {
 		if _, ok := dp.(*sql.RawBytes); ok {
-			return errors.New("sql: RawBytes isn't allowed on Row.Scan")
+			return errors.New("sqlx: RawBytes isn't allowed on Row.Scan")
 		}
 	}
 
@@ -109,10 +109,10 @@ func (r *Row) scanAny(dest any, structOnly bool) error {
 
 	v := reflect.ValueOf(dest)
 	if v.Kind() != reflect.Ptr {
-		return errors.New("must pass a pointer, not a value, to StructScan destination")
+		return errors.New("sqlx: must pass a pointer, not a value, to StructScan destination")
 	}
 	if v.IsNil() {
-		return errors.New("nil pointer passed to StructScan destination")
+		return errors.New("sqlx: nil pointer passed to StructScan destination")
 	}
 
 	base := ref.DerefType(v.Type())
@@ -128,7 +128,7 @@ func (r *Row) scanAny(dest any, structOnly bool) error {
 	}
 
 	if scannable && len(columns) > 1 {
-		return fmt.Errorf("scannable dest type %s with >1 columns (%d) in result", base.Kind(), len(columns))
+		return fmt.Errorf("sqlx: scannable dest type %s with >1 columns (%d) in result", base.Kind(), len(columns))
 	}
 
 	if scannable {
@@ -139,8 +139,8 @@ func (r *Row) scanAny(dest any, structOnly bool) error {
 
 	fields := m.TraversalsByName(v.Type(), columns)
 	// if we are not unsafe and are missing fields, return an error
-	if f, err := missingFields(fields); err != nil && !r.unsafe {
-		return fmt.Errorf("missing destination name %s in %T", columns[f], dest)
+	if f, ok := missingFields(fields); ok && !r.unsafe {
+		return fmt.Errorf("sqlx: missing destination name %s in %T", columns[f], dest)
 	}
 	values := make([]any, len(columns))
 

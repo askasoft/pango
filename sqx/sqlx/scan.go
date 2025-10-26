@@ -130,14 +130,14 @@ func isScannable(t reflect.Type) bool {
 // struct is expected but something else is given
 func structOnlyError(t reflect.Type) error {
 	isStruct := t.Kind() == reflect.Struct
-	isScanner := reflect.PtrTo(t).Implements(_scannerInterface)
+	isScanner := reflect.PointerTo(t).Implements(_scannerInterface)
 	if !isStruct {
-		return fmt.Errorf("expected %s but got %s", reflect.Struct, t.Kind())
+		return fmt.Errorf("sqlx: expected %s but got %s", reflect.Struct, t.Kind())
 	}
 	if isScanner {
-		return fmt.Errorf("structscan expects a struct dest but the provided struct type %s implements scanner", t.Name())
+		return fmt.Errorf("sqlx: structscan expects a struct dest but the provided struct type %s implements scanner", t.Name())
 	}
-	return fmt.Errorf("expected a struct, but struct %s has no exported fields", t.Name())
+	return fmt.Errorf("sqlx: expected a struct, but struct %s has no exported fields", t.Name())
 }
 
 // scanAll scans all rows into a destination, which must be a slice of any
@@ -163,10 +163,10 @@ func scanAll(rows iRows, dest any, structOnly bool) error {
 
 	// json.Unmarshal returns errors for these
 	if value.Kind() != reflect.Ptr {
-		return errors.New("must pass a pointer, not a value, to StructScan destination")
+		return errors.New("sqlx: must pass a pointer, not a value, to StructScan destination")
 	}
 	if value.IsNil() {
-		return errors.New("nil pointer passed to StructScan destination")
+		return errors.New("sqlx: nil pointer passed to StructScan destination")
 	}
 	direct := reflect.Indirect(value)
 
@@ -191,7 +191,7 @@ func scanAll(rows iRows, dest any, structOnly bool) error {
 
 	// if it's a base type make sure it only has 1 column;  if not return an error
 	if scannable && len(columns) > 1 {
-		return fmt.Errorf("non-struct dest type %s with >1 columns (%d)", base.Kind(), len(columns))
+		return fmt.Errorf("sqlx: non-struct dest type %s with >1 columns (%d)", base.Kind(), len(columns))
 	}
 
 	if !scannable {
@@ -206,8 +206,8 @@ func scanAll(rows iRows, dest any, structOnly bool) error {
 
 		fields := m.TraversalsByName(base, columns)
 		// if we are not unsafe and are missing fields, return an error
-		if f, err := missingFields(fields); err != nil && !isUnsafe(rows) {
-			return fmt.Errorf("missing destination name %s in %T", columns[f], dest)
+		if f, ok := missingFields(fields); ok && !isUnsafe(rows) {
+			return fmt.Errorf("sqlx: missing destination name %s in %T", columns[f], dest)
 		}
 		values = make([]any, len(columns))
 
@@ -257,7 +257,7 @@ func scanAll(rows iRows, dest any, structOnly bool) error {
 func baseType(t reflect.Type, expected reflect.Kind) (reflect.Type, error) {
 	t = ref.DerefType(t)
 	if t.Kind() != expected {
-		return nil, fmt.Errorf("expected %s but got %s", expected, t.Kind())
+		return nil, fmt.Errorf("sqlx: expected %s but got %s", expected, t.Kind())
 	}
 	return t, nil
 }
@@ -271,7 +271,7 @@ func baseType(t reflect.Type, expected reflect.Kind) (reflect.Type, error) {
 func fieldsByTraversal(v reflect.Value, traversals [][]int, values []any, ptrs bool) error {
 	v = reflect.Indirect(v)
 	if v.Kind() != reflect.Struct {
-		return errors.New("argument not a struct")
+		return errors.New("sqlx: argument is not a struct")
 	}
 
 	for i, traversal := range traversals {
@@ -289,11 +289,11 @@ func fieldsByTraversal(v reflect.Value, traversals [][]int, values []any, ptrs b
 	return nil
 }
 
-func missingFields(transversals [][]int) (field int, err error) {
+func missingFields(transversals [][]int) (int, bool) {
 	for i, t := range transversals {
 		if len(t) == 0 {
-			return i, errors.New("missing field")
+			return i, true
 		}
 	}
-	return 0, nil
+	return 0, false
 }

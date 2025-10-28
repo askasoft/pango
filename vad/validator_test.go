@@ -70,6 +70,10 @@ type TestString struct {
 	WcMatch   string `validate:"wcmatch=a*b?c"`
 	OmitEmpty string `validate:"omitempty,minlen=1,maxlen=10"`
 	Boolean   string `validate:"boolean"`
+	Size      string `validate:"size"`
+	MinSize   string `validate:"minsize=1MB"`
+	MaxSize   string `validate:"maxsize=10MB"`
+	BtwSize   string `validate:"btwsize=1MB ~ 10MB"`
 	Sub       *SubTest
 	SubIgnore *SubTest `validate:"-"`
 	Anonymous struct {
@@ -5928,14 +5932,14 @@ func TestBadParams(t *testing.T) {
 	errs := validate.Var(i, "-")
 	assertEqual(t, errs, nil)
 
-	assertPanicMatches(t, func() { _ = validate.Var(i, "eq=a") }, "strconv.ParseInt: parsing \"a\": invalid syntax")
-	assertPanicMatches(t, func() { _ = validate.Var(i, "eq=a") }, "strconv.ParseInt: parsing \"a\": invalid syntax")
+	assertPanicMatches(t, func() { _ = validate.Var(i, "eq=a") }, "eq: strconv.ParseInt: parsing \"a\": invalid syntax")
+	assertPanicMatches(t, func() { _ = validate.Var(i, "eq=a") }, "eq: strconv.ParseInt: parsing \"a\": invalid syntax")
 
 	var ui uint = 1
-	assertPanicMatches(t, func() { _ = validate.Var(ui, "eq=a") }, "strconv.ParseUint: parsing \"a\": invalid syntax")
+	assertPanicMatches(t, func() { _ = validate.Var(ui, "eq=a") }, "eq: strconv.ParseUint: parsing \"a\": invalid syntax")
 
 	f := 1.23
-	assertPanicMatches(t, func() { _ = validate.Var(f, "eq=a") }, "strconv.ParseFloat: parsing \"a\": invalid syntax")
+	assertPanicMatches(t, func() { _ = validate.Var(f, "eq=a") }, "eq: strconv.ParseFloat: parsing \"a\": invalid syntax")
 }
 
 func TestLength(t *testing.T) {
@@ -5957,9 +5961,6 @@ func TestIsGt(t *testing.T) {
 	errs = validate.Var(ui, "gt=10")
 	assertNotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "gt")
-
-	i := true
-	assertPanicMatches(t, func() { _ = validate.Var(i, "gt") }, "gt: bad field type bool")
 
 	tm := time.Now().UTC()
 	tm = tm.Add(time.Hour * 24)
@@ -6042,9 +6043,6 @@ func TestIsGt(t *testing.T) {
 func TestIsGte(t *testing.T) {
 	var errs error
 	validate := New()
-
-	i := true
-	assertPanicMatches(t, func() { _ = validate.Var(i, "gte") }, "gte: bad field type bool")
 
 	t1 := time.Now().UTC()
 	t1 = t1.Add(time.Hour * 24)
@@ -6354,9 +6352,6 @@ func TestIsLt(t *testing.T) {
 	assertNotEqual(t, errs, nil)
 	AssertError(t, errs, "", "", "", "", "lt")
 
-	i := true
-	assertPanicMatches(t, func() { _ = validate.Var(i, "lt") }, "lt: bad field type bool")
-
 	t1 := time.Now().UTC().Add(-time.Hour)
 
 	errs = validate.Var(t1, "lt")
@@ -6439,9 +6434,6 @@ func TestIsLt(t *testing.T) {
 func TestIsLte(t *testing.T) {
 	var errs error
 	validate := New()
-
-	i := true
-	assertPanicMatches(t, func() { _ = validate.Var(i, "lte") }, "lte: bad field type bool")
 
 	t1 := time.Now().UTC().Add(-time.Hour)
 
@@ -7200,6 +7192,10 @@ func TestStructStringValidation(t *testing.T) {
 		ReMatch:   "1234567890",
 		WcMatch:   "ab,c",
 		Boolean:   "true",
+		Size:      "1KB",
+		MinSize:   "2MB",
+		MaxSize:   "8MB",
+		BtwSize:   "5MB",
 		OmitEmpty: "",
 		Sub: &SubTest{
 			Test: "1",
@@ -7232,6 +7228,10 @@ func TestStructStringValidation(t *testing.T) {
 		WcMatch:   "a",
 		OmitEmpty: "12345678901",
 		Boolean:   "nope",
+		Size:      "1xB",
+		MinSize:   "2KB",
+		MaxSize:   "1GB",
+		BtwSize:   "5TB",
 		Sub: &SubTest{
 			Test: "",
 		},
@@ -7249,7 +7249,7 @@ func TestStructStringValidation(t *testing.T) {
 
 	// Assert Top Level
 	assertNotEqual(t, errs, nil)
-	assertEqual(t, len(errs.(ValidationErrors)), 14)
+	assertEqual(t, len(errs.(ValidationErrors)), 18)
 
 	// Assert Fields
 	AssertError(t, errs, "TestString.Required", "TestString.Required", "Required", "Required", "required")
@@ -7263,6 +7263,10 @@ func TestStructStringValidation(t *testing.T) {
 	AssertError(t, errs, "TestString.WcMatch", "TestString.WcMatch", "WcMatch", "WcMatch", "wcmatch")
 	AssertError(t, errs, "TestString.OmitEmpty", "TestString.OmitEmpty", "OmitEmpty", "OmitEmpty", "maxlen")
 	AssertError(t, errs, "TestString.Boolean", "TestString.Boolean", "Boolean", "Boolean", "boolean")
+	AssertError(t, errs, "TestString.Size", "TestString.Size", "Size", "Size", "size")
+	AssertError(t, errs, "TestString.MinSize", "TestString.MinSize", "MinSize", "MinSize", "minsize")
+	AssertError(t, errs, "TestString.MaxSize", "TestString.MaxSize", "MaxSize", "MaxSize", "maxsize")
+	AssertError(t, errs, "TestString.BtwSize", "TestString.BtwSize", "BtwSize", "BtwSize", "btwsize")
 
 	// Nested Struct Field Errs
 	AssertError(t, errs, "TestString.Anonymous.A", "TestString.Anonymous.A", "A", "A", "required")

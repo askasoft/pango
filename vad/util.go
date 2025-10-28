@@ -1,6 +1,7 @@
 package vad
 
 import (
+	"fmt"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -225,138 +226,138 @@ func splits(param string) []string {
 }
 
 func split2(param string) (string, string) {
-	ps := str.FieldsAny(param, " ~～")
+	ps := str.FieldsAny(param, "~～")
 	if len(ps) != 2 {
 		panic("vad: Invalid btw(between) expression")
 	}
 
-	return ps[0], ps[1]
+	return str.Strip(ps[0]), str.Strip(ps[1])
 }
 
 // asInt returns the parameter as a int64
 // or panics if it can't convert
-func asInt(param string) int64 {
+func asInt(tag, param string) int64 {
 	i, err := strconv.ParseInt(param, 0, 64)
-	panicIf(err)
+	panicIf(tag, err)
 	return i
 }
 
 // asInt2 returns the parameter as two int64
 // or panics if it can't convert
-func asInt2(param string) (int64, int64) {
+func asInt2(tag, param string) (int64, int64) {
 	p1, p2 := split2(param)
-	i1 := asInt(p1)
-	i2 := asInt(p2)
+	i1 := asInt(tag, p1)
+	i2 := asInt(tag, p2)
 	return i1, i2
 }
 
 // asIntFromTimeDuration parses param as time.Duration and returns it as int64
 // or panics on error.
-func asIntFromTimeDuration(param string) int64 {
+func asIntFromTimeDuration(tag, param string) int64 {
 	d, err := tmu.ParseDuration(param)
 	if err != nil {
 		// attempt parsing as an integer assuming nanosecond precision
-		return asInt(param)
+		return asInt(tag, param)
 	}
 	return int64(d)
 }
 
 // asInt2FromTimeDuration parses param as time.Duration and returns it as two int64
 // or panics on error.
-func asInt2FromTimeDuration(param string) (int64, int64) {
+func asInt2FromTimeDuration(tag, param string) (int64, int64) {
 	p1, p2 := split2(param)
-	i1 := asIntFromTimeDuration(p1)
-	i2 := asIntFromTimeDuration(p2)
+	i1 := asIntFromTimeDuration(tag, p1)
+	i2 := asIntFromTimeDuration(tag, p2)
 	return i1, i2
 }
 
 // asIntFromType calls the proper function to parse param as int64,
 // given a field's Type t.
-func asIntFromType(t reflect.Type, param string) int64 {
+func asIntFromType(tag string, t reflect.Type, param string) int64 {
 	switch t {
 	case timeDurationType:
-		return asIntFromTimeDuration(param)
+		return asIntFromTimeDuration(tag, param)
 	default:
-		return asInt(param)
+		return asInt(tag, param)
 	}
 }
 
 // asInt2FromType calls the proper function to parse param as int64,
 // given a field's Type t.
-func asInt2FromType(t reflect.Type, param string) (int64, int64) {
+func asInt2FromType(tag string, t reflect.Type, param string) (int64, int64) {
 	switch t {
 	case timeDurationType:
-		return asInt2FromTimeDuration(param)
+		return asInt2FromTimeDuration(tag, param)
 	default:
-		return asInt2(param)
+		return asInt2(tag, param)
 	}
 }
 
 // asUint returns the parameter as a uint64
 // or panics if it can't convert
-func asUint(param string) uint64 {
+func asUint(tag, param string) uint64 {
 	i, err := strconv.ParseUint(param, 0, 64)
-	panicIf(err)
+	panicIf(tag, err)
 	return i
 }
 
 // asUint2 returns the parameter as two uint64
 // or panics if it can't convert
-func asUint2(param string) (uint64, uint64) {
+func asUint2(tag, param string) (uint64, uint64) {
 	p1, p2 := split2(param)
-	i1 := asUint(p1)
-	i2 := asUint(p2)
+	i1 := asUint(tag, p1)
+	i2 := asUint(tag, p2)
 	return i1, i2
 }
 
 // asFloat returns the parameter as a float64
 // or panics if it can't convert
-func asFloat(param string) float64 {
+func asFloat(tag, param string) float64 {
 	i, err := strconv.ParseFloat(param, 64)
-	panicIf(err)
+	panicIf(tag, err)
 	return i
 }
 
 // asFloat2 returns the parameter as two float64
 // or panics if it can't convert
-func asFloat2(param string) (float64, float64) {
+func asFloat2(tag, param string) (float64, float64) {
 	p1, p2 := split2(param)
-	i1 := asFloat(p1)
-	i2 := asFloat(p2)
+	i1 := asFloat(tag, p1)
+	i2 := asFloat(tag, p2)
 	return i1, i2
 }
 
 // asBool returns the parameter as a bool
 // or panics if it can't convert
-func asBool(param string) bool {
+func asBool(tag, param string) bool {
 	i, err := strconv.ParseBool(param)
-	panicIf(err)
+	panicIf(tag, err)
 	return i
 }
 
 // asTime returns the parameter as a time
 // or panics if it can't convert
-func asTime(param string) time.Time {
+func asTime(tag, param string) time.Time {
 	if param == "" || param == "now" {
 		return time.Now()
 	}
 
 	t, err := tmu.ParseInLocation(param, time.Local)
-	panicIf(err)
+	panicIf(tag, err)
 	return t
 }
 
 // asTime2 returns the parameter as two time
 // or panics if it can't convert
-func asTime2(param string) (time.Time, time.Time) {
+func asTime2(tag, param string) (time.Time, time.Time) {
 	p1, p2 := split2(param)
-	t1 := asTime(p1)
-	t2 := asTime(p2)
+	t1 := asTime(tag, p1)
+	t2 := asTime(tag, p2)
 	return t1, t2
 }
 
-func panicIf(err error) {
+func panicIf(tag string, err error) {
 	if err != nil {
-		panic(err.Error())
+		panic(fmt.Errorf("%s: %w", tag, err))
 	}
 }

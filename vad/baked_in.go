@@ -1,6 +1,7 @@
 package vad
 
 import (
+	"cmp"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,6 +13,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/askasoft/pango/asg"
+	"github.com/askasoft/pango/gog"
 	"github.com/askasoft/pango/num"
 	"github.com/askasoft/pango/sch"
 	"github.com/askasoft/pango/str"
@@ -72,15 +74,15 @@ var (
 		"minlen":                        isMinLen,
 		"maxlen":                        isMaxLen,
 		"btwlen":                        isBtwLen,
-		"min":                           isGte,
-		"max":                           isLte,
+		"min":                           isMin,
+		"max":                           isMax,
+		"btw":                           isBtw,
 		"eq":                            isEq,
 		"ne":                            isNe,
 		"lt":                            isLt,
 		"lte":                           isLte,
 		"gt":                            isGt,
 		"gte":                           isGte,
-		"btw":                           isBtw,
 		"eqfield":                       isEqField,
 		"nefield":                       isNeField,
 		"gtfield":                       isGtField,
@@ -104,6 +106,9 @@ var (
 		"numeric":                       isNumeric,
 		"number":                        isNumber,
 		"size":                          isSize,
+		"minsize":                       isSizeGte,
+		"maxsize":                       isSizeLte,
+		"btwsize":                       isSizeBtw,
 		"hexadecimal":                   isHexadecimal,
 		"hexcolor":                      isHexColor,
 		"rgb":                           isRGB,
@@ -196,7 +201,7 @@ func wrapFunc(tag string, fn Func) FuncEx {
 func MustStringField(name string, fl FieldLevel) {
 	field := fl.Field()
 	if field.Kind() != reflect.String {
-		panic(fmt.Sprintf("%s: bad field type %T", name, field.Interface()))
+		panic(fmt.Errorf("%s: bad field type %T", name, field.Interface()))
 	}
 }
 
@@ -214,7 +219,7 @@ func isOneOf(fl FieldLevel) bool {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		v = strconv.FormatUint(field.Uint(), 10)
 	default:
-		panic(fmt.Sprintf("oneof: bad field type %T", field.Interface()))
+		panic(fmt.Errorf("oneof: bad field type %T", field.Interface()))
 	}
 	return asg.Contains(vs, v)
 }
@@ -242,7 +247,7 @@ func isUnique(fl FieldLevel) bool {
 
 		sf, ok := elem.FieldByName(param)
 		if !ok {
-			panic(fmt.Sprintf("unique: bad field name %s", param))
+			panic(fmt.Errorf("unique: bad field name %s", param))
 		}
 
 		sfTyp := sf.Type
@@ -262,7 +267,7 @@ func isUnique(fl FieldLevel) bool {
 		}
 		return field.Len() == m.Len()
 	default:
-		panic(fmt.Sprintf("unique: bad field type %T", field.Interface()))
+		panic(fmt.Errorf("unique: bad field type %T", field.Interface()))
 	}
 }
 
@@ -339,7 +344,7 @@ func isLongitude(fl FieldLevel) bool {
 	case reflect.Float64:
 		v = strconv.FormatFloat(field.Float(), 'f', -1, 64)
 	default:
-		panic(fmt.Sprintf("longitude: bad field type %T", field.Interface()))
+		panic(fmt.Errorf("longitude: bad field type %T", field.Interface()))
 	}
 
 	return IsLongitude(v)
@@ -362,7 +367,7 @@ func isLatitude(fl FieldLevel) bool {
 	case reflect.Float64:
 		v = strconv.FormatFloat(field.Float(), 'f', -1, 64)
 	default:
-		panic(fmt.Sprintf("latitude: bad field type %T", field.Interface()))
+		panic(fmt.Errorf("latitude: bad field type %T", field.Interface()))
 	}
 
 	return IsLatitude(v)
@@ -576,117 +581,6 @@ func fieldExcludes(fl FieldLevel) bool {
 	return !strings.Contains(fl.Field().String(), cfield.String())
 }
 
-// isNeField is the validation function for validating if the current field's value is not equal to the field specified by the param's value.
-func isNeField(fl FieldLevel) bool {
-	field := fl.Field()
-	kind := field.Kind()
-
-	cfield, cfkind, ok := fl.GetStructFieldOK()
-
-	if !ok || cfkind != kind {
-		return true
-	}
-
-	switch kind {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return field.Int() != cfield.Int()
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return field.Uint() != cfield.Uint()
-	case reflect.Float32, reflect.Float64:
-		return field.Float() != cfield.Float()
-	case reflect.Bool:
-		return field.Bool() != cfield.Bool()
-	case reflect.Struct:
-		fieldType := field.Type()
-		if fieldType.ConvertibleTo(timeType) && cfield.Type().ConvertibleTo(timeType) {
-			ct := cfield.Convert(timeType).Interface().(time.Time)
-			ft := field.Convert(timeType).Interface().(time.Time)
-			return !ft.Equal(ct)
-		}
-
-		// Not Same underlying type i.e. struct and time
-		if fieldType != cfield.Type() {
-			return true
-		}
-	}
-
-	// default reflect.String:
-	return field.String() != cfield.String()
-}
-
-// isNe is the validation function for validating that the field's value does not equal the provided param value.
-func isNe(fl FieldLevel) bool {
-	return !isEq(fl)
-}
-
-// isEqField is the validation function for validating if the current field's value is equal to the field specified by the param's value.
-func isEqField(fl FieldLevel) bool {
-	field := fl.Field()
-	kind := field.Kind()
-
-	cfield, cfkind, ok := fl.GetStructFieldOK()
-	if !ok || cfkind != kind {
-		return false
-	}
-
-	switch kind {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return field.Int() == cfield.Int()
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return field.Uint() == cfield.Uint()
-	case reflect.Float32, reflect.Float64:
-		return field.Float() == cfield.Float()
-	case reflect.Bool:
-		return field.Bool() == cfield.Bool()
-	case reflect.Struct:
-		fieldType := field.Type()
-		if fieldType.ConvertibleTo(timeType) && cfield.Type().ConvertibleTo(timeType) {
-			ct := cfield.Convert(timeType).Interface().(time.Time)
-			ft := field.Convert(timeType).Interface().(time.Time)
-			return ft.Equal(ct)
-		}
-
-		// Not Same underlying type i.e. struct and time
-		if fieldType != cfield.Type() {
-			return false
-		}
-	}
-
-	// default reflect.String:
-	return field.String() == cfield.String()
-}
-
-// isEq is the validation function for validating if the current field's value is equal to the param's value.
-func isEq(fl FieldLevel) bool {
-	field := fl.Field()
-	param := fl.Param()
-
-	switch field.Kind() {
-	case reflect.String:
-		return field.String() == param
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asIntFromType(field.Type(), param)
-		return field.Int() == p
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		p := asUint(param)
-		return field.Uint() == p
-	case reflect.Float32, reflect.Float64:
-		p := asFloat(param)
-		return field.Float() == p
-	case reflect.Bool:
-		p := asBool(param)
-		return field.Bool() == p
-	case reflect.Struct:
-		if field.Type().ConvertibleTo(timeType) {
-			p := asTime(param)
-			t := field.Convert(timeType).Interface().(time.Time)
-			return t.Equal(p)
-		}
-	}
-
-	panic(fmt.Sprintf("eq: bad field type %T", field.Interface()))
-}
-
 // isPostcodeByIso3166Alpha2 validates by value which is country code in iso 3166 alpha 2
 // example: `postcode_iso3166_alpha2=US`
 func isPostcodeByIso3166Alpha2(fl FieldLevel) bool {
@@ -717,7 +611,7 @@ func isPostcodeByIso3166Alpha2Field(fl FieldLevel) bool {
 	}
 
 	if kind != reflect.String {
-		panic(fmt.Sprintf("postcode_iso3166_alpha2_field: bad field type %T", cfield.Interface()))
+		panic(fmt.Errorf("postcode_iso3166_alpha2_field: bad field type %T", cfield.Interface()))
 	}
 
 	reg, found := postCodeRegexDict[cfield.String()]
@@ -871,6 +765,64 @@ func isSize(fl FieldLevel) bool {
 	return err == nil
 }
 
+// isSizeGte is the validation function for validating if the current field's value is greater than or equal to the param's value.
+func isSizeGte(fl FieldLevel) bool {
+	MustStringField("sizemin", fl)
+
+	sz, err := num.ParseSize(fl.Field().String())
+	if err != nil {
+		return false
+	}
+
+	mz, err := num.ParseSize(fl.Param())
+	if err != nil {
+		panic(fmt.Errorf("sizemin: %w", err))
+	}
+
+	return sz >= mz
+}
+
+// isSizeLte is the validation function for validating if the current field's value is less than or equal to the param's value.
+func isSizeLte(fl FieldLevel) bool {
+	MustStringField("sizemax", fl)
+
+	sz, err := num.ParseSize(fl.Field().String())
+	if err != nil {
+		return false
+	}
+
+	mz, err := num.ParseSize(fl.Param())
+	if err != nil {
+		panic(fmt.Errorf("sizemax: %w", err))
+	}
+
+	return sz <= mz
+}
+
+// isSizeBtw is the validation function for validating if the current field's value is between the param's value "min~max".
+func isSizeBtw(fl FieldLevel) bool {
+	MustStringField("sizebtw", fl)
+
+	sz, err := num.ParseSize(fl.Field().String())
+	if err != nil {
+		return false
+	}
+
+	p1, p2 := split2(fl.Param())
+
+	z1, err := num.ParseSize(p1)
+	if err != nil {
+		panic(fmt.Errorf("sizebtw: %w", err))
+	}
+
+	z2, err := num.ParseSize(p2)
+	if err != nil {
+		panic(fmt.Errorf("sizebtw: %w", err))
+	}
+
+	return sz >= z1 && sz <= z2
+}
+
 // isLetter is the validation function for validating if the current field's value is a valid letter value.
 func isLetter(fl FieldLevel) bool {
 	MustStringField("letter", fl)
@@ -962,7 +914,7 @@ func requireCheckFieldKind(fl FieldLevel, param string, defaultNotFoundValue boo
 }
 
 // requireCheckFieldValue is a func for check field value
-func requireCheckFieldValue(fl FieldLevel, param string, value string, defaultNotFoundValue bool) bool {
+func requireCheckFieldValue(tag string, fl FieldLevel, param string, value string, defaultNotFoundValue bool) bool {
 	field, kind, _, found := fl.GetStructFieldOKAdvanced2(fl.Parent(), param)
 	if !found {
 		return defaultNotFoundValue
@@ -970,15 +922,15 @@ func requireCheckFieldValue(fl FieldLevel, param string, value string, defaultNo
 
 	switch kind {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return field.Int() == asInt(value)
+		return field.Int() == asInt(tag, value)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return field.Uint() == asUint(value)
+		return field.Uint() == asUint(tag, value)
 	case reflect.Float32, reflect.Float64:
-		return field.Float() == asFloat(value)
+		return field.Float() == asFloat(tag, value)
 	case reflect.Slice, reflect.Map, reflect.Array:
-		return int64(field.Len()) == asInt(value)
+		return int64(field.Len()) == asInt(tag, value)
 	case reflect.Bool:
-		return field.Bool() == asBool(value)
+		return field.Bool() == asBool(tag, value)
 	}
 
 	// default reflect.String:
@@ -990,11 +942,11 @@ func requireCheckFieldValue(fl FieldLevel, param string, value string, defaultNo
 func requiredIf(fl FieldLevel) bool {
 	params := splits(fl.Param())
 	if len(params)%2 != 0 {
-		panic(fmt.Sprintf("required_if: bad param number for  %s", fl.FieldName()))
+		panic(fmt.Errorf("required_if: bad param number for  %s", fl.FieldName()))
 	}
 
 	for i := 0; i < len(params); i += 2 {
-		if !requireCheckFieldValue(fl, params[i], params[i+1], false) {
+		if !requireCheckFieldValue("required_if", fl, params[i], params[i+1], false) {
 			return true
 		}
 	}
@@ -1006,11 +958,11 @@ func requiredIf(fl FieldLevel) bool {
 func requiredUnless(fl FieldLevel) bool {
 	params := splits(fl.Param())
 	if len(params)%2 != 0 {
-		panic(fmt.Sprintf("required_unless: bad param number for %s", fl.FieldName()))
+		panic(fmt.Errorf("required_unless: bad param number for %s", fl.FieldName()))
 	}
 
 	for i := 0; i < len(params); i += 2 {
-		if requireCheckFieldValue(fl, params[i], params[i+1], false) {
+		if requireCheckFieldValue("required_unless", fl, params[i], params[i+1], false) {
 			return true
 		}
 	}
@@ -1107,55 +1059,33 @@ func excludedWithoutAll(fl FieldLevel) bool {
 	return isEmpty(fl)
 }
 
-// isLen is the validation function for validating if the current field's length or rune count is equal to the param's value.
-func isLen(fl FieldLevel) bool {
+func compareLength(tag string, fl FieldLevel) int {
 	field := fl.Field()
 	param := fl.Param()
 
 	switch field.Kind() {
 	case reflect.String:
-		p := asInt(param)
-		return int64(utf8.RuneCountInString(field.String())) == p
+		return utf8.RuneCountInString(field.String()) - int(asInt(tag, param))
 	case reflect.Slice, reflect.Map, reflect.Array:
-		p := asInt(param)
-		return int64(field.Len()) == p
+		return field.Len() - int(asInt(tag, param))
 	}
 
-	panic(fmt.Sprintf("len: bad field type %T", field.Interface()))
+	panic(fmt.Errorf("%s: bad field type %T", tag, field.Interface()))
 }
 
-// isMaxLen is the validation function for validating if the current field's length or rune count is less than or equal to the param's value.
-func isMaxLen(fl FieldLevel) bool {
-	field := fl.Field()
-	param := fl.Param()
-
-	switch field.Kind() {
-	case reflect.String:
-		p := asInt(param)
-		return int64(utf8.RuneCountInString(field.String())) <= p
-	case reflect.Slice, reflect.Map, reflect.Array:
-		p := asInt(param)
-		return int64(field.Len()) <= p
-	}
-
-	panic(fmt.Sprintf("maxlen: bad field type %T", field.Interface()))
+// isLen is the validation function for validating if the current field's length or rune count is equal to the param's value.
+func isLen(fl FieldLevel) bool {
+	return compareLength("len", fl) == 0
 }
 
 // isMinLen is the validation function for validating if the current field's length or rune count is greater than or equal to the param's value.
 func isMinLen(fl FieldLevel) bool {
-	field := fl.Field()
-	param := fl.Param()
+	return compareLength("minlen", fl) >= 0
+}
 
-	switch field.Kind() {
-	case reflect.String:
-		p := asInt(param)
-		return int64(utf8.RuneCountInString(field.String())) >= p
-	case reflect.Slice, reflect.Map, reflect.Array:
-		p := asInt(param)
-		return int64(field.Len()) >= p
-	}
-
-	panic(fmt.Sprintf("minlen: bad field type %T", field.Interface()))
+// isMaxLen is the validation function for validating if the current field's length or rune count is less than or equal to the param's value.
+func isMaxLen(fl FieldLevel) bool {
+	return compareLength("maxlen", fl) <= 0
 }
 
 // isBtwLen is the validation function for validating if the current field's length or rune count is between the param's value.
@@ -1165,271 +1095,85 @@ func isBtwLen(fl FieldLevel) bool {
 
 	switch field.Kind() {
 	case reflect.String:
-		p1, p2 := asInt2(param)
+		p1, p2 := asInt2("btwlen", param)
 		l := int64(utf8.RuneCountInString(field.String()))
 		return l >= p1 && l <= p2
 	case reflect.Slice, reflect.Map, reflect.Array:
-		p1, p2 := asInt2(param)
+		p1, p2 := asInt2("btwlen", param)
 		l := int64(field.Len())
 		return l >= p1 && l <= p2
 	}
 
-	panic(fmt.Sprintf("btwlen: bad field type %T", field.Interface()))
+	panic(fmt.Errorf("btwlen: bad field type %T", field.Interface()))
 }
 
-// isGteField is the validation function for validating if the current field's value is greater than or equal to the field specified by the param's value.
-func isGteField(fl FieldLevel) bool {
+func compareValue(tag string, fl FieldLevel) int {
 	field := fl.Field()
-	kind := field.Kind()
+	param := fl.Param()
 
-	cfield, cfkind, ok := fl.GetStructFieldOK()
-	if !ok || cfkind != kind {
-		return false
-	}
-
-	switch kind {
+	switch field.Kind() {
+	case reflect.Bool:
+		return gog.If(field.Bool(), 1, 0) - gog.If(asBool("eq", param), 1, 0)
+	case reflect.String:
+		return str.Compare(field.String(), param)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return field.Int() >= cfield.Int()
+		return cmp.Compare(field.Int(), asIntFromType(tag, field.Type(), param))
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return field.Uint() >= cfield.Uint()
+		return cmp.Compare(field.Uint(), asUint(tag, param))
 	case reflect.Float32, reflect.Float64:
-		return field.Float() >= cfield.Float()
+		return cmp.Compare(field.Float(), asFloat(tag, param))
 	case reflect.Struct:
-		fieldType := field.Type()
-		if fieldType.ConvertibleTo(timeType) && cfield.Type().ConvertibleTo(timeType) {
-			ct := cfield.Convert(timeType).Interface().(time.Time)
-			ft := field.Convert(timeType).Interface().(time.Time)
-			return !ft.Before(ct)
-		}
-
-		// Not Same underlying type i.e. struct and time
-		if fieldType != cfield.Type() {
-			return false
+		if field.Type().ConvertibleTo(timeType) {
+			t := field.Convert(timeType).Interface().(time.Time)
+			p := asTime(tag, param)
+			return t.Compare(p)
 		}
 	}
 
-	// default reflect.String
-	return field.String() >= cfield.String()
+	panic(fmt.Errorf("%s: bad field type %T", tag, field.Interface()))
 }
 
-// isGtField is the validation function for validating if the current field's value is greater than the field specified by the param's value.
-func isGtField(fl FieldLevel) bool {
-	field := fl.Field()
-	kind := field.Kind()
+// isNe is the validation function for validating that the field's value does not equal the provided param value.
+func isNe(fl FieldLevel) bool {
+	return compareValue("ne", fl) != 0
+}
 
-	cfield, cfkind, ok := fl.GetStructFieldOK()
-	if !ok || cfkind != kind {
-		return false
-	}
-
-	switch kind {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return field.Int() > cfield.Int()
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return field.Uint() > cfield.Uint()
-	case reflect.Float32, reflect.Float64:
-		return field.Float() > cfield.Float()
-	case reflect.Struct:
-		fieldType := field.Type()
-		if fieldType.ConvertibleTo(timeType) && cfield.Type().ConvertibleTo(timeType) {
-			ct := cfield.Convert(timeType).Interface().(time.Time)
-			ft := field.Convert(timeType).Interface().(time.Time)
-			return ft.After(ct)
-		}
-
-		// Not Same underlying type i.e. struct and time
-		if fieldType != cfield.Type() {
-			return false
-		}
-	}
-
-	// default reflect.String
-	return field.String() > cfield.String()
+// isEq is the validation function for validating if the current field's value is equal to the param's value.
+func isEq(fl FieldLevel) bool {
+	return compareValue("eq", fl) == 0
 }
 
 // isGte is the validation function for validating if the current field's value is greater than or equal to the param's value.
 func isGte(fl FieldLevel) bool {
-	field := fl.Field()
-	param := fl.Param()
-
-	switch field.Kind() {
-	case reflect.String:
-		return field.String() >= param
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asIntFromType(field.Type(), param)
-		return field.Int() >= p
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		p := asUint(param)
-		return field.Uint() >= p
-	case reflect.Float32, reflect.Float64:
-		p := asFloat(param)
-		return field.Float() >= p
-	case reflect.Struct:
-		if field.Type().ConvertibleTo(timeType) {
-			p := asTime(param)
-			t := field.Convert(timeType).Interface().(time.Time)
-			return !t.Before(p)
-		}
-	}
-
-	panic(fmt.Sprintf("gte: bad field type %T", field.Interface()))
+	return compareValue("gte", fl) >= 0
 }
 
 // isGt is the validation function for validating if the current field's value is greater than the param's value.
 func isGt(fl FieldLevel) bool {
-	field := fl.Field()
-	param := fl.Param()
-
-	switch field.Kind() {
-	case reflect.String:
-		return field.String() > param
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asIntFromType(field.Type(), param)
-		return field.Int() > p
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		p := asUint(param)
-		return field.Uint() > p
-	case reflect.Float32, reflect.Float64:
-		p := asFloat(param)
-		return field.Float() > p
-	case reflect.Struct:
-		if field.Type().ConvertibleTo(timeType) {
-			p := asTime(param)
-			t := field.Convert(timeType).Interface().(time.Time)
-			return t.After(p)
-		}
-	}
-
-	panic(fmt.Sprintf("gt: bad field type %T", field.Interface()))
-}
-
-// isLteField is the validation function for validating if the current field's value is less than or equal to the field specified by the param's value.
-func isLteField(fl FieldLevel) bool {
-	field := fl.Field()
-	kind := field.Kind()
-
-	cfield, cfkind, ok := fl.GetStructFieldOK()
-	if !ok || cfkind != kind {
-		return false
-	}
-
-	switch kind {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return field.Int() <= cfield.Int()
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return field.Uint() <= cfield.Uint()
-	case reflect.Float32, reflect.Float64:
-		return field.Float() <= cfield.Float()
-	case reflect.Struct:
-		fieldType := field.Type()
-		if fieldType.ConvertibleTo(timeType) && cfield.Type().ConvertibleTo(timeType) {
-			ct := cfield.Convert(timeType).Interface().(time.Time)
-			ft := field.Convert(timeType).Interface().(time.Time)
-			return !ft.After(ct)
-		}
-
-		// Not Same underlying type i.e. struct and time
-		if fieldType != cfield.Type() {
-			return false
-		}
-	}
-
-	// default reflect.String
-	return field.String() <= cfield.String()
-}
-
-// isLtField is the validation function for validating if the current field's value is less than the field specified by the param's value.
-func isLtField(fl FieldLevel) bool {
-	field := fl.Field()
-	kind := field.Kind()
-
-	cfield, cfkind, ok := fl.GetStructFieldOK()
-	if !ok || cfkind != kind {
-		return false
-	}
-
-	switch kind {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return field.Int() < cfield.Int()
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return field.Uint() < cfield.Uint()
-	case reflect.Float32, reflect.Float64:
-		return field.Float() < cfield.Float()
-	case reflect.Struct:
-		fieldType := field.Type()
-		if fieldType.ConvertibleTo(timeType) && cfield.Type().ConvertibleTo(timeType) {
-			ct := cfield.Convert(timeType).Interface().(time.Time)
-			ft := field.Convert(timeType).Interface().(time.Time)
-			return ft.Before(ct)
-		}
-
-		// Not Same underlying type i.e. struct and time
-		if fieldType != cfield.Type() {
-			return false
-		}
-	}
-
-	// default reflect.String
-	return field.String() < cfield.String()
+	return compareValue("gt", fl) > 0
 }
 
 // isLte is the validation function for validating if the current field's value is less than or equal to the param's value.
 func isLte(fl FieldLevel) bool {
-	field := fl.Field()
-	param := fl.Param()
-
-	switch field.Kind() {
-	case reflect.String:
-		return field.String() <= param
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asIntFromType(field.Type(), param)
-		return field.Int() <= p
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		p := asUint(param)
-		return field.Uint() <= p
-	case reflect.Float32, reflect.Float64:
-		p := asFloat(param)
-		return field.Float() <= p
-	case reflect.Struct:
-		if field.Type().ConvertibleTo(timeType) {
-			p := asTime(param)
-			t := field.Convert(timeType).Interface().(time.Time)
-			return p.After(t)
-		}
-	}
-
-	panic(fmt.Sprintf("lte: bad field type %T", field.Interface()))
+	return compareValue("lte", fl) <= 0
 }
 
 // isLt is the validation function for validating if the current field's value is less than the param's value.
 func isLt(fl FieldLevel) bool {
-	field := fl.Field()
-	param := fl.Param()
-
-	switch field.Kind() {
-	case reflect.String:
-		return field.String() < param
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p := asIntFromType(field.Type(), param)
-		return field.Int() < p
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		p := asUint(param)
-		return field.Uint() < p
-	case reflect.Float32, reflect.Float64:
-		p := asFloat(param)
-		return field.Float() < p
-	case reflect.Struct:
-		if field.Type().ConvertibleTo(timeType) {
-			p := asTime(param)
-			t := field.Convert(timeType).Interface().(time.Time)
-			return t.Before(p)
-		}
-	}
-
-	panic(fmt.Sprintf("lt: bad field type %T", field.Interface()))
+	return compareValue("lt", fl) < 0
 }
 
-// isBtw is the validation function for validating if the current field's value is between the param's value "min max".
+// isMin is the validation function for validating if the current field's value is greater than or equal to the param's value.
+func isMin(fl FieldLevel) bool {
+	return compareValue("min", fl) >= 0
+}
+
+// isMax is the validation function for validating if the current field's value is less than or equal to the param's value.
+func isMax(fl FieldLevel) bool {
+	return compareValue("max", fl) <= 0
+}
+
+// isBtw is the validation function for validating if the current field's value is between the param's value "min~max".
 func isBtw(fl FieldLevel) bool {
 	field := fl.Field()
 	param := fl.Param()
@@ -1439,26 +1183,98 @@ func isBtw(fl FieldLevel) bool {
 		p1, p2 := split2(param)
 		return field.String() >= p1 && field.String() <= p2
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		p1, p2 := asInt2FromType(field.Type(), param)
+		p1, p2 := asInt2FromType("btw", field.Type(), param)
 		i := field.Int()
 		return i >= p1 && i <= p2
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		p1, p2 := asUint2(param)
+		p1, p2 := asUint2("btw", param)
 		u := field.Uint()
 		return u >= p1 && u <= p2
 	case reflect.Float32, reflect.Float64:
-		p1, p2 := asFloat2(param)
+		p1, p2 := asFloat2("btw", param)
 		f := field.Float()
 		return f >= p1 && f <= p2
 	case reflect.Struct:
 		if field.Type().ConvertibleTo(timeType) {
-			p1, p2 := asTime2(param)
+			p1, p2 := asTime2("btw", param)
 			t := field.Convert(timeType).Interface().(time.Time)
 			return !t.Before(p1) && !t.After(p2)
 		}
 	}
 
-	panic(fmt.Sprintf("btw: bad field type %T", field.Interface()))
+	panic(fmt.Errorf("btw: bad field type %T", field.Interface()))
+}
+
+// isNeField is the validation function for validating if the current field's value is not equal to the field specified by the param's value.
+func isNeField(fl FieldLevel) bool {
+	rv, ok := compareField(fl)
+	return !ok || rv != 0
+}
+
+// isEqField is the validation function for validating if the current field's value is equal to the field specified by the param's value.
+func isEqField(fl FieldLevel) bool {
+	rv, ok := compareField(fl)
+	return ok && rv == 0
+}
+
+func compareField(fl FieldLevel) (int, bool) {
+	field := fl.Field()
+	kind := field.Kind()
+
+	cfield, cfkind, ok := fl.GetStructFieldOK()
+	if !ok || cfkind != kind {
+		return 0, false
+	}
+
+	switch kind {
+	case reflect.Bool:
+		return gog.If(field.Bool(), 1, 0) - gog.If(cfield.Bool(), 1, 0), true
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return cmp.Compare(field.Int(), cfield.Int()), true
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		return cmp.Compare(field.Uint(), cfield.Uint()), true
+	case reflect.Float32, reflect.Float64:
+		return cmp.Compare(field.Float(), cfield.Float()), true
+	case reflect.Struct:
+		fieldType := field.Type()
+		if fieldType.ConvertibleTo(timeType) && cfield.Type().ConvertibleTo(timeType) {
+			ft := field.Convert(timeType).Interface().(time.Time)
+			ct := cfield.Convert(timeType).Interface().(time.Time)
+			return ft.Compare(ct), true
+		}
+
+		// Not Same underlying type i.e. struct and time
+		if fieldType != cfield.Type() {
+			return 0, false
+		}
+	}
+
+	// default reflect.String
+	return str.Compare(field.String(), cfield.String()), true
+}
+
+// isGteField is the validation function for validating if the current field's value is greater than or equal to the field specified by the param's value.
+func isGteField(fl FieldLevel) bool {
+	rv, ok := compareField(fl)
+	return ok && rv >= 0
+}
+
+// isGtField is the validation function for validating if the current field's value is greater than the field specified by the param's value.
+func isGtField(fl FieldLevel) bool {
+	rv, ok := compareField(fl)
+	return ok && rv > 0
+}
+
+// isLteField is the validation function for validating if the current field's value is less than or equal to the field specified by the param's value.
+func isLteField(fl FieldLevel) bool {
+	rv, ok := compareField(fl)
+	return ok && rv <= 0
+}
+
+// isLtField is the validation function for validating if the current field's value is less than the field specified by the param's value.
+func isLtField(fl FieldLevel) bool {
+	rv, ok := compareField(fl)
+	return ok && rv < 0
 }
 
 func isHostnameRFC952(fl FieldLevel) bool {

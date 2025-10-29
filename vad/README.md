@@ -55,20 +55,14 @@ Baked-in Validations
 
 | Tag            | Description                     |
 | -------------- | ------------------------------- |
-| eqcsfield      | Field Equals Another Field (relative)|
-| eqfield        | Field Equals Another Field |
-| fieldcontains  | NOT DOCUMENTED IN doc.go |
-| fieldexcludes  | NOT DOCUMENTED IN doc.go |
-| gtcsfield      | Field Greater Than Another Relative Field |
-| gtecsfield     | Field Greater Than or Equal To Another Relative Field |
-| gtefield       | Field Greater Than or Equal To Another Field |
-| gtfield        | Field Greater Than Another Field |
-| ltcsfield      | Less Than Another Relative Field |
-| ltecsfield     | Less Than or Equal To Another Relative Field |
+| eqfield        | Equals to Another Field |
+| nefield        | Not Equal to Another Field |
+| gtefield       | Greater Than or Equal To Another Field |
+| gtfield        | Greater Than Another Field |
 | ltefield       | Less Than or Equal To Another Field |
 | ltfield        | Less Than Another Field |
-| necsfield      | Field Does Not Equal Another Field (relative) |
-| nefield        | Field Does Not Equal Another Field |
+| containsfield  | Contains Another Field (string) |
+| excludesfield  | Excludes Another Field (string) |
 
 ### Network:
 
@@ -139,8 +133,6 @@ Baked-in Validations
 | hexcolor        | Hexcolor String |
 | hsl             | HSL String |
 | hsla            | HSLA String |
-| html            | HTML Tags |
-| html_encoded    | HTML Encoded |
 | isbn            | International Standard Book Number |
 | isbn10          | International Standard Book Number 10 |
 | isbn13          | International Standard Book Number 13 |

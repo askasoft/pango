@@ -225,10 +225,10 @@ func splits(param string) []string {
 	return vals
 }
 
-func split2(param string) (string, string) {
+func split2(tag, param string) (string, string) {
 	ps := str.FieldsAny(param, "~～")
 	if len(ps) != 2 {
-		panic("vad: Invalid btw(between) expression")
+		panic(fmt.Errorf("%s: invalid between expression %q", tag, param))
 	}
 
 	return str.Strip(ps[0]), str.Strip(ps[1])
@@ -245,7 +245,7 @@ func asInt(tag, param string) int64 {
 // asInt2 returns the parameter as two int64
 // or panics if it can't convert
 func asInt2(tag, param string) (int64, int64) {
-	p1, p2 := split2(param)
+	p1, p2 := split2(tag, param)
 	i1 := asInt(tag, p1)
 	i2 := asInt(tag, p2)
 	return i1, i2
@@ -265,7 +265,7 @@ func asIntFromTimeDuration(tag, param string) int64 {
 // asInt2FromTimeDuration parses param as time.Duration and returns it as two int64
 // or panics on error.
 func asInt2FromTimeDuration(tag, param string) (int64, int64) {
-	p1, p2 := split2(param)
+	p1, p2 := split2(tag, param)
 	i1 := asIntFromTimeDuration(tag, p1)
 	i2 := asIntFromTimeDuration(tag, p2)
 	return i1, i2
@@ -304,7 +304,7 @@ func asUint(tag, param string) uint64 {
 // asUint2 returns the parameter as two uint64
 // or panics if it can't convert
 func asUint2(tag, param string) (uint64, uint64) {
-	p1, p2 := split2(param)
+	p1, p2 := split2(tag, param)
 	i1 := asUint(tag, p1)
 	i2 := asUint(tag, p2)
 	return i1, i2
@@ -321,7 +321,7 @@ func asFloat(tag, param string) float64 {
 // asFloat2 returns the parameter as two float64
 // or panics if it can't convert
 func asFloat2(tag, param string) (float64, float64) {
-	p1, p2 := split2(param)
+	p1, p2 := split2(tag, param)
 	i1 := asFloat(tag, p1)
 	i2 := asFloat(tag, p2)
 	return i1, i2
@@ -350,7 +350,7 @@ func asTime(tag, param string) time.Time {
 // asTime2 returns the parameter as two time
 // or panics if it can't convert
 func asTime2(tag, param string) (time.Time, time.Time) {
-	p1, p2 := split2(param)
+	p1, p2 := split2(tag, param)
 	t1 := asTime(tag, p1)
 	t2 := asTime(tag, p2)
 	return t1, t2

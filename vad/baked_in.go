@@ -89,14 +89,8 @@ var (
 		"ltfield":                       isLtField,
 		"gtefield":                      isGteField,
 		"ltefield":                      isLteField,
-		"eqcsfield":                     isEqField,
-		"necsfield":                     isNeField,
-		"gtcsfield":                     isGtField,
-		"ltcsfield":                     isLtField,
-		"gtecsfield":                    isGteField,
-		"ltecsfield":                    isLteField,
-		"fieldcontains":                 fieldContains,
-		"fieldexcludes":                 fieldExcludes,
+		"containsfield":                 containsField,
+		"excludesfield":                 excludesField,
 		"letter":                        isLetter,
 		"letternum":                     isLetterNumber,
 		"utfletter":                     isUTFLetter,
@@ -557,30 +551,6 @@ func endsNotWith(fl FieldLevel) bool {
 	return !endsWith(fl)
 }
 
-// fieldContains is the validation function for validating if the current field's value contains the field specified by the param's value.
-func fieldContains(fl FieldLevel) bool {
-	MustStringField("fieldcontains", fl)
-
-	cfield, _, ok := fl.GetStructFieldOK()
-	if !ok {
-		return false
-	}
-
-	return strings.Contains(fl.Field().String(), cfield.String())
-}
-
-// fieldExcludes is the validation function for validating if the current field's value excludes the field specified by the param's value.
-func fieldExcludes(fl FieldLevel) bool {
-	MustStringField("fieldexcludes", fl)
-
-	cfield, _, ok := fl.GetStructFieldOK()
-	if !ok {
-		return true
-	}
-
-	return !strings.Contains(fl.Field().String(), cfield.String())
-}
-
 // isPostcodeByIso3166Alpha2 validates by value which is country code in iso 3166 alpha 2
 // example: `postcode_iso3166_alpha2=US`
 func isPostcodeByIso3166Alpha2(fl FieldLevel) bool {
@@ -808,7 +778,7 @@ func isSizeBtw(fl FieldLevel) bool {
 		return false
 	}
 
-	p1, p2 := split2(fl.Param())
+	p1, p2 := split2("sizebtw", fl.Param())
 
 	z1, err := num.ParseSize(p1)
 	if err != nil {
@@ -1180,7 +1150,7 @@ func isBtw(fl FieldLevel) bool {
 
 	switch field.Kind() {
 	case reflect.String:
-		p1, p2 := split2(param)
+		p1, p2 := split2("btw", param)
 		return field.String() >= p1 && field.String() <= p2
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		p1, p2 := asInt2FromType("btw", field.Type(), param)
@@ -1203,18 +1173,6 @@ func isBtw(fl FieldLevel) bool {
 	}
 
 	panic(fmt.Errorf("btw: bad field type %T", field.Interface()))
-}
-
-// isNeField is the validation function for validating if the current field's value is not equal to the field specified by the param's value.
-func isNeField(fl FieldLevel) bool {
-	rv, ok := compareField(fl)
-	return !ok || rv != 0
-}
-
-// isEqField is the validation function for validating if the current field's value is equal to the field specified by the param's value.
-func isEqField(fl FieldLevel) bool {
-	rv, ok := compareField(fl)
-	return ok && rv == 0
 }
 
 func compareField(fl FieldLevel) (int, bool) {
@@ -1253,6 +1211,18 @@ func compareField(fl FieldLevel) (int, bool) {
 	return str.Compare(field.String(), cfield.String()), true
 }
 
+// isNeField is the validation function for validating if the current field's value is not equal to the field specified by the param's value.
+func isNeField(fl FieldLevel) bool {
+	rv, ok := compareField(fl)
+	return !ok || rv != 0
+}
+
+// isEqField is the validation function for validating if the current field's value is equal to the field specified by the param's value.
+func isEqField(fl FieldLevel) bool {
+	rv, ok := compareField(fl)
+	return ok && rv == 0
+}
+
 // isGteField is the validation function for validating if the current field's value is greater than or equal to the field specified by the param's value.
 func isGteField(fl FieldLevel) bool {
 	rv, ok := compareField(fl)
@@ -1275,6 +1245,30 @@ func isLteField(fl FieldLevel) bool {
 func isLtField(fl FieldLevel) bool {
 	rv, ok := compareField(fl)
 	return ok && rv < 0
+}
+
+// containsField is the validation function for validating if the current field's value contains the field specified by the param's value.
+func containsField(fl FieldLevel) bool {
+	MustStringField("containsfield", fl)
+
+	cfield, _, ok := fl.GetStructFieldOK()
+	if !ok {
+		return false
+	}
+
+	return strings.Contains(fl.Field().String(), cfield.String())
+}
+
+// excludesField is the validation function for validating if the current field's value excludes the field specified by the param's value.
+func excludesField(fl FieldLevel) bool {
+	MustStringField("excludesfield", fl)
+
+	cfield, _, ok := fl.GetStructFieldOK()
+	if !ok {
+		return true
+	}
+
+	return !strings.Contains(fl.Field().String(), cfield.String())
 }
 
 func isHostnameRFC952(fl FieldLevel) bool {

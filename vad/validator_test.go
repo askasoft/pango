@@ -977,11 +977,11 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 
 	type Test struct {
 		Inner     *Inner
-		CreatedAt *time.Time `validate:"ltecsfield=Inner.CreatedAt"`
-		String    string     `validate:"ltecsfield=Inner.String"`
-		Int       int        `validate:"ltecsfield=Inner.Int"`
-		Uint      uint       `validate:"ltecsfield=Inner.Uint"`
-		Float     float64    `validate:"ltecsfield=Inner.Float"`
+		CreatedAt *time.Time `validate:"ltefield=Inner.CreatedAt"`
+		String    string     `validate:"ltefield=Inner.String"`
+		Int       int        `validate:"ltefield=Inner.Int"`
+		Uint      uint       `validate:"ltefield=Inner.Uint"`
+		Float     float64    `validate:"ltefield=Inner.Float"`
 	}
 
 	now := time.Now().UTC()
@@ -1026,25 +1026,25 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 
 	errs = validate.Struct(test)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "ltecsfield")
-	AssertError(t, errs, "Test.String", "Test.String", "String", "String", "ltecsfield")
-	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "ltecsfield")
-	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "ltecsfield")
-	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "ltecsfield")
+	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "ltefield")
+	AssertError(t, errs, "Test.String", "Test.String", "String", "String", "ltefield")
+	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "ltefield")
+	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "ltefield")
+	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "ltefield")
 
-	errs = validate.VarWithValue(1, "", "ltecsfield")
+	errs = validate.VarWithValue(1, "", "ltefield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "ltecsfield")
+	AssertError(t, errs, "", "", "", "", "ltefield")
 
 	// this test is for the WARNING about unforeseen validation issues.
-	errs = validate.VarWithValue(test, now, "ltecsfield")
+	errs = validate.VarWithValue(test, now, "ltefield")
 	assertNotEqual(t, errs, nil)
 	assertEqual(t, len(errs.(ValidationErrors)), 5)
-	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "ltecsfield")
-	AssertError(t, errs, "Test.String", "Test.String", "String", "String", "ltecsfield")
-	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "ltecsfield")
-	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "ltecsfield")
-	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "ltecsfield")
+	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "ltefield")
+	AssertError(t, errs, "Test.String", "Test.String", "String", "String", "ltefield")
+	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "ltefield")
+	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "ltefield")
+	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "ltefield")
 
 	type Other struct {
 		Value string
@@ -1052,7 +1052,7 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 
 	type Test2 struct {
 		Value Other
-		Time  time.Time `validate:"ltecsfield=Value"`
+		Time  time.Time `validate:"ltefield=Value"`
 	}
 
 	tst := Test2{
@@ -1062,23 +1062,23 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 
 	errs = validate.Struct(tst)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "Test2.Time", "Test2.Time", "Time", "Time", "ltecsfield")
+	AssertError(t, errs, "Test2.Time", "Test2.Time", "Time", "Time", "ltefield")
 
 	// Tests for time.Duration type.
 
 	// -- Validations for variables of time.Duration type.
 
-	errs = validate.VarWithValue(time.Hour, time.Hour+time.Minute, "ltecsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour+time.Minute, "ltefield")
 	assertEqual(t, errs, nil)
 
-	errs = validate.VarWithValue(time.Hour, time.Hour, "ltecsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour, "ltefield")
 	assertEqual(t, errs, nil)
 
-	errs = validate.VarWithValue(time.Hour, time.Hour-time.Minute, "ltecsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour-time.Minute, "ltefield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "ltecsfield")
+	AssertError(t, errs, "", "", "", "", "ltefield")
 
-	errs = validate.VarWithValue(time.Duration(0), -time.Minute, "omitempty,ltecsfield")
+	errs = validate.VarWithValue(time.Duration(0), -time.Minute, "omitempty,ltefield")
 	assertEqual(t, errs, nil)
 
 	// -- Validations for a struct and an inner struct with time.Duration type fields.
@@ -1090,7 +1090,7 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 
 	type TimeDurationTest struct {
 		Inner    *TimeDurationInner
-		Duration time.Duration `validate:"ltecsfield=Inner.Duration"`
+		Duration time.Duration `validate:"ltefield=Inner.Duration"`
 	}
 	var timeDurationTest *TimeDurationTest
 
@@ -1108,11 +1108,11 @@ func TestCrossStructLteFieldValidation(t *testing.T) {
 	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "ltecsfield")
+	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "ltefield")
 
 	type TimeDurationOmitemptyTest struct {
 		Inner    *TimeDurationInner
-		Duration time.Duration `validate:"omitempty,ltecsfield=Inner.Duration"`
+		Duration time.Duration `validate:"omitempty,ltefield=Inner.Duration"`
 	}
 	var timeDurationOmitemptyTest *TimeDurationOmitemptyTest
 
@@ -1136,11 +1136,11 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 
 	type Test struct {
 		Inner     *Inner
-		CreatedAt *time.Time `validate:"ltcsfield=Inner.CreatedAt"`
-		String    string     `validate:"ltcsfield=Inner.String"`
-		Int       int        `validate:"ltcsfield=Inner.Int"`
-		Uint      uint       `validate:"ltcsfield=Inner.Uint"`
-		Float     float64    `validate:"ltcsfield=Inner.Float"`
+		CreatedAt *time.Time `validate:"ltfield=Inner.CreatedAt"`
+		String    string     `validate:"ltfield=Inner.String"`
+		Int       int        `validate:"ltfield=Inner.Int"`
+		Uint      uint       `validate:"ltfield=Inner.Uint"`
+		Float     float64    `validate:"ltfield=Inner.Float"`
 	}
 
 	now := time.Now().UTC()
@@ -1174,24 +1174,24 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 
 	errs = validate.Struct(test)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "ltcsfield")
-	AssertError(t, errs, "Test.String", "Test.String", "String", "String", "ltcsfield")
-	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "ltcsfield")
-	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "ltcsfield")
-	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "ltcsfield")
+	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "ltfield")
+	AssertError(t, errs, "Test.String", "Test.String", "String", "String", "ltfield")
+	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "ltfield")
+	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "ltfield")
+	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "ltfield")
 
-	errs = validate.VarWithValue(1, "", "ltcsfield")
+	errs = validate.VarWithValue(1, "", "ltfield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "ltcsfield")
+	AssertError(t, errs, "", "", "", "", "ltfield")
 
 	// this test is for the WARNING about unforeseen validation issues.
-	errs = validate.VarWithValue(test, now, "ltcsfield")
+	errs = validate.VarWithValue(test, now, "ltfield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "ltcsfield")
-	AssertError(t, errs, "Test.String", "Test.String", "String", "String", "ltcsfield")
-	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "ltcsfield")
-	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "ltcsfield")
-	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "ltcsfield")
+	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "ltfield")
+	AssertError(t, errs, "Test.String", "Test.String", "String", "String", "ltfield")
+	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "ltfield")
+	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "ltfield")
+	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "ltfield")
 
 	type Other struct {
 		Value string
@@ -1199,7 +1199,7 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 
 	type Test2 struct {
 		Value Other
-		Time  time.Time `validate:"ltcsfield=Value"`
+		Time  time.Time `validate:"ltfield=Value"`
 	}
 
 	tst := Test2{
@@ -1209,24 +1209,24 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 
 	errs = validate.Struct(tst)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "Test2.Time", "Test2.Time", "Time", "Time", "ltcsfield")
+	AssertError(t, errs, "Test2.Time", "Test2.Time", "Time", "Time", "ltfield")
 
 	// Tests for time.Duration type.
 
 	// -- Validations for variables of time.Duration type.
 
-	errs = validate.VarWithValue(time.Hour, time.Hour+time.Minute, "ltcsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour+time.Minute, "ltfield")
 	assertEqual(t, errs, nil)
 
-	errs = validate.VarWithValue(time.Hour, time.Hour, "ltcsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour, "ltfield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "ltcsfield")
+	AssertError(t, errs, "", "", "", "", "ltfield")
 
-	errs = validate.VarWithValue(time.Hour, time.Hour-time.Minute, "ltcsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour-time.Minute, "ltfield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "ltcsfield")
+	AssertError(t, errs, "", "", "", "", "ltfield")
 
-	errs = validate.VarWithValue(time.Duration(0), -time.Minute, "omitempty,ltcsfield")
+	errs = validate.VarWithValue(time.Duration(0), -time.Minute, "omitempty,ltfield")
 	assertEqual(t, errs, nil)
 
 	// -- Validations for a struct and an inner struct with time.Duration type fields.
@@ -1238,7 +1238,7 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 
 	type TimeDurationTest struct {
 		Inner    *TimeDurationInner
-		Duration time.Duration `validate:"ltcsfield=Inner.Duration"`
+		Duration time.Duration `validate:"ltfield=Inner.Duration"`
 	}
 	var timeDurationTest *TimeDurationTest
 
@@ -1251,17 +1251,17 @@ func TestCrossStructLtFieldValidation(t *testing.T) {
 	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "ltcsfield")
+	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "ltfield")
 
 	timeDurationInner = &TimeDurationInner{time.Hour - time.Minute}
 	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "ltcsfield")
+	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "ltfield")
 
 	type TimeDurationOmitemptyTest struct {
 		Inner    *TimeDurationInner
-		Duration time.Duration `validate:"omitempty,ltcsfield=Inner.Duration"`
+		Duration time.Duration `validate:"omitempty,ltfield=Inner.Duration"`
 	}
 	var timeDurationOmitemptyTest *TimeDurationOmitemptyTest
 
@@ -1286,11 +1286,11 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 
 	type Test struct {
 		Inner     *Inner
-		CreatedAt *time.Time `validate:"gtecsfield=Inner.CreatedAt"`
-		String    string     `validate:"gtecsfield=Inner.String"`
-		Int       int        `validate:"gtecsfield=Inner.Int"`
-		Uint      uint       `validate:"gtecsfield=Inner.Uint"`
-		Float     float64    `validate:"gtecsfield=Inner.Float"`
+		CreatedAt *time.Time `validate:"gtefield=Inner.CreatedAt"`
+		String    string     `validate:"gtefield=Inner.String"`
+		Int       int        `validate:"gtefield=Inner.Int"`
+		Uint      uint       `validate:"gtefield=Inner.Uint"`
+		Float     float64    `validate:"gtefield=Inner.Float"`
 	}
 
 	now := time.Now().UTC()
@@ -1335,24 +1335,24 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 
 	errs = validate.Struct(test)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "gtecsfield")
-	AssertError(t, errs, "Test.String", "Test.String", "String", "String", "gtecsfield")
-	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "gtecsfield")
-	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "gtecsfield")
-	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "gtecsfield")
+	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "gtefield")
+	AssertError(t, errs, "Test.String", "Test.String", "String", "String", "gtefield")
+	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "gtefield")
+	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "gtefield")
+	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "gtefield")
 
-	errs = validate.VarWithValue(1, "", "gtecsfield")
+	errs = validate.VarWithValue(1, "", "gtefield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "gtecsfield")
+	AssertError(t, errs, "", "", "", "", "gtefield")
 
 	// this test is for the WARNING about unforeseen validation issues.
-	errs = validate.VarWithValue(test, now, "gtecsfield")
+	errs = validate.VarWithValue(test, now, "gtefield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "gtecsfield")
-	AssertError(t, errs, "Test.String", "Test.String", "String", "String", "gtecsfield")
-	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "gtecsfield")
-	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "gtecsfield")
-	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "gtecsfield")
+	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "gtefield")
+	AssertError(t, errs, "Test.String", "Test.String", "String", "String", "gtefield")
+	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "gtefield")
+	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "gtefield")
+	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "gtefield")
 
 	type Other struct {
 		Value string
@@ -1360,7 +1360,7 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 
 	type Test2 struct {
 		Value Other
-		Time  time.Time `validate:"gtecsfield=Value"`
+		Time  time.Time `validate:"gtefield=Value"`
 	}
 
 	tst := Test2{
@@ -1370,23 +1370,23 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 
 	errs = validate.Struct(tst)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "Test2.Time", "Test2.Time", "Time", "Time", "gtecsfield")
+	AssertError(t, errs, "Test2.Time", "Test2.Time", "Time", "Time", "gtefield")
 
 	// Tests for time.Duration type.
 
 	// -- Validations for variables of time.Duration type.
 
-	errs = validate.VarWithValue(time.Hour, time.Hour-time.Minute, "gtecsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour-time.Minute, "gtefield")
 	assertEqual(t, errs, nil)
 
-	errs = validate.VarWithValue(time.Hour, time.Hour, "gtecsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour, "gtefield")
 	assertEqual(t, errs, nil)
 
-	errs = validate.VarWithValue(time.Hour, time.Hour+time.Minute, "gtecsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour+time.Minute, "gtefield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "gtecsfield")
+	AssertError(t, errs, "", "", "", "", "gtefield")
 
-	errs = validate.VarWithValue(time.Duration(0), time.Hour, "omitempty,gtecsfield")
+	errs = validate.VarWithValue(time.Duration(0), time.Hour, "omitempty,gtefield")
 	assertEqual(t, errs, nil)
 
 	// -- Validations for a struct and an inner struct with time.Duration type fields.
@@ -1398,7 +1398,7 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 
 	type TimeDurationTest struct {
 		Inner    *TimeDurationInner
-		Duration time.Duration `validate:"gtecsfield=Inner.Duration"`
+		Duration time.Duration `validate:"gtefield=Inner.Duration"`
 	}
 	var timeDurationTest *TimeDurationTest
 
@@ -1416,11 +1416,11 @@ func TestCrossStructGteFieldValidation(t *testing.T) {
 	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "gtecsfield")
+	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "gtefield")
 
 	type TimeDurationOmitemptyTest struct {
 		Inner    *TimeDurationInner
-		Duration time.Duration `validate:"omitempty,gtecsfield=Inner.Duration"`
+		Duration time.Duration `validate:"omitempty,gtefield=Inner.Duration"`
 	}
 	var timeDurationOmitemptyTest *TimeDurationOmitemptyTest
 
@@ -1444,11 +1444,11 @@ func TestCrossStructGtFieldValidation(t *testing.T) {
 
 	type Test struct {
 		Inner     *Inner
-		CreatedAt *time.Time `validate:"gtcsfield=Inner.CreatedAt"`
-		String    string     `validate:"gtcsfield=Inner.String"`
-		Int       int        `validate:"gtcsfield=Inner.Int"`
-		Uint      uint       `validate:"gtcsfield=Inner.Uint"`
-		Float     float64    `validate:"gtcsfield=Inner.Float"`
+		CreatedAt *time.Time `validate:"gtfield=Inner.CreatedAt"`
+		String    string     `validate:"gtfield=Inner.String"`
+		Int       int        `validate:"gtfield=Inner.Int"`
+		Uint      uint       `validate:"gtfield=Inner.Uint"`
+		Float     float64    `validate:"gtfield=Inner.Float"`
 	}
 
 	now := time.Now().UTC()
@@ -1482,24 +1482,24 @@ func TestCrossStructGtFieldValidation(t *testing.T) {
 
 	errs = validate.Struct(test)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "gtcsfield")
-	AssertError(t, errs, "Test.String", "Test.String", "String", "String", "gtcsfield")
-	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "gtcsfield")
-	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "gtcsfield")
-	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "gtcsfield")
+	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "gtfield")
+	AssertError(t, errs, "Test.String", "Test.String", "String", "String", "gtfield")
+	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "gtfield")
+	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "gtfield")
+	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "gtfield")
 
-	errs = validate.VarWithValue(1, "", "gtcsfield")
+	errs = validate.VarWithValue(1, "", "gtfield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "gtcsfield")
+	AssertError(t, errs, "", "", "", "", "gtfield")
 
 	// this test is for the WARNING about unforeseen validation issues.
-	errs = validate.VarWithValue(test, now, "gtcsfield")
+	errs = validate.VarWithValue(test, now, "gtfield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "gtcsfield")
-	AssertError(t, errs, "Test.String", "Test.String", "String", "String", "gtcsfield")
-	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "gtcsfield")
-	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "gtcsfield")
-	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "gtcsfield")
+	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "gtfield")
+	AssertError(t, errs, "Test.String", "Test.String", "String", "String", "gtfield")
+	AssertError(t, errs, "Test.Int", "Test.Int", "Int", "Int", "gtfield")
+	AssertError(t, errs, "Test.Uint", "Test.Uint", "Uint", "Uint", "gtfield")
+	AssertError(t, errs, "Test.Float", "Test.Float", "Float", "Float", "gtfield")
 
 	type Other struct {
 		Value string
@@ -1507,7 +1507,7 @@ func TestCrossStructGtFieldValidation(t *testing.T) {
 
 	type Test2 struct {
 		Value Other
-		Time  time.Time `validate:"gtcsfield=Value"`
+		Time  time.Time `validate:"gtfield=Value"`
 	}
 
 	tst := Test2{
@@ -1517,24 +1517,24 @@ func TestCrossStructGtFieldValidation(t *testing.T) {
 
 	errs = validate.Struct(tst)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "Test2.Time", "Test2.Time", "Time", "Time", "gtcsfield")
+	AssertError(t, errs, "Test2.Time", "Test2.Time", "Time", "Time", "gtfield")
 
 	// Tests for time.Duration type.
 
 	// -- Validations for variables of time.Duration type.
 
-	errs = validate.VarWithValue(time.Hour, time.Hour-time.Minute, "gtcsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour-time.Minute, "gtfield")
 	assertEqual(t, errs, nil)
 
-	errs = validate.VarWithValue(time.Hour, time.Hour, "gtcsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour, "gtfield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "gtcsfield")
+	AssertError(t, errs, "", "", "", "", "gtfield")
 
-	errs = validate.VarWithValue(time.Hour, time.Hour+time.Minute, "gtcsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour+time.Minute, "gtfield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "gtcsfield")
+	AssertError(t, errs, "", "", "", "", "gtfield")
 
-	errs = validate.VarWithValue(time.Duration(0), time.Hour, "omitempty,gtcsfield")
+	errs = validate.VarWithValue(time.Duration(0), time.Hour, "omitempty,gtfield")
 	assertEqual(t, errs, nil)
 
 	// -- Validations for a struct and an inner struct with time.Duration type fields.
@@ -1546,7 +1546,7 @@ func TestCrossStructGtFieldValidation(t *testing.T) {
 
 	type TimeDurationTest struct {
 		Inner    *TimeDurationInner
-		Duration time.Duration `validate:"gtcsfield=Inner.Duration"`
+		Duration time.Duration `validate:"gtfield=Inner.Duration"`
 	}
 	var timeDurationTest *TimeDurationTest
 
@@ -1559,17 +1559,17 @@ func TestCrossStructGtFieldValidation(t *testing.T) {
 	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "gtcsfield")
+	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "gtfield")
 
 	timeDurationInner = &TimeDurationInner{time.Hour + time.Minute}
 	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "gtcsfield")
+	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "gtfield")
 
 	type TimeDurationOmitemptyTest struct {
 		Inner    *TimeDurationInner
-		Duration time.Duration `validate:"omitempty,gtcsfield=Inner.Duration"`
+		Duration time.Duration `validate:"omitempty,gtfield=Inner.Duration"`
 	}
 	var timeDurationOmitemptyTest *TimeDurationOmitemptyTest
 
@@ -1589,7 +1589,7 @@ func TestCrossStructNeFieldValidation(t *testing.T) {
 
 	type Test struct {
 		Inner     *Inner
-		CreatedAt *time.Time `validate:"necsfield=Inner.CreatedAt"`
+		CreatedAt *time.Time `validate:"nefield=Inner.CreatedAt"`
 	}
 
 	now := time.Now().UTC()
@@ -1611,7 +1611,7 @@ func TestCrossStructNeFieldValidation(t *testing.T) {
 
 	errs = validate.Struct(test)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "necsfield")
+	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "nefield")
 
 	var j uint64
 	var k float64
@@ -1630,29 +1630,29 @@ func TestCrossStructNeFieldValidation(t *testing.T) {
 	b2 := true
 	now2 := now
 
-	errs = validate.VarWithValue(s, s2, "necsfield")
+	errs = validate.VarWithValue(s, s2, "nefield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "necsfield")
+	AssertError(t, errs, "", "", "", "", "nefield")
 
-	errs = validate.VarWithValue(i2, i, "necsfield")
+	errs = validate.VarWithValue(i2, i, "nefield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "necsfield")
+	AssertError(t, errs, "", "", "", "", "nefield")
 
-	errs = validate.VarWithValue(j2, j, "necsfield")
+	errs = validate.VarWithValue(j2, j, "nefield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "necsfield")
+	AssertError(t, errs, "", "", "", "", "nefield")
 
-	errs = validate.VarWithValue(k2, k, "necsfield")
+	errs = validate.VarWithValue(k2, k, "nefield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "necsfield")
+	AssertError(t, errs, "", "", "", "", "nefield")
 
-	errs = validate.VarWithValue(b2, b, "necsfield")
+	errs = validate.VarWithValue(b2, b, "nefield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "necsfield")
+	AssertError(t, errs, "", "", "", "", "nefield")
 
-	errs = validate.VarWithValue(now2, now, "necsfield")
+	errs = validate.VarWithValue(now2, now, "nefield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "necsfield")
+	AssertError(t, errs, "", "", "", "", "nefield")
 
 	type SInner struct {
 		Name string
@@ -1660,7 +1660,7 @@ func TestCrossStructNeFieldValidation(t *testing.T) {
 
 	type TStruct struct {
 		Inner     *SInner
-		CreatedAt *time.Time `validate:"necsfield=Inner"`
+		CreatedAt *time.Time `validate:"nefield=Inner"`
 	}
 
 	sinner := &SInner{
@@ -1679,25 +1679,25 @@ func TestCrossStructNeFieldValidation(t *testing.T) {
 	errs = validate.Struct(test2)
 	assertEqual(t, errs, nil)
 
-	errs = validate.VarWithValue(nil, 1, "necsfield")
+	errs = validate.VarWithValue(nil, 1, "nefield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "necsfield")
+	AssertError(t, errs, "", "", "", "", "nefield")
 
 	// Tests for time.Duration type.
 
 	// -- Validations for variables of time.Duration type.
 
-	errs = validate.VarWithValue(time.Hour, time.Hour-time.Minute, "necsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour-time.Minute, "nefield")
 	assertEqual(t, errs, nil)
 
-	errs = validate.VarWithValue(time.Hour, time.Hour+time.Minute, "necsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour+time.Minute, "nefield")
 	assertEqual(t, errs, nil)
 
-	errs = validate.VarWithValue(time.Hour, time.Hour, "necsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour, "nefield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "necsfield")
+	AssertError(t, errs, "", "", "", "", "nefield")
 
-	errs = validate.VarWithValue(time.Duration(0), time.Duration(0), "omitempty,necsfield")
+	errs = validate.VarWithValue(time.Duration(0), time.Duration(0), "omitempty,nefield")
 	assertEqual(t, errs, nil)
 
 	// -- Validations for a struct and an inner struct with time.Duration type fields.
@@ -1709,7 +1709,7 @@ func TestCrossStructNeFieldValidation(t *testing.T) {
 
 	type TimeDurationTest struct {
 		Inner    *TimeDurationInner
-		Duration time.Duration `validate:"necsfield=Inner.Duration"`
+		Duration time.Duration `validate:"nefield=Inner.Duration"`
 	}
 	var timeDurationTest *TimeDurationTest
 
@@ -1727,11 +1727,11 @@ func TestCrossStructNeFieldValidation(t *testing.T) {
 	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "necsfield")
+	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "nefield")
 
 	type TimeDurationOmitemptyTest struct {
 		Inner    *TimeDurationInner
-		Duration time.Duration `validate:"omitempty,necsfield=Inner.Duration"`
+		Duration time.Duration `validate:"omitempty,nefield=Inner.Duration"`
 	}
 	var timeDurationOmitemptyTest *TimeDurationOmitemptyTest
 
@@ -1751,7 +1751,7 @@ func TestCrossStructEqFieldValidation(t *testing.T) {
 
 	type Test struct {
 		Inner     *Inner
-		CreatedAt *time.Time `validate:"eqcsfield=Inner.CreatedAt"`
+		CreatedAt *time.Time `validate:"eqfield=Inner.CreatedAt"`
 	}
 
 	now := time.Now().UTC()
@@ -1773,7 +1773,7 @@ func TestCrossStructEqFieldValidation(t *testing.T) {
 
 	errs = validate.Struct(test)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "eqcsfield")
+	AssertError(t, errs, "Test.CreatedAt", "Test.CreatedAt", "CreatedAt", "CreatedAt", "eqfield")
 
 	var j uint64
 	var k float64
@@ -1792,22 +1792,22 @@ func TestCrossStructEqFieldValidation(t *testing.T) {
 	b2 := true
 	now2 := now
 
-	errs = validate.VarWithValue(s, s2, "eqcsfield")
+	errs = validate.VarWithValue(s, s2, "eqfield")
 	assertEqual(t, errs, nil)
 
-	errs = validate.VarWithValue(i2, i, "eqcsfield")
+	errs = validate.VarWithValue(i2, i, "eqfield")
 	assertEqual(t, errs, nil)
 
-	errs = validate.VarWithValue(j2, j, "eqcsfield")
+	errs = validate.VarWithValue(j2, j, "eqfield")
 	assertEqual(t, errs, nil)
 
-	errs = validate.VarWithValue(k2, k, "eqcsfield")
+	errs = validate.VarWithValue(k2, k, "eqfield")
 	assertEqual(t, errs, nil)
 
-	errs = validate.VarWithValue(b2, b, "eqcsfield")
+	errs = validate.VarWithValue(b2, b, "eqfield")
 	assertEqual(t, errs, nil)
 
-	errs = validate.VarWithValue(now2, now, "eqcsfield")
+	errs = validate.VarWithValue(now2, now, "eqfield")
 	assertEqual(t, errs, nil)
 
 	type SInner struct {
@@ -1816,7 +1816,7 @@ func TestCrossStructEqFieldValidation(t *testing.T) {
 
 	type TStruct struct {
 		Inner     *SInner
-		CreatedAt *time.Time `validate:"eqcsfield=Inner"`
+		CreatedAt *time.Time `validate:"eqfield=Inner"`
 	}
 
 	sinner := &SInner{
@@ -1830,33 +1830,33 @@ func TestCrossStructEqFieldValidation(t *testing.T) {
 
 	errs = validate.Struct(test2)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "TStruct.CreatedAt", "TStruct.CreatedAt", "CreatedAt", "CreatedAt", "eqcsfield")
+	AssertError(t, errs, "TStruct.CreatedAt", "TStruct.CreatedAt", "CreatedAt", "CreatedAt", "eqfield")
 
 	test2.Inner = nil
 	errs = validate.Struct(test2)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "TStruct.CreatedAt", "TStruct.CreatedAt", "CreatedAt", "CreatedAt", "eqcsfield")
+	AssertError(t, errs, "TStruct.CreatedAt", "TStruct.CreatedAt", "CreatedAt", "CreatedAt", "eqfield")
 
-	errs = validate.VarWithValue(nil, 1, "eqcsfield")
+	errs = validate.VarWithValue(nil, 1, "eqfield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "eqcsfield")
+	AssertError(t, errs, "", "", "", "", "eqfield")
 
 	// Tests for time.Duration type.
 
 	// -- Validations for variables of time.Duration type.
 
-	errs = validate.VarWithValue(time.Hour, time.Hour, "eqcsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour, "eqfield")
 	assertEqual(t, errs, nil)
 
-	errs = validate.VarWithValue(time.Hour, time.Hour-time.Minute, "eqcsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour-time.Minute, "eqfield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "eqcsfield")
+	AssertError(t, errs, "", "", "", "", "eqfield")
 
-	errs = validate.VarWithValue(time.Hour, time.Hour+time.Minute, "eqcsfield")
+	errs = validate.VarWithValue(time.Hour, time.Hour+time.Minute, "eqfield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "eqcsfield")
+	AssertError(t, errs, "", "", "", "", "eqfield")
 
-	errs = validate.VarWithValue(time.Duration(0), time.Hour, "omitempty,eqcsfield")
+	errs = validate.VarWithValue(time.Duration(0), time.Hour, "omitempty,eqfield")
 	assertEqual(t, errs, nil)
 
 	// -- Validations for a struct and an inner struct with time.Duration type fields.
@@ -1868,7 +1868,7 @@ func TestCrossStructEqFieldValidation(t *testing.T) {
 
 	type TimeDurationTest struct {
 		Inner    *TimeDurationInner
-		Duration time.Duration `validate:"eqcsfield=Inner.Duration"`
+		Duration time.Duration `validate:"eqfield=Inner.Duration"`
 	}
 	var timeDurationTest *TimeDurationTest
 
@@ -1881,17 +1881,17 @@ func TestCrossStructEqFieldValidation(t *testing.T) {
 	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "eqcsfield")
+	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "eqfield")
 
 	timeDurationInner = &TimeDurationInner{time.Hour + time.Minute}
 	timeDurationTest = &TimeDurationTest{timeDurationInner, time.Hour}
 	errs = validate.Struct(timeDurationTest)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "eqcsfield")
+	AssertError(t, errs, "TimeDurationTest.Duration", "TimeDurationTest.Duration", "Duration", "Duration", "eqfield")
 
 	type TimeDurationOmitemptyTest struct {
 		Inner    *TimeDurationInner
-		Duration time.Duration `validate:"omitempty,eqcsfield=Inner.Duration"`
+		Duration time.Duration `validate:"omitempty,eqfield=Inner.Duration"`
 	}
 	var timeDurationOmitemptyTest *TimeDurationOmitemptyTest
 
@@ -5305,7 +5305,7 @@ func TestFieldContains(t *testing.T) {
 	validate := New()
 
 	type StringTest struct {
-		Foo string `validate:"fieldcontains=Bar"`
+		Foo string `validate:"containsfield=Bar"`
 		Bar string
 	}
 
@@ -5324,21 +5324,21 @@ func TestFieldContains(t *testing.T) {
 
 	errs = validate.Struct(stringTest)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "StringTest.Foo", "StringTest.Foo", "Foo", "Foo", "fieldcontains")
+	AssertError(t, errs, "StringTest.Foo", "StringTest.Foo", "Foo", "Foo", "containsfield")
 
-	errs = validate.VarWithValue("foo", "bar", "fieldcontains")
+	errs = validate.VarWithValue("foo", "bar", "containsfield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "fieldcontains")
+	AssertError(t, errs, "", "", "", "", "containsfield")
 
-	errs = validate.VarWithValue("bar", "foobarfoo", "fieldcontains")
+	errs = validate.VarWithValue("bar", "foobarfoo", "containsfield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "fieldcontains")
+	AssertError(t, errs, "", "", "", "", "containsfield")
 
-	errs = validate.VarWithValue("foobarfoo", "bar", "fieldcontains")
+	errs = validate.VarWithValue("foobarfoo", "bar", "containsfield")
 	assertEqual(t, errs, nil)
 
 	type StringTestMissingField struct {
-		Foo string `validate:"fieldcontains=Bar"`
+		Foo string `validate:"containsfield=Bar"`
 	}
 
 	stringTestMissingField := &StringTestMissingField{
@@ -5347,14 +5347,14 @@ func TestFieldContains(t *testing.T) {
 
 	errs = validate.Struct(stringTestMissingField)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "StringTestMissingField.Foo", "StringTestMissingField.Foo", "Foo", "Foo", "fieldcontains")
+	AssertError(t, errs, "StringTestMissingField.Foo", "StringTestMissingField.Foo", "Foo", "Foo", "containsfield")
 }
 
 func TestFieldExcludes(t *testing.T) {
 	validate := New()
 
 	type StringTest struct {
-		Foo string `validate:"fieldexcludes=Bar"`
+		Foo string `validate:"excludesfield=Bar"`
 		Bar string
 	}
 
@@ -5365,7 +5365,7 @@ func TestFieldExcludes(t *testing.T) {
 
 	errs := validate.Struct(stringTest)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "StringTest.Foo", "StringTest.Foo", "Foo", "Foo", "fieldexcludes")
+	AssertError(t, errs, "StringTest.Foo", "StringTest.Foo", "Foo", "Foo", "excludesfield")
 
 	stringTest = &StringTest{
 		Foo: "foo",
@@ -5375,18 +5375,18 @@ func TestFieldExcludes(t *testing.T) {
 	errs = validate.Struct(stringTest)
 	assertEqual(t, errs, nil)
 
-	errs = validate.VarWithValue("foo", "bar", "fieldexcludes")
+	errs = validate.VarWithValue("foo", "bar", "excludesfield")
 	assertEqual(t, errs, nil)
 
-	errs = validate.VarWithValue("bar", "foobarfoo", "fieldexcludes")
+	errs = validate.VarWithValue("bar", "foobarfoo", "excludesfield")
 	assertEqual(t, errs, nil)
 
-	errs = validate.VarWithValue("foobarfoo", "bar", "fieldexcludes")
+	errs = validate.VarWithValue("foobarfoo", "bar", "excludesfield")
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "", "", "", "", "fieldexcludes")
+	AssertError(t, errs, "", "", "", "", "excludesfield")
 
 	type StringTestMissingField struct {
-		Foo string `validate:"fieldexcludes=Bar"`
+		Foo string `validate:"excludesfield=Bar"`
 	}
 
 	stringTestMissingField := &StringTestMissingField{
@@ -5401,8 +5401,8 @@ func TestContainsAndExcludes(t *testing.T) {
 	validate := New()
 
 	type ImpossibleStringTest struct {
-		Foo string `validate:"fieldcontains=Bar"`
-		Bar string `validate:"fieldexcludes=Foo"`
+		Foo string `validate:"containsfield=Bar"`
+		Bar string `validate:"excludesfield=Foo"`
 	}
 
 	impossibleStringTest := &ImpossibleStringTest{
@@ -5412,7 +5412,7 @@ func TestContainsAndExcludes(t *testing.T) {
 
 	errs := validate.Struct(impossibleStringTest)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "ImpossibleStringTest.Foo", "ImpossibleStringTest.Foo", "Foo", "Foo", "fieldcontains")
+	AssertError(t, errs, "ImpossibleStringTest.Foo", "ImpossibleStringTest.Foo", "Foo", "Foo", "containsfield")
 
 	impossibleStringTest = &ImpossibleStringTest{
 		Foo: "bar",
@@ -5421,7 +5421,7 @@ func TestContainsAndExcludes(t *testing.T) {
 
 	errs = validate.Struct(impossibleStringTest)
 	assertNotEqual(t, errs, nil)
-	AssertError(t, errs, "ImpossibleStringTest.Foo", "ImpossibleStringTest.Foo", "Foo", "Foo", "fieldcontains")
+	AssertError(t, errs, "ImpossibleStringTest.Foo", "ImpossibleStringTest.Foo", "Foo", "Foo", "containsfield")
 }
 
 func TestLteField(t *testing.T) {

@@ -57,13 +57,13 @@ func HumanSize(n any, args ...any) string {
 }
 
 // HumanSizeAny returns a human-readable approximation of a size
-// with specified precision digit numbers (eg. "2.75 MB", "796 KB").
+// with specified precision digit numbers (eg. "2.75MB", "796KB").
 //
-// e.g. HumanSizeAny(1234) -> 1.21 KB
-// e.g. HumanSizeAny(1234, 1) -> 1.2 KB
-// e.g. HumanSizeAny(1234, "") -> 1.21KB
+// e.g. HumanSizeAny(1234) -> 1.21KB
+// e.g. HumanSizeAny(1234, 1) -> 1.2KB
+// e.g. HumanSizeAny(1234, " ") -> 1.21 KB
 func HumanSizeAny(n any, args ...any) (string, error) {
-	p, s := 2, " "
+	p, s := 2, ""
 	for _, a := range args {
 		switch v := a.(type) {
 		case string:

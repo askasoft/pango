@@ -18,7 +18,7 @@ func TestHumanSizeAny(t *testing.T) {
 	}
 
 	for i, c := range cs {
-		r, e := HumanSizeAny(c.a, 2)
+		r, e := HumanSizeAny(c.a, 2, " ")
 		if c.w != r || fmt.Sprint(c.e) != fmt.Sprint(e) {
 			t.Errorf("[%d] HumanSizeAny(%v) = (%T, %v, %v), want: (%T, %v, %v)", i, c.a, r, r, e, c.w, c.w, c.e)
 		}
@@ -45,7 +45,7 @@ func TestHumanSizeMinus(t *testing.T) {
 	}
 
 	for i, c := range cs {
-		a := HumanSize(c.n, -1)
+		a := HumanSize(c.n, -1, " ")
 		if a != c.w {
 			t.Errorf("[%d] HumanSize(%f, -1) = %v, want %v", i, c.n, a, c.w)
 		}
@@ -72,7 +72,7 @@ func TestHumanSize0(t *testing.T) {
 	}
 
 	for i, c := range cs {
-		a := HumanSize(c.n, 0)
+		a := HumanSize(c.n, 0, " ")
 		if a != c.w {
 			t.Errorf("[%d] HumanSize(%f, 0) = %v, want %v", i, c.n, a, c.w)
 		}
@@ -97,7 +97,7 @@ func TestHumanSize1(t *testing.T) {
 	}
 
 	for i, c := range cs {
-		a := HumanSize(c.n, 1)
+		a := HumanSize(c.n, 1, " ")
 		if a != c.w {
 			t.Errorf("[%d] HumanSize(%f, 1) = %v, want %v", i, c.n, a, c.w)
 		}
@@ -122,7 +122,7 @@ func TestHumanSize2(t *testing.T) {
 	}
 
 	for i, c := range cs {
-		a := HumanSize(c.n, 2)
+		a := HumanSize(c.n, 2, " ")
 		if a != c.w {
 			t.Errorf("[%d] HumanSize(%f, 2) = %v, want %v", i, c.n, a, c.w)
 		}

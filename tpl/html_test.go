@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/askasoft/pango/fsu"
+	"github.com/askasoft/pango/mag"
 	"github.com/askasoft/pango/str"
 )
 
@@ -18,17 +19,9 @@ func testNewHtmlTpls() *HTMLTemplates {
 	return ht
 }
 
-func testHtmlPages(t *testing.T, ht *HTMLTemplates, page string, data map[string]any) {
-	for _, lang := range []string{"en", "ja", "ja-JP"} {
-		testHtmlPage(t, ht, lang, page, data)
-	}
-}
-
 func testHtmlPage(t *testing.T, ht *HTMLTemplates, lang, page string, data map[string]any) {
 	copy := make(map[string]any)
-	for k, v := range data {
-		copy[k] = v
-	}
+	mag.Copy(copy, data)
 	data = copy
 
 	fexp := "testdata/" + page + str.If(lang == "", "", "_"+lang) + ".html.exp"
@@ -47,8 +40,14 @@ func testHtmlPage(t *testing.T, ht *HTMLTemplates, lang, page string, data map[s
 	exp, _ := fsu.ReadString(fexp)
 
 	if out != exp {
-		fsu.WriteString(fout, out, fsu.FileMode(0666))
-		t.Errorf("[%s] = %q, want %q", page, out, exp)
+		fsu.WriteString(fout, out, 0666)
+		t.Errorf("[%s] = \n%s\nwant:\n%s", page, out, exp)
+	}
+}
+
+func testHtmlPages(t *testing.T, ht *HTMLTemplates, page string, data map[string]any) {
+	for _, lang := range []string{"en", "ja", "ja-JP"} {
+		testHtmlPage(t, ht, lang, page, data)
 	}
 }
 

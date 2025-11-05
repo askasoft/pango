@@ -566,3 +566,87 @@ func ReplaceFunc(s string, f func(rune) rune) string {
 
 	return s
 }
+
+// Translate find `key` surrounded by `prefix` and `suffix`, use function `f` to replace the `key`
+// Example:
+//
+//	Translate(`This is a {{key}}.`, "{{", "}}", func(key string) string { return "<<" + key ">>" })
+//
+// Output:
+//
+//	This is a <<key>>.
+func Translate(s, prefix, suffix string, f func(string) string) string {
+	if s == "" || prefix == "" || suffix == "" || f == nil {
+		return s
+	}
+
+	xp := strings.Index(s, prefix)
+	if xp < 0 {
+		return s
+	}
+	pz := len(prefix)
+
+	xs := strings.Index(s[xp+pz:], suffix)
+	if xs < 0 {
+		return s
+	}
+	sz := len(suffix)
+
+	xn, difffx := 0, prefix != suffix
+
+	if difffx {
+		// find next prefix, ignore continuous prefix like `{{ outer {{inner}} }}`
+		xn = strings.Index(s[xp+pz:], prefix)
+		if xn >= 0 && xn < xs {
+			xn += pz
+			xs -= xn
+			xp += xn
+			xn = xs
+		}
+	}
+
+	var sb strings.Builder
+	sb.Grow(len(s))
+
+	for {
+		sb.WriteString(s[:xp])
+		s = s[xp+pz:]
+
+		sb.WriteString(f(s[:xs]))
+		xs += sz
+		s = s[xs:]
+
+		switch {
+		case xn < 0:
+			xp = xn
+		case xn >= xs:
+			xp = xn - xs
+		default:
+			xp = strings.Index(s, prefix)
+		}
+
+		if xp < 0 {
+			sb.WriteString(s)
+			break
+		}
+
+		xs = strings.Index(s[xp+pz:], suffix)
+		if xs < 0 {
+			sb.WriteString(s)
+			break
+		}
+
+		if difffx {
+			// find next prefix, ignore continuous prefix like `{{ outer {{inner}} }}`
+			xn = strings.Index(s[xp+pz:], prefix)
+			if xn >= 0 && xn < xs {
+				xn += pz
+				xs -= xn
+				xp += xn
+				xn = xs
+			}
+		}
+	}
+
+	return sb.String()
+}

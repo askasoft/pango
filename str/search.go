@@ -98,6 +98,41 @@ func IndexFold(s, substr string) int {
 	return -1
 }
 
+// IndexStrings returns the (index, substr) of the first instance of any substr of substrs in s.
+// returns (-1, "") if substr is not present in s or substrs is empty.
+func IndexStrings(s string, substrs ...string) (int, string) {
+	if len(substrs) == 0 {
+		return -1, ""
+	}
+
+	ns := len(s)
+	nb := maxInt
+	for _, substr := range substrs {
+		if n := len(substr); n < nb {
+			nb = n
+		}
+	}
+	if ns < nb {
+		return -1, ""
+	}
+	if nb == 0 {
+		return 0, ""
+	}
+
+	l := ns - nb
+	for i := 0; i <= l; {
+		for _, substr := range substrs {
+			ne := i + len(substr)
+			if ne <= ns && s[i:ne] == substr {
+				return i, substr
+			}
+		}
+		_, z := utf8.DecodeRuneInString(s[i:])
+		i += z
+	}
+	return -1, ""
+}
+
 // LastIndexRune returns the index of the last instance of the Unicode code point
 // r, or -1 if rune is not present in s.
 // If r is utf8.RuneError, it returns the last instance of any

@@ -66,6 +66,11 @@ func LastIndex(s, substr string) int {
 	return strings.LastIndex(s, substr)
 }
 
+// Index returns the index of the first instance of substr in s, or -1 if substr is not present in s.
+func Index(s, substr string) int {
+	return strings.Index(s, substr)
+}
+
 // IndexByte returns the index of the first instance of c in s, or -1 if c is not present in s.
 func IndexByte(s string, c byte) int {
 	return strings.IndexByte(s, c)
@@ -328,9 +333,4 @@ func ReplaceAll(s, old, new string) string {
 // form of case-insensitivity.
 func EqualFold(s, t string) bool {
 	return strings.EqualFold(s, t)
-}
-
-// Index returns the index of the first instance of substr in s, or -1 if substr is not present in s.
-func Index(s, substr string) int {
-	return strings.Index(s, substr)
 }

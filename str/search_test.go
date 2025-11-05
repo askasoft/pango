@@ -128,6 +128,104 @@ func TestIndexFold(t *testing.T) {
 	}
 }
 
+func TestIndexStrings(t *testing.T) {
+	tests := []struct {
+		name      string
+		s         string
+		substrs   []string
+		wantIndex int
+		wantSub   string
+	}{
+		{
+			name:      "basic match",
+			s:         "hello world",
+			substrs:   []string{"world", "test"},
+			wantIndex: 6,
+			wantSub:   "world",
+		},
+		{
+			name:      "first substring matches earlier",
+			s:         "foobar baz",
+			substrs:   []string{"bar", "baz"},
+			wantIndex: 3,
+			wantSub:   "bar",
+		},
+		{
+			name:      "no match found",
+			s:         "abcdefg",
+			substrs:   []string{"xyz", "uvw"},
+			wantIndex: -1,
+			wantSub:   "",
+		},
+		{
+			name:      "empty input string",
+			s:         "",
+			substrs:   []string{"a", "b"},
+			wantIndex: -1,
+			wantSub:   "",
+		},
+		{
+			name:      "empty substrs list",
+			s:         "something",
+			substrs:   []string{},
+			wantIndex: -1,
+			wantSub:   "",
+		},
+		{
+			name:      "match at beginning",
+			s:         "start here",
+			substrs:   []string{"start", "here"},
+			wantIndex: 0,
+			wantSub:   "start",
+		},
+		{
+			name:      "multiple candidates, later appears first in string",
+			s:         "abcdefg",
+			substrs:   []string{"fg", "cd"},
+			wantIndex: 2,
+			wantSub:   "cd",
+		},
+		{
+			name:      "empty substring element",
+			s:         "abc",
+			substrs:   []string{""},
+			wantIndex: 0,
+			wantSub:   "",
+		},
+		{
+			name:      "Unicode substring match",
+			s:         "こんにちは世界",
+			substrs:   []string{"世界", "さようなら"},
+			wantIndex: 15,
+			wantSub:   "世界",
+		},
+		{
+			name:      "Unicode no match",
+			s:         "こんにちは",
+			substrs:   []string{"こんばんは"},
+			wantIndex: -1,
+			wantSub:   "",
+		},
+		{
+			name:      "substring longer than input",
+			s:         "hi",
+			substrs:   []string{"hello"},
+			wantIndex: -1,
+			wantSub:   "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotIndex, gotSub := IndexStrings(tt.s, tt.substrs...)
+			if gotIndex != tt.wantIndex || gotSub != tt.wantSub {
+				t.Errorf("IndexStrings(%q, %v) = (%d, %q); want (%d, %q)",
+					tt.s, tt.substrs, gotIndex, gotSub, tt.wantIndex, tt.wantSub)
+			}
+		})
+	}
+}
+
 func TestStartsWith(t *testing.T) {
 	cs := []struct {
 		w bool

@@ -350,3 +350,112 @@ func TestRemove(t *testing.T) {
 		}
 	}
 }
+
+func TestTranslate(t *testing.T) {
+	tests := []struct {
+		name   string
+		s      string
+		prefix string
+		suffix string
+		f      func(string) string
+		want   string
+	}{
+		{
+			name:   "no prefix found",
+			s:      "Hello world!",
+			prefix: "{{",
+			suffix: "}}",
+			f:      func(k string) string { return "ignored" },
+			want:   "Hello world!",
+		},
+		{
+			name:   "basic replacement",
+			s:      "This is a {{key}}.",
+			prefix: "{{",
+			suffix: "}}",
+			f:      func(k string) string { return "<<" + k + ">>" },
+			want:   "This is a <<key>>.",
+		},
+		{
+			name:   "same prefix suffix",
+			s:      "This ||is|| a ||key||.",
+			prefix: "||",
+			suffix: "||",
+			f:      func(k string) string { return "<<" + k + ">>" },
+			want:   "This <<is>> a <<key>>.",
+		},
+		{
+			name:   "cross prefix suffix",
+			s:      "This {}is}{} a {}key}{}.",
+			prefix: "{}",
+			suffix: "}{",
+			f:      func(k string) string { return "<<" + k + ">>" },
+			want:   "This <<is>>} a <<key>>}.",
+		},
+		{
+			name:   "multiple replacements",
+			s:      "{{a}} + {{b}} = {{c}}",
+			prefix: "{{",
+			suffix: "}}",
+			f:      func(k string) string { return "[" + k + "]" },
+			want:   "[a] + [b] = [c]",
+		},
+		{
+			name:   "prefix found but no suffix",
+			s:      "This is a {{key.",
+			prefix: "{{",
+			suffix: "}}",
+			f:      func(k string) string { return "<<" + k + ">>" },
+			want:   "This is a {{key.",
+		},
+		{
+			name:   "prefix2 found but no suffix",
+			s:      "This {{is}} a {{key.",
+			prefix: "{{",
+			suffix: "}}",
+			f:      func(k string) string { return "<<" + k + ">>" },
+			want:   "This <<is>> a {{key.",
+		},
+		{
+			name:   "empty string",
+			s:      "",
+			prefix: "{{",
+			suffix: "}}",
+			f:      func(k string) string { return k },
+			want:   "",
+		},
+		{
+			name:   "nested-like pattern",
+			s:      ":{{outer start{{inner}}}}{{outer2{{inner2}}}}",
+			prefix: "{{",
+			suffix: "}}",
+			f:      func(k string) string { return "(" + k + ")" },
+			want:   ":{{outer start(inner)}}{{outer2(inner2)}}",
+		},
+		{
+			name:   "different prefix/suffix",
+			s:      "This is a <<key>>.",
+			prefix: "<<",
+			suffix: ">>",
+			f:      func(k string) string { return "[" + k + "]" },
+			want:   "This is a [key].",
+		},
+		{
+			name:   "adjacent keys",
+			s:      "{{a}}{{b}}{{c}}",
+			prefix: "{{",
+			suffix: "}}",
+			f:      func(k string) string { return k + k },
+			want:   "aabbcc",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := Translate(tt.s, tt.prefix, tt.suffix, tt.f)
+			if got != tt.want {
+				t.Errorf("Translate() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}

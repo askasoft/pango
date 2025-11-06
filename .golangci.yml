@@ -50,6 +50,9 @@ linters:
           - staticcheck
         path: ldt/profiles\.go
       - linters:
+          - govet
+        path: oss/
+      - linters:
           - deadcode
           - errcheck
           - errorlint

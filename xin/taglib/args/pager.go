@@ -38,7 +38,7 @@ func (p *Pager) Pages() int {
 }
 
 func (p *Pager) Normalize(limits ...int) {
-	p.Limit = num.AbsInt(p.Limit)
+	p.Limit = num.Abs(p.Limit)
 	if len(limits) > 0 {
 		if !asg.Contains(limits, p.Limit) {
 			p.Limit = limits[0]

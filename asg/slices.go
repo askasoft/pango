@@ -1,6 +1,3 @@
-//go:build go1.21
-// +build go1.21
-
 package asg
 
 import (
@@ -8,6 +5,11 @@ import (
 	"fmt"
 	"strings"
 )
+
+// SliceOf returns a []T{args[0], args[1], ...}
+func SliceOf[T any](args ...T) []T {
+	return args
+}
 
 // Anys convert slice 'sa' to []any slice
 func Anys[T any](sa []T) []any {

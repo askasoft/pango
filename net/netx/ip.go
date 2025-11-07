@@ -7,6 +7,11 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
+var (
+	AnywhereCIDRs = []string{"0.0.0.0/0", "::/0"}
+	IntranetCIDRs = []string{"127.0.0.0/8", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "::1/32"}
+)
+
 // IPv4ToInt converts IP address of version 4 from net.IP to uint32 representation.
 func IPv4ToInt(ip net.IP) uint32 {
 	if ipv4 := ip.To4(); ipv4 != nil {

@@ -47,7 +47,7 @@ func (rrl *RequestRateLimiter) Handle(c *xin.Context) {
 	}
 
 	cnt := rrl.counts.Increment(cip, 1)
-	if cnt < limit {
+	if cnt <= limit {
 		c.Next()
 		return
 	}

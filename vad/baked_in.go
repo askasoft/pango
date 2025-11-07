@@ -156,6 +156,7 @@ var (
 		"mac":                           isMAC,
 		"hostname":                      isHostnameRFC952,  // RFC 952
 		"hostname_rfc1123":              isHostnameRFC1123, // RFC 1123
+		"hostname_port":                 isHostnamePort,
 		"fqdn":                          isFQDN,
 		"unique":                        isUnique,
 		"oneof":                         isOneOf,
@@ -163,7 +164,6 @@ var (
 		"jsonobject":                    isJSONObject,
 		"jsonarray":                     isJSONArray,
 		"jwt":                           isJWT,
-		"hostname_port":                 isHostnamePort,
 		"lowercase":                     isLowercase,
 		"uppercase":                     isUppercase,
 		"datetime":                      isDatetime,
@@ -1283,6 +1283,13 @@ func isHostnameRFC1123(fl FieldLevel) bool {
 	return IsHostnameRFC1123(fl.Field().String())
 }
 
+// isHostnamePort validates a <dns>:<port> combination for fields typically used for socket address.
+func isHostnamePort(fl FieldLevel) bool {
+	MustStringField("hostname_port", fl)
+
+	return IsHostnamePort(fl.Field().String())
+}
+
 func isFQDN(fl FieldLevel) bool {
 	MustStringField("fqdn", fl)
 
@@ -1317,13 +1324,6 @@ func isJWT(fl FieldLevel) bool {
 	return IsJWT(fl.Field().String())
 }
 
-// isHostnamePort validates a <dns>:<port> combination for fields typically used for socket address.
-func isHostnamePort(fl FieldLevel) bool {
-	MustStringField("hostname_port", fl)
-
-	return IsHostnamePort(fl.Field().String())
-}
-
 // isLowercase is the validation function for validating if the current field's value is a lowercase string.
 func isLowercase(fl FieldLevel) bool {
 	MustStringField("lowercase", fl)
@@ -1342,10 +1342,15 @@ func isUppercase(fl FieldLevel) bool {
 func isDatetime(fl FieldLevel) bool {
 	MustStringField("datetime", fl)
 
-	field := fl.Field()
+	value := fl.Field().String()
 	param := fl.Param()
 
-	_, err := time.Parse(param, field.String())
+	if param != "" {
+		_, err := time.Parse(param, value)
+		return err == nil
+	}
+
+	_, err := tmu.Parse(value)
 	return err == nil
 }
 

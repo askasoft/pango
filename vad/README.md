@@ -74,8 +74,8 @@ Baked-in Validations
 | datauri          | Data URL |
 | fqdn             | Full Qualified Domain Name (FQDN) |
 | hostname         | Hostname RFC 952 |
-| hostname_port    | HostPort |
 | hostname_rfc1123 | Hostname RFC 1123 |
+| hostname_port    | Hostname:Port |
 | ip               | Internet Protocol Address IP |
 | ipv4             | Internet Protocol Address IPv4 |
 | ipv6             | Internet Protocol Address IPv6 |

@@ -194,6 +194,7 @@ func StaticContent(r IRoutes, relativePath string, data []byte, modtime time.Tim
 // CacheControlSetter set Cache-Control header when statusCode == 200
 type CacheControlSetter struct {
 	CacheControl string
+	Overwrite    bool
 }
 
 func NewCacheControlSetter(cacheControls ...string) *CacheControlSetter {
@@ -210,9 +211,18 @@ func (ccs *CacheControlSetter) WrapWriter(w ResponseWriter) ResponseWriter {
 	if ccs.CacheControl == "" {
 		return w
 	}
-	return NewHeaderWriter(w, "Cache-Control", ccs.CacheControl)
+	return NewHeaderWriter(w, "Cache-Control", ccs.CacheControl, ccs.Overwrite)
 }
 
 func (ccs *CacheControlSetter) Handle(c *Context) {
 	c.Writer = ccs.WrapWriter(c.Writer)
+}
+
+// -----------------------------------------------
+
+// DisableAcceptRanges overwrite header "Accept-Ranges: none" when statusCode == 200
+// http.FileServer always set "Accept-Ranges: bytes" header,
+// overwrite this header to prevent 206 Partial Content Download.
+func DisableAcceptRanges(c *Context) {
+	c.Writer = NewHeaderWriter(c.Writer, "Accept-Ranges", "none", true)
 }

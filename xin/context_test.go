@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/net/httpx/sse"
+	"github.com/askasoft/pango/net/netx"
 	"github.com/askasoft/pango/test/assert"
 	"github.com/askasoft/pango/xin/binding"
 )
@@ -1537,7 +1538,7 @@ func resetContextForClientIPTests(c *Context) {
 	c.Request.Header.Set("CF-Connecting-IP", "60.60.60.60")
 	c.Request.RemoteAddr = "  40.40.40.40:42123 "
 	c.engine.TrustedIPHeader = ""
-	c.engine.SetTrustedProxies(AnywhereCIDRs)
+	c.engine.SetTrustedProxies(netx.AnywhereCIDRs)
 }
 
 func TestContextContentType(t *testing.T) {

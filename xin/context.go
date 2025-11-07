@@ -12,6 +12,7 @@ import (
 
 	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/mag"
 	"github.com/askasoft/pango/net/httpx"
 	"github.com/askasoft/pango/net/httpx/sse"
 	"github.com/askasoft/pango/ref"
@@ -108,7 +109,7 @@ func (c *Context) reset() {
 // Copy returns a copy of the current context that can be safely used outside the request's scope.
 // This has to be used when the context has to be passed to a goroutine.
 func (c *Context) Copy() *Context {
-	cp := Context{
+	cp := &Context{
 		writermem: c.writermem,
 		Request:   c.Request,
 		engine:    c.engine,
@@ -123,12 +124,11 @@ func (c *Context) Copy() *Context {
 	cp.fullPath = c.fullPath
 
 	cp.attrs = make(map[string]any, len(c.attrs))
-	for k, v := range c.attrs {
-		cp.attrs[k] = v
-	}
+	mag.Copy(cp.attrs, c.attrs)
+
 	cp.Params = make([]Param, len(c.Params))
 	copy(cp.Params, c.Params)
-	return &cp
+	return cp
 }
 
 // HandlerName returns the main handler's name. For example if the handler is "handleGetUsers()",

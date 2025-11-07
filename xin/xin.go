@@ -21,10 +21,10 @@ const (
 	defaultMultipartMemory = 32 << 20 // 32 MB
 )
 
-// CIDRs used by TrustedProxies
 var (
-	AnywhereCIDRs = []string{"0.0.0.0/0", "::/0"}
-	IntranetCIDRs = []string{"127.0.0.0/8", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "::1/32"}
+	DefaultRemoteIPHeaders = []string{"X-Forwarded-For", "X-Real-IP"}
+	DefaultSSLProxyHeaders = map[string]string{"X-Forwarded-Proto": "https"}
+	DefaultTrustedProxies  = netx.IntranetCIDRs
 )
 
 // regex used by redirectTrailingSlash()
@@ -109,7 +109,6 @@ type Engine struct {
 	UnescapePathValues bool
 
 	// RemoveExtraSlash a parameter can be parsed from the URL even with extra slashes.
-	// See the PR #1817 and issue #1644
 	RemoveExtraSlash bool
 
 	// RemoteIPHeaders list of headers used to obtain the client IP when
@@ -172,9 +171,9 @@ func New() *Engine {
 		RedirectTrailingSlash:  true,
 		RedirectFixedPath:      false,
 		HandleMethodNotAllowed: false,
-		RemoteIPHeaders:        []string{"X-Forwarded-For", "X-Real-IP"},
+		RemoteIPHeaders:        DefaultRemoteIPHeaders,
 		TrustedIPHeader:        "",
-		SSLProxyHeaders:        map[string]string{"X-Forwarded-Proto": "https"},
+		SSLProxyHeaders:        DefaultSSLProxyHeaders,
 		UseRawPath:             false,
 		RemoveExtraSlash:       false,
 		UnescapePathValues:     true,
@@ -186,7 +185,7 @@ func New() *Engine {
 	}
 	engine.engine = engine
 	engine.pool.New = engine.allocateContext
-	engine.SetTrustedProxies(IntranetCIDRs) //nolint: errcheck
+	engine.SetTrustedProxies(DefaultTrustedProxies) //nolint: errcheck
 	return engine
 }
 
@@ -314,11 +313,10 @@ func iterate(path, method string, routes RoutesInfo, root *node) RoutesInfo {
 // SetTrustedProxies set a list of network origins (IPv4 addresses,
 // IPv4 CIDRs, IPv6 addresses or IPv6 CIDRs) from which to trust
 // request's headers that contain alternative client IP when
-// `(*xin.Engine).ForwardedByClientIP` is `true`. `TrustedProxies`
-// feature is enabled by default, and it also trusts all proxies
-// by default. If you want to disable this feature, use
-// Engine.SetTrustedProxies(nil), then Context.ClientIP() will
-// return the remote address directly.
+// `(*xin.Engine).ForwardedByClientIP` is `true`.
+// `TrustedProxies` feature is enabled by default, and it also trusts all intranet proxies by default.
+// If you want to disable this feature, use Engine.SetTrustedProxies(nil),
+// then Context.ClientIP() will return the remote address directly.
 func (engine *Engine) SetTrustedProxies(cidrs []string) error {
 	ipnets, err := netx.ParseCIDRs(cidrs)
 	if err != nil {

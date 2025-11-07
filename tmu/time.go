@@ -7,7 +7,21 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
-var GeneralLayouts = []string{time.RFC3339, "2006-1-2 15:04:05", "2006-1-2", "15:04:05"}
+const (
+	RFC1123  = time.RFC1123  // "Mon, 02 Jan 2006 15:04:05 MST"
+	RFC3339  = time.RFC3339  // "2006-01-02T15:04:05Z07:00"
+	DateTime = time.DateTime // "2006-01-02 15:04:05"
+	DateOnly = time.DateOnly // "2006-01-02"
+	TimeOnly = time.TimeOnly // "15:04:05"
+	TimeHHMM = "15:04"
+)
+
+var GeneralLayouts = []string{
+	time.RFC3339,
+	"2006-1-2 15:04:05",
+	"2006-1-2",
+	TimeOnly,
+}
 
 func LocalFormat(a any, f string) string {
 	if a == nil {
@@ -30,15 +44,15 @@ func LocalFormat(a any, f string) string {
 }
 
 func LocalFormatDateTime(a any) string {
-	return LocalFormat(a, time.DateTime)
+	return LocalFormat(a, DateTime)
 }
 
 func LocalFormatDate(a any) string {
-	return LocalFormat(a, time.DateOnly)
+	return LocalFormat(a, DateOnly)
 }
 
 func LocalFormatTime(a any) string {
-	return LocalFormat(a, time.TimeOnly)
+	return LocalFormat(a, TimeOnly)
 }
 
 func ParseInLocation(value string, loc *time.Location, layouts ...string) (tt time.Time, err error) {

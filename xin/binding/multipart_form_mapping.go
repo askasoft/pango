@@ -19,9 +19,9 @@ var (
 )
 
 // TrySet tries to set a value by the multipart request with the binding a form file
-func (r *multipartRequest) TrySet(rsf reflect.StructField, field reflect.Value, key string, opt options) (bool, *FieldBindError) {
+func (r *multipartRequest) TrySet(field reflect.Value, key string, opt options) (bool, *FieldBindError) {
 	if files := r.MultipartForm.File[key]; len(files) != 0 {
-		ok, err := setByMultipartFormFile(field, rsf, files)
+		ok, err := setByMultipartFormFile(field, files)
 		if err != nil {
 			be := &FieldBindError{
 				Err:   err,
@@ -35,10 +35,10 @@ func (r *multipartRequest) TrySet(rsf reflect.StructField, field reflect.Value, 
 		return ok, nil
 	}
 
-	return setByForm(rsf, field, r.MultipartForm.Value, key, opt)
+	return setByForm(field, r.MultipartForm.Value, key, opt)
 }
 
-func setByMultipartFormFile(field reflect.Value, rsf reflect.StructField, files []*multipart.FileHeader) (isSet bool, err error) {
+func setByMultipartFormFile(field reflect.Value, files []*multipart.FileHeader) (isSet bool, err error) {
 	switch field.Kind() {
 	case reflect.Ptr:
 		switch field.Interface().(type) {
@@ -54,24 +54,24 @@ func setByMultipartFormFile(field reflect.Value, rsf reflect.StructField, files 
 		}
 	case reflect.Slice:
 		slice := reflect.MakeSlice(field.Type(), len(files), len(files))
-		isSet, err = setArrayOfMultipartFormFiles(slice, rsf, files)
+		isSet, err = setArrayOfMultipartFormFiles(slice, files)
 		if err != nil || !isSet {
 			return isSet, err
 		}
 		field.Set(slice)
 		return true, nil
 	case reflect.Array:
-		return setArrayOfMultipartFormFiles(field, rsf, files)
+		return setArrayOfMultipartFormFiles(field, files)
 	}
 	return false, ErrMultiFileHeader
 }
 
-func setArrayOfMultipartFormFiles(field reflect.Value, rsf reflect.StructField, files []*multipart.FileHeader) (isSet bool, err error) {
+func setArrayOfMultipartFormFiles(field reflect.Value, files []*multipart.FileHeader) (isSet bool, err error) {
 	if field.Len() != len(files) {
 		return false, ErrMultiFileHeaderLenInvalid
 	}
 	for i := range files {
-		set, err := setByMultipartFormFile(field.Index(i), rsf, files[i:i+1])
+		set, err := setByMultipartFormFile(field.Index(i), files[i:i+1])
 		if err != nil || !set {
 			return set, err
 		}

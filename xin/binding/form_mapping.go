@@ -52,14 +52,14 @@ func mapFormByTag(ptr any, form map[string][]string, tag string) error {
 
 // setter tries to set value on a walking by fields of a struct
 type setter interface {
-	TrySet(rsf reflect.StructField, field reflect.Value, key string, opts options) (isSet bool, err *FieldBindError)
+	TrySet(field reflect.Value, key string, opts options) (isSet bool, err *FieldBindError)
 }
 
 type formSource map[string][]string
 
 // TrySet tries to set a value by request's form source (like map[string][]string)
-func (form formSource) TrySet(rsf reflect.StructField, field reflect.Value, key string, opts options) (isSet bool, err *FieldBindError) {
-	return setByForm(rsf, field, form, key, opts)
+func (form formSource) TrySet(field reflect.Value, key string, opts options) (isSet bool, err *FieldBindError) {
+	return setByForm(field, form, key, opts)
 }
 
 func mappingByPtr(ptr any, setter setter, tag string) error {
@@ -139,6 +139,7 @@ func getStructFieldPrefix(prefix string, field reflect.StructField, tag string) 
 }
 
 type options struct {
+	tag      reflect.StructTag
 	defaults string // default value
 	split    bool   // split to slice
 	valid    bool   // to valid utf-8
@@ -160,6 +161,8 @@ func tryToSetValue(prefix string, value reflect.Value, rsf reflect.StructField, 
 	}
 
 	var opts options
+
+	opts.tag = rsf.Tag
 
 	var opt string
 	for next != "" {
@@ -187,7 +190,7 @@ func tryToSetValue(prefix string, value reflect.Value, rsf reflect.StructField, 
 		key = prefix + "." + key
 	}
 
-	return setter.TrySet(rsf, value, key, opts)
+	return setter.TrySet(value, key, opts)
 }
 
 func alterFormKey(key string) string {
@@ -270,7 +273,7 @@ func getFormValuesOrDefaults(form map[string][]string, key string, opts options)
 	return
 }
 
-func setByForm(rsf reflect.StructField, field reflect.Value, form map[string][]string, key string, opts options) (isSet bool, be *FieldBindError) {
+func setByForm(field reflect.Value, form map[string][]string, key string, opts options) (isSet bool, be *FieldBindError) {
 	var (
 		vs  []string
 		ok  bool
@@ -285,7 +288,7 @@ func setByForm(rsf reflect.StructField, field reflect.Value, form map[string][]s
 		if !ok {
 			return
 		}
-		isSet, err = true, setSlice(rsf, field, vs)
+		isSet, err = true, setSlice(field, vs, opts)
 	case reflect.Array:
 		vs, ok = getFormValuesOrDefaults(form, key, opts)
 		if !ok {
@@ -294,7 +297,7 @@ func setByForm(rsf reflect.StructField, field reflect.Value, form map[string][]s
 		if len(vs) > field.Len() {
 			isSet, err = false, fmt.Errorf("form: %q is not valid value for %s", vs, field.Type().String())
 		} else {
-			isSet, err = true, setArray(rsf, field, vs)
+			isSet, err = true, setArray(field, vs, opts)
 		}
 	default:
 		vs, ok = getFormValuesOrDefaults(form, key, opts)
@@ -304,7 +307,7 @@ func setByForm(rsf reflect.StructField, field reflect.Value, form map[string][]s
 
 		val := asg.First(vs)
 
-		isSet, err = true, setWithProperType(rsf, field, val)
+		isSet, err = true, setWithProperType(field, val, opts)
 	}
 
 	if err != nil {
@@ -317,44 +320,44 @@ func setByForm(rsf reflect.StructField, field reflect.Value, form map[string][]s
 	return
 }
 
-func setWithProperType(rsf reflect.StructField, field reflect.Value, val string) error {
+func setWithProperType(field reflect.Value, val string, opts options) error {
 	switch field.Kind() {
 	case reflect.Int:
-		return setIntField(field, val, 0)
+		return setIntField(field, stripNumValue(val, opts), 0)
 	case reflect.Int8:
-		return setIntField(field, val, 8)
+		return setIntField(field, stripNumValue(val, opts), 8)
 	case reflect.Int16:
-		return setIntField(field, val, 16)
+		return setIntField(field, stripNumValue(val, opts), 16)
 	case reflect.Int32:
-		return setIntField(field, val, 32)
+		return setIntField(field, stripNumValue(val, opts), 32)
 	case reflect.Int64:
 		switch field.Interface().(type) {
 		case time.Duration:
 			return setTimeDuration(field, val)
 		}
-		return setIntField(field, val, 64)
+		return setIntField(field, stripNumValue(val, opts), 64)
 	case reflect.Uint:
-		return setUintField(field, val, 0)
+		return setUintField(field, stripNumValue(val, opts), 0)
 	case reflect.Uint8:
-		return setUintField(field, val, 8)
+		return setUintField(field, stripNumValue(val, opts), 8)
 	case reflect.Uint16:
-		return setUintField(field, val, 16)
+		return setUintField(field, stripNumValue(val, opts), 16)
 	case reflect.Uint32:
-		return setUintField(field, val, 32)
+		return setUintField(field, stripNumValue(val, opts), 32)
 	case reflect.Uint64:
-		return setUintField(field, val, 64)
+		return setUintField(field, stripNumValue(val, opts), 64)
 	case reflect.Bool:
-		return setBoolField(field, val)
+		return setBoolField(field, stripNumValue(val, opts))
 	case reflect.Float32:
-		return setFloatField(field, val, 32)
+		return setFloatField(field, stripNumValue(val, opts), 32)
 	case reflect.Float64:
-		return setFloatField(field, val, 64)
+		return setFloatField(field, stripNumValue(val, opts), 64)
 	case reflect.String:
 		return setStringField(field, val)
 	case reflect.Struct:
 		switch field.Interface().(type) {
 		case time.Time:
-			return setTimeField(rsf, field, val)
+			return setTimeField(field, val, opts)
 		case multipart.FileHeader:
 			return nil
 		}
@@ -365,10 +368,17 @@ func setWithProperType(rsf reflect.StructField, field reflect.Value, val string)
 		if !field.Elem().IsValid() {
 			field.Set(reflect.New(field.Type().Elem()))
 		}
-		return setWithProperType(rsf, field.Elem(), val)
+		return setWithProperType(field.Elem(), val, opts)
 	default:
 		return fmt.Errorf("form: unknown type %v", field.Kind())
 	}
+}
+
+func stripNumValue(val string, opts options) string {
+	if opts.strip {
+		return str.RemoveAny(val, ",_")
+	}
+	return val
 }
 
 func setIntField(field reflect.Value, val string, bitSize int) error {
@@ -428,13 +438,13 @@ func setStringField(field reflect.Value, val string) error {
 	return nil
 }
 
-func setTimeField(rsf reflect.StructField, field reflect.Value, val string) error {
+func setTimeField(field reflect.Value, val string, opts options) error {
 	if val == "" {
 		field.Set(reflect.ValueOf(time.Time{}))
 		return nil
 	}
 
-	tf := strings.ToLower(rsf.Tag.Get("time_format"))
+	tf := strings.ToLower(opts.tag.Get("time_format"))
 
 	switch tf {
 	case "unix", "unixmilli", "unixmicro", "unixnano":
@@ -460,11 +470,11 @@ func setTimeField(rsf reflect.StructField, field reflect.Value, val string) erro
 	}
 
 	loc := time.Local
-	if isUTC, _ := strconv.ParseBool(rsf.Tag.Get("time_utc")); isUTC {
+	if isUTC, _ := strconv.ParseBool(opts.tag.Get("time_utc")); isUTC {
 		loc = time.UTC
 	}
 
-	if locTag := rsf.Tag.Get("time_location"); locTag != "" {
+	if locTag := opts.tag.Get("time_location"); locTag != "" {
 		tl, err := time.LoadLocation(locTag)
 		if err != nil {
 			return err
@@ -563,18 +573,18 @@ func setMap(field reflect.Value, form map[string][]string, key string, opts opti
 	return vs, ok, nil
 }
 
-func setSlice(rsf reflect.StructField, field reflect.Value, vals []string) error {
+func setSlice(field reflect.Value, vals []string, opts options) error {
 	slice := reflect.MakeSlice(field.Type(), len(vals), len(vals))
-	if err := setArray(rsf, slice, vals); err != nil {
+	if err := setArray(slice, vals, opts); err != nil {
 		return err
 	}
 	field.Set(slice)
 	return nil
 }
 
-func setArray(rsf reflect.StructField, field reflect.Value, vals []string) error {
+func setArray(field reflect.Value, vals []string, opts options) error {
 	for i, s := range vals {
-		if err := setWithProperType(rsf, field.Index(i), s); err != nil {
+		if err := setWithProperType(field.Index(i), s, opts); err != nil {
 			return err
 		}
 	}

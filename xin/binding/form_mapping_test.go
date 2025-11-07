@@ -152,6 +152,53 @@ func TestMappingURI(t *testing.T) {
 	assert.Equal(t, int(6), s.F)
 }
 
+func TestMappingFormStructBaseTypes(t *testing.T) {
+	var s struct {
+		Bool    bool    `form:"bool,strip"`
+		Int     int     `form:"int,strip"`
+		Int8    int8    `form:"int8,strip"`
+		Int16   int16   `form:"int16,strip"`
+		Int32   int32   `form:"int32,strip"`
+		Int64   int64   `form:"int64,strip"`
+		Uint    uint    `form:"uint,strip"`
+		Uint8   uint8   `form:"uint8,strip"`
+		Uint16  uint16  `form:"uint16,strip"`
+		Uint32  uint32  `form:"uint32,strip"`
+		Uint64  uint64  `form:"uint64,strip"`
+		Float32 float32 `form:"float32,strip"`
+		Float64 float64 `form:"float64,strip"`
+	}
+	err := mapForm(&s, map[string][]string{
+		"bool":    {" true "},
+		"int":     {" -1,2_3 "},
+		"int8":    {" -1,2_3 "},
+		"int16":   {" -1,2_3 "},
+		"int32":   {" -1,2_3 "},
+		"int64":   {" -1,2_3 "},
+		"uint":    {" 1,2_3 "},
+		"uint8":   {" 1,2_3 "},
+		"uint16":  {" 1,2_3 "},
+		"uint32":  {" 1,2_3 "},
+		"uint64":  {" 1,2_3 "},
+		"float32": {" -1,2_3.45 "},
+		"float64": {" 1,2_3.45 "},
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, true, s.Bool)
+	assert.Equal(t, int(-123), s.Int)
+	assert.Equal(t, int8(-123), s.Int8)
+	assert.Equal(t, int16(-123), s.Int16)
+	assert.Equal(t, int32(-123), s.Int32)
+	assert.Equal(t, int64(-123), s.Int64)
+	assert.Equal(t, uint(123), s.Uint)
+	assert.Equal(t, uint8(123), s.Uint8)
+	assert.Equal(t, uint16(123), s.Uint16)
+	assert.Equal(t, uint32(123), s.Uint32)
+	assert.Equal(t, uint64(123), s.Uint64)
+	assert.Equal(t, float32(-123.45), s.Float32)
+	assert.Equal(t, float64(123.45), s.Float64)
+}
+
 func TestMappingFormStruct(t *testing.T) {
 	var s struct {
 		F int `form:"field"`

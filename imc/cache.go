@@ -361,7 +361,7 @@ func (c *cache[K, V]) Increment(k K, n V) V {
 
 	v, err := cal.Add(item.Val, n)
 	if err != nil {
-		panic(fmt.Errorf("item '%v' cannot increment: %w", k, err))
+		panic(fmt.Errorf("imc: cannot increment item '%v': %w", k, err))
 	}
 
 	item.Val = v.(V)

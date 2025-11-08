@@ -10,21 +10,30 @@ import (
 )
 
 var priorities = map[reflect.Type]int{
-	ref.TypeTime:     11,
-	ref.TypeDuration: 12,
-	ref.TypeString:   21,
+	ref.TypeString:   11,
+	ref.TypeDuration: 21,
 	ref.TypeFloat64:  31,
 	ref.TypeFloat32:  32,
 	ref.TypeInt64:    41,
-	ref.TypeUint64:   41,
-	ref.TypeInt:      42,
-	ref.TypeUint:     43,
-	ref.TypeInt32:    44,
-	ref.TypeUint32:   45,
-	ref.TypeInt16:    46,
-	ref.TypeUint16:   47,
-	ref.TypeInt8:     48,
-	ref.TypeUint8:    49,
+	ref.TypeUint64:   42,
+	ref.TypeInt32:    43,
+	ref.TypeUint32:   44,
+	ref.TypeInt16:    45,
+	ref.TypeUint16:   46,
+	ref.TypeInt8:     47,
+	ref.TypeUint8:    48,
+}
+
+func init() {
+	intSize := 32 << (^uint(0) >> 63) // 32 or 64
+
+	if intSize == 64 {
+		priorities[ref.TypeInt] = priorities[ref.TypeInt64]
+		priorities[ref.TypeUint] = priorities[ref.TypeUint64]
+	} else {
+		priorities[ref.TypeInt] = priorities[ref.TypeInt32]
+		priorities[ref.TypeUint] = priorities[ref.TypeUint32]
+	}
 }
 
 func cast(a, b any) (any, error) {
@@ -62,11 +71,11 @@ func Add(a, b any) (any, error) {
 	}
 
 	switch na := v.(type) {
-	case time.Duration:
-		nb, err := cas.ToDuration(b)
-		return na + nb, err
 	case string:
 		nb, err := cas.ToString(b)
+		return na + nb, err
+	case time.Duration:
+		nb, err := cas.ToDuration(b)
 		return na + nb, err
 	case int:
 		nb, err := cas.ToInt(b)
@@ -105,7 +114,7 @@ func Add(a, b any) (any, error) {
 		nb, err := cas.ToFloat64(b)
 		return na + nb, err
 	default:
-		return a, fmt.Errorf("add: unknown type for '%T'", a)
+		return a, fmt.Errorf("add: unsupported type for '%T'", v)
 	}
 }
 
@@ -169,7 +178,7 @@ func Sub(a, b any) (any, error) {
 		nb, err := cas.ToFloat64(b)
 		return na - nb, err
 	default:
-		return a, fmt.Errorf("subtract: unknown type for '%T'", a)
+		return a, fmt.Errorf("subtract: unsupported type for '%T'", v)
 	}
 }
 
@@ -201,7 +210,7 @@ func Negate(a any) (any, error) {
 	case float64:
 		return -na, nil
 	default:
-		return a, fmt.Errorf("negate: unknown type for '%T'", a)
+		return a, fmt.Errorf("negate: unsupported type for '%T'", a)
 	}
 }
 
@@ -262,7 +271,7 @@ func Multiply(a, b any) (any, error) {
 		nb, err := cas.ToFloat64(b)
 		return na * nb, err
 	default:
-		return a, fmt.Errorf("multiply: unknown type for '%T'", a)
+		return a, fmt.Errorf("multiply: unsupported type for '%T'", v)
 	}
 }
 
@@ -323,7 +332,7 @@ func Divide(a, b any) (any, error) {
 		nb, err := cas.ToFloat64(b)
 		return na / nb, err
 	default:
-		return a, fmt.Errorf("divide: unknown type for '%T'", a)
+		return a, fmt.Errorf("divide: unsupported type for '%T'", v)
 	}
 }
 
@@ -341,7 +350,12 @@ func Mods(a any, b ...any) (r any, err error) {
 
 // Mod returns the result of a % b
 func Mod(a, b any) (any, error) {
-	switch na := a.(type) {
+	v, err := cast(a, b)
+	if err != nil {
+		return a, err
+	}
+
+	switch na := v.(type) {
 	case int:
 		nb, err := cas.ToInt(b)
 		return na % nb, err
@@ -374,11 +388,11 @@ func Mod(a, b any) (any, error) {
 		return na % nb, err
 	case float32:
 		nb, err := cas.ToInt64(b)
-		return int64(na) / nb, err
+		return int64(na) % nb, err
 	case float64:
 		nb, err := cas.ToInt64(b)
-		return int64(na) / nb, err
+		return int64(na) % nb, err
 	default:
-		return a, fmt.Errorf("mod: unknown type for '%T'", a)
+		return a, fmt.Errorf("mod: unsupported type for '%T'", v)
 	}
 }

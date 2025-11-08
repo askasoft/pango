@@ -5,11 +5,15 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/askasoft/pango/gog"
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/tmu"
 	"github.com/askasoft/pango/whk/teams"
+)
+
+const (
+	defaultSubLength = 500
+	defaultMsgLength = 2500
 )
 
 // TeamsWriter implements log Writer Interface and send log message to teams.
@@ -22,8 +26,8 @@ type TeamsWriter struct {
 	Webhook      string
 	Timeout      time.Duration
 	Style        string
-	MaxSubLength int // default: 200
-	MaxMsgLength int // default: 2000
+	MaxSubLength int
+	MaxMsgLength int
 
 	message teams.Message
 }
@@ -141,12 +145,18 @@ func (tw *TeamsWriter) write(le *log.Event) (err error) {
 func (tw *TeamsWriter) format(le *log.Event) (sub, msg string) {
 	sbs := tw.SubFormat(le)
 	sub = str.UnsafeString(sbs)
-	msl := gog.If(tw.MaxSubLength <= 0, 200, tw.MaxSubLength)
+	msl := tw.MaxSubLength
+	if msl <= 0 {
+		msl = defaultSubLength
+	}
 	sub = str.Ellipsis(sub, msl)
 
 	mbs := tw.Format(le)
 	msg = str.UnsafeString(mbs)
-	mml := gog.If(tw.MaxMsgLength <= 0, 2000, tw.MaxMsgLength)
+	mml := tw.MaxMsgLength
+	if mml <= 0 {
+		mml = defaultMsgLength
+	}
 	msg = str.Ellipsis(msg, mml)
 	return
 }

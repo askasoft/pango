@@ -5,11 +5,15 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/askasoft/pango/gog"
 	"github.com/askasoft/pango/log"
 	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/tmu"
 	"github.com/askasoft/pango/whk/slack"
+)
+
+const (
+	defaultSubLength = 500
+	defaultMsgLength = 2500
 )
 
 // SlackWriter implements log Writer Interface and send log message to slack.
@@ -21,8 +25,8 @@ type SlackWriter struct {
 
 	Webhook      string
 	Timeout      time.Duration
-	MaxSubLength int // default: 200
-	MaxMsgLength int // default: 2000
+	MaxSubLength int
+	MaxMsgLength int
 
 	message slack.Message
 }
@@ -92,12 +96,18 @@ func (sw *SlackWriter) format(le *log.Event) (sub, msg string) {
 	sbs := sw.SubFormat(le)
 	sub = str.UnsafeString(sbs)
 	sub = slack.EscapeString(sub)
-	msl := gog.If(sw.MaxSubLength <= 0, 200, sw.MaxSubLength)
+	msl := sw.MaxSubLength
+	if msl <= 0 {
+		msl = defaultSubLength
+	}
 	sub = str.Ellipsis(sub, msl)
 
 	mbs := sw.Format(le)
 	msg = str.UnsafeString(mbs)
-	mml := gog.If(sw.MaxMsgLength <= 0, 2000, sw.MaxMsgLength)
+	mml := sw.MaxMsgLength
+	if mml <= 0 {
+		mml = defaultMsgLength
+	}
 	msg = str.Ellipsis(msg, mml)
 	return
 }

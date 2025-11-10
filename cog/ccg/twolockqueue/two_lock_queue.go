@@ -4,7 +4,7 @@ import (
 	"sync"
 )
 
-// TwoLockQueue is a concurrent unbounded queue which uses two-Lock concurrent queue qlgorithm.
+// TwoLockQueue is a concurrent unbounded queue which uses two-Lock concurrent queue algorithm.
 type TwoLockQueue[T any] struct {
 	head  *lnode[T]
 	tail  *lnode[T]
@@ -37,7 +37,8 @@ func (q *TwoLockQueue[T]) Clear() {
 	q.hlock.Lock()
 	defer q.hlock.Unlock()
 
-	//q.head.data = nil
+	var v T
+	q.head.data = v
 	q.head.next = nil
 	q.tail = q.head
 }
@@ -73,14 +74,14 @@ func (q *TwoLockQueue[T]) Poll() (T, bool) {
 	q.hlock.Lock()
 	defer q.hlock.Unlock()
 
+	var v T
 	head := q.head.next
 	if head == nil {
-		var v T
 		return v, false
 	}
 
-	v := head.data
-	//head.data = nil
+	o := head.data
+	head.data = v
 	q.head = head
-	return v, true
+	return o, true
 }

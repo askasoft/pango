@@ -208,16 +208,50 @@ func TestMappingFormStruct(t *testing.T) {
 	assert.Equal(t, int(6), s.F)
 }
 
+func TestMappingFormMapStrStrs(t *testing.T) {
+	m := make(map[string][]string)
+	err := mapForm(m, map[string][]string{"1": {"6", "7"}})
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"6", "7"}, m["1"])
+}
+
+func TestMappingFormMapStrStr(t *testing.T) {
+	m := make(map[string]string)
+	err := mapForm(m, map[string][]string{"1": {"6", "7"}})
+	assert.NoError(t, err)
+	assert.Equal(t, "6", m["1"])
+}
+
+func TestMappingFormMapStrAny(t *testing.T) {
+	m := make(map[string]any)
+	err := mapForm(m, map[string][]string{"0": {}, "1": {"6"}, "2": {"7", "8"}})
+	assert.NoError(t, err)
+	assert.Equal(t, "", m["0"])
+	assert.Equal(t, "6", m["1"])
+	assert.Equal(t, []string{"7", "8"}, m["2"])
+}
+
 func TestMappingFormMapStrInt(t *testing.T) {
 	m := make(map[string]int)
-	err := mapForm(m, map[string][]string{"field": {"6", "7"}})
+	err := mapForm(m, map[string][]string{"0": {}, "1": {"6"}, "2": {"7", "8"}})
 	assert.NoError(t, err)
-	assert.Equal(t, int(6), m["field"])
+	assert.Equal(t, int(0), m["0"])
+	assert.Equal(t, int(6), m["1"])
+	assert.Equal(t, int(7), m["2"])
+}
+
+func TestMappingFormMapStrInts(t *testing.T) {
+	m := make(map[string][]int)
+	err := mapForm(m, map[string][]string{"0": {}, "1": {"6"}, "2": {"7", "8"}})
+	assert.NoError(t, err)
+	assert.Equal(t, []int{}, m["0"])
+	assert.Equal(t, []int{6}, m["1"])
+	assert.Equal(t, []int{7, 8}, m["2"])
 }
 
 func TestMappingFormMapIntInt(t *testing.T) {
 	m := make(map[int]int)
-	err := mapForm(m, map[string][]string{"1": {"6", "7"}})
+	err := mapForm(m, map[string][]string{"1": {"6"}})
 	assert.NoError(t, err)
 	assert.Equal(t, int(6), m[1])
 }

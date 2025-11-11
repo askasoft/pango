@@ -11,6 +11,7 @@ import (
 
 	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/lut"
+	"github.com/askasoft/pango/mag"
 	"github.com/askasoft/pango/ref"
 	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/tmu"
@@ -601,40 +602,45 @@ func setTimeDuration(field reflect.Value, val string) error {
 }
 
 func setFormMap(dict any, form map[string][]string) error {
-	mt := reflect.TypeOf(dict)
-	me := mt.Elem()
-
-	if me.Kind() == reflect.Slice {
-		// for most commonly used map[string][]string
-		if m, ok := dict.(map[string][]string); ok {
-			for k, vs := range form {
+	switch m := dict.(type) {
+	case map[string][]string:
+		mag.Copy(m, form)
+		return nil
+	case map[string]string:
+		for k, vs := range form {
+			m[k] = asg.First(vs) // pick first
+		}
+		return nil
+	case map[string]any:
+		for k, vs := range form {
+			switch len(vs) {
+			case 0:
+				m[k] = ""
+			case 1:
+				m[k] = vs[0]
+			default:
 				m[k] = vs
+			}
+		}
+		return nil
+	default:
+		me := reflect.TypeOf(dict).Elem()
+		if me.Kind() == reflect.Slice {
+			// element is slice
+			for k, vs := range form {
+				if _, err := ref.MapSet(dict, k, vs); err != nil {
+					return err
+				}
 			}
 			return nil
 		}
 
+		// element is not slice
 		for k, vs := range form {
-			if _, err := ref.MapSet(dict, k, vs); err != nil {
+			if _, err := ref.MapSet(dict, k, asg.First(vs)); err != nil {
 				return err
 			}
 		}
 		return nil
 	}
-
-	// for most commonly used map[string]string
-	if m, ok := dict.(map[string]string); ok {
-		for k, vs := range form {
-			m[k] = asg.First(vs) // pick first
-		}
-		return nil
-	}
-
-	for k, vs := range form {
-		v := asg.First(vs) // pick first
-		if _, err := ref.MapSet(dict, k, v); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }

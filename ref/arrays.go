@@ -16,7 +16,7 @@ func ArrayLen(a any) (int, error) {
 	case reflect.Slice, reflect.Array:
 		return av.Len(), nil
 	default:
-		return 0, errors.New("ArrayLen(): invalid array or slice")
+		return 0, fmt.Errorf("ref: %T is not a array or slice", a)
 	}
 }
 
@@ -31,7 +31,7 @@ func ArrayLen(a any) (int, error) {
 // {{ArrayGet a 0 1 }} // return "0,1"
 func ArrayGet(a any, idxs ...int) (any, error) {
 	if len(idxs) == 0 {
-		return nil, errors.New("ArrayGet(): missing argument index")
+		return nil, errors.New("ref: missing argument index")
 	}
 
 	av := reflect.ValueOf(a)
@@ -39,7 +39,7 @@ func ArrayGet(a any, idxs ...int) (any, error) {
 	case reflect.Slice, reflect.Array:
 		idx := idxs[0]
 		if idx < 0 || idx > av.Len() {
-			return nil, errors.New("ArrayGet(): invalid index")
+			return nil, fmt.Errorf("ref: index %d out of bounds [0:%d]", idx, av.Len())
 		}
 
 		val := av.Index(idx).Interface()
@@ -50,7 +50,7 @@ func ArrayGet(a any, idxs ...int) (any, error) {
 		}
 		return val, nil
 	default:
-		return nil, errors.New("ArrayGet(): invalid array or slice")
+		return 0, fmt.Errorf("ref: %T is not a array or slice", a)
 	}
 }
 
@@ -62,14 +62,14 @@ func ArraySet(a any, i int, v any) (any, error) {
 	switch at.Kind() {
 	case reflect.Slice, reflect.Array:
 		if i < 0 || i > av.Len() {
-			return nil, errors.New("ArraySet(): invalid index")
+			return nil, fmt.Errorf("ref: index %d out of bounds [0:%d]", i, av.Len())
 		}
 
 		vv := reflect.ValueOf(v)
 		if vv.Type() != at.Elem() {
 			cv, err := CastTo(v, at.Elem())
 			if err != nil {
-				return nil, fmt.Errorf("ArraySet(): invalid value type - %w", err)
+				return nil, err
 			}
 
 			vv = reflect.ValueOf(cv)
@@ -78,7 +78,7 @@ func ArraySet(a any, i int, v any) (any, error) {
 		av.Index(i).Set(vv)
 		return nil, nil
 	default:
-		return nil, errors.New("ArraySet(): invalid array or slice")
+		return 0, fmt.Errorf("ref: %T is not a array or slice", a)
 	}
 }
 
@@ -99,7 +99,7 @@ func SliceAdd(a any, vs ...any) (any, error) {
 			if vv.Type() != at.Elem() {
 				cv, err := CastTo(v, at.Elem())
 				if err != nil {
-					return nil, fmt.Errorf("SliceAdd(): invalid value type - %w", err)
+					return nil, err
 				}
 				vv = reflect.ValueOf(cv)
 			}
@@ -109,6 +109,6 @@ func SliceAdd(a any, vs ...any) (any, error) {
 		av = reflect.Append(av, rvs...)
 		return av.Interface(), nil
 	default:
-		return nil, errors.New("SliceAdd(): invalid slice")
+		return 0, fmt.Errorf("ref: %T is not a slice", a)
 	}
 }

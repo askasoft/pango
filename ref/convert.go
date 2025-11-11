@@ -13,11 +13,11 @@ func ConvertTo(v any, t reflect.Type) (any, error) {
 	if rv.Type().ConvertibleTo(t) {
 		return rv.Convert(t).Interface(), nil
 	}
-	return nil, fmt.Errorf("cannot convert '%T' to '%s'", v, t.String())
+	return nil, fmt.Errorf("ref: cannot convert '%T' to '%s'", v, t.String())
 }
 
 // CastTo cast the value v to the specified Type t
-func CastTo(v any, t reflect.Type) (cv any, err error) {
+func CastTo(v any, t reflect.Type) (any, error) {
 	switch t {
 	case TypeDuration:
 		return cas.ToDuration(v)
@@ -57,7 +57,28 @@ func CastTo(v any, t reflect.Type) (cv any, err error) {
 			if v == nil {
 				return reflect.MakeSlice(t, 0, 0).Interface(), nil
 			}
-			cv, err = ConvertTo(v, t)
+
+			rv := reflect.ValueOf(v)
+			if rv.Type().ConvertibleTo(t) {
+				return rv.Convert(t).Interface(), nil
+			}
+
+			rk := rv.Kind()
+			if rk != reflect.Slice && rk != reflect.Array {
+				return nil, fmt.Errorf("ref: cannot convert '%T' to '%s'", v, t.String())
+			}
+
+			et := t.Elem()
+
+			sv := reflect.MakeSlice(t, 0, rv.Len())
+			for i := 0; i < rv.Len(); i++ {
+				cv, err := CastTo(rv.Index(i).Interface(), et)
+				if err != nil {
+					return nil, err
+				}
+				sv = reflect.Append(sv, reflect.ValueOf(cv))
+			}
+			return sv.Interface(), nil
 		default:
 			// case reflect.Complex64, reflect.Complex128:
 			// case reflect.Pointer:
@@ -72,15 +93,7 @@ func CastTo(v any, t reflect.Type) (cv any, err error) {
 			if v == nil {
 				return reflect.New(t).Interface(), nil
 			}
-
-			rv := reflect.ValueOf(v)
-			if rv.Type().ConvertibleTo(t) {
-				return rv.Convert(t).Interface(), nil
-			}
-
-			err = fmt.Errorf("cannot convert %T to %s", v, t.String())
+			return ConvertTo(v, t)
 		}
 	}
-
-	return
 }

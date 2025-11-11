@@ -67,13 +67,13 @@ func TestSetGetProperty(t *testing.T) {
 	for i, c := range cs {
 		err := SetProperty(c.o, c.k, c.v)
 		if err != nil {
-			t.Errorf("[%d] SetProperty(%s, %v) = %v", i, c.k, c.v, err)
+			t.Errorf("[%d] SetProperty(%q, %v) = %v", i, c.k, c.v, err)
 			continue
 		}
 
 		a := c.g(c.o)
 		if !reflect.DeepEqual(c.w, a) {
-			t.Errorf("[%d] SetProperty(%s, %v) get %v, want %v", i, c.k, c.v, a, c.w)
+			t.Errorf("[%d] SetProperty(%q, %v) = %v, want %v", i, c.k, c.v, a, c.w)
 			continue
 		}
 

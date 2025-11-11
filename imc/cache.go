@@ -21,8 +21,8 @@ type Item[V any] struct {
 }
 
 // Working returns true to prevent expired
-func (item Item[V]) Working() bool {
-	var a any = item.Val
+func (i Item[V]) Working() bool {
+	var a any = i.Val
 	if w, ok := a.(Worker); ok {
 		return w.Working()
 	}
@@ -30,21 +30,36 @@ func (item Item[V]) Working() bool {
 }
 
 // Expired Returns true if the item has expired.
-func (item Item[V]) Expired() bool {
-	if item.TTL <= 0 || item.Working() {
+func (i Item[V]) Expired() bool {
+	if i.TTL <= 0 || i.Working() {
 		return false
 	}
 
-	return time.Now().UnixMilli() > item.TTL
+	return time.Now().UnixMilli() > i.TTL
 }
 
 // ExpiredAt Returns true if the item has expired at time `t`.
-func (item Item[V]) ExpiredAt(t int64) bool {
-	if item.TTL <= 0 || item.Working() {
+func (i Item[V]) ExpiredAt(t int64) bool {
+	if i.TTL <= 0 || i.Working() {
 		return false
 	}
 
-	return t > item.TTL
+	return t > i.TTL
+}
+
+// TimeToLive Returns expires duration from now.
+// Returns 0s if the item has expired.
+// Returns -1s if the item never expires.
+func (i Item[V]) TimeToLive() time.Duration {
+	if i.TTL <= 0 {
+		return -time.Second
+	}
+
+	ms := time.Now().UnixMilli() - i.TTL
+	if ms <= 0 {
+		return 0
+	}
+	return time.Duration(ms) * time.Millisecond
 }
 
 type Cache[K comparable, V any] struct {

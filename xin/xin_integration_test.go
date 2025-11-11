@@ -19,7 +19,6 @@ import (
 // params[1]=response status (custom compare status) default:"200 OK"
 // params[2]=response body (custom compare content)  default:"it worked"
 func testRequest(t *testing.T, params ...string) {
-
 	if len(params) == 0 {
 		t.Fatal("url cannot be empty")
 	}

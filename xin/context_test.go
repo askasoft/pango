@@ -2131,22 +2131,20 @@ func TestRemoteIPFail(t *testing.T) {
 
 func TestContextWithFallbackDeadlineFromRequestContext(t *testing.T) {
 	c, _ := CreateTestContext(httptest.NewRecorder())
-	// enable ContextWithFallback feature flag
-	c.engine.ContextWithFallback = true
 
 	deadline, ok := c.Deadline()
 	assert.Zero(t, deadline)
 	assert.False(t, ok)
 
 	c2, _ := CreateTestContext(httptest.NewRecorder())
-	// enable ContextWithFallback feature flag
-	c2.engine.ContextWithFallback = true
 
 	c2.Request, _ = http.NewRequest(http.MethodGet, "/", nil)
 	d := time.Now().Add(time.Second)
 	ctx, cancel := context.WithDeadline(context.Background(), d)
 	defer cancel()
+
 	c2.Request = c2.Request.WithContext(ctx)
+	c2.Context = c2.Request.Context()
 	deadline, ok = c2.Deadline()
 	assert.Equal(t, d, deadline)
 	assert.True(t, ok)
@@ -2154,38 +2152,33 @@ func TestContextWithFallbackDeadlineFromRequestContext(t *testing.T) {
 
 func TestContextWithFallbackDoneFromRequestContext(t *testing.T) {
 	c, _ := CreateTestContext(httptest.NewRecorder())
-	// enable ContextWithFallback feature flag
-	c.engine.ContextWithFallback = true
-
 	assert.Nil(t, c.Done())
 
 	c2, _ := CreateTestContext(httptest.NewRecorder())
-	// enable ContextWithFallback feature flag
-	c2.engine.ContextWithFallback = true
-
 	c2.Request, _ = http.NewRequest(http.MethodGet, "/", nil)
+	c2.Context = c2.Request.Context()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	c2.Request = c2.Request.WithContext(ctx)
+	c2.Context = c2.Request.Context()
+
 	cancel()
 	assert.NotNil(t, <-c2.Done())
 }
 
 func TestContextWithFallbackErrFromRequestContext(t *testing.T) {
 	c, _ := CreateTestContext(httptest.NewRecorder())
-	// enable ContextWithFallback feature flag
-	c.engine.ContextWithFallback = true
-
 	assert.Nil(t, c.Err())
 
 	c2, _ := CreateTestContext(httptest.NewRecorder())
-	// enable ContextWithFallback feature flag
-	c2.engine.ContextWithFallback = true
-
 	c2.Request, _ = http.NewRequest(http.MethodGet, "/", nil)
+	c2.Context = c2.Request.Context()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	c2.Request = c2.Request.WithContext(ctx)
-	cancel()
+	c2.Context = c2.Request.Context()
 
+	cancel()
 	assert.EqualError(t, c2.Err(), context.Canceled.Error())
 }
 
@@ -2202,10 +2195,9 @@ func TestContextWithFallbackValueFromRequestContext(t *testing.T) {
 			getContextAndKey: func() (*Context, any) {
 				var key struct{}
 				c, _ := CreateTestContext(httptest.NewRecorder())
-				// enable ContextWithFallback feature flag
-				c.engine.ContextWithFallback = true
 				c.Request, _ = http.NewRequest("POST", "/", nil)
 				c.Request = c.Request.WithContext(context.WithValue(context.TODO(), key, "value"))
+				c.Context = c.Request.Context()
 				return c, key
 			},
 			value: "value",
@@ -2214,10 +2206,9 @@ func TestContextWithFallbackValueFromRequestContext(t *testing.T) {
 			name: "c with string context key",
 			getContextAndKey: func() (*Context, any) {
 				c, _ := CreateTestContext(httptest.NewRecorder())
-				// enable ContextWithFallback feature flag
-				c.engine.ContextWithFallback = true
 				c.Request, _ = http.NewRequest("POST", "/", nil)
 				c.Request = c.Request.WithContext(context.WithValue(context.TODO(), contextKey("key"), "value"))
+				c.Context = c.Request.Context()
 				return c, contextKey("key")
 			},
 			value: "value",
@@ -2226,8 +2217,6 @@ func TestContextWithFallbackValueFromRequestContext(t *testing.T) {
 			name: "c with nil http.Request",
 			getContextAndKey: func() (*Context, any) {
 				c, _ := CreateTestContext(httptest.NewRecorder())
-				// enable ContextWithFallback feature flag
-				c.engine.ContextWithFallback = true
 				c.Request = nil
 				return c, "key"
 			},
@@ -2237,8 +2226,6 @@ func TestContextWithFallbackValueFromRequestContext(t *testing.T) {
 			name: "c with nil http.Request.Context()",
 			getContextAndKey: func() (*Context, any) {
 				c, _ := CreateTestContext(httptest.NewRecorder())
-				// enable ContextWithFallback feature flag
-				c.engine.ContextWithFallback = true
 				c.Request, _ = http.NewRequest("POST", "/", nil)
 				return c, "key"
 			},
@@ -2290,7 +2277,7 @@ func TestContextCopyShouldNotCancel(t *testing.T) {
 		}()
 	})
 
-	l, err := net.Listen("tcp", ":0")
+	l, err := net.Listen("tcp", "127.0.0.1:0")
 	must(err)
 	go func() {
 		s := &http.Server{

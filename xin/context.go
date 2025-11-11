@@ -1,6 +1,7 @@
 package xin
 
 import (
+	"context"
 	"errors"
 	"io"
 	"mime/multipart"
@@ -46,11 +47,19 @@ const abortIndex = 128
 // Context is the most important part of xin. It allows us to pass variables between middleware,
 // manage the flow, validate the JSON of a request and render a JSON response for example.
 type Context struct {
-	writermem responseWriter
-	Request   *http.Request
-	Writer    ResponseWriter
+	Context context.Context // parent context
 
-	Params   Params
+	Request *http.Request
+	Writer  ResponseWriter
+	Params  Params
+
+	Locale   string     // locale string for the context of each request.
+	Errors   []error    // Errors is a list of errors attached to all the handlers/middlewares who used this context.
+	Accepted []string   // Accepted defines a list of manually accepted formats for content negotiation.
+	Logger   log.Logger // Logger
+
+	writermem responseWriter
+
 	handlers HandlersChain
 	index    int
 	fullPath string
@@ -58,15 +67,6 @@ type Context struct {
 	engine       *Engine
 	params       *Params
 	skippedNodes *[]skippedNode
-
-	// locale string for the context of each request.
-	Locale string
-
-	// Errors is a list of errors attached to all the handlers/middlewares who used this context.
-	Errors []error
-
-	// Accepted defines a list of manually accepted formats for content negotiation.
-	Accepted []string
 
 	// attrs is a key/value pair exclusively for the context of each request.
 	attrs map[string]any
@@ -77,9 +77,6 @@ type Context struct {
 	// formCache caches c.Request.PostForm, which contains the parsed form data from POST, PATCH,
 	// or PUT body parameters.
 	formCache url.Values
-
-	// Logger
-	Logger log.Logger
 }
 
 /************************************/
@@ -87,6 +84,7 @@ type Context struct {
 /************************************/
 
 func (c *Context) reset() {
+	c.Context = nil
 	c.Writer = &c.writermem
 	c.Params = c.Params[:0]
 	c.handlers = nil
@@ -1236,38 +1234,31 @@ func (c *Context) SetAccepted(formats ...string) {
 }
 
 /************************************/
-/***** GOLANG.ORG/X/NET/CONTEXT *****/
+/***** GOLANG CONTEXT           *****/
 /************************************/
 
-// hasRequestContext returns whether c.Request has Context and fallback.
-func (c *Context) hasRequestContext() bool {
-	hasFallback := c.engine != nil && c.engine.ContextWithFallback
-	hasRequestContext := c.Request != nil && c.Request.Context() != nil
-	return hasFallback && hasRequestContext
-}
-
-// Deadline returns that there is no deadline (ok==false) when c.Request has no Context.
+// Deadline returns that there is no deadline (ok==false) when c.Context is nil.
 func (c *Context) Deadline() (deadline time.Time, ok bool) {
-	if !c.hasRequestContext() {
+	if c.Context == nil {
 		return
 	}
-	return c.Request.Context().Deadline()
+	return c.Context.Deadline()
 }
 
-// Done returns nil (chan which will wait forever) when c.Request has no Context.
+// Done returns nil (chan which will wait forever) when c.Context is nil.
 func (c *Context) Done() <-chan struct{} {
-	if !c.hasRequestContext() {
+	if c.Context == nil {
 		return nil
 	}
-	return c.Request.Context().Done()
+	return c.Context.Done()
 }
 
-// Err returns nil when c.Request has no Context.
+// Err returns nil when c.Context is nil.
 func (c *Context) Err() error {
-	if !c.hasRequestContext() {
+	if c.Context == nil {
 		return nil
 	}
-	return c.Request.Context().Err()
+	return c.Context.Err()
 }
 
 // Value returns the value associated with this context for key, or nil
@@ -1285,8 +1276,8 @@ func (c *Context) Value(key any) any {
 			return val
 		}
 	}
-	if !c.hasRequestContext() {
+	if c.Context == nil {
 		return nil
 	}
-	return c.Request.Context().Value(key)
+	return c.Context.Value(key)
 }

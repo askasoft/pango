@@ -129,9 +129,6 @@ type Engine struct {
 	// method call.
 	MaxMultipartMemory int64
 
-	// ContextWithFallback enable fallback Context.Deadline(), Context.Done(), Context.Err() and Context.Value() when Context.Request.Context() is not nil.
-	ContextWithFallback bool
-
 	// HTMLRenderer html templates renderer
 	HTMLRenderer render.HTMLRenderer
 
@@ -365,6 +362,7 @@ func (engine *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	c := engine.pool.Get().(*Context)
 	c.writermem.reset(w, c.Logger)
 	c.Request = req
+	c.Context = req.Context()
 
 	engine.handleHTTPRequest(c)
 

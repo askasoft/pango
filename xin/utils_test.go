@@ -90,33 +90,6 @@ func TestJoinPaths(t *testing.T) {
 	assert.Equal(t, "/a/hola/", joinPaths("/a/", "/hola//"))
 }
 
-type bindTestStruct struct {
-	Foo string `form:"foo" validate:"required"`
-	Bar int    `form:"bar" validate:"min=4"`
-}
-
-func TestMustBindMiddleware(t *testing.T) {
-	var value *bindTestStruct
-	var called bool
-	router := New()
-	router.GET("/", MustBind(bindTestStruct{}), func(c *Context) {
-		called = true
-		value = c.MustGet(BindKey).(*bindTestStruct)
-	})
-	performRequest(router, "GET", "/?foo=hola&bar=10")
-	assert.True(t, called)
-	assert.Equal(t, "hola", value.Foo)
-	assert.Equal(t, 10, value.Bar)
-
-	called = false
-	performRequest(router, "GET", "/?foo=hola&bar=1")
-	assert.False(t, called)
-
-	assert.Panics(t, func() {
-		MustBind(&bindTestStruct{})
-	})
-}
-
 func TestMarshalXMLforH(t *testing.T) {
 	h := H{
 		"": "test",

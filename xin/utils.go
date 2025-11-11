@@ -4,30 +4,10 @@ import (
 	"encoding/xml"
 	"net/http"
 	"path"
-	"reflect"
 	"strings"
 
 	"github.com/askasoft/pango/str"
 )
-
-// BindKey indicates a default bind key.
-const BindKey = "XIN_BIND_KEY"
-
-// MustBind is a helper function for given interface object and returns a Xin middleware.
-func MustBind(val any) HandlerFunc {
-	value := reflect.ValueOf(val)
-	if value.Kind() == reflect.Ptr {
-		panic(`Bind struct can not be a pointer. Use: xin.MustBind(Struct{}) instead of xin.MustBind(&Struct{})`)
-	}
-
-	type_ := value.Type()
-	return func(c *Context) {
-		obj := reflect.New(type_).Interface()
-		if c.MustBind(obj) == nil {
-			c.Set(BindKey, obj)
-		}
-	}
-}
 
 // IsAjax check http header X-Requested-With == "XMLHttpRequest"
 func IsAjax(c *Context) bool {
@@ -37,6 +17,10 @@ func IsAjax(c *Context) bool {
 // Next is a xin.HandlerFunc just call c.Next().
 func Next(c *Context) {
 	c.Next()
+}
+
+// Nop is a xin.HandlerFunc which do nothing.
+func Nop(c *Context) {
 }
 
 // WrapF is a helper function for wrapping http.HandlerFunc and returns a Xin middleware.

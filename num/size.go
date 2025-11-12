@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/askasoft/pango/asg"
 )
 
 const (
@@ -111,6 +113,19 @@ func HumanSizeFloat(size float64, precision int, separator string) string {
 	hs := FtoaWithDigits(size, precision)
 
 	return hs + separator + unit
+}
+
+// Atoz use ParseSize(s) to parse string 's' to int64,
+// returns the default defs[0] value if error.
+func Atoz(s string, defs ...int64) int64 {
+	if s == "" {
+		return asg.First(defs)
+	}
+
+	if z, err := ParseSize(s); err == nil {
+		return z
+	}
+	return asg.First(defs)
 }
 
 // ParseSize returns an integer from a human-readable size using windows specification (KB = 1024B).

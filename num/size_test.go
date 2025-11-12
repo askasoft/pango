@@ -185,6 +185,30 @@ func TestParseSize(t *testing.T) {
 	}
 }
 
+func TestAtoz(t *testing.T) {
+	cs := []struct {
+		w int64
+		d []int64
+		s string
+	}{
+		{1, []int64{1}, ""},
+		{0, nil, "0"},
+		{0, nil, "0b"},
+		{0, nil, "0B"},
+		{0, nil, "0 B"},
+		{32, nil, "32"},
+		{32, nil, "32b"},
+		{32, nil, "32B"},
+	}
+
+	for i, c := range cs {
+		a := Atoz(c.s, c.d...)
+		if a != c.w {
+			t.Errorf("[%d] Atoz(%q, %v) = %v, want %v", i, c.s, c.d, a, c.w)
+		}
+	}
+}
+
 func TestParseSizeF(t *testing.T) {
 	cs := []struct {
 		w float64

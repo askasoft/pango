@@ -10,7 +10,7 @@ import (
 )
 
 // Atoi use strconv.ParseInt(s, 0, strconv.IntSize) to parse string 's' to int,
-// return the returns the default defs[0] value if error.
+// returns the default defs[0] value if error.
 func Atoi(s string, defs ...int) int {
 	if s == "" {
 		return asg.First(defs)
@@ -28,7 +28,7 @@ func Itoa(n int) string {
 }
 
 // Atol use strconv.ParseInt(s, 0, 64) to parse string 's' to int64,
-// return the returns the default defs[0] value if error.
+// returns the default defs[0] value if error.
 func Atol(s string, defs ...int64) int64 {
 	if s == "" {
 		return asg.First(defs)
@@ -46,7 +46,7 @@ func Ltoa(n int64) string {
 }
 
 // Atol use strconv.ParseFloat(s, 64) to parse string 's' to float64,
-// return the returns the default defs[0] value if error.
+// returns the default defs[0] value if error.
 func Atof(s string, defs ...float64) float64 {
 	if s == "" {
 		return asg.First(defs)

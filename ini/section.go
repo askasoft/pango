@@ -171,13 +171,7 @@ func (sec *Section) GetFloat(key string, defs ...float64) float64 {
 // GetSize get a int64 size value of the key from the section
 // if not found or convert error, returns the default defs[0] value.
 func (sec *Section) GetSize(key string, defs ...int64) int64 {
-	e := sec.GetEntry(key)
-	if e != nil && e.Value != "" {
-		if sz, err := num.ParseSize(e.Value); err == nil {
-			return sz
-		}
-	}
-	return asg.First(defs)
+	return num.Atoz(sec.GetString(key), defs...)
 }
 
 // GetDuration get a time.Duration value of the key from the section.

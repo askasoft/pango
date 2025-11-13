@@ -48,6 +48,9 @@ func LogicEq(a, b any) (bool, error) {
 	}
 
 	switch na := v.(type) {
+	case bool:
+		nb, err := cas.ToBool(b)
+		return na == nb, err
 	case time.Time:
 		nb, err := cas.ToTime(b)
 		return na.Equal(nb), err
@@ -94,7 +97,7 @@ func LogicEq(a, b any) (bool, error) {
 		nb, err := cas.ToFloat64(b)
 		return na == nb, err
 	default:
-		return false, fmt.Errorf("LogicEq: unknown type for '%T'", a)
+		return false, fmt.Errorf("eq: unknown type for '%T'", a)
 	}
 }
 
@@ -159,7 +162,7 @@ func LogicGt(a, b any) (bool, error) {
 		nb, err := cas.ToFloat64(b)
 		return na > nb, err
 	default:
-		return false, fmt.Errorf("LogicGt: unknown type for '%T'", a)
+		return false, fmt.Errorf("gt: unknown type for '%T'", a)
 	}
 }
 
@@ -217,7 +220,7 @@ func LogicGte(a, b any) (bool, error) {
 		nb, err := cas.ToFloat64(b)
 		return na >= nb, err
 	default:
-		return false, fmt.Errorf("LoginGte: unknown type for '%T'", a)
+		return false, fmt.Errorf("gte: unknown type for '%T'", a)
 	}
 }
 
@@ -275,7 +278,7 @@ func LogicLt(a, b any) (bool, error) {
 		nb, err := cas.ToFloat64(b)
 		return na < nb, err
 	default:
-		return false, fmt.Errorf("LoginLt: unknown type for '%T'", a)
+		return false, fmt.Errorf("lt: unknown type for '%T'", a)
 	}
 }
 
@@ -333,6 +336,6 @@ func LogicLte(a, b any) (bool, error) {
 		nb, err := cas.ToFloat64(b)
 		return na <= nb, err
 	default:
-		return false, fmt.Errorf("LoginLte: unknown type for '%T'", a)
+		return false, fmt.Errorf("lte: unknown type for '%T'", a)
 	}
 }

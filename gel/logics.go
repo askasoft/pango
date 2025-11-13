@@ -2,8 +2,10 @@ package gel
 
 import (
 	"errors"
+	"regexp"
 
 	"github.com/askasoft/pango/cal"
+	"github.com/askasoft/pango/cas"
 	"github.com/askasoft/pango/ref"
 )
 
@@ -11,12 +13,16 @@ type logicNot struct {
 	singleOp
 }
 
+func (ln *logicNot) Category() int {
+	return opLogic
+}
+
 func (ln *logicNot) Operator() string {
 	return "!"
 }
 
 func (ln *logicNot) Priority() int {
-	return 7
+	return 2
 }
 
 func (ln *logicNot) Calculate(ec elCtx) (any, error) {
@@ -30,6 +36,10 @@ func (ln *logicNot) Calculate(ec elCtx) (any, error) {
 
 type logicAnd struct {
 	doubleOp
+}
+
+func (la *logicAnd) Category() int {
+	return opLogic
 }
 
 func (la *logicAnd) Operator() string {
@@ -53,16 +63,20 @@ type logicOr struct {
 	doubleOp
 }
 
-func (bo *logicOr) Operator() string {
+func (lo *logicOr) Category() int {
+	return opLogic
+}
+
+func (lo *logicOr) Operator() string {
 	return "||"
 }
 
-func (bo *logicOr) Priority() int {
+func (lo *logicOr) Priority() int {
 	return 12
 }
 
-func (bo *logicOr) Calculate(ec elCtx) (any, error) {
-	lval, rval, err := bo.calcLeftRight(ec)
+func (lo *logicOr) Calculate(ec elCtx) (any, error) {
+	lval, rval, err := lo.calcLeftRight(ec)
 	if err != nil {
 		return nil, err
 	}
@@ -74,12 +88,16 @@ type logicNilable struct {
 	singleOp
 }
 
+func (ln *logicNilable) Category() int {
+	return opLogic
+}
+
 func (ln *logicNilable) Operator() string {
 	return "!!"
 }
 
 func (ln *logicNilable) Priority() int {
-	return 7
+	return 2
 }
 
 func (ln *logicNilable) Calculate(ec elCtx) (any, error) {
@@ -89,6 +107,10 @@ func (ln *logicNilable) Calculate(ec elCtx) (any, error) {
 
 type logicOrable struct {
 	doubleOp
+}
+
+func (lo *logicOrable) Category() int {
+	return opLogic
 }
 
 func (lo *logicOrable) Operator() string {
@@ -116,12 +138,16 @@ type logicEq struct {
 	doubleOp
 }
 
+func (le *logicEq) Category() int {
+	return opLogic
+}
+
 func (le *logicEq) Operator() string {
 	return "=="
 }
 
 func (le *logicEq) Priority() int {
-	return 7
+	return 6
 }
 
 func (le *logicEq) Calculate(ec elCtx) (any, error) {
@@ -137,8 +163,12 @@ type logicNeq struct {
 	doubleOp
 }
 
+func (ln *logicNeq) Category() int {
+	return opLogic
+}
+
 func (ln *logicNeq) Operator() string {
-	return "=="
+	return "!="
 }
 
 func (ln *logicNeq) Priority() int {
@@ -156,6 +186,10 @@ func (ln *logicNeq) Calculate(ec elCtx) (any, error) {
 
 type logicGt struct {
 	doubleOp
+}
+
+func (lg *logicGt) Category() int {
+	return opLogic
 }
 
 func (lg *logicGt) Operator() string {
@@ -179,6 +213,10 @@ type logicGte struct {
 	doubleOp
 }
 
+func (lg *logicGte) Category() int {
+	return opLogic
+}
+
 func (lg *logicGte) Operator() string {
 	return ">="
 }
@@ -198,6 +236,10 @@ func (lg *logicGte) Calculate(ec elCtx) (any, error) {
 
 type logicLt struct {
 	doubleOp
+}
+
+func (lt *logicLt) Category() int {
+	return opLogic
 }
 
 func (lt *logicLt) Operator() string {
@@ -221,6 +263,10 @@ type logicLte struct {
 	doubleOp
 }
 
+func (lt *logicLte) Category() int {
+	return opLogic
+}
+
 func (lt *logicLte) Operator() string {
 	return "<="
 }
@@ -238,8 +284,52 @@ func (lt *logicLte) Calculate(ec elCtx) (any, error) {
 	return cal.LogicLte(lval, rval)
 }
 
+type logicRem struct {
+	doubleOp
+}
+
+func (lr *logicRem) Category() int {
+	return opLogic
+}
+
+func (lr *logicRem) Operator() string {
+	return "=="
+}
+
+func (lr *logicRem) Priority() int {
+	return 6
+}
+
+func (lr *logicRem) Calculate(ec elCtx) (any, error) {
+	lval, rval, err := lr.calcLeftRight(ec)
+	if err != nil {
+		return nil, err
+	}
+
+	lstr, err := cas.ToString(lval)
+	if err != nil {
+		return nil, err
+	}
+
+	rstr, err := cas.ToString(rval)
+	if err != nil {
+		return nil, err
+	}
+
+	rex, err := regexp.Compile(rstr)
+	if err != nil {
+		return nil, err
+	}
+
+	return rex.MatchString(lstr), nil
+}
+
 type logicQuestion struct {
 	doubleOp
+}
+
+func (lq *logicQuestion) Category() int {
+	return opLogic
 }
 
 func (lq *logicQuestion) Operator() string {
@@ -261,6 +351,10 @@ func (lq *logicQuestion) Calculate(ec elCtx) (any, error) {
 
 type logicQuestionSelect struct {
 	doubleOp
+}
+
+func (lqs *logicQuestionSelect) Category() int {
+	return opLogic
 }
 
 func (lqs *logicQuestionSelect) Operator() string {

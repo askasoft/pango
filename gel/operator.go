@@ -10,7 +10,20 @@ type invoker interface {
 	Invoke(elCtx, []any) (any, error)
 }
 
+const (
+	opOpen = 1 + iota
+	opClose
+	opBits
+	opLogic
+	opMath
+	opObject
+)
+
 type operator interface {
+	Category() int
+
+	Operator() string
+
 	Priority() int
 
 	Wrap(operand cog.Queue[any])
@@ -119,124 +132,4 @@ func (dop *doubleOp) IsReturnNull(ec elCtx, lval, rval any) (bool, error) {
 	}
 
 	return false, nil
-}
-
-var lbraceop = &lBraceOp{}
-
-type lBraceOp struct {
-}
-
-func (lb *lBraceOp) Operator() string {
-	return "{"
-}
-
-func (lb *lBraceOp) Priority() int {
-	return 100
-}
-
-func (lb *lBraceOp) Wrap(cog.Queue[any]) {
-}
-
-func (lb *lBraceOp) Calculate(ec elCtx) (any, error) {
-	return nil, errors.New("gel: Calculate() is unsupported by '{'")
-}
-
-var rbraceop = &rBraceOp{}
-
-type rBraceOp struct {
-}
-
-func (rb *rBraceOp) Operator() string {
-	return "}"
-}
-
-func (rb *rBraceOp) Priority() int {
-	return 100
-}
-
-func (rb *rBraceOp) Wrap(cog.Queue[any]) {
-}
-
-func (rb *rBraceOp) Calculate(ec elCtx) (any, error) {
-	return nil, errors.New("gel: Calculate() is unsupported by '}'")
-}
-
-var lparenthesisop = &lParenthesisOp{}
-
-type lParenthesisOp struct {
-}
-
-func (lp *lParenthesisOp) Operator() string {
-	return "("
-}
-
-func (lp *lParenthesisOp) Priority() int {
-	return 100
-}
-
-func (lp *lParenthesisOp) Wrap(cog.Queue[any]) {
-}
-
-func (lp *lParenthesisOp) Calculate(ec elCtx) (any, error) {
-	return nil, errors.New("gel: Calculate() is unsupported by '('")
-}
-
-var rparenthesisop = &rParenthesisOp{}
-
-type rParenthesisOp struct {
-}
-
-func (rp *rParenthesisOp) Operator() string {
-	return "("
-}
-
-func (rp *rParenthesisOp) Priority() int {
-	return 100
-}
-
-func (rp *rParenthesisOp) Wrap(cog.Queue[any]) {
-}
-
-func (rp *rParenthesisOp) Calculate(ec elCtx) (any, error) {
-	return nil, errors.New("gel: Calculate() is unsupported by ')'")
-}
-
-var lbracketop = &lBracketOp{}
-
-type lBracketOp struct {
-}
-
-func (lb *lBracketOp) Operator() string {
-	return "("
-}
-
-func (lb *lBracketOp) Priority() int {
-	return 100
-}
-
-func (lb *lBracketOp) Wrap(cog.Queue[any]) {
-}
-
-func (lb *lBracketOp) Calculate(ec elCtx) (any, error) {
-	return nil, errors.New("gel: Calculate() is unsupported by '['")
-}
-
-var rbracketop = &rBracketOp{}
-
-type rBracketOp struct {
-}
-
-func (rb *rBracketOp) Operator() string {
-	return "("
-}
-
-func (rb *rBracketOp) Priority() int {
-	return 100
-}
-
-func (rb *rBracketOp) Wrap(cog.Queue[any]) {
-}
-
-func (rb *rBracketOp) Calculate(ec elCtx) (any, error) {
-	return nil, errors.New("gel: Calculate() is unsupported by ']'")
 }

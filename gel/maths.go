@@ -8,6 +8,10 @@ type mathNegate struct {
 	singleOp
 }
 
+func (mn *mathNegate) Category() int {
+	return opMath
+}
+
 func (mn *mathNegate) Operator() string {
 	return "-"
 }
@@ -31,6 +35,10 @@ func (mn *mathNegate) Calculate(ec elCtx) (any, error) {
 
 type mathAdd struct {
 	doubleOp
+}
+
+func (ma *mathAdd) Category() int {
+	return opMath
 }
 
 func (ma *mathAdd) Operator() string {
@@ -69,6 +77,10 @@ type mathSub struct {
 	doubleOp
 }
 
+func (ms *mathSub) Category() int {
+	return opMath
+}
+
 func (ms *mathSub) Operator() string {
 	return "-"
 }
@@ -105,6 +117,10 @@ type mathMul struct {
 	doubleOp
 }
 
+func (mm *mathMul) Category() int {
+	return opMath
+}
+
 func (mm *mathMul) Operator() string {
 	return "*"
 }
@@ -130,6 +146,10 @@ type mathDiv struct {
 	doubleOp
 }
 
+func (md *mathDiv) Category() int {
+	return opMath
+}
+
 func (md *mathDiv) Operator() string {
 	return "/"
 }
@@ -153,6 +173,10 @@ func (md *mathDiv) Calculate(ec elCtx) (any, error) {
 
 type mathMod struct {
 	doubleOp
+}
+
+func (mm *mathMod) Category() int {
+	return opMath
 }
 
 func (mm *mathMod) Operator() string {

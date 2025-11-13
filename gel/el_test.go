@@ -80,13 +80,16 @@ func TestOneValue(t *testing.T) {
 
 func TestBit(t *testing.T) {
 	cs := []testcase1{
-		{-40, "-5<<3"},
-		{-1, "-5>>3"},
-		{1, "5&3"},
-		{7, "5|3"},
-		{-6, "~5"},
-		{-6, "^5"},
-		{6, "5^3"},
+		{-5 << 3, "-5<<3"},
+		{-5 >> 3, "-5>>3"},
+		{5 & 3, "5&3"},
+		{5 | 3, "5|3"},
+		{^5, "~5"},
+		{^5, "^5"},
+		{5 ^ 3, "5^3"},
+		{6 + ^5, "6 + ~5"},
+		{6 + ^5, "6 + ^5"},
+		{1 + 1 + ^11, "1 + 1 + ^11"},
 	}
 	testCalculate1(t, cs)
 }
@@ -146,12 +149,20 @@ func TestLogical(t *testing.T) {
 		{true, "2 >= 2"},
 		{true, "2 <= 2"},
 		{true, "2 == 2 "},
-		{true, "1 != 2"},
+		{1 != 2, "1 != 2"},
 		{true, "!(1 == 2)"},
-		{true, "!false"},
-		{true, "true || false"},
-		{false, "true && false"},
-		{false, "false || true && false"},
+		{false, "!(1 == 1)"},
+		{!false == false, "!false == false"},
+		{!false, "!false"},
+		{true || false, "true || false"},
+		{true && false, "true && false"},
+		{false || true && false, "false || true && false"},
+		{true, `"a" == "a"`},
+		{true, `"abc" ~= "^a.*$"`},
+		{true, `"abc" ~= "b"`},
+		{false, `"abc" ~= "abz"`},
+		{false, `"a" == !!$`},
+		{true, `nil == !!$`},
 	}
 	testCalculate1(t, cs)
 }

@@ -135,12 +135,13 @@ func (p *parser) isBitNotable(prev any) bool {
 		return true
 	}
 
-	switch prev.(type) {
-	case *lParenthesisOp, *lBracketOp, *lBraceOp:
-		return true
-	default:
-		return false
+	if op, ok := prev.(operator); ok {
+		switch op.Category() {
+		case opOpen, opBits, opMath, opLogic:
+			return true
+		}
 	}
+	return false
 }
 
 func (p *parser) isNegative(prev any) bool {
@@ -148,14 +149,13 @@ func (p *parser) isNegative(prev any) bool {
 		return true
 	}
 
-	switch prev.(type) {
-	case *lParenthesisOp, *lBracketOp, *lBraceOp:
-		return true
-	case *mathAdd, *mathMul, *mathDiv, *mathMod, *mathSub:
-		return true
-	default:
-		return false
+	if op, ok := prev.(operator); ok {
+		switch op.Category() {
+		case opOpen, opBits, opMath, opLogic:
+			return true
+		}
 	}
+	return false
 }
 
 func (p *parser) skipSpace() (rune, error) {
@@ -192,7 +192,16 @@ func parseOperator(r rune, br *bufio.Reader) (any, error) {
 	case '%':
 		return &mathMod{}, nil
 	case '~':
-		return &bitNot{}, nil
+		r2, _, err := br.ReadRune()
+		if err != nil {
+			return &bitNot{}, err
+		}
+		switch r2 {
+		case '=':
+			return &logicRem{}, nil
+		default:
+			return &bitNot{}, br.UnreadRune()
+		}
 	case '^':
 		return &bitXor{}, nil
 	case '?':

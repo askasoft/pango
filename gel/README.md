@@ -22,38 +22,38 @@ gel.Calculate("a*10", m)  // Output: 100
 ### Supported operator
 
  | Operator | Operator Number | Priority | Description |
- |----------|-----------------|----------|-------------|
- | ()       |  \*             | 100      | Parenthesis |
+ |----------|-----------------|----------|------------------|
+ | ()       |  \*             | 100      | Parenthesis      |
  | ,        |  \*             | 90       | Comma between parameter |
- | @        |  2              | 1        | Static method call |
  | .        |  2              | 1        | Property or method accessor |
- | {1,2}    |  \*             | 1        | Java Array |
+ | {1,2}    |  \*             | 1        | Array            |
  | ['abc']  |  2              | 1        | Object Property or Map Element |
  | [3]      |  2              | 1        | Number indexed array/collection |
- | \*       |  2              | 3        | Multiply |
- | /        |  2              | 3        | Divide   |
- | %        |  2              | 3        | Mod      |
- | +        |  2              | 4        | Plus      |
- | -        |  2              | 4        | Minus     |
- | -        |  2              | 2        | Negative  |
- | >=       |  2              | 6        | Great Equal   |
- | <=       |  2              | 5        | Less Equal   |
- | ==       |  2              | 7        | Equal      |
- | !=       |  2              | 6        | Not Equal    |
- | !        |  2              | 7        | Not        |
- | !!       |  1              | 7        | Ignore exception and return null |
- | >        |  2              | 6        | Greater   |
- | <        |  2              | 6        | Less      |
- | &&       |  2              | 11       | Logical And |
- | \|\|     |  2              | 12       | Logical Or    |
+ | \*       |  2              | 3        | Multiply         |
+ | /        |  2              | 3        | Divide           |
+ | %        |  2              | 3        | Mod              |
+ | +        |  2              | 4        | Plus             |
+ | -        |  2              | 4        | Minus            |
+ | -        |  2              | 2        | Negative         |
+ | >        |  2              | 6        | Greater          |
+ | <        |  2              | 6        | Less             |
+ | >=       |  2              | 6        | Great Equal      |
+ | <=       |  2              | 6        | Less Equal       |
+ | ==       |  2              | 6        | Equal            |
+ | !=       |  2              | 6        | Not Equal        |
+ | ~=       |  2              | 6        | Regexp Match     |
+ | !        |  1              | 2        | Not              |
+ | !!       |  1              | 2        | Ignore exception and return nil |
+ | &&       |  2              | 11       | Logical And      |
+ | \|\|     |  2              | 12       | Logical Or       |
  | A\|\|\|B |  2              | 12       | Return B if A is empty or false, else return A |
- | ?:       |  2              | 13       | Ternary   |
- | &        |  2              | 8        | Bit AND  |
- | ~        |  2              | 2        | Bit NOT  |
- | \|       |  2              | 10       | Bit OR  |
- | ^        |  2              | 9        | Bit XOR |
- | <<       |  2              | 5        | Bit Left Shift |
- | >>       |  2              | 5        | Bit Right Shift |
+ | ?:       |  2              | 13       | Ternary          |
+ | ~        |  1              | 2        | Bit NOT          |
+ | &        |  2              | 7        | Bit AND          |
+ | ^        |  2              | 8        | Bit XOR          |
+ | \|       |  2              | 9        | Bit OR           |
+ | <<       |  2              | 5        | Bit Left Shift   |
+ | >>       |  2              | 5        | Bit Right Shift  |
 
 
 ### Like Golang
@@ -154,7 +154,7 @@ gel.Calculate("!!(obj.pet.name) ||| 'cat'", m) // Output:  cat
 ```
 
 ### strict mode
-Defautly, EL use none strict mode (call method of null object will not cause error)  
+Defautly, EL use none strict mode (call method of nil object will not cause error)  
 Example：  
 ```go
 m := map[string]any{

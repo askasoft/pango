@@ -6,6 +6,10 @@ type bitNot struct {
 	singleOp
 }
 
+func (bn *bitNot) Category() int {
+	return opBits
+}
+
 func (bn *bitNot) Operator() string {
 	return "~"
 }
@@ -31,12 +35,16 @@ type bitAnd struct {
 	doubleOp
 }
 
+func (ba *bitAnd) Category() int {
+	return opBits
+}
+
 func (ba *bitAnd) Operator() string {
 	return "&"
 }
 
 func (ba *bitAnd) Priority() int {
-	return 8
+	return 7
 }
 
 func (ba *bitAnd) Calculate(ec elCtx) (any, error) {
@@ -56,12 +64,16 @@ type bitOr struct {
 	doubleOp
 }
 
+func (bo *bitOr) Category() int {
+	return opBits
+}
+
 func (bo *bitOr) Operator() string {
 	return "|"
 }
 
 func (bo *bitOr) Priority() int {
-	return 10
+	return 9
 }
 
 func (bo *bitOr) Calculate(ec elCtx) (any, error) {
@@ -81,12 +93,16 @@ type bitXor struct {
 	doubleOp
 }
 
+func (bx *bitXor) Category() int {
+	return opBits
+}
+
 func (bx *bitXor) Operator() string {
 	return "^"
 }
 
 func (bx *bitXor) Priority() int {
-	return 9
+	return 8
 }
 
 func (bx *bitXor) Calculate(ec elCtx) (any, error) {
@@ -104,6 +120,10 @@ func (bx *bitXor) Calculate(ec elCtx) (any, error) {
 
 type bitLeft struct {
 	doubleOp
+}
+
+func (bl *bitLeft) Category() int {
+	return opBits
 }
 
 func (bl *bitLeft) Operator() string {
@@ -129,6 +149,10 @@ func (bl *bitLeft) Calculate(ec elCtx) (any, error) {
 
 type bitRight struct {
 	doubleOp
+}
+
+func (br *bitRight) Category() int {
+	return opBits
 }
 
 func (br *bitRight) Operator() string {

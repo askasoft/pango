@@ -14,6 +14,10 @@ type accessOp struct {
 	doubleOp
 }
 
+func (ao *accessOp) Category() int {
+	return opObject
+}
+
 func (ao *accessOp) Operator() string {
 	return "."
 }
@@ -78,6 +82,10 @@ type arrayGetOp struct {
 	doubleOp
 }
 
+func (ago *arrayGetOp) Category() int {
+	return opObject
+}
+
 func (ago *arrayGetOp) Operator() string {
 	return "["
 }
@@ -117,6 +125,10 @@ type arrayEndOp struct {
 	left any
 }
 
+func (aeo *arrayEndOp) Category() int {
+	return opObject
+}
+
 func (aeo *arrayEndOp) Operator() string {
 	return "]"
 }
@@ -137,6 +149,10 @@ func (aeo *arrayEndOp) Calculate(ec elCtx) (any, error) {
 }
 
 type arrayMakeOp struct {
+}
+
+func (amo *arrayMakeOp) Category() int {
+	return opObject
 }
 
 func (amo *arrayMakeOp) Operator() string {
@@ -160,6 +176,10 @@ func (amo *arrayMakeOp) Invoke(ec elCtx, args []any) (any, error) {
 
 type commaOp struct {
 	doubleOp
+}
+
+func (co *commaOp) Category() int {
+	return opObject
 }
 
 func (co *commaOp) Operator() string {
@@ -200,6 +220,10 @@ type funcInvokeOp struct {
 	doubleOp
 
 	params int
+}
+
+func (fio *funcInvokeOp) Category() int {
+	return opObject
 }
 
 func (fio *funcInvokeOp) Operator() string {
@@ -269,6 +293,10 @@ func (fio *funcInvokeOp) fetchParams(ec elCtx) (args []any, err error) {
 
 type funcEndOp struct {
 	left any
+}
+
+func (feo *funcEndOp) Category() int {
+	return opObject
 }
 
 func (feo *funcEndOp) Operator() string {

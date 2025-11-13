@@ -1,12 +1,12 @@
 package xin
 
 import (
-	"bytes"
 	"encoding/xml"
 	"fmt"
 	"net/http"
 	"testing"
 
+	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/test/assert"
 )
 
@@ -91,12 +91,19 @@ func TestJoinPaths(t *testing.T) {
 }
 
 func TestMarshalXMLforH(t *testing.T) {
-	h := H{
-		"": "test",
+	cs := []struct {
+		h H
+		w string
+	}{
+		{H{"x": "X"}, "<map><x>X</x></map>"},
+		{H{"": "doc", "x": "X"}, "<doc><x>X</x></doc>"},
 	}
-	var b bytes.Buffer
-	enc := xml.NewEncoder(&b)
-	var x xml.StartElement
-	e := h.MarshalXML(enc, x)
-	assert.Error(t, e)
+
+	for i, c := range cs {
+		bs, err := xml.Marshal(c.h)
+		assert.NoError(t, err)
+
+		a := str.UnsafeString(bs)
+		assert.Equal(t, c.w, a, fmt.Sprintf("#%d", i))
+	}
 }

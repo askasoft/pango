@@ -41,15 +41,28 @@ func WrapH(h http.Handler) HandlerFunc {
 type H map[string]any
 
 // MarshalXML allows type H to be used with xml.Marshal.
+// use h[""] for the root element name, default is "map".
 func (h H) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	start.Name = xml.Name{
 		Space: "",
 		Local: "map",
 	}
+
+	if root, ok := h[""]; ok {
+		if s, ok := root.(string); ok && s != "" {
+			start.Name.Local = s
+		}
+	}
+
 	if err := e.EncodeToken(start); err != nil {
 		return err
 	}
+
 	for key, value := range h {
+		if key == "" {
+			continue
+		}
+
 		elem := xml.StartElement{
 			Name: xml.Name{Space: "", Local: key},
 			Attr: []xml.Attr{},

@@ -56,6 +56,7 @@ func TestCastTo(t *testing.T) {
 		{int(0), nil, TypeInt},
 		{int32(0), "", TypeInt32},
 		{[]string{"1", "2"}, []int{1, 2}, TypeStrings},
+		{map[string]int{"1": 11, "2": 22}, map[int]string{1: "11", 2: "22"}, reflect.TypeFor[map[string]int]()},
 	}
 	for i, c := range cs {
 		a, err := CastTo(c.s, c.b)

@@ -14,6 +14,15 @@ type Builder struct {
 	sqb sqx.Builder
 }
 
+// Clone returns a copy of the builder
+func (b *Builder) Clone() *Builder {
+	n := &Builder{
+		mpr: b.mpr,
+		sqb: *b.sqb.Clone(),
+	}
+	return n
+}
+
 // Rebind a SQL from the default binder (QUESTION) to the target binder.
 func (b *Builder) Rebind(sql string) string {
 	return b.sqb.Rebind(sql)
@@ -43,16 +52,24 @@ func (b *Builder) Reset() *Builder {
 	return b
 }
 
+// Build returns (sql, parameters)
 func (b *Builder) Build() (string, []any) {
 	return b.sqb.Build()
 }
 
+// Params returns parameters
+func (b *Builder) Params() []any {
+	return b.sqb.Params()
+}
+
+// SQL returns sql
 func (b *Builder) SQL() string {
 	return b.sqb.SQL()
 }
 
-func (b *Builder) Params() []any {
-	return b.sqb.Params()
+// SQLWhere returns sql after WHERE
+func (b *Builder) SQLWhere() string {
+	return b.sqb.SQLWhere()
 }
 
 // Count shortcut for SELECT COUNT(*)
@@ -131,11 +148,6 @@ func (b *Builder) Join(query string, args ...any) *Builder {
 	return b
 }
 
-func (b *Builder) Where(q string, args ...any) *Builder {
-	b.sqb.Where(q, args...)
-	return b
-}
-
 func (b *Builder) Setx(col string, val string, args ...any) *Builder {
 	b.sqb.Setx(col, val, args...)
 	return b
@@ -168,6 +180,35 @@ func (b *Builder) Names(cols ...string) *Builder {
 
 func (b *Builder) Omits(cols ...string) *Builder {
 	b.sqb.Omits(cols...)
+	return b
+}
+
+func (b *Builder) Where(q string, args ...any) *Builder {
+	b.sqb.Where(q, args...)
+	return b
+}
+
+// LP append '(' to WHERE
+func (b *Builder) LP() *Builder {
+	b.sqb.LP()
+	return b
+}
+
+// RP append ')' to WHERE
+func (b *Builder) RP() *Builder {
+	b.sqb.RP()
+	return b
+}
+
+// OR switch to OR mode (default is AND mode)
+func (b *Builder) OR() *Builder {
+	b.sqb.OR()
+	return b
+}
+
+// AND switch to AND mode (default is AND mode)
+func (b *Builder) AND() *Builder {
+	b.sqb.AND()
 	return b
 }
 

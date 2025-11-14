@@ -48,14 +48,39 @@ func (b *Builder) Reset() *Builder {
 	return b
 }
 
+// Clone returns a copy of the builder
+func (b *Builder) Clone() *Builder {
+	n := &Builder{
+		Binder:    b.Binder,
+		Quoter:    b.Quoter,
+		command:   b.command,
+		forUpdate: b.forUpdate,
+		distinct:  b.distinct,
+		table:     b.table,
+		columns:   asg.Clone(b.columns),
+		values:    asg.Clone(b.values),
+		joins:     asg.Clone(b.joins),
+		wheres:    asg.Clone(b.wheres),
+		orders:    asg.Clone(b.orders),
+		returns:   asg.Clone(b.returns),
+		params:    asg.Clone(b.params),
+		offset:    b.offset,
+		limit:     b.limit,
+	}
+	return n
+}
+
+// Build returns (sql, parameters)
 func (b *Builder) Build() (string, []any) {
 	return b.Rebind(b.SQL()), b.Params()
 }
 
+// Params returns parameters
 func (b *Builder) Params() []any {
 	return b.params
 }
 
+// SQL returns sql
 func (b *Builder) SQL() string {
 	s := ""
 	switch b.command {
@@ -69,6 +94,13 @@ func (b *Builder) SQL() string {
 		s = b.buildUpdate()
 	}
 	return s
+}
+
+// SQLWhere returns sql after WHERE
+func (b *Builder) SQLWhere() string {
+	sb := &strings.Builder{}
+	b.appendWhere(sb, false)
+	return sb.String()
 }
 
 // Count shortcut for SELECT COUNT(*)
@@ -162,12 +194,6 @@ func (b *Builder) Join(query string, args ...any) *Builder {
 	return b
 }
 
-func (b *Builder) Where(q string, args ...any) *Builder {
-	b.wheres = append(b.wheres, q)
-	b.params = append(b.params, args...)
-	return b
-}
-
 func (b *Builder) Setx(col string, val string, args ...any) *Builder {
 	b.columns = append(b.columns, col)
 	b.values = append(b.values, val)
@@ -209,6 +235,32 @@ func (b *Builder) Omits(cols ...string) *Builder {
 		b.values = asg.DeleteEqual(b.values, ":"+col)
 	}
 	return b
+}
+
+func (b *Builder) Where(q string, args ...any) *Builder {
+	b.wheres = append(b.wheres, q)
+	b.params = append(b.params, args...)
+	return b
+}
+
+// LP append '(' to WHERE
+func (b *Builder) LP() *Builder {
+	return b.Where("(")
+}
+
+// RP append ')' to WHERE
+func (b *Builder) RP() *Builder {
+	return b.Where(")")
+}
+
+// OR switch to OR mode (default is AND mode)
+func (b *Builder) OR() *Builder {
+	return b.Where("OR")
+}
+
+// AND switch to AND mode
+func (b *Builder) AND() *Builder {
+	return b.Where("AND")
 }
 
 func (b *Builder) IsNull(col string) *Builder {
@@ -363,7 +415,7 @@ func (b *Builder) buildSelect() string {
 		sb.WriteString(j)
 	}
 
-	b.appendWhere(sb)
+	b.appendWhere(sb, true)
 
 	for i, o := range b.orders {
 		sb.WriteString(str.If(i == 0, " ORDER BY ", ", "))
@@ -406,7 +458,7 @@ func (b *Builder) buildUpdate() string {
 		}
 	}
 
-	b.appendWhere(sb)
+	b.appendWhere(sb, true)
 	b.appendReturning(sb)
 
 	return sb.String()
@@ -448,28 +500,53 @@ func (b *Builder) buildDelete() string {
 	sb.WriteString("DELETE FROM ")
 	sb.WriteString(b.Quote(b.table))
 
-	b.appendWhere(sb)
+	b.appendWhere(sb, true)
 	b.appendReturning(sb)
 
 	return sb.String()
 }
 
-func (b *Builder) appendWhere(sb *strings.Builder) {
-	for i, w := range b.wheres {
-		sb.WriteString(str.If(i == 0, " WHERE ", " AND "))
-		sb.WriteString(w)
+func (b *Builder) appendWhere(sb *strings.Builder, where bool) {
+	if len(b.wheres) == 0 {
+		return
+	}
+
+	if where {
+		sb.WriteString(" WHERE ")
+	}
+
+	mode := " AND "
+	join := false
+
+	for _, w := range b.wheres {
+		switch w {
+		case "OR":
+			mode = " OR "
+		case "AND":
+			mode = " AND "
+		case "(":
+			if join {
+				sb.WriteString(mode)
+			}
+			sb.WriteString(w)
+			join = false
+		case ")":
+			sb.WriteString(w)
+			join = true
+		default:
+			if join {
+				sb.WriteString(mode)
+			}
+			sb.WriteString(w)
+			join = true
+		}
 	}
 }
 
 func (b *Builder) appendReturning(sb *strings.Builder) {
-	if len(b.returns) > 0 {
-		sb.WriteString(" RETURNING ")
-		for i, col := range b.returns {
-			if i > 0 {
-				sb.WriteString(", ")
-			}
-			sb.WriteString(b.Quote(col))
-		}
+	for i, col := range b.returns {
+		sb.WriteString(str.If(i == 0, " RETURNING ", ", "))
+		sb.WriteString(b.Quote(col))
 	}
 }
 

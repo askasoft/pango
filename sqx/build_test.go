@@ -14,6 +14,25 @@ func newBuilder() *Builder {
 	}
 }
 
+func TestBuilder_WhereSQL(t *testing.T) {
+	cs := []struct {
+		w string
+		s string
+	}{
+		{`"id" = ?`, newBuilder().Where(`"id" = ?`).SQLWhere()},
+		{`"id" = ? OR "id" = ?`, newBuilder().Eq("id", 1).OR().Eq("id", 2).SQLWhere()},
+		{`"id" = ? OR "id" = ? AND "nm" = ?`, newBuilder().Eq("id", 1).OR().Eq("id", 2).AND().Eq("nm", 3).SQLWhere()},
+		{`("id" = ? OR "id" = ?) AND "nm" = ?`, newBuilder().LP().Eq("id", 1).OR().Eq("id", 2).RP().AND().Eq("nm", 3).SQLWhere()},
+		{`(("id" = ?) OR "id" = ?) AND "nm" = ?`, newBuilder().LP().LP().Eq("id", 1).RP().OR().Eq("id", 2).RP().AND().Eq("nm", 3).SQLWhere()},
+	}
+
+	for i, c := range cs {
+		if c.w != c.s {
+			t.Errorf("#%d\ngot : %s\nwant: %s", i, c.s, c.w)
+		}
+	}
+}
+
 func TestBuilder_SelectSQL(t *testing.T) {
 	b := newBuilder().
 		Select("id", "name").

@@ -9,9 +9,10 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
-// IsAjax check http header X-Requested-With == "XMLHttpRequest"
+// IsAjax check http header X-Requested-With == "XMLHttpRequest" or "Ajax"
 func IsAjax(c *Context) bool {
-	return str.EqualFold(c.GetHeader("X-Requested-With"), "XMLHttpRequest")
+	xrw := c.GetHeader("X-Requested-With")
+	return str.EqualFold(xrw, "XMLHttpRequest") || str.EqualFold(xrw, "Ajax")
 }
 
 // Next is a xin.HandlerFunc just call c.Next().

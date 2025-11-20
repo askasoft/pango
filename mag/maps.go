@@ -1,5 +1,7 @@
 package mag
 
+import "github.com/askasoft/pango/asg"
+
 // Keys return the slice of map's key
 func Keys[K comparable, V any](m map[K]V) []K {
 	ks := make([]K, 0, len(m))
@@ -33,10 +35,10 @@ func Equal[K comparable, V comparable](a map[K]V, b map[K]V) bool {
 	return true
 }
 
-// Clone returns a copy of the map.
+// Clone returns a copy of the map with additional +n cap.
 // The elements are copied using assignment, so this is a shallow clone.
-func Clone[K comparable, V any](src map[K]V) map[K]V {
-	dst := make(map[K]V, len(src))
+func Clone[K comparable, V any](src map[K]V, n ...int) map[K]V {
+	dst := make(map[K]V, len(src)+asg.First(n))
 	Copy(dst, src)
 	return dst
 }

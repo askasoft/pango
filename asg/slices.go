@@ -20,14 +20,16 @@ func Anys[T any](sa []T) []any {
 	return sb
 }
 
-// Clone returns a copy of the slice.
+// Clone returns a copy of the slice with additional +n cap.
 // The elements are copied using assignment, so this is a shallow clone.
-func Clone[T any](a []T) []T {
+func Clone[T any](a []T, n ...int) []T {
 	// Preserve nil in case it matters.
 	if a == nil {
 		return nil
 	}
-	return append([]T{}, a...)
+
+	c := make([]T, 0, len(a)+First(n))
+	return append(c, a...)
 }
 
 // Contains reports whether the c is contained in the slice a.

@@ -8,8 +8,8 @@ import (
 	"github.com/askasoft/pango/cog"
 	"github.com/askasoft/pango/cog/internal/iarray"
 	"github.com/askasoft/pango/cog/internal/icap"
+	"github.com/askasoft/pango/cog/internal/icol"
 	"github.com/askasoft/pango/cog/internal/isort"
-	"github.com/askasoft/pango/cog/internal/jsoncol"
 	"github.com/askasoft/pango/str"
 )
 
@@ -135,7 +135,25 @@ func (rb *RingBuffer[T]) Contains(v T) bool {
 	return rb.Index(v) >= 0
 }
 
-// ContainsAll Test to see if the RingBuffer contains the value v
+// ContainsAny Test to see if the RingBuffer contains any item of vs
+func (rb *RingBuffer[T]) ContainsAny(vs ...T) bool {
+	if len(vs) == 0 {
+		return true
+	}
+
+	if rb.IsEmpty() {
+		return false
+	}
+
+	for _, v := range vs {
+		if rb.Index(v) >= 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// ContainsAll Test to see if the RingBuffer contains all items of vs
 func (rb *RingBuffer[T]) ContainsAll(vs ...T) bool {
 	if len(vs) == 0 {
 		return true
@@ -155,19 +173,7 @@ func (rb *RingBuffer[T]) ContainsAll(vs ...T) bool {
 
 // ContainsCol Test to see if the collection contains all items of another collection
 func (rb *RingBuffer[T]) ContainsCol(ac cog.Collection[T]) bool {
-	if ac.IsEmpty() || rb == ac {
-		return true
-	}
-
-	if rb.IsEmpty() {
-		return false
-	}
-
-	if ic, ok := ac.(cog.Iterable[T]); ok {
-		return rb.ContainsIter(ic.Iterator())
-	}
-
-	return rb.ContainsAll(ac.Values()...)
+	return icol.ContainsCol(rb, ac)
 }
 
 // ContainsIter Test to see if the collection contains all items of iterator 'it'
@@ -820,11 +826,11 @@ func (rb *RingBuffer[T]) checkSizeIndex(index int) int {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(rb)
 func (rb *RingBuffer[T]) MarshalJSON() ([]byte, error) {
-	return jsoncol.JsonMarshalCol[T](rb)
+	return icol.JsonMarshalCol[T](rb)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, rb)
 func (rb *RingBuffer[T]) UnmarshalJSON(data []byte) error {
 	rb.Clear()
-	return jsoncol.JsonUnmarshalCol[T](data, rb)
+	return icol.JsonUnmarshalCol[T](data, rb)
 }

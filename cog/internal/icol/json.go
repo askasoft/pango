@@ -1,4 +1,4 @@
-package jsoncol
+package icol
 
 import (
 	"bytes"

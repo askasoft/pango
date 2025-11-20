@@ -7,7 +7,6 @@ import (
 
 	"github.com/askasoft/pango/cog"
 	"github.com/askasoft/pango/cog/internal/imap"
-	"github.com/askasoft/pango/cog/internal/jsonmap"
 	"github.com/askasoft/pango/str"
 )
 
@@ -167,6 +166,24 @@ func (lm *LinkedHashMap[K, V]) Contains(k K) bool {
 
 	if _, ok := lm.hash[k]; ok {
 		return true
+	}
+	return false
+}
+
+// ContainsAny Test to see if the map contains any key of ks
+func (lm *LinkedHashMap[K, V]) ContainsAny(ks ...K) bool {
+	if len(ks) == 0 {
+		return true
+	}
+
+	if lm.IsEmpty() {
+		return false
+	}
+
+	for _, k := range ks {
+		if _, ok := lm.hash[k]; ok {
+			return true
+		}
 	}
 	return false
 }
@@ -345,11 +362,11 @@ func (lm *LinkedHashMap[K, V]) deleteNode(ln *LinkedMapNode[K, V]) {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(lm)
 func (lm *LinkedHashMap[K, V]) MarshalJSON() ([]byte, error) {
-	return jsonmap.JsonMarshalMap(lm)
+	return imap.JsonMarshalMap(lm)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, lm)
 func (lm *LinkedHashMap[K, V]) UnmarshalJSON(data []byte) error {
 	lm.Clear()
-	return jsonmap.JsonUnmarshalMap(data, lm)
+	return imap.JsonUnmarshalMap(data, lm)
 }

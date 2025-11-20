@@ -81,6 +81,9 @@ type Collection[T any] interface {
 	// Contains Test to see if the collection contains item v
 	Contains(v T) bool
 
+	// ContainsAny Test to see if the collection contains any item of vs
+	ContainsAny(vs ...T) bool
+
 	// ContainsAll Test to see if the collection contains all items of vs
 	ContainsAll(vs ...T) bool
 
@@ -212,6 +215,9 @@ type Map[K any, V any] interface {
 
 	// Contains Test to see if the map contains the given key
 	Contains(k K) bool
+
+	// ContainsAny Test to see if the map contains any key of ks
+	ContainsAny(ks ...K) bool
 
 	// ContainsAll Test to see if the map contains all keys of ks
 	ContainsAll(ks ...K) bool

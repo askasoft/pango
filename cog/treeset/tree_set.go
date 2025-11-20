@@ -6,7 +6,7 @@ import (
 
 	"github.com/askasoft/pango/cog"
 	"github.com/askasoft/pango/cog/internal/iarray"
-	"github.com/askasoft/pango/cog/internal/jsoncol"
+	"github.com/askasoft/pango/cog/internal/icol"
 	"github.com/askasoft/pango/str"
 )
 
@@ -144,6 +144,24 @@ func (ts *TreeSet[T]) Contains(v T) bool {
 	return ts.lookup(v) != nil
 }
 
+// ContainsAny Test to see if the collection contains any item of vs
+func (ts *TreeSet[T]) ContainsAny(vs ...T) bool {
+	if len(vs) == 0 {
+		return true
+	}
+
+	if ts.IsEmpty() {
+		return false
+	}
+
+	for _, v := range vs {
+		if tn := ts.lookup(v); tn != nil {
+			return true
+		}
+	}
+	return false
+}
+
 // ContainsAll Test to see if the collection contains all items of vs
 func (ts *TreeSet[T]) ContainsAll(vs ...T) bool {
 	if len(vs) == 0 {
@@ -164,19 +182,7 @@ func (ts *TreeSet[T]) ContainsAll(vs ...T) bool {
 
 // ContainsCol Test to see if the collection contains all items of another collection
 func (ts *TreeSet[T]) ContainsCol(ac cog.Collection[T]) bool {
-	if ac.IsEmpty() || ts == ac {
-		return true
-	}
-
-	if ts.IsEmpty() {
-		return false
-	}
-
-	if ic, ok := ac.(cog.Iterable[T]); ok {
-		return ts.ContainsIter(ic.Iterator())
-	}
-
-	return ts.ContainsAll(ac.Values()...)
+	return icol.ContainsCol(ts, ac)
 }
 
 // ContainsIter Test to see if the collection contains all items of iterator 'it'
@@ -721,11 +727,11 @@ func (ts *TreeSet[T]) debug() string {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(ts)
 func (ts *TreeSet[T]) MarshalJSON() ([]byte, error) {
-	return jsoncol.JsonMarshalCol(ts)
+	return icol.JsonMarshalCol(ts)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, ts)
 func (ts *TreeSet[T]) UnmarshalJSON(data []byte) error {
 	ts.Clear()
-	return jsoncol.JsonUnmarshalCol(data, ts)
+	return icol.JsonUnmarshalCol(data, ts)
 }

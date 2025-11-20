@@ -33,6 +33,50 @@ func TestHashMapAsHashMap(t *testing.T) {
 	}
 }
 
+func TestHashMapContainsAny(t *testing.T) {
+	cs := []struct {
+		a map[int]any
+		b []int
+		w bool
+	}{
+		{map[int]any{}, []int{}, true},
+		{map[int]any{1: 1}, []int{}, true},
+		{map[int]any{}, []int{1}, false},
+		{map[int]any{1: 1}, []int{}, true},
+		{map[int]any{1: 1}, []int{0}, false},
+		{map[int]any{1: 1}, []int{1}, true},
+		{map[int]any{1: 1, 2: 2}, []int{1, 5}, true},
+		{map[int]any{1: 1, 2: 2}, []int{0, 5}, false},
+	}
+	for _, c := range cs {
+		if got := AsHashMap(c.a).ContainsAny(c.b...); got != c.w {
+			t.Errorf("ContainsAny(%v, %v) = %v, want %v", c.a, c.b, got, c.w)
+		}
+	}
+}
+
+func TestHashMapContainsAll(t *testing.T) {
+	cs := []struct {
+		a map[int]any
+		b []int
+		w bool
+	}{
+		{map[int]any{}, []int{}, true},
+		{map[int]any{1: 1}, []int{}, true},
+		{map[int]any{}, []int{1}, false},
+		{map[int]any{1: 1}, []int{}, true},
+		{map[int]any{1: 1}, []int{0}, false},
+		{map[int]any{1: 1}, []int{1}, true},
+		{map[int]any{1: 1, 2: 2}, []int{1, 2}, true},
+		{map[int]any{1: 1, 2: 2}, []int{1, 5}, false},
+	}
+	for _, c := range cs {
+		if got := AsHashMap(c.a).ContainsAll(c.b...); got != c.w {
+			t.Errorf("ContainsAll(%v, %v) = %v, want %v", c.a, c.b, got, c.w)
+		}
+	}
+}
+
 func TestHashMapSet(t *testing.T) {
 	m := NewHashMap[int, string]()
 	m.Set(5, "e")

@@ -7,7 +7,6 @@ import (
 
 	"github.com/askasoft/pango/cog"
 	"github.com/askasoft/pango/cog/internal/imap"
-	"github.com/askasoft/pango/cog/internal/jsonmap"
 	"github.com/askasoft/pango/str"
 )
 
@@ -162,6 +161,24 @@ func (hm *HashMap[K, V]) Contains(k K) bool {
 	return false
 }
 
+// ContainsAny Test to see if the map contains any key of ks
+func (hm *HashMap[K, V]) ContainsAny(ks ...K) bool {
+	if len(ks) == 0 {
+		return true
+	}
+
+	if hm.IsEmpty() {
+		return false
+	}
+
+	for _, k := range ks {
+		if _, ok := hm.hash[k]; ok {
+			return true
+		}
+	}
+	return false
+}
+
 // ContainsAll Test to see if the map contains all keys of ks
 func (hm *HashMap[K, V]) ContainsAll(ks ...K) bool {
 	if len(ks) == 0 {
@@ -249,12 +266,12 @@ func (hm *HashMap[K, V]) String() string {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(lm)
 func (hm *HashMap[K, V]) MarshalJSON() ([]byte, error) {
-	return jsonmap.JsonMarshalMap(hm)
+	return imap.JsonMarshalMap(hm)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, lm)
 func (hm *HashMap[K, V]) UnmarshalJSON(data []byte) error {
 	hm.Clear()
 	hm.lazyInit()
-	return jsonmap.JsonUnmarshalMap(data, hm)
+	return imap.JsonUnmarshalMap(data, hm)
 }

@@ -1,4 +1,4 @@
-package jsonmap
+package imap
 
 import (
 	"bytes"

@@ -6,7 +6,7 @@ import (
 
 	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/cog"
-	"github.com/askasoft/pango/cog/internal/jsoncol"
+	"github.com/askasoft/pango/cog/internal/icol"
 )
 
 // NewHashSet Create a new hash set
@@ -140,8 +140,24 @@ func (hs *HashSet[T]) Contains(v T) bool {
 	if hs.IsEmpty() {
 		return false
 	}
-	if _, ok := hs.hash[v]; ok {
+	_, ok := hs.hash[v]
+	return ok
+}
+
+// ContainsAll Test to see if the collection contains any item of vs
+func (hs *HashSet[T]) ContainsAny(vs ...T) bool {
+	if len(vs) == 0 {
 		return true
+	}
+
+	if hs.IsEmpty() {
+		return false
+	}
+
+	for _, v := range vs {
+		if _, ok := hs.hash[v]; ok {
+			return true
+		}
 	}
 	return false
 }
@@ -166,19 +182,7 @@ func (hs *HashSet[T]) ContainsAll(vs ...T) bool {
 
 // ContainsCol Test to see if the collection contains all items of another collection
 func (hs *HashSet[T]) ContainsCol(ac cog.Collection[T]) bool {
-	if ac.IsEmpty() || hs == ac {
-		return true
-	}
-
-	if hs.IsEmpty() {
-		return false
-	}
-
-	if ic, ok := ac.(cog.Iterable[T]); ok {
-		return hs.ContainsIter(ic.Iterator())
-	}
-
-	return hs.ContainsAll(ac.Values()...)
+	return icol.ContainsCol(hs, ac)
 }
 
 // ContainsIter Test to see if the collection contains all items of iterator 'it'
@@ -307,11 +311,11 @@ func (hs *HashSet[T]) String() string {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(hs)
 func (hs *HashSet[T]) MarshalJSON() ([]byte, error) {
-	return jsoncol.JsonMarshalCol(hs)
+	return icol.JsonMarshalCol(hs)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, hs)
 func (hs *HashSet[T]) UnmarshalJSON(data []byte) error {
 	hs.Clear()
-	return jsoncol.JsonUnmarshalCol(data, hs)
+	return icol.JsonUnmarshalCol(data, hs)
 }

@@ -7,7 +7,6 @@ import (
 
 	"github.com/askasoft/pango/cog"
 	"github.com/askasoft/pango/cog/internal/imap"
-	"github.com/askasoft/pango/cog/internal/jsonmap"
 	"github.com/askasoft/pango/str"
 )
 
@@ -95,10 +94,32 @@ func (tm *TreeMap[K, V]) Contains(k K) bool {
 	return false
 }
 
+// ContainsAny Test to see if the map contains any key of ks
+func (tm *TreeMap[K, V]) ContainsAny(ks ...K) bool {
+	if len(ks) == 0 {
+		return true
+	}
+
+	if tm.IsEmpty() {
+		return false
+	}
+
+	for _, k := range ks {
+		if _, ok := tm.Get(k); ok {
+			return true
+		}
+	}
+	return false
+}
+
 // ContainsAll Test to see if the map contains all keys of ks
 func (tm *TreeMap[K, V]) ContainsAll(ks ...K) bool {
 	if len(ks) == 0 {
 		return true
+	}
+
+	if tm.IsEmpty() {
+		return false
 	}
 
 	for _, k := range ks {
@@ -642,11 +663,11 @@ func (tm *TreeMap[K, V]) debug() string {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(tm)
 func (tm *TreeMap[K, V]) MarshalJSON() ([]byte, error) {
-	return jsonmap.JsonMarshalMap(tm)
+	return imap.JsonMarshalMap(tm)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, tm)
 func (tm *TreeMap[K, V]) UnmarshalJSON(data []byte) error {
 	tm.Clear()
-	return jsonmap.JsonUnmarshalMap(data, tm)
+	return imap.JsonUnmarshalMap(data, tm)
 }

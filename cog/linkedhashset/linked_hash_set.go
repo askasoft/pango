@@ -7,8 +7,8 @@ import (
 
 	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/cog"
+	"github.com/askasoft/pango/cog/internal/icol"
 	"github.com/askasoft/pango/cog/internal/isort"
-	"github.com/askasoft/pango/cog/internal/jsoncol"
 	"github.com/askasoft/pango/str"
 )
 
@@ -142,6 +142,24 @@ func (ls *LinkedHashSet[T]) Contains(v T) bool {
 	return false
 }
 
+// ContainsAll Test to see if the collection contains any item of vs
+func (ls *LinkedHashSet[T]) ContainsAny(vs ...T) bool {
+	if len(vs) == 0 {
+		return true
+	}
+
+	if ls.IsEmpty() {
+		return false
+	}
+
+	for _, v := range vs {
+		if _, ok := ls.hash[v]; ok {
+			return true
+		}
+	}
+	return false
+}
+
 // ContainsAll Test to see if the collection contains all items of vs
 func (ls *LinkedHashSet[T]) ContainsAll(vs ...T) bool {
 	if len(vs) == 0 {
@@ -162,19 +180,7 @@ func (ls *LinkedHashSet[T]) ContainsAll(vs ...T) bool {
 
 // ContainsCol Test to see if the collection contains all items of another collection
 func (ls *LinkedHashSet[T]) ContainsCol(ac cog.Collection[T]) bool {
-	if ac.IsEmpty() || ls == ac {
-		return true
-	}
-
-	if ls.IsEmpty() {
-		return false
-	}
-
-	if ic, ok := ac.(cog.Iterable[T]); ok {
-		return ls.ContainsIter(ic.Iterator())
-	}
-
-	return ls.ContainsAll(ac.Values()...)
+	return icol.ContainsCol(ls, ac)
 }
 
 // ContainsIter Test to see if the collection contains all items of iterator 'it'
@@ -672,11 +678,11 @@ func (ls *LinkedHashSet[T]) checkSizeIndex(index int) int {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(ls)
 func (ls *LinkedHashSet[T]) MarshalJSON() ([]byte, error) {
-	return jsoncol.JsonMarshalCol(ls)
+	return icol.JsonMarshalCol(ls)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, ls)
 func (ls *LinkedHashSet[T]) UnmarshalJSON(data []byte) error {
 	ls.Clear()
-	return jsoncol.JsonUnmarshalCol(data, ls)
+	return icol.JsonUnmarshalCol(data, ls)
 }

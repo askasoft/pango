@@ -88,6 +88,12 @@ func TestTreeSetContains(t *testing.T) {
 		if !list.Contains(i) {
 			t.Errorf("%d Contains() should return true", i)
 		}
+		if !list.ContainsAny(a...) {
+			t.Errorf("%d ContainsAny(...) should return true", i)
+		}
+		if list.ContainsAny(2000) {
+			t.Errorf("%d ContainsAny(...) should return false", i)
+		}
 		if !list.ContainsAll(a[0 : i+1]...) {
 			t.Errorf("%d ContainsAll(...) should return true", i)
 		}

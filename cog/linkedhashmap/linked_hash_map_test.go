@@ -20,6 +20,58 @@ func TestLinkedHashMapInterface(t *testing.T) {
 	var _ cog.IterableMap[int, int] = NewLinkedHashMap[int, int]()
 }
 
+func testToLinkedHashMap(m map[int]any) *LinkedHashMap[int, any] {
+	lhm := &LinkedHashMap[int, any]{}
+	for k, v := range m {
+		lhm.Set(k, v)
+	}
+	return lhm
+}
+
+func TestLinkedHashMapContainsAny(t *testing.T) {
+	cs := []struct {
+		a map[int]any
+		b []int
+		w bool
+	}{
+		{map[int]any{}, []int{}, true},
+		{map[int]any{1: 1}, []int{}, true},
+		{map[int]any{}, []int{1}, false},
+		{map[int]any{1: 1}, []int{}, true},
+		{map[int]any{1: 1}, []int{0}, false},
+		{map[int]any{1: 1}, []int{1}, true},
+		{map[int]any{1: 1, 2: 2}, []int{1, 5}, true},
+		{map[int]any{1: 1, 2: 2}, []int{0, 5}, false},
+	}
+	for _, c := range cs {
+		if got := testToLinkedHashMap(c.a).ContainsAny(c.b...); got != c.w {
+			t.Errorf("ContainsAny(%v, %v) = %v, want %v", c.a, c.b, got, c.w)
+		}
+	}
+}
+
+func TestLinkedHashMapContainsAll(t *testing.T) {
+	cs := []struct {
+		a map[int]any
+		b []int
+		w bool
+	}{
+		{map[int]any{}, []int{}, true},
+		{map[int]any{1: 1}, []int{}, true},
+		{map[int]any{}, []int{1}, false},
+		{map[int]any{1: 1}, []int{}, true},
+		{map[int]any{1: 1}, []int{0}, false},
+		{map[int]any{1: 1}, []int{1}, true},
+		{map[int]any{1: 1, 2: 2}, []int{1, 2}, true},
+		{map[int]any{1: 1, 2: 2}, []int{1, 5}, false},
+	}
+	for _, c := range cs {
+		if got := testToLinkedHashMap(c.a).ContainsAll(c.b...); got != c.w {
+			t.Errorf("ContainsAll(%v, %v) = %v, want %v", c.a, c.b, got, c.w)
+		}
+	}
+}
+
 func TestLinkedHashMapBasicFeatures(t *testing.T) {
 	lm := NewLinkedHashMap[int, int]()
 

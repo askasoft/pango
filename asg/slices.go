@@ -3,6 +3,7 @@ package asg
 import (
 	"cmp"
 	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -12,12 +13,12 @@ func SliceOf[T any](args ...T) []T {
 }
 
 // Anys convert slice 'sa' to []any slice
-func Anys[T any](sa []T) []any {
-	sb := make([]any, len(sa))
-	for i, a := range sa {
-		sb[i] = a
+func Anys[T any](a []T) []any {
+	b := make([]any, len(a))
+	for i, v := range a {
+		b[i] = v
 	}
-	return sb
+	return b
 }
 
 // Clone returns a copy of the slice with additional +n cap.
@@ -28,13 +29,12 @@ func Clone[T any](a []T, n ...int) []T {
 		return nil
 	}
 
-	c := make([]T, 0, len(a)+First(n))
-	return append(c, a...)
+	return append(make([]T, 0, len(a)+First(n)), a...)
 }
 
-// Contains reports whether the c is contained in the slice a.
-func Contains[T comparable](a []T, c T) bool {
-	return Index(a, c) >= 0
+// Contains reports whether the v is contained in the slice a.
+func Contains[T comparable](a []T, v T) bool {
+	return slices.Contains(a, v)
 }
 
 // ContainsAll reports whether all elements of cs are contained in the slice a.
@@ -75,23 +75,14 @@ func ContainsAny[T comparable](a []T, cs ...T) bool {
 
 // ContainsFunc reports whether at least one element e of a satisfies f(e).
 func ContainsFunc[T any](a []T, f func(T) bool) bool {
-	return IndexFunc(a, f) >= 0
+	return slices.ContainsFunc(a, f)
 }
 
 // Equal reports whether a and b
 // are the same length and contain the same element.
 // A nil argument is equivalent to an empty slice.
 func Equal[T comparable](a []T, b []T) bool {
-	if len(a) != len(b) {
-		return false
-	}
-
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
+	return slices.Equal(a, b)
 }
 
 // EqualFunc reports whether two slices are equal using an equality
@@ -100,16 +91,7 @@ func Equal[T comparable](a []T, b []T) bool {
 // increasing index order, and the comparison stops at the first index
 // for which eq returns false.
 func EqualFunc[A any, B any](a []A, b []B, eq func(A, B) bool) bool {
-	if len(a) != len(b) {
-		return false
-	}
-
-	for i := range a {
-		if !eq(a[i], b[i]) {
-			return false
-		}
-	}
-	return true
+	return slices.EqualFunc(a, b, eq)
 }
 
 // First get first element of a slice a.
@@ -144,22 +126,12 @@ func Get[T any](a []T, i int) (v T, ok bool) {
 
 // Index returns the index of the first instance of v in a, or -1 if v is not present in a.
 func Index[T comparable](a []T, v T) int {
-	for i, e := range a {
-		if e == v {
-			return i
-		}
-	}
-	return -1
+	return slices.Index(a, v)
 }
 
 // IndexFunc returns the first index i satisfying f(a[i]), or -1 if none do.
 func IndexFunc[T any](a []T, f func(T) bool) int {
-	for i, v := range a {
-		if f(v) {
-			return i
-		}
-	}
-	return -1
+	return slices.IndexFunc(a, f)
 }
 
 // FindFunc returns the first item satisfying f(a[i]), or (zero,false) if none do.
@@ -181,9 +153,7 @@ func FindFunc[T any](a []T, f func(T) bool) (v T, ok bool) {
 // elements contain pointers you might consider zeroing those elements so that
 // objects they reference can be garbage collected.
 func Delete[T any](a []T, i, j int) []T {
-	_ = a[i:j] // bounds check
-	copy(a[i:], a[j:])
-	return a[:len(a)+i-j]
+	return slices.Delete(a, i, j)
 }
 
 // DeleteFunc removes any elements from a for which del returns true,
@@ -193,19 +163,7 @@ func Delete[T any](a []T, i, j int) []T {
 // zeroing those elements so that objects they reference can be garbage
 // collected.
 func DeleteFunc[T any](a []T, del func(T) bool) []T {
-	i := IndexFunc(a, del)
-	if i < 0 {
-		return a
-	}
-
-	// Don't start copying elements until we find one to delete.
-	for j := i + 1; j < len(a); j++ {
-		if v := a[j]; !del(v) {
-			a[i] = v
-			i++
-		}
-	}
-	return a[:i]
+	return slices.DeleteFunc(a, del)
 }
 
 // DeleteEqual removes any elements from a for which elemant == e, returning the modified slice.
@@ -229,6 +187,26 @@ func DeleteEqual[T comparable](a []T, e T) []T {
 	return a[:i]
 }
 
+// Compare compares the elements of s1 and s2, using [cmp.Compare] on each pair
+// of elements. The elements are compared sequentially, starting at index 0,
+// until one element is not equal to the other.
+// The result of comparing the first non-matching elements is returned.
+// If both slices are equal until one of them ends, the shorter slice is
+// considered less than the longer one.
+// The result is 0 if s1 == s2, -1 if s1 < s2, and +1 if s1 > s2.
+func Compare[T cmp.Ordered](s1, s2 []T) int {
+	return slices.Compare(s1, s2)
+}
+
+// CompareFunc is like [Compare] but uses a custom comparison function on each
+// pair of elements.
+// The result is the first non-zero result of cmp; if cmp always
+// returns 0 the result is 0 if len(s1) == len(s2), -1 if len(s1) < len(s2),
+// and +1 if len(s1) > len(s2).
+func CompareFunc[S1 ~[]E1, S2 ~[]E2, E1, E2 any](s1 S1, s2 S2, cmp func(E1, E2) int) int {
+	return slices.CompareFunc(s1, s2, cmp)
+}
+
 // Compact replaces consecutive runs of equal elements with a single copy.
 // This is like the uniq command found on Unix.
 // Compact modifies the contents of the slice a and returns the modified slice,
@@ -237,37 +215,13 @@ func DeleteEqual[T comparable](a []T, e T) []T {
 // a[len(a)-m:len(a)]. If those elements contain pointers you might consider
 // zeroing those elements so that objects they reference can be garbage collected.
 func Compact[T comparable](a []T) []T {
-	if len(a) < 2 {
-		return a
-	}
-	i := 1
-	for k := 1; k < len(a); k++ {
-		if a[k] != a[k-1] {
-			if i != k {
-				a[i] = a[k]
-			}
-			i++
-		}
-	}
-	return a[:i]
+	return slices.Compact(a)
 }
 
 // CompactFunc is like [Compact] but uses an equality function to compare elements.
 // For runs of elements that compare equal, CompactFunc keeps the first one.
 func CompactFunc[T any](a []T, eq func(T, T) bool) []T {
-	if len(a) < 2 {
-		return a
-	}
-	i := 1
-	for k := 1; k < len(a); k++ {
-		if !eq(a[k], a[k-1]) {
-			if i != k {
-				a[i] = a[k]
-			}
-			i++
-		}
-	}
-	return a[:i]
+	return slices.CompactFunc(a, eq)
 }
 
 // Grow increases the slice's capacity, if necessary, to guarantee space for
@@ -275,13 +229,7 @@ func CompactFunc[T any](a []T, eq func(T, T) bool) []T {
 // to the slice without another allocation. If n is negative or too large to
 // allocate the memory, Grow panics.
 func Grow[T any](a []T, n int) []T {
-	if n < 0 {
-		panic("cannot be negative")
-	}
-	if n -= cap(a) - len(a); n > 0 {
-		a = append(a[:cap(a)], make([]T, n)...)[:len(a)]
-	}
-	return a
+	return slices.Grow(a, n)
 }
 
 // Clip removes unused capacity from the slice, returning a[:len(a):len(a)].
@@ -291,73 +239,40 @@ func Clip[T any](a []T) []T {
 
 // Reverse reverses the elements of the slice in place.
 func Reverse[T any](a []T) {
-	for i, j := 0, len(a)-1; i < j; i, j = i+1, j-1 {
-		a[i], a[j] = a[j], a[i]
-	}
+	slices.Reverse(a)
+}
+
+// Concat returns a new slice concatenating the passed in slices.
+func Concat[T any](ss ...[]T) []T {
+	return slices.Concat(ss...)
 }
 
 // Min returns the minimal value in x. It panics if x is empty.
 // For floating-point numbers, Min propagates NaNs (any NaN value in x
 // forces the output to be NaN).
 func Min[T cmp.Ordered](x []T) T {
-	if len(x) < 1 {
-		panic("asg.Min: empty list")
-	}
-
-	m := x[0]
-	for i := 1; i < len(x); i++ {
-		m = min(m, x[i])
-	}
-	return m
+	return slices.Min(x)
 }
 
 // MinFunc returns the minimal value in x, using cmp to compare elements.
 // It panics if x is empty. If there is more than one minimal element
 // according to the cmp function, MinFunc returns the first one.
 func MinFunc[T any](x []T, cmp func(a, b T) int) T {
-	if len(x) < 1 {
-		panic("asg.MinFunc: empty list")
-	}
-
-	m := x[0]
-	for i := 1; i < len(x); i++ {
-		if cmp(x[i], m) < 0 {
-			m = x[i]
-		}
-	}
-	return m
+	return slices.MinFunc(x, cmp)
 }
 
 // Max returns the maximal value in x. It panics if x is empty.
 // For floating-point E, Max propagates NaNs (any NaN value in x
 // forces the output to be NaN).
 func Max[T cmp.Ordered](x []T) T {
-	if len(x) < 1 {
-		panic("asg.Max: empty list")
-	}
-
-	m := x[0]
-	for i := 1; i < len(x); i++ {
-		m = max(m, x[i])
-	}
-	return m
+	return slices.Max(x)
 }
 
 // MaxFunc returns the maximal value in x, using cmp to compare elements.
 // It panics if x is empty. If there is more than one maximal element
 // according to the cmp function, MaxFunc returns the first one.
 func MaxFunc[T any](x []T, cmp func(a, b T) int) T {
-	if len(x) < 1 {
-		panic("asg.MaxFunc: empty list")
-	}
-
-	m := x[0]
-	for i := 1; i < len(x); i++ {
-		if cmp(x[i], m) > 0 {
-			m = x[i]
-		}
-	}
-	return m
+	return slices.MaxFunc(x, cmp)
 }
 
 func sprint[T any](a T) string {

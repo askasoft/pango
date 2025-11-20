@@ -1,6 +1,10 @@
 package mag
 
-import "github.com/askasoft/pango/asg"
+import (
+	"maps"
+
+	"github.com/askasoft/pango/asg"
+)
 
 // Keys return the slice of map's key
 func Keys[K comparable, V any](m map[K]V) []K {
@@ -22,32 +26,36 @@ func Values[K comparable, V any](m map[K]V) []V {
 
 // Equal check equal for two map a and b.
 func Equal[K comparable, V comparable](a map[K]V, b map[K]V) bool {
-	if len(a) != len(b) {
-		return false
-	}
+	return maps.Equal(a, b)
+}
 
-	for k, v := range a {
-		if w, ok := b[k]; !ok || w != v {
-			return false
-		}
-	}
-
-	return true
+// EqualFunc is like Equal, but compares values using eq.
+// Keys are still compared with ==.
+func EqualFunc[K comparable, V1, V2 any](m1 map[K]V1, m2 map[K]V2, eq func(V1, V2) bool) bool {
+	return maps.EqualFunc(m1, m2, eq)
 }
 
 // Clone returns a copy of the map with additional +n cap.
 // The elements are copied using assignment, so this is a shallow clone.
-func Clone[K comparable, V any](src map[K]V, n ...int) map[K]V {
-	dst := make(map[K]V, len(src)+asg.First(n))
-	Copy(dst, src)
-	return dst
+func Clone[K comparable, V any](m map[K]V, n ...int) map[K]V {
+	// Preserve nil in case it matters.
+	if m == nil {
+		return nil
+	}
+
+	x := asg.First(n)
+	if x == 0 {
+		return maps.Clone(m)
+	}
+
+	c := make(map[K]V, len(m)+x)
+	Copy(c, m)
+	return c
 }
 
 // Copy copy src map to dst map.
 func Copy[K comparable, V any](dst, src map[K]V) {
-	for k, v := range src {
-		dst[k] = v
-	}
+	maps.Copy(dst, src)
 }
 
 // Merge merge all map `ms`, return the merged map.

@@ -223,6 +223,7 @@ func (ts teststr) Strip() string {
 
 type pet struct {
 	name string
+	Age  int
 	Fget func() string
 	Fset func(string)
 }
@@ -233,6 +234,21 @@ func (p *pet) SetName(name string) {
 
 func (p *pet) GetName() string {
 	return p.name
+}
+
+func TestObject(t *testing.T) {
+	pet := &pet{
+		name: "XiaoBai",
+		Age:  10,
+	}
+
+	cs := []testcase2{
+		{10, ".age", pet},
+		{10, ".Age", pet},
+		{"XiaoBai", ".name", pet},
+		{"XiaoBai", ".Name", pet},
+	}
+	testCalculate2(t, cs)
 }
 
 func TestCallFunc(t *testing.T) {

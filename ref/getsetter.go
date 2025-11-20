@@ -78,7 +78,7 @@ func getProperty(rv reflect.Value, k string) (ret any, err error) {
 	}
 
 	// get field
-	fv := rv.FieldByName(k)
+	fv := rv.FieldByName(p)
 	if !fv.IsValid() {
 		return nil, fmt.Errorf("ref: missing field %q of %v", p, rv.Type())
 	}

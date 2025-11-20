@@ -236,6 +236,50 @@ func TestContains(t *testing.T) {
 	}
 }
 
+func TestContainsAll(t *testing.T) {
+	cs := []struct {
+		a []int
+		b []int
+		w bool
+	}{
+		{[]int{}, []int{}, true},
+		{[]int{1}, []int{}, true},
+		{[]int{}, []int{1}, false},
+		{[]int{1, 2, 3, 4}, []int{}, true},
+		{[]int{1, 2, 3, 4}, []int{0}, false},
+		{[]int{1, 2, 3, 4}, []int{1}, true},
+		{[]int{1, 2, 3, 4}, []int{1, 4}, true},
+		{[]int{1, 2, 3, 4}, []int{1, 5}, false},
+	}
+	for _, c := range cs {
+		if got := ContainsAll(c.a, c.b...); got != c.w {
+			t.Errorf("ContainsAll(%v, %v) = %v, want %v", c.a, c.b, got, c.w)
+		}
+	}
+}
+
+func TestContainsAny(t *testing.T) {
+	cs := []struct {
+		a []int
+		b []int
+		w bool
+	}{
+		{[]int{}, []int{}, true},
+		{[]int{1}, []int{}, true},
+		{[]int{}, []int{1}, false},
+		{[]int{1, 2, 3, 4}, []int{}, true},
+		{[]int{1, 2, 3, 4}, []int{0}, false},
+		{[]int{1, 2, 3, 4}, []int{1}, true},
+		{[]int{1, 2, 3, 4}, []int{1, 5}, true},
+		{[]int{1, 2, 3, 4}, []int{0, 5}, false},
+	}
+	for _, c := range cs {
+		if got := ContainsAny(c.a, c.b...); got != c.w {
+			t.Errorf("ContainsAny(%v, %v) = %v, want %v", c.a, c.b, got, c.w)
+		}
+	}
+}
+
 func TestContainsFunc(t *testing.T) {
 	for _, test := range indexTests {
 		if got := ContainsFunc(test.s, equalToIndex(equal[int], test.v)); got != (test.want != -1) {

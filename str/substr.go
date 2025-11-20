@@ -3,6 +3,8 @@ package str
 import (
 	"fmt"
 	"unicode/utf8"
+
+	"github.com/askasoft/pango/asg"
 )
 
 // BOM "\uFEFF"
@@ -606,13 +608,7 @@ func Ellipsis(s string, n int, ellipses ...string) string {
 		return s
 	}
 
-	e := "..."
-	for _, d := range ellipses {
-		if d != "" {
-			e = d
-			break
-		}
-	}
+	e := IfEmpty(asg.First(ellipses), "...")
 
 	ec := RuneCount(e)
 	if n <= ec {
@@ -630,13 +626,7 @@ func Ellipsiz(s string, n int, ellipses ...string) string {
 		return ""
 	}
 
-	e := "…"
-	for _, d := range ellipses {
-		if d != "" {
-			e = d
-			break
-		}
-	}
+	e := IfEmpty(asg.First(ellipses), "…")
 
 	ec := RuneCount(e)
 

@@ -62,6 +62,24 @@ func TestEqual(t *testing.T) {
 	}
 }
 
+func TestClone(t *testing.T) {
+	cs := []struct {
+		s map[int]int
+	}{
+		{map[int]int{1: 11, 2: 22}},
+	}
+
+	for i, c := range cs {
+		a := Clone(c.s)
+		if &a == &c.s {
+			t.Errorf("[%d] Clone(%p) == %p", i, &c.s, &a)
+		}
+		if !reflect.DeepEqual(a, c.s) {
+			t.Errorf("[%d] Clone(%v) != %v", i, c.s, a)
+		}
+	}
+}
+
 func TestCopy(t *testing.T) {
 	cs := []struct {
 		d map[int]int

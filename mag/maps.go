@@ -33,6 +33,14 @@ func Equal[K comparable, V comparable](a map[K]V, b map[K]V) bool {
 	return true
 }
 
+// Clone returns a copy of the map.
+// The elements are copied using assignment, so this is a shallow clone.
+func Clone[K comparable, V any](src map[K]V) map[K]V {
+	dst := make(map[K]V, len(src))
+	Copy(dst, src)
+	return dst
+}
+
 // Copy copy src map to dst map.
 func Copy[K comparable, V any](dst, src map[K]V) {
 	for k, v := range src {

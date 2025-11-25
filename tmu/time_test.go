@@ -6,6 +6,79 @@ import (
 	"time"
 )
 
+func TestFormat(t *testing.T) {
+	tests := []struct {
+		name string
+		a    any
+		f    string
+		want string
+	}{
+		{
+			name: "nil input",
+			a:    nil,
+			f:    time.DateTime,
+			want: "",
+		},
+		{
+			name: "non-zero time.Time",
+			a:    time.Date(2024, 1, 15, 10, 20, 30, 0, time.UTC),
+			f:    time.DateOnly,
+			want: "2024-01-15",
+		},
+		{
+			name: "zero time.Time",
+			a:    time.Time{},
+			f:    time.DateOnly,
+			want: "",
+		},
+		{
+			name: "non-zero *time.Time",
+			a: func() *time.Time {
+				t := time.Date(2024, 7, 1, 12, 34, 56, 0, time.UTC)
+				return &t
+			}(),
+			f:    time.TimeOnly,
+			want: "12:34:56",
+		},
+		{
+			name: "*time.Time nil pointer",
+			a:    (*time.Time)(nil),
+			f:    time.DateOnly,
+			want: "",
+		},
+		{
+			name: "zero *time.Time",
+			a: func() *time.Time {
+				t := time.Time{}
+				return &t
+			}(),
+			f:    time.DateOnly,
+			want: "",
+		},
+		{
+			name: "string value",
+			a:    "hello",
+			f:    time.DateTime,
+			want: "hello",
+		},
+		{
+			name: "int value",
+			a:    123,
+			f:    time.DateTime,
+			want: "123",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := Format(tt.a, tt.f)
+			if got != tt.want {
+				t.Errorf("Format(%v) = %q; want %q", tt.a, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestLocalFormat(t *testing.T) {
 	layout := "2006-01-02 15:04:05"
 
@@ -131,8 +204,10 @@ func TestParseInLocation(t *testing.T) {
 		{"2020-2-3", "2020-02-03T00:00:00", nil},
 		{"2020-02-03", "2020-02-03T00:00:00", nil},
 		{"2020-12-13", "2020-12-13T00:00:00", nil},
+		{"2020-2", "2020-02-01T00:00:00", nil},
+		{"2020-12", "2020-12-01T00:00:00", nil},
 		{"06:07:08", "0000-01-01T06:07:08", nil},
-		{"yyyy", "", fmt.Errorf("tmu: cannot parse \"yyyy\" as [2006-01-02T15:04:05Z07:00, 2006-1-2 15:04:05, 2006-1-2, 15:04:05]")},
+		{"yyyy", "", fmt.Errorf("tmu: cannot parse \"yyyy\" as [2006-01-02T15:04:05Z07:00, 2006-1-2 15:04:05, 2006-1-2, 2006-1, 15:04:05]")},
 	}
 
 	for i, c := range cs {
@@ -166,8 +241,10 @@ func TestParse(t *testing.T) {
 		{"2020-2-3", "2020-02-03T00:00:00", nil},
 		{"2020-02-03", "2020-02-03T00:00:00", nil},
 		{"2020-12-13", "2020-12-13T00:00:00", nil},
+		{"2020-2", "2020-02-01T00:00:00", nil},
+		{"2020-12", "2020-12-01T00:00:00", nil},
 		{"06:07:08", "0000-01-01T06:07:08", nil},
-		{"yyyy", "", fmt.Errorf("tmu: cannot parse \"yyyy\" as [2006-01-02T15:04:05Z07:00, 2006-1-2 15:04:05, 2006-1-2, 15:04:05]")},
+		{"yyyy", "", fmt.Errorf("tmu: cannot parse \"yyyy\" as [2006-01-02T15:04:05Z07:00, 2006-1-2 15:04:05, 2006-1-2, 2006-1, 15:04:05]")},
 	}
 
 	for i, c := range cs {

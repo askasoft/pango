@@ -8,39 +8,77 @@ import (
 )
 
 const (
-	RFC1123  = time.RFC1123  // "Mon, 02 Jan 2006 15:04:05 MST"
-	RFC3339  = time.RFC3339  // "2006-01-02T15:04:05Z07:00"
-	DateTime = time.DateTime // "2006-01-02 15:04:05"
-	DateOnly = time.DateOnly // "2006-01-02"
-	TimeOnly = time.TimeOnly // "15:04:05"
-	TimeHHMM = "15:04"
+	RFC1123   = time.RFC1123  // "Mon, 02 Jan 2006 15:04:05 MST"
+	RFC3339   = time.RFC3339  // "2006-01-02T15:04:05Z07:00"
+	DateTime  = time.DateTime // "2006-01-02 15:04:05"
+	DateOnly  = time.DateOnly // "2006-01-02"
+	DateMonth = "2006-01"     // "2006-01"
+	TimeOnly  = time.TimeOnly // "15:04:05"
+	TimeHHMM  = "15:04"
 )
 
 var GeneralLayouts = []string{
 	time.RFC3339,
 	"2006-1-2 15:04:05",
 	"2006-1-2",
+	"2006-1",
 	TimeOnly,
 }
 
-func LocalFormat(a any, f string) string {
-	if a == nil {
-		return ""
-	}
-
-	switch t := a.(type) {
-	case time.Time:
-		if !t.IsZero() {
-			return t.Local().Format(f)
+func Format(a any, f string) string {
+	if a != nil {
+		switch t := a.(type) {
+		case time.Time:
+			if !t.IsZero() {
+				return t.Format(f)
+			}
+		case *time.Time:
+			if t != nil && !t.IsZero() {
+				return t.Format(f)
+			}
+		default:
+			return fmt.Sprint(a)
 		}
-	case *time.Time:
-		if t != nil && !t.IsZero() {
-			return t.Local().Format(f)
-		}
-	default:
-		return fmt.Sprint(a)
 	}
 	return ""
+}
+
+func FormatDateMonth(a any) string {
+	return Format(a, DateMonth)
+}
+
+func FormatDateTime(a any) string {
+	return Format(a, DateTime)
+}
+
+func FormatDate(a any) string {
+	return Format(a, DateOnly)
+}
+
+func FormatTime(a any) string {
+	return Format(a, TimeOnly)
+}
+
+func LocalFormat(a any, f string) string {
+	if a != nil {
+		switch t := a.(type) {
+		case time.Time:
+			if !t.IsZero() {
+				return t.Local().Format(f)
+			}
+		case *time.Time:
+			if t != nil && !t.IsZero() {
+				return t.Local().Format(f)
+			}
+		default:
+			return fmt.Sprint(a)
+		}
+	}
+	return ""
+}
+
+func LocalFormatDateMonth(a any) string {
+	return LocalFormat(a, DateMonth)
 }
 
 func LocalFormatDateTime(a any) string {

@@ -63,10 +63,10 @@ func (p *parser) parseItem() error {
 func (p *parser) addItem(item any) (err error) {
 	if mi, ok := p.funcs.PeekTail(); ok && mi != nil {
 		if mi.params <= 0 {
-			if _, ok := item.(*commaOp); !ok {
-				if _, ok := item.(*rParenthesisOp); !ok {
-					mi.params++
-				}
+			switch item.(type) {
+			case *commaOp, *rParenthesisOp, *rBraceOp: // , ], }
+			default:
+				mi.params++
 			}
 		} else {
 			if _, ok := item.(*commaOp); ok {

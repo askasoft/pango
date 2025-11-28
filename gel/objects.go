@@ -102,7 +102,7 @@ func (ago *arrayGetOp) Calculate(ec elCtx) (any, error) {
 
 	if lval == nil {
 		if ec.Strict {
-			return nil, fmt.Errorf("gel: can't get nil[%v", rval)
+			return nil, fmt.Errorf("gel: can't get nil[%v]", rval)
 		}
 		return nil, nil
 	}
@@ -257,6 +257,11 @@ func (fio *funcInvokeOp) Calculate(ec elCtx) (any, error) {
 }
 
 func (fio *funcInvokeOp) fetchParams(ec elCtx) (args []any, err error) {
+	if fio.params <= 0 {
+		args = []any{}
+		return
+	}
+
 	var val any
 	if fio.right != nil {
 		if co, ok := fio.right.(*commaOp); ok {
@@ -276,15 +281,13 @@ func (fio *funcInvokeOp) fetchParams(ec elCtx) (args []any, err error) {
 		}
 	}
 
-	if len(args) > 0 {
-		for i, a := range args {
-			if op, ok := a.(operator); ok {
-				val, err = op.Calculate(ec)
-				if err != nil {
-					return
-				}
-				args[i] = val
+	for i, a := range args {
+		if op, ok := a.(operator); ok {
+			val, err = op.Calculate(ec)
+			if err != nil {
+				return
 			}
+			args[i] = val
 		}
 	}
 

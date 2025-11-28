@@ -3,6 +3,7 @@ package gel
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/askasoft/pango/str"
@@ -27,7 +28,7 @@ func testCalculate1(t *testing.T, cs []testcase1) {
 		if err != nil {
 			t.Fatalf("[%d] Calculate(%q) = %v", i, c.s, err)
 		}
-		if a != c.w {
+		if !reflect.DeepEqual(a, c.w) {
 			t.Fatalf("[%d] Calculate(%q) = (%v, %T), want (%v, %T)", i, c.s, a, a, c.w, c.w)
 		}
 		fmt.Printf("[%d] Calculate(%q) = (%v, %T)\n", i, c.s, a, a)
@@ -46,7 +47,7 @@ func testCalculate2(t *testing.T, cs []testcase2) {
 		if err != nil {
 			t.Fatalf("[%d] Calculate(%q, %v) = %v", i, c.s, c.d, err)
 		}
-		if a != c.w {
+		if !reflect.DeepEqual(a, c.w) {
 			t.Fatalf("[%d] Calculate(%q, %v) = (%v, %T), want (%v, %T)", i, c.s, c.d, a, a, c.w, c.w)
 		}
 		fmt.Printf("[%d] Calculate(%q, %v) = (%v, %T)\n", i, c.s, c.d, a, a)
@@ -65,7 +66,7 @@ func testCalculate2s(t *testing.T, cs []testcase2) {
 		if err != nil {
 			t.Fatalf("[%d] CalculateStrict(%q, %v) = %v", i, c.s, c.d, err)
 		}
-		if a != c.w {
+		if !reflect.DeepEqual(a, c.w) {
 			t.Fatalf("[%d] CalculateStrict(%q, %v) = (%v, %T), want (%v, %T)", i, c.s, c.d, a, a, c.w, c.w)
 		}
 		fmt.Printf("[%d] CalculateStrict(%q, %v) = (%v, %T)\n", i, c.s, c.d, a, a)
@@ -291,6 +292,8 @@ func TestArray(t *testing.T) {
 		"b": [][]string{{"a", "b"}, {"c", "d"}},
 	}
 	cs := []testcase2{
+		{[]any{}, "{}", m},
+		{[]any{1}, "{1}", m},
 		{"b", "a[1]", m},
 		{"b", "a[2-1]", m},
 		{"d", "b[1][1]", m},

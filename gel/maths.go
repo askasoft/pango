@@ -8,19 +8,19 @@ type mathNegate struct {
 	singleOp
 }
 
-func (mn *mathNegate) Category() int {
+func (mn mathNegate) Category() int {
 	return opMath
 }
 
-func (mn *mathNegate) Operator() string {
+func (mn mathNegate) Operator() string {
 	return "-"
 }
 
-func (mn *mathNegate) Priority() int {
+func (mn mathNegate) Priority() int {
 	return 2
 }
 
-func (mn *mathNegate) Calculate(ec elCtx) (any, error) {
+func (mn mathNegate) Calculate(ec elCtx) (any, error) {
 	rval, err := mn.calcRight(ec)
 	if err != nil {
 		return nil, err
@@ -37,19 +37,19 @@ type mathAdd struct {
 	doubleOp
 }
 
-func (ma *mathAdd) Category() int {
+func (ma mathAdd) Category() int {
 	return opMath
 }
 
-func (ma *mathAdd) Operator() string {
+func (ma mathAdd) Operator() string {
 	return "+"
 }
 
-func (ma *mathAdd) Priority() int {
+func (ma mathAdd) Priority() int {
 	return 4
 }
 
-func (ma *mathAdd) Calculate(ec elCtx) (any, error) {
+func (ma mathAdd) Calculate(ec elCtx) (any, error) {
 	lval, rval, err := ma.calcLeftRight(ec)
 	if err != nil {
 		return nil, err
@@ -77,19 +77,19 @@ type mathSub struct {
 	doubleOp
 }
 
-func (ms *mathSub) Category() int {
+func (ms mathSub) Category() int {
 	return opMath
 }
 
-func (ms *mathSub) Operator() string {
+func (ms mathSub) Operator() string {
 	return "-"
 }
 
-func (ms *mathSub) Priority() int {
+func (ms mathSub) Priority() int {
 	return 4
 }
 
-func (ms *mathSub) Calculate(ec elCtx) (any, error) {
+func (ms mathSub) Calculate(ec elCtx) (any, error) {
 	lval, rval, err := ms.calcLeftRight(ec)
 	if err != nil {
 		return nil, err
@@ -117,19 +117,19 @@ type mathMul struct {
 	doubleOp
 }
 
-func (mm *mathMul) Category() int {
+func (mm mathMul) Category() int {
 	return opMath
 }
 
-func (mm *mathMul) Operator() string {
+func (mm mathMul) Operator() string {
 	return "*"
 }
 
-func (mm *mathMul) Priority() int {
+func (mm mathMul) Priority() int {
 	return 3
 }
 
-func (mm *mathMul) Calculate(ec elCtx) (any, error) {
+func (mm mathMul) Calculate(ec elCtx) (any, error) {
 	lval, rval, err := mm.calcLeftRight(ec)
 	if err != nil {
 		return nil, err
@@ -146,19 +146,19 @@ type mathDiv struct {
 	doubleOp
 }
 
-func (md *mathDiv) Category() int {
+func (md mathDiv) Category() int {
 	return opMath
 }
 
-func (md *mathDiv) Operator() string {
+func (md mathDiv) Operator() string {
 	return "/"
 }
 
-func (md *mathDiv) Priority() int {
+func (md mathDiv) Priority() int {
 	return 3
 }
 
-func (md *mathDiv) Calculate(ec elCtx) (any, error) {
+func (md mathDiv) Calculate(ec elCtx) (any, error) {
 	lval, rval, err := md.calcLeftRight(ec)
 	if err != nil {
 		return nil, err
@@ -175,19 +175,19 @@ type mathMod struct {
 	doubleOp
 }
 
-func (mm *mathMod) Category() int {
+func (mm mathMod) Category() int {
 	return opMath
 }
 
-func (mm *mathMod) Operator() string {
+func (mm mathMod) Operator() string {
 	return "%"
 }
 
-func (mm *mathMod) Priority() int {
+func (mm mathMod) Priority() int {
 	return 3
 }
 
-func (mm *mathMod) Calculate(ec elCtx) (any, error) {
+func (mm mathMod) Calculate(ec elCtx) (any, error) {
 	lval, rval, err := mm.calcLeftRight(ec)
 	if err != nil {
 		return nil, err

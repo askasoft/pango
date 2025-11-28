@@ -743,7 +743,7 @@ func ToString(v any) (s string, err error) {
 		if sr, ok := v.(stringer); ok {
 			s = sr.String()
 		} else {
-			err = fmt.Errorf("cannot cast '%T' to string", v)
+			s = fmt.Sprint(v)
 		}
 	}
 	return

@@ -1,7 +1,6 @@
 package linkedlist
 
 import (
-	"encoding/json"
 	"fmt"
 	"iter"
 
@@ -9,7 +8,7 @@ import (
 	"github.com/askasoft/pango/cog/internal/iarray"
 	"github.com/askasoft/pango/cog/internal/icol"
 	"github.com/askasoft/pango/cog/internal/isort"
-	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/doc/jsonx"
 )
 
 // NewLinkedList returns an initialized list.
@@ -553,8 +552,7 @@ func (ll *LinkedList[T]) PushTailCol(ac cog.Collection[T]) {
 
 // String print list to string
 func (ll *LinkedList[T]) String() string {
-	bs, _ := json.Marshal(ll)
-	return str.UnsafeString(bs)
+	return jsonx.Stringify(ll)
 }
 
 // -----------------------------------------------------------

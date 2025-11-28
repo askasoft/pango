@@ -1,13 +1,12 @@
 package treeset
 
 import (
-	"encoding/json"
 	"iter"
 
 	"github.com/askasoft/pango/cog"
 	"github.com/askasoft/pango/cog/internal/iarray"
 	"github.com/askasoft/pango/cog/internal/icol"
-	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/doc/jsonx"
 )
 
 // NewTreeSet creates a new TreeSet.
@@ -374,8 +373,7 @@ func (ts *TreeSet[T]) Ceiling(v T) *T {
 
 // String print set to string
 func (ts *TreeSet[T]) String() string {
-	bs, _ := json.Marshal(ts)
-	return str.UnsafeString(bs)
+	return jsonx.Stringify(ts)
 }
 
 // Graph return the set's graph

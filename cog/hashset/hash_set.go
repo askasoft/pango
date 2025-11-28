@@ -1,12 +1,12 @@
 package hashset
 
 import (
-	"fmt"
 	"iter"
 
 	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/cog"
 	"github.com/askasoft/pango/cog/internal/icol"
+	"github.com/askasoft/pango/doc/jsonx"
 )
 
 // NewHashSet Create a new hash set
@@ -303,7 +303,7 @@ func (hs *HashSet[T]) Intersection(a *HashSet[T]) *HashSet[T] {
 
 // String print the set to string
 func (hs *HashSet[T]) String() string {
-	return fmt.Sprintf("%v", hs.hash)
+	return jsonx.Stringify(hs)
 }
 
 //-----------------------------------------------------------

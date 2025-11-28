@@ -1,7 +1,6 @@
 package arraylist
 
 import (
-	"encoding/json"
 	"fmt"
 	"iter"
 
@@ -10,7 +9,7 @@ import (
 	"github.com/askasoft/pango/cog/internal/icap"
 	"github.com/askasoft/pango/cog/internal/icol"
 	"github.com/askasoft/pango/cog/internal/isort"
-	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/doc/jsonx"
 )
 
 // NewArrayList returns an initialized list.
@@ -521,8 +520,7 @@ func (al *ArrayList[T]) Reserve(n int) {
 
 // String print list to string
 func (al *ArrayList[T]) String() string {
-	bs, _ := json.Marshal(al)
-	return str.UnsafeString(bs)
+	return jsonx.Stringify(al)
 }
 
 //-----------------------------------------------------------

@@ -1,7 +1,6 @@
 package ringbuffer
 
 import (
-	"encoding/json"
 	"fmt"
 	"iter"
 
@@ -10,7 +9,7 @@ import (
 	"github.com/askasoft/pango/cog/internal/icap"
 	"github.com/askasoft/pango/cog/internal/icol"
 	"github.com/askasoft/pango/cog/internal/isort"
-	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/doc/jsonx"
 )
 
 // RingBuffer A fast Golang queue using a ring-buffer, based on the version suggested by Dariusz Górecki.
@@ -741,8 +740,7 @@ func (rb *RingBuffer[T]) PushTailCol(ac cog.Collection[T]) {
 
 // String print RingBuffer to string
 func (rb *RingBuffer[T]) String() string {
-	bs, _ := json.Marshal(rb)
-	return str.UnsafeString(bs)
+	return jsonx.Stringify(rb)
 }
 
 //-----------------------------------------------------------

@@ -1,13 +1,12 @@
 package treemap
 
 import (
-	"encoding/json"
 	"fmt"
 	"iter"
 
 	"github.com/askasoft/pango/cog"
 	"github.com/askasoft/pango/cog/internal/imap"
-	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/doc/jsonx"
 )
 
 // NewTreeMap creates a new TreeMap.
@@ -346,8 +345,7 @@ func (tm *TreeMap[K, V]) Items() []*TreeMapNode[K, V] {
 
 // String print map to string
 func (tm *TreeMap[K, V]) String() string {
-	bs, _ := json.Marshal(tm)
-	return str.UnsafeString(bs)
+	return jsonx.Stringify(tm)
 }
 
 // Graph return the map's graph

@@ -1,13 +1,12 @@
 package linkedhashmap
 
 import (
-	"encoding/json"
 	"fmt"
 	"iter"
 
 	"github.com/askasoft/pango/cog"
 	"github.com/askasoft/pango/cog/internal/imap"
-	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/doc/jsonx"
 )
 
 // NewLinkedHashMap creates a new LinkedHashMap.
@@ -320,8 +319,7 @@ func (lm *LinkedHashMap[K, V]) Items() []*LinkedMapNode[K, V] {
 
 // String print map to string
 func (lm *LinkedHashMap[K, V]) String() string {
-	bs, _ := json.Marshal(lm)
-	return str.UnsafeString(bs)
+	return jsonx.Stringify(lm)
 }
 
 //-----------------------------------------------------

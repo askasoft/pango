@@ -1,7 +1,6 @@
 package linkedhashset
 
 import (
-	"encoding/json"
 	"fmt"
 	"iter"
 
@@ -9,7 +8,7 @@ import (
 	"github.com/askasoft/pango/cog"
 	"github.com/askasoft/pango/cog/internal/icol"
 	"github.com/askasoft/pango/cog/internal/isort"
-	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/doc/jsonx"
 )
 
 // NewLinkedHashSet returns an initialized set.
@@ -611,8 +610,7 @@ func (ls *LinkedHashSet[T]) PushTailCol(ac cog.Collection[T]) {
 
 // String print list to string
 func (ls *LinkedHashSet[T]) String() string {
-	bs, _ := json.Marshal(ls)
-	return str.UnsafeString(bs)
+	return jsonx.Stringify(ls)
 }
 
 // -----------------------------------------------------------

@@ -1,13 +1,12 @@
 package hashmap
 
 import (
-	"encoding/json"
 	"fmt"
 	"iter"
 
 	"github.com/askasoft/pango/cog"
 	"github.com/askasoft/pango/cog/internal/imap"
-	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/doc/jsonx"
 )
 
 // NewHashMap creates a new HashMap.
@@ -257,8 +256,7 @@ func (hm *HashMap[K, V]) HashMap() map[K]V {
 
 // String print map to string
 func (hm *HashMap[K, V]) String() string {
-	bs, _ := json.Marshal(hm)
-	return str.UnsafeString(bs)
+	return jsonx.Stringify(hm)
 }
 
 //-----------------------------------------------------------

@@ -15,7 +15,15 @@ type testcase1 struct {
 
 func testCalculate1(t *testing.T, cs []testcase1) {
 	for i, c := range cs {
-		a, err := Calculate(c.s, nil)
+		el, err := Compile(c.s)
+		if err != nil {
+			t.Fatalf("[%d] Compile(%q) = %v", i, c.s, err)
+		}
+		if a := el.String(); a != c.s {
+			t.Fatalf("[%d] String(%q) = %v, want %v", i, c.s, a, c.s)
+		}
+
+		a, err := el.Calculate(nil)
 		if err != nil {
 			t.Fatalf("[%d] Calculate(%q) = %v", i, c.s, err)
 		}

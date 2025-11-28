@@ -108,6 +108,11 @@ type EL struct {
 	rpn  reversePolishNotation
 }
 
+// String returns the source text used to compile the el expression.
+func (el *EL) String() string {
+	return el.expr
+}
+
 func (el *EL) Calculate(data any) (any, error) {
 	return el.rpn.Calculate(elCtx{Object: data})
 }

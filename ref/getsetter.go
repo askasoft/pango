@@ -39,28 +39,7 @@ func getProperty(rv reflect.Value, k string) (ret any, err error) {
 
 	p := str.Capitalize(k)
 
-	// use getter method (java-like)
-	{
-		fn := "Get" + p
-		mv := rv.MethodByName(fn)
-		if mv.IsValid() {
-			mt := mv.Type()
-			if mt.NumIn() != 0 || (mt.NumOut() != 1 && mt.NumOut() != 2) {
-				return nil, fmt.Errorf("ref: invalid getter method %q of %v", fn, rv.Type())
-			}
-
-			rs := mv.Call(nil)
-			ret = rs[0].Interface()
-			if len(rs) == 2 {
-				if er, ok := rs[1].Interface().(error); ok {
-					err = er
-				}
-			}
-			return
-		}
-	}
-
-	// get method
+	// method(function) first
 	{
 		mv := rv.MethodByName(p)
 		if mv.IsValid() {
@@ -69,18 +48,39 @@ func getProperty(rv reflect.Value, k string) (ret any, err error) {
 		}
 	}
 
+	// use getter method (java-like)
+	{
+		fn := "Get" + p
+		mv := rv.MethodByName(fn)
+		if mv.IsValid() {
+			mt := mv.Type()
+			if mt.NumIn() == 0 && (mt.NumOut() == 1 || mt.NumOut() == 2) {
+				rs := mv.Call(nil)
+				ret = rs[0].Interface()
+				if len(rs) == 2 {
+					if er, ok := rs[1].Interface().(error); ok {
+						err = er
+					}
+				}
+				return
+			}
+		}
+	}
+
 	if rv.Kind() == reflect.Pointer {
 		rv = rv.Elem()
 	}
 
 	if rv.Kind() != reflect.Struct {
-		return nil, fmt.Errorf("ref: missing field %q of %v", p, rv.Type())
+		err = fmt.Errorf("ref: missing field %q of %v", p, rv.Type())
+		return
 	}
 
 	// get field
 	fv := rv.FieldByName(p)
 	if !fv.IsValid() {
-		return nil, fmt.Errorf("ref: missing field %q of %v", p, rv.Type())
+		err = fmt.Errorf("ref: missing field %q of %v", p, rv.Type())
+		return
 	}
 
 	ret = fv.Interface()
@@ -120,27 +120,28 @@ func setProperty(rv reflect.Value, k string, v any) (err error) {
 
 	p := str.Capitalize(k)
 
+	// use setter method (java-like)
 	{
 		fn := "Set" + p
 		mv := rv.MethodByName(fn)
 		if mv.IsValid() {
 			mt := mv.Type()
-			if mt.NumIn() != 1 {
-				return fmt.Errorf("ref: invalid setter method %q of %v", fn, rv.Type())
-			}
-
-			av, err := CastTo(v, mv.Type().In(0))
-			if err != nil {
-				return err
-			}
-
-			rs := mv.Call([]reflect.Value{reflect.ValueOf(av)})
-			for _, r := range rs {
-				if err, ok := r.Interface().(error); ok {
-					return err
+			if mt.NumIn() == 1 {
+				av, er := CastTo(v, mv.Type().In(0))
+				if er != nil {
+					err = er
+					return
 				}
+
+				rs := mv.Call([]reflect.Value{reflect.ValueOf(av)})
+				for _, r := range rs {
+					if er, ok := r.Interface().(error); ok {
+						err = er
+						return
+					}
+				}
+				return
 			}
-			return nil
 		}
 	}
 
@@ -151,14 +152,16 @@ func setProperty(rv reflect.Value, k string, v any) (err error) {
 	f := rv.FieldByName(p)
 	if f.IsValid() && f.CanSet() {
 		t := f.Type()
-		cv, err := CastTo(v, t)
-		if err != nil {
-			return err
+		cv, er := CastTo(v, t)
+		if er != nil {
+			err = er
+			return
 		}
 
 		f.Set(reflect.ValueOf(cv))
-		return nil
+		return
 	}
 
-	return fmt.Errorf("ref: missing field %q of %v", k, rv.Type())
+	err = fmt.Errorf("ref: missing field %q of %v", k, rv.Type())
+	return
 }

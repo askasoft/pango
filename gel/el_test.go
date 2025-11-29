@@ -245,6 +245,10 @@ func (p *pet) GetName() string {
 	return p.name
 }
 
+func (p *pet) Display() string {
+	return p.name
+}
+
 func TestObject(t *testing.T) {
 	pet := &pet{
 		name: "XiaoBai",
@@ -256,6 +260,8 @@ func TestObject(t *testing.T) {
 		{10, ".Age", pet},
 		{"XiaoBai", ".name", pet},
 		{"XiaoBai", ".Name", pet},
+		{"XiaoBai", ".display()", pet},
+		{"XiaoBai", ".Display()", pet},
 	}
 	testCalculate2(t, cs)
 }

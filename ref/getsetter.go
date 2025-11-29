@@ -39,6 +39,15 @@ func getProperty(rv reflect.Value, k string) (ret any, err error) {
 
 	p := str.Capitalize(k)
 
+	// method(function) first
+	{
+		mv := rv.MethodByName(p)
+		if mv.IsValid() {
+			ret = mv.Interface()
+			return
+		}
+	}
+
 	// use getter method (java-like)
 	{
 		fn := "Get" + p
@@ -56,15 +65,6 @@ func getProperty(rv reflect.Value, k string) (ret any, err error) {
 					err = er
 				}
 			}
-			return
-		}
-	}
-
-	// get method
-	{
-		mv := rv.MethodByName(p)
-		if mv.IsValid() {
-			ret = mv.Interface()
 			return
 		}
 	}

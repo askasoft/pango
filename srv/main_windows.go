@@ -11,17 +11,17 @@ import (
 
 func PrintDefaultCommand(out io.Writer) {
 	fmt.Fprintln(out, "    service <command>")
-	fmt.Fprintln(out, "      command=install   install as windows service.")
-	fmt.Fprintln(out, "      command=remove    remove installed windows service.")
-	fmt.Fprintln(out, "      command=start     start the windows service.")
-	fmt.Fprintln(out, "      command=stop      stop the windows service.")
+	fmt.Fprintln(out, "      command=install    install as windows service.")
+	fmt.Fprintln(out, "      command=remove     remove installed windows service.")
+	fmt.Fprintln(out, "      command=start      start the windows service.")
+	fmt.Fprintln(out, "      command=stop       stop the windows service.")
 }
 
 func PrintDefaultOptions(out io.Writer) {
-	fmt.Fprintln(out, "    -h | -help          print the help message.")
-	fmt.Fprintln(out, "    -v | -version       print the version message.")
-	fmt.Fprintln(out, "    -dir                set the working directory.")
-	fmt.Fprintln(out, "    -name               set the service name.")
+	fmt.Fprintln(out, "    -h | -help           print the help message.")
+	fmt.Fprintln(out, "    -v | -version        print the version message.")
+	fmt.Fprintln(out, "    -dir                 set the working directory.")
+	fmt.Fprintln(out, "    -name                set the service name.")
 }
 
 func PrintDefaultUsage(app App) {

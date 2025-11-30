@@ -11,9 +11,9 @@ func PrintDefaultCommand(out io.Writer) {
 }
 
 func PrintDefaultOptions(out io.Writer) {
-	fmt.Fprintln(out, "    -h | -help          print the help message.")
-	fmt.Fprintln(out, "    -v | -version       print the version message.")
-	fmt.Fprintln(out, "    -dir                set the working directory.")
+	fmt.Fprintln(out, "    -h | -help           print the help message.")
+	fmt.Fprintln(out, "    -v | -version        print the version message.")
+	fmt.Fprintln(out, "    -dir                 set the working directory.")
 }
 
 func PrintDefaultUsage(app App) {

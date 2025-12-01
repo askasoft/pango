@@ -17,7 +17,7 @@ func (ln *logicNot) Category() int {
 	return opLogic
 }
 
-func (ln *logicNot) Operator() string {
+func (ln *logicNot) String() string {
 	return "!"
 }
 
@@ -42,7 +42,7 @@ func (la *logicAnd) Category() int {
 	return opLogic
 }
 
-func (la *logicAnd) Operator() string {
+func (la *logicAnd) String() string {
 	return "&&"
 }
 
@@ -67,7 +67,7 @@ func (lo *logicOr) Category() int {
 	return opLogic
 }
 
-func (lo *logicOr) Operator() string {
+func (lo *logicOr) String() string {
 	return "||"
 }
 
@@ -92,8 +92,8 @@ func (ln *logicNilable) Category() int {
 	return opLogic
 }
 
-func (ln *logicNilable) Operator() string {
-	return "!!"
+func (ln *logicNilable) String() string {
+	return "@"
 }
 
 func (ln *logicNilable) Priority() int {
@@ -113,7 +113,7 @@ func (lo *logicOrable) Category() int {
 	return opLogic
 }
 
-func (lo *logicOrable) Operator() string {
+func (lo *logicOrable) String() string {
 	return "|||"
 }
 
@@ -142,7 +142,7 @@ func (le *logicEq) Category() int {
 	return opLogic
 }
 
-func (le *logicEq) Operator() string {
+func (le *logicEq) String() string {
 	return "=="
 }
 
@@ -167,7 +167,7 @@ func (ln *logicNeq) Category() int {
 	return opLogic
 }
 
-func (ln *logicNeq) Operator() string {
+func (ln *logicNeq) String() string {
 	return "!="
 }
 
@@ -192,7 +192,7 @@ func (lg *logicGt) Category() int {
 	return opLogic
 }
 
-func (lg *logicGt) Operator() string {
+func (lg *logicGt) String() string {
 	return ">"
 }
 
@@ -217,7 +217,7 @@ func (lg *logicGte) Category() int {
 	return opLogic
 }
 
-func (lg *logicGte) Operator() string {
+func (lg *logicGte) String() string {
 	return ">="
 }
 
@@ -242,7 +242,7 @@ func (lt *logicLt) Category() int {
 	return opLogic
 }
 
-func (lt *logicLt) Operator() string {
+func (lt *logicLt) String() string {
 	return "<"
 }
 
@@ -267,7 +267,7 @@ func (lt *logicLte) Category() int {
 	return opLogic
 }
 
-func (lt *logicLte) Operator() string {
+func (lt *logicLte) String() string {
 	return "<="
 }
 
@@ -292,7 +292,7 @@ func (lr *logicRem) Category() int {
 	return opLogic
 }
 
-func (lr *logicRem) Operator() string {
+func (lr *logicRem) String() string {
 	return "=="
 }
 
@@ -332,7 +332,7 @@ func (lq *logicQuestion) Category() int {
 	return opLogic
 }
 
-func (lq *logicQuestion) Operator() string {
+func (lq *logicQuestion) String() string {
 	return "?"
 }
 
@@ -357,7 +357,7 @@ func (lqs *logicQuestionSelect) Category() int {
 	return opLogic
 }
 
-func (lqs *logicQuestionSelect) Operator() string {
+func (lqs *logicQuestionSelect) String() string {
 	return ":"
 }
 

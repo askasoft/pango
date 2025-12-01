@@ -30,6 +30,7 @@ var (
 	_ operator = &logicQuestion{}
 	_ operator = &logicQuestionSelect{}
 
+	_ operator = &mathPositive{}
 	_ operator = &mathNegate{}
 	_ operator = &mathAdd{}
 	_ operator = &mathSub{}

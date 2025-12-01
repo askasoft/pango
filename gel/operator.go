@@ -2,6 +2,7 @@ package gel
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/askasoft/pango/cog"
 )
@@ -20,13 +21,11 @@ const (
 )
 
 type operator interface {
+	String() string
 	Category() int
-
-	Operator() string
-
+	Operands() int
 	Priority() int
-
-	Wrap(operand cog.Queue[any])
+	Wrap(op operator, operand cog.Queue[any]) error
 
 	Calculate(elCtx) (any, error)
 }
@@ -55,8 +54,19 @@ type singleOp struct {
 	right any
 }
 
-func (sop *singleOp) Wrap(operand cog.Queue[any]) {
-	sop.right, _ = operand.Poll()
+func (sop *singleOp) Operands() int {
+	return 1
+}
+
+func (sop *singleOp) Wrap(op operator, operand cog.Queue[any]) error {
+	var ok bool
+
+	sop.right, ok = operand.Poll()
+	if !ok {
+		return fmt.Errorf("gel: operator %q missing right operand", op)
+	}
+
+	return nil
 }
 
 func (sop *singleOp) calcRight(ec elCtx) (any, error) {
@@ -66,7 +76,7 @@ func (sop *singleOp) calcRight(ec elCtx) (any, error) {
 func (sop *singleOp) IsReturnNull(ec elCtx, rval any) (bool, error) {
 	if rval == nil {
 		if ec.Strict {
-			return false, errors.New("gel: right object is nil")
+			return false, fmt.Errorf("gel: operator %q right object is nil", sop)
 		}
 		return true, nil
 	}
@@ -80,9 +90,24 @@ type doubleOp struct {
 	left  any
 }
 
-func (dop *doubleOp) Wrap(rpn cog.Queue[any]) {
-	dop.right, _ = rpn.Poll()
-	dop.left, _ = rpn.Poll()
+func (dop *doubleOp) Operands() int {
+	return 2
+}
+
+func (dop *doubleOp) Wrap(op operator, rpn cog.Queue[any]) error {
+	var ok bool
+
+	dop.right, ok = rpn.Poll()
+	if !ok {
+		return fmt.Errorf("gel: operator %q missing left and right operand", op)
+	}
+
+	dop.left, ok = rpn.Poll()
+	if !ok {
+		return fmt.Errorf("gel: operator %q missing left or right operand", op)
+	}
+
+	return nil
 }
 
 func (dop *doubleOp) calcLeft(ec elCtx) (any, error) {
@@ -98,15 +123,12 @@ func (dop *doubleOp) calcLeftRight(ec elCtx) (lval, rval any, err error) {
 	if err != nil {
 		return
 	}
+
 	rval, err = dop.calcRight(ec)
 	return
 }
 
 func (dop *doubleOp) evalLeft(ec elCtx) (any, error) {
-	if dop.left == nil {
-		return ec.Object, nil
-	}
-
 	if op, ok := dop.left.(operator); ok {
 		return op.Calculate(ec)
 	}

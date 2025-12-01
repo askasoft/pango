@@ -4,10 +4,66 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/askasoft/pango/str"
 )
+
+func TestParseRPN(t *testing.T) {
+	cs := []struct {
+		w string
+		s string
+	}{
+		{"a-!", "!-a"},
+		{"a!!", "!!a"},
+		{"a~!", "!~a"},
+		{"a~~", "~~a"},
+		{"12+3+", "1+2+3"},
+		{"12-", "1-2"},
+		{"12-3-", "1-2-3"},
+		{"52%1+", "5%2+1"},
+		{"152%+", "1+5%2"},
+		{"1a!+3+", "1+!a+3"},
+	}
+
+	var sy shuntingYard
+
+	for i, c := range cs {
+		if err := sy.parseToRPN(c.s); err != nil {
+			t.Errorf("#%d parseToRPN(%s) = %v", i, c.s, err)
+		}
+
+		var sb strings.Builder
+		for it := sy.rpn.Iterator(); it.Next(); {
+			sb.WriteString(fmt.Sprint(it.Value()))
+		}
+
+		a := sb.String()
+		if a != c.w {
+			t.Errorf("#%d parseToRPN(%s)\n got: %s\nwant: %s", i, c.s, a, c.w)
+		}
+	}
+}
+
+func TestCompileError(t *testing.T) {
+	cs := []struct {
+		s string
+		e string
+	}{
+		{`+`, `gel: operator "+" missing right operand`},
+		{`*`, `gel: operator "*" missing left and right operand`},
+		{`*2`, `gel: operator "*" missing left or right operand`},
+		{`1*`, `gel: operator "*" missing left or right operand`},
+	}
+
+	for i, c := range cs {
+		_, err := Compile(c.s)
+		if err == nil || err.Error() != c.e {
+			t.Errorf("#%d Compile(%s) = %v\nwant: %v", i, c.s, err, c.e)
+		}
+	}
+}
 
 type testcase1 struct {
 	w any
@@ -75,13 +131,15 @@ func testCalculate2s(t *testing.T, cs []testcase2) {
 
 func TestOneValue(t *testing.T) {
 	cs := []testcase1{
+		{nil, "nil"},
+		{nil, "null"},
+		{true, "true"},
+		{false, "false"},
 		{1, "1"},
 		{float64(0.1), ".1"},
 		{float64(0.1), "0.1"},
 		{float32(0.1), "0.1f"},
 		{float64(0.1), "0.1d"},
-		{true, "true"},
-		{false, "false"},
 		{"jk", "'jk'"},
 	}
 	testCalculate1(t, cs)
@@ -93,6 +151,12 @@ func TestBit(t *testing.T) {
 		{-5 >> 3, "-5>>3"},
 		{5 & 3, "5&3"},
 		{5 | 3, "5|3"},
+		{^0, "^0"},
+		{false, "!^0"},
+		{^-1, "^-1"},
+		{true, "!^-1"},
+		{^^5, "~~5"},
+		{^^5, "^^5"},
 		{^5, "~5"},
 		{^5, "^5"},
 		{5 ^ 3, "5^3"},
@@ -129,14 +193,14 @@ func TestMathMulti(t *testing.T) {
 		{9 + 8*7 + (6+5)*(4-1*2+3), "9+8*7+(6+5)*((4-1*2+3))"},
 		{.3 + .2*.5, ".3+.2*.5"},
 		{(.5 + 0.1) * .9, "(.5 + 0.1)*.9"},
-		{1/1 + 10*(1400-1400)/400, "1/1+10*(1400-1400)/400"},
+		{1/int(2) + 10*(1500-1400)/400, "1/2+10*(1500-1400)/400"},
 		{0.1354 * ((70 - 8) % 70) * 100, "0.1354 * ((70 - 8) % 70) * 100"},
-		{0.5006 * (70 / 600 * 100), "0.5006 * (70 / 600 * 100)"},
+		{0.5006 * (700 / 600 * 100), "0.5006 * (700 / 600 * 100)"},
 		{2 + (-3), "2+(-3)"},
 		{2 + -3, "2+-3"},
 		{2 * -3, "2*-3"},
 		{-2 * -3, "-2*-3"},
-		{2 / -3, "2/-3"},
+		{3 / -3, "3/-3"},
 		{2 % -3, "2%-3"},
 		{1000 + 100.0*99 - (600-3*15)%(((68-9)-3)*2-100) + 10000%7*71, "1000+100.0*99-(600-3*15)%(((68-9)-3)*2-100)+10000%7*71"},
 		{1, "6.7-100>39.6 ? 5==5? 4+5:6-1 : !(100%3-39.0<27) ? 8*2-199: 100%3"},
@@ -144,15 +208,19 @@ func TestMathMulti(t *testing.T) {
 	testCalculate1(t, cs)
 }
 
-func TestNil(t *testing.T) {
-	cs := []testcase1{
-		{nil, "nil"},
-	}
-	testCalculate1(t, cs)
-}
-
 func TestLogical(t *testing.T) {
 	cs := []testcase1{
+		{true, `!$`},
+		{false, `!!$`},
+		{false, `!(!$)`},
+		{false, `!!a`},
+		{false, `!(!a)`},
+		{false, `!-2`},
+		{false, `!(-2)`},
+		{true, `nil == $`},
+		{false, `nil != $`},
+		{true, `nil == a`},
+		{false, `nil != a`},
 		{true, "2 > 1"},
 		{false, "2 < 1"},
 		{true, "2 >= 2"},
@@ -171,7 +239,6 @@ func TestLogical(t *testing.T) {
 		{true, `"abc" ~= "b"`},
 		{false, `"abc" ~= "abz"`},
 		{false, `"a" == !!$`},
-		{true, `nil == !!$`},
 	}
 	testCalculate1(t, cs)
 }
@@ -196,9 +263,10 @@ func TestString(t *testing.T) {
 
 func TestNegative(t *testing.T) {
 	cs := []testcase1{
+		{+1, "+1"},
 		{-1, "-1"},
 		{0, "-1+1"},
-		{-1 - -1, "-1 - -1"},
+		{-1 - -2, "-1 - -2"},
 		{9 + 8*7 + (6+5)*(-(4 - 1*2 + 3)), "9+8*7+(6+5)*(-(4-1*2+3))"},
 	}
 	testCalculate1(t, cs)
@@ -256,12 +324,12 @@ func TestObject(t *testing.T) {
 	}
 
 	cs := []testcase2{
-		{10, ".age", pet},
-		{10, ".Age", pet},
-		{"XiaoBai", ".name", pet},
-		{"XiaoBai", ".Name", pet},
-		{"XiaoBai", ".display()", pet},
-		{"XiaoBai", ".Display()", pet},
+		{10, "$.age", pet},
+		{10, "$.Age", pet},
+		{"XiaoBai", "$.name", pet},
+		{"XiaoBai", "$.Name", pet},
+		{"XiaoBai", "$.display()", pet},
+		{"XiaoBai", "$.Display()", pet},
 	}
 	testCalculate2(t, cs)
 }
@@ -278,15 +346,15 @@ func TestCallFunc(t *testing.T) {
 
 	cs := []testcase2{
 		{"ab", "Left(2)", teststr("abcde")},
-		{"b", ".Substring(1,2)", teststr("abcde")},
-		{true, ".Contains('cd')", teststr("abcde")},
-		{"abab", ".Strip()", teststr("  abab  ")},
-		{5, ".Len()", teststr("abcde")},
+		{"b", "$.Substring(1,2)", teststr("abcde")},
+		{true, "$.Contains('cd')", teststr("abcde")},
+		{"abab", "$.Strip()", teststr("  abab  ")},
+		{5, "$.Len()", teststr("abcde")},
 		{nil, "SetName('XiaoBai')", pet},
-		{"XiaoBai", ".GetName()", pet},
-		{nil, ".Fset('XiaoHei')", pet},
+		{"XiaoBai", "$.GetName()", pet},
+		{nil, "$.Fset('XiaoHei')", pet},
 		{"XiaoHei", "Fget()", pet},
-		{nil, ".set('XiaoHui')", m},
+		{nil, "$.set('XiaoHui')", m},
 		{"XiaoHui", "get()", m},
 	}
 	testCalculate2(t, cs)
@@ -356,10 +424,10 @@ func TestOrable(t *testing.T) {
 	testCalculate2(t, cs1)
 
 	cs2 := []testcase2{
-		{"cat", "!!(obj.pet.name) ||| 'cat'", m},
-		{"dog", "!!(obj.girls) ||| 'dog'", m},
-		{"cat", "!!obj.pet.name ||| 'cat'", m},
-		{"dog", "!!obj.girls ||| 'dog'", m},
+		{"cat", "@(obj.pet.name) ||| 'cat'", m},
+		{"dog", "@(obj.girls) ||| 'dog'", m},
+		{"cat", "@obj.pet.name ||| 'cat'", m},
+		{"dog", "@obj.girls ||| 'dog'", m},
 	}
 	testCalculate2s(t, cs2)
 }

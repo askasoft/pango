@@ -112,13 +112,19 @@ func (p *parser) addItem(item any) (err error) {
 			p.items.Add(&funcEndOp{})
 		}
 	case *bitXor: // '^'
-		if p.isBitNotable(prev) {
+		if p.isSingleOp(prev) {
 			p.items.Add(&bitNot{})
 		} else {
 			p.items.Add(item)
 		}
+	case *mathAdd: // '+'
+		if p.isSingleOp(prev) {
+			p.items.Add(&mathPositive{})
+		} else {
+			p.items.Add(item)
+		}
 	case *mathSub: // '-'
-		if p.isNegative(prev) {
+		if p.isSingleOp(prev) {
 			p.items.Add(&mathNegate{})
 		} else {
 			p.items.Add(item)
@@ -130,21 +136,7 @@ func (p *parser) addItem(item any) (err error) {
 	return
 }
 
-func (p *parser) isBitNotable(prev any) bool {
-	if prev == nil {
-		return true
-	}
-
-	if op, ok := prev.(operator); ok {
-		switch op.Category() {
-		case opOpen, opBits, opMath, opLogic:
-			return true
-		}
-	}
-	return false
-}
-
-func (p *parser) isNegative(prev any) bool {
+func (p *parser) isSingleOp(prev any) bool {
 	if prev == nil {
 		return true
 	}
@@ -267,15 +259,15 @@ func parseOperator(r rune, br *bufio.Reader) (any, error) {
 		switch r2 {
 		case '=':
 			return &logicNeq{}, nil
-		case '!':
-			return &logicNilable{}, nil
 		default:
 			return &logicNot{}, br.UnreadRune()
 		}
+	case '@':
+		return &logicNilable{}, nil
 	case '|':
 		r2, _, err := br.ReadRune()
 		if err != nil {
-			return nil, errors.New("gel: incorrect expression, missing character after '!'")
+			return nil, errors.New("gel: incorrect expression, missing character after '|'")
 		}
 		switch r2 {
 		case '|':
@@ -342,16 +334,16 @@ func parseIdentifier(r rune, br *bufio.Reader) (any, error) {
 	}
 
 	s := sb.String()
-	if s == "nil" {
+	switch s {
+	case "nil", "null":
 		return elObj{}, err
-	}
-	if s == "true" {
+	case "true":
 		return true, err
-	}
-	if s == "false" {
+	case "false":
 		return false, err
+	default:
+		return elObj{s}, err
 	}
-	return elObj{s}, err
 }
 
 func parseNumber(r rune, br *bufio.Reader) (any, error) {

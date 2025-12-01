@@ -4,6 +4,26 @@ import (
 	"github.com/askasoft/pango/cal"
 )
 
+type mathPositive struct {
+	singleOp
+}
+
+func (mp mathPositive) Category() int {
+	return opMath
+}
+
+func (mp mathPositive) String() string {
+	return "+"
+}
+
+func (mp mathPositive) Priority() int {
+	return 2
+}
+
+func (mp mathPositive) Calculate(ec elCtx) (any, error) {
+	return mp.calcRight(ec)
+}
+
 type mathNegate struct {
 	singleOp
 }
@@ -12,7 +32,7 @@ func (mn mathNegate) Category() int {
 	return opMath
 }
 
-func (mn mathNegate) Operator() string {
+func (mn mathNegate) String() string {
 	return "-"
 }
 
@@ -41,7 +61,7 @@ func (ma mathAdd) Category() int {
 	return opMath
 }
 
-func (ma mathAdd) Operator() string {
+func (ma mathAdd) String() string {
 	return "+"
 }
 
@@ -81,7 +101,7 @@ func (ms mathSub) Category() int {
 	return opMath
 }
 
-func (ms mathSub) Operator() string {
+func (ms mathSub) String() string {
 	return "-"
 }
 
@@ -121,7 +141,7 @@ func (mm mathMul) Category() int {
 	return opMath
 }
 
-func (mm mathMul) Operator() string {
+func (mm mathMul) String() string {
 	return "*"
 }
 
@@ -150,7 +170,7 @@ func (md mathDiv) Category() int {
 	return opMath
 }
 
-func (md mathDiv) Operator() string {
+func (md mathDiv) String() string {
 	return "/"
 }
 
@@ -179,7 +199,7 @@ func (mm mathMod) Category() int {
 	return opMath
 }
 
-func (mm mathMod) Operator() string {
+func (mm mathMod) String() string {
 	return "%"
 }
 

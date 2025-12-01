@@ -17,6 +17,12 @@ func (ec elCtx) Get(key string) (any, error) {
 	if key == "$" {
 		return ec.Object, nil
 	}
+	if ec.Object == nil {
+		if ec.Strict {
+			return nil, fmt.Errorf("gel: can't get nil.%s", key)
+		}
+		return nil, nil
+	}
 	return ref.GetProperty(ec.Object, key)
 }
 
@@ -105,7 +111,7 @@ func invokeFunc(fv reflect.Value, args []any) (any, error) {
 
 type EL struct {
 	expr string // expression
-	rpn  reversePolishNotation
+	root any    // reverse polish notation
 }
 
 // String returns the source text used to compile the el expression.
@@ -114,19 +120,34 @@ func (el *EL) String() string {
 }
 
 func (el *EL) Calculate(data any) (any, error) {
-	return el.rpn.Calculate(elCtx{Object: data})
+	return el.calculate(elCtx{Object: data})
 }
 
 func (el *EL) CalculateStrict(data any) (any, error) {
-	return el.rpn.Calculate(elCtx{Object: data, Strict: true})
+	return el.calculate(elCtx{Object: data, Strict: true})
+}
+
+func (el *EL) calculate(ec elCtx) (any, error) {
+	if el.root == nil {
+		return nil, nil
+	}
+
+	if op, ok := el.root.(operator); ok {
+		return op.Calculate(ec)
+	}
+	if eo, ok := el.root.(elObj); ok {
+		return eo.Get(ec)
+	}
+	return el.root, nil
 }
 
 func Compile(expr string) (*EL, error) {
 	var sy shuntingYard
-	if err := sy.ParseToRPN(expr); err != nil {
+	rpn, err := sy.ParseToRPN(expr)
+	if err != nil {
 		return nil, err
 	}
-	return &EL{expr, newReversePolishNotation(&sy.rpn)}, nil
+	return &EL{expr, rpn}, nil
 }
 
 func Calculate(expr string, data any) (any, error) {

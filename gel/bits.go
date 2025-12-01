@@ -10,7 +10,7 @@ func (bn *bitNot) Category() int {
 	return opBits
 }
 
-func (bn *bitNot) Operator() string {
+func (bn *bitNot) String() string {
 	return "~"
 }
 
@@ -39,7 +39,7 @@ func (ba *bitAnd) Category() int {
 	return opBits
 }
 
-func (ba *bitAnd) Operator() string {
+func (ba *bitAnd) String() string {
 	return "&"
 }
 
@@ -68,7 +68,7 @@ func (bo *bitOr) Category() int {
 	return opBits
 }
 
-func (bo *bitOr) Operator() string {
+func (bo *bitOr) String() string {
 	return "|"
 }
 
@@ -97,7 +97,7 @@ func (bx *bitXor) Category() int {
 	return opBits
 }
 
-func (bx *bitXor) Operator() string {
+func (bx *bitXor) String() string {
 	return "^"
 }
 
@@ -126,7 +126,7 @@ func (bl *bitLeft) Category() int {
 	return opBits
 }
 
-func (bl *bitLeft) Operator() string {
+func (bl *bitLeft) String() string {
 	return "<<"
 }
 
@@ -155,7 +155,7 @@ func (br *bitRight) Category() int {
 	return opBits
 }
 
-func (br *bitRight) Operator() string {
+func (br *bitRight) String() string {
 	return ">>"
 }
 

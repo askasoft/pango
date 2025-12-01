@@ -18,7 +18,7 @@ func (ao *accessOp) Category() int {
 	return opObject
 }
 
-func (ao *accessOp) Operator() string {
+func (ao *accessOp) String() string {
 	return "."
 }
 
@@ -86,7 +86,7 @@ func (ago *arrayGetOp) Category() int {
 	return opObject
 }
 
-func (ago *arrayGetOp) Operator() string {
+func (ago *arrayGetOp) String() string {
 	return "["
 }
 
@@ -129,16 +129,26 @@ func (aeo *arrayEndOp) Category() int {
 	return opObject
 }
 
-func (aeo *arrayEndOp) Operator() string {
+func (aeo *arrayEndOp) String() string {
 	return "]"
+}
+
+func (aeo *arrayEndOp) Operands() int {
+	return 1
 }
 
 func (aeo *arrayEndOp) Priority() int {
 	return 1
 }
 
-func (aeo *arrayEndOp) Wrap(operand cog.Queue[any]) {
-	aeo.left, _ = operand.Poll()
+func (aeo *arrayEndOp) Wrap(op operator, operand cog.Queue[any]) error {
+	var ok bool
+
+	aeo.left, ok = operand.Poll()
+	if !ok {
+		return fmt.Errorf("gel: operator %q missing left operand", aeo)
+	}
+	return nil
 }
 
 func (aeo *arrayEndOp) Calculate(ec elCtx) (any, error) {
@@ -155,15 +165,20 @@ func (amo *arrayMakeOp) Category() int {
 	return opObject
 }
 
-func (amo *arrayMakeOp) Operator() string {
+func (amo *arrayMakeOp) String() string {
 	return "{}"
+}
+
+func (amo *arrayMakeOp) Operands() int {
+	return 0
 }
 
 func (amo *arrayMakeOp) Priority() int {
 	return 1
 }
 
-func (amo *arrayMakeOp) Wrap(operand cog.Queue[any]) {
+func (amo *arrayMakeOp) Wrap(op operator, operand cog.Queue[any]) error {
+	return nil
 }
 
 func (amo *arrayMakeOp) Calculate(ec elCtx) (any, error) {
@@ -182,7 +197,7 @@ func (co *commaOp) Category() int {
 	return opObject
 }
 
-func (co *commaOp) Operator() string {
+func (co *commaOp) String() string {
 	return ","
 }
 
@@ -226,7 +241,7 @@ func (fio *funcInvokeOp) Category() int {
 	return opObject
 }
 
-func (fio *funcInvokeOp) Operator() string {
+func (fio *funcInvokeOp) String() string {
 	return "func("
 }
 
@@ -234,13 +249,26 @@ func (fio *funcInvokeOp) Priority() int {
 	return 1
 }
 
-func (fio *funcInvokeOp) Wrap(rpn cog.Queue[any]) {
+func (fio *funcInvokeOp) Wrap(op operator, rpn cog.Queue[any]) error {
+	var ok bool
+
 	if fio.params <= 0 {
-		fio.left, _ = rpn.Poll()
+		fio.left, ok = rpn.Poll()
+		if !ok {
+			return errors.New("gel: missing function owner")
+		}
 	} else {
-		fio.right, _ = rpn.Poll()
-		fio.left, _ = rpn.Poll()
+		fio.right, ok = rpn.Poll()
+		if !ok {
+			return errors.New("gel: missing function arguments")
+		}
+
+		fio.left, ok = rpn.Poll()
+		if !ok {
+			return errors.New("gel: missing function owner")
+		}
 	}
+	return nil
 }
 
 func (fio *funcInvokeOp) Calculate(ec elCtx) (any, error) {
@@ -302,16 +330,26 @@ func (feo *funcEndOp) Category() int {
 	return opObject
 }
 
-func (feo *funcEndOp) Operator() string {
+func (feo *funcEndOp) String() string {
 	return "func)"
+}
+
+func (feo *funcEndOp) Operands() int {
+	return 1
 }
 
 func (feo *funcEndOp) Priority() int {
 	return 1
 }
 
-func (feo *funcEndOp) Wrap(rpn cog.Queue[any]) {
-	feo.left, _ = rpn.Poll()
+func (feo *funcEndOp) Wrap(op operator, rpn cog.Queue[any]) error {
+	var ok bool
+
+	feo.left, ok = rpn.Poll()
+	if !ok {
+		return errors.New("gel: missing function operator")
+	}
+	return nil
 }
 
 func (feo *funcEndOp) Calculate(ec elCtx) (any, error) {

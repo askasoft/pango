@@ -13,11 +13,16 @@ func (o *openOp) Category() int {
 	return opOpen
 }
 
+func (o *openOp) Operands() int {
+	return 0
+}
+
 func (o *openOp) Priority() int {
 	return 100
 }
 
-func (o *openOp) Wrap(cog.Queue[any]) {
+func (o *openOp) Wrap(operator, cog.Queue[any]) error {
+	return nil
 }
 
 type closeOp struct {
@@ -27,11 +32,16 @@ func (o *closeOp) Category() int {
 	return opClose
 }
 
+func (o *closeOp) Operands() int {
+	return 0
+}
+
 func (o *closeOp) Priority() int {
 	return 100
 }
 
-func (o *closeOp) Wrap(cog.Queue[any]) {
+func (o *closeOp) Wrap(operator, cog.Queue[any]) error {
+	return nil
 }
 
 var lbraceop = &lBraceOp{}
@@ -40,7 +50,7 @@ type lBraceOp struct {
 	openOp
 }
 
-func (lb *lBraceOp) Operator() string {
+func (lb *lBraceOp) String() string {
 	return "{"
 }
 
@@ -54,7 +64,7 @@ type rBraceOp struct {
 	closeOp
 }
 
-func (rb *rBraceOp) Operator() string {
+func (rb *rBraceOp) String() string {
 	return "}"
 }
 
@@ -68,7 +78,7 @@ type lParenthesisOp struct {
 	openOp
 }
 
-func (lp *lParenthesisOp) Operator() string {
+func (lp *lParenthesisOp) String() string {
 	return "("
 }
 
@@ -82,7 +92,7 @@ type rParenthesisOp struct {
 	closeOp
 }
 
-func (rp *rParenthesisOp) Operator() string {
+func (rp *rParenthesisOp) String() string {
 	return "("
 }
 
@@ -96,7 +106,7 @@ type lBracketOp struct {
 	openOp
 }
 
-func (lb *lBracketOp) Operator() string {
+func (lb *lBracketOp) String() string {
 	return "("
 }
 
@@ -110,7 +120,7 @@ type rBracketOp struct {
 	closeOp
 }
 
-func (rb *rBracketOp) Operator() string {
+func (rb *rBracketOp) String() string {
 	return "("
 }
 

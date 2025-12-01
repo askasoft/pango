@@ -59,15 +59,22 @@ func (sy *shuntingYard) addOperator(op operator) error {
 		return nil
 	}
 
-	// 符号队列top元素优先级大于当前,则直接添加到
-	if oh, ok := sy.ops.PeekHead(); ok && oh.Priority() > op.Priority() {
-		sy.ops.PushHead(op)
-		return nil
-	}
+	oh, ok := sy.ops.PeekHead()
+	if ok {
+		// 符号队列top元素优先级大于当前,则直接添加到
+		if oh.Priority() > op.Priority() {
+			sy.ops.PushHead(op)
+			return nil
+		}
 
-	// 一般情况,即优先级小于栈顶,那么直接弹出来,添加到逆波兰表达式中
-	for {
-		if oh, ok := sy.ops.PeekHead(); ok && oh.Priority() <= op.Priority() {
+		// for !!a
+		if oh.Priority() == op.Priority() && oh.Operands() == op.Operands() && oh.Operands() == 1 {
+			sy.ops.PushHead(op)
+			return nil
+		}
+
+		// 一般情况,即优先级小于栈顶,那么直接弹出来,添加到逆波兰表达式中
+		for ; ok && oh.Priority() <= op.Priority(); oh, ok = sy.ops.PeekHead() {
 			// 三元表达式嵌套的特殊处理
 			if _, ok := oh.(*logicQuestion); ok {
 				if _, ok := op.(*logicQuestion); ok {
@@ -82,17 +89,14 @@ func (sy *shuntingYard) addOperator(op operator) error {
 
 			sy.ops.PollHead()
 			sy.rpn.Add(oh)
-			continue
 		}
-		break
 	}
 
 	sy.ops.PushHead(op)
 	return nil
 }
 
-// 转换成 逆波兰表示法（Reverse Polish notation，RPN，或逆波兰记法）
-func (sy *shuntingYard) ParseToRPN(expr string) error {
+func (sy *shuntingYard) parseToRPN(expr string) error {
 	sy.rpn.Clear()
 	sy.ops.Clear()
 
@@ -121,4 +125,28 @@ func (sy *shuntingYard) ParseToRPN(expr string) error {
 	}
 
 	return nil
+}
+
+// ParseToRPN Parse expression to Reverse Polish notation (RPN).
+// 逆波兰表示法(逆波兰记法)是一种是由波兰数学家扬·武卡谢维奇1920年引入的数学表达式方式。
+// 在逆波兰记法中，所有操作符置于操作数的后面，因此也被称为后缀表示法。
+// @see https://en.wikipedia.org/wiki/Reverse_Polish_notation
+func (sy *shuntingYard) ParseToRPN(expr string) (any, error) {
+	if err := sy.parseToRPN(expr); err != nil {
+		return nil, err
+	}
+
+	operand := linkedlist.NewLinkedList[any]()
+	for it := sy.rpn.Iterator(); it.Next(); {
+		obj := it.Value()
+		if op, ok := obj.(operator); ok {
+			if err := op.Wrap(op, operand); err != nil {
+				return nil, err
+			}
+		}
+		operand.PushHead(obj)
+	}
+
+	root, _ := operand.PeekHead()
+	return root, nil
 }

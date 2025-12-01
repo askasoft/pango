@@ -132,12 +132,12 @@ func (b *Builder) Select(cols ...string) *Builder {
 }
 
 // ForUpdate add 'FOR UPDATE' for SELECT
-func (b *Builder) ForUpdate(forUpdate ...bool) *Builder {
-	b.forUpdate = asg.First(forUpdate, true)
+func (b *Builder) ForUpdate() *Builder {
+	b.forUpdate = true
 	return b
 }
 
-// Distinct set distinct keyword only for SELECT
+// Distinct add 'DISTINCT' for SELECT
 func (b *Builder) Distinct() *Builder {
 	b.distinct = true
 	return b

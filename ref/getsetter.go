@@ -8,13 +8,20 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
+var (
+	errEmptyPropName = errors.New("ref: empty property name")
+	errInvalidObject = errors.New("ref: invalid object")
+)
+
 func GetProperty(o any, k string) (any, error) {
 	if k == "" {
-		return nil, errors.New("ref: empty property name")
+		return nil, errEmptyPropName
 	}
 
 	rv := reflect.ValueOf(o)
 	switch rv.Kind() {
+	case reflect.Invalid:
+		return nil, errInvalidObject
 	case reflect.Pointer:
 		re := rv.Elem()
 		switch re.Kind() {
@@ -89,11 +96,13 @@ func getProperty(rv reflect.Value, k string) (ret any, err error) {
 
 func SetProperty(o any, k string, v any) error {
 	if k == "" {
-		return errors.New("ref: empty property name")
+		return errEmptyPropName
 	}
 
 	rv := reflect.ValueOf(o)
 	switch rv.Kind() {
+	case reflect.Invalid:
+		return errInvalidObject
 	case reflect.Pointer:
 		re := rv.Elem()
 		switch re.Kind() {

@@ -71,18 +71,18 @@ func runStringTests(t *testing.T, f func(string) string, funcName string, testCa
 }
 
 func TestCapitalize(t *testing.T) {
-	var tests = []StringTest{
+	cs := []StringTest{
 		{"", ""},
 		{"abc", "Abc"},
 		{"abc abc", "Abc abc"},
 		{"хлеб", "Хлеб"},
 	}
 
-	runStringTests(t, Capitalize, "Capitalize", tests)
+	runStringTests(t, Capitalize, "Capitalize", cs)
 }
 
 func TestCamelCase(t *testing.T) {
-	var tests = []StringTest{
+	cs := []StringTest{
 		{"", ""},
 		{"abcAbc", "abcAbc"},
 		{"abc_abc", "abcAbc"},
@@ -98,12 +98,12 @@ func TestCamelCase(t *testing.T) {
 		{"Хлеб-Хлеб", "хлебХлеб"},
 	}
 
-	runStringTests(t, func(s string) string { return CamelCase(s) }, "CamelCase", tests)
-	runStringTests(t, func(s string) string { return CamelCase(CamelCase(s)) }, "CamelCase2", tests)
+	runStringTests(t, func(s string) string { return CamelCase(s) }, "CamelCase", cs)
+	runStringTests(t, func(s string) string { return CamelCase(CamelCase(s)) }, "CamelCase2", cs)
 }
 
 func TestPascalCase(t *testing.T) {
-	var tests = []StringTest{
+	cs := []StringTest{
 		{"", ""},
 		{"AbcAbc", "AbcAbc"},
 		{"abc_abc", "AbcAbc"},
@@ -119,12 +119,12 @@ func TestPascalCase(t *testing.T) {
 		{"хлеб-Хлеб", "ХлебХлеб"},
 	}
 
-	runStringTests(t, func(s string) string { return PascalCase(s) }, "PascalCase", tests)
-	runStringTests(t, func(s string) string { return PascalCase(PascalCase(s)) }, "PascalCase2", tests)
+	runStringTests(t, func(s string) string { return PascalCase(s) }, "PascalCase", cs)
+	runStringTests(t, func(s string) string { return PascalCase(PascalCase(s)) }, "PascalCase2", cs)
 }
 
 func TestSnakeCase(t *testing.T) {
-	var tests = []StringTest{
+	cs := []StringTest{
 		{"", ""},
 		{"abcAbc", "abc_abc"},
 		{"abc", "abc"},
@@ -140,12 +140,34 @@ func TestSnakeCase(t *testing.T) {
 		{"ХлебХлеб", "хлеб_хлеб"},
 	}
 
-	runStringTests(t, func(s string) string { return SnakeCase(s) }, "SnakeCase", tests)
-	runStringTests(t, func(s string) string { return SnakeCase(SnakeCase(s)) }, "SnakeCase2", tests)
+	runStringTests(t, func(s string) string { return SnakeCase(s) }, "SnakeCase", cs)
+	runStringTests(t, func(s string) string { return SnakeCase(SnakeCase(s)) }, "SnakeCase2", cs)
+}
+
+func TestMask(t *testing.T) {
+	cs := []StringTest{
+		{"abcdefghi", "abcd*****"},
+		{"abcdefgh", "abc*****"},
+		{"abcdefg", "abc****"},
+		{"abcdef", "ab****"},
+		{"abcde", "ab***"},
+		{"abcd", "****"},
+		{"abc", "***"},
+		{"①②③④⑤⑥⑦⑧⑨", "①②③④*****"},
+		{"①②③④⑤⑥⑦⑧", "①②③*****"},
+		{"①②③④⑤⑥⑦", "①②③****"},
+		{"①②③④⑤⑥", "①②****"},
+		{"①②③④⑤", "①②***"},
+		{"①②③④", "****"},
+		{"①②③", "***"},
+	}
+
+	runStringTests(t, func(s string) string { return Mask(s) }, "Mask", cs)
+	runStringTests(t, func(s string) string { return Mask(Mask(s)) }, "Mask2", cs)
 }
 
 func TestStrip(t *testing.T) {
-	var tests = []StringTest{
+	cs := []StringTest{
 		{"", ""},
 		{"abc", "abc"},
 		{space + "abc" + space, "abc"},
@@ -164,11 +186,11 @@ func TestStrip(t *testing.T) {
 		{"x ☺ ", "x ☺"},
 	}
 
-	runStringTests(t, Strip, "Strip", tests)
+	runStringTests(t, Strip, "Strip", cs)
 }
 
 func TestStripLeft(t *testing.T) {
-	var tests = []StringTest{
+	cs := []StringTest{
 		{"", ""},
 		{"abc", "abc"},
 		{space + "abc" + space, "abc" + space},
@@ -187,11 +209,11 @@ func TestStripLeft(t *testing.T) {
 		{"x ☺ ", "x ☺ "},
 	}
 
-	runStringTests(t, StripLeft, "StripLeft", tests)
+	runStringTests(t, StripLeft, "StripLeft", cs)
 }
 
 func TestStripRight(t *testing.T) {
-	var tests = []StringTest{
+	cs := []StringTest{
 		{"", ""},
 		{"abc", "abc"},
 		{space + "abc" + space, space + "abc"},
@@ -210,7 +232,7 @@ func TestStripRight(t *testing.T) {
 		{" x ☺ ", " x ☺"},
 	}
 
-	runStringTests(t, StripRight, "StripRight", tests)
+	runStringTests(t, StripRight, "StripRight", cs)
 }
 
 func TestRuneCount(t *testing.T) {

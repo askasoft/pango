@@ -4,6 +4,8 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/askasoft/pango/asg"
 )
 
 // If return (b ? t : f)
@@ -306,6 +308,23 @@ func SnakeCaseWithRune(s string, d rune) string {
 		return s
 	}
 	return sb.String()
+}
+
+// Mask returns a string masked by ms[0] (default: '*').
+func Mask(s string, ms ...string) string {
+	m := asg.First(ms, "*")
+
+	n := RuneCount(s)
+	switch {
+	case n > 8:
+		return Left(s, 4) + Repeat(m, n-4)
+	case n > 6:
+		return Left(s, 3) + Repeat(m, n-3)
+	case n > 4:
+		return Left(s, 2) + Repeat(m, n-2)
+	default:
+		return Repeat("*", n)
+	}
 }
 
 // Strip returns a slice of the string s, with all leading

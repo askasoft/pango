@@ -97,15 +97,73 @@ func LogicEq(a, b any) (bool, error) {
 		nb, err := cas.ToFloat64(b)
 		return na == nb, err
 	default:
-		return false, fmt.Errorf("eq: unknown type for '%T'", a)
+		return false, fmt.Errorf("cal: Eq(==) unknown type for '%T'", a)
 	}
 }
 
 // LogicNeq returns the result of a != b
 func LogicNeq(a, b any) (r bool, err error) {
-	r, err = LogicEq(a, b)
-	r = !r
-	return
+	if a == b {
+		return false, nil
+	}
+
+	v, err := cast(a, b)
+	if err != nil {
+		return false, err
+	}
+
+	switch na := v.(type) {
+	case bool:
+		nb, err := cas.ToBool(b)
+		return na != nb, err
+	case time.Time:
+		nb, err := cas.ToTime(b)
+		return !na.Equal(nb), err
+	case time.Duration:
+		nb, err := cas.ToDuration(b)
+		return na != nb, err
+	case string:
+		nb, err := cas.ToString(b)
+		return na != nb, err
+	case int:
+		nb, err := cas.ToInt(b)
+		return na != nb, err
+	case int8:
+		nb, err := cas.ToInt8(b)
+		return na != nb, err
+	case int16:
+		nb, err := cas.ToInt16(b)
+		return na != nb, err
+	case int32:
+		nb, err := cas.ToInt32(b)
+		return na != nb, err
+	case int64:
+		nb, err := cas.ToInt64(b)
+		return na != nb, err
+	case uint:
+		nb, err := cas.ToUint(b)
+		return na != nb, err
+	case uint8:
+		nb, err := cas.ToUint8(b)
+		return na != nb, err
+	case uint16:
+		nb, err := cas.ToUint16(b)
+		return na != nb, err
+	case uint32:
+		nb, err := cas.ToUint32(b)
+		return na != nb, err
+	case uint64:
+		nb, err := cas.ToUint64(b)
+		return na != nb, err
+	case float32:
+		nb, err := cas.ToFloat32(b)
+		return na != nb, err
+	case float64:
+		nb, err := cas.ToFloat64(b)
+		return na != nb, err
+	default:
+		return false, fmt.Errorf("cal: Neq(!=) unknown type for '%T'", a)
+	}
 }
 
 // LogicGt returns the result of a > b
@@ -162,7 +220,7 @@ func LogicGt(a, b any) (bool, error) {
 		nb, err := cas.ToFloat64(b)
 		return na > nb, err
 	default:
-		return false, fmt.Errorf("gt: unknown type for '%T'", a)
+		return false, fmt.Errorf("cal: Gt(>) unknown type for '%T'", a)
 	}
 }
 
@@ -220,7 +278,7 @@ func LogicGte(a, b any) (bool, error) {
 		nb, err := cas.ToFloat64(b)
 		return na >= nb, err
 	default:
-		return false, fmt.Errorf("gte: unknown type for '%T'", a)
+		return false, fmt.Errorf("cal: Gte(>=) unknown type for '%T'", a)
 	}
 }
 
@@ -278,7 +336,7 @@ func LogicLt(a, b any) (bool, error) {
 		nb, err := cas.ToFloat64(b)
 		return na < nb, err
 	default:
-		return false, fmt.Errorf("lt: unknown type for '%T'", a)
+		return false, fmt.Errorf("cal: Lt(<) unknown type for '%T'", a)
 	}
 }
 
@@ -336,6 +394,6 @@ func LogicLte(a, b any) (bool, error) {
 		nb, err := cas.ToFloat64(b)
 		return na <= nb, err
 	default:
-		return false, fmt.Errorf("lte: unknown type for '%T'", a)
+		return false, fmt.Errorf("cal: Lte(<=) unknown type for '%T'", a)
 	}
 }

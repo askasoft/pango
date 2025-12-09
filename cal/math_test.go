@@ -246,7 +246,7 @@ var subTests = []struct {
 	{int(1), uint64(1<<64 - 1), int(1) - int(-1), nil},
 	{int(1), float32(0.1), float32(1) - float32(0.1), nil},
 	{int(1), float64(0.1), float64(1) - float64(0.1), nil},
-	{int(1), "2", "12", errors.New("subtract: unsupported type for 'string'")},
+	{int(1), "2", "12", errors.New("cal: Sub(-) unsupported type for 'string'")},
 
 	{int8(1), int(2), int(1) - int(2), nil},
 	{int8(1), int8(2), int8(1) - int8(2), nil},
@@ -260,7 +260,7 @@ var subTests = []struct {
 	{int8(1), uint64(1<<64 - 1), sub(uint64(1), uint64(1<<64-1)), nil},
 	{int8(1), float32(0.1), float32(1) - float32(0.1), nil},
 	{int8(1), float64(0.1), float64(1) - float64(0.1), nil},
-	{int8(1), "2", "12", errors.New("subtract: unsupported type for 'string'")},
+	{int8(1), "2", "12", errors.New("cal: Sub(-) unsupported type for 'string'")},
 
 	{int16(1), int(2), int(1) - int(2), nil},
 	{int16(1), int8(2), int16(1) - int16(2), nil},
@@ -274,7 +274,7 @@ var subTests = []struct {
 	{int16(1), uint64(1<<64 - 1), sub(uint64(1), uint64(1<<64-1)), nil},
 	{int16(1), float32(0.1), float32(1) - float32(0.1), nil},
 	{int16(1), float64(0.1), float64(1) - float64(0.1), nil},
-	{int16(1), "2", "12", errors.New("subtract: unsupported type for 'string'")},
+	{int16(1), "2", "12", errors.New("cal: Sub(-) unsupported type for 'string'")},
 
 	{int32(1), int(2), int(1) - int(2), nil},
 	{int32(1), int8(2), int32(1) - int32(2), nil},
@@ -288,7 +288,7 @@ var subTests = []struct {
 	{int32(1), uint64(1<<64 - 1), sub(uint64(1), uint64(1<<64-1)), nil},
 	{int32(1), float32(0.1), float32(1) - float32(0.1), nil},
 	{int32(1), float64(0.1), float64(1) - float64(0.1), nil},
-	{int32(1), "2", "12", errors.New("subtract: unsupported type for 'string'")},
+	{int32(1), "2", "12", errors.New("cal: Sub(-) unsupported type for 'string'")},
 
 	{int64(1), int(2), int64(1) - int64(2), nil},
 	{int64(1), int8(2), int64(1) - int64(2), nil},
@@ -302,7 +302,7 @@ var subTests = []struct {
 	{int64(1), uint64(1<<64 - 1), sub(int64(1), int64(-1)), nil},
 	{int64(1), float32(0.1), float32(1) - float32(0.1), nil},
 	{int64(1), float64(0.1), float64(1) - float64(0.1), nil},
-	{int64(1), "2", "12", errors.New("subtract: unsupported type for 'string'")},
+	{int64(1), "2", "12", errors.New("cal: Sub(-) unsupported type for 'string'")},
 
 	{uint(1), int(2), int(1) - int(2), nil},
 	{uint(1), int8(2), sub(uint(1), uint(2)), nil},
@@ -316,7 +316,7 @@ var subTests = []struct {
 	{uint(1), uint64(1<<64 - 1), sub(uint(1), uint(1<<64-1)), nil},
 	{uint(1), float32(0.1), float32(1) - float32(0.1), nil},
 	{uint(1), float64(0.1), float64(1) - float64(0.1), nil},
-	{uint(1), "2", "12", errors.New("subtract: unsupported type for 'string'")},
+	{uint(1), "2", "12", errors.New("cal: Sub(-) unsupported type for 'string'")},
 
 	{uint8(1), int(2), int(1) - int(2), nil},
 	{uint8(1), int8(2), int8(1) - int8(2), nil},
@@ -330,7 +330,7 @@ var subTests = []struct {
 	{uint8(1), uint64(1<<64 - 1), sub(uint64(1), uint64(1<<64-1)), nil},
 	{uint8(1), float32(0.1), float32(1) - float32(0.1), nil},
 	{uint8(1), float64(0.1), float64(1) - float64(0.1), nil},
-	{uint8(1), "2", "12", errors.New("subtract: unsupported type for 'string'")},
+	{uint8(1), "2", "12", errors.New("cal: Sub(-) unsupported type for 'string'")},
 
 	{uint16(1), int(2), int(1) - int(2), nil},
 	{uint16(1), int8(2), sub(uint16(1), uint16(2)), nil},
@@ -344,7 +344,7 @@ var subTests = []struct {
 	{uint16(1), uint64(1<<64 - 1), sub(uint64(1), uint64(1<<64-1)), nil},
 	{uint16(1), float32(0.1), float32(1) - float32(0.1), nil},
 	{uint16(1), float64(0.1), float64(1) - float64(0.1), nil},
-	{uint16(1), "2", "12", errors.New("subtract: unsupported type for 'string'")},
+	{uint16(1), "2", "12", errors.New("cal: Sub(-) unsupported type for 'string'")},
 
 	{uint32(1), int(2), int(1) - int(2), nil},
 	{uint32(1), int8(2), sub(uint32(1), uint32(2)), nil},
@@ -358,7 +358,7 @@ var subTests = []struct {
 	{uint32(1), uint64(1<<64 - 1), sub(uint64(1), uint64(1<<64-1)), nil},
 	{uint32(1), float32(0.1), float32(1) - float32(0.1), nil},
 	{uint32(1), float64(0.1), float64(1) - float64(0.1), nil},
-	{uint32(1), "2", "12", errors.New("subtract: unsupported type for 'string'")},
+	{uint32(1), "2", "12", errors.New("cal: Sub(-) unsupported type for 'string'")},
 
 	{uint64(1), int(2), int(1) - int(2), nil},
 	{uint64(1), int8(2), sub(uint64(1), uint64(2)), nil},
@@ -372,7 +372,7 @@ var subTests = []struct {
 	{uint64(1), uint64(1<<64 - 1), sub(uint64(1), uint64(1<<64-1)), nil},
 	{uint64(1), float32(0.1), float32(1) - float32(0.1), nil},
 	{uint64(1), float64(0.1), float64(1) - float64(0.1), nil},
-	{uint64(1), "2", "12", errors.New("subtract: unsupported type for 'string'")},
+	{uint64(1), "2", "12", errors.New("cal: Sub(-) unsupported type for 'string'")},
 
 	{float32(1), int(2), float32(1) - float32(2), nil},
 	{float32(1), int8(2), float32(1) - float32(2), nil},
@@ -386,7 +386,7 @@ var subTests = []struct {
 	{float32(1), uint64(1<<64 - 1), sub(float32(1), float32(1<<64-1)), nil},
 	{float32(1), float32(0.1), float32(1) - float32(0.1), nil},
 	{float32(1), float64(0.1), float64(1) - float64(0.1), nil},
-	{float32(1), "2", "12", errors.New("subtract: unsupported type for 'string'")},
+	{float32(1), "2", "12", errors.New("cal: Sub(-) unsupported type for 'string'")},
 
 	{float64(1), int(2), float64(1) - float64(2), nil},
 	{float64(1), int8(2), float64(1) - float64(2), nil},
@@ -400,21 +400,21 @@ var subTests = []struct {
 	{float64(1), uint64(1<<64 - 1), sub(float64(1), float64(1<<64-1)), nil},
 	{float64(1), float32(0.1), float64(1) - float64(float32(0.1)), nil},
 	{float64(1), float64(0.1), float64(1) - float64(0.1), nil},
-	{float64(1), "2", "12", errors.New("subtract: unsupported type for 'string'")},
+	{float64(1), "2", "12", errors.New("cal: Sub(-) unsupported type for 'string'")},
 
-	{"1", int(2), "12", errors.New("subtract: unsupported type for 'string'")},
-	{"1", int8(2), "12", errors.New("subtract: unsupported type for 'string'")},
-	{"1", int16(2), "12", errors.New("subtract: unsupported type for 'string'")},
-	{"1", int32(2), "12", errors.New("subtract: unsupported type for 'string'")},
-	{"1", int64(2), "12", errors.New("subtract: unsupported type for 'string'")},
-	{"1", uint(2), "12", errors.New("subtract: unsupported type for 'string'")},
-	{"1", uint8(2), "12", errors.New("subtract: unsupported type for 'string'")},
-	{"1", uint16(2), "12", errors.New("subtract: unsupported type for 'string'")},
-	{"1", uint32(2), "12", errors.New("subtract: unsupported type for 'string'")},
-	{"1", uint64(2), "12", errors.New("subtract: unsupported type for 'string'")},
-	{"1", float32(-1), "1-1", errors.New("subtract: unsupported type for 'string'")},
-	{"1", float64(-1), "1-1", errors.New("subtract: unsupported type for 'string'")},
-	{"1", "2", "12", errors.New("subtract: unsupported type for 'string'")},
+	{"1", int(2), "12", errors.New("cal: Sub(-) unsupported type for 'string'")},
+	{"1", int8(2), "12", errors.New("cal: Sub(-) unsupported type for 'string'")},
+	{"1", int16(2), "12", errors.New("cal: Sub(-) unsupported type for 'string'")},
+	{"1", int32(2), "12", errors.New("cal: Sub(-) unsupported type for 'string'")},
+	{"1", int64(2), "12", errors.New("cal: Sub(-) unsupported type for 'string'")},
+	{"1", uint(2), "12", errors.New("cal: Sub(-) unsupported type for 'string'")},
+	{"1", uint8(2), "12", errors.New("cal: Sub(-) unsupported type for 'string'")},
+	{"1", uint16(2), "12", errors.New("cal: Sub(-) unsupported type for 'string'")},
+	{"1", uint32(2), "12", errors.New("cal: Sub(-) unsupported type for 'string'")},
+	{"1", uint64(2), "12", errors.New("cal: Sub(-) unsupported type for 'string'")},
+	{"1", float32(-1), "1-1", errors.New("cal: Sub(-) unsupported type for 'string'")},
+	{"1", float64(-1), "1-1", errors.New("cal: Sub(-) unsupported type for 'string'")},
+	{"1", "2", "12", errors.New("cal: Sub(-) unsupported type for 'string'")},
 }
 
 func TestSub(t *testing.T) {
@@ -460,7 +460,7 @@ func TestNegate(t *testing.T) {
 		{"float64", float64(2.718), float64(-2.718), nil},
 
 		// Unknown type
-		{"string", "hello", "hello", errors.New("negate: unsupported type for 'string'")},
+		{"string", "hello", "hello", errors.New("cal: Negate(-) unsupported type for 'string'")},
 		{"nil", nil, nil, nil},
 	}
 
@@ -496,7 +496,7 @@ var mulTests = []struct {
 	{int(1), uint64(1<<64 - 1), int(1) * int(-1), nil},
 	{int(1), float32(0.1), float32(1) * float32(0.1), nil},
 	{int(1), float64(0.1), float64(1) * float64(0.1), nil},
-	{int(1), "2", "12", errors.New("multiply: unsupported type for 'string'")},
+	{int(1), "2", "12", errors.New("cal: Multiply(*) unsupported type for 'string'")},
 
 	{int8(1), int(2), int(1) * int(2), nil},
 	{int8(1), int8(2), int8(1) * int8(2), nil},
@@ -510,7 +510,7 @@ var mulTests = []struct {
 	{int8(1), uint64(1<<64 - 1), mul(uint64(1), uint64(1<<64-1)), nil},
 	{int8(1), float32(0.1), float32(1) * float32(0.1), nil},
 	{int8(1), float64(0.1), float64(1) * float64(0.1), nil},
-	{int8(1), "2", "12", errors.New("multiply: unsupported type for 'string'")},
+	{int8(1), "2", "12", errors.New("cal: Multiply(*) unsupported type for 'string'")},
 
 	{int16(1), int(2), int(1) * int(2), nil},
 	{int16(1), int8(2), int16(1) * int16(2), nil},
@@ -524,7 +524,7 @@ var mulTests = []struct {
 	{int16(1), uint64(1<<64 - 1), mul(uint64(1), uint64(1<<64-1)), nil},
 	{int16(1), float32(0.1), float32(1) * float32(0.1), nil},
 	{int16(1), float64(0.1), float64(1) * float64(0.1), nil},
-	{int16(1), "2", "12", errors.New("multiply: unsupported type for 'string'")},
+	{int16(1), "2", "12", errors.New("cal: Multiply(*) unsupported type for 'string'")},
 
 	{int32(1), int(2), int(1) * int(2), nil},
 	{int32(1), int8(2), int32(1) * int32(2), nil},
@@ -538,7 +538,7 @@ var mulTests = []struct {
 	{int32(1), uint64(1<<64 - 1), mul(uint64(1), uint64(1<<64-1)), nil},
 	{int32(1), float32(0.1), float32(1) * float32(0.1), nil},
 	{int32(1), float64(0.1), float64(1) * float64(0.1), nil},
-	{int32(1), "2", "12", errors.New("multiply: unsupported type for 'string'")},
+	{int32(1), "2", "12", errors.New("cal: Multiply(*) unsupported type for 'string'")},
 
 	{int64(1), int(2), int64(1) * int64(2), nil},
 	{int64(1), int8(2), int64(1) * int64(2), nil},
@@ -552,7 +552,7 @@ var mulTests = []struct {
 	{int64(1), uint64(1<<64 - 1), mul(int64(1), int64(-1)), nil},
 	{int64(1), float32(0.1), float32(1) * float32(0.1), nil},
 	{int64(1), float64(0.1), float64(1) * float64(0.1), nil},
-	{int64(1), "2", "12", errors.New("multiply: unsupported type for 'string'")},
+	{int64(1), "2", "12", errors.New("cal: Multiply(*) unsupported type for 'string'")},
 
 	{uint(1), int(2), int(1) * int(2), nil},
 	{uint(1), int8(2), mul(uint(1), uint(2)), nil},
@@ -566,7 +566,7 @@ var mulTests = []struct {
 	{uint(1), uint64(1<<64 - 1), mul(uint(1), uint(1<<64-1)), nil},
 	{uint(1), float32(0.1), float32(1) * float32(0.1), nil},
 	{uint(1), float64(0.1), float64(1) * float64(0.1), nil},
-	{uint(1), "2", "12", errors.New("multiply: unsupported type for 'string'")},
+	{uint(1), "2", "12", errors.New("cal: Multiply(*) unsupported type for 'string'")},
 
 	{uint8(1), int(2), int(1) * int(2), nil},
 	{uint8(1), int8(2), int8(1) * int8(2), nil},
@@ -580,7 +580,7 @@ var mulTests = []struct {
 	{uint8(1), uint64(1<<64 - 1), mul(uint64(1), uint64(1<<64-1)), nil},
 	{uint8(1), float32(0.1), float32(1) * float32(0.1), nil},
 	{uint8(1), float64(0.1), float64(1) * float64(0.1), nil},
-	{uint8(1), "2", "12", errors.New("multiply: unsupported type for 'string'")},
+	{uint8(1), "2", "12", errors.New("cal: Multiply(*) unsupported type for 'string'")},
 
 	{uint16(1), int(2), int(1) * int(2), nil},
 	{uint16(1), int8(2), mul(uint16(1), uint16(2)), nil},
@@ -594,7 +594,7 @@ var mulTests = []struct {
 	{uint16(1), uint64(1<<64 - 1), mul(uint64(1), uint64(1<<64-1)), nil},
 	{uint16(1), float32(0.1), float32(1) * float32(0.1), nil},
 	{uint16(1), float64(0.1), float64(1) * float64(0.1), nil},
-	{uint16(1), "2", "12", errors.New("multiply: unsupported type for 'string'")},
+	{uint16(1), "2", "12", errors.New("cal: Multiply(*) unsupported type for 'string'")},
 
 	{uint32(1), int(2), int(1) * int(2), nil},
 	{uint32(1), int8(2), mul(uint32(1), uint32(2)), nil},
@@ -608,7 +608,7 @@ var mulTests = []struct {
 	{uint32(1), uint64(1<<64 - 1), mul(uint64(1), uint64(1<<64-1)), nil},
 	{uint32(1), float32(0.1), float32(1) * float32(0.1), nil},
 	{uint32(1), float64(0.1), float64(1) * float64(0.1), nil},
-	{uint32(1), "2", "12", errors.New("multiply: unsupported type for 'string'")},
+	{uint32(1), "2", "12", errors.New("cal: Multiply(*) unsupported type for 'string'")},
 
 	{uint64(1), int(2), int(1) * int(2), nil},
 	{uint64(1), int8(2), mul(uint64(1), uint64(2)), nil},
@@ -622,7 +622,7 @@ var mulTests = []struct {
 	{uint64(1), uint64(1<<64 - 1), mul(uint64(1), uint64(1<<64-1)), nil},
 	{uint64(1), float32(0.1), float32(1) * float32(0.1), nil},
 	{uint64(1), float64(0.1), float64(1) * float64(0.1), nil},
-	{uint64(1), "2", "12", errors.New("multiply: unsupported type for 'string'")},
+	{uint64(1), "2", "12", errors.New("cal: Multiply(*) unsupported type for 'string'")},
 
 	{float32(1), int(2), float32(1) * float32(2), nil},
 	{float32(1), int8(2), float32(1) * float32(2), nil},
@@ -636,7 +636,7 @@ var mulTests = []struct {
 	{float32(1), uint64(1<<64 - 1), mul(float32(1), float32(1<<64-1)), nil},
 	{float32(1), float32(0.1), float32(1) * float32(0.1), nil},
 	{float32(1), float64(0.1), float64(1) * float64(0.1), nil},
-	{float32(1), "2", "12", errors.New("multiply: unsupported type for 'string'")},
+	{float32(1), "2", "12", errors.New("cal: Multiply(*) unsupported type for 'string'")},
 
 	{float64(1), int(2), float64(1) * float64(2), nil},
 	{float64(1), int8(2), float64(1) * float64(2), nil},
@@ -650,21 +650,21 @@ var mulTests = []struct {
 	{float64(1), uint64(1<<64 - 1), mul(float64(1), float64(1<<64-1)), nil},
 	{float64(1), float32(0.1), float64(1) * float64(float32(0.1)), nil},
 	{float64(1), float64(0.1), float64(1) * float64(0.1), nil},
-	{float64(1), "2", "12", errors.New("multiply: unsupported type for 'string'")},
+	{float64(1), "2", "12", errors.New("cal: Multiply(*) unsupported type for 'string'")},
 
-	{"1", int(2), "12", errors.New("multiply: unsupported type for 'string'")},
-	{"1", int8(2), "12", errors.New("multiply: unsupported type for 'string'")},
-	{"1", int16(2), "12", errors.New("multiply: unsupported type for 'string'")},
-	{"1", int32(2), "12", errors.New("multiply: unsupported type for 'string'")},
-	{"1", int64(2), "12", errors.New("multiply: unsupported type for 'string'")},
-	{"1", uint(2), "12", errors.New("multiply: unsupported type for 'string'")},
-	{"1", uint8(2), "12", errors.New("multiply: unsupported type for 'string'")},
-	{"1", uint16(2), "12", errors.New("multiply: unsupported type for 'string'")},
-	{"1", uint32(2), "12", errors.New("multiply: unsupported type for 'string'")},
-	{"1", uint64(2), "12", errors.New("multiply: unsupported type for 'string'")},
-	{"1", float32(-1), "1-1", errors.New("multiply: unsupported type for 'string'")},
-	{"1", float64(-1), "1-1", errors.New("multiply: unsupported type for 'string'")},
-	{"1", "2", "12", errors.New("multiply: unsupported type for 'string'")},
+	{"1", int(2), "12", errors.New("cal: Multiply(*) unsupported type for 'string'")},
+	{"1", int8(2), "12", errors.New("cal: Multiply(*) unsupported type for 'string'")},
+	{"1", int16(2), "12", errors.New("cal: Multiply(*) unsupported type for 'string'")},
+	{"1", int32(2), "12", errors.New("cal: Multiply(*) unsupported type for 'string'")},
+	{"1", int64(2), "12", errors.New("cal: Multiply(*) unsupported type for 'string'")},
+	{"1", uint(2), "12", errors.New("cal: Multiply(*) unsupported type for 'string'")},
+	{"1", uint8(2), "12", errors.New("cal: Multiply(*) unsupported type for 'string'")},
+	{"1", uint16(2), "12", errors.New("cal: Multiply(*) unsupported type for 'string'")},
+	{"1", uint32(2), "12", errors.New("cal: Multiply(*) unsupported type for 'string'")},
+	{"1", uint64(2), "12", errors.New("cal: Multiply(*) unsupported type for 'string'")},
+	{"1", float32(-1), "1-1", errors.New("cal: Multiply(*) unsupported type for 'string'")},
+	{"1", float64(-1), "1-1", errors.New("cal: Multiply(*) unsupported type for 'string'")},
+	{"1", "2", "12", errors.New("cal: Multiply(*) unsupported type for 'string'")},
 }
 
 func TestMultiply(t *testing.T) {
@@ -700,7 +700,7 @@ var divTests = []struct {
 	{int(1), uint64(1<<64 - 1), int(1) / int(-1), nil},
 	{int(1), float32(0.1), float32(1) / float32(0.1), nil},
 	{int(1), float64(0.1), float64(1) / float64(0.1), nil},
-	{int(1), "2", "12", errors.New("divide: unsupported type for 'string'")},
+	{int(1), "2", "12", errors.New("cal: Divide(/) unsupported type for 'string'")},
 
 	{int8(1), int(2), int(1) / int(2), nil},
 	{int8(1), int8(2), int8(1) / int8(2), nil},
@@ -714,7 +714,7 @@ var divTests = []struct {
 	{int8(1), uint64(1<<64 - 1), div(uint64(1), uint64(1<<64-1)), nil},
 	{int8(1), float32(0.1), float32(1) / float32(0.1), nil},
 	{int8(1), float64(0.1), float64(1) / float64(0.1), nil},
-	{int8(1), "2", "12", errors.New("divide: unsupported type for 'string'")},
+	{int8(1), "2", "12", errors.New("cal: Divide(/) unsupported type for 'string'")},
 
 	{int16(1), int(2), int(1) / int(2), nil},
 	{int16(1), int8(2), int16(1) / int16(2), nil},
@@ -728,7 +728,7 @@ var divTests = []struct {
 	{int16(1), uint64(1<<64 - 1), div(uint64(1), uint64(1<<64-1)), nil},
 	{int16(1), float32(0.1), float32(1) / float32(0.1), nil},
 	{int16(1), float64(0.1), float64(1) / float64(0.1), nil},
-	{int16(1), "2", "12", errors.New("divide: unsupported type for 'string'")},
+	{int16(1), "2", "12", errors.New("cal: Divide(/) unsupported type for 'string'")},
 
 	{int32(1), int(2), int(1) / int(2), nil},
 	{int32(1), int8(2), int32(1) / int32(2), nil},
@@ -742,7 +742,7 @@ var divTests = []struct {
 	{int32(1), uint64(1<<64 - 1), div(uint64(1), uint64(1<<64-1)), nil},
 	{int32(1), float32(0.1), float32(1) / float32(0.1), nil},
 	{int32(1), float64(0.1), float64(1) / float64(0.1), nil},
-	{int32(1), "2", "12", errors.New("divide: unsupported type for 'string'")},
+	{int32(1), "2", "12", errors.New("cal: Divide(/) unsupported type for 'string'")},
 
 	{int64(1), int(2), int64(1) / int64(2), nil},
 	{int64(1), int8(2), int64(1) / int64(2), nil},
@@ -756,7 +756,7 @@ var divTests = []struct {
 	{int64(1), uint64(1<<64 - 1), div(int64(1), int64(-1)), nil},
 	{int64(1), float32(0.1), float32(1) / float32(0.1), nil},
 	{int64(1), float64(0.1), float64(1) / float64(0.1), nil},
-	{int64(1), "2", "12", errors.New("divide: unsupported type for 'string'")},
+	{int64(1), "2", "12", errors.New("cal: Divide(/) unsupported type for 'string'")},
 
 	{uint(1), int(2), int(1) / int(2), nil},
 	{uint(1), int8(2), div(uint(1), uint(2)), nil},
@@ -770,7 +770,7 @@ var divTests = []struct {
 	{uint(1), uint64(1<<64 - 1), div(uint(1), uint(1<<64-1)), nil},
 	{uint(1), float32(0.1), float32(1) / float32(0.1), nil},
 	{uint(1), float64(0.1), float64(1) / float64(0.1), nil},
-	{uint(1), "2", "12", errors.New("divide: unsupported type for 'string'")},
+	{uint(1), "2", "12", errors.New("cal: Divide(/) unsupported type for 'string'")},
 
 	{uint8(1), int(2), int(1) / int(2), nil},
 	{uint8(1), int8(2), int8(1) / int8(2), nil},
@@ -784,7 +784,7 @@ var divTests = []struct {
 	{uint8(1), uint64(1<<64 - 1), div(uint64(1), uint64(1<<64-1)), nil},
 	{uint8(1), float32(0.1), float32(1) / float32(0.1), nil},
 	{uint8(1), float64(0.1), float64(1) / float64(0.1), nil},
-	{uint8(1), "2", "12", errors.New("divide: unsupported type for 'string'")},
+	{uint8(1), "2", "12", errors.New("cal: Divide(/) unsupported type for 'string'")},
 
 	{uint16(1), int(2), int(1) / int(2), nil},
 	{uint16(1), int8(2), div(uint16(1), uint16(2)), nil},
@@ -798,7 +798,7 @@ var divTests = []struct {
 	{uint16(1), uint64(1<<64 - 1), div(uint64(1), uint64(1<<64-1)), nil},
 	{uint16(1), float32(0.1), float32(1) / float32(0.1), nil},
 	{uint16(1), float64(0.1), float64(1) / float64(0.1), nil},
-	{uint16(1), "2", "12", errors.New("divide: unsupported type for 'string'")},
+	{uint16(1), "2", "12", errors.New("cal: Divide(/) unsupported type for 'string'")},
 
 	{uint32(1), int(2), int(1) / int(2), nil},
 	{uint32(1), int8(2), div(uint32(1), uint32(2)), nil},
@@ -812,7 +812,7 @@ var divTests = []struct {
 	{uint32(1), uint64(1<<64 - 1), div(uint64(1), uint64(1<<64-1)), nil},
 	{uint32(1), float32(0.1), float32(1) / float32(0.1), nil},
 	{uint32(1), float64(0.1), float64(1) / float64(0.1), nil},
-	{uint32(1), "2", "12", errors.New("divide: unsupported type for 'string'")},
+	{uint32(1), "2", "12", errors.New("cal: Divide(/) unsupported type for 'string'")},
 
 	{uint64(1), int(2), int(1) / int(2), nil},
 	{uint64(1), int8(2), div(uint64(1), uint64(2)), nil},
@@ -826,7 +826,7 @@ var divTests = []struct {
 	{uint64(1), uint64(1<<64 - 1), div(uint64(1), uint64(1<<64-1)), nil},
 	{uint64(1), float32(0.1), float32(1) / float32(0.1), nil},
 	{uint64(1), float64(0.1), float64(1) / float64(0.1), nil},
-	{uint64(1), "2", "12", errors.New("divide: unsupported type for 'string'")},
+	{uint64(1), "2", "12", errors.New("cal: Divide(/) unsupported type for 'string'")},
 
 	{float32(1), int(2), float32(1) / float32(2), nil},
 	{float32(1), int8(2), float32(1) / float32(2), nil},
@@ -840,7 +840,7 @@ var divTests = []struct {
 	{float32(1), uint64(1<<64 - 1), div(float32(1), float32(1<<64-1)), nil},
 	{float32(1), float32(0.1), float32(1) / float32(0.1), nil},
 	{float32(1), float64(0.1), float64(1) / float64(0.1), nil},
-	{float32(1), "2", "12", errors.New("divide: unsupported type for 'string'")},
+	{float32(1), "2", "12", errors.New("cal: Divide(/) unsupported type for 'string'")},
 
 	{float64(1), int(2), float64(1) / float64(2), nil},
 	{float64(1), int8(2), float64(1) / float64(2), nil},
@@ -854,21 +854,22 @@ var divTests = []struct {
 	{float64(1), uint64(1<<64 - 1), div(float64(1), float64(1<<64-1)), nil},
 	{float64(1), float32(0.1), float64(1) / float64(float32(0.1)), nil},
 	{float64(1), float64(0.1), float64(1) / float64(0.1), nil},
-	{float64(1), "2", "12", errors.New("divide: unsupported type for 'string'")},
+	{float64(1), "2", "12", errors.New("cal: Divide(/) unsupported type for 'string'")},
 
-	{"1", int(2), "12", errors.New("divide: unsupported type for 'string'")},
-	{"1", int8(2), "12", errors.New("divide: unsupported type for 'string'")},
-	{"1", int16(2), "12", errors.New("divide: unsupported type for 'string'")},
-	{"1", int32(2), "12", errors.New("divide: unsupported type for 'string'")},
-	{"1", int64(2), "12", errors.New("divide: unsupported type for 'string'")},
-	{"1", uint(2), "12", errors.New("divide: unsupported type for 'string'")},
-	{"1", uint8(2), "12", errors.New("divide: unsupported type for 'string'")},
-	{"1", uint16(2), "12", errors.New("divide: unsupported type for 'string'")},
-	{"1", uint32(2), "12", errors.New("divide: unsupported type for 'string'")},
-	{"1", uint64(2), "12", errors.New("divide: unsupported type for 'string'")},
-	{"1", float32(-1), "1-1", errors.New("divide: unsupported type for 'string'")},
-	{"1", float64(-1), "1-1", errors.New("divide: unsupported type for 'string'")},
-	{"1", "2", "12", errors.New("divide: unsupported type for 'string'")},
+	{"1", int(2), "12", errors.New("cal: Divide(/) unsupported type for 'string'")},
+	{"1", int8(2), "12", errors.New("cal: Divide(/) unsupported type for 'string'")},
+	{"1", int16(2), "12", errors.New("cal: Divide(/) unsupported type for 'string'")},
+	{"1", int32(2), "12", errors.New("cal: Divide(/) unsupported type for 'string'")},
+	{"1", int64(2), "12", errors.New("cal: Divide(/) unsupported type for 'string'")},
+	{"1", uint(2), "12", errors.New("cal: Divide(/) unsupported type for 'string'")},
+	{"1", uint8(2), "12", errors.New("cal: Divide(/) unsupported type for 'string'")},
+	{"1", uint16(2), "12", errors.New("cal: Divide(/) unsupported type for 'string'")},
+	{"1", uint32(2), "12", errors.New("cal: Divide(/) unsupported type for 'string'")},
+	{"1", uint64(2), "12", errors.New("cal: Divide(/) unsupported type for 'string'")},
+	{"1", float32(-1), "1-1", errors.New("cal: Divide(/) unsupported type for 'string'")},
+	{"1", float64(-1), "1-1", errors.New("cal: Divide(/) unsupported type for 'string'")},
+	{"1", "2", "12", errors.New("cal: Divide(/) unsupported type for 'string'")},
+	{float64(1), float64(0), 0, errDivideByZero},
 }
 
 func TestDivide(t *testing.T) {
@@ -904,7 +905,7 @@ var modTests = []struct {
 	// {int(9), uint64(1<<64 - 1), int(9) % int(-1), nil},
 	{int(9), float32(2), int64(9) % int64(2), nil},
 	{int(9), float64(2), int64(9) % int64(2), nil},
-	{int(9), "2", "12", errors.New("mod: unsupported type for 'string'")},
+	{int(9), "2", "12", errors.New("cal: Mod(%) unsupported type for 'string'")},
 
 	{int8(9), int(2), int(9) % int(2), nil},
 	{int8(9), int8(2), int8(9) % int8(2), nil},
@@ -918,7 +919,7 @@ var modTests = []struct {
 	{int8(9), uint64(1<<64 - 1), uint64(9) % uint64(1<<64-1), nil},
 	{int8(9), float32(2), int64(9) % int64(2), nil},
 	{int8(9), float64(2), int64(9) % int64(2), nil},
-	{int8(9), "2", "12", errors.New("mod: unsupported type for 'string'")},
+	{int8(9), "2", "12", errors.New("cal: Mod(%) unsupported type for 'string'")},
 
 	{int16(9), int(2), int(9) % int(2), nil},
 	{int16(9), int8(2), int16(9) % int16(2), nil},
@@ -932,7 +933,7 @@ var modTests = []struct {
 	{int16(9), uint64(1<<64 - 1), uint64(9) % uint64(1<<64-1), nil},
 	{int16(9), float32(2), int64(9) % int64(2), nil},
 	{int16(9), float64(2), int64(9) % int64(2), nil},
-	{int16(9), "2", "12", errors.New("mod: unsupported type for 'string'")},
+	{int16(9), "2", "12", errors.New("cal: Mod(%) unsupported type for 'string'")},
 
 	{int32(9), int(2), int(9) % int(2), nil},
 	{int32(9), int8(2), int32(9) % int32(2), nil},
@@ -946,7 +947,7 @@ var modTests = []struct {
 	{int32(9), uint64(1<<64 - 1), uint64(9) % uint64(1<<64-1), nil},
 	{int32(9), float32(2), int64(9) % int64(2), nil},
 	{int32(9), float64(2), int64(9) % int64(2), nil},
-	{int32(9), "2", "12", errors.New("mod: unsupported type for 'string'")},
+	{int32(9), "2", "12", errors.New("cal: Mod(%) unsupported type for 'string'")},
 
 	{int64(9), int(2), int64(9) % int64(2), nil},
 	{int64(9), int8(2), int64(9) % int64(2), nil},
@@ -960,7 +961,7 @@ var modTests = []struct {
 	{int64(9), uint64(1<<64 - 1), int64(9) % int64(-1), nil},
 	{int64(9), float32(2), int64(9) % int64(2), nil},
 	{int64(9), float64(2), int64(9) % int64(2), nil},
-	{int64(9), "2", "12", errors.New("mod: unsupported type for 'string'")},
+	{int64(9), "2", "12", errors.New("cal: Mod(%) unsupported type for 'string'")},
 
 	{uint(9), int(2), int(9) % int(2), nil},
 	{uint(9), int8(2), uint(9) % uint(2), nil},
@@ -974,7 +975,7 @@ var modTests = []struct {
 	{uint(9), uint64(1<<64 - 1), uint(9) % uint(1<<64-1), nil},
 	{uint(9), float32(2), int64(9) % int64(2), nil},
 	{uint(9), float64(2), int64(9) % int64(2), nil},
-	{uint(9), "2", "12", errors.New("mod: unsupported type for 'string'")},
+	{uint(9), "2", "12", errors.New("cal: Mod(%) unsupported type for 'string'")},
 
 	{uint8(9), int(2), int(9) % int(2), nil},
 	{uint8(9), int8(2), int8(9) % int8(2), nil},
@@ -988,7 +989,7 @@ var modTests = []struct {
 	{uint8(9), uint64(1<<64 - 1), uint64(9) % uint64(1<<64-1), nil},
 	{uint8(9), float32(2), int64(9) % int64(2), nil},
 	{uint8(9), float64(2), int64(9) % int64(2), nil},
-	{uint8(9), "2", "12", errors.New("mod: unsupported type for 'string'")},
+	{uint8(9), "2", "12", errors.New("cal: Mod(%) unsupported type for 'string'")},
 
 	{uint16(9), int(2), int(9) % int(2), nil},
 	{uint16(9), int8(2), uint16(9) % uint16(2), nil},
@@ -1002,7 +1003,7 @@ var modTests = []struct {
 	{uint16(9), uint64(1<<64 - 1), uint64(9) % uint64(1<<64-1), nil},
 	{uint16(9), float32(2), int64(9) % int64(2), nil},
 	{uint16(9), float64(2), int64(9) % int64(2), nil},
-	{uint16(9), "2", "12", errors.New("mod: unsupported type for 'string'")},
+	{uint16(9), "2", "12", errors.New("cal: Mod(%) unsupported type for 'string'")},
 
 	{uint32(9), int(2), int(9) % int(2), nil},
 	{uint32(9), int8(2), uint32(9) % uint32(2), nil},
@@ -1016,7 +1017,7 @@ var modTests = []struct {
 	{uint32(9), uint64(1<<64 - 1), uint64(9) % uint64(1<<64-1), nil},
 	{uint32(9), float32(2), int64(9) % int64(2), nil},
 	{uint32(9), float64(2), int64(9) % int64(2), nil},
-	{uint32(9), "2", "12", errors.New("mod: unsupported type for 'string'")},
+	{uint32(9), "2", "12", errors.New("cal: Mod(%) unsupported type for 'string'")},
 
 	{uint64(9), int(2), int(9) % int(2), nil},
 	{uint64(9), int8(2), uint64(9) % uint64(2), nil},
@@ -1030,7 +1031,7 @@ var modTests = []struct {
 	{uint64(9), uint64(1<<64 - 1), uint64(9) % uint64(1<<64-1), nil},
 	{uint64(9), float32(2), int64(9) % int64(2), nil},
 	{uint64(9), float64(2), int64(9) % int64(2), nil},
-	{uint64(9), "2", "12", errors.New("mod: unsupported type for 'string'")},
+	{uint64(9), "2", "12", errors.New("cal: Mod(%) unsupported type for 'string'")},
 
 	{float32(9), int(2), int64(9) % int64(2), nil},
 	{float32(9), int8(2), int64(9) % int64(2), nil},
@@ -1044,7 +1045,7 @@ var modTests = []struct {
 	{float32(9), uint64(2), int64(9) % int64(2), nil},
 	{float32(9), float32(2), int64(9) % int64(2), nil},
 	{float32(9), float64(2), int64(9) % int64(2), nil},
-	{float32(9), "2", "12", errors.New("mod: unsupported type for 'string'")},
+	{float32(9), "2", "12", errors.New("cal: Mod(%) unsupported type for 'string'")},
 
 	{float64(9), int(2), int64(9) % int64(2), nil},
 	{float64(9), int8(2), int64(9) % int64(2), nil},
@@ -1058,21 +1059,22 @@ var modTests = []struct {
 	{float64(9), uint64(2), int64(9) % int64(2), nil},
 	{float64(9), float32(2), int64(9) % int64(2), nil},
 	{float64(9), float64(2), int64(9) % int64(2), nil},
-	{float64(9), "2", "12", errors.New("mod: unsupported type for 'string'")},
+	{float64(9), "2", "12", errors.New("cal: Mod(%) unsupported type for 'string'")},
 
-	{"1", int(2), "12", errors.New("mod: unsupported type for 'string'")},
-	{"1", int8(2), "12", errors.New("mod: unsupported type for 'string'")},
-	{"1", int16(2), "12", errors.New("mod: unsupported type for 'string'")},
-	{"1", int32(2), "12", errors.New("mod: unsupported type for 'string'")},
-	{"1", int64(2), "12", errors.New("mod: unsupported type for 'string'")},
-	{"1", uint(2), "12", errors.New("mod: unsupported type for 'string'")},
-	{"1", uint8(2), "12", errors.New("mod: unsupported type for 'string'")},
-	{"1", uint16(2), "12", errors.New("mod: unsupported type for 'string'")},
-	{"1", uint32(2), "12", errors.New("mod: unsupported type for 'string'")},
-	{"1", uint64(2), "12", errors.New("mod: unsupported type for 'string'")},
-	{"1", float32(-1), "1-1", errors.New("mod: unsupported type for 'string'")},
-	{"1", float64(-1), "1-1", errors.New("mod: unsupported type for 'string'")},
-	{"1", "2", "12", errors.New("mod: unsupported type for 'string'")},
+	{"1", int(2), "12", errors.New("cal: Mod(%) unsupported type for 'string'")},
+	{"1", int8(2), "12", errors.New("cal: Mod(%) unsupported type for 'string'")},
+	{"1", int16(2), "12", errors.New("cal: Mod(%) unsupported type for 'string'")},
+	{"1", int32(2), "12", errors.New("cal: Mod(%) unsupported type for 'string'")},
+	{"1", int64(2), "12", errors.New("cal: Mod(%) unsupported type for 'string'")},
+	{"1", uint(2), "12", errors.New("cal: Mod(%) unsupported type for 'string'")},
+	{"1", uint8(2), "12", errors.New("cal: Mod(%) unsupported type for 'string'")},
+	{"1", uint16(2), "12", errors.New("cal: Mod(%) unsupported type for 'string'")},
+	{"1", uint32(2), "12", errors.New("cal: Mod(%) unsupported type for 'string'")},
+	{"1", uint64(2), "12", errors.New("cal: Mod(%) unsupported type for 'string'")},
+	{"1", float32(-1), "1-1", errors.New("cal: Mod(%) unsupported type for 'string'")},
+	{"1", float64(-1), "1-1", errors.New("cal: Mod(%) unsupported type for 'string'")},
+	{"1", "2", "12", errors.New("cal: Mod(%) unsupported type for 'string'")},
+	{int(9), 0, 0, errModByZero},
 }
 
 func TestMod(t *testing.T) {

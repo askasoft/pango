@@ -30,7 +30,7 @@ func BitNot(a any) (any, error) {
 	case uint64:
 		return ^na, nil
 	default:
-		return a, fmt.Errorf("BitNot: unknown type for '%T'", a)
+		return a, fmt.Errorf("cal: BitNot(^) unknown type for '%T'", a)
 	}
 }
 
@@ -80,7 +80,7 @@ func BitAnd(a, b any) (any, error) {
 		nb, err := cas.ToUint64(b)
 		return na & nb, err
 	default:
-		return a, fmt.Errorf("BitAnd: unknown type for '%T'", a)
+		return a, fmt.Errorf("cal: BitAnd(&) unknown type for '%T'", a)
 	}
 }
 
@@ -130,7 +130,7 @@ func BitOr(a, b any) (any, error) {
 		nb, err := cas.ToUint64(b)
 		return na | nb, err
 	default:
-		return a, fmt.Errorf("BitOr: unknown type for '%T'", a)
+		return a, fmt.Errorf("cal: BitOr(|) unknown type for '%T'", a)
 	}
 }
 
@@ -180,7 +180,7 @@ func BitXor(a, b any) (any, error) {
 		nb, err := cas.ToUint64(b)
 		return na ^ nb, err
 	default:
-		return a, fmt.Errorf("BitXor: unknown type for '%T'", a)
+		return a, fmt.Errorf("cal: BitXor(^) unknown type for '%T'", a)
 	}
 }
 
@@ -218,7 +218,7 @@ func BitLeft(a, b any) (any, error) {
 		nb, err := cas.ToUint64(b)
 		return na << nb, err
 	default:
-		return a, fmt.Errorf("BitLeft: unknown type for '%T'", a)
+		return a, fmt.Errorf("cal: BitLeft(<<) unknown type for '%T'", a)
 	}
 }
 
@@ -256,6 +256,6 @@ func BitRight(a, b any) (any, error) {
 		nb, err := cas.ToUint64(b)
 		return na >> nb, err
 	default:
-		return a, fmt.Errorf("BitRight: unknown type for '%T'", a)
+		return a, fmt.Errorf("cal: BitRight(>>) unknown type for '%T'", a)
 	}
 }

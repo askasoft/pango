@@ -57,17 +57,17 @@ func ArrayGet(a any, idxs ...int) (any, error) {
 // ArraySet set value to the array or slice by index
 func ArraySet(a any, i int, v any) (any, error) {
 	av := reflect.ValueOf(a)
-	at := av.Type()
 
-	switch at.Kind() {
+	switch av.Kind() {
 	case reflect.Slice, reflect.Array:
 		if i < 0 || i > av.Len() {
 			return nil, fmt.Errorf("ref: index %d out of bounds [0:%d]", i, av.Len())
 		}
 
+		et := av.Type().Elem()
 		vv := reflect.ValueOf(v)
-		if vv.Type() != at.Elem() {
-			cv, err := CastTo(v, at.Elem())
+		if vv.Type() != et {
+			cv, err := CastTo(v, et)
 			if err != nil {
 				return nil, err
 			}
@@ -85,19 +85,19 @@ func ArraySet(a any, i int, v any) (any, error) {
 // SliceAdd add values to the slice
 func SliceAdd(a any, vs ...any) (any, error) {
 	av := reflect.ValueOf(a)
-	at := av.Type()
 
-	switch at.Kind() {
+	switch av.Kind() {
 	case reflect.Slice:
 		if len(vs) == 0 {
 			return a, nil
 		}
 
+		et := av.Type().Elem()
 		rvs := make([]reflect.Value, len(vs))
 		for i, v := range vs {
 			vv := reflect.ValueOf(v)
-			if vv.Type() != at.Elem() {
-				cv, err := CastTo(v, at.Elem())
+			if vv.Type() != et {
+				cv, err := CastTo(v, et)
 				if err != nil {
 					return nil, err
 				}

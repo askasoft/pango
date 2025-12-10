@@ -243,6 +243,18 @@ func TestLogical(t *testing.T) {
 	testCalculate1(t, cs)
 }
 
+func TestLogical2(t *testing.T) {
+	cs := []testcase2{
+		{true, `true || a != nil`, nil},
+		{true, `true || 1 / 0 > 0`, nil},
+		{true, `true || 1 / 0 > 0 || 2 / 0 > 0`, nil},
+		{true, `true && a == nil`, nil},
+		{false, `false && 1 / 0 > 0`, nil},
+		{false, `false && 1 / 0 > 0 && 2 / 0 > 0`, nil},
+	}
+	testCalculate2(t, cs)
+}
+
 func TestTernary(t *testing.T) {
 	cs := []testcase1{
 		{2, "1>0?2:3"},

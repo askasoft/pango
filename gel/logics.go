@@ -51,12 +51,20 @@ func (la *logicAnd) Priority() int {
 }
 
 func (la *logicAnd) Calculate(ec elCtx) (any, error) {
-	lval, rval, err := la.calcLeftRight(ec)
+	lval, err := la.calcLeft(ec)
 	if err != nil {
-		return nil, err
+		return false, err
+	}
+	if ref.IsZero(lval) {
+		return false, nil
 	}
 
-	return cal.LogicAnd(lval, rval), nil
+	rval, err := la.calcRight(ec)
+	if err != nil {
+		return false, err
+	}
+
+	return !ref.IsZero(rval), nil
 }
 
 type logicOr struct {
@@ -76,12 +84,20 @@ func (lo *logicOr) Priority() int {
 }
 
 func (lo *logicOr) Calculate(ec elCtx) (any, error) {
-	lval, rval, err := lo.calcLeftRight(ec)
+	lval, err := lo.calcLeft(ec)
 	if err != nil {
-		return nil, err
+		return false, err
+	}
+	if !ref.IsZero(lval) {
+		return true, nil
 	}
 
-	return cal.LogicOr(lval, rval), nil
+	rval, err := lo.calcRight(ec)
+	if err != nil {
+		return false, err
+	}
+
+	return !ref.IsZero(rval), nil
 }
 
 type logicNilable struct {

@@ -662,6 +662,10 @@ func TestCutAt(t *testing.T) {
 		{"abc", 1, "a", "bc"},
 		{"abc", 2, "ab", "c"},
 		{"abc", 3, "abc", ""},
+		{"abc", -1, "ab", "c"},
+		{"abc", -2, "a", "bc"},
+		{"abc", -3, "", "abc"},
+		{"abc", -4, "", "abc"},
 		{"１２３４５", 0, "", "１２３４５"},
 		{"１２３４５", 1, "１", "２３４５"},
 		{"１２３４５", 2, "１２", "３４５"},
@@ -669,6 +673,12 @@ func TestCutAt(t *testing.T) {
 		{"１２３４５", 4, "１２３４", "５"},
 		{"１２３４５", 5, "１２３４５", ""},
 		{"１２３４５", 6, "１２３４５", ""},
+		{"１２３４５", -1, "１２３４", "５"},
+		{"１２３４５", -2, "１２３", "４５"},
+		{"１２３４５", -3, "１２", "３４５"},
+		{"１２３４５", -4, "１", "２３４５"},
+		{"１２３４５", -5, "", "１２３４５"},
+		{"１２３４５", -6, "", "１２３４５"},
 	}
 
 	for _, tt := range cutTests {
@@ -736,7 +746,7 @@ func TestRight(t *testing.T) {
 	}
 }
 
-func TestMid(t *testing.T) {
+func TestSubstr(t *testing.T) {
 	cs := []struct {
 		s    string
 		p, n int
@@ -747,6 +757,8 @@ func TestMid(t *testing.T) {
 		{"abc", 1, 1, "b"},
 		{"abc", 2, 2, "c"},
 		{"abc", 3, 1, ""},
+		{"abc", -1, 1, "c"},
+		{"abc", -1, 2, "c"},
 		{"１２３４５", 0, 0, ""},
 		{"１２３４５", 0, 1, "１"},
 		{"１２３４５", 1, 1, "２"},
@@ -755,11 +767,14 @@ func TestMid(t *testing.T) {
 		{"１２３４５", 4, 4, "５"},
 		{"１２３４５", 5, 1, ""},
 		{"１２３４５", 6, 1, ""},
+		{"１２３４５", -1, 1, "５"},
+		{"１２３４５", -2, 2, "４５"},
+		{"１２３４５", -2, 3, "４５"},
 	}
 
 	for _, tt := range cs {
-		if b := Mid(tt.s, tt.p, tt.n); b != tt.w {
-			t.Errorf("Mid(%q, %d, %d) = %q, want %q", tt.s, tt.p, tt.n, b, tt.w)
+		if b := Substr(tt.s, tt.p, tt.n); b != tt.w {
+			t.Errorf("Substr(%q, %d, %d) = %q, want %q", tt.s, tt.p, tt.n, b, tt.w)
 		}
 	}
 }

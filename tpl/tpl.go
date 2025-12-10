@@ -132,7 +132,7 @@ func Functions() FuncMap {
 		"Fields":         str.Fields,
 		"FieldsAny":      str.FieldsAny,
 		"Left":           str.Left,
-		"Mid":            str.Mid,
+		"Substr":         str.Substr,
 		"Right":          str.Right,
 		"Capitalize":     str.Capitalize,
 		"Ellipsis":       str.Ellipsis,

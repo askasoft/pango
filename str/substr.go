@@ -1,7 +1,6 @@
 package str
 
 import (
-	"fmt"
 	"unicode/utf8"
 
 	"github.com/askasoft/pango/asg"
@@ -496,13 +495,10 @@ func LastCutFunc(s string, f func(rune) bool) (before, after string, found bool)
 
 // CutAt slices s around the rune position p,
 // returning the text before and start position p.
-// panic if p < 0.
-// if p == 0, return "", s.
-// if p > RuneCount(s), return s, "".
+// if p < 0, p = max(RuneCount(s) + p, 0).
+// if p == 0, return ("", s).
+// if p > RuneCount(s), return (s, "").
 func CutAt(s string, p int) (before, after string) {
-	if p < 0 {
-		panic(fmt.Sprintf("invalid argument: position %d must not be negative", p))
-	}
 	if p == 0 {
 		return "", s
 	}
@@ -512,6 +508,12 @@ func CutAt(s string, p int) (before, after string) {
 	}
 
 	z := RuneCount(s)
+	if p < 0 {
+		p += z
+		if p <= 0 {
+			return "", s
+		}
+	}
 	if z < p {
 		return s, ""
 	}
@@ -588,10 +590,9 @@ func Right(s string, n int) string {
 	return s[i:]
 }
 
-// Mid slices s around the rune position p,
-// returning the max n rune string start from the position p.
-// panic if p < 0.
-func Mid(s string, p, n int) string {
+// Substr returns the max n rune string start from the position p.
+// if p < 0, p = max(RuneCount(s) + p, 0).
+func Substr(s string, p, n int) string {
 	_, a := CutAt(s, p)
 	return Left(a, n)
 }

@@ -43,7 +43,7 @@ func IsZero(v any) bool {
 	return !rv.IsValid() || rv.IsZero()
 }
 
-func InvokeMethod(obj any, name string, args ...any) ([]any, error) {
+func CallMethod(obj any, name string, args ...any) ([]any, error) {
 	if name == "" {
 		return nil, errors.New("ref: empty function name")
 	}
@@ -62,24 +62,49 @@ func InvokeMethod(obj any, name string, args ...any) ([]any, error) {
 		}
 	}
 
-	mt := mv.Type()
-	if mt.NumIn() != len(args) {
-		return nil, fmt.Errorf("ref: %s(): invalid argument count, want %d, got %d", NameOfFuncValue(mv), mt.NumIn(), len(args))
+	return CallFunction(mv, args)
+}
+
+func CallFunction(fv reflect.Value, args []any) ([]any, error) {
+	ft := fv.Type()
+
+	nin := ft.NumIn()
+
+	var vars []any
+	if ft.IsVariadic() {
+		if nin-1 > len(args) {
+			return nil, fmt.Errorf("ref: %q too few arguments, want %d~, got %d", ft, nin-1, len(args))
+		}
+		vars = args[nin-1:]
+		args = args[:nin-1]
+	} else {
+		if nin != len(args) {
+			return nil, fmt.Errorf("ref: %q invalid argument count, want %d, got %d", ft, nin, len(args))
+		}
 	}
 
-	var avs []reflect.Value
+	avs := make([]reflect.Value, 0, len(args)+len(vars))
 	for i, a := range args {
-		t := mt.In(i)
-
-		v, err := CastTo(a, t)
+		v, err := CastTo(a, ft.In(i))
 		if err != nil {
-			return nil, fmt.Errorf("ref: method %T.%q(): invalid argument #%d - %w", obj, name, i, err)
+			return nil, fmt.Errorf("ref: %q invalid argument #%d - %w", ft, i, err)
 		}
-
 		avs = append(avs, reflect.ValueOf(v))
 	}
 
-	rvs := mv.Call(avs)
+	if len(vars) > 0 {
+		t := ft.In(nin - 1).Elem()
+
+		for i, a := range vars {
+			v, err := CastTo(a, t)
+			if err != nil {
+				return nil, fmt.Errorf("ref: %q invalid argument #%d - %w", ft, i+len(args), err)
+			}
+			avs = append(avs, reflect.ValueOf(v))
+		}
+	}
+
+	rvs := fv.Call(avs)
 
 	var rets []any
 	for _, rv := range rvs {

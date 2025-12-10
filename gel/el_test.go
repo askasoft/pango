@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/str"
 )
 
@@ -310,6 +311,10 @@ func (ts teststr) Strip() string {
 	return str.Strip(string(ts))
 }
 
+func (ts teststr) Trim(ss ...string) string {
+	return str.Trim(string(ts), asg.First(ss, " "))
+}
+
 type pet struct {
 	name string
 	Age  int
@@ -361,6 +366,8 @@ func TestCallFunc(t *testing.T) {
 		{"b", "$.Substring(1,2)", teststr("abcde")},
 		{true, "$.Contains('cd')", teststr("abcde")},
 		{"abab", "$.Strip()", teststr("  abab  ")},
+		{"abab", "$.Trim()", teststr("  abab  ")},
+		{"abab", "$.Trim('-')", teststr("-abab-")},
 		{5, "$.Len()", teststr("abcde")},
 		{nil, "SetName('XiaoBai')", pet},
 		{"XiaoBai", "$.GetName()", pet},

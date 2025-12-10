@@ -59,53 +59,50 @@ func (eo elObj) Invoke(ec elCtx, args []any) (any, error) {
 		return nil, fmt.Errorf("gel: %q is not a function", eo.val)
 	}
 
-	ret, err := invokeFunc(fv, args)
-	if err != nil {
-		return nil, fmt.Errorf("gel: function %s(): %w", ref.NameOfFuncValue(fv), err)
-	}
-
-	return ret, err
+	return invokeFunc(fv, args)
 }
 
 func invokeFunc(fv reflect.Value, args []any) (any, error) {
 	ft := fv.Type()
-	if ft.NumIn() != len(args) {
-		return nil, fmt.Errorf("invalid argument count, want %d, got %d", ft.NumIn(), len(args))
+	if ft.NumIn() < len(args) {
+		return nil, fmt.Errorf("gel: too many arguments, want %d, got %d", ft.NumIn(), len(args))
+	}
+
+	if ft.IsVariadic() {
+		if ft.NumIn()-1 > len(args) {
+			return nil, fmt.Errorf("gel: %q too few arguments, want %d~, got %d", ft, ft.NumIn()-1, len(args))
+		}
+	} else {
+		if ft.NumIn() != len(args) {
+			return nil, fmt.Errorf("gel: %q invalid argument count, want %d, got %d", ft, ft.NumIn(), len(args))
+		}
 	}
 
 	if ft.NumOut() > 2 {
-		return nil, fmt.Errorf("invalid return count, want 1~2, got %d", ft.NumOut())
+		return nil, fmt.Errorf("gel: %q too many return values, want 1~2, got %d", ft, ft.NumOut())
 	}
 
-	var avs []reflect.Value
-	for i, a := range args {
-		t := ft.In(i)
-
-		v, err := ref.CastTo(a, t)
-		if err != nil {
-			return nil, fmt.Errorf("invalid argument #%d - %w", i, err)
-		}
-
-		avs = append(avs, reflect.ValueOf(v))
+	rvs, err := ref.CallFunction(fv, args)
+	if err != nil {
+		return nil, err
 	}
 
-	rvs := fv.Call(avs)
 	switch len(rvs) {
 	case 0:
 		return nil, nil
 	case 1:
-		return rvs[0].Interface(), nil
+		return rvs[0], nil
 	case 2:
-		ret, rer := rvs[0].Interface(), rvs[1].Interface()
+		ret, rer := rvs[0], rvs[1]
 		if rer == nil {
 			return ret, nil
 		}
 		if err, ok := rer.(error); ok {
 			return ret, err
 		}
-		return ret, fmt.Errorf("second return value '%T' is not error", rer)
+		return ret, fmt.Errorf("gel: second return value '%T' is not error", rer)
 	default:
-		return nil, fmt.Errorf("invalid return count (%d)", len(rvs))
+		return nil, fmt.Errorf("gel: too many return values, want 1~2, got %d", len(rvs))
 	}
 }
 

@@ -66,27 +66,58 @@ func (e *Example) Sum(a, b int) int {
 	return a + b + e.Value
 }
 
-func TestInvokeMethod_MethodCall(t *testing.T) {
-	obj := &Example{Value: 2}
+func (e *Example) Sums(a int, bs ...int) (r int) {
+	r = a
+	for _, b := range bs {
+		r += b
+	}
+	return r + e.Value
+}
 
-	result, err := InvokeMethod(obj, "Sum", 3, 5)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+func TestCallMethod_MethodCall(t *testing.T) {
+	cs := []struct {
+		v int
+		m string
+		a []any
+		w int
+		e bool
+	}{
+		{2, "Sum", []any{3, 5}, 10, false},
+		{2, "Sums", []any{}, 0, true},
+		{2, "Sums", []any{3}, 5, false},
+		{2, "Sums", []any{3, 5}, 10, false},
+		{2, "Sums", []any{3, 5, 6}, 16, false},
 	}
 
-	if len(result) != 1 || result[0] != 10 {
-		t.Errorf("expected result 10, got %v", result)
+	for i, c := range cs {
+		obj := &Example{Value: c.v}
+
+		r, err := CallMethod(obj, c.m, c.a...)
+		if c.e {
+			if err == nil {
+				t.Fatalf("#%d %s() want error", i, c.m)
+			}
+			continue
+		}
+
+		if err != nil {
+			t.Fatalf("#%d %s() unexpected error: %v", i, c.m, err)
+		}
+
+		if len(r) != 1 || r[0] != c.w {
+			t.Errorf("#%d %s(%v) = %v, want %v", i, c.m, c.a, r, c.w)
+		}
 	}
 }
 
-func TestInvokeMethod_FieldFuncCall(t *testing.T) {
+func TestCallMethod_FieldFuncCall(t *testing.T) {
 	obj := Example{
 		Multiply: func(a, b int) int {
 			return a * b
 		},
 	}
 
-	result, err := InvokeMethod(obj, "Multiply", 4, 5)
+	result, err := CallMethod(obj, "Multiply", 4, 5)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -96,41 +127,41 @@ func TestInvokeMethod_FieldFuncCall(t *testing.T) {
 	}
 }
 
-func TestInvokeMethod_EmptyName(t *testing.T) {
-	_, err := InvokeMethod(Example{}, "")
+func TestCallMethod_EmptyName(t *testing.T) {
+	_, err := CallMethod(Example{}, "")
 	if err == nil || err.Error() != "ref: empty function name" {
 		t.Errorf("expected error for empty method name, got %v", err)
 	}
 }
 
-func TestInvokeMethod_InvalidMethodName(t *testing.T) {
-	_, err := InvokeMethod(Example{}, "DoesNotExist")
+func TestCallMethod_InvalidMethodName(t *testing.T) {
+	_, err := CallMethod(Example{}, "DoesNotExist")
 	if err == nil { // just check error presence
 		t.Errorf("expected error for missing method, got nil")
 	}
 }
 
-func TestInvokeMethod_InvalidArgCount(t *testing.T) {
+func TestCallMethod_InvalidArgCount(t *testing.T) {
 	obj := Example{
 		Multiply: func(a, b int) int {
 			return a * b
 		},
 	}
 
-	_, err := InvokeMethod(obj, "Multiply", 3) // missing one argument
+	_, err := CallMethod(obj, "Multiply", 3) // missing one argument
 	if err == nil {
 		t.Errorf("expected error for argument count mismatch, got %v", err)
 	}
 }
 
-func TestInvokeMethod_InvalidArgType(t *testing.T) {
+func TestCallMethod_InvalidArgType(t *testing.T) {
 	obj := Example{
 		Multiply: func(a, b int) int {
 			return a * b
 		},
 	}
 
-	_, err := InvokeMethod(obj, "Multiply", "three", "five") // wrong types
+	_, err := CallMethod(obj, "Multiply", "three", "five") // wrong types
 	if err == nil {
 		t.Error("expected error for invalid argument types, got nil")
 	}

@@ -89,6 +89,16 @@ func Set(sec, key, value string, comments ...string) *Entry {
 	return _ini.Set(sec, key, value, comments...)
 }
 
+// Delete delete the section entries with key form the section
+func Delete(sec, key string) (*EntryList, bool) {
+	return _ini.Delete(sec, key)
+}
+
+// Remove remove a key/value entry from the section
+func Remove(sec, key string, value string) (e *Entry) {
+	return _ini.Remove(sec, key, value)
+}
+
 // Get get a value of the key from the section sec
 func Get(sec, key string) string {
 	return _ini.Get(sec, key)
@@ -134,6 +144,16 @@ func GetSize(sec, key string, defs ...int64) int64 {
 // if not found or convert error, returns the default defs[0] value.
 func GetDuration(sec, key string, defs ...time.Duration) time.Duration {
 	return _ini.GetDuration(sec, key, defs...)
+}
+
+// GetEntry get a entry of key from the section sec
+func GetEntry(sec, key string) *Entry {
+	return _ini.GetEntry(sec, key)
+}
+
+// GetEntries get the key's entries from the section sec
+func GetEntries(sec, key string) []*Entry {
+	return _ini.GetEntries(sec, key)
 }
 
 // Copy copy section/entries from src ini, overwrite existing entries

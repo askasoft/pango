@@ -163,6 +163,16 @@ func (ini *Ini) Set(sec, key, value string, comments ...string) *Entry {
 	return ini.Section(sec).Set(key, value, comments...)
 }
 
+// Delete delete the section entries with key form the section
+func (ini *Ini) Delete(sec, key string) (*EntryList, bool) {
+	return ini.Section(sec).Delete(key)
+}
+
+// Remove remove a key/value entry from the section
+func (ini *Ini) Remove(sec, key string, value string) (e *Entry) {
+	return ini.Section(sec).Remove(key, value)
+}
+
 // Get get a value of the key from the section sec
 func (ini *Ini) Get(sec, key string) string {
 	return ini.section(sec).Get(key)
@@ -204,15 +214,20 @@ func (ini *Ini) GetSize(sec, key string, defs ...int64) int64 {
 	return ini.section(sec).GetSize(key, defs...)
 }
 
+// GetDuration get a time.Duration value of the key from the section sec
+// if not found or convert error, returns the default defs[0] value.
+func (ini *Ini) GetDuration(sec, key string, defs ...time.Duration) time.Duration {
+	return ini.section(sec).GetDuration(key, defs...)
+}
+
 // GetEntry get a entry of key from the section sec
 func (ini *Ini) GetEntry(sec, key string) *Entry {
 	return ini.section(sec).GetEntry(key)
 }
 
-// GetDuration get a time.Duration value of the key from the section sec
-// if not found or convert error, returns the default defs[0] value.
-func (ini *Ini) GetDuration(sec, key string, defs ...time.Duration) time.Duration {
-	return ini.section(sec).GetDuration(key, defs...)
+// GetEntries get the key's entries from the section sec
+func (ini *Ini) GetEntries(sec, key string) []*Entry {
+	return ini.section(sec).GetEntries(key)
 }
 
 // Copy copy section/entries from src ini, overwrite existing entries

@@ -43,12 +43,7 @@ func (sec *Section) Comments() []string {
 
 // Keys return the section's key string array
 func (sec *Section) Keys() []string {
-	ks := make([]string, sec.entries.Len())
-	for i, it := 0, sec.entries.Iterator(); it.Next(); {
-		ks[i] = it.Key()
-		i++
-	}
-	return ks
+	return sec.entries.Keys()
 }
 
 // StringMap return the section's entries key.(string)/value.(string) map
@@ -105,8 +100,8 @@ func (sec *Section) Set(key string, value string, comments ...string) *Entry {
 }
 
 // Delete delete entries with key form the section
-func (sec *Section) Delete(key string) {
-	sec.entries.Remove(key)
+func (sec *Section) Delete(key string) (*EntryList, bool) {
+	return sec.entries.Remove(key)
 }
 
 // Remove remove a key/value entry from the section
@@ -119,9 +114,7 @@ func (sec *Section) Remove(key string, value string) (e *Entry) {
 				it.Remove()
 			}
 		}
-		return
 	}
-
 	return
 }
 

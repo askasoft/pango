@@ -136,6 +136,30 @@ func testLoadFile(t *testing.T, fsrc, fexp, fout string) {
 		}
 	}
 
+	// Entries
+	{
+		sec := ini.Section("other")
+
+		ents := sec.Entries()
+		want := 4
+
+		if ents.Len() != want {
+			t.Errorf(`sec.Entries() = %v, want %v`, ents.Len(), want)
+		}
+	}
+
+	// Keys
+	{
+		sec := ini.Section("other")
+
+		keys := sec.Keys()
+		want := []string{"dec", "hex", "true", "false"}
+
+		if !reflect.DeepEqual(keys, want) {
+			t.Errorf(`sec.Keys() = %v, want %v`, keys, want)
+		}
+	}
+
 	// Map
 	{
 		sec := ini.Section("multi-2")

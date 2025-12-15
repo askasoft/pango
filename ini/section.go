@@ -41,14 +41,14 @@ func (sec *Section) Comments() []string {
 	return sec.comments
 }
 
+// Entries return the section's entries
+func (sec *Section) Entries() *EntriesMap {
+	return &sec.entries
+}
+
 // Keys return the section's key string array
 func (sec *Section) Keys() []string {
-	ks := make([]string, sec.entries.Len())
-	for i, it := 0, sec.entries.Iterator(); it.Next(); {
-		ks[i] = it.Key()
-		i++
-	}
-	return ks
+	return sec.entries.Keys()
 }
 
 // StringMap return the section's entries key.(string)/value.(string) map

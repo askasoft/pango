@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 	"time"
@@ -122,7 +123,7 @@ func TestScanFilePointers(t *testing.T) {
 	tf.Close()
 
 	var recs []*record
-	err = ScanFile(tf.Name(), &recs)
+	err = ScanFileFS(os.DirFS("testdata"), filepath.Base(tf.Name()), &recs)
 	if err != nil {
 		t.Fatal(err)
 	}

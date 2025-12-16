@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"reflect"
 
@@ -36,6 +37,24 @@ func NewScanner(cr *csv.Reader) *CsvScanner {
 //	ScanFile("s2.csv", &s2)
 func ScanFile(name string, records any) error {
 	f, err := os.Open(name)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	return ScanReader(f, records)
+}
+
+// ScanFileFS read csv file data to slice.
+// Example:
+//
+//	var s1 []*struct{I int, B bool}
+//	ScanFile("s1.csv", &s1)
+//
+//	var S2 []struct{I int, B bool}
+//	ScanFileFS(fsys, "s2.csv", &s2)
+func ScanFileFS(fsys fs.FS, name string, records any) error {
+	f, err := fsys.Open(name)
 	if err != nil {
 		return err
 	}

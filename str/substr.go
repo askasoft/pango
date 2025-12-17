@@ -592,9 +592,13 @@ func Right(s string, n int) string {
 
 // Substr returns the max n rune string start from the position p.
 // if p < 0, p = max(RuneCount(s) + p, 0).
-func Substr(s string, p, n int) string {
+// if n is omitted, returns the substring after the position p.
+func Substr(s string, p int, n ...int) string {
 	_, a := CutAt(s, p)
-	return Left(a, n)
+	if len(n) == 0 {
+		return a
+	}
+	return Left(a, n[0])
 }
 
 // Ellipsis abbreviates a string with max rune count `n` using ellipses (default "...").

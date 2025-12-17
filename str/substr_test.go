@@ -759,6 +759,7 @@ func TestSubstr(t *testing.T) {
 		{"abc", 3, 1, ""},
 		{"abc", -1, 1, "c"},
 		{"abc", -1, 2, "c"},
+		{"abc", 1, -1, "bc"},
 		{"１２３４５", 0, 0, ""},
 		{"１２３４５", 0, 1, "１"},
 		{"１２３４５", 1, 1, "２"},
@@ -770,11 +771,18 @@ func TestSubstr(t *testing.T) {
 		{"１２３４５", -1, 1, "５"},
 		{"１２３４５", -2, 2, "４５"},
 		{"１２３４５", -2, 3, "４５"},
+		{"１２３４５", -2, -1, "４５"},
 	}
 
 	for _, tt := range cs {
-		if b := Substr(tt.s, tt.p, tt.n); b != tt.w {
-			t.Errorf("Substr(%q, %d, %d) = %q, want %q", tt.s, tt.p, tt.n, b, tt.w)
+		if tt.n != -1 {
+			if b := Substr(tt.s, tt.p, tt.n); b != tt.w {
+				t.Errorf("Substr(%q, %d, %d) = %q, want %q", tt.s, tt.p, tt.n, b, tt.w)
+			}
+		} else {
+			if b := Substr(tt.s, tt.p); b != tt.w {
+				t.Errorf("Substr(%q, %d) = %q, want %q", tt.s, tt.p, b, tt.w)
+			}
 		}
 	}
 }

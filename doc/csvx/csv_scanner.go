@@ -14,6 +14,7 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
+// CsvScanner a csv scanner to read csv record to struct.
 type CsvScanner struct {
 	cr   *csv.Reader
 	Head []string
@@ -111,7 +112,7 @@ func (cs *CsvScanner) ScanHead() error {
 		if h == "" {
 			return fmt.Errorf("line %d column %d: empty column name", cs.Line, i+1)
 		}
-		hs[i] = str.PascalCase(h)
+		hs[i] = h
 	}
 	cs.Head = hs
 

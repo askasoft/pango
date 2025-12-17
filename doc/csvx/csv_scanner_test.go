@@ -54,7 +54,7 @@ func TestScanFileValues(t *testing.T) {
 	defer os.Remove(tf.Name())
 
 	cw := csv.NewWriter(tf)
-	_ = cw.Write([]string{"bool", "int", "string", "duration", "created_at"})
+	_ = cw.Write([]string{"bool", "int", "string", "duration", "createdAt"})
 	for _, r := range exps {
 		_ = cw.Write([]string{
 			bol.Btoa(r.Bool),

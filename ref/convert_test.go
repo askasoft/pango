@@ -33,6 +33,7 @@ func TestCastTo(t *testing.T) {
 		s any
 		b reflect.Type
 	}{
+		{"a", "a", nil},
 		{[]byte{'s', '2', 'b'}, "s2b", TypeBytes},
 		{"b2s", []byte{'b', '2', 's'}, TypeString},
 		{"1.123", 1.123, TypeString},

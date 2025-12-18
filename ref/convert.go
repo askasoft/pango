@@ -19,6 +19,8 @@ func ConvertTo(v any, t reflect.Type) (any, error) {
 // CastTo cast the value v to the specified Type t
 func CastTo(v any, t reflect.Type) (any, error) {
 	switch t {
+	case nil:
+		return v, nil
 	case TypeDuration:
 		return cas.ToDuration(v)
 	case TypeTime:

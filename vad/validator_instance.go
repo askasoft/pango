@@ -214,7 +214,7 @@ func (v *Validate) RegisterStructValidation(fn StructLevelFunc, types ...any) {
 
 	for _, t := range types {
 		tv := reflect.ValueOf(t)
-		if tv.Kind() == reflect.Ptr {
+		if tv.Kind() == reflect.Pointer {
 			t = reflect.Indirect(tv).Interface()
 		}
 
@@ -245,7 +245,7 @@ func (v *Validate) Struct(s any) (err error) {
 	val := reflect.ValueOf(s)
 	top := val
 
-	if val.Kind() == reflect.Ptr && !val.IsNil() {
+	if val.Kind() == reflect.Pointer && !val.IsNil() {
 		val = val.Elem()
 	}
 
@@ -279,7 +279,7 @@ func (v *Validate) StructFiltered(s any, fn FilterFunc) (err error) {
 	val := reflect.ValueOf(s)
 	top := val
 
-	if val.Kind() == reflect.Ptr && !val.IsNil() {
+	if val.Kind() == reflect.Pointer && !val.IsNil() {
 		val = val.Elem()
 	}
 
@@ -315,7 +315,7 @@ func (v *Validate) StructPartial(s any, fields ...string) (err error) {
 	val := reflect.ValueOf(s)
 	top := val
 
-	if val.Kind() == reflect.Ptr && !val.IsNil() {
+	if val.Kind() == reflect.Pointer && !val.IsNil() {
 		val = val.Elem()
 	}
 
@@ -390,7 +390,7 @@ func (v *Validate) StructExcept(s any, fields ...string) (err error) {
 	val := reflect.ValueOf(s)
 	top := val
 
-	if val.Kind() == reflect.Ptr && !val.IsNil() {
+	if val.Kind() == reflect.Pointer && !val.IsNil() {
 		val = val.Elem()
 	}
 

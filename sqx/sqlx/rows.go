@@ -37,7 +37,7 @@ func (r *Rows) MapScan(dest map[string]any) error {
 func (r *Rows) StructScan(dest any) error {
 	v := reflect.ValueOf(dest)
 
-	if v.Kind() != reflect.Ptr {
+	if v.Kind() != reflect.Pointer {
 		return errors.New("sqlx: must pass a pointer, not a value, to StructScan destination")
 	}
 

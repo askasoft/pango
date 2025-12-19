@@ -88,7 +88,7 @@ func (e *Encoder) encodeValue(rv reflect.Value) error {
 	}
 
 	switch rv.Kind() {
-	case reflect.Ptr, reflect.Interface:
+	case reflect.Pointer, reflect.Interface:
 		if rv.IsNil() {
 			return e.print("<value><nil/></value>")
 		}

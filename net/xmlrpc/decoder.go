@@ -76,7 +76,7 @@ func (d *Decoder) decode(v any) error {
 			switch t.Name.Local {
 			case "value":
 				rv := reflect.ValueOf(v)
-				if rv.Kind() != reflect.Ptr {
+				if rv.Kind() != reflect.Pointer {
 					return errors.New("xmlrpc decode error: cannot decode to non-pointer value")
 				}
 				return d.decodeValue(rv.Elem())
@@ -92,7 +92,7 @@ func (d *Decoder) decode(v any) error {
 }
 
 func (d *Decoder) decodeValue(rv reflect.Value) error {
-	if rv.Kind() == reflect.Ptr {
+	if rv.Kind() == reflect.Pointer {
 		if rv.IsNil() {
 			rv.Set(reflect.New(rv.Type().Elem()))
 		}
@@ -282,7 +282,7 @@ func (d *Decoder) decodeValue(rv reflect.Value) error {
 							if v.Kind() == reflect.Interface {
 								v = v.Elem()
 							}
-							if v.Kind() != reflect.Ptr {
+							if v.Kind() != reflect.Pointer {
 								return errors.New("xmlrpc decode error: cannot decode to non-pointer array element")
 							}
 							if err = d.decodeValue(v); err != nil {
@@ -476,7 +476,7 @@ func (d *Decoder) checkType(rv reflect.Value, kinds ...reflect.Kind) error {
 		return nil
 	}
 
-	if rv.Kind() == reflect.Ptr {
+	if rv.Kind() == reflect.Pointer {
 		rv = rv.Elem()
 	}
 

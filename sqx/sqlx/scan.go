@@ -162,7 +162,7 @@ func scanAll(rows iRows, dest any, structOnly bool) error {
 	value := reflect.ValueOf(dest)
 
 	// json.Unmarshal returns errors for these
-	if value.Kind() != reflect.Ptr {
+	if value.Kind() != reflect.Pointer {
 		return errors.New("sqlx: must pass a pointer, not a value, to StructScan destination")
 	}
 	if value.IsNil() {
@@ -176,7 +176,7 @@ func scanAll(rows iRows, dest any, structOnly bool) error {
 	}
 	direct.SetLen(0)
 
-	isPtr := slice.Elem().Kind() == reflect.Ptr
+	isPtr := slice.Elem().Kind() == reflect.Pointer
 	base := ref.DerefType(slice.Elem())
 	scannable := isScannable(base)
 

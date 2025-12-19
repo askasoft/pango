@@ -88,7 +88,7 @@ func (v *validate) validateStruct(parent reflect.Value, current reflect.Value, t
 func omitEmpty(fl FieldLevel) bool {
 	field := fl.Field()
 	switch field.Kind() {
-	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
+	case reflect.Slice, reflect.Map, reflect.Pointer, reflect.Interface, reflect.Chan, reflect.Func:
 		return field.IsNil()
 	default:
 		return !field.IsValid() || field.Interface() == reflect.Zero(field.Type()).Interface()
@@ -103,7 +103,7 @@ func (v *validate) traverseField(parent reflect.Value, current reflect.Value, ns
 	current, kind, v.fldIsPointer = v.extractTypeInternal(current, false)
 
 	switch kind {
-	case reflect.Ptr, reflect.Interface, reflect.Invalid:
+	case reflect.Pointer, reflect.Interface, reflect.Invalid:
 		if ct == nil {
 			return
 		}

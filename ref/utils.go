@@ -23,10 +23,8 @@ func IsNil(v any) bool {
 
 	rv := reflect.ValueOf(v)
 	switch rv.Kind() {
-	case
-		reflect.Chan, reflect.Func,
-		reflect.Interface, reflect.Map,
-		reflect.Ptr, reflect.Slice, reflect.UnsafePointer:
+	case reflect.Chan, reflect.Func, reflect.Map, reflect.Slice,
+		reflect.Interface, reflect.Pointer, reflect.UnsafePointer:
 		return rv.IsNil()
 	default:
 		return false

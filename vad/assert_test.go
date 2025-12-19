@@ -13,11 +13,11 @@ func assertIsEqual(val1, val2 any) bool {
 	v1 := reflect.ValueOf(val1)
 	v2 := reflect.ValueOf(val2)
 
-	if v1.Kind() == reflect.Ptr {
+	if v1.Kind() == reflect.Pointer {
 		v1 = v1.Elem()
 	}
 
-	if v2.Kind() == reflect.Ptr {
+	if v2.Kind() == reflect.Pointer {
 		v2 = v2.Elem()
 	}
 
@@ -26,14 +26,14 @@ func assertIsEqual(val1, val2 any) bool {
 	}
 
 	switch v1.Kind() {
-	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
 		if v1.IsNil() {
 			v1 = reflect.ValueOf(nil)
 		}
 	}
 
 	switch v2.Kind() {
-	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Ptr, reflect.Slice:
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
 		if v2.IsNil() {
 			v2 = reflect.ValueOf(nil)
 		}

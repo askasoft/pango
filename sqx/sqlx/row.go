@@ -108,7 +108,7 @@ func (r *Row) scanAny(dest any, structOnly bool) error {
 	defer r.rows.Close()
 
 	v := reflect.ValueOf(dest)
-	if v.Kind() != reflect.Ptr {
+	if v.Kind() != reflect.Pointer {
 		return errors.New("sqlx: must pass a pointer, not a value, to StructScan destination")
 	}
 	if v.IsNil() {

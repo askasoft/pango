@@ -92,7 +92,7 @@ func isNil(v any) bool {
 	case
 		reflect.Chan, reflect.Func,
 		reflect.Interface, reflect.Map,
-		reflect.Ptr, reflect.Slice, reflect.UnsafePointer:
+		reflect.Pointer, reflect.Slice, reflect.UnsafePointer:
 		return rv.IsNil()
 	default:
 		return false

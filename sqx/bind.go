@@ -227,27 +227,27 @@ func convert(v any) string {
 		return nullStr
 	case driver.Valuer:
 		rv := reflect.ValueOf(v)
-		if v != nil && rv.IsValid() && ((rv.Kind() == reflect.Ptr && !rv.IsNil()) || rv.Kind() != reflect.Ptr) {
+		if v != nil && rv.IsValid() && ((rv.Kind() == reflect.Pointer && !rv.IsNil()) || rv.Kind() != reflect.Pointer) {
 			r, _ := v.Value()
 			return convert(r)
 		}
 		return nullStr
 	case fmt.Stringer:
 		rv := reflect.ValueOf(v)
-		if v != nil && rv.IsValid() && ((rv.Kind() == reflect.Ptr && !rv.IsNil()) || rv.Kind() != reflect.Ptr) {
+		if v != nil && rv.IsValid() && ((rv.Kind() == reflect.Pointer && !rv.IsNil()) || rv.Kind() != reflect.Pointer) {
 			return "'" + strings.ReplaceAll(fmt.Sprintf("%v", v), "'", "''") + "'"
 		}
 		return nullStr
 	default:
 		rv := reflect.ValueOf(v)
-		if v == nil || !rv.IsValid() || rv.Kind() == reflect.Ptr && rv.IsNil() {
+		if v == nil || !rv.IsValid() || rv.Kind() == reflect.Pointer && rv.IsNil() {
 			return nullStr
 		}
 		if valuer, ok := v.(driver.Valuer); ok {
 			v, _ = valuer.Value()
 			return convert(v)
 		}
-		if rv.Kind() == reflect.Ptr && !rv.IsZero() {
+		if rv.Kind() == reflect.Pointer && !rv.IsZero() {
 			return convert(reflect.Indirect(rv).Interface())
 		}
 		for _, t := range convertibleTypes {

@@ -36,7 +36,7 @@ func mapFormByTag(ptr any, form map[string][]string, tag string) error {
 	ptrVal := reflect.ValueOf(ptr)
 
 	var pointed any
-	if ptrVal.Kind() == reflect.Ptr {
+	if ptrVal.Kind() == reflect.Pointer {
 		ptrVal = ptrVal.Elem()
 		pointed = ptrVal.Interface()
 	}
@@ -79,7 +79,7 @@ func mapping(prefix string, value reflect.Value, field reflect.StructField, sett
 
 	vKind := value.Kind()
 
-	if vKind == reflect.Ptr {
+	if vKind == reflect.Pointer {
 		isNew := false
 		vPtr := value
 		if value.IsNil() {
@@ -365,7 +365,7 @@ func setWithProperType(field reflect.Value, val string, opts options) error {
 		return json.Unmarshal(str.UnsafeBytes(val), field.Addr().Interface())
 	case reflect.Map:
 		return json.Unmarshal(str.UnsafeBytes(val), field.Addr().Interface())
-	case reflect.Ptr:
+	case reflect.Pointer:
 		if !field.Elem().IsValid() {
 			field.Set(reflect.New(field.Type().Elem()))
 		}

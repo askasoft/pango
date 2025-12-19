@@ -104,7 +104,7 @@ func (r Event) WriteContentType(w http.ResponseWriter) {
 func kindOfData(data any) reflect.Kind {
 	value := reflect.ValueOf(data)
 	valueType := value.Kind()
-	if valueType == reflect.Ptr {
+	if valueType == reflect.Pointer {
 		valueType = value.Elem().Kind()
 	}
 	return valueType

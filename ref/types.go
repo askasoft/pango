@@ -128,5 +128,5 @@ func IsMapType(v any) bool {
 
 // IsPtrType return true if v is a ptr
 func IsPtrType(v any) bool {
-	return reflect.ValueOf(v).Kind() == reflect.Ptr
+	return reflect.ValueOf(v).Kind() == reflect.Pointer
 }

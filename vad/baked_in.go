@@ -227,7 +227,7 @@ func isUnique(fl FieldLevel) bool {
 	switch field.Kind() {
 	case reflect.Slice, reflect.Array:
 		elem := field.Type().Elem()
-		if elem.Kind() == reflect.Ptr {
+		if elem.Kind() == reflect.Pointer {
 			elem = elem.Elem()
 		}
 
@@ -245,7 +245,7 @@ func isUnique(fl FieldLevel) bool {
 		}
 
 		sfTyp := sf.Type
-		if sfTyp.Kind() == reflect.Ptr {
+		if sfTyp.Kind() == reflect.Pointer {
 			sfTyp = sfTyp.Elem()
 		}
 
@@ -832,7 +832,7 @@ func isEmpty(fl FieldLevel) bool {
 	field := fl.Field()
 
 	switch field.Kind() {
-	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
+	case reflect.Slice, reflect.Map, reflect.Pointer, reflect.Interface, reflect.Chan, reflect.Func:
 		return field.IsNil()
 	default:
 		if fl.(*validate).fldIsPointer {
@@ -847,7 +847,7 @@ func isRequired(fl FieldLevel) bool {
 	field := fl.Field()
 
 	switch field.Kind() {
-	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
+	case reflect.Slice, reflect.Map, reflect.Pointer, reflect.Interface, reflect.Chan, reflect.Func:
 		return !field.IsNil()
 	default:
 		if fl.(*validate).fldIsPointer {
@@ -873,7 +873,7 @@ func requireCheckFieldKind(fl FieldLevel, param string, defaultNotFoundValue boo
 	switch kind {
 	case reflect.Invalid:
 		return defaultNotFoundValue
-	case reflect.Slice, reflect.Map, reflect.Ptr, reflect.Interface, reflect.Chan, reflect.Func:
+	case reflect.Slice, reflect.Map, reflect.Pointer, reflect.Interface, reflect.Chan, reflect.Func:
 		return field.IsNil()
 	default:
 		if nullable && field.Interface() != nil {

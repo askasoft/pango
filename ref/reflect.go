@@ -205,7 +205,7 @@ func FieldByIndexes(v reflect.Value, indexes []int) reflect.Value {
 	for _, i := range indexes {
 		v = reflect.Indirect(v).Field(i)
 		// if this is a pointer and it's nil, allocate a new value and set it
-		if v.Kind() == reflect.Ptr && v.IsNil() {
+		if v.Kind() == reflect.Pointer && v.IsNil() {
 			alloc := reflect.New(DerefType(v.Type()))
 			v.Set(alloc)
 		}
@@ -228,7 +228,7 @@ func FieldByIndexesReadOnly(v reflect.Value, indexes []int) reflect.Value {
 
 // DerefType is Indirect for reflect.Type
 func DerefType(t reflect.Type) reflect.Type {
-	if t.Kind() == reflect.Ptr {
+	if t.Kind() == reflect.Pointer {
 		t = t.Elem()
 	}
 	return t
@@ -236,7 +236,7 @@ func DerefType(t reflect.Type) reflect.Type {
 
 // DerefValue is Indirect for reflect.Value
 func DerefValue(v reflect.Value) reflect.Value {
-	if v.Kind() == reflect.Ptr {
+	if v.Kind() == reflect.Pointer {
 		v = v.Elem()
 	}
 	return v
@@ -422,7 +422,7 @@ QueueLoop:
 				}
 				fi.Children = make([]*FieldInfo, nChildren)
 				queue = append(queue, typeQueue{DerefType(f.Type), &fi, pp})
-			} else if fi.Zero.Kind() == reflect.Struct || (fi.Zero.Kind() == reflect.Ptr && fi.Zero.Type().Elem().Kind() == reflect.Struct) {
+			} else if fi.Zero.Kind() == reflect.Struct || (fi.Zero.Kind() == reflect.Pointer && fi.Zero.Type().Elem().Kind() == reflect.Struct) {
 				fi.Index = apnd(tq.fi.Index, fieldPos)
 				fi.Children = make([]*FieldInfo, DerefType(f.Type).NumField())
 				queue = append(queue, typeQueue{DerefType(f.Type), &fi, fi.Path})

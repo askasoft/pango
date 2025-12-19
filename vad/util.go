@@ -19,11 +19,11 @@ func (v *validate) extractTypeInternal(current reflect.Value, nullable bool) (re
 
 BEGIN:
 	switch current.Kind() {
-	case reflect.Ptr:
+	case reflect.Pointer:
 		nullable = true
 
 		if current.IsNil() {
-			return current, reflect.Ptr, nullable
+			return current, reflect.Pointer, nullable
 		}
 
 		current = current.Elem()
@@ -73,7 +73,7 @@ BEGIN:
 	}
 
 	switch kind {
-	case reflect.Ptr, reflect.Interface:
+	case reflect.Pointer, reflect.Interface:
 		return
 
 	case reflect.Struct:

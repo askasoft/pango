@@ -53,7 +53,7 @@ var NameMapper = ref.NewMapperFunc("db", str.SnakeCase)
 // sqlx interface
 //
 
-type Trace func(start time.Time, sql string, rows int64, err error)
+type Trace func(bind Binder, start time.Time, sql string, args []any, rows int64, err error)
 
 type Supporter interface {
 	SupportLastInsertID() bool
@@ -262,7 +262,7 @@ func (ext *ext) Rebind(query string) string {
 
 // Explain generate SQL string with given parameters.
 func (ext *ext) Explain(sql string, args ...any) string {
-	return ext.binder.Explain(sql, args...)
+	return ext.binder.Explain(sql, -1, args...)
 }
 
 // Placeholder generate a place holder mark with No. n.

@@ -27,6 +27,7 @@ import (
 	"github.com/askasoft/pango/ref"
 	"github.com/askasoft/pango/sqx"
 	"github.com/askasoft/pango/str"
+	"github.com/askasoft/pango/tmu"
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
@@ -52,13 +53,14 @@ func init() {
 	ConnectAll()
 }
 
-func testTrace(start time.Time, sql string, rows int64, err error) {
-	elapsed := time.Since(start)
+func testTrace(bind Binder, start time.Time, sql string, args []any, rows int64, err error) {
+	td := tmu.HumanDuration(time.Since(start))
+	sql = bind.Explain(sql, -1, args...)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v [%d: %v] %s\n", err, rows, elapsed, sql)
+		fmt.Fprintf(os.Stderr, "%v [%d: %v] %s\n", err, rows, td, sql)
 	} else {
-		fmt.Fprintf(os.Stdout, "[%d: %v] %s\n", rows, elapsed, sql)
+		fmt.Fprintf(os.Stdout, "[%d: %v] %s\n", rows, td, sql)
 	}
 }
 

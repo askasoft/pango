@@ -18,6 +18,7 @@ type SqlxLogger struct {
 	WriteSQLLevel   log.Level
 	SlowSQLLevel    log.Level
 	SlowThreshold   time.Duration
+	MaxParamLength  int
 	TraceErrNoRows  bool
 	GetErrLogLevel  func(error) log.Level
 	GetSQLLogLevel  func(string) log.Level
@@ -31,6 +32,7 @@ func NewSqlxLogger(logger log.Logger, slowSQL time.Duration) *SqlxLogger {
 		WriteSQLLevel:   log.LevelInfo,
 		SlowSQLLevel:    log.LevelWarn,
 		SlowThreshold:   slowSQL,
+		MaxParamLength:  100,
 	}
 
 	return sl
@@ -54,8 +56,9 @@ func (sl *SqlxLogger) getSQLLogLevel(sql string) log.Level {
 }
 
 // Trace print sql message
-func (sl *SqlxLogger) Trace(begin time.Time, sql string, rows int64, err error) {
-	elapsed := time.Since(begin)
+func (sl *SqlxLogger) Trace(bind sqlx.Binder, start time.Time, sql string, args []any, rows int64, err error) {
+	td := time.Since(start)
+	sql = bind.Explain(sql, sl.MaxParamLength, args...)
 
 	switch {
 	case err != nil && (sl.TraceErrNoRows || !errors.Is(err, sqlx.ErrNoRows)):
@@ -65,16 +68,16 @@ func (sl *SqlxLogger) Trace(begin time.Time, sql string, rows int64, err error) 
 		}
 		if sl.Logger.IsLevelEnabled(lvl) {
 			if rows < 0 {
-				sl.printf(lvl, "%s [%s] %s", err, tmu.HumanDuration(elapsed), sql)
+				sl.printf(lvl, "%s [%s] %s", err, tmu.HumanDuration(td), sql)
 			} else {
-				sl.printf(lvl, "%s [%d: %s] %s", err, rows, tmu.HumanDuration(elapsed), sql)
+				sl.printf(lvl, "%s [%d: %s] %s", err, rows, tmu.HumanDuration(td), sql)
 			}
 		}
-	case sl.SlowThreshold != 0 && elapsed > sl.SlowThreshold && sl.Logger.IsLevelEnabled(sl.SlowSQLLevel):
+	case sl.SlowThreshold != 0 && td > sl.SlowThreshold && sl.Logger.IsLevelEnabled(sl.SlowSQLLevel):
 		if rows < 0 {
-			sl.printf(sl.SlowSQLLevel, "SLOW >= %s [%s] %s", tmu.HumanDuration(sl.SlowThreshold), tmu.HumanDuration(elapsed), sql)
+			sl.printf(sl.SlowSQLLevel, "SLOW >= %s [%s] %s", tmu.HumanDuration(sl.SlowThreshold), tmu.HumanDuration(td), sql)
 		} else {
-			sl.printf(sl.SlowSQLLevel, "SLOW >= %s [%d: %s] %s", tmu.HumanDuration(sl.SlowThreshold), rows, tmu.HumanDuration(elapsed), sql)
+			sl.printf(sl.SlowSQLLevel, "SLOW >= %s [%d: %s] %s", tmu.HumanDuration(sl.SlowThreshold), rows, tmu.HumanDuration(td), sql)
 		}
 	default:
 		f := sl.GetSQLLogLevel
@@ -85,9 +88,9 @@ func (sl *SqlxLogger) Trace(begin time.Time, sql string, rows int64, err error) 
 		lvl := f(sql)
 		if sl.Logger.IsLevelEnabled(lvl) {
 			if rows < 0 {
-				sl.printf(lvl, "[%s] %s", tmu.HumanDuration(elapsed), sql)
+				sl.printf(lvl, "[%s] %s", tmu.HumanDuration(td), sql)
 			} else {
-				sl.printf(lvl, "[%d: %s] %s", rows, tmu.HumanDuration(elapsed), sql)
+				sl.printf(lvl, "[%d: %s] %s", rows, tmu.HumanDuration(td), sql)
 			}
 		}
 	}

@@ -14,15 +14,11 @@ type tracer struct {
 	Trace Trace
 }
 
-func (t *tracer) ExplainSQL(sql string, args ...any) string {
-	return t.Bind.Explain(sql, args...)
-}
-
 func (t *tracer) TracePing(pr sqx.Pinger) error {
 	start := time.Now()
 	err := pr.Ping()
 	if t.Trace != nil {
-		t.Trace(start, "Ping()", -1, err)
+		t.Trace(t.Bind, start, "Ping()", nil, -1, err)
 	}
 	return err
 }
@@ -31,7 +27,7 @@ func (t *tracer) TracePingContext(ctx context.Context, pr sqx.ContextPinger) err
 	start := time.Now()
 	err := pr.PingContext(ctx)
 	if t.Trace != nil {
-		t.Trace(start, "PingContext()", -1, err)
+		t.Trace(t.Bind, start, "PingContext()", nil, -1, err)
 	}
 	return err
 }
@@ -40,7 +36,7 @@ func (t *tracer) TraceQuery(qr sqx.Queryer, query string, args ...any) (*sql.Row
 	start := time.Now()
 	rows, err := qr.Query(query, args...)
 	if t.Trace != nil {
-		t.Trace(start, t.ExplainSQL(query, args...), -1, err)
+		t.Trace(t.Bind, start, query, args, -1, err)
 	}
 	return rows, err
 }
@@ -49,7 +45,7 @@ func (t *tracer) TraceQueryRow(rqr sqx.RowQueryer, query string, args ...any) *s
 	start := time.Now()
 	row := rqr.QueryRow(query, args...)
 	if t.Trace != nil {
-		t.Trace(start, t.ExplainSQL(query, args...), -1, row.Err())
+		t.Trace(t.Bind, start, query, args, -1, row.Err())
 	}
 	return row
 }
@@ -58,7 +54,7 @@ func (t *tracer) TraceStmtQuery(sqr sqx.StmtQueryer, query string, args ...any) 
 	start := time.Now()
 	rows, err := sqr.Query(args...)
 	if t.Trace != nil {
-		t.Trace(start, t.ExplainSQL(query, args...), -1, err)
+		t.Trace(t.Bind, start, query, args, -1, err)
 	}
 	return rows, err
 }
@@ -67,7 +63,7 @@ func (t *tracer) TraceQueryContext(ctx context.Context, cqr sqx.ContextQueryer, 
 	start := time.Now()
 	rows, err := cqr.QueryContext(ctx, query, args...)
 	if t.Trace != nil {
-		t.Trace(start, t.ExplainSQL(query, args...), -1, err)
+		t.Trace(t.Bind, start, query, args, -1, err)
 	}
 	return rows, err
 }
@@ -76,7 +72,7 @@ func (t *tracer) TraceQueryRowContext(ctx context.Context, crqr sqx.ContextRowQu
 	start := time.Now()
 	row := crqr.QueryRowContext(ctx, query, args...)
 	if t.Trace != nil {
-		t.Trace(start, t.ExplainSQL(query, args...), -1, row.Err())
+		t.Trace(t.Bind, start, query, args, -1, row.Err())
 	}
 	return row
 }
@@ -85,7 +81,7 @@ func (t *tracer) TraceStmtQueryContext(ctx context.Context, csqr sqx.ContextStmt
 	start := time.Now()
 	rows, err := csqr.QueryContext(ctx, args...)
 	if t.Trace != nil {
-		t.Trace(start, t.ExplainSQL(query, args...), -1, err)
+		t.Trace(t.Bind, start, query, args, -1, err)
 	}
 	return rows, err
 }
@@ -103,7 +99,7 @@ func (t *tracer) TraceExec(er sqx.Execer, query string, args ...any) (sql.Result
 	sqr, err := er.Exec(query, args...)
 	if t.Trace != nil {
 		cnt := t.getRowsAffected(sqr)
-		t.Trace(start, t.ExplainSQL(query, args...), cnt, err)
+		t.Trace(t.Bind, start, query, args, cnt, err)
 	}
 	return sqr, err
 }
@@ -113,7 +109,7 @@ func (t *tracer) TraceStmtExec(ser sqx.StmtExecer, query string, args ...any) (s
 	sqr, err := ser.Exec(args...)
 	if t.Trace != nil {
 		cnt := t.getRowsAffected(sqr)
-		t.Trace(start, t.ExplainSQL(query, args...), cnt, err)
+		t.Trace(t.Bind, start, query, args, cnt, err)
 	}
 	return sqr, err
 }
@@ -123,7 +119,7 @@ func (t *tracer) TraceExecContext(ctx context.Context, cer sqx.ContextExecer, qu
 	sqr, err := cer.ExecContext(ctx, query, args...)
 	if t.Trace != nil {
 		cnt := t.getRowsAffected(sqr)
-		t.Trace(start, t.ExplainSQL(query, args...), cnt, err)
+		t.Trace(t.Bind, start, query, args, cnt, err)
 	}
 	return sqr, err
 }
@@ -133,7 +129,7 @@ func (t *tracer) TraceStmtExecContext(ctx context.Context, scer sqx.ContextStmtE
 	sqr, err := scer.ExecContext(ctx, args...)
 	if t.Trace != nil {
 		cnt := t.getRowsAffected(sqr)
-		t.Trace(start, t.ExplainSQL(query, args...), cnt, err)
+		t.Trace(t.Bind, start, query, args, cnt, err)
 	}
 	return sqr, err
 }
@@ -142,7 +138,7 @@ func (t *tracer) TracePrepare(pr sqx.Preparer, query string) (*sql.Stmt, error) 
 	start := time.Now()
 	stmt, err := pr.Prepare(query)
 	if t.Trace != nil {
-		t.Trace(start, "Prepare: "+query, -1, err)
+		t.Trace(t.Bind, start, "Prepare: "+query, nil, -1, err)
 	}
 	return stmt, err
 }
@@ -151,7 +147,7 @@ func (t *tracer) TracePrepareContext(ctx context.Context, cpr sqx.ContextPrepare
 	start := time.Now()
 	stmt, err := cpr.PrepareContext(ctx, query)
 	if t.Trace != nil {
-		t.Trace(start, "PrepareContext: "+query, -1, err)
+		t.Trace(t.Bind, start, "PrepareContext: "+query, nil, -1, err)
 	}
 	return stmt, err
 }
@@ -160,7 +156,7 @@ func (t *tracer) TraceBegin(btr sqx.Beginer) (*sql.Tx, error) {
 	start := time.Now()
 	tx, err := btr.Begin()
 	if t.Trace != nil {
-		t.Trace(start, "Begin()", -1, err)
+		t.Trace(t.Bind, start, "Begin()", nil, -1, err)
 	}
 	return tx, err
 }
@@ -170,9 +166,9 @@ func (t *tracer) TraceBeginTx(ctx context.Context, btr sqx.BeginTxer, opts *sql.
 	tx, err := btr.BeginTx(ctx, opts)
 	if t.Trace != nil {
 		if opts == nil {
-			t.Trace(start, "BeginTx(nil)", -1, err)
+			t.Trace(t.Bind, start, "BeginTx(nil)", nil, -1, err)
 		} else {
-			t.Trace(start, fmt.Sprintf("BeginTx(%v, %v)", opts.Isolation, opts.ReadOnly), -1, err)
+			t.Trace(t.Bind, start, fmt.Sprintf("BeginTx(%v, %v)", opts.Isolation, opts.ReadOnly), nil, -1, err)
 		}
 	}
 	return tx, err
@@ -182,7 +178,7 @@ func (t *tracer) TraceCommit(cr sqx.Txer) error {
 	start := time.Now()
 	err := cr.Commit()
 	if t.Trace != nil {
-		t.Trace(start, "Commit()", -1, err)
+		t.Trace(t.Bind, start, "Commit()", nil, -1, err)
 	}
 	return err
 }
@@ -191,7 +187,7 @@ func (t *tracer) TraceRollback(rr sqx.Txer) error {
 	start := time.Now()
 	err := rr.Rollback()
 	if t.Trace != nil {
-		t.Trace(start, "Rollback()", -1, err)
+		t.Trace(t.Bind, start, "Rollback()", nil, -1, err)
 	}
 	return err
 }

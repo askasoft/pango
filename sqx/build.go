@@ -70,6 +70,10 @@ func (b *Builder) Clone() *Builder {
 	return n
 }
 
+func (b *Builder) Explain(sql string, args ...any) string {
+	return b.Binder.Explain(sql, -1, args...)
+}
+
 // Build returns (sql, parameters)
 func (b *Builder) Build() (string, []any) {
 	return b.Rebind(b.SQL()), b.Params()

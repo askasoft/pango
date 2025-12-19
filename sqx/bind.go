@@ -2,6 +2,7 @@ package sqx
 
 import (
 	"database/sql/driver"
+	"encoding/hex"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -74,8 +75,8 @@ func BindDriver(driverName string, binder Binder) {
 }
 
 // Rebind a SQL from the default binder (QUESTION) to the target binder.
-func (binder Binder) Rebind(sql string) string {
-	switch binder {
+func (b Binder) Rebind(sql string) string {
+	switch b {
 	case BindQuestion, BindUnknown:
 		return sql
 	}
@@ -88,7 +89,7 @@ func (binder Binder) Rebind(sql string) string {
 		rqb = append(rqb, sql[:i]...)
 
 		n++
-		rqb = binder.append(rqb, n)
+		rqb = b.append(rqb, n)
 
 		sql = sql[i+1:]
 	}
@@ -97,8 +98,8 @@ func (binder Binder) Rebind(sql string) string {
 	return str.UnsafeString(rqb)
 }
 
-func (binder Binder) append(q []byte, n int) []byte {
-	switch binder {
+func (b Binder) append(q []byte, n int) []byte {
+	switch b {
 	case BindDollar:
 		q = append(q, '$')
 	case BindColon:
@@ -118,8 +119,8 @@ func (binder Binder) append(q []byte, n int) []byte {
 }
 
 // Placeholder generate a place holder mark with No. n.
-func (binder Binder) Placeholder(n int) string {
-	switch binder {
+func (b Binder) Placeholder(n int) string {
+	switch b {
 	case BindDollar:
 		return fmt.Sprintf("$%d", n)
 	case BindColon:
@@ -131,8 +132,8 @@ func (binder Binder) Placeholder(n int) string {
 	}
 }
 
-func (binder Binder) matcher() *regexp.Regexp {
-	switch binder {
+func (b Binder) matcher() *regexp.Regexp {
+	switch b {
 	case BindDollar:
 		return reDollar
 	case BindColon:
@@ -144,18 +145,20 @@ func (binder Binder) matcher() *regexp.Regexp {
 	}
 }
 
-// Explain generate SQL string with given parameters, the generated SQL is expected to be used in logger, execute it might introduce a SQL injection vulnerability
-func (binder Binder) Explain(sql string, args ...any) string {
+// Explain generate SQL string with given parameters.
+// The generated SQL is expected to be used in logger, execute it might introduce a SQL injection vulnerability.
+// If a string or binary argument's length exceeds `maxArgLength`, it will be cut and append with '...'.
+func (b Binder) Explain(sql string, maxArgLength int, args ...any) string {
 	if len(args) == 0 {
 		return sql
 	}
 
 	vars := make([]string, len(args))
 	for i, v := range args {
-		vars[i] = convert(v)
+		vars[i] = b.convert(v, maxArgLength)
 	}
 
-	rep := binder.matcher()
+	rep := b.matcher()
 
 	if rep == nil {
 		var idx int
@@ -200,15 +203,37 @@ const (
 // A list of Go types that should be converted to SQL primitives
 var convertibleTypes = []reflect.Type{ref.TypeTime, ref.TypeBool, ref.TypeBytes}
 
-func convert(v any) string {
+func (b Binder) toLiteralString(s string, limit int) string {
+	if limit > 0 {
+		s = str.Ellipsis(s, limit)
+	}
+	return "'" + str.ReplaceAll(s, "'", "''") + "'"
+}
+
+func (b Binder) toLiteralBinary(bs []byte, limit int) string {
+	switch {
+	case len(bs) == 0:
+		return "''"
+	case limit > 0 && len(bs) > limit:
+		return "\\x" + hex.EncodeToString(bs[:limit]) + "...'"
+	default:
+		return "\\x" + hex.EncodeToString(bs) + "'"
+	}
+}
+
+func (b Binder) convert(v any, limit int) string {
+	if ref.IsNil(v) {
+		return nullStr
+	}
+
 	switch v := v.(type) {
 	case string:
-		return "'" + strings.ReplaceAll(v, "'", "''") + "'"
+		return b.toLiteralString(v, limit)
 	case []byte:
 		if s := str.UnsafeString(v); str.IsUTFPrintable(s) {
-			return "'" + strings.ReplaceAll(s, "'", "''") + "'"
+			return b.toLiteralString(s, limit)
 		}
-		return "'" + "<binary>" + "'"
+		return b.toLiteralBinary(v, limit)
 	case bool, int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64:
 		s, _ := cas.ToString(v)
 		return s
@@ -218,43 +243,25 @@ func convert(v any) string {
 		}
 		return "'" + v.Local().Format(tmFormat) + "'"
 	case *time.Time:
-		if v != nil {
-			if v.IsZero() {
-				return "'" + zeroTime + "'"
-			}
-			return "'" + v.Local().Format(tmFormat) + "'"
+		if v.IsZero() {
+			return "'" + zeroTime + "'"
 		}
-		return nullStr
+		return "'" + v.Local().Format(tmFormat) + "'"
 	case driver.Valuer:
-		rv := reflect.ValueOf(v)
-		if v != nil && rv.IsValid() && ((rv.Kind() == reflect.Pointer && !rv.IsNil()) || rv.Kind() != reflect.Pointer) {
-			r, _ := v.Value()
-			return convert(r)
-		}
-		return nullStr
+		r, _ := v.Value()
+		return b.convert(r, limit)
 	case fmt.Stringer:
-		rv := reflect.ValueOf(v)
-		if v != nil && rv.IsValid() && ((rv.Kind() == reflect.Pointer && !rv.IsNil()) || rv.Kind() != reflect.Pointer) {
-			return "'" + strings.ReplaceAll(fmt.Sprintf("%v", v), "'", "''") + "'"
-		}
-		return nullStr
+		return b.toLiteralString(v.String(), limit)
 	default:
 		rv := reflect.ValueOf(v)
-		if v == nil || !rv.IsValid() || rv.Kind() == reflect.Pointer && rv.IsNil() {
-			return nullStr
-		}
-		if valuer, ok := v.(driver.Valuer); ok {
-			v, _ = valuer.Value()
-			return convert(v)
-		}
 		if rv.Kind() == reflect.Pointer && !rv.IsZero() {
-			return convert(reflect.Indirect(rv).Interface())
+			return b.convert(reflect.Indirect(rv).Interface(), limit)
 		}
 		for _, t := range convertibleTypes {
 			if rv.Type().ConvertibleTo(t) {
-				return convert(rv.Convert(t).Interface())
+				return b.convert(rv.Convert(t).Interface(), limit)
 			}
 		}
-		return "'" + strings.ReplaceAll(fmt.Sprint(v), "'", "''") + "'"
+		return b.toLiteralString(fmt.Sprint(v), limit)
 	}
 }

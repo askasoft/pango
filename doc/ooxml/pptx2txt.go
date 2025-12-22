@@ -148,13 +148,7 @@ func PptxZipReaderTextify(w io.Writer, zr *zip.Reader, options ...string) error 
 	}
 
 	for it := zfm.Iterator(); it.Next(); {
-		fr, err := it.Value().Open()
-		if err != nil {
-			return err
-		}
-		defer fr.Close()
-
-		if err := pptxSlideTextify(lw, fr); err != nil {
+		if err := pptxSlideTextify(lw, it.Value()); err != nil {
 			return err
 		}
 
@@ -167,16 +161,21 @@ func PptxZipReaderTextify(w io.Writer, zr *zip.Reader, options ...string) error 
 	return nil
 }
 
-func pptxSlideTextify(w io.Writer, r io.Reader) error {
+func pptxSlideTextify(w io.Writer, zf *zip.File) error {
+	r, err := zf.Open()
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+
 	var sb strings.Builder
 
-	xd := xml.NewDecoder(r)
-
 	wp, wt := false, false
-	for {
+
+	for xd := xml.NewDecoder(r); ; {
 		tok, err := xd.Token()
 		if tok == nil || errors.Is(err, io.EOF) {
-			break
+			return nil
 		}
 
 		switch ty := tok.(type) {
@@ -208,6 +207,4 @@ func pptxSlideTextify(w io.Writer, r io.Reader) error {
 			}
 		}
 	}
-
-	return nil
 }

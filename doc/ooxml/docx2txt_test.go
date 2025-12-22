@@ -22,7 +22,7 @@ func testReadFile(t *testing.T, name string) []byte {
 }
 
 func TestDocxFileTextifyString(t *testing.T) {
-	cs := []string{"hello.docx", "history.docx", "table.docx"}
+	cs := []string{"hello.docx", "history.docx", "number.docx", "table.docx"}
 
 	for i, c := range cs {
 		fn := testFilename(c)

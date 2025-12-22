@@ -125,28 +125,27 @@ func XlsxZipReaderTextify(w io.Writer, zr *zip.Reader) error {
 
 	for _, zf := range zr.File {
 		if zf.Name == "xl/sharedStrings.xml" {
-			fr, err := zf.Open()
-			if err != nil {
-				return err
-			}
-			defer fr.Close()
-
-			return xlsxStringsTextify(fr, lw)
+			return xlsxStringsTextify(zf, lw)
 		}
 	}
 	return nil
 }
 
-func xlsxStringsTextify(r io.Reader, w io.Writer) error {
+func xlsxStringsTextify(zf *zip.File, w io.Writer) error {
+	r, err := zf.Open()
+	if err != nil {
+		return err
+	}
+	defer r.Close()
+
 	var sb strings.Builder
 
-	xd := xml.NewDecoder(r)
-
 	xc, xt, xrph := false, false, false
-	for {
+
+	for xd := xml.NewDecoder(r); ; {
 		tok, err := xd.Token()
 		if tok == nil || errors.Is(err, io.EOF) {
-			break
+			return nil
 		}
 
 		switch ty := tok.(type) {
@@ -178,6 +177,4 @@ func xlsxStringsTextify(r io.Reader, w io.Writer) error {
 			}
 		}
 	}
-
-	return nil
 }

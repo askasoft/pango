@@ -7,15 +7,15 @@ import (
 	"strings"
 )
 
-// SliceOf returns a []T{args[0], args[1], ...}
-func SliceOf[T any](args ...T) []T {
-	return args
+// SliceOf returns []T{v[0], v[1], ...}
+func SliceOf[T any](v ...T) []T {
+	return v
 }
 
-// Anys convert slice 'sa' to []any slice
-func Anys[T any](a []T) []any {
-	b := make([]any, len(a))
-	for i, v := range a {
+// Anys convert slice 's' to []any slice
+func Anys[T any](s []T) []any {
+	b := make([]any, len(s))
+	for i, v := range s {
 		b[i] = v
 	}
 	return b
@@ -23,59 +23,59 @@ func Anys[T any](a []T) []any {
 
 // Clone returns a copy of the slice with additional +n cap.
 // The elements are copied using assignment, so this is a shallow clone.
-func Clone[T any](a []T, n ...int) []T {
+func Clone[T any](s []T, n ...int) []T {
 	// Preserve nil in case it matters.
-	if a == nil {
+	if s == nil {
 		return nil
 	}
 
-	return append(make([]T, 0, len(a)+First(n)), a...)
+	return append(make([]T, 0, len(s)+First(n)), s...)
 }
 
-// Contains reports whether the v is contained in the slice a.
-func Contains[T comparable](a []T, v T) bool {
-	return slices.Contains(a, v)
+// Contains reports whether the v is contained in the slice s.
+func Contains[T comparable](s []T, v T) bool {
+	return slices.Contains(s, v)
 }
 
-// ContainsAll reports whether all elements of cs are contained in the slice a.
-func ContainsAll[T comparable](a []T, cs ...T) bool {
+// ContainsAll reports whether all elements of cs are contained in the slice s.
+func ContainsAll[T comparable](s []T, cs ...T) bool {
 	if len(cs) == 0 {
 		return true
 	}
 
-	if len(a) == 0 {
+	if len(s) == 0 {
 		return false
 	}
 
 	for _, c := range cs {
-		if !Contains(a, c) {
+		if !Contains(s, c) {
 			return false
 		}
 	}
 	return true
 }
 
-// ContainsAny reports whether at least one element of cs is contained in the slice a.
-func ContainsAny[T comparable](a []T, cs ...T) bool {
+// ContainsAny reports whether at least one element of cs is contained in the slice s.
+func ContainsAny[T comparable](s []T, cs ...T) bool {
 	if len(cs) == 0 {
 		return true
 	}
 
-	if len(a) == 0 {
+	if len(s) == 0 {
 		return false
 	}
 
 	for _, c := range cs {
-		if Contains(a, c) {
+		if Contains(s, c) {
 			return true
 		}
 	}
 	return false
 }
 
-// ContainsFunc reports whether at least one element e of a satisfies f(e).
-func ContainsFunc[T any](a []T, f func(T) bool) bool {
-	return slices.ContainsFunc(a, f)
+// ContainsFunc reports whether at least one element e of slice s which satisfies f(e).
+func ContainsFunc[T any](s []T, f func(T) bool) bool {
+	return slices.ContainsFunc(s, f)
 }
 
 // Equal reports whether a and b
@@ -94,49 +94,49 @@ func EqualFunc[A any, B any](a []A, b []B, eq func(A, B) bool) bool {
 	return slices.EqualFunc(a, b, eq)
 }
 
-// First get first element of a slice a.
-// returns first value of `d...` if slice `a` is empty.
-// returns zero value if slice `a` and `d` is empty.
-func First[T any](a []T, d ...T) (v T) {
+// First get first element of a slice s.
+// returns first value of `d...` if slice `s` is empty.
+// returns zero value if slice `s` and `d` is empty.
+func First[T any](s []T, d ...T) (v T) {
 	switch {
-	case len(a) > 0:
-		v = a[0]
+	case len(s) > 0:
+		v = s[0]
 	case len(d) > 0:
 		v = d[0]
 	}
 	return
 }
 
-// Last get last element of a slice.
+// Last get last element of slice s.
 // returns zero value if slice is empty.
-func Last[T any](a []T) (v T) {
-	if z := len(a); z > 0 {
-		v = a[z-1]
+func Last[T any](s []T) (v T) {
+	if z := len(s); z > 0 {
+		v = s[z-1]
 	}
 	return
 }
 
 // Get get element at the specified index i.
-func Get[T any](a []T, i int) (v T, ok bool) {
-	if i >= 0 && i < len(a) {
-		v, ok = a[i], true
+func Get[T any](s []T, i int) (v T, ok bool) {
+	if i >= 0 && i < len(s) {
+		v, ok = s[i], true
 	}
 	return
 }
 
-// Index returns the index of the first instance of v in a, or -1 if v is not present in a.
-func Index[T comparable](a []T, v T) int {
-	return slices.Index(a, v)
+// Index returns the index of the first instance of v in s, or -1 if v is not present in s.
+func Index[T comparable](s []T, v T) int {
+	return slices.Index(s, v)
 }
 
-// IndexFunc returns the first index i satisfying f(a[i]), or -1 if none do.
-func IndexFunc[T any](a []T, f func(T) bool) int {
-	return slices.IndexFunc(a, f)
+// IndexFunc returns the first index i satisfying f(s[i]), or -1 if none do.
+func IndexFunc[T any](s []T, f func(T) bool) int {
+	return slices.IndexFunc(s, f)
 }
 
-// FindFunc returns the first item satisfying f(a[i]), or (zero,false) if none do.
-func FindFunc[T any](a []T, f func(T) bool) (v T, ok bool) {
-	for _, e := range a {
+// FindFunc returns the first item satisfying f(s[i]), or (zero,false) if none do.
+func FindFunc[T any](s []T, f func(T) bool) (v T, ok bool) {
+	for _, e := range s {
 		if f(e) {
 			v, ok = e, true
 			return
@@ -145,46 +145,68 @@ func FindFunc[T any](a []T, f func(T) bool) (v T, ok bool) {
 	return
 }
 
-// Delete removes the elements a[i:j] from a, returning the modified slice.
-// Delete panics if a[i:j] is not a valid slice of a.
-// Delete is O(len(a)-j), so if many items must be deleted, it is better to
+// Delete removes the elements s[i:j] from s, returning the modified slice.
+// Delete panics if s[i:j] is not a valid slice of s.
+// Delete is O(len(s)-j), so if many items must be deleted, it is better to
 // make a single call deleting them all together than to delete one at a time.
-// Delete might not modify the elements a[len(a)-(j-i):len(a)]. If those
+// Delete might not modify the elements s[len(s)-(j-i):len(s)]. If those
 // elements contain pointers you might consider zeroing those elements so that
 // objects they reference can be garbage collected.
-func Delete[T any](a []T, i, j int) []T {
-	return slices.Delete(a, i, j)
+func Delete[T any](s []T, i, j int) []T {
+	return slices.Delete(s, i, j)
 }
 
-// DeleteFunc removes any elements from a for which del returns true,
+// DeleteFunc removes any elements from s for which del returns true,
 // returning the modified slice.
 // When DeleteFunc removes m elements, it might not modify the elements
-// a[len(a)-m:len(a)]. If those elements contain pointers you might consider
+// s[len(s)-m:len(s)]. If those elements contain pointers you might consider
 // zeroing those elements so that objects they reference can be garbage
 // collected.
-func DeleteFunc[T any](a []T, del func(T) bool) []T {
-	return slices.DeleteFunc(a, del)
+func DeleteFunc[T any](s []T, del func(T) bool) []T {
+	return slices.DeleteFunc(s, del)
 }
 
-// DeleteEqual removes any elements from a for which elemant == e, returning the modified slice.
+// DeleteEqual removes any elements from s for which elemant == e, returning the modified slice.
 // When DeleteFunc removes m elements, it might not modify the elements
-// a[len(a)-m:len(a)]. If those elements contain pointers you might consider
+// s[len(s)-m:len(s)]. If those elements contain pointers you might consider
 // zeroing those elements so that objects they reference can be garbage
 // collected.
-func DeleteEqual[T comparable](a []T, e T) []T {
-	i := Index(a, e)
+func DeleteEqual[T comparable](s []T, e T) []T {
+	i := Index(s, e)
 	if i < 0 {
-		return a
+		return s
 	}
 
 	// Don't start copying elements until we find one to delete.
-	for j := i + 1; j < len(a); j++ {
-		if v := a[j]; v != e {
-			a[i] = v
+	for j := i + 1; j < len(s); j++ {
+		if v := s[j]; v != e {
+			s[i] = v
 			i++
 		}
 	}
-	return a[:i]
+	clear(s[i:]) // zero/nil out the obsolete elements, for GC
+	return s[:i]
+}
+
+// Insert inserts the values v... into s at index i,
+// returning the modified slice.
+// The elements at s[i:] are shifted up to make room.
+// In the returned slice r, r[i] == v[0],
+// and, if i < len(s), r[i+len(v)] == value originally at r[i].
+// Insert panics if i > len(s).
+// This function is O(len(s) + len(v)).
+// If the result is empty, it has the same nilness as s.
+func Insert[T any](s []T, i int, v ...T) []T {
+	return slices.Insert(s, i, v...)
+}
+
+// Replace replaces the elements s[i:j] by the given v, and returns the
+// modified slice.
+// Replace panics if j > len(s) or s[i:j] is not a valid slice of s.
+// When len(v) < (j-i), Replace zeroes the elements between the new length and the original length.
+// If the result is empty, it has the same nilness as s.
+func Replace[T any](s []T, i, j int, v ...T) []T {
+	return slices.Replace(s, i, j, v...)
 }
 
 // Compare compares the elements of s1 and s2, using [cmp.Compare] on each pair
@@ -209,40 +231,40 @@ func CompareFunc[S1 ~[]E1, S2 ~[]E2, E1, E2 any](s1 S1, s2 S2, cmp func(E1, E2) 
 
 // Compact replaces consecutive runs of equal elements with a single copy.
 // This is like the uniq command found on Unix.
-// Compact modifies the contents of the slice a and returns the modified slice,
-// which may have a smaller length.
+// Compact modifies the contents of the slice s and returns the modified slice,
+// which may have s smaller length.
 // When Compact discards m elements in total, it might not modify the elements
-// a[len(a)-m:len(a)]. If those elements contain pointers you might consider
+// s[len(s)-m:len(s)]. If those elements contain pointers you might consider
 // zeroing those elements so that objects they reference can be garbage collected.
-func Compact[T comparable](a []T) []T {
-	return slices.Compact(a)
+func Compact[T comparable](s []T) []T {
+	return slices.Compact(s)
 }
 
 // CompactFunc is like [Compact] but uses an equality function to compare elements.
 // For runs of elements that compare equal, CompactFunc keeps the first one.
-func CompactFunc[T any](a []T, eq func(T, T) bool) []T {
-	return slices.CompactFunc(a, eq)
+func CompactFunc[T any](s []T, eq func(T, T) bool) []T {
+	return slices.CompactFunc(s, eq)
 }
 
 // Grow increases the slice's capacity, if necessary, to guarantee space for
 // another n elements. After Grow(n), at least n elements can be appended
 // to the slice without another allocation. If n is negative or too large to
 // allocate the memory, Grow panics.
-func Grow[T any](a []T, n int) []T {
-	return slices.Grow(a, n)
+func Grow[T any](s []T, n int) []T {
+	return slices.Grow(s, n)
 }
 
-// Clip removes unused capacity from the slice, returning a[:len(a):len(a)].
-func Clip[T any](a []T) []T {
-	return a[:len(a):len(a)]
+// Clip removes unused capacity from the slice, returning s[:len(s):len(s)].
+func Clip[T any](s []T) []T {
+	return s[:len(s):len(s)]
 }
 
 // Reverse reverses the elements of the slice in place.
-func Reverse[T any](a []T) {
-	slices.Reverse(a)
+func Reverse[T any](s []T) {
+	slices.Reverse(s)
 }
 
-// Concat returns a new slice concatenating the passed in slices.
+// Concat returns s new slice concatenating the passed in slices.
 func Concat[T any](ss ...[]T) []T {
 	return slices.Concat(ss...)
 }
@@ -275,8 +297,8 @@ func MaxFunc[T any](x []T, cmp func(a, b T) int) T {
 	return slices.MaxFunc(x, cmp)
 }
 
-func sprint[T any](a T) string {
-	return fmt.Sprint(a)
+func sprint[T any](v T) string {
+	return fmt.Sprint(v)
 }
 
 // Join concatenates the elements of its first argument to create a single string. The separator

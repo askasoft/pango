@@ -2,6 +2,8 @@ package str
 
 import (
 	"strings"
+
+	"github.com/askasoft/pango/asg"
 )
 
 // ToValidUTF8s returns a copy of the string s with each run of invalid UTF-8 byte sequences
@@ -65,16 +67,5 @@ func RemoveEmpties(ss []string) []string {
 
 // Removes remove string 'v' in the string array 'ss', and returns the string array 'ss'
 func Removes(ss []string, v string) []string {
-	for i, s := range ss {
-		if s == v {
-			for j := i + 1; j < len(ss); j++ {
-				if s := ss[j]; s != v {
-					ss[i] = s
-					i++
-				}
-			}
-			return ss[:i]
-		}
-	}
-	return ss
+	return asg.DeleteEqual(ss, v)
 }

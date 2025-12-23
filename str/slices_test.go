@@ -60,6 +60,8 @@ func TestRemoveEmpties(t *testing.T) {
 	}{
 		{[]string{"a", ""}, []string{"a"}},
 		{[]string{"a", "", "b", "", "c"}, []string{"a", "b", "c"}},
+		{[]string{"", "a", "b"}, []string{"a", "b"}},
+		{[]string{"", "a", "b", "", "c"}, []string{"a", "b", "c"}},
 	}
 
 	for i, c := range cs {

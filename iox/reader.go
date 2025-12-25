@@ -1,6 +1,7 @@
 package iox
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -43,8 +44,17 @@ type MaxBytesError struct {
 }
 
 func (e *MaxBytesError) Error() string {
-	// Due to Hyrum's law, this text cannot be changed.
 	return fmt.Sprintf("iox: reader too large (must <= %s)", num.HumanSize(e.Limit))
+}
+
+func AsMaxBytesError(err error) (mbe *MaxBytesError, ok bool) {
+	ok = errors.As(err, &mbe)
+	return
+}
+
+func IsMaxBytesError(err error) bool {
+	_, ok := AsMaxBytesError(err)
+	return ok
 }
 
 func NewMaxBytesReader(r io.Reader, n int64) *MaxBytesReader {

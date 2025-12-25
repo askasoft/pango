@@ -36,19 +36,19 @@ func (rsl *RequestSizeLimiter) Handle(c *xin.Context) {
 	var err error
 
 	if c.Request.ContentLength > mbs {
-		err = &iox.MaxBytesError{Limit: mbs}
+		err = &http.MaxBytesError{Limit: mbs}
 	} else {
 		crb := c.Request.Body
-		mbr := iox.NewMaxBytesReader(crb, mbs)
+		mbr := http.MaxBytesReader(c.Writer.Writer(), crb, mbs) // let http.ParseForm() check http.maxBytesReader
 		c.Request.Body = mbr
 		c.Next()
 		c.Request.Body = crb
 
-		err = mbr.Error()
+		_, err = mbr.Read(nil) // get last error
 	}
 
 	if err != nil {
-		var mbe *iox.MaxBytesError
+		var mbe *http.MaxBytesError
 		if ok := errors.As(err, &mbe); ok {
 			if rsl.DrainBody {
 				iox.Drain(c.Request.Body)

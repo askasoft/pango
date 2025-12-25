@@ -40,6 +40,9 @@ type ResponseWriter interface {
 
 	// Pusher get the http.Pusher for server push
 	Pusher() http.Pusher
+
+	// Writer get the http.ResponseWriter
+	Writer() http.ResponseWriter
 }
 
 type responseWriter struct {
@@ -122,6 +125,11 @@ func (w *responseWriter) Pusher() (pusher http.Pusher) {
 		return pusher
 	}
 	return nil
+}
+
+// Writer get the http.ResponseWriter
+func (w *responseWriter) Writer() http.ResponseWriter {
+	return w.ResponseWriter
 }
 
 // NewHeaderWriter create a ResponseWriter to append on WriteHeader(statusCode int).

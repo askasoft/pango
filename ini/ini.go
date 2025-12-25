@@ -327,7 +327,11 @@ func (ini *Ini) LoadData(r io.Reader, multiple ...bool) (err error) {
 					return fmt.Errorf("line %d: invalid quoted value", linenum)
 				}
 
-				section.Add(key, s, comments...)
+				if multi {
+					section.Add(key, s, comments...)
+				} else {
+					section.Set(key, s, comments...)
+				}
 
 				key = ""
 				val.Reset()

@@ -278,3 +278,35 @@ func TestIniMerge(t *testing.T) {
 		}
 	}
 }
+
+func TestIniOverwrite(t *testing.T) {
+	f1 := "testdata/overwrite-original.ini"
+	f2 := "testdata/overwrite-overwrite.ini"
+	fexp := "testdata/overwrite-expect.ini"
+	fout := "testdata/overwrite-output.ini"
+
+	i1 := NewIni()
+	i1.EOL = iox.CRLF
+	if err := i1.LoadFile(f1); err != nil {
+		t.Fatalf(`Failed to load %s: %v`, f1, err)
+	}
+
+	if err := i1.LoadFile(f2); err != nil {
+		t.Fatalf(`Failed to load %s: %v`, f2, err)
+	}
+
+	// expected file
+	sexp := testReadString(fexp)
+
+	// write data
+	{
+		sout := &strings.Builder{}
+		if err := i1.WriteData(sout); err != nil {
+			t.Fatalf(`ini.WriteData(sout) = %v`, err)
+		}
+		if sexp != sout.String() {
+			i1.WriteFile(fout)
+			t.Fatalf(`ini.WriteData(sout)\n actual: %v\n   want: %v`, sout.String(), sexp)
+		}
+	}
+}

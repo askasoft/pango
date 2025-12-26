@@ -40,9 +40,26 @@ func TestArraySet(t *testing.T) {
 	}
 
 	for i, c := range cs {
-		_, err := ArraySet(c.a, c.i, c.v)
+		err := ArraySet(c.a, c.i, c.v)
 		if err != nil || !reflect.DeepEqual(c.a, c.w) {
 			t.Errorf("[%d] ArraySet(%v, %d, %v) = _, %v, want: %v", i, c.a, c.i, c.v, err, c.w)
+		}
+	}
+}
+
+func TestToSlice(t *testing.T) {
+	cs := []struct {
+		a any
+		w any
+	}{
+		{[1]string{"1"}, []string{"1"}},
+		{[2]string{"1"}, []string{"1", ""}},
+	}
+
+	for i, c := range cs {
+		a, err := ToSlice(c.a)
+		if err != nil || !reflect.DeepEqual(a, c.w) {
+			t.Errorf("[%d] ToSlice(%v) = (%v, %v), want: %v", i, c.a, a, err, c.w)
 		}
 	}
 }
@@ -54,6 +71,8 @@ func TestSliceAdd(t *testing.T) {
 		w any
 	}{
 		{[]string{"a"}, []any{1, "2"}, []string{"a", "1", "2"}},
+		{[1]string{"a"}, []any{1, "2"}, []string{"a", "1", "2"}},
+		{[2]string{"a"}, []any{1, "2"}, []string{"a", "", "1", "2"}},
 	}
 
 	for i, c := range cs {

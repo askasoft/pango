@@ -65,16 +65,16 @@ func mapGet(mv reflect.Value, key any) (any, error) {
 }
 
 // MapSet setting value to the map
-func MapSet(dict any, key, val any) (any, error) {
+func MapSet(dict, key, value any) error {
 	mv := reflect.ValueOf(dict)
 	if mv.Kind() != reflect.Map {
-		return nil, fmt.Errorf("ref: %T is not a map", dict)
+		return fmt.Errorf("ref: %T is not a map", dict)
 	}
 
-	return mapSet(mv, key, val)
+	return mapSet(mv, key, value)
 }
 
-func mapSet(mv reflect.Value, key, val any) (any, error) {
+func mapSet(mv reflect.Value, key, val any) error {
 	mt := mv.Type()
 	mk, me := mt.Key(), mt.Elem()
 
@@ -82,7 +82,7 @@ func mapSet(mv reflect.Value, key, val any) (any, error) {
 	if kv.Type() != mk {
 		cv, err := CastTo(key, mk)
 		if err != nil {
-			return nil, fmt.Errorf("ref: invalid map key type - %w", err)
+			return fmt.Errorf("ref: invalid map key type - %w", err)
 		}
 		kv = reflect.ValueOf(cv)
 	}
@@ -91,11 +91,11 @@ func mapSet(mv reflect.Value, key, val any) (any, error) {
 	if vv.Type() != me {
 		cv, err := CastTo(val, me)
 		if err != nil {
-			return nil, fmt.Errorf("ref: invalid map value type - %w", err)
+			return fmt.Errorf("ref: invalid map value type - %w", err)
 		}
 		vv = reflect.ValueOf(cv)
 	}
 
 	mv.SetMapIndex(kv, vv)
-	return nil, nil
+	return nil
 }

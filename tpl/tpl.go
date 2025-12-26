@@ -151,10 +151,10 @@ func Functions() FuncMap {
 		"Strings":  funcs.Strings,
 		"Array":    funcs.Array,
 		"ArrayGet": ref.ArrayGet,
-		"ArraySet": ref.ArraySet,
+		"ArraySet": funcs.ArraySet,
 		"SliceAdd": ref.SliceAdd,
 		"Map":      funcs.Map,
 		"MapGet":   ref.MapGet,
-		"MapSet":   ref.MapSet,
+		"MapSet":   funcs.MapSet,
 	}
 }

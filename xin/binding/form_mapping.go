@@ -628,7 +628,7 @@ func setFormMap(dict any, form map[string][]string) error {
 		if me.Kind() == reflect.Slice {
 			// element is slice
 			for k, vs := range form {
-				if _, err := ref.MapSet(dict, k, vs); err != nil {
+				if err := ref.MapSet(dict, k, vs); err != nil {
 					return err
 				}
 			}
@@ -637,7 +637,7 @@ func setFormMap(dict any, form map[string][]string) error {
 
 		// element is not slice
 		for k, vs := range form {
-			if _, err := ref.MapSet(dict, k, asg.First(vs)); err != nil {
+			if err := ref.MapSet(dict, k, asg.First(vs)); err != nil {
 				return err
 			}
 		}

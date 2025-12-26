@@ -107,14 +107,12 @@ func SetProperty(o any, k string, v any) error {
 		re := rv.Elem()
 		switch re.Kind() {
 		case reflect.Map:
-			_, err := mapSet(re, k, v)
-			return err
+			return mapSet(re, k, v)
 		default:
 			return setProperty(rv, k, v)
 		}
 	case reflect.Map:
-		_, err := mapSet(rv, k, v)
-		return err
+		return mapSet(rv, k, v)
 	default:
 		return setProperty(rv, k, v)
 	}

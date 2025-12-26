@@ -88,10 +88,7 @@ func TestMapSet(t *testing.T) {
 		"1": 0,
 	}
 
-	if res, err := MapSet(m1, "a", "1"); err == nil {
-		if res != nil {
-			t.Errorf("Should return nil, but return %v", res)
-		}
+	if err := MapSet(m1, "a", "1"); err == nil {
 		if m1["a"] != 1 {
 			t.Errorf(`m1["a"] = %v, want 1`, m1["a"])
 		}
@@ -99,15 +96,11 @@ func TestMapSet(t *testing.T) {
 		t.Errorf("Error happens %v", err)
 	}
 
-	if res, err := MapSet(m1, 1, "1"); err == nil {
-		if res != nil {
-			t.Errorf("Should return nil, but return %v", res)
-		}
+	if err := MapSet(m1, 1, "1"); err == nil {
 		if m1["1"] != 1 {
 			t.Errorf(`m1["1"] = %v, want 1`, m1["1"])
 		}
 	} else {
 		t.Errorf("Error happens %v", err)
 	}
-
 }

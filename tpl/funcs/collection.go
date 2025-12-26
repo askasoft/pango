@@ -1,15 +1,24 @@
 package funcs
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/askasoft/pango/ref"
+)
+
+// Strings returns a []string{args[0], args[1], ...}
+func Strings(args ...string) []string {
+	return args
+}
 
 // Array returns a []any{args[0], args[1], ...}
 func Array(args ...any) []any {
 	return args
 }
 
-// Strings returns a []string{args[0], args[1], ...}
-func Strings(args ...string) []string {
-	return args
+// ArraySet set value to the array or slice by index
+func ArraySet(a any, i int, v any) (any, error) {
+	return "", ref.ArraySet(a, i, v)
 }
 
 // Map returns a map[string]any{kvs[0]: kvs[1], kvs[2]: kvs[3], ...}
@@ -27,4 +36,9 @@ func Map(kvs ...any) (map[string]any, error) {
 		dict[key] = kvs[i+1]
 	}
 	return dict, nil
+}
+
+// MapSet setting value to the map
+func MapSet(dict, key, value any) (any, error) {
+	return "", ref.MapSet(dict, key, value)
 }

@@ -31,9 +31,9 @@
 <p>Divide:   2</p>
 
 <h2>Collection</h2>
-<p>MapSet('Array'): <no value></p>
+<p>MapSet('Array'): </p>
 <p>MapGet('Array'): [a1 a2]</p>
-<p>MapSet('Map'):   <no value></p>
+<p>MapSet('Map'):   </p>
 <p>MapGet('Map'):   map[k1:v1 k2:v2]</p>
 
 

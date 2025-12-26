@@ -209,6 +209,23 @@ func TestMathMulti(t *testing.T) {
 	testCalculate1(t, cs)
 }
 
+func TestMathArray(t *testing.T) {
+	cs := []testcase2{
+		{[]int{1, 2, 3}, "a+b", map[string]any{"a": []int{1, 2}, "b": "3"}},
+		{[]int{1, 2, 3}, "a+b", map[string]any{"a": []int{1, 2}, "b": []string{"3"}}},
+		{[]string{"1", "2", "3"}, "a+b", map[string]any{"a": []string{"1", "2"}, "b": 3}},
+		{[]string{"1", "2", "3"}, "a+b", map[string]any{"a": []string{"1", "2"}, "b": []int{3}}},
+
+		{[]int{2, 2, 3, 3}, "a - b", map[string]any{"a": []int{1, 1, 2, 2, 3, 3}, "b": "1"}},
+		{[]int{1, 1, 3, 3}, "a - b", map[string]any{"a": []int{1, 1, 2, 2, 3, 3}, "b": 2}},
+		{[]int{2, 2}, "a - b", map[string]any{"a": []int{1, 1, 2, 2, 3, 3}, "b": []string{"1", "3"}}},
+		{[]string{"2", "2", "3", "3"}, "a - b", map[string]any{"a": []string{"1", "1", "2", "2", "3", "3"}, "b": 1}},
+		{[]string{"1", "1", "3", "3"}, "a - b", map[string]any{"a": []string{"1", "1", "2", "2", "3", "3"}, "b": "2"}},
+		{[]string{"2", "2"}, "a - b", map[string]any{"a": []string{"1", "1", "2", "2", "3", "3"}, "b": []int{1, 3}}},
+	}
+	testCalculate2(t, cs)
+}
+
 func TestLogical(t *testing.T) {
 	cs := []testcase1{
 		{true, `!$`},

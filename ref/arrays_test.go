@@ -29,6 +29,25 @@ func TestArrayGet(t *testing.T) {
 	}
 }
 
+func TestArrayIndex(t *testing.T) {
+	cs := []struct {
+		s any
+		v any
+		w int
+	}{
+		{[]string{"a", "a", "1", "2"}, 1, 2},
+		{[]string{"a", "a", "1", "2"}, "a", 0},
+		{[4]string{"a", "a", "1", "2"}, "2", 3},
+	}
+
+	for i, c := range cs {
+		a, err := ArrayIndex(c.s, c.v)
+		if err != nil || a != c.w {
+			t.Errorf("[%d] ArrayIndex(%v, %v) = (%v, %v), want: %v", i, c.s, c.v, a, err, c.w)
+		}
+	}
+}
+
 func TestArraySet(t *testing.T) {
 	cs := []struct {
 		a any
@@ -79,6 +98,24 @@ func TestSliceAdd(t *testing.T) {
 		a, err := SliceAdd(c.s, c.a...)
 		if err != nil || !reflect.DeepEqual(a, c.w) {
 			t.Errorf("[%d] SliceAdd(%v, %v) = (%v, %v), want: %v", i, c.s, c.a, a, err, c.w)
+		}
+	}
+}
+
+func TestSliceDel(t *testing.T) {
+	cs := []struct {
+		s any
+		d []any
+		w any
+	}{
+		{[]string{"a", "a", "1", "2"}, []any{1, "a"}, []string{"2"}},
+		{[4]string{"a", "a", "1", "2"}, []any{1, "2"}, []string{"a", "a"}},
+	}
+
+	for i, c := range cs {
+		a, err := SliceDel(c.s, c.d...)
+		if err != nil || !reflect.DeepEqual(a, c.w) {
+			t.Errorf("[%d] SliceDel(%v, %v) = (%v, %v), want: %v", i, c.s, c.d, a, err, c.w)
 		}
 	}
 }

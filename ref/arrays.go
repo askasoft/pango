@@ -54,6 +54,39 @@ func ArrayGet(a any, idxs ...int) (any, error) {
 	}
 }
 
+// ArrayIndex returns the index of the first instance of v in a, or -1 if v is not present in a.
+func ArrayIndex(a any, v any) (int, error) {
+	av := reflect.ValueOf(a)
+	switch av.Kind() {
+	case reflect.Slice, reflect.Array:
+		if av.Len() == 0 {
+			return -1, nil
+		}
+
+		vv, et := v, av.Type().Elem()
+		if reflect.ValueOf(v).Type() != et {
+			cv, err := CastTo(v, et)
+			if err != nil {
+				return -1, err
+			}
+			vv = cv
+		}
+		return arrayIndex(av, vv), nil
+	default:
+		return -1, fmt.Errorf("ref: %T is not a array or slice", a)
+	}
+}
+
+func arrayIndex(av reflect.Value, v any) int {
+	for i := range av.Len() {
+		ev := av.Index(i)
+		if ev.Interface() == v {
+			return i
+		}
+	}
+	return -1
+}
+
 // ArraySet set value to the array or slice by index
 func ArraySet(a any, i int, v any) error {
 	av := reflect.ValueOf(a)
@@ -135,4 +168,55 @@ func SliceAdd(a any, vs ...any) (any, error) {
 	default:
 		return a, fmt.Errorf("ref: %T is not a array or slice", a)
 	}
+}
+
+// SliceDel delete values from the slice `a`
+// if `a` is a array, we convert it to slice and delete `vs`.
+func SliceDel(a any, vs ...any) (any, error) {
+	av := reflect.ValueOf(a)
+
+	switch av.Kind() {
+	case reflect.Array:
+		s, err := ToSlice(a)
+		if err != nil {
+			return a, err
+		}
+		return SliceDel(s, vs...)
+	case reflect.Slice:
+		if len(vs) == 0 {
+			return a, nil
+		}
+
+		et := av.Type().Elem()
+		for _, v := range vs {
+			if reflect.ValueOf(v).Type() != et {
+				cv, err := CastTo(v, et)
+				if err != nil {
+					return nil, err
+				}
+				v = cv
+			}
+			av = sliceDel(av, v)
+		}
+
+		return av.Interface(), nil
+	default:
+		return a, fmt.Errorf("ref: %T is not a array or slice", a)
+	}
+}
+
+func sliceDel(av reflect.Value, v any) reflect.Value {
+	i := arrayIndex(av, v)
+	if i < 0 {
+		return av
+	}
+
+	for j := i + 1; j < av.Len(); j++ {
+		ev := av.Index(j)
+		if ev.Interface() != v {
+			av.Index(i).Set(ev)
+			i++
+		}
+	}
+	return av.Slice(0, i)
 }

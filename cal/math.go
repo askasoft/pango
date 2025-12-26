@@ -66,6 +66,38 @@ func Adds(a any, b ...any) (r any, err error) {
 
 // Add returns the result of a + b
 func Add(a, b any) (any, error) {
+	av, bv := reflect.ValueOf(a), reflect.ValueOf(b)
+	switch av.Kind() {
+	case reflect.Array, reflect.Slice:
+		return sliceAdd(a, b, bv)
+	default:
+		switch bv.Kind() {
+		case reflect.Array, reflect.Slice:
+			return sliceAdd(b, a, av)
+		default:
+			return add(a, b)
+		}
+	}
+}
+
+func sliceAdd(a, b any, bv reflect.Value) (any, error) {
+	if vs, ok := b.([]any); ok {
+		return ref.SliceAdd(a, vs...)
+	}
+
+	switch bv.Kind() {
+	case reflect.Array, reflect.Slice:
+		vs := make([]any, bv.Len())
+		for i := range bv.Len() {
+			vs[i] = bv.Index(i).Interface()
+		}
+		return ref.SliceAdd(a, vs...)
+	default:
+		return ref.SliceAdd(a, b)
+	}
+}
+
+func add(a, b any) (any, error) {
 	v, err := cast(a, b)
 	if err != nil {
 		return a, err
@@ -133,6 +165,33 @@ func Subs(a any, b ...any) (r any, err error) {
 
 // Sub subtract returns the result of a - b
 func Sub(a, b any) (any, error) {
+	av, bv := reflect.ValueOf(a), reflect.ValueOf(b)
+	switch av.Kind() {
+	case reflect.Array, reflect.Slice:
+		return sliceSub(a, b, bv)
+	default:
+		return sub(a, b)
+	}
+}
+
+func sliceSub(a, b any, bv reflect.Value) (any, error) {
+	if vs, ok := b.([]any); ok {
+		return ref.SliceDel(a, vs...)
+	}
+
+	switch bv.Kind() {
+	case reflect.Array, reflect.Slice:
+		vs := make([]any, bv.Len())
+		for i := range bv.Len() {
+			vs[i] = bv.Index(i).Interface()
+		}
+		return ref.SliceDel(a, vs...)
+	default:
+		return ref.SliceDel(a, b)
+	}
+}
+
+func sub(a, b any) (any, error) {
 	v, err := cast(a, b)
 	if err != nil {
 		return a, err

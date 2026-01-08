@@ -168,7 +168,7 @@ func (wp *workerpool) SubmitWait(task func()) {
 }
 
 func (wp *workerpool) run() {
-	timeout := time.NewTimer(wp.idleTimeout)
+	timer := time.NewTimer(wp.idleTimeout)
 
 	idle, stop := false, false
 
@@ -179,7 +179,7 @@ func (wp *workerpool) run() {
 			wp.curWorks--
 		}
 
-		timeout.Stop()
+		timer.Stop()
 		wp.waitg.Done()
 	}()
 
@@ -189,7 +189,7 @@ func (wp *workerpool) run() {
 			// Got a task to do.
 			wp.dispatch(task)
 			idle = false
-		case <-timeout.C:
+		case <-timer.C:
 			// Timed out waiting for work to arrive. Kill a ready worker if
 			// pool has been idle for a whole timeout.
 			if idle && wp.curWorks > 0 {
@@ -198,7 +198,7 @@ func (wp *workerpool) run() {
 				}
 			}
 			idle = true
-			timeout.Reset(wp.idleTimeout)
+			timer.Reset(wp.idleTimeout)
 		case wait := <-wp.stopChan:
 			if !wait {
 				return

@@ -35,9 +35,10 @@ func TestBuilder_WhereSQL(t *testing.T) {
 
 func TestBuilder_SelectSQL(t *testing.T) {
 	b := newBuilder().
-		Select("id", "name").
+		Select("id", "name", "max(age) as age").
 		From("users").
 		Where(`"id" = ?`, 10).
+		Group("id", "name").
 		Orders("-id,name").
 		Limit(10).
 		Offset(5).
@@ -45,7 +46,7 @@ func TestBuilder_SelectSQL(t *testing.T) {
 
 	sql, args := b.Build()
 
-	wantSQL := `SELECT "id", "name" FROM "users" WHERE "id" = ? ORDER BY "id" DESC, "name" ASC LIMIT 10 OFFSET 5 FOR UPDATE`
+	wantSQL := `SELECT "id", "name", max(age) as age FROM "users" WHERE "id" = ? GROUP BY "id", "name" ORDER BY "id" DESC, "name" ASC LIMIT 10 OFFSET 5 FOR UPDATE`
 	if sql != wantSQL {
 		t.Errorf("unexpected SQL:\n got: %s\nwant: %s", sql, wantSQL)
 	}

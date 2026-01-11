@@ -23,6 +23,7 @@ type Builder struct {
 	values    []string
 	joins     []string
 	wheres    []string
+	groups    []string
 	orders    []string
 	returns   []string
 	params    []any
@@ -39,6 +40,7 @@ func (b *Builder) Reset() *Builder {
 	b.values = b.values[:0]
 	b.joins = b.joins[:0]
 	b.wheres = b.wheres[:0]
+	b.groups = b.groups[:0]
 	b.orders = b.orders[:0]
 	b.returns = b.returns[:0]
 	b.params = b.params[:0]
@@ -61,6 +63,7 @@ func (b *Builder) Clone() *Builder {
 		values:    asg.Clone(b.values),
 		joins:     asg.Clone(b.joins),
 		wheres:    asg.Clone(b.wheres),
+		groups:    asg.Clone(b.groups),
 		orders:    asg.Clone(b.orders),
 		returns:   asg.Clone(b.returns),
 		params:    asg.Clone(b.params),
@@ -338,6 +341,11 @@ func (b *Builder) in(op, col string, val any) *Builder {
 	return b
 }
 
+func (b *Builder) Group(cols ...string) *Builder {
+	b.groups = append(b.groups, cols...)
+	return b
+}
+
 func (b *Builder) Order(col string, desc ...bool) *Builder {
 	order := b.Quote(col)
 
@@ -420,6 +428,11 @@ func (b *Builder) buildSelect() string {
 	}
 
 	b.appendWhere(sb, true)
+
+	for i, g := range b.groups {
+		sb.WriteString(str.If(i == 0, " GROUP BY ", ", "))
+		sb.WriteString(b.Quote(g))
+	}
 
 	for i, o := range b.orders {
 		sb.WriteString(str.If(i == 0, " ORDER BY ", ", "))

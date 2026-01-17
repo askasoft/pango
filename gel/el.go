@@ -59,27 +59,17 @@ func (eo elObj) Invoke(ec elCtx, args []any) (any, error) {
 		return nil, fmt.Errorf("gel: %q is not a function", eo.val)
 	}
 
-	return invokeFunc(fv, args)
+	rv, err := invokeFunc(fv, args)
+	if err != nil {
+		err = fmt.Errorf("gel: function %s(): %w", eo.val, err)
+	}
+	return rv, err
 }
 
 func invokeFunc(fv reflect.Value, args []any) (any, error) {
 	ft := fv.Type()
-	if ft.NumIn() < len(args) {
-		return nil, fmt.Errorf("gel: too many arguments, want %d, got %d", ft.NumIn(), len(args))
-	}
-
-	if ft.IsVariadic() {
-		if ft.NumIn()-1 > len(args) {
-			return nil, fmt.Errorf("gel: %q too few arguments, want %d~, got %d", ft, ft.NumIn()-1, len(args))
-		}
-	} else {
-		if ft.NumIn() != len(args) {
-			return nil, fmt.Errorf("gel: %q invalid argument count, want %d, got %d", ft, ft.NumIn(), len(args))
-		}
-	}
-
 	if ft.NumOut() > 2 {
-		return nil, fmt.Errorf("gel: %q too many return values, want 1~2, got %d", ft, ft.NumOut())
+		return nil, fmt.Errorf("too many return values: want 1~2, got %d", ft.NumOut())
 	}
 
 	rvs, err := ref.CallFunction(fv, args)

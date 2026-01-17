@@ -384,7 +384,7 @@ func TestCallFunc(t *testing.T) {
 		{true, "$.Contains('cd')", teststr("abcde")},
 		{"abab", "$.Strip()", teststr("  abab  ")},
 		{"abab", "$.Trim()", teststr("  abab  ")},
-		{"abab", "$.Trim('-')", teststr("-abab-")},
+		{"abab", "$.Trim('-', '+')", teststr("-abab-")},
 		{5, "$.Len()", teststr("abcde")},
 		{nil, "SetName('XiaoBai')", pet},
 		{"XiaoBai", "$.GetName()", pet},

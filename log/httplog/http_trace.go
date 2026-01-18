@@ -39,7 +39,11 @@ func TraceClientDo(logger log.Logger, hc *http.Client, req *http.Request) (*http
 		bsr, _ := httputil.DumpResponse(res, true)
 		logger.Tracef("<<<<<<<< %s %016x <<<<<<<<\n%s", et.Format(logTimeFormat), rid, str.UnsafeString(bsr))
 
-		logger.Debugf("[%s] %s %s - %s (%s)", tmu.HumanDuration(et.Sub(st)), req.Method, req.URL, res.Status, num.HumanSize(res.ContentLength))
+		if res.ContentLength >= 0 {
+			logger.Debugf("[%s] %s %s - %s (%s)", tmu.HumanDuration(et.Sub(st)), req.Method, req.URL, res.Status, num.HumanSize(res.ContentLength))
+		} else {
+			logger.Debugf("[%s] %s %s - %s", tmu.HumanDuration(et.Sub(st)), req.Method, req.URL, res.Status)
+		}
 		return res, err
 	}
 
@@ -53,7 +57,11 @@ func TraceClientDo(logger log.Logger, hc *http.Client, req *http.Request) (*http
 			return res, err
 		}
 
-		logger.Debugf("[%s] %s %s - %s (%s)", tmu.HumanDuration(et.Sub(st)), req.Method, req.URL, res.Status, num.HumanSize(res.ContentLength))
+		if res.ContentLength >= 0 {
+			logger.Debugf("[%s] %s %s - %s (%s)", tmu.HumanDuration(et.Sub(st)), req.Method, req.URL, res.Status, num.HumanSize(res.ContentLength))
+		} else {
+			logger.Debugf("[%s] %s %s - %s", tmu.HumanDuration(et.Sub(st)), req.Method, req.URL, res.Status)
+		}
 		return res, err
 	}
 

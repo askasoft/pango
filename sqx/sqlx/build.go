@@ -135,6 +135,7 @@ func (b *Builder) Columnx(col string, args ...any) *Builder {
 	return b
 }
 
+// Values add insert/update values
 func (b *Builder) Values(vals ...string) *Builder {
 	b.sqb.Values(vals...)
 	return b

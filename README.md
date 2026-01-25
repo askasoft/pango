@@ -54,7 +54,7 @@ Pango is a development library for GO.
 | [tmu](./tmu/)                    | a time data type utility package |
 | [tpl](./tpl/)                    | a text/template, html/template wrapper for recursively load template file |
 | [vad](./vad/)                    | a validation package based on https://github.com/go-playground/validator |
-| [wcu](./wcu/)                    | a internal language charset utility package |
+| [wcu](./wcu/)                    | a international language charset utility package |
 | [whk/slack](./whk/slack/)        | a slack webhook sender package          |
 | [whk/teams](./whk/teams/)        | a teams webhook sender package          |
 | [xin](./xin/)                    | a web framework based on https://github.com/gin-gonic/gin |

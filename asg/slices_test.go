@@ -715,13 +715,13 @@ func TestMaxFunc(t *testing.T) {
 func TestJoin(t *testing.T) {
 	cs := []struct {
 		s []int
-		f []func(int) string
+		f []func(int, int) string
 		w string
 	}{
 		{[]int{}, nil, ""},
 		{[]int{1}, nil, "1"},
 		{[]int{1, 2}, nil, "1 2"},
-		{[]int{1, 10}, []func(int) string{func(i int) string { return fmt.Sprintf("0x%x", i) }}, "0x1 0xa"},
+		{[]int{1, 10}, []func(int, int) string{func(i, n int) string { return fmt.Sprintf("%d.0x%x", i, n) }}, "0.0x1 1.0xa"},
 	}
 
 	for i, c := range cs {

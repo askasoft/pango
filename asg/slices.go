@@ -297,30 +297,28 @@ func MaxFunc[T any](x []T, cmp func(a, b T) int) T {
 	return slices.MaxFunc(x, cmp)
 }
 
-func sprint[T any](v T) string {
+func sprint[T any](i int, v T) string {
 	return fmt.Sprint(v)
 }
 
 // Join concatenates the elements of its first argument to create a single string. The separator
 // string sep is placed between elements in the resulting string.
-func Join[T any](elems []T, sep string, fmt ...func(T) string) string {
-	sp := sprint[T]
-	if len(fmt) > 0 {
-		sp = fmt[0]
-	}
+func Join[T any](elems []T, sep string, fmt ...func(int, T) string) string {
+	sp := First(fmt, sprint[T])
 
 	switch len(elems) {
 	case 0:
 		return ""
 	case 1:
-		return sp(elems[0])
+		return sp(0, elems[0])
 	}
 
 	var b strings.Builder
-	b.WriteString(sp(elems[0]))
-	for _, n := range elems[1:] {
-		b.WriteString(sep)
-		b.WriteString(sp(n))
+	for i, v := range elems {
+		if i > 0 {
+			b.WriteString(sep)
+		}
+		b.WriteString(sp(i, v))
 	}
 	return b.String()
 }

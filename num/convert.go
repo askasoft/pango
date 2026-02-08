@@ -60,7 +60,7 @@ func Atof(s string, defs ...float64) float64 {
 
 // Ftoa converts a float to a string with no trailing zeros.
 func Ftoa(f float64) string {
-	return StripTrailingZeros(strconv.FormatFloat(f, 'f', 6, 64))
+	return strconv.FormatFloat(f, 'f', -1, 64)
 }
 
 // FtoaWithDigits converts a float to a string but limits the resulting string

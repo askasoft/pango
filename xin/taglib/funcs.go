@@ -14,7 +14,7 @@ func Functions() tpl.FuncMap {
 		"TR": tbs.Replace,
 
 		// Tags
-		"I":      Icon,
+		"I":      IconRender,
 		"Checks": ChecksRender,
 		"Radios": RadiosRender,
 		"Select": SelectRender,

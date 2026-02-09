@@ -35,7 +35,7 @@ type SlackWriter struct {
 func (sw *SlackWriter) SetWebhook(webhook string) error {
 	_, err := url.ParseRequestURI(webhook)
 	if err != nil {
-		return fmt.Errorf("SlackWriter: invalid webhook %q: %w", webhook, err)
+		return fmt.Errorf("slacklog: invalid webhook %q: %w", webhook, err)
 	}
 	sw.Webhook = webhook
 	return nil
@@ -45,7 +45,7 @@ func (sw *SlackWriter) SetWebhook(webhook string) error {
 func (sw *SlackWriter) SetTimeout(timeout string) error {
 	td, err := tmu.ParseDuration(timeout)
 	if err != nil {
-		return fmt.Errorf("SlackWriter: invalid timeout %q: %w", timeout, err)
+		return fmt.Errorf("slacklog: invalid timeout %q: %w", timeout, err)
 	}
 	sw.Timeout = td
 	return nil

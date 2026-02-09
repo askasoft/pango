@@ -35,7 +35,7 @@ type HTTPWriter struct {
 func (hw *HTTPWriter) SetUrl(u string) error {
 	_, err := url.ParseRequestURI(u)
 	if err != nil {
-		return fmt.Errorf("HTTPWriter: invalid URL %q: %w", u, err)
+		return fmt.Errorf("httplog: invalid URL %q: %w", u, err)
 	}
 	hw.URL = u
 	return nil

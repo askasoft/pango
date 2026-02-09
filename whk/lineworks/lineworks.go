@@ -1,4 +1,4 @@
-package teams
+package lineworks
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ import (
 	"github.com/askasoft/pango/num"
 )
 
-// Error teams webhook error
+// Error lineworks webhook error
 type Error struct {
 	Status     string
 	StatusCode int
@@ -30,15 +30,23 @@ func (e *Error) Error() string {
 	return fmt.Sprintf("%d %s", e.StatusCode, e.Status)
 }
 
-// Message teams message
-type Message struct {
-	Type        string `json:"type,omitempty"`
-	Title       string `json:"title,omitempty"`
-	Text        string `json:"text,omitempty"`
-	Attachments []any  `json:"attachments,omitempty"`
+type Body struct {
+	Text string `json:"text,omitempty"`
 }
 
-// Post post teams message
+type Button struct {
+	Label string `json:"label,omitempty"`
+	URL   string `json:"url,omitempty"`
+}
+
+// Message lineworks message
+type Message struct {
+	Title  string `json:"title,omitempty"`
+	Body   Body   `json:"body,omitzero"`
+	Button Button `json:"button,omitzero"`
+}
+
+// Post post lineworks message
 func Post(url string, timeout time.Duration, msg any) error {
 	bs, err := json.Marshal(msg)
 	if err != nil {
@@ -59,11 +67,13 @@ func Post(url string, timeout time.Duration, msg any) error {
 
 	defer iox.DrainAndClose(res.Body)
 
-	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusAccepted {
+	if res.StatusCode != http.StatusOK {
 		e := &Error{Status: res.Status, StatusCode: res.StatusCode}
-		ra := res.Header.Get("Retry-After")
-		if ra != "" {
-			e.RetryAfter = time.Duration(num.Atoi(ra)) * time.Second
+		if res.StatusCode == http.StatusTooManyRequests {
+			ra := res.Header.Get("RateLimit-Reset")
+			if ra != "" {
+				e.RetryAfter = time.Duration(num.Atoi(ra)) * time.Second
+			}
 		}
 		return e
 	}

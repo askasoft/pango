@@ -5,24 +5,28 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/askasoft/pango/iox"
+	"github.com/askasoft/pango/num"
 )
 
-// Error slack api error
+// Error slack webhook error
 type Error struct {
 	Status     string
 	StatusCode int
-	RetryAfter int
+	RetryAfter time.Duration
+}
+
+func (e *Error) GetRetryAfter() time.Duration {
+	return e.RetryAfter
 }
 
 // Error return error string
 func (e *Error) Error() string {
 	if e.RetryAfter != 0 {
-		return fmt.Sprintf("%d %s (Retry-After: %d)", e.StatusCode, e.Status, e.RetryAfter)
+		return fmt.Sprintf("%d %s (Retry-After: %s)", e.StatusCode, e.Status, e.RetryAfter)
 	}
 	return fmt.Sprintf("%d %s", e.StatusCode, e.Status)
 }
@@ -66,7 +70,7 @@ func Post(url string, timeout time.Duration, sm *Message) error {
 		e := &Error{Status: res.Status, StatusCode: res.StatusCode}
 		ra := res.Header.Get("Retry-After")
 		if ra != "" {
-			e.RetryAfter, _ = strconv.Atoi(ra)
+			e.RetryAfter = time.Duration(num.Atoi(ra)) * time.Second
 		}
 		return e
 	}

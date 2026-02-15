@@ -9,6 +9,11 @@ import (
 	"github.com/askasoft/pango/ref"
 )
 
+var (
+	errNotPointer = errors.New("sqlx: must pass a pointer to scan destination")
+	errPtrIsNil   = errors.New("sqlx: nil pointer passed to scan destination")
+)
+
 var _scannerInterface = reflect.TypeOf((*sql.Scanner)(nil)).Elem()
 
 type iRows interface {
@@ -163,11 +168,12 @@ func scanAll(rows iRows, dest any, structOnly bool) error {
 
 	// json.Unmarshal returns errors for these
 	if value.Kind() != reflect.Pointer {
-		return errors.New("sqlx: must pass a pointer, not a value, to StructScan destination")
+		return errNotPointer
 	}
 	if value.IsNil() {
-		return errors.New("sqlx: nil pointer passed to StructScan destination")
+		return errPtrIsNil
 	}
+
 	direct := reflect.Indirect(value)
 
 	slice, err := baseType(value.Type(), reflect.Slice)

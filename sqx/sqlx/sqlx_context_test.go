@@ -226,15 +226,12 @@ func TestEmbeddedStructsContextContext(t *testing.T) {
 		}
 
 		// test embedded structs with StructScan
-		rows, err := db.QueryxContext(
-			ctx,
-			`SELECT person.*, place.* FROM
-         person natural join place`)
+		rows, err := db.QueryxContext(ctx, `SELECT person.*, place.* FROM person natural join place`)
 		if err != nil {
 			t.Error(err)
 		}
 
-		perp := PersonPlace{}
+		perp := &PersonPlace{}
 		rows.Next()
 		err = rows.StructScan(&perp)
 		if err != nil {

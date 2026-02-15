@@ -109,10 +109,10 @@ func (r *Row) scanAny(dest any, structOnly bool) error {
 
 	v := reflect.ValueOf(dest)
 	if v.Kind() != reflect.Pointer {
-		return errors.New("sqlx: must pass a pointer, not a value, to StructScan destination")
+		return errNotPointer
 	}
 	if v.IsNil() {
-		return errors.New("sqlx: nil pointer passed to StructScan destination")
+		return errPtrIsNil
 	}
 
 	base := ref.DerefType(v.Type())

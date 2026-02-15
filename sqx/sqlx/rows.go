@@ -2,7 +2,6 @@ package sqlx
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"reflect"
 )
@@ -38,7 +37,10 @@ func (r *Rows) StructScan(dest any) error {
 	v := reflect.ValueOf(dest)
 
 	if v.Kind() != reflect.Pointer {
-		return errors.New("sqlx: must pass a pointer, not a value, to StructScan destination")
+		return errNotPointer
+	}
+	if v.IsNil() {
+		return errPtrIsNil
 	}
 
 	v = v.Elem()

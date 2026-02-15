@@ -7,11 +7,11 @@ require (
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/jackc/pgerrcode v0.0.0-20250907135507-afb5586c32a6
 	github.com/jackc/pgx/v5 v5.8.0
-	github.com/lib/pq v1.10.9
-	github.com/mattn/go-sqlite3 v1.14.32
-	golang.org/x/net v0.49.0
-	golang.org/x/sys v0.40.0
-	golang.org/x/text v0.33.0
+	github.com/lib/pq v1.11.1
+	github.com/mattn/go-sqlite3 v1.14.33
+	golang.org/x/net v0.50.0
+	golang.org/x/sys v0.41.0
+	golang.org/x/text v0.34.0
 )
 
 require (

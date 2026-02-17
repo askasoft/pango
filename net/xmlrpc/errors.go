@@ -12,7 +12,7 @@ type HTTPError struct {
 }
 
 func (he *HTTPError) Error() string {
-	return fmt.Sprintf("xmprpc: %s(): error %d - %s", he.Method, he.StatusCode, he.Status)
+	return fmt.Sprintf("xmlrpc: %s(): error %d - %s", he.Method, he.StatusCode, he.Status)
 }
 
 func AsHTTPError(err error) (he *HTTPError, ok bool) {
@@ -33,7 +33,7 @@ type FaultError struct {
 }
 
 func (fe *FaultError) Error() string {
-	return fmt.Sprintf("xmprpc: %s(): fault %d - %s", fe.Method, fe.FaultCode, fe.FaultString)
+	return fmt.Sprintf("xmlrpc: %s(): fault %d - %s", fe.Method, fe.FaultCode, fe.FaultString)
 }
 
 func AsFaultError(err error) (fe *FaultError, ok bool) {

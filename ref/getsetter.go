@@ -13,6 +13,25 @@ var (
 	errInvalidObject = errors.New("ref: invalid object")
 )
 
+type MissingFieldError struct {
+	Type  reflect.Type
+	Field string
+}
+
+func (mfe *MissingFieldError) Error() string {
+	return fmt.Sprintf("ref: missing field %q of %v", mfe.Field, mfe.Type)
+}
+
+func AsMissingFieldError(err error) (mfe *MissingFieldError, ok bool) {
+	ok = errors.As(err, &mfe)
+	return
+}
+
+func IsMissingFieldError(err error) bool {
+	_, ok := AsMissingFieldError(err)
+	return ok
+}
+
 func GetProperty(o any, k string) (any, error) {
 	if k == "" {
 		return nil, errEmptyPropName
@@ -79,14 +98,13 @@ func getProperty(rv reflect.Value, k string) (ret any, err error) {
 	}
 
 	if rv.Kind() != reflect.Struct {
-		err = fmt.Errorf("ref: missing field %q of %v", p, rv.Type())
+		err = fmt.Errorf("ref: expected %s but got %v (%v)", reflect.Struct, rv.Kind(), rv.Type())
 		return
 	}
 
-	// get field
 	fv := rv.FieldByName(p)
 	if !fv.IsValid() {
-		err = fmt.Errorf("ref: missing field %q of %v", p, rv.Type())
+		err = &MissingFieldError{rv.Type(), k}
 		return
 	}
 
@@ -156,6 +174,11 @@ func setProperty(rv reflect.Value, k string, v any) (err error) {
 		rv = rv.Elem()
 	}
 
+	if rv.Kind() != reflect.Struct {
+		err = fmt.Errorf("ref: expected %s but got %v (%v)", reflect.Struct, rv.Kind(), rv.Type())
+		return
+	}
+
 	f := rv.FieldByName(p)
 	if f.IsValid() && f.CanSet() {
 		t := f.Type()
@@ -169,6 +192,6 @@ func setProperty(rv reflect.Value, k string, v any) (err error) {
 		return
 	}
 
-	err = fmt.Errorf("ref: missing field %q of %v", k, rv.Type())
+	err = &MissingFieldError{rv.Type(), k}
 	return
 }

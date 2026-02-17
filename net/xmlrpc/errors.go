@@ -11,7 +11,7 @@ type HTTPError struct {
 	Status     string
 }
 
-func (he HTTPError) Error() string {
+func (he *HTTPError) Error() string {
 	return fmt.Sprintf("xmprpc: %s(): error %d - %s", he.Method, he.StatusCode, he.Status)
 }
 
@@ -32,7 +32,7 @@ type FaultError struct {
 	FaultString string `xmlrpc:"faultString"`
 }
 
-func (fe FaultError) Error() string {
+func (fe *FaultError) Error() string {
 	return fmt.Sprintf("xmprpc: %s(): fault %d - %s", fe.Method, fe.FaultCode, fe.FaultString)
 }
 

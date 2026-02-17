@@ -134,13 +134,11 @@ func isScannable(t reflect.Type) bool {
 // structOnlyError returns an error appropriate for type when a non-scannable
 // struct is expected but something else is given
 func structOnlyError(t reflect.Type) error {
-	isStruct := t.Kind() == reflect.Struct
-	isScanner := reflect.PointerTo(t).Implements(_scannerInterface)
-	if !isStruct {
+	if t.Kind() != reflect.Struct {
 		return fmt.Errorf("sqlx: expected %s but got %s", reflect.Struct, t.Kind())
 	}
-	if isScanner {
-		return fmt.Errorf("sqlx: structscan expects a struct dest but the provided struct type %s implements scanner", t.Name())
+	if reflect.PointerTo(t).Implements(_scannerInterface) {
+		return fmt.Errorf("sqlx: structscan expects a struct destination but the provided struct type %s implements scanner", t.Name())
 	}
 	return fmt.Errorf("sqlx: expected a struct, but struct %s has no exported fields", t.Name())
 }

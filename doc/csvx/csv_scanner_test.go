@@ -2,6 +2,7 @@ package csvx
 
 import (
 	"encoding/csv"
+	"fmt"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -54,14 +55,15 @@ func TestScanFileValues(t *testing.T) {
 	defer os.Remove(tf.Name())
 
 	cw := csv.NewWriter(tf)
-	_ = cw.Write([]string{"bool", "int", "string", "duration", "createdAt"})
-	for _, r := range exps {
+	_ = cw.Write([]string{"bool", "int", "string", "duration", "createdAt", "unknown"})
+	for i, r := range exps {
 		_ = cw.Write([]string{
 			bol.Btoa(r.Bool),
 			num.Itoa(r.Int),
 			r.String,
 			r.Duration.String(),
 			testFormatTime(r.CreatedAt),
+			fmt.Sprintf("unknown-%d", i),
 		})
 	}
 	cw.Flush()
@@ -82,6 +84,12 @@ func TestScanFileValues(t *testing.T) {
 		if !reflect.DeepEqual(w, a) {
 			t.Errorf("[%d] Error\nActual: %v\n  WANT: %v", i+1, a, w)
 		}
+	}
+
+	// strict scan
+	err = ScanFile(tf.Name(), &recs, true)
+	if err == nil {
+		t.Fatal("an error is expected but got nil.")
 	}
 }
 
@@ -109,20 +117,22 @@ func TestScanFilePointers(t *testing.T) {
 	defer os.Remove(tf.Name())
 
 	cw := csv.NewWriter(tf)
-	_ = cw.Write([]string{"bool", "int", "string", "duration", "CreatedAt"})
-	for _, r := range exps {
+	_ = cw.Write([]string{"bool", "int", "string", "duration", "CreatedAt", "Unknown"})
+	for i, r := range exps {
 		_ = cw.Write([]string{
 			bol.Btoa(r.Bool),
 			num.Itoa(r.Int),
 			r.String,
 			r.Duration.String(),
 			testFormatTime(r.CreatedAt),
+			fmt.Sprintf("unknown-%d", i),
 		})
 	}
 	cw.Flush()
 	tf.Close()
 
 	var recs []*record
+
 	err = ScanFileFS(os.DirFS("testdata"), filepath.Base(tf.Name()), &recs)
 	if err != nil {
 		t.Fatal(err)
@@ -137,5 +147,11 @@ func TestScanFilePointers(t *testing.T) {
 		if !reflect.DeepEqual(*w, *a) {
 			t.Errorf("[%d] Error\nActual: %v\n  WANT: %v", i+1, *a, *w)
 		}
+	}
+
+	// strict scan
+	err = ScanFileFS(os.DirFS("testdata"), filepath.Base(tf.Name()), &recs, true)
+	if err == nil {
+		t.Fatal("an error is expected but got nil.")
 	}
 }

@@ -9,6 +9,7 @@ import (
 	"os"
 	"reflect"
 
+	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/ref"
 	"github.com/askasoft/pango/str"
@@ -19,6 +20,8 @@ type CsvScanner struct {
 	cr   *csv.Reader
 	Head []string
 	Line int
+
+	disallowUnknownFields bool
 }
 
 // NewScanner returns a new csv scanner that reads from r.
@@ -36,14 +39,14 @@ func NewScanner(cr *csv.Reader) *CsvScanner {
 //
 //	var S2 []struct{I int, B bool}
 //	ScanFile("s2.csv", &s2)
-func ScanFile(name string, records any) error {
+func ScanFile(name string, records any, strict ...bool) error {
 	f, err := os.Open(name)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
-	return ScanReader(f, records)
+	return ScanReader(f, records, strict...)
 }
 
 // ScanFileFS read csv file data to slice.
@@ -54,14 +57,14 @@ func ScanFile(name string, records any) error {
 //
 //	var S2 []struct{I int, B bool}
 //	ScanFileFS(fsys, "s2.csv", &s2)
-func ScanFileFS(fsys fs.FS, name string, records any) error {
+func ScanFileFS(fsys fs.FS, name string, records any, strict ...bool) error {
 	f, err := fsys.Open(name)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
-	return ScanReader(f, records)
+	return ScanReader(f, records, strict...)
 }
 
 // ScanReader read csv data to slice.
@@ -72,14 +75,14 @@ func ScanFileFS(fsys fs.FS, name string, records any) error {
 //
 //	var S2 []struct{I int, B bool}
 //	ScanReader(r2, &s2)
-func ScanReader(r io.Reader, records any) error {
+func ScanReader(r io.Reader, records any, strict ...bool) error {
 	br, err := iox.SkipBOM(r)
 	if err != nil {
 		return err
 	}
 
 	cr := csv.NewReader(br)
-	return ScanCsv(cr, records)
+	return ScanCsv(cr, records, strict...)
 }
 
 // ScanCsv read csv data to slice.
@@ -90,13 +93,24 @@ func ScanReader(r io.Reader, records any) error {
 //
 //	var S2 []struct{I int, B bool}
 //	ScanCsv(r2, &s2)
-func ScanCsv(cr *csv.Reader, records any) error {
-	sr := NewScanner(cr)
-	if err := sr.ScanHead(); err != nil {
+func ScanCsv(cr *csv.Reader, records any, strict ...bool) error {
+	cs := NewScanner(cr)
+
+	if asg.First(strict) {
+		cs.DisallowUnknownFields()
+	}
+
+	if err := cs.ScanHead(); err != nil {
 		return err
 	}
 
-	return sr.ScanStructs(records)
+	return cs.ScanStructs(records)
+}
+
+// DisallowUnknownFields causes the CsvScanner to return an error when the destination
+// is a struct and the input contains object keys which do not match any exported fields in the destination.
+func (cs *CsvScanner) DisallowUnknownFields() {
+	cs.disallowUnknownFields = true
 }
 
 // ScanHead reads one record from csv and treat it as header.
@@ -139,6 +153,9 @@ func (cs *CsvScanner) ScanStruct(rec any) error {
 	for i, s := range record {
 		h := cs.Head[i]
 		if err := ref.SetProperty(rec, h, s); err != nil {
+			if !cs.disallowUnknownFields && ref.IsMissingFieldError(err) {
+				continue
+			}
 			return fmt.Errorf("line %d column %d: %q data error: %q", cs.Line, i+1, h, s)
 		}
 	}

@@ -35,9 +35,9 @@ func TestParseRPN(t *testing.T) {
 			t.Errorf("#%d parseToRPN(%s) = %v", i, c.s, err)
 		}
 
-		var sb strings.Builder
+		sb := &strings.Builder{}
 		for it := sy.rpn.Iterator(); it.Next(); {
-			sb.WriteString(fmt.Sprint(it.Value()))
+			fmt.Fprint(sb, it.Value())
 		}
 
 		a := sb.String()

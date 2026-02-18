@@ -15,7 +15,7 @@ func TestClient(t *testing.T) {
 		Version string `xmlrpc:"version"`
 	}{}
 
-	err := client.Call(context.TODO(), "Bugzilla.version", &result)
+	err := client.Call(context.Background(), "Bugzilla.version", &result)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -2196,7 +2196,7 @@ func TestContextWithFallbackValueFromRequestContext(t *testing.T) {
 				var key struct{}
 				c, _ := CreateTestContext(httptest.NewRecorder())
 				c.Request, _ = http.NewRequest("POST", "/", nil)
-				c.Request = c.Request.WithContext(context.WithValue(context.TODO(), key, "value"))
+				c.Request = c.Request.WithContext(context.WithValue(context.Background(), key, "value"))
 				c.Context = c.Request.Context()
 				return c, key
 			},
@@ -2207,7 +2207,7 @@ func TestContextWithFallbackValueFromRequestContext(t *testing.T) {
 			getContextAndKey: func() (*Context, any) {
 				c, _ := CreateTestContext(httptest.NewRecorder())
 				c.Request, _ = http.NewRequest("POST", "/", nil)
-				c.Request = c.Request.WithContext(context.WithValue(context.TODO(), contextKey("key"), "value"))
+				c.Request = c.Request.WithContext(context.WithValue(context.Background(), contextKey("key"), "value"))
 				c.Context = c.Request.Context()
 				return c, contextKey("key")
 			},

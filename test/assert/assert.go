@@ -23,11 +23,11 @@ func title(msgs ...any) string {
 		return fmt.Sprintf(s, msgs[1:]...)
 	}
 
-	var sb strings.Builder
-	sb.WriteString(fmt.Sprint(msgs[0]))
+	sb := &strings.Builder{}
+	fmt.Fprint(sb, msgs[0])
 	for _, n := range msgs[1:] {
 		sb.WriteString(",")
-		sb.WriteString(fmt.Sprint(n))
+		fmt.Fprint(sb, n)
 	}
 	return sb.String()
 }

@@ -113,7 +113,7 @@ func testCalculate2(t *testing.T, cs []testcase2) {
 
 func testCalculate2s(t *testing.T, cs []testcase2) {
 	for i, c := range cs {
-		a, err := CalculateStrict(c.s, c.d)
+		a, err := Calculate(c.s, c.d, true)
 		if wer, ok := c.w.(error); ok {
 			if wer.Error() != fmt.Sprint(err) {
 				t.Fatalf("[%d] CalculateStrict(%q, %v) = (%v, %T), want (%v, %T)", i, c.s, c.d, err, err, c.w, c.w)

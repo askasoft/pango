@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/ref"
 )
 
@@ -106,12 +107,9 @@ func (el *EL) String() string {
 	return el.expr
 }
 
-func (el *EL) Calculate(data any) (any, error) {
-	return el.calculate(elCtx{Object: data})
-}
-
-func (el *EL) CalculateStrict(data any) (any, error) {
-	return el.calculate(elCtx{Object: data, Strict: true})
+// Calculate calculate the EL expression by the data.
+func (el *EL) Calculate(data any, strict ...bool) (any, error) {
+	return el.calculate(elCtx{Object: data, Strict: asg.First(strict)})
 }
 
 func (el *EL) calculate(ec elCtx) (any, error) {
@@ -128,6 +126,7 @@ func (el *EL) calculate(ec elCtx) (any, error) {
 	return el.root, nil
 }
 
+// Compile compile the EL expression.
 func Compile(expr string) (*EL, error) {
 	var sy shuntingYard
 	rpn, err := sy.ParseToRPN(expr)
@@ -137,18 +136,11 @@ func Compile(expr string) (*EL, error) {
 	return &EL{expr, rpn}, nil
 }
 
-func Calculate(expr string, data any) (any, error) {
+// Calculate compile and calculate the EL expression by the data.
+func Calculate(expr string, data any, strict ...bool) (any, error) {
 	el, err := Compile(expr)
 	if err != nil {
 		return nil, err
 	}
-	return el.Calculate(data)
-}
-
-func CalculateStrict(expr string, data any) (any, error) {
-	el, err := Compile(expr)
-	if err != nil {
-		return nil, err
-	}
-	return el.CalculateStrict(data)
+	return el.Calculate(data, strict...)
 }

@@ -3,6 +3,9 @@
 base = Base
 title = こんにちは世界
 
+[common]
+c1 = m1
+
 [format]
 welcome = ようこそ %s
 
@@ -15,8 +18,11 @@ welcome = ようこそ {name}
 [replace.new]
 hello = ハロー {name}
 
-[common]
-c1 = m1
+[evaluate]
+welcome = ようこそ {{some}}
+
+[evaluate.new]
+hello = ハロー {{some}}
 
 [ja]
 j1 = J1

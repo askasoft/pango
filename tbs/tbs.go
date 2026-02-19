@@ -67,16 +67,6 @@ func GetText(locale, key string, defs ...string) string {
 	return _tbs.GetText(locale, key, defs...)
 }
 
-// Format use fmt.Sprintf to format the locale text by key and args.
-func Format(locale, format string, args ...any) string {
-	return _tbs.Format(locale, format, args...)
-}
-
-// Replace use strings.Replacer to translate content to the locale language.
-func Replace(locale, format string, args ...any) string {
-	return _tbs.Replace(locale, format, args...)
-}
-
 // Error create a error with the locale text by key.
 func Error(locale, key string, defs ...string) error {
 	return _tbs.Error(locale, key, defs...)
@@ -85,4 +75,23 @@ func Error(locale, key string, defs ...string) error {
 // Errorf create a error with the locale text by key and args.
 func Errorf(locale, key string, args ...any) error {
 	return _tbs.Errorf(locale, key, args...)
+}
+
+// Format use fmt.Sprintf to format the locale text by key and args.
+func Format(locale, key string, args ...any) string {
+	return _tbs.Format(locale, key, args...)
+}
+
+// Replace use strings.Replacer to replace the locale text by args.
+func Replace(locale, key string, args ...any) string {
+	return _tbs.Replace(locale, key, args...)
+}
+
+// Evaluate use elt.Evaluate to apply the locale EL template to the data, and returns the evaluated string.
+// Example:
+//
+//	// tpl = This is a {{key}}.
+//	Evaluate("tpl", map[string][string{ "key": "apple" })	// "This is a apple."
+func Evaluate(locale, key string, data any, strict ...bool) string {
+	return _tbs.Evaluate(locale, key, data, strict...)
 }

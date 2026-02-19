@@ -28,6 +28,14 @@ func TestNewLoad(t *testing.T) {
 		return tbs.Format(locale, format, args...)
 	})
 
+	testReplace(t, func(locale, format string, args ...any) string {
+		return tbs.Replace(locale, format, args...)
+	})
+
+	testEvaluate(t, func(locale, format string, data any) string {
+		return tbs.Evaluate(locale, format, data)
+	})
+
 	testGetBundle(t, tbs)
 }
 
@@ -46,6 +54,10 @@ func TestNewLoadFS(t *testing.T) {
 
 	testReplace(t, func(locale, format string, args ...any) string {
 		return tbs.Replace(locale, format, args...)
+	})
+
+	testEvaluate(t, func(locale, format string, data any) string {
+		return tbs.Evaluate(locale, format, data)
 	})
 
 	testGetBundle(t, tbs)
@@ -93,6 +105,27 @@ func testReplace(t *testing.T, rep func(locale, format string, args ...any) stri
 		a := rep(c.lang, c.name, c.args...)
 		if a != c.want {
 			t.Errorf("%d Replace(%q, %q, %v) = %q, want %q", i, c.lang, c.name, c.args, a, c.want)
+		}
+	}
+}
+
+func testEvaluate(t *testing.T, tra func(locale, format string, data any) string) {
+	cs := []struct {
+		lang string
+		name string
+		data map[string]any
+		want string
+	}{
+		{"en", "evaluate.welcome", map[string]any{"some": "home"}, "welcome home"},
+		{"en", "evaluate.new.hello", map[string]any{"some": "home"}, "hello home"},
+		{"ja-JP", "evaluate.welcome", map[string]any{"some": "ダーリン"}, "ようこそ ダーリン"},
+		{"ja-JP", "evaluate.new.hello", map[string]any{"some": "ダーリン"}, "ハロー ダーリン"},
+	}
+
+	for i, c := range cs {
+		a := tra(c.lang, c.name, c.data)
+		if a != c.want {
+			t.Errorf("%d Evaluate(%q, %q, %v) = %q, want %q", i, c.lang, c.name, c.data, a, c.want)
 		}
 	}
 }

@@ -12,6 +12,7 @@ func Functions() tpl.FuncMap {
 		"T":  tbs.GetText,
 		"TF": tbs.Format,
 		"TR": tbs.Replace,
+		"TE": tbs.Evaluate,
 
 		// Tags
 		"I":      IconRender,

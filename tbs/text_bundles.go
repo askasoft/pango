@@ -11,6 +11,7 @@ import (
 
 	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/bol"
+	"github.com/askasoft/pango/gel/elt"
 	"github.com/askasoft/pango/ini"
 	"github.com/askasoft/pango/num"
 	"github.com/askasoft/pango/str"
@@ -55,7 +56,7 @@ func (tbs *TextBundles) Load(root string) error {
 	})
 }
 
-// LoadFS glob and parse template files from FS
+// LoadFS glob and parse text files from FS
 func (tbs *TextBundles) LoadFS(fsys fs.FS, root string) error {
 	return fs.WalkDir(fsys, root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -195,6 +196,16 @@ func (tbs *TextBundles) GetText(locale, key string, defs ...string) string {
 	return asg.First(defs)
 }
 
+// Error create a error with the locale text by key.
+func (tbs *TextBundles) Error(locale, key string, defs ...string) error {
+	return errors.New(tbs.GetText(locale, key, defs...))
+}
+
+// Errorf create a error with the locale text by key and args.
+func (tbs *TextBundles) Errorf(locale, key string, args ...any) error {
+	return errors.New(tbs.Format(locale, key, args...))
+}
+
 // Format use fmt.Sprintf to format the locale text by key and args.
 func (tbs *TextBundles) Format(locale, key string, args ...any) string {
 	format := tbs.GetText(locale, key)
@@ -206,7 +217,7 @@ func (tbs *TextBundles) Format(locale, key string, args ...any) string {
 	return fmt.Sprintf(format, args...)
 }
 
-// Replace use strings.Replacer to translate content to the locale language.
+// Replace use strings.Replacer to replace the locale text by args.
 func (tbs *TextBundles) Replace(locale, key string, args ...any) string {
 	var defs []string
 
@@ -233,12 +244,21 @@ func (tbs *TextBundles) Replace(locale, key string, args ...any) string {
 	return repl.Replace(format)
 }
 
-// Error create a error with the locale text by key.
-func (tbs *TextBundles) Error(locale, key string, defs ...string) error {
-	return errors.New(tbs.GetText(locale, key, defs...))
-}
+// Evaluate use elt.Evaluate to apply the locale EL template to the data, and returns the evaluated string.
+// Example:
+//
+//	// tpl = This is a {{key}}.
+//	Evaluate("en", "tpl", map[string][string{ "key": "apple" })	// "This is a apple."
+func (tbs *TextBundles) Evaluate(locale, key string, data any, strict ...bool) string {
+	src := tbs.GetText(locale, key)
+	if src == "" {
+		return ""
+	}
 
-// Errorf create a error with the locale text by key and args.
-func (tbs *TextBundles) Errorf(locale, key string, args ...any) error {
-	return errors.New(tbs.Format(locale, key, args...))
+	txt, err := elt.Evaluate(src, data, strict...)
+	if err != nil {
+		panic(err)
+	}
+
+	return txt
 }

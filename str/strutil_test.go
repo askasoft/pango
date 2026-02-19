@@ -447,6 +447,14 @@ func TestTranslate(t *testing.T) {
 			want:   "",
 		},
 		{
+			name:   "empty key",
+			s:      "This is {{}}.",
+			prefix: "{{",
+			suffix: "}}",
+			f:      func(k string) string { return "<" + k + ">" },
+			want:   "This is <>.",
+		},
+		{
 			name:   "nested-like pattern",
 			s:      ":{{outer start{{inner}}}}{{outer2{{inner2}}}}",
 			prefix: "{{",

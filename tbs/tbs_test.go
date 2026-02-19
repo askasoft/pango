@@ -19,6 +19,10 @@ func TestPkgLoad(t *testing.T) {
 	testReplace(t, func(locale, format string, args ...any) string {
 		return Replace(locale, format, args...)
 	})
+
+	testEvaluate(t, func(locale, format string, data any) string {
+		return Evaluate(locale, format, data)
+	})
 }
 
 func TestPkgLoadFS(t *testing.T) {
@@ -35,5 +39,9 @@ func TestPkgLoadFS(t *testing.T) {
 
 	testReplace(t, func(locale, format string, args ...any) string {
 		return Replace(locale, format, args...)
+	})
+
+	testEvaluate(t, func(locale, format string, data any) string {
+		return Evaluate(locale, format, data)
 	})
 }

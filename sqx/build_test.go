@@ -128,6 +128,16 @@ func TestIn_NotSlice(t *testing.T) {
 	}
 }
 
+func TestIn_EmptySlice(t *testing.T) {
+	defer func() {
+		if x := recover(); x != errEmptySlice {
+			t.FailNow()
+		}
+	}()
+
+	In("id", []int{})
+}
+
 func TestIn_Slice(t *testing.T) {
 	sql, args := In("id", []int{1, 2, 3})
 	wantSQL := "id IN (?, ?, ?)"

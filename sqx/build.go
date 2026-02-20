@@ -1,6 +1,7 @@
 package sqx
 
 import (
+	"errors"
 	"reflect"
 	"strings"
 
@@ -8,6 +9,10 @@ import (
 	"github.com/askasoft/pango/num"
 	"github.com/askasoft/pango/ref"
 	"github.com/askasoft/pango/str"
+)
+
+var (
+	errEmptySlice = errors.New("sqx: empty slice passed to IN()")
 )
 
 // Builder a simple sql builder
@@ -603,6 +608,9 @@ func NotIn(col string, val any) (sql string, args []any) {
 func in(op, col string, val any) (sql string, args []any) {
 	if v, ok := asSliceForIn(val); ok {
 		z := v.Len()
+		if z == 0 {
+			panic(errEmptySlice)
+		}
 
 		qs := str.Repeat("?,", z)
 		sql = col + " " + op + " (" + qs[:len(qs)-1] + ")"
@@ -617,7 +625,7 @@ func in(op, col string, val any) (sql string, args []any) {
 
 func asSliceForIn(i any) (v reflect.Value, ok bool) {
 	if i == nil {
-		return reflect.Value{}, false
+		return
 	}
 
 	v = reflect.ValueOf(i)
@@ -625,16 +633,16 @@ func asSliceForIn(i any) (v reflect.Value, ok bool) {
 
 	// Only expand slices
 	if t.Kind() != reflect.Slice {
-		return reflect.Value{}, false
+		return
 	}
 
 	// []byte is a driver.Value type so it should not be expanded
-	if t == reflect.TypeOf([]byte{}) {
-		return reflect.Value{}, false
-
+	if t == ref.TypeBytes {
+		return
 	}
 
-	return v, true
+	ok = true
+	return
 }
 
 func appendReflectSlice(args []any, v reflect.Value, vlen int) []any {

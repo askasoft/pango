@@ -6,6 +6,10 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
+const (
+	StdLogCallerSkip = 3
+)
+
 // Logger logger interface
 type Logger interface {
 	// GetLogger create a new logger with name
@@ -13,7 +17,7 @@ type Logger interface {
 
 	// Outputer return a io.Writer for go log.SetOutput
 	// callerSkip: default is 1 (means +1)
-	// if the outputer is used by go std log, set callerSkip to 2
+	// if the outputer is used by go std log, set callerSkip to 3
 	// example:
 	//
 	//	import (
@@ -137,7 +141,7 @@ func (lg *logger) GetLogger(name string) Logger {
 
 // Outputer return a io.Writer for go log.SetOutput
 // callerSkip: default is 1 (means +1)
-// if the outputer is used by go std log, set callerSkip to 2
+// if the outputer is used by go std log, set callerSkip to 3
 // example:
 //
 //	import (

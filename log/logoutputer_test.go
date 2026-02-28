@@ -27,7 +27,7 @@ func testGetCaller(offset int) (string, int, string) {
 func TestGoLogOutputGlobal(t *testing.T) {
 	fmt.Println("\n\n--------------- TestGoLogOutputGlobal ---------------------")
 	SetWriter(NewConsoleWriter())
-	golog.SetOutput(GetOutputer("golog", LevelInfo))
+	golog.SetOutput(GetOutputer("golog", LevelInfo, StdLogCallerSkip))
 	golog.Print("hello", "golog")
 }
 
@@ -36,7 +36,7 @@ func TestGoLogOutputNewLog(t *testing.T) {
 
 	lg := NewLog()
 	lg.SetWriter(NewConsoleWriter())
-	golog.SetOutput(lg.GetOutputer("std", LevelInfo))
+	golog.SetOutput(lg.GetOutputer("std", LevelInfo, StdLogCallerSkip))
 	golog.Print("hello", "golog")
 }
 
@@ -48,7 +48,7 @@ func TestGoLogCallerGlobal(t *testing.T) {
 	SetWriter(sw)
 
 	golog.SetFlags(0)
-	golog.SetOutput(GetOutputer("golog", LevelInfo, 3))
+	golog.SetOutput(GetOutputer("golog", LevelInfo, StdLogCallerSkip))
 	file, line, ffun := testGetCaller(1)
 	golog.Print("hello", "golog")
 	Close()
@@ -69,7 +69,7 @@ func TestGoLogCallerNewLog(t *testing.T) {
 	lg.SetWriter(sw)
 
 	golog.SetFlags(0)
-	golog.SetOutput(lg.GetOutputer("std", LevelInfo, 3))
+	golog.SetOutput(lg.GetOutputer("std", LevelInfo, StdLogCallerSkip))
 	file, line, ffun := testGetCaller(1)
 	golog.Print("hello", "golog")
 	lg.Close()

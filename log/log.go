@@ -55,14 +55,14 @@ func GetLogger(name string) Logger {
 
 // GetOutputer return a io.Writer for go log.SetOutput
 // callerSkip: default is 1 (means +1)
-// if the outputer is used by go std log, set callerSkip to 2
+// if the outputer is used by go std log, set callerSkip to 3
 // example:
 //
 //	import (
 //	  golog "log"
 //	  "github.com/askasoft/pango/log"
 //	)
-//	golog.SetOutput(log.Outputer("GO", log.LevelInfo, 2))
+//	golog.SetOutput(log.Outputer("GO", log.LevelInfo, 3))
 func GetOutputer(name string, lvl Level, callerSkip ...int) Outputer {
 	return _log.GetOutputer(name, lvl, callerSkip...)
 }

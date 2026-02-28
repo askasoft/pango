@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"sync"
 
+	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/mag"
 	"github.com/askasoft/pango/str"
 )
@@ -140,7 +141,7 @@ func (log *Log) Close() {
 
 // Outputer return a io.Writer for go log.SetOutput
 // callerSkip: default is 1 (means +1)
-// if the outputer is used by go std log, set callerSkip to 2
+// if the outputer is used by go std log, set callerSkip to 3
 // example:
 //
 //	import (
@@ -150,10 +151,7 @@ func (log *Log) Close() {
 //	golog.SetOutput(log.Outputer("GO", log.LevelInfo, 3))
 func (log *Log) GetOutputer(name string, lvl Level, callerSkip ...int) Outputer {
 	lg := log.GetLogger(name)
-	cs := 1
-	if len(callerSkip) > 0 {
-		cs = callerSkip[0]
-	}
+	cs := asg.First(callerSkip, 1)
 	lg.SetCallerSkip(lg.GetCallerSkip() + cs)
 	return &outputer{logger: lg, level: lvl}
 }

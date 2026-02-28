@@ -345,6 +345,26 @@ func (tx *Tx) NamedCreateContext(ctx context.Context, query string, arg any) (in
 	return NamedCreateContext(ctx, tx, query, arg)
 }
 
+// Update executes a query without returning any rows.
+func (tx *Tx) Update(query string, args ...any) (int64, error) {
+	return Update(tx, query, args...)
+}
+
+// UpdateContext executes a query without returning any rows.
+func (tx *Tx) UpdateContext(ctx context.Context, query string, args ...any) (int64, error) {
+	return UpdateContext(ctx, tx, query, args...)
+}
+
+// NamedUpdate executes a query without returning any rows.
+func (tx *Tx) NamedUpdate(query string, arg any) (int64, error) {
+	return NamedUpdate(tx, query, arg)
+}
+
+// NamedUpdateContext executes a query without returning any rows.
+func (tx *Tx) NamedUpdateContext(ctx context.Context, query string, arg any) (int64, error) {
+	return NamedUpdateContext(ctx, tx, query, arg)
+}
+
 // MustExec runs MustExec within a transaction.
 // Any placeholder parameters are replaced with supplied args.
 func (tx *Tx) MustExec(query string, args ...any) sql.Result {

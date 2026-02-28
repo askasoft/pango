@@ -77,13 +77,6 @@ type ContextNamedQueryer interface {
 	NamedQueryRowContext(ctx context.Context, query string, arg any) *Row
 }
 
-type NamedExecer interface {
-	NamedExec(query string, arg any) (sql.Result, error)
-}
-type ContextNamedExecer interface {
-	NamedExecContext(ctx context.Context, query string, arg any) (sql.Result, error)
-}
-
 type Getter interface {
 	Get(dest any, query string, args ...any) error
 }
@@ -105,6 +98,13 @@ type ContextCreator interface {
 	CreateContext(ctx context.Context, query string, args ...any) (int64, error)
 }
 
+type Updater interface {
+	Update(query string, args ...any) (int64, error)
+}
+type ContextUpdater interface {
+	UpdateContext(ctx context.Context, query string, args ...any) (int64, error)
+}
+
 type NamedGetter interface {
 	NamedGet(dest any, query string, arg any) error
 }
@@ -124,6 +124,20 @@ type NamedCreator interface {
 }
 type ContextNamedCreator interface {
 	NamedCreateContext(ctx context.Context, query string, arg any) (int64, error)
+}
+
+type NamedUpdater interface {
+	NamedUpdate(query string, arg any) (int64, error)
+}
+type ContextNamedUpdater interface {
+	NamedUpdateContext(ctx context.Context, query string, arg any) (int64, error)
+}
+
+type NamedExecer interface {
+	NamedExec(query string, arg any) (sql.Result, error)
+}
+type ContextNamedExecer interface {
+	NamedExecContext(ctx context.Context, query string, arg any) (sql.Result, error)
 }
 
 type Preparerx interface {
@@ -164,8 +178,10 @@ type Sqlx interface {
 	Getter
 	Selector
 	Creator
+	Updater
 
 	NamedQueryer
+	NamedUpdater
 	NamedExecer
 
 	NamedGetter
@@ -173,8 +189,7 @@ type Sqlx interface {
 	NamedCreator
 
 	ContextQueryerx
-	ContextNamedQueryer
-	ContextNamedExecer
+	ContextUpdater
 	ContextPreparerx
 
 	ContextGetter
@@ -182,8 +197,11 @@ type Sqlx interface {
 	ContextCreator
 
 	ContextNamedGetter
+	ContextNamedQueryer
 	ContextNamedSelector
 	ContextNamedCreator
+	ContextNamedUpdater
+	ContextNamedExecer
 }
 
 type Transactioner interface {
@@ -514,27 +532,6 @@ func Create(x Sqlx, query string, args ...any) (int64, error) {
 	return id, err
 }
 
-// NamedCreate does a NamedQueryRowx() and scans the resulting row returns the last inserted ID.
-// If the db supports LastInsertId(), do a Exec() return Result.LastInsertId().
-func NamedCreate(x Sqlx, query string, arg any) (int64, error) {
-	if x.SupportLastInsertID() {
-		r, err := x.NamedExec(query, arg)
-		if err != nil {
-			return 0, err
-		}
-		return r.LastInsertId()
-	}
-
-	r := x.NamedQueryRow(query, arg)
-	if r.Err() != nil {
-		return 0, r.Err()
-	}
-
-	var id int64
-	err := r.Scan(&id)
-	return id, err
-}
-
 // CreateContext does a QueryRowxContext() scans the resulting row returns the last inserted ID.
 // If the db supports LastInsertId(), do a Exec() return Result.LastInsertId().
 func CreateContext(ctx context.Context, x Sqlx, query string, args ...any) (int64, error) {
@@ -547,6 +544,27 @@ func CreateContext(ctx context.Context, x Sqlx, query string, args ...any) (int6
 	}
 
 	r := x.QueryRowxContext(ctx, query, args...)
+	if r.Err() != nil {
+		return 0, r.Err()
+	}
+
+	var id int64
+	err := r.Scan(&id)
+	return id, err
+}
+
+// NamedCreate does a NamedQueryRowx() and scans the resulting row returns the last inserted ID.
+// If the db supports LastInsertId(), do a Exec() return Result.LastInsertId().
+func NamedCreate(x Sqlx, query string, arg any) (int64, error) {
+	if x.SupportLastInsertID() {
+		r, err := x.NamedExec(query, arg)
+		if err != nil {
+			return 0, err
+		}
+		return r.LastInsertId()
+	}
+
+	r := x.NamedQueryRow(query, arg)
 	if r.Err() != nil {
 		return 0, r.Err()
 	}
@@ -703,4 +721,46 @@ func namedQueryRowContext(ctx context.Context, x icsqlx, query string, arg any) 
 		return &Row{err: err}
 	}
 	return x.QueryRowxContext(ctx, q, args...)
+}
+
+// Update executes a query without returning any rows.
+func Update(x sqx.Execer, query string, args ...any) (int64, error) {
+	r, err := x.Exec(query, args...)
+	if err != nil {
+		return 0, err
+	}
+
+	return r.RowsAffected()
+}
+
+// UpdateContext executes a query without returning any rows.
+func UpdateContext(ctx context.Context, x sqx.ContextExecer, query string, args ...any) (int64, error) {
+	r, err := x.ExecContext(ctx, query, args...)
+	if err != nil {
+		return 0, err
+	}
+
+	return r.RowsAffected()
+}
+
+// NamedUpdate executes a query without returning any rows.
+func NamedUpdate(x NamedExecer, query string, arg any) (int64, error) {
+	r, err := x.NamedExec(query, arg)
+	if err != nil {
+		return 0, err
+	}
+
+	return r.RowsAffected()
+}
+
+// NamedUpdateContext does a NamedQueryRow() and scans the resulting row
+// returns the last inserted ID.
+// If the db supports LastInsertId(), does a NamedExecContext() and returns Result.LastInsertId().
+func NamedUpdateContext(ctx context.Context, x ContextNamedExecer, query string, arg any) (int64, error) {
+	r, err := x.NamedExecContext(ctx, query, arg)
+	if err != nil {
+		return 0, err
+	}
+
+	return r.RowsAffected()
 }

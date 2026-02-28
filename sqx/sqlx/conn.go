@@ -179,6 +179,13 @@ func (c *Conn) PreparexContext(ctx context.Context, query string) (*Stmt, error)
 	return &Stmt{query: query, stmt: s, ext: c.ext}, err
 }
 
+// Transactionx start a transaction as a block, return error will rollback, otherwise to commit. Transaction executes an
+// arbitrary number of commands in fc within a transaction. On success the changes are committed; if an error occurs
+// they are rolled back.
+func (c *Conn) Transactionx(ctx context.Context, opts *sql.TxOptions, fc func(tx *Tx) error) (err error) {
+	return Transactionx(ctx, c, opts, fc)
+}
+
 // Queryx queries the database and returns an *sqlx.Rows.
 // Any placeholder parameters are replaced with supplied args.
 func (c *Conn) Queryx(query string, args ...any) (*Rows, error) {
@@ -346,9 +353,22 @@ func (c *Conn) NamedCreateContext(ctx context.Context, query string, arg any) (i
 	return NamedCreateContext(ctx, c, query, arg)
 }
 
-// Transactionx start a transaction as a block, return error will rollback, otherwise to commit. Transaction executes an
-// arbitrary number of commands in fc within a transaction. On success the changes are committed; if an error occurs
-// they are rolled back.
-func (c *Conn) Transactionx(ctx context.Context, opts *sql.TxOptions, fc func(tx *Tx) error) (err error) {
-	return Transactionx(ctx, c, opts, fc)
+// Update executes a query without returning any rows.
+func (c *Conn) Update(query string, args ...any) (int64, error) {
+	return Update(c, query, args...)
+}
+
+// UpdateContext executes a query without returning any rows.
+func (c *Conn) UpdateContext(ctx context.Context, query string, args ...any) (int64, error) {
+	return UpdateContext(ctx, c, query, args...)
+}
+
+// NamedUpdate executes a query without returning any rows.
+func (c *Conn) NamedUpdate(query string, arg any) (int64, error) {
+	return NamedUpdate(c, query, arg)
+}
+
+// NamedUpdateContext executes a query without returning any rows.
+func (c *Conn) NamedUpdateContext(ctx context.Context, query string, arg any) (int64, error) {
+	return NamedUpdateContext(ctx, c, query, arg)
 }

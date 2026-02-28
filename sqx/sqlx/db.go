@@ -403,6 +403,26 @@ func (db *DB) NamedCreateContext(ctx context.Context, query string, arg any) (in
 	return NamedCreateContext(ctx, db, query, arg)
 }
 
+// Update executes a query without returning any rows.
+func (db *DB) Update(query string, args ...any) (int64, error) {
+	return Update(db, query, args...)
+}
+
+// UpdateContext executes a query without returning any rows.
+func (db *DB) UpdateContext(ctx context.Context, query string, args ...any) (int64, error) {
+	return UpdateContext(ctx, db, query, args...)
+}
+
+// NamedUpdate executes a query without returning any rows.
+func (db *DB) NamedUpdate(query string, arg any) (int64, error) {
+	return NamedUpdate(db, query, arg)
+}
+
+// NamedUpdateContext executes a query without returning any rows.
+func (db *DB) NamedUpdateContext(ctx context.Context, query string, arg any) (int64, error) {
+	return NamedUpdateContext(ctx, db, query, arg)
+}
+
 // Beginx begins a transaction and returns an *sqlx.Tx instead of an *sql.Tx.
 func (db *DB) Beginx() (*Tx, error) {
 	tx, err := db.tracer.TraceBegin(db.db)

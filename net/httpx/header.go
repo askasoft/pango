@@ -1,13 +1,12 @@
 package httpx
 
 import (
-	"mime"
 	"net/http"
 	"net/url"
-	"path/filepath"
 	"strconv"
 
 	"github.com/askasoft/pango/asg"
+	"github.com/askasoft/pango/net/mimex"
 	"github.com/askasoft/pango/str"
 )
 
@@ -64,10 +63,10 @@ func (hw *headersWriter) WriteHeader(statusCode int) {
 	hw.ResponseWriter.WriteHeader(statusCode)
 }
 
-// SetAttachmentHeader set header Content-Disposition: attachment; filename=... and Content-Type: mime.TypeByExtension(filename)
+// SetAttachmentHeader set header Content-Disposition: attachment; filename=... and Content-Type: mimex.MediaTypeByFilename(filename)
 func SetAttachmentHeader(hh http.Header, filename string) {
 	if _, ok := hh["Content-Type"]; !ok {
-		ct := mime.TypeByExtension(filepath.Ext(filename))
+		ct := mimex.MediaTypeByFilename(filename)
 		if ct != "" {
 			hh.Set("Content-Type", ct)
 		}

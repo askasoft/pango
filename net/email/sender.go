@@ -10,7 +10,6 @@ import (
 	"net/mail"
 	"net/smtp"
 	"net/textproto"
-	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
@@ -19,6 +18,7 @@ import (
 	"unsafe"
 
 	"github.com/askasoft/pango/iox"
+	"github.com/askasoft/pango/net/mimex"
 	"github.com/askasoft/pango/ran"
 	"github.com/askasoft/pango/str"
 )
@@ -461,7 +461,7 @@ func writeBody(w io.Writer, enc string, m *Email, boundary string) (err error) {
 
 func writeAttachments(w io.Writer, as []*Attachment, boundary string) (err error) {
 	for _, a := range as {
-		mt := mime.TypeByExtension(filepath.Ext(a.Name))
+		mt := mimex.MediaTypeByFilename(a.Name)
 		if mt == "" {
 			mt = "application/octet-stream"
 		}

@@ -3,13 +3,14 @@ package httpx
 import (
 	"fmt"
 	"io"
-	"mime"
 	"mime/multipart"
 	"net/textproto"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/askasoft/pango/net/mimex"
 )
 
 var quoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
@@ -32,7 +33,7 @@ func (mw *MultipartWriter) CreateFormFile(fieldname, filename string) (io.Writer
 	cd := fmt.Sprintf(`form-data; name="%s"; filename="%s"`, escapeQuotes(fieldname), escapeQuotes(filepath.Base(filename)))
 	mh.Set("Content-Disposition", cd)
 
-	ct := mime.TypeByExtension(filepath.Ext(filename))
+	ct := mimex.MediaTypeByFilename(filename)
 	if ct == "" {
 		ct = "application/octet-stream"
 	}
@@ -79,6 +80,17 @@ func (mw *MultipartWriter) WriteFileData(fieldname, filename string, data []byte
 	}
 
 	_, err = fw.Write(data)
+	return err
+}
+
+// WriteFileReader calls CreateFormFile and then writes the given file reader.
+func (mw *MultipartWriter) WriteFileReader(fieldname, filename string, data io.Reader) error {
+	fw, err := mw.CreateFormFile(fieldname, filename)
+	if err != nil {
+		return err
+	}
+
+	_, err = io.Copy(fw, data)
 	return err
 }
 

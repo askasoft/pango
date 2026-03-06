@@ -42,7 +42,7 @@ func TestCookieAuthRedirect(t *testing.T) {
 	router := xin.New()
 
 	ca := NewCookieAuth(accounts.FindUser, "1234567890abcdefg")
-	ca.RedirectURL = "/redirect"
+	ca.AuthFailed = AuthFailedRedirector("/redirect", "origin")
 	router.Use(ca.Handle)
 
 	router.GET("/login", func(c *xin.Context) {

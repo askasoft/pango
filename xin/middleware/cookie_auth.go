@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/askasoft/pango/cpt"
@@ -16,8 +15,7 @@ import (
 )
 
 const (
-	AuthCookieName             = "X_AUTH"
-	AuthRedirectOriginURLQuery = "origin"
+	AuthCookieName = "X_AUTH"
 )
 
 var (
@@ -27,13 +25,13 @@ var (
 
 // CookieAuth cookie authenticator
 type CookieAuth struct {
-	Cryptor        cpt.Cryptor // cryptor to encode/decode cookie, MUST concurrent safe
-	FindUser       FindUserFunc
-	AuthUserKey    string
-	RedirectURL    string
-	OriginURLQuery string
-	AuthPassed     func(c *xin.Context, au AuthUser)
-	AuthFailed     xin.HandlerFunc
+	Cryptor cpt.Cryptor // cryptor to encode/decode cookie, MUST concurrent safe
+
+	FindUser    FindUserFunc
+	AuthUserKey string
+
+	AuthPassed func(c *xin.Context, au AuthUser)
+	AuthFailed xin.HandlerFunc
 
 	CookieName      string
 	CookieMaxAge    time.Duration
@@ -48,18 +46,16 @@ type CookieAuth struct {
 func NewCookieAuth(f FindUserFunc, secret string) *CookieAuth {
 	ca := &CookieAuth{
 		FindUser:       f,
+		AuthUserKey:    AuthUserKey,
 		CookieName:     AuthCookieName,
 		CookiePath:     "/",
 		CookieMaxAge:   time.Minute * 30,
 		CookieSecure:   true,
 		CookieHttpOnly: true,
 		CookieSameSite: http.SameSiteLaxMode,
-		AuthUserKey:    AuthUserKey,
-		RedirectURL:    "/",
-		OriginURLQuery: AuthRedirectOriginURLQuery,
 	}
 	ca.AuthPassed = ca.authorized
-	ca.AuthFailed = ca.Unauthorized
+	ca.AuthFailed = AuthFailedRedirector(AuthRedirectURL, AuthOriginQuery)
 	ca.GetCookieMaxAge = ca.getCookieMaxAge
 	ca.SetSecret(secret)
 
@@ -98,18 +94,6 @@ func (ca *CookieAuth) authorized(c *xin.Context, au AuthUser) {
 	c.Next()
 }
 
-// Unauthorized redirect or abort with status 401
-func (ca *CookieAuth) Unauthorized(c *xin.Context) {
-	u := ca.BuildRedirectURL(c)
-	if u != "" {
-		c.Abort()
-		c.Redirect(http.StatusTemporaryRedirect, u)
-		return
-	}
-
-	c.AbortWithStatus(http.StatusUnauthorized)
-}
-
 func (ca *CookieAuth) Authenticate(c *xin.Context) (next bool, au AuthUser, err error) {
 	if _, ok := c.Get(ca.AuthUserKey); ok {
 		// already authenticated
@@ -134,32 +118,6 @@ func (ca *CookieAuth) Authenticate(c *xin.Context) (next bool, au AuthUser, err 
 	err = ca.SaveUserPassToCookie(c, au)
 
 	return
-}
-
-func (ca *CookieAuth) BuildRedirectURL(c *xin.Context) string {
-	u := ca.RedirectURL
-	if u == "" || u == c.Request.URL.Path { // prevent redirect dead loop
-		return ""
-	}
-
-	if xin.IsAjax(c) {
-		return ""
-	}
-
-	p := ca.OriginURLQuery
-	if p != "" {
-		url, err := url.Parse(u)
-		if err != nil {
-			c.Logger.Errorf("Invalid RedirectURL %q", u)
-		} else {
-			q := url.Query()
-			q.Set(p, c.Request.URL.String())
-			url.RawQuery = q.Encode()
-			u = url.String()
-		}
-	}
-
-	return u
 }
 
 func (ca *CookieAuth) GetUserPassFromCookie(c *xin.Context) (username, password string, ok bool) {

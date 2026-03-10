@@ -17,11 +17,11 @@ const (
 	logTimeFormat = "2006-01-02T15:04:05.000Z07:00"
 )
 
-type iDo interface {
+type Do interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-func traceDo(logger log.Logger, do iDo, req *http.Request) (*http.Response, error) {
+func traceDo(logger log.Logger, do Do, req *http.Request) (*http.Response, error) {
 	rid := ran.RandInt63()
 	bso, _ := httputil.DumpRequestOut(req, true)
 
@@ -47,7 +47,7 @@ func traceDo(logger log.Logger, do iDo, req *http.Request) (*http.Response, erro
 	return res, err
 }
 
-func debugDo(logger log.Logger, do iDo, req *http.Request) (*http.Response, error) {
+func debugDo(logger log.Logger, do Do, req *http.Request) (*http.Response, error) {
 	st := time.Now()
 	res, err := do.Do(req)
 	et := time.Now()
@@ -65,53 +65,51 @@ func debugDo(logger log.Logger, do iDo, req *http.Request) (*http.Response, erro
 	return res, err
 }
 
-func TraceClientDo(logger log.Logger, hc *http.Client, req *http.Request) (*http.Response, error) {
+func TraceDo(logger log.Logger, do Do, req *http.Request) (*http.Response, error) {
 	if logger == nil {
-		return hc.Do(req)
+		return do.Do(req)
 	}
 
 	if logger.IsTraceEnabled() {
-		return traceDo(logger, hc, req)
+		return traceDo(logger, do, req)
 	}
 
 	if logger.IsDebugEnabled() {
-		return debugDo(logger, hc, req)
+		return debugDo(logger, do, req)
 	}
 
-	return hc.Do(req)
+	return do.Do(req)
 }
 
-type LoggingRoundTripper struct {
+type loggingRoundTripper struct {
 	Logger    log.Logger
 	Transport http.RoundTripper
 }
 
-func NewLoggingRoundTripper(logger log.Logger, transport ...http.RoundTripper) *LoggingRoundTripper {
-	return &LoggingRoundTripper{
+func LoggingRoundTripper(logger log.Logger, transport ...http.RoundTripper) http.RoundTripper {
+	return loggingRoundTripper{
 		Logger:    logger,
 		Transport: asg.First(transport),
 	}
 }
 
-func (lrt *LoggingRoundTripper) Do(req *http.Request) (*http.Response, error) {
+func (lrt loggingRoundTripper) Do(req *http.Request) (*http.Response, error) {
 	return lrt.transport().RoundTrip(req)
 }
 
-func (lrt *LoggingRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
-	if lrt.Logger != nil {
-		if lrt.Logger.IsTraceEnabled() {
-			return traceDo(lrt.Logger, lrt, req)
-		}
+func (lrt loggingRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	if lrt.Logger.IsTraceEnabled() {
+		return traceDo(lrt.Logger, lrt, req)
+	}
 
-		if lrt.Logger.IsDebugEnabled() {
-			return debugDo(lrt.Logger, lrt, req)
-		}
+	if lrt.Logger.IsDebugEnabled() {
+		return debugDo(lrt.Logger, lrt, req)
 	}
 
 	return lrt.Do(req)
 }
 
-func (lrt *LoggingRoundTripper) transport() http.RoundTripper {
+func (lrt loggingRoundTripper) transport() http.RoundTripper {
 	if lrt.Transport != nil {
 		return lrt.Transport
 	}

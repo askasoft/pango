@@ -1,13 +1,18 @@
 package log
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/askasoft/pango/str"
 )
 
 const (
-	StdLogCallerSkip = 3
+	DefaultLoggerName = "_"
+
+	LoggerCallerSkip int = 5
+	OutputCallerSkip int = 3
+	StdLogCallerSkip int = 5
 )
 
 // Logger logger interface
@@ -16,15 +21,15 @@ type Logger interface {
 	GetLogger(name string) Logger
 
 	// Outputer return a io.Writer for go log.SetOutput
-	// callerSkip: default is 1 (means +1)
-	// if the outputer is used by go std log, set callerSkip to 3
+	// callerSkip: default is log.OutputCallerSkip
+	// if the outputer is used by go std log, set callerSkip to log.StdLogCallerSkip.
 	// example:
 	//
 	//	import (
 	//	  golog "log"
 	//	  "github.com/askasoft/pango/log"
 	//	)
-	//	golog.SetOutput(log.Outputer("GO", log.LevelInfo, 3))
+	//	golog.SetOutput(log.Outputer("GO", log.LevelInfo, log.StdLogCallerSkip))
 	GetOutputer(name string, lvl Level, callerSkip ...int) Outputer
 
 	// GetName return the logger's name
@@ -38,9 +43,6 @@ type Logger interface {
 
 	// GetCallerSkip return the logger's caller skip
 	GetCallerSkip() int
-
-	// SetCallerSkip set the logger's caller skip (!!SLOW!!), 0: disable runtime.Caller()
-	SetCallerSkip(n int)
 
 	// GetProp get logger property
 	GetProp(k string) any
@@ -125,7 +127,6 @@ type Logger interface {
 type logger struct {
 	log   *Log
 	name  string
-	skip  int
 	props map[string]any
 }
 
@@ -133,22 +134,21 @@ type logger struct {
 func (lg *logger) GetLogger(name string) Logger {
 	return &logger{
 		log:   lg.log,
-		name:  str.IfEmpty(name, "_"),
-		skip:  lg.skip,
+		name:  str.IfEmpty(name, DefaultLoggerName),
 		props: lg.props,
 	}
 }
 
 // Outputer return a io.Writer for go log.SetOutput
-// callerSkip: default is 1 (means +1)
-// if the outputer is used by go std log, set callerSkip to 3
+// callerSkip: default is log.OutputCallerSkip
+// if the outputer is used by go std log, set callerSkip to log.StdLogCallerSkip.
 // example:
 //
 //	import (
 //	  golog "log"
 //	  "github.com/askasoft/pango/log"
 //	)
-//	golog.SetOutput(log.Outputer("GO", log.LevelInfo, 3))
+//	golog.SetOutput(log.Outputer("GO", log.LevelInfo, log.StdLogCallerSkip))
 func (lg *logger) GetOutputer(name string, lvl Level, callerSkip ...int) Outputer {
 	return lg.log.GetOutputer(name, lvl, callerSkip...)
 }
@@ -160,12 +160,7 @@ func (lg *logger) GetName() string {
 
 // GetCallerSkip return the logger's caller skip
 func (lg *logger) GetCallerSkip() int {
-	return lg.skip
-}
-
-// SetCallerSkip set the logger's caller skip (!!SLOW!!), 0: disable runtime.Caller()
-func (lg *logger) SetCallerSkip(n int) {
-	lg.skip = n
+	return lg.log.GetCallerSkip()
 }
 
 // GetLevel return the logger's level
@@ -332,7 +327,7 @@ func (lg *logger) _log(lvl Level, v ...any) {
 
 func (lg *logger) _logf(lvl Level, f string, v ...any) {
 	if lg.IsLevelEnabled(lvl) {
-		s := _printf(f, v...)
+		s := fmt.Sprintf(f, v...)
 		le := newLogEvent(lg, lvl, s)
 		lg.log._write(le)
 	}

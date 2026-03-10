@@ -32,8 +32,8 @@ var emptyProps = make(map[string]any)
 // NewLog returns a new Log with console writer
 func NewLog() *Log {
 	log := &Log{
-		name:   "_",
-		skip:   5,
+		name:   DefaultLoggerName,
+		skip:   LoggerCallerSkip,
 		props:  emptyProps,
 		level:  LevelTrace,
 		trace:  LevelError,
@@ -88,10 +88,24 @@ func (log *Log) GetLoggerLevel(name string) Level {
 func (log *Log) GetLogger(name string) Logger {
 	return &logger{
 		log:   log,
-		name:  str.IfEmpty(name, "_"),
-		skip:  log.skip,
+		name:  str.IfEmpty(name, DefaultLoggerName),
 		props: log.props,
 	}
+}
+
+// Outputer return a io.Writer for go log.SetOutput
+// callerSkip: default is log.OutputCallerSkip
+// if the outputer is used by go std log, set callerSkip to log.StdLogCallerSkip.
+// example:
+//
+//	import (
+//	  golog "log"
+//	  "github.com/askasoft/pango/log"
+//	)
+//	golog.SetOutput(log.Outputer("GO", log.LevelInfo, log.StdLogCallerSkip))
+func (log *Log) GetOutputer(name string, lvl Level, callerSkip ...int) Outputer {
+	lg := log.GetLogger(name)
+	return &outputer{logger: lg, level: lvl, skip: asg.First(callerSkip, OutputCallerSkip)}
 }
 
 // GetWriter get the log writer
@@ -137,23 +151,6 @@ func (log *Log) Flush() {
 // Close close logger, flush all data and close the writer.
 func (log *Log) Close() {
 	safeClose(log.writer)
-}
-
-// Outputer return a io.Writer for go log.SetOutput
-// callerSkip: default is 1 (means +1)
-// if the outputer is used by go std log, set callerSkip to 3
-// example:
-//
-//	import (
-//	  golog "log"
-//	  "github.com/askasoft/pango/log"
-//	)
-//	golog.SetOutput(log.Outputer("GO", log.LevelInfo, 3))
-func (log *Log) GetOutputer(name string, lvl Level, callerSkip ...int) Outputer {
-	lg := log.GetLogger(name)
-	cs := asg.First(callerSkip, 1)
-	lg.SetCallerSkip(lg.GetCallerSkip() + cs)
-	return &outputer{logger: lg, level: lvl}
 }
 
 /*----------------------------------------------------
@@ -345,7 +342,7 @@ func (log *Log) _log(lvl Level, v ...any) {
 
 func (log *Log) _logf(lvl Level, f string, v ...any) {
 	if log.IsLevelEnabled(lvl) {
-		s := _printf(f, v...)
+		s := fmt.Sprintf(f, v...)
 		le := newLogEvent(log, lvl, s)
 		log._write(le)
 	}
@@ -360,10 +357,6 @@ func _printv(v ...any) string {
 		return ""
 	}
 	return fmt.Sprint(v...)
-}
-
-func _printf(f string, v ...any) string {
-	return fmt.Sprintf(f, v...)
 }
 
 func cloneAndSetProp(om map[string]any, k string, v any) map[string]any {

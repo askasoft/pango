@@ -41,7 +41,9 @@ func NewSqlxLogger(logger log.Logger, slowSQL time.Duration) *SqlxLogger {
 func (sl *SqlxLogger) printf(lvl log.Level, msg string, data ...any) {
 	if sl.Logger.IsLevelEnabled(lvl) {
 		le := log.NewEvent(sl.Logger, lvl, fmt.Sprintf(msg, data...))
-		le.CallerStop("/sqx/sqlx/", sl.Logger.GetTraceLevel() >= lvl)
+		if sl.Logger.GetCallerSkip() > 0 {
+			le.CallerStop("/sqx/sqlx/", sl.Logger.GetTraceLevel() >= lvl)
+		}
 		sl.Logger.Write(le)
 	}
 }

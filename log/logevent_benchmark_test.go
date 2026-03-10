@@ -10,53 +10,67 @@ import (
 const benchmarkTestEventCount = 10000
 
 func BenchmarkLogEventNewWithStackTrace(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for range benchmarkTestEventCount {
 			le := &Event{}
-			le.Message = ""
-			le.Level = LevelError
+			le.Level = LevelInfo
+			le.Message = "simple"
+			le.Time = time.Now()
 			le.CallerSkip(5, true)
+			nopWriter.Write(le)
 		}
 	}
 }
 
 func BenchmarkLogEventNewWithoutStackTrace(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for range benchmarkTestEventCount {
 			le := &Event{}
-			le.Message = ""
-			le.Level = LevelError
+			le.Level = LevelInfo
+			le.Message = "simple"
+			le.Time = time.Now()
 			le.CallerSkip(5, false)
+			nopWriter.Write(le)
 		}
 	}
 }
 
 func BenchmarkLogEventNewWithoutPool(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	sb := &strings.Builder{}
+	for b.Loop() {
 		for range benchmarkTestEventCount {
 			le := &Event{}
-			le.Message = ""
+			le.Level = LevelInfo
+			le.Message = "simple"
+			le.Time = time.Now()
 			le.CallerSkip(5, false)
+			sb.Reset()
+			TextFmtSimple.Write(sb, le)
+			nopWriter.Write(le)
 		}
 	}
 }
 
-var testEventPool = sync.Pool{
-	New: func() any {
-		// The Pool's New function should generally only return pointer
-		// types, since a pointer can be put into the return interface
-		// value without an allocation:
-		return &Event{}
-	},
-}
-
 func BenchmarkLogEventNewWithPool(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	// eventPool log event pool
+	var eventPool = &sync.Pool{
+		New: func() any {
+			return &Event{}
+		},
+	}
+
+	sb := &strings.Builder{}
+	for b.Loop() {
 		for range benchmarkTestEventCount {
-			le := testEventPool.Get().(*Event)
-			le.Message = ""
+			le := eventPool.Get().(*Event)
+			le.Level = LevelInfo
+			le.Message = "simple"
+			le.Time = time.Now()
 			le.CallerSkip(5, false)
-			testEventPool.Put(le)
+			sb.Reset()
+			TextFmtSimple.Write(sb, le)
+			nopWriter.Write(le)
+			eventPool.Put(le)
 		}
 	}
 }
@@ -76,7 +90,9 @@ func BenchmarkLogEventNewWithPoolParallel(b *testing.B) {
 			le.Level = LevelInfo
 			le.Message = "simple"
 			le.Time = time.Now()
+			sb.Reset()
 			TextFmtSimple.Write(sb, le)
+			nopWriter.Write(le)
 			eventPool.Put(le)
 		}
 	})
@@ -90,7 +106,9 @@ func BenchmarkLogEventNewWithoutPoolParallel(b *testing.B) {
 			le.Level = LevelInfo
 			le.Message = "simple"
 			le.Time = time.Now()
+			sb.Reset()
 			TextFmtSimple.Write(sb, le)
+			nopWriter.Write(le)
 		}
 	})
 }

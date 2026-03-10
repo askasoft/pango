@@ -1,9 +1,8 @@
 package log
 
 import (
+	"fmt"
 	"io"
-
-	"github.com/askasoft/pango/str"
 )
 
 // Outputer interface for io.Writer
@@ -16,15 +15,29 @@ type Outputer interface {
 type outputer struct {
 	logger Logger
 	level  Level
+	skip   int
 }
 
 // Write io.Writer implement
 func (o *outputer) Write(p []byte) (int, error) {
-	o.logger.Log(o.level, str.UnsafeString(p))
+	if o.logger.IsLevelEnabled(o.level) {
+		le := NewEvent(o.logger, o.level, string(p))
+		if o.skip > 0 {
+			le.CallerSkip(o.skip, o.logger.GetTraceLevel() >= o.level)
+		}
+		o.logger.Write(le)
+	}
 	return len(p), nil
 }
 
 // Printf printf implement
 func (o *outputer) Printf(format string, args ...any) {
-	o.logger.Logf(o.level, format, args...)
+	if o.logger.IsLevelEnabled(o.level) {
+		s := fmt.Sprintf(format, args...)
+		le := NewEvent(o.logger, o.level, s)
+		if o.skip > 0 {
+			le.CallerSkip(o.skip, o.logger.GetTraceLevel() >= o.level)
+		}
+		o.logger.Write(le)
+	}
 }

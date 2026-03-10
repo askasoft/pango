@@ -7,14 +7,10 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/iox"
-	"github.com/askasoft/pango/log"
-	"github.com/askasoft/pango/log/httplog"
 )
 
 type Client struct {
-	Endpoint string
-
-	Logger       log.Logger
+	Endpoint     string
 	Timeout      time.Duration
 	Transport    http.RoundTripper
 	Authenticate func(req *http.Request)
@@ -34,7 +30,7 @@ func (c *Client) Call(ctx context.Context, method string, result any, params ...
 	req.Header.Set("Content-Type", `text/xml; charset="utf-8"`)
 
 	if a := c.Authenticate; a != nil {
-		c.Authenticate(req)
+		a(req)
 	}
 
 	res, err := c.call(req)
@@ -65,10 +61,9 @@ func (c *Client) Call(ctx context.Context, method string, result any, params ...
 }
 
 func (c *Client) call(req *http.Request) (*http.Response, error) {
-	client := &http.Client{
+	hc := http.Client{
 		Transport: c.Transport,
 		Timeout:   c.Timeout,
 	}
-
-	return httplog.TraceClientDo(c.Logger, client, req)
+	return hc.Do(req)
 }

@@ -2,7 +2,6 @@ package ret
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"testing"
 	"time"
@@ -10,23 +9,13 @@ import (
 	"github.com/askasoft/pango/log"
 )
 
-var _ Retryable = NewRetryError(nil)
-
 type retryTestError struct {
-	RetryError
-
 	status     string // http status
 	statusCode int    // http status code
 }
 
 func (rte *retryTestError) Error() string {
-	s := rte.status
-
-	if rte.RetryAfter > 0 {
-		s = fmt.Sprintf("%s (Retry After %s)", s, rte.RetryAfter)
-	}
-
-	return s
+	return rte.status
 }
 
 func TestRetryForErrorLoop(t *testing.T) {
@@ -34,19 +23,21 @@ func TestRetryForErrorLoop(t *testing.T) {
 		status:     "429 Too Many Requests",
 		statusCode: http.StatusTooManyRequests,
 	}
-	rte.RetryAfter = time.Millisecond * 100
+	sr := func(_ error) time.Duration {
+		return time.Millisecond * 100
+	}
 
 	w := rte.Error()
 
 	called := 0
-	api := func() error {
+	do := func() error {
 		called++
 		return rte
 	}
 
 	ctx := context.Background()
 
-	err := RetryForError(ctx, api, 2, log.NewLog())
+	err := RetryForError(ctx, do, sr, 2, log.NewLog())
 
 	if err.Error() != w {
 		t.Errorf("Error(): %s, want %s", err.Error(), w)
@@ -63,10 +54,12 @@ func TestRetryForErrorAbort(t *testing.T) {
 		status:     "429 Too Many Requests",
 		statusCode: http.StatusTooManyRequests,
 	}
-	rte.RetryAfter = time.Millisecond * 100
+	sr := func(_ error) time.Duration {
+		return time.Millisecond * 100
+	}
 
 	called := 0
-	api := func() error {
+	do := func() error {
 		called++
 		return rte
 	}
@@ -77,7 +70,7 @@ func TestRetryForErrorAbort(t *testing.T) {
 		cancel()
 	}()
 
-	err := RetryForError(ctx, api, 2, log.NewLog())
+	err := RetryForError(ctx, do, sr, 2, log.NewLog())
 
 	if err != w {
 		t.Errorf("Error(): %v, want %v", err, w)

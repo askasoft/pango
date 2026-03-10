@@ -7,58 +7,21 @@ import (
 	"github.com/askasoft/pango/log"
 )
 
-type RetryError struct {
-	Err        error
-	RetryAfter time.Duration
-}
-
-func NewRetryError(err error, retryAfter ...time.Duration) *RetryError {
-	re := &RetryError{
-		Err: err,
-	}
-	if len(retryAfter) > 0 {
-		re.RetryAfter = retryAfter[0]
-	}
-	return re
-}
-
-func (re *RetryError) GetRetryAfter() time.Duration {
-	return re.RetryAfter
-}
-
-func (re *RetryError) Unwrap() error {
-	return re.Err
-}
-
-func (re *RetryError) Error() string {
-	if re == nil || re.Err == nil {
-		return "<nil>"
-	}
-	return re.Err.Error()
-}
-
-type Retryable interface {
-	GetRetryAfter() time.Duration
-}
-
-func GetRetryAfter(a any) time.Duration {
-	if r, ok := a.(Retryable); ok {
-		return r.GetRetryAfter()
-	}
-	return 0
-}
-
-// RetryForError loop max `retries` count to call api().
-// returns the error if api() returns a non Retryable error.
-func RetryForError(ctx context.Context, api func() error, retries int, logger log.Logger) error {
-	err := api()
+// RetryForError call do() and retry max `retries` count if do() returns a error, and shouldRetry(err) returns a duration.
+// returns the error if do() returns a non retryable error.
+func RetryForError(ctx context.Context, do func() error, shouldRetry func(error) time.Duration, retries int, logger log.Logger) error {
+	err := do()
 	if err == nil {
 		return nil
 	}
 
 	count := 1
-	after := GetRetryAfter(err)
-	if after <= 0 || count > retries {
+	if count > retries {
+		return err
+	}
+
+	after := shouldRetry(err)
+	if after <= 0 {
 		return err
 	}
 
@@ -74,7 +37,7 @@ func RetryForError(ctx context.Context, api func() error, retries int, logger lo
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-timer.C:
-			if err = api(); err == nil {
+			if err = do(); err == nil {
 				return nil
 			}
 
@@ -82,7 +45,7 @@ func RetryForError(ctx context.Context, api func() error, retries int, logger lo
 				return err
 			}
 
-			if after = GetRetryAfter(err); after <= 0 {
+			if after = shouldRetry(err); after <= 0 {
 				return err
 			}
 
@@ -92,4 +55,14 @@ func RetryForError(ctx context.Context, api func() error, retries int, logger lo
 			timer.Reset(after)
 		}
 	}
+}
+
+type Retryer struct {
+	Logger      log.Logger
+	MaxRetries  int
+	ShouldRetry func(error) time.Duration
+}
+
+func (r *Retryer) Do(ctx context.Context, do func() error) error {
+	return RetryForError(ctx, do, r.ShouldRetry, r.MaxRetries, r.Logger)
 }

@@ -18,19 +18,18 @@ type passCompressor struct {
 	W io.Writer
 }
 
-func (pc *passCompressor) Write(p []byte) (n int, err error) {
+func (pc passCompressor) Write(p []byte) (n int, err error) {
 	return pc.W.Write(p)
 }
 
-func (pc *passCompressor) Reset(w io.Writer) {
-	pc.W = w
+func (pc passCompressor) Reset(w io.Writer) {
 }
 
-func (pc *passCompressor) Flush() error {
+func (pc passCompressor) Flush() error {
 	return nil
 }
 
-func (pc *passCompressor) Close() error {
+func (pc passCompressor) Close() error {
 	return nil
 }
 
@@ -58,6 +57,7 @@ func (gcws *GzipCompressorProvider) GetCompressor() Compressor {
 }
 
 func (gcws *GzipCompressorProvider) PutCompressor(cw Compressor) {
+	cw.Reset(io.Discard)
 	gcws.pool.Put(cw)
 }
 
@@ -66,19 +66,20 @@ type ZlibCompressorProvider struct {
 }
 
 func NewZlibCompressorProvider() *ZlibCompressorProvider {
-	gcws := &ZlibCompressorProvider{}
-	gcws.pool = &sync.Pool{New: gcws.NewCompressor}
-	return gcws
+	zcws := &ZlibCompressorProvider{}
+	zcws.pool = &sync.Pool{New: zcws.NewCompressor}
+	return zcws
 }
 
-func (gcws *ZlibCompressorProvider) NewCompressor() any {
+func (zcws *ZlibCompressorProvider) NewCompressor() any {
 	return zlib.NewWriter(io.Discard)
 }
 
-func (gcws *ZlibCompressorProvider) GetCompressor() Compressor {
-	return gcws.pool.Get().(Compressor)
+func (zcws *ZlibCompressorProvider) GetCompressor() Compressor {
+	return zcws.pool.Get().(Compressor)
 }
 
-func (gcws *ZlibCompressorProvider) PutCompressor(cw Compressor) {
-	gcws.pool.Put(cw)
+func (zcws *ZlibCompressorProvider) PutCompressor(cw Compressor) {
+	cw.Reset(io.Discard)
+	zcws.pool.Put(cw)
 }

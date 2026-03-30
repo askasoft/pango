@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"bytes"
-	"io"
 
 	"github.com/askasoft/pango/str"
 	"github.com/askasoft/pango/xin"
@@ -39,8 +38,7 @@ func (rcw *responseCompressWriter) Close() {
 
 	if rcw.cw != nil {
 		rcw.cw.Close()
-		rcw.cw.Reset(io.Discard)
-		if _, ok := rcw.cw.(*passCompressor); !ok {
+		if _, ok := rcw.cw.(passCompressor); !ok {
 			rcw.xrc.putCompressor(rcw.enc, rcw.cw)
 		}
 		rcw.cw = nil
@@ -48,9 +46,9 @@ func (rcw *responseCompressWriter) Close() {
 
 	rcw.ctx.Writer = rcw.ResponseWriter
 
+	rcw.ctx = nil
 	rcw.xrc = nil
 	rcw.ResponseWriter = nil
-	rcw.ctx = nil
 	rcw.state = rcwStateNone
 }
 
@@ -130,7 +128,7 @@ func (rcw *responseCompressWriter) checkBuffer(data []byte) (err error) {
 
 	rcw.cw = rcw.xrc.getCompressor(rcw.enc)
 	if rcw.cw == nil {
-		rcw.cw = &passCompressor{rcw.ResponseWriter}
+		rcw.cw = passCompressor{rcw.ResponseWriter}
 	} else {
 		rcw.modifyHeader()
 		rcw.cw.Reset(rcw.ResponseWriter)

@@ -69,15 +69,35 @@ func (s *Sender) Close() error {
 	return err
 }
 
-func (s *Sender) setConn(i any, c net.Conn) {
-	v := reflect.ValueOf(i).Elem()
+// SetExtension set internal extension
+func (s *Sender) SetExtension(key string, val string) {
+	v := reflect.ValueOf(s.client).Elem()
+	f := v.FieldByName("ext")
+	pm := (*map[string]string)(unsafe.Pointer(f.UnsafeAddr()))
+	if pm != nil {
+		(*pm)[key] = val
+	}
+}
+
+// DelExtension delete internal extension
+func (s *Sender) DelExtension(key string) {
+	v := reflect.ValueOf(s.client).Elem()
+	f := v.FieldByName("ext")
+	pm := (*map[string]string)(unsafe.Pointer(f.UnsafeAddr()))
+	if pm != nil {
+		delete(*pm, key)
+	}
+}
+
+func (s *Sender) setConn(a any, c net.Conn) {
+	v := reflect.ValueOf(a).Elem()
 	f := v.FieldByName("conn")
 	pc := (*net.Conn)(unsafe.Pointer(f.UnsafeAddr()))
 	*pc = c
 }
 
-func (s *Sender) getConn(i any) net.Conn {
-	v := reflect.ValueOf(i).Elem()
+func (s *Sender) getConn(a any) net.Conn {
+	v := reflect.ValueOf(a).Elem()
 	f := v.FieldByName("conn")
 	pc := (*net.Conn)(unsafe.Pointer(f.UnsafeAddr()))
 	return *pc

@@ -119,7 +119,7 @@ func isUnsafe(i any) bool {
 //   - it implements sql.Scanner
 //   - it has no exported fields
 func isScannable(t reflect.Type) bool {
-	if reflect.PtrTo(t).Implements(_scannerInterface) {
+	if reflect.PointerTo(t).Implements(_scannerInterface) {
 		return true
 	}
 	if t.Kind() != reflect.Struct {

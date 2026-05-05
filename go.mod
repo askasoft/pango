@@ -3,8 +3,8 @@ module github.com/askasoft/pango
 go 1.25.0
 
 require (
-	github.com/fsnotify/fsnotify v1.9.0
-	github.com/go-sql-driver/mysql v1.9.3
+	github.com/fsnotify/fsnotify v1.10.1
+	github.com/go-sql-driver/mysql v1.10.0
 	github.com/jackc/pgerrcode v0.0.0-20250907135507-afb5586c32a6
 	github.com/jackc/pgx/v5 v5.9.2
 	github.com/lib/pq v1.11.2

@@ -3,11 +3,15 @@ package jsonx
 import (
 	"encoding/json"
 
+	"github.com/askasoft/pango/ref"
 	"github.com/askasoft/pango/str"
 )
 
+// Prettify use json.MarshalIndent(o, "", "  ") to convert `o` to json string
+// return "" if `o` is nil.
+// return error string if json marshal raise error.
 func Prettify(o any) string {
-	if o == nil {
+	if ref.IsNil(o) {
 		return ""
 	}
 
@@ -18,8 +22,11 @@ func Prettify(o any) string {
 	return str.UnsafeString(bs)
 }
 
+// Stringify use json.Marshal(o) to convert `o` to json string
+// return "" if `o` is nil.
+// return error string if json marshal raise error.
 func Stringify(o any) string {
-	if o == nil {
+	if ref.IsNil(o) {
 		return ""
 	}
 

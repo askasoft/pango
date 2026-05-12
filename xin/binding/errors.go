@@ -1,6 +1,7 @@
 package binding
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -50,4 +51,14 @@ func (fbes FieldBindErrors) Error() string {
 		sb.WriteString(fbe.Error())
 	}
 	return sb.String()
+}
+
+func AsFieldBindErrors(err error) (fbes *FieldBindErrors, ok bool) {
+	ok = errors.As(err, &fbes)
+	return
+}
+
+func IsFieldBindErrors(err error) bool {
+	_, ok := AsFieldBindErrors(err)
+	return ok
 }

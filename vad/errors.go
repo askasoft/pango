@@ -61,6 +61,16 @@ func (ves ValidationErrors) Error() string {
 	return sb.String()
 }
 
+func AsValidationErrors(err error) (ves *ValidationErrors, ok bool) {
+	ok = errors.As(err, &ves)
+	return
+}
+
+func IsValidationErrors(err error) bool {
+	_, ok := AsValidationErrors(err)
+	return ok
+}
+
 // FieldError contains all functions to get error details
 type FieldError interface {
 	// Tag returns the validation tag that failed. if the

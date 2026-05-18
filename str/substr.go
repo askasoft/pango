@@ -503,33 +503,17 @@ func CutAt(s string, p int) (before, after string) {
 		return "", s
 	}
 
+	if p < 0 {
+		r := Right(s, -p)
+		return s[:len(s)-len(r)], r
+	}
+
 	if p > len(s) {
 		return s, ""
 	}
 
-	z := RuneCount(s)
-	if p < 0 {
-		p += z
-		if p <= 0 {
-			return "", s
-		}
-	}
-	if z < p {
-		return s, ""
-	}
-
-	i, c, a := 0, 0, s
-	for a != "" {
-		_, z = utf8.DecodeRuneInString(a)
-		i += z
-		c++
-		if c >= p {
-			break
-		}
-		a = a[z:]
-	}
-
-	return s[:i], s[i:]
+	l := Left(s, p)
+	return l, s[len(l):]
 }
 
 // Left return the leftmost n rune string.
@@ -542,23 +526,15 @@ func Left(s string, n int) string {
 		return s
 	}
 
-	z := RuneCount(s)
-	if z <= n {
-		return s
-	}
-
-	i, c, a := 0, 0, s
-	for a != "" {
-		_, z = utf8.DecodeRuneInString(a)
-		i += z
-		c++
-		if c >= n {
-			break
+	z := 0
+	for i := range s {
+		z++
+		if z > n {
+			return s[:i]
 		}
-		a = a[z:]
 	}
 
-	return s[:i]
+	return s
 }
 
 // Right return the rightmost n rune string.
@@ -608,19 +584,14 @@ func Ellipsis(s string, n int, ellipses ...string) string {
 		return ""
 	}
 
-	sc := RuneCount(s)
-	if sc <= n {
-		return s
+	z := 0
+	for i := range s {
+		z++
+		if z > n {
+			return s[0:i] + IfEmpty(asg.First(ellipses), "...")
+		}
 	}
-
-	e := IfEmpty(asg.First(ellipses), "...")
-
-	ec := RuneCount(e)
-	if n <= ec {
-		return Left(e, n)
-	}
-
-	return Left(s, n-ec) + e
+	return s
 }
 
 // Ellipsiz abbreviates a string with max rune count `n` using ellipses (default "…").
@@ -631,25 +602,14 @@ func Ellipsiz(s string, n int, ellipses ...string) string {
 		return ""
 	}
 
-	e := IfEmpty(asg.First(ellipses), "…")
-
-	ec := RuneCount(e)
-
-	cut := n - ec
-	sz, j := 0, -1
+	z := 0
 	for i, r := range s {
-		sz++
+		z++
 		if r > utf8.RuneSelf {
-			sz++
+			z++
 		}
-		if sz > cut && j < 0 {
-			j = i
-		}
-		if sz > n {
-			if n <= ec {
-				return Left(e, n)
-			}
-			return s[0:j] + e
+		if z > n {
+			return s[0:i] + IfEmpty(asg.First(ellipses), "…")
 		}
 	}
 	return s

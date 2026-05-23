@@ -20,7 +20,7 @@ jobs:
 
       - name: Generate Release Notes and Publish
         id: generate_release_notes
-        uses: release-drafter/release-drafter@v6
+        uses: release-drafter/release-drafter@v7
         with:
           config-name: 'release-drafter.yml'
           name: "Release ${{ github.ref_name }}"

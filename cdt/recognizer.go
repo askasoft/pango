@@ -7,68 +7,96 @@ type recognizer interface {
 type recognizerOutput = Result
 
 type recognizerInput struct {
-	raw         []byte
-	input       []byte
-	tagStripped bool
-	byteStats   []int
-	hasC1Bytes  bool
+	raw        []byte
+	stripTag   bool
+	byteStats  []int
+	hasC1Bytes bool
+}
+
+type iEach interface {
+	Each(func(b byte))
+}
+
+type rawInput []byte
+
+func (ri rawInput) Each(f func(b byte)) {
+	for _, b := range ri {
+		f(b)
+	}
+}
+
+type stripInput []byte
+
+func (si stripInput) Each(f func(b byte)) {
+	var inMarkup bool
+
+	for _, c := range si {
+		switch c {
+		case '<':
+			inMarkup = true
+		case '>':
+			inMarkup = false
+		default:
+			if !inMarkup {
+				f(c)
+			}
+		}
+	}
 }
 
 func newRecognizerInput(raw []byte, stripTag bool) *recognizerInput {
-	input, stripped := mayStripInput(raw, stripTag)
-	byteStats := computeByteStats(input)
-	return &recognizerInput{
-		raw:         raw,
-		input:       input,
-		tagStripped: stripped,
-		byteStats:   byteStats,
-		hasC1Bytes:  computeHasC1Bytes(byteStats),
-	}
-}
-
-func mayStripInput(raw []byte, stripTag bool) (out []byte, stripped bool) {
-	const inputBufferSize = 8192
-	out = make([]byte, 0, inputBufferSize)
-	var badTags, openTags int32
-	var inMarkup bool
-	stripped = false
 	if stripTag {
-		stripped = true
-		for _, c := range raw {
-			if c == '<' {
-				if inMarkup {
-					badTags++
-				}
-				inMarkup = true
-				openTags++
-			}
-			if !inMarkup {
-				out = append(out, c)
-				if len(out) >= inputBufferSize {
-					break
-				}
-			}
-			if c == '>' {
-				inMarkup = false
-			}
-		}
+		stripTag = mayStripInput(raw)
 	}
-	if openTags < 5 || openTags/5 < badTags || (len(out) < 100 && len(raw) > 600) {
-		limit := len(raw)
-		if limit > inputBufferSize {
-			limit = inputBufferSize
-		}
-		out = make([]byte, limit)
-		copy(out, raw[:limit])
-		stripped = false
+
+	byteStats := computeByteStats(raw, stripTag)
+	hasC1Bytes := computeHasC1Bytes(byteStats)
+
+	return &recognizerInput{
+		raw:        raw,
+		stripTag:   stripTag,
+		byteStats:  byteStats,
+		hasC1Bytes: hasC1Bytes,
 	}
-	return
 }
 
-func computeByteStats(input []byte) []int {
+func mayStripInput(raw []byte) bool {
+	var badTags, openTags, chars int
+	var inMarkup bool
+
+	for _, c := range raw {
+		switch c {
+		case '<':
+			if inMarkup {
+				badTags++
+			}
+			inMarkup = true
+			openTags++
+		case '>':
+			inMarkup = false
+		default:
+			if !inMarkup {
+				chars++
+			}
+		}
+	}
+
+	// If it looks like this input wasn't marked up, or if it looks like it's
+	// essentially nothing but markup abandon the markup stripping.
+	// Detection will have to work on the unstripped input.
+	if openTags < 5 || openTags/5 < badTags || (chars < 100 && len(raw) > 600) {
+		return false
+	}
+	return true
+}
+
+func computeByteStats(input []byte, stripTag bool) []int {
 	r := make([]int, 256)
-	for _, c := range input {
-		r[c]++
+
+	if stripTag {
+		stripInput(input).Each(func(b byte) { r[b]++ })
+	} else {
+		rawInput(input).Each(func(b byte) { r[b]++ })
 	}
 	return r
 }

@@ -26,6 +26,7 @@ func (r *recognizerMultiByte) Match(input *recognizerInput) (output recognizerOu
 
 func (r *recognizerMultiByte) matchConfidence(input *recognizerInput) int {
 	raw := input.raw
+
 	var c uint16
 	var err error
 	var totalCharCount, badCharCount, singleByteCharCount, doubleByteCharCount, commonCharCount int

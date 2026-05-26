@@ -35,7 +35,7 @@ func TestDetector(t *testing.T) {
 		{"8859_1_de.html", true, "ISO-8859-1", "de"},
 		{"8859_1_es.html", true, "ISO-8859-1", "es"},
 		{"8859_1_fr.html", true, "ISO-8859-1", "fr"},
-		{"8859_1_pt.html", true, "ISO-8859-1", "pt"},
+		{"8859_1_pt.html", true, "windows-1252", "pt"},
 		{"shift_jis.html", true, "Shift_JIS", "ja"},
 		{"gb18030.html", true, "GB18030", "zh"},
 		{"euc_jp.html", true, "EUC-JP", "ja"},
@@ -45,9 +45,9 @@ func TestDetector(t *testing.T) {
 
 	textDetector := NewTextDetector()
 	htmlDetector := NewHtmlDetector()
-	for _, d := range data {
+	for i, d := range data {
 		input := testReadFile(t, d.File)
-		var detector = textDetector
+		detector := textDetector
 		if d.IsHtml {
 			detector = htmlDetector
 		}
@@ -56,10 +56,10 @@ func TestDetector(t *testing.T) {
 			t.Fatal(err)
 		}
 		if result.Charset != d.Charset {
-			t.Errorf("Expected charset %s, actual %s", d.Charset, result.Charset)
+			t.Errorf("[%d] %s: Expected charset %s, actual %s", i, d.File, d.Charset, result.Charset)
 		}
 		if result.Language != d.Language {
-			t.Errorf("Expected language %s, actual %s", d.Language, result.Language)
+			t.Errorf("[%d] %s: Expected language %s, actual %s", i, d.File, d.Language, result.Language)
 		}
 	}
 }

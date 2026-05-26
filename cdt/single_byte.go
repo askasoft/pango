@@ -17,7 +17,7 @@ func (r *recognizerSingleByte) Match(input *recognizerInput) recognizerOutput {
 	return recognizerOutput{
 		Charset:    charset,
 		Language:   r.language,
-		Confidence: r.parseNgram(input.input),
+		Confidence: r.parseNgram(input.raw, input.stripTag),
 	}
 }
 
@@ -87,15 +87,23 @@ func (s *ngramState) lookup() bool {
 	return true
 }
 
-func (r *recognizerSingleByte) parseNgram(input []byte) int {
+func (r *recognizerSingleByte) parseNgram(raw []byte, stripTag bool) int {
 	state := newNgramState(r.ngram)
-	for _, inChar := range input {
-		c := r.charMap[inChar]
+	calc := func(b byte) {
+		c := r.charMap[b]
 		if c != 0 {
 			state.AddByte(c)
 		}
 	}
+
+	if stripTag {
+		stripInput(raw).Each(calc)
+	} else {
+		rawInput(raw).Each(calc)
+	}
+
 	state.AddByte(0x20)
+
 	rate := state.HitRate()
 	if rate > 0.33 {
 		return 98

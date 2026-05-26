@@ -12,7 +12,7 @@ type recognizer2022 struct {
 func (r *recognizer2022) Match(input *recognizerInput) (output recognizerOutput) {
 	return recognizerOutput{
 		Charset:    r.charset,
-		Confidence: r.matchConfidence(input.input),
+		Confidence: r.matchConfidence(input.raw),
 	}
 }
 

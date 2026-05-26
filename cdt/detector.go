@@ -97,8 +97,8 @@ var (
 )
 
 // DetectBest returns the Result with highest Confidence.
-func (d *Detector) DetectBest(b []byte) (*Result, error) {
-	input := newRecognizerInput(b, d.stripTag)
+func (d *Detector) DetectBest(data []byte) (*Result, error) {
+	input := newRecognizerInput(data, d.stripTag)
 
 	var best Result
 	for _, r := range d.recognizers {
@@ -119,8 +119,8 @@ func (d *Detector) DetectBest(b []byte) (*Result, error) {
 }
 
 // DetectAll returns all Results which have non-zero Confidence. The Results are sorted by Confidence in descending order.
-func (d *Detector) DetectAll(b []byte) ([]Result, error) {
-	input := newRecognizerInput(b, d.stripTag)
+func (d *Detector) DetectAll(data []byte) ([]Result, error) {
+	input := newRecognizerInput(data, d.stripTag)
 	outputChan := make(chan recognizerOutput)
 	for _, r := range d.recognizers {
 		go matchHelper(r, input, outputChan)

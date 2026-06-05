@@ -42,8 +42,8 @@ CREATE TABLE persons (
 
 type Person struct {
 	Name  string
-	Props JSONObject
-	Anys  JSONArray
+	Props JSONAnyObject
+	Anys  JSONAnyArray
 	Strs  JSONStringArray
 	Ints  JSONIntArray
 	I64s  JSONInt64Array
@@ -79,14 +79,14 @@ func TestJSON(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	p1s := &Person{"", JSONObject{}, JSONArray{}, nil, nil, nil}
+	p1s := &Person{"", JSONAnyObject{}, JSONAnyArray{}, nil, nil, nil}
 	row := pgdb.QueryRow(`select name, props, anys, strs, ints, i64s from persons where name = 'z' and props is null and anys is null`)
 	if err := row.Scan(&p1s.Name, &p1s.Props, &p1s.Anys, &p1s.Strs, &p1s.Ints, &p1s.I64s); err != nil {
 		t.Fatal(err)
 	}
 	testEqual(t, p1i, p1s)
 
-	p2i := &Person{"x", JSONObject{"p": 1}, JSONArray{4}, JSONStringArray{"5"}, JSONIntArray{6}, JSONInt64Array{7}}
+	p2i := &Person{"x", JSONAnyObject{"p": 1}, JSONAnyArray{4}, JSONStringArray{"5"}, JSONIntArray{6}, JSONInt64Array{7}}
 	if _, err := pgdb.Exec(`insert into persons values ($1, $2, $3, $4, $5, $6)`, p2i.Name, p2i.Props, p2i.Anys, p2i.Strs, p2i.Ints, p2i.I64s); err != nil {
 		t.Fatal(err)
 	}
@@ -101,7 +101,7 @@ func TestJSON(t *testing.T) {
 	}
 	testEqual(t, p2i, p2s)
 
-	p3u := &Person{"x", JSONObject{"p": "a"}, JSONArray{1, "1"}, JSONStringArray{"a", "b"}, JSONIntArray{11, 22}, JSONInt64Array{88, 99}}
+	p3u := &Person{"x", JSONAnyObject{"p": "a"}, JSONAnyArray{1, "1"}, JSONStringArray{"a", "b"}, JSONIntArray{11, 22}, JSONInt64Array{88, 99}}
 	if _, err := pgdb.Exec(`update persons set props = $1, anys = $2, strs = $3, ints = $4, i64s = $5 where name = 'x'`, p3u.Props, p3u.Anys, p3u.Strs, p3u.Ints, p3u.I64s); err != nil {
 		t.Fatal(err)
 	}

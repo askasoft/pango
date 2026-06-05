@@ -10,107 +10,51 @@ import (
 	"github.com/askasoft/pango/str"
 )
 
-type JSONObject map[string]any
+type JSONObject[T any] map[string]T
 
-func (jo JSONObject) String() string {
+func (jo JSONObject[T]) String() string {
 	return jsonx.Prettify(jo)
 }
 
-func (jo JSONObject) Value() (driver.Value, error) {
+func (jo JSONObject[T]) Value() (driver.Value, error) {
 	if jo == nil {
 		return nil, nil
 	}
 	return json.Marshal(jo)
 }
 
-func (jo *JSONObject) Scan(value any) error {
+func (jo *JSONObject[T]) Scan(value any) error {
 	return JSONScan(value, jo)
 }
 
-type JSONStringObject map[string]string
+type (
+	JSONAnyObject    = JSONObject[any]
+	JSONStringObject = JSONObject[string]
+)
 
-func (jso JSONStringObject) String() string {
-	return jsonx.Prettify(jso)
-}
+type JSONArray[T any] []T
 
-func (jso JSONStringObject) Value() (driver.Value, error) {
-	if jso == nil {
-		return nil, nil
-	}
-	return json.Marshal(jso)
-}
-
-func (jso *JSONStringObject) Scan(value any) error {
-	return JSONScan(value, jso)
-}
-
-type JSONArray []any
-
-func (ja JSONArray) Value() (driver.Value, error) {
+func (ja JSONArray[T]) Value() (driver.Value, error) {
 	if ja == nil {
 		return nil, nil
 	}
 	return json.Marshal(ja)
 }
 
-func (ja *JSONArray) Scan(value any) error {
+func (ja *JSONArray[T]) Scan(value any) error {
 	return JSONScan(value, ja)
 }
 
-func (ja JSONArray) String() string {
+func (ja JSONArray[T]) String() string {
 	return jsonx.Prettify(ja)
 }
 
-type JSONStringArray []string
-
-func (jsa JSONStringArray) String() string {
-	return jsonx.Prettify(jsa)
-}
-
-func (jsa JSONStringArray) Value() (driver.Value, error) {
-	if jsa == nil {
-		return nil, nil
-	}
-	return json.Marshal(jsa)
-}
-
-func (jsa *JSONStringArray) Scan(value any) error {
-	return JSONScan(value, jsa)
-}
-
-type JSONIntArray []int
-
-func (jia JSONIntArray) String() string {
-	return jsonx.Prettify(jia)
-}
-
-func (jia JSONIntArray) Value() (driver.Value, error) {
-	if jia == nil {
-		return nil, nil
-	}
-	return json.Marshal(jia)
-}
-
-func (jia *JSONIntArray) Scan(value any) error {
-	return JSONScan(value, jia)
-}
-
-type JSONInt64Array []int64
-
-func (jia JSONInt64Array) String() string {
-	return jsonx.Prettify(jia)
-}
-
-func (jia JSONInt64Array) Value() (driver.Value, error) {
-	if jia == nil {
-		return nil, nil
-	}
-	return json.Marshal(jia)
-}
-
-func (jia *JSONInt64Array) Scan(value any) error {
-	return JSONScan(value, jia)
-}
+type (
+	JSONAnyArray    = JSONArray[any]
+	JSONStringArray = JSONArray[string]
+	JSONIntArray    = JSONArray[int]
+	JSONInt64Array  = JSONArray[int64]
+)
 
 var jsonNull = []byte{'n', 'u', 'l', 'l'}
 

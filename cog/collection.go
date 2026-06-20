@@ -160,8 +160,8 @@ type List[T any] interface {
 
 // P key/value pair
 type P[K any, V any] struct {
-	Key K
-	Val V
+	Key K `json:"key"`
+	Val V `json:"val"`
 }
 
 func (p *P[K, V]) String() string {

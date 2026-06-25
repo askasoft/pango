@@ -62,6 +62,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
       - name: Run Tests
+        env:
+          SMTP_HOST: '{{vars.SMTP_HOST}}'
+          SMTP_PORT: '{{vars.SMTP_PORT}}'
+          SMTP_USER: '{{vars.SMTP_USER}}'
+          SMTP_PASS: '{{vars.SMTP_PASS}}'
+          SMTP_FROM: '{{vars.SMTP_FROM}}'
+          SMTP_TO: '{{vars.SMTP_TO}}'
         run: go test -covermode=atomic -coverprofile=coverage.out $(go list ./...)
 
       - name: Upload coverage to Codecov

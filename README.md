@@ -37,6 +37,7 @@ Pango is a development library for GO.
 | [log](./log/)                    | a Log package like Log4j                |
 | [lut](./lut/)                    | a language utility package              |
 | [mag](./mag/)                    | a Generic map utility package           |
+| [nlp](./nlp/)                    | a Natural Language Processing package   |
 | [net/email](./net/email/)        | a email sender package                  |
 | [net/httpx](./net/httpx/)        | a http utility package                  |
 | [net/mimex](./net/mimex/)        | a mime utility package                  |
@@ -46,7 +47,7 @@ Pango is a development library for GO.
 | [ran](./ran/)                    | a random utility package                |
 | [ref](./ref/)                    | a GO reflect utility package            |
 | [ret](./ret/)                    | a retry utility package                 |
-| [rex](./rex/)                    | a GO regexp utility package            |
+| [rex](./rex/)                    | a GO regexp utility package             |
 | [sch](./sch/)                    | a scheduler utility package             |
 | [sqx/sqlx](./sqx/sqlx)           | a sql package based on https://github.com/jmoiron/sqlx |
 | [srv](./srv/)                    | a package for linux/windows service |

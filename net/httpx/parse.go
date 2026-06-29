@@ -2,8 +2,24 @@ package httpx
 
 import (
 	"bytes"
+	"net/http"
 	"strings"
+
+	"github.com/askasoft/pango/str"
 )
+
+func ParseSameSite(value string) http.SameSite {
+	switch str.ToLower(value) {
+	case "lax":
+		return http.SameSiteLaxMode
+	case "strict":
+		return http.SameSiteStrictMode
+	case "none":
+		return http.SameSiteNoneMode
+	default:
+		return http.SameSiteDefaultMode
+	}
+}
 
 // ParsePairs extracts key/value pairs from a comma-separated list of
 // values as described by RFC 2068 and returns a map[key]value. The

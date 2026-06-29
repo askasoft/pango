@@ -6,6 +6,7 @@ import (
 
 	"github.com/askasoft/pango/cpt"
 	"github.com/askasoft/pango/cpt/ccpt"
+	"github.com/askasoft/pango/net/httpx"
 	"github.com/askasoft/pango/xin"
 )
 
@@ -47,6 +48,7 @@ func NewTokenProtector(secret string) *TokenProtector {
 		CookieName:     TokenCookieName,
 		CookiePath:     "/",
 		CookieMaxAge:   time.Hour * 24 * 30, // 30 days
+		CookieSecure:   true,
 		CookieHttpOnly: true,
 		CookieSameSite: http.SameSiteStrictMode,
 		AbortStatus:    http.StatusForbidden,
@@ -61,6 +63,11 @@ func NewTokenProtector(secret string) *TokenProtector {
 // SetSecret Set the Cryptor secret
 func (tp *TokenProtector) SetSecret(secret string) {
 	tp.Cryptor = ccpt.NewAes128CBCCryptor(secret)
+}
+
+// SetCookieSameSite Set the cookie same site mode
+func (tp *TokenProtector) SetCookieSameSite(value string) {
+	tp.CookieSameSite = httpx.ParseSameSite(value)
 }
 
 // SetMethods Set the http methods to protect

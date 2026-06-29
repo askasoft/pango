@@ -44,6 +44,7 @@ Pango is a development library for GO.
 | [net/xmlrpc](./net/xmlrpc/)      | a XML-RPC client package based on https://github.com/kolo/xmlrpc |
 | [num](./num/)                    | a number data type utility package      |
 | [oss](./oss/)                    | a os stats collect utility package based on https://github.com/mackerelio/go-osstat |
+| [osu](./osu/)                    | a os utility package                    |
 | [ran](./ran/)                    | a random utility package                |
 | [ref](./ref/)                    | a GO reflect utility package            |
 | [ret](./ret/)                    | a retry utility package                 |

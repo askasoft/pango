@@ -64,6 +64,7 @@ func TestHTTPSRedirectorWithHost(t *testing.T) {
 
 	expect(t, res.Code, http.StatusMovedPermanently)
 	expect(t, res.Header().Get("Location"), "https://secure.example.com/foo")
+	expect(t, req.URL.Scheme, "http") // not modified
 }
 
 func TestHTTPSRedirectorNoProxyHeaders(t *testing.T) {

@@ -40,13 +40,13 @@ func (sh *HTTPSRedirector) Handle(c *xin.Context) {
 
 	r := c.Request
 
-	url := r.URL
-	url.Scheme = "https"
-	url.Host = r.Host
+	u := *r.URL
+	u.Scheme = "https"
+	u.Host = r.Host
 
 	sslHost := sh.SSLHost
 	if sslHost != "" {
-		url.Host = sslHost
+		u.Host = sslHost
 	}
 
 	status := http.StatusMovedPermanently
@@ -54,6 +54,6 @@ func (sh *HTTPSRedirector) Handle(c *xin.Context) {
 		status = http.StatusTemporaryRedirect
 	}
 
-	c.Redirect(status, url.String())
+	c.Redirect(status, u.String())
 	c.Abort()
 }

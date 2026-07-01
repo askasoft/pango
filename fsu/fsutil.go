@@ -38,6 +38,18 @@ var (
 	ErrDirNotEmpty = errors.New("directory not empty")
 )
 
+// ProxyFS a proxy fs.FS
+type ProxyFS struct {
+	FS fs.FS
+}
+
+func (pfs ProxyFS) Open(name string) (fs.File, error) {
+	if pfs.FS == nil {
+		return nil, fs.ErrNotExist
+	}
+	return pfs.FS.Open(name)
+}
+
 // CopyFile copy src file to des file
 func CopyFile(src string, dst string) error {
 	ss, err := os.Stat(src)

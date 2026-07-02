@@ -13,7 +13,7 @@ import (
 // DumpListener a payload dump listener
 type DumpListener struct {
 	net.Listener
-	Path       string // dump path
+	Path       string // dump directory
 	RecvPrefix string
 	RecvSuffix string
 	SendPrefix string
@@ -53,14 +53,15 @@ func (dl *DumpListener) Accept() (conn net.Conn, err error) {
 }
 
 func (dl *DumpListener) dump(conn net.Conn) net.Conn {
-	err := os.MkdirAll(dl.Path, os.FileMode(0770))
+	dir := filepath.Join(dl.Path, strings.ReplaceAll(conn.LocalAddr().String(), ":", "_"))
+	err := os.MkdirAll(dir, os.FileMode(0770))
 	if err != nil {
 		// ignore the dump error
 		return conn
 	}
 
 	fn := fmt.Sprintf("%s_%s.log", time.Now().Format("20060102150405.999999999"), strings.ReplaceAll(conn.RemoteAddr().String(), ":", "_"))
-	fn = filepath.Join(dl.Path, fn)
+	fn = filepath.Join(dir, fn)
 	file, err := os.OpenFile(fn, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(0660))
 	if err != nil {
 		// ignore the dump error

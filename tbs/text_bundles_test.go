@@ -42,7 +42,7 @@ func TestNewLoad(t *testing.T) {
 func TestNewLoadFS(t *testing.T) {
 	tbs := NewTextBundles()
 
-	err := tbs.LoadFS(testdata, testroot)
+	err := tbs.LoadFS(fsu.MustSubFS(testdata, testroot))
 	if err != nil {
 		t.Errorf(`tbs.LoadFS(%q) = %v`, testroot, err)
 		return

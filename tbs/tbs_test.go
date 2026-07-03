@@ -2,6 +2,8 @@ package tbs
 
 import (
 	"testing"
+
+	"github.com/askasoft/pango/fsu"
 )
 
 func TestPkgLoad(t *testing.T) {
@@ -27,7 +29,7 @@ func TestPkgLoad(t *testing.T) {
 
 func TestPkgLoadFS(t *testing.T) {
 	Clear()
-	err := LoadFS(testdata, testroot)
+	err := LoadFS(fsu.MustSubFS(testdata, testroot))
 	if err != nil {
 		t.Errorf(`tbs.LoadFS(%q) = %v`, testroot, err)
 		return

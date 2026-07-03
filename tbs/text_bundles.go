@@ -45,30 +45,51 @@ func (tbs *TextBundles) Clear() {
 	tbs.Timestamp = time.Now()
 }
 
-// Load glob and parse text files under root path
-func (tbs *TextBundles) Load(root string) error {
-	return filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-		if info.IsDir() {
-			return nil
+// Load glob and parse local text files
+func (tbs *TextBundles) Load(dirs ...string) error {
+	for _, dir := range dirs {
+		if err := filepath.Walk(dir, tbs.walk); err != nil {
+			return err
 		}
+	}
+	return nil
+}
 
-		return tbs.loadFile(nil, path)
-	})
+func (tbs *TextBundles) walk(path string, info os.FileInfo, err error) error {
+	if err != nil {
+		return err
+	}
+
+	if info.IsDir() {
+		return nil
+	}
+
+	return tbs.loadFile(nil, path)
 }
 
 // LoadFS glob and parse text files from FS
-func (tbs *TextBundles) LoadFS(fsys fs.FS, root string) error {
-	return fs.WalkDir(fsys, root, func(path string, d fs.DirEntry, err error) error {
+func (tbs *TextBundles) LoadFS(fsyss ...fs.FS) error {
+	for _, fsys := range fsyss {
+		err := fs.WalkDir(fsys, ".", func(path string, d fs.DirEntry, err error) error {
+			return tbs.walkFS(fsys, path, d, err)
+		})
 		if err != nil {
 			return err
 		}
+	}
+	return nil
+}
 
-		if d.IsDir() {
-			return nil
-		}
+func (tbs *TextBundles) walkFS(fsys fs.FS, path string, d fs.DirEntry, err error) error {
+	if err != nil {
+		return err
+	}
 
-		return tbs.loadFile(fsys, path)
-	})
+	if d.IsDir() {
+		return nil
+	}
+
+	return tbs.loadFile(fsys, path)
 }
 
 // loadFile load from path or fsys

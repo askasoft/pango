@@ -23,14 +23,14 @@ func Clear() {
 	_tbs.Clear()
 }
 
-// Load glob and parse text files under root path
-func Load(root string) error {
-	return _tbs.Load(root)
+// Load glob and parse local text files
+func Load(dirs ...string) error {
+	return _tbs.Load(dirs...)
 }
 
 // LoadFS glob and parse template files from FS
-func LoadFS(fsys fs.FS, root string) error {
-	return _tbs.LoadFS(fsys, root)
+func LoadFS(fsyss ...fs.FS) error {
+	return _tbs.LoadFS(fsyss...)
 }
 
 // GetBundle get target locale ini bundle

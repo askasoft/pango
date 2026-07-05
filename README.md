@@ -33,7 +33,7 @@ Pango is a development library for GO.
 | [imc](./imc/)                    | a simple in-memory cache package based on https://github.com/patrickmn/go-cache |
 | [ini](./ini/)                    | a INI file read/write package           |
 | [iox](./iox/)                    | a IO utility package                    |
-| [ldt](./ldt/)                    | a language detection package based on http://github.com/saintfish/chardet |
+| [ldt](./ldt/)                    | a language detection package based on https://github.com/abadojack/whatlanggo |
 | [log](./log/)                    | a Log package like Log4j                |
 | [lut](./lut/)                    | a language utility package              |
 | [mag](./mag/)                    | a Generic map utility package           |

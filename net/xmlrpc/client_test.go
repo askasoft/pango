@@ -7,6 +7,8 @@ import (
 )
 
 func TestClient(t *testing.T) {
+	t.Skip("bugzilla xmlrpc is deprecated!")
+
 	client := &Client{
 		Endpoint: "https://bugzilla.mozilla.org/xmlrpc.cgi",
 	}

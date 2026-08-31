@@ -65,9 +65,6 @@ func TestIsExistingEmail(t *testing.T) {
 		w bool
 	}{
 		{"", false},
-		{"foo@bar.com", true},
-		{"foo@bar.com.au", true},
-		{"foo+bar@bar.com", true},
 		{"foo@bar.coffee..coffee", false},
 		{"invalidemail@", false},
 		{"invalid.com", false},

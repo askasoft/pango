@@ -57,9 +57,9 @@ func finalStop(wp *WorkerPool) {
 	wp.StopWait()
 }
 
-// CurWorks returns the current number of concurrent workers.
-func (wp *workerpool) CurWorks() int {
-	return wp.curWorks
+// MaxWaits returns the maximum number of waiting workers.
+func (wp *workerpool) MaxWaits() int {
+	return cap(wp.taskChan)
 }
 
 // MaxWorks returns the maximum number of concurrent workers.
@@ -83,6 +83,29 @@ func (wp *workerpool) SetIdleTimeout(timeout time.Duration) {
 	wp.idleTimeout = timeout
 }
 
+// Waiting returns the number of waiting workers.
+func (wp *workerpool) Waiting() int {
+	return len(wp.taskChan)
+}
+
+// Working returns the number of working workers.
+func (wp *workerpool) Working() int {
+	return wp.curWorks
+}
+
+// Running returns true if this worker pool is running.
+func (wp *workerpool) Running() bool {
+	wp.slock.Lock()
+	defer wp.slock.Unlock()
+	return wp.running
+}
+
+// Expirable returns false if this worker pool has running or waiting task.
+// imc.Expirable interface implement.
+func (wp *workerpool) Expirable() bool {
+	return len(wp.taskChan)+wp.curWorks > 0
+}
+
 // Start start the pool go-routine
 func (wp *workerpool) Start() {
 	wp.slock.Lock()
@@ -93,18 +116,6 @@ func (wp *workerpool) Start() {
 		wp.waitg.Add(1)
 		go wp.run()
 	}
-}
-
-// Running returns true if this worker pool is running.
-func (wp *workerpool) Running() bool {
-	wp.slock.Lock()
-	defer wp.slock.Unlock()
-	return wp.running
-}
-
-// Working returns true if this worker pool has running task.
-func (wp *workerpool) Working() bool {
-	return wp.curWorks > 0
 }
 
 // Stop stops the worker pool and waits for only currently running tasks to

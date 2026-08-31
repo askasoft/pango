@@ -10,9 +10,9 @@ import (
 )
 
 // Worker interface for cached item to control it's expiration
-type Worker interface {
-	// Working returns true to prevent expired
-	Working() bool
+type Expirable interface {
+	// Expirable returns false to prevent expired
+	Expirable() bool
 }
 
 type Item[V any] struct {
@@ -20,31 +20,31 @@ type Item[V any] struct {
 	TTL int64 // Time-To-Live (time.UnixMilli())
 }
 
-// Working returns true to prevent expired
-func (i Item[V]) Working() bool {
+// Expirable returns false to prevent expired
+func (i Item[V]) Expirable() bool {
 	var a any = i.Val
-	if w, ok := a.(Worker); ok {
-		return w.Working()
+	if w, ok := a.(Expirable); ok {
+		return w.Expirable()
 	}
-	return false
+	return true
 }
 
-// Expired Returns true if the item has expired.
-func (i Item[V]) Expired() bool {
-	if i.TTL <= 0 || i.Working() {
+// ExpiredNow Returns true if the item has expired.
+func (i Item[V]) ExpiredNow() bool {
+	if i.TTL <= 0 {
 		return false
 	}
 
-	return time.Now().UnixMilli() > i.TTL
+	return i.Expirable() && time.Now().UnixMilli() > i.TTL
 }
 
-// ExpiredAt Returns true if the item has expired at time `t`.
-func (i Item[V]) ExpiredAt(t int64) bool {
-	if i.TTL <= 0 || i.Working() {
+// ExpiredSince Returns true if the item has expired at time `t`.
+func (i Item[V]) ExpiredSince(t time.Time) bool {
+	if i.TTL <= 0 {
 		return false
 	}
 
-	return t > i.TTL
+	return i.Expirable() && t.UnixMilli() > i.TTL
 }
 
 // TimeToLive Returns expires duration from now.
@@ -183,7 +183,7 @@ func (c *cache[K, V]) get(k K) (V, bool) {
 		return d, false
 	}
 
-	if item.Expired() {
+	if item.ExpiredNow() {
 		var d V
 		return d, false
 	}
@@ -257,7 +257,7 @@ func (c *cache[K, V]) Get(k K) (V, bool) {
 	c.mu.RLock()
 
 	item, found := c.items[k]
-	if found && !item.Expired() {
+	if found && !item.ExpiredNow() {
 		c.mu.RUnlock()
 		return item.Val, true
 	}
@@ -289,7 +289,7 @@ func (c *cache[K, V]) GetWithTTL(k K) (V, time.Time, bool) {
 		return item.Val, time.Time{}, true
 	}
 
-	if item.Expired() {
+	if item.ExpiredNow() {
 		c.mu.RUnlock()
 		var v V
 		return v, time.Time{}, false
@@ -310,9 +310,9 @@ func (c *cache[K, V]) Remove(k K) {
 // Clean Remove all expired items from the cache.
 func (c *cache[K, V]) Clean() {
 	c.mu.Lock()
-	now := time.Now().Unix()
+	now := time.Now()
 	for k, v := range c.items {
-		if v.ExpiredAt(now) {
+		if v.ExpiredSince(now) {
 			delete(c.items, k)
 		}
 	}
@@ -331,11 +331,11 @@ func (c *cache[K, V]) Items() map[K]Item[V] {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	now := time.Now().Unix()
+	now := time.Now()
 
 	m := make(map[K]Item[V], len(c.items))
 	for k, v := range c.items {
-		if v.ExpiredAt(now) {
+		if v.ExpiredSince(now) {
 			continue
 		}
 		m[k] = v
@@ -349,10 +349,10 @@ func (c *cache[K, V]) Each(f func(K, Item[V]) bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	now := time.Now().Unix()
+	now := time.Now()
 
 	for k, v := range c.items {
-		if v.ExpiredAt(now) {
+		if v.ExpiredSince(now) {
 			continue
 		}
 		if !f(k, v) {
@@ -369,7 +369,7 @@ func (c *cache[K, V]) Increment(k K, n V) V {
 	defer c.mu.Unlock()
 
 	item, found := c.items[k]
-	if !found || item.Expired() {
+	if !found || item.ExpiredNow() {
 		c.set(k, n, c.ttl)
 		return n
 	}

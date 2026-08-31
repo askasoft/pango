@@ -105,6 +105,18 @@ func TestCacheTimes(t *testing.T) {
 	}
 }
 
+func TestCacheJanitor(t *testing.T) {
+	tc := New[string, any](500*time.Millisecond, 100*time.Millisecond)
+
+	tc.Set("a", 1)
+
+	time.Sleep(time.Second * 2)
+
+	if tc.Len() != 0 {
+		t.Error("Cache janitor should clean cache")
+	}
+}
+
 func TestNewFrom(t *testing.T) {
 	m := map[string]Item[int]{
 		"a": {

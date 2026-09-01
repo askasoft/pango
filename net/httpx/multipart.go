@@ -140,10 +140,13 @@ func ReadMultipartFile(file *multipart.FileHeader) ([]byte, error) {
 	defer src.Close()
 
 	data := make([]byte, file.Size)
-	_, err = src.Read(data)
-	if err != nil {
-		return nil, err
+
+	if file.Size > 0 {
+		_, err = src.Read(data)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return data, err
+	return data, nil
 }

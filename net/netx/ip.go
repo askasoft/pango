@@ -75,3 +75,12 @@ func ParseCIDRs(cidrs []string) ([]*net.IPNet, error) {
 
 	return ipnets, nil
 }
+
+func ContainsIP(cidrs []*net.IPNet, ip net.IP) bool {
+	for _, cidr := range cidrs {
+		if cidr.Contains(ip) {
+			return true
+		}
+	}
+	return false
+}

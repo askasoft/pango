@@ -105,15 +105,28 @@ func TestCacheTimes(t *testing.T) {
 	}
 }
 
+type testExp struct {
+	t time.Time
+}
+
+func (te *testExp) Expirable() bool {
+	return time.Since(te.t) > time.Second*2
+}
+
 func TestCacheJanitor(t *testing.T) {
 	tc := New[string, any](500*time.Millisecond, 100*time.Millisecond)
 
 	tc.Set("a", 1)
+	tc.Set("e", &testExp{t: time.Now()})
+
+	time.Sleep(time.Second * 1)
+	if tc.Len() != 1 {
+		t.Error("Cache janitor should remove a")
+	}
 
 	time.Sleep(time.Second * 2)
-
 	if tc.Len() != 0 {
-		t.Error("Cache janitor should clean cache")
+		t.Error("Cache janitor should remove b")
 	}
 }
 

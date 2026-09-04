@@ -103,7 +103,7 @@ func (wp *workerpool) Running() bool {
 // Expirable returns false if this worker pool has running or waiting task.
 // imc.Expirable interface implement.
 func (wp *workerpool) Expirable() bool {
-	return len(wp.taskChan)+wp.curWorks > 0
+	return len(wp.taskChan)+wp.curWorks == 0
 }
 
 // Start start the pool go-routine

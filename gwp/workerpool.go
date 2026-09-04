@@ -40,7 +40,7 @@ func NewWorkerPool(maxWorks, maxWaits int) *WorkerPool {
 
 	wp := &workerpool{
 		maxWorks:    maxWorks,
-		idleTimeout: 2 * time.Second,
+		idleTimeout: time.Second,
 		taskChan:    make(chan func(), maxWaits),
 		workChan:    make(chan func()),
 		stopChan:    make(chan bool, 2),

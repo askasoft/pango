@@ -1,5 +1,7 @@
 package xin
 
+const stackBufSize = 128
+
 // cleanPath is the URL version of path.Clean, it returns a canonical URL path
 // for p, eliminating . and .. elements.
 //
@@ -14,7 +16,6 @@ package xin
 //
 // If the result of this process is an empty string, "/" is returned.
 func cleanPath(p string) string {
-	const stackBufSize = 128
 	// Turn empty string into "/"
 	if p == "" {
 		return "/"
@@ -49,7 +50,7 @@ func cleanPath(p string) string {
 
 	// A bit more clunky without a 'lazybuf' like the path package, but the loop
 	// gets completely inlined (bufApp calls).
-	// loop has no expensive function calls (except 1x make)		// So in contrast to the path package this loop has no expensive function
+	// So in contrast to the path package this loop has no expensive function
 	// calls (except make, if needed).
 
 	for r < n {
@@ -142,4 +143,56 @@ func bufApp(buf *[]byte, s string, w int, c byte) {
 		copy(b, s[:w])
 	}
 	b[w] = c
+}
+
+// removeRepeatedChar removes multiple consecutive 'char's from a string.
+// if s == "/a//b///c////" && char == '/', it returns "/a/b/c/"
+func removeRepeatedChar(s string, char byte) string {
+	// Check if there are any consecutive chars
+	hasRepeatedChar := false
+	for i := 1; i < len(s); i++ {
+		if s[i] == char && s[i-1] == char {
+			hasRepeatedChar = true
+			break
+		}
+	}
+	if !hasRepeatedChar {
+		return s
+	}
+
+	// Reasonably sized buffer on stack to avoid allocations in the common case.
+	buf := make([]byte, 0, stackBufSize)
+
+	// Invariants:
+	//      reading from s; r is index of next byte to process.
+	//      writing to buf; w is index of next byte to write.
+	r := 0
+	w := 0
+
+	for n := len(s); r < n; {
+		if s[r] == char {
+			// Write the first char
+			bufApp(&buf, s, w, char)
+			w++
+			r++
+
+			// Skip all consecutive chars
+			for r < n && s[r] == char {
+				r++
+			}
+		} else {
+			// Copy non-char character
+			bufApp(&buf, s, w, s[r])
+			w++
+			r++
+		}
+	}
+
+	// If the original string was not modified (or only shortened at the end),
+	// return the respective substring of the original string.
+	// Otherwise, return a new string from the buffer.
+	if len(buf) == 0 {
+		return s[:w]
+	}
+	return string(buf[:w])
 }

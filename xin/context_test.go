@@ -21,6 +21,7 @@ import (
 	"github.com/askasoft/pango/net/httpx/sse"
 	"github.com/askasoft/pango/net/netx"
 	"github.com/askasoft/pango/test/assert"
+	"github.com/askasoft/pango/test/require"
 	"github.com/askasoft/pango/xin/binding"
 )
 
@@ -1549,19 +1550,26 @@ func TestContextContentType(t *testing.T) {
 	assert.Equal(t, "application/json", c.ContentType())
 }
 
-func TestContextMustAutoBindJSON(t *testing.T) {
-	c, _ := CreateTestContext(httptest.NewRecorder())
-	c.Request, _ = http.NewRequest("POST", "/", bytes.NewBufferString("{\"foo\":\"bar\", \"bar\":\"foo\"}"))
-	c.Request.Header.Add("Content-Type", MIMEJSON)
+func TestContextBindRequestTooLarge(t *testing.T) {
+	expectedCode := http.StatusRequestEntityTooLarge
+
+	w := httptest.NewRecorder()
+	c, _ := CreateTestContext(w)
+
+	c.Request, _ = http.NewRequest(http.MethodPost, "/", strings.NewReader(`{"foo":"bar", "bar":"foo"}`))
+	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, 10)
 
 	var obj struct {
 		Foo string `json:"foo"`
 		Bar string `json:"bar"`
 	}
-	assert.NoError(t, c.MustBind(&obj))
-	assert.Equal(t, "foo", obj.Bar)
-	assert.Equal(t, "bar", obj.Foo)
-	assert.Empty(t, c.Errors)
+	require.Error(t, c.MustBindJSON(&obj))
+	c.Writer.WriteHeaderNow()
+
+	assert.Empty(t, obj.Bar)
+	assert.Empty(t, obj.Foo)
+	assert.Equal(t, expectedCode, w.Code)
+	assert.True(t, c.IsAborted())
 }
 
 func TestContextMustBindWithJSON(t *testing.T) {

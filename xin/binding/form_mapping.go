@@ -17,6 +17,18 @@ import (
 	"github.com/askasoft/pango/tmu"
 )
 
+// ParamUnmarshaler is the interface used to wrap the UnmarshalParam method.
+type ParamUnmarshaler interface {
+	// UnmarshalParam decodes and assigns a value from a form or query param.
+	UnmarshalParam(param string) error
+}
+
+// ParamsUnmarshaler is the interface used to wrap the UnmarshalParams method.
+type ParamsUnmarshaler interface {
+	// UnmarshalParams decodes and assigns a value from a form or query params.
+	UnmarshalParams(params []string) error
+}
+
 func mapURI(ptr any, m map[string][]string) error {
 	return mapFormByTag(ptr, m, "uri")
 }
@@ -142,7 +154,7 @@ func getStructFieldPrefix(prefix string, field reflect.StructField, tag string) 
 type options struct {
 	tag      reflect.StructTag
 	defaults string // default value
-	split    bool   // split to slice
+	split    string // split to slice (space, comma, tab, pipe)
 	valid    bool   // to valid utf-8
 	strip    bool   // strip leading trailing whitespace, remove empty string
 	ascii    bool   // convert full width runes to ascii rune
@@ -173,7 +185,7 @@ func tryToSetValue(prefix string, value reflect.Value, rsf reflect.StructField, 
 		case "default":
 			opts.defaults = v
 		case "split":
-			opts.split = true
+			opts.split = str.IfEmpty(v, "space")
 		case "valid":
 			opts.valid = true
 		case "strip":
@@ -221,11 +233,26 @@ func alterFormKey(key string) string {
 	return sb.String()
 }
 
+func split(s, m string) []string {
+	switch m {
+	case "comma":
+		return str.FieldsByte(s, ',')
+	case "tab":
+		return str.FieldsByte(s, '\t')
+	case "pipe":
+		return str.FieldsByte(s, '|')
+	case "space":
+		return str.Fields(s)
+	default:
+		return str.Split(s, m)
+	}
+}
+
 func trimFormValues(vs []string, opts options) []string {
-	if opts.split {
+	if opts.split != "" {
 		var ss []string
 		for _, v := range vs {
-			ss = append(ss, str.Fields(v)...)
+			ss = append(ss, split(v, opts.split)...)
 		}
 		vs = ss
 	}
@@ -289,16 +316,24 @@ func setByForm(field reflect.Value, form map[string][]string, key string, opts o
 		if !ok {
 			return
 		}
-		isSet, err = true, setSlice(field, vs, opts)
+
+		isSet, err = trySetParams(field, vs)
+		if !isSet {
+			isSet, err = true, setSlice(field, vs, opts)
+		}
 	case reflect.Array:
 		vs, ok = getFormValuesOrDefaults(form, key, opts)
 		if !ok {
 			return
 		}
-		if len(vs) > field.Len() {
-			isSet, err = false, fmt.Errorf("form: %q is not valid value for %s", vs, field.Type().String())
-		} else {
-			isSet, err = true, setArray(field, vs, opts)
+
+		isSet, err = trySetParams(field, vs)
+		if !isSet {
+			if len(vs) > field.Len() {
+				isSet, err = false, fmt.Errorf("form: %q is not valid value for %s", vs, field.Type().String())
+			} else {
+				isSet, err = true, setArray(field, vs, opts)
+			}
 		}
 	default:
 		vs, ok = getFormValuesOrDefaults(form, key, opts)
@@ -306,9 +341,14 @@ func setByForm(field reflect.Value, form map[string][]string, key string, opts o
 			return
 		}
 
-		val := asg.First(vs)
-
-		isSet, err = true, setWithProperType(field, val, opts)
+		isSet, err = trySetParams(field, vs)
+		if !isSet {
+			val := asg.First(vs)
+			isSet, err = trySetParam(field, val)
+			if !isSet {
+				isSet, err = true, setWithProperType(field, val, opts)
+			}
+		}
 	}
 
 	if err != nil {
@@ -321,7 +361,27 @@ func setByForm(field reflect.Value, form map[string][]string, key string, opts o
 	return
 }
 
+func trySetParams(field reflect.Value, vs []string) (bool, error) {
+	switch fv := field.Addr().Interface().(type) {
+	case ParamsUnmarshaler:
+		return true, fv.UnmarshalParams(vs)
+	}
+	return false, nil
+}
+
+func trySetParam(field reflect.Value, val string) (bool, error) {
+	switch fv := field.Addr().Interface().(type) {
+	case ParamUnmarshaler:
+		return true, fv.UnmarshalParam(val)
+	}
+	return false, nil
+}
+
 func setWithProperType(field reflect.Value, val string, opts options) error {
+	if ok, err := trySetParam(field, val); ok {
+		return err
+	}
+
 	switch field.Kind() {
 	case reflect.Int:
 		return setIntField(field, stripNumValue(val, opts), 0)
@@ -593,10 +653,16 @@ func setArray(field reflect.Value, vals []string, opts options) error {
 }
 
 func setTimeDuration(field reflect.Value, val string) error {
+	if val == "" {
+		field.Set(reflect.ValueOf(time.Duration(0)))
+		return nil
+	}
+
 	d, err := tmu.ParseDuration(val)
 	if err != nil {
 		return err
 	}
+
 	field.Set(reflect.ValueOf(d))
 	return nil
 }

@@ -1,12 +1,17 @@
 package binding
 
 import (
+	"errors"
 	"mime/multipart"
 	"reflect"
+	"strconv"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/test/assert"
+	"github.com/askasoft/pango/test/require"
 )
 
 var _ setter = formSource(nil)
@@ -373,6 +378,11 @@ func TestMappingTimeDuration(t *testing.T) {
 	// error
 	err = mappingByPtr(&s, formSource{"D": {"wrong"}}, "form")
 	assert.Error(t, err)
+
+	// empty
+	err = mappingByPtr(&s, formSource{"D": {""}}, "form")
+	assert.NoError(t, err)
+	assert.Equal(t, time.Duration(0), s.D)
 }
 
 func TestMappingSlice(t *testing.T) {
@@ -434,6 +444,79 @@ func TestMappingArray(t *testing.T) {
 	s = &a{}
 	err = mappingByPtr(&s, formSource{"array": {"wrong"}}, "form")
 	assert.Error(t, err)
+}
+
+func TestMappingSplitFormat(t *testing.T) {
+	var s struct {
+		SliceSpace []int  `form:"slice_space,split=space"`
+		SliceComma []int  `form:"slice_comma,split=comma"`
+		SliceTab   []int  `form:"slice_tab,split=tab"`
+		SlicePipe  []int  `form:"slice_pipe,split=pipe"`
+		ArraySpace [2]int `form:"array_space,split=space"`
+		ArrayComma [2]int `form:"array_comma,split=comma"`
+		ArrayTab   [2]int `form:"array_tab,split=tab"`
+		ArrayPipe  [2]int `form:"array_pipe,split=pipe"`
+	}
+	err := mappingByPtr(&s, formSource{
+		"slice_space": {"1 2"},
+		"slice_comma": {"1,2"},
+		"slice_tab":   {"1\t2"},
+		"slice_pipe":  {"1|2"},
+		"array_space": {"1\t2"},
+		"array_comma": {"1,2"},
+		"array_tab":   {"1	2"},
+		"array_pipe":  {"1|2"},
+	}, "form")
+	require.NoError(t, err)
+
+	assert.Equal(t, []int{1, 2}, s.SliceSpace)
+	assert.Equal(t, []int{1, 2}, s.SliceComma)
+	assert.Equal(t, []int{1, 2}, s.SliceTab)
+	assert.Equal(t, []int{1, 2}, s.SlicePipe)
+	assert.Equal(t, [2]int{1, 2}, s.ArraySpace)
+	assert.Equal(t, [2]int{1, 2}, s.ArrayComma)
+	assert.Equal(t, [2]int{1, 2}, s.ArrayTab)
+	assert.Equal(t, [2]int{1, 2}, s.ArrayPipe)
+}
+
+func TestMappingSplitDefaults(t *testing.T) {
+	var s struct {
+		SliceComma       []int     `form:",default=1;2;3,split=;"`
+		SliceSpace       []int     `form:"slice_space,default=1 2 3,split=space"`
+		SliceTab         []int     `form:"slice_tab,default=1\t2\t3,split=tab"`
+		SlicePipe        []int     `form:",default=1|2|3,split=pipe"`
+		ArrayComma       [2]int    `form:",default=1;2,split=;"`
+		ArraySpace       [2]int    `form:",default=1 2,split=space"`
+		ArrayTab         [2]int    `form:",default=1\t2,split=tab"`
+		ArrayPipe        [2]int    `form:",default=1|2,split=pipe"`
+		SliceStringComma []string  `form:",default=1;2;3,split=;"`
+		SliceStringSpace []string  `form:",default=1 2 3,split=space"`
+		SliceStringTab   []string  `form:",default=1\t2\t3,split=tab"`
+		SliceStringPipe  []string  `form:",default=1|2|3,split=pipe"`
+		ArrayStringComma [2]string `form:",default=1;2,split=;"`
+		ArrayStringSpace [2]string `form:",default=1 2,split=space"`
+		ArrayStringTab   [2]string `form:",default=1\t2,split=tab"`
+		ArrayStringPipe  [2]string `form:",default=1|2,split=pipe"`
+	}
+	err := mappingByPtr(&s, formSource{}, "form")
+	require.NoError(t, err)
+
+	assert.Equal(t, []int{1, 2, 3}, s.SliceComma)
+	assert.Equal(t, []int{1, 2, 3}, s.SliceSpace)
+	assert.Equal(t, []int{1, 2, 3}, s.SliceTab)
+	assert.Equal(t, []int{1, 2, 3}, s.SlicePipe)
+	assert.Equal(t, [2]int{1, 2}, s.ArrayComma)
+	assert.Equal(t, [2]int{1, 2}, s.ArraySpace)
+	assert.Equal(t, [2]int{1, 2}, s.ArrayTab)
+	assert.Equal(t, [2]int{1, 2}, s.ArrayPipe)
+	assert.Equal(t, []string{"1", "2", "3"}, s.SliceStringComma)
+	assert.Equal(t, []string{"1", "2", "3"}, s.SliceStringSpace)
+	assert.Equal(t, []string{"1", "2", "3"}, s.SliceStringTab)
+	assert.Equal(t, []string{"1", "2", "3"}, s.SliceStringPipe)
+	assert.Equal(t, [2]string{"1", "2"}, s.ArrayStringComma)
+	assert.Equal(t, [2]string{"1", "2"}, s.ArrayStringSpace)
+	assert.Equal(t, [2]string{"1", "2"}, s.ArrayStringTab)
+	assert.Equal(t, [2]string{"1", "2"}, s.ArrayStringPipe)
 }
 
 func TestMappingStructField(t *testing.T) {
@@ -578,4 +661,177 @@ func TestMappingErrors(t *testing.T) {
 	} else {
 		t.Errorf("missing binding errors: %v", err)
 	}
+}
+
+type customUnmarshalParamHex int
+
+func (f *customUnmarshalParamHex) UnmarshalParam(param string) error {
+	v, err := strconv.ParseInt(param, 16, 64)
+	if err != nil {
+		return err
+	}
+	*f = customUnmarshalParamHex(v)
+	return nil
+}
+
+func TestMappingCustomUnmarshalParamHexWithFormTag(t *testing.T) {
+	var s struct {
+		Foo customUnmarshalParamHex `form:"foo"`
+	}
+	err := mappingByPtr(&s, formSource{"foo": {`f5`}}, "form")
+	require.NoError(t, err)
+
+	assert.Equal(t, 245, int(s.Foo))
+}
+
+func TestMappingCustomUnmarshalParamHexWithURITag(t *testing.T) {
+	var s struct {
+		Foo customUnmarshalParamHex `uri:"foo"`
+	}
+	err := mappingByPtr(&s, formSource{"foo": {`f5`}}, "uri")
+	require.NoError(t, err)
+
+	assert.Equal(t, 245, int(s.Foo))
+}
+
+func TestMappingCustomUnmarshalParamHexDefault(t *testing.T) {
+	var s struct {
+		Foo customUnmarshalParamHex `form:"foo,default=f5"`
+	}
+	err := mappingByPtr(&s, formSource{"foo2": {}}, "form")
+	require.NoError(t, err)
+
+	assert.Equal(t, 0xf5, int(s.Foo))
+}
+
+type customUnmarshalParamType struct {
+	Protocol string
+	Path     string
+	Name     string
+}
+
+func (f *customUnmarshalParamType) UnmarshalParam(param string) error {
+	parts := strings.Split(param, ":")
+	if len(parts) != 3 {
+		return errors.New("invalid format")
+	}
+	f.Protocol = parts[0]
+	f.Path = parts[1]
+	f.Name = parts[2]
+	return nil
+}
+
+func TestMappingCustomStructTypeWithFormTag(t *testing.T) {
+	var s struct {
+		FileData customUnmarshalParamType `form:"data"`
+	}
+	err := mappingByPtr(&s, formSource{"data": {`file:/foo:happiness`}}, "form")
+	require.NoError(t, err)
+
+	assert.Equal(t, "file", s.FileData.Protocol)
+	assert.Equal(t, "/foo", s.FileData.Path)
+	assert.Equal(t, "happiness", s.FileData.Name)
+}
+
+func TestMappingCustomStructTypeWithURITag(t *testing.T) {
+	var s struct {
+		FileData customUnmarshalParamType `uri:"data"`
+	}
+	err := mappingByPtr(&s, formSource{"data": {`file:/foo:happiness`}}, "uri")
+	require.NoError(t, err)
+
+	assert.Equal(t, "file", s.FileData.Protocol)
+	assert.Equal(t, "/foo", s.FileData.Path)
+	assert.Equal(t, "happiness", s.FileData.Name)
+}
+
+func TestMappingCustomPointerStructTypeWithFormTag(t *testing.T) {
+	var s struct {
+		FileData *customUnmarshalParamType `form:"data"`
+	}
+	err := mappingByPtr(&s, formSource{"data": {`file:/foo:happiness`}}, "form")
+	require.NoError(t, err)
+
+	assert.Equal(t, "file", s.FileData.Protocol)
+	assert.Equal(t, "/foo", s.FileData.Path)
+	assert.Equal(t, "happiness", s.FileData.Name)
+}
+
+func TestMappingCustomPointerStructTypeWithURITag(t *testing.T) {
+	var s struct {
+		FileData *customUnmarshalParamType `uri:"data"`
+	}
+	err := mappingByPtr(&s, formSource{"data": {`file:/foo:happiness`}}, "uri")
+	require.NoError(t, err)
+
+	assert.Equal(t, "file", s.FileData.Protocol)
+	assert.Equal(t, "/foo", s.FileData.Path)
+	assert.Equal(t, "happiness", s.FileData.Name)
+}
+
+type customPath []string
+
+func (p *customPath) UnmarshalParams(params []string) error {
+	return p.UnmarshalParam(asg.First(params))
+}
+
+func (p *customPath) UnmarshalParam(param string) error {
+	elems := strings.Split(param, "/")
+	n := len(elems)
+	if n < 2 {
+		return errors.New("invalid format")
+	}
+
+	*p = elems
+	return nil
+}
+
+func TestMappingCustomSliceUri(t *testing.T) {
+	var s struct {
+		FileData customPath `uri:"path"`
+	}
+	err := mappingByPtr(&s, formSource{"path": {`bar/foo`}}, "uri")
+	require.NoError(t, err)
+
+	assert.Equal(t, "bar", s.FileData[0])
+	assert.Equal(t, "foo", s.FileData[1])
+}
+
+func TestMappingCustomSliceForm(t *testing.T) {
+	var s struct {
+		FileData customPath `form:"path"`
+	}
+	err := mappingByPtr(&s, formSource{"path": {`bar/foo`}}, "form")
+	require.NoError(t, err)
+
+	assert.Equal(t, "bar", s.FileData[0])
+	assert.Equal(t, "foo", s.FileData[1])
+}
+
+func TestMappingCustomSliceStopsWhenError(t *testing.T) {
+	var s struct {
+		FileData customPath `form:"path"`
+	}
+	err := mappingByPtr(&s, formSource{"path": {"invalid"}}, "form")
+	require.Error(t, err)
+	require.Equal(t, err.Error(), "FieldBindError: path: invalid format - [invalid]")
+	require.Empty(t, s.FileData)
+}
+
+func TestMappingCustomSliceOfSliceUri(t *testing.T) {
+	var s struct {
+		FileData []customPath `uri:"path,split=comma"`
+	}
+	err := mappingByPtr(&s, formSource{"path": {"bar/foo,bar/foo/spam"}}, "uri")
+	require.NoError(t, err)
+	assert.Equal(t, []customPath{{"bar", "foo"}, {"bar", "foo", "spam"}}, s.FileData)
+}
+
+func TestMappingCustomSliceOfSliceForm(t *testing.T) {
+	var s struct {
+		FileData []customPath `form:"path,split=comma"`
+	}
+	err := mappingByPtr(&s, formSource{"path": {"bar/foo,bar/foo/spam"}}, "form")
+	require.NoError(t, err)
+	assert.Equal(t, []customPath{{"bar", "foo"}, {"bar", "foo", "spam"}}, s.FileData)
 }

@@ -187,6 +187,7 @@ func TestTreeWildcard(t *testing.T) {
 		"/get/abc/123abg/:param",
 		"/get/abc/123abf/:param",
 		"/get/abc/123abfff/:param",
+		"/get/abc/escaped_colon/test\\:param",
 	}
 	for _, route := range routes {
 		tree.addRoute(route, fakeHandler(route))
@@ -310,6 +311,7 @@ func TestTreeWildcard(t *testing.T) {
 		{"/get/abc/123abg/test", false, "/get/abc/123abg/:param", Params{Param{Key: "param", Value: "test"}}},
 		{"/get/abc/123abf/testss", false, "/get/abc/123abf/:param", Params{Param{Key: "param", Value: "testss"}}},
 		{"/get/abc/123abfff/te", false, "/get/abc/123abfff/:param", Params{Param{Key: "param", Value: "te"}}},
+		{"/get/abc/escaped_colon/test\\:param", false, "/get/abc/escaped_colon/test\\:param", nil},
 	})
 
 	checkPriorities(t, tree)
@@ -414,6 +416,9 @@ func TestTreeWildcardConflict(t *testing.T) {
 		{"/id/:id", false},
 		{"/static/*file", false},
 		{"/static/", true},
+		{"/escape/test\\:d1", false},
+		{"/escape/test\\:d2", false},
+		{"/escape/test:param", false},
 	}
 	testRoutes(t, routes)
 }
@@ -522,7 +527,7 @@ func TestTreeCatchAllConflictRoot(t *testing.T) {
 
 func TestTreeCatchMaxParams(t *testing.T) {
 	tree := &node{}
-	var route = "/cmd/*filepath"
+	route := "/cmd/*filepath"
 	tree.addRoute(route, fakeHandler(route))
 }
 
@@ -682,7 +687,7 @@ func TestTreeRootTrailingSlashRedirect(t *testing.T) {
 }
 
 func TestRedirectTrailingSlash(t *testing.T) {
-	var data = []struct {
+	data := []struct {
 		path string
 	}{
 		{"/hello/:name"},
@@ -967,6 +972,23 @@ func TestTreeWildcardConflictEx(t *testing.T) {
 	}
 }
 
+func TestTreeInvalidEscape(t *testing.T) {
+	routes := map[string]bool{
+		"/r1/r":    true,
+		"/r2/:r":   true,
+		"/r3/\\:r": true,
+	}
+	tree := &node{}
+	for route, valid := range routes {
+		recv := catchPanic(func() {
+			tree.addRoute(route, fakeHandler(route))
+		})
+		if recv == nil != valid {
+			t.Fatalf("%s should be %t but got %v", route, valid, recv)
+		}
+	}
+}
+
 func TestWildcardInvalidSlash(t *testing.T) {
 	const panicMsgPrefix = "no / before catch-all in path"
 
@@ -989,5 +1011,98 @@ func TestWildcardInvalidSlash(t *testing.T) {
 		if rs, ok := recv.(string); recv != nil && (!ok || !strings.HasPrefix(rs, panicMsgPrefix)) {
 			t.Fatalf(`"Expected panic "%s" for route '%s', got "%v"`, panicMsgPrefix, route, recv)
 		}
+	}
+}
+
+func TestTreeFindCaseInsensitivePathWithMultipleChildrenAndWildcard(t *testing.T) {
+	tree := &node{}
+
+	// Setup routes that create a node with both static children and a wildcard child.
+	// This configuration previously caused a panic ("invalid node type") in
+	// findCaseInsensitivePathRec because it accessed children[0] instead of the
+	// wildcard child (which is always at the end of the children array).
+	// See: https://github.com/gin-gonic/gin/issues/2959
+	routes := [...]string{
+		"/aa/aa",
+		"/:bb/aa",
+	}
+
+	for _, route := range routes {
+		recv := catchPanic(func() {
+			tree.addRoute(route, fakeHandler(route))
+		})
+		if recv != nil {
+			t.Fatalf("panic inserting route '%s': %v", route, recv)
+		}
+	}
+
+	// These lookups previously panicked with "invalid node type" because
+	// findCaseInsensitivePathRec picked children[0] (a static node) instead
+	// of the wildcard child at the end of the array.
+	out, found := tree.findCaseInsensitivePath("/aa", true)
+	if found {
+		t.Errorf("Expected no match for '/aa', but got: %s", string(out))
+	}
+
+	out, found = tree.findCaseInsensitivePath("/aa/aa/aa/aa", true)
+	if found {
+		t.Errorf("Expected no match for '/aa/aa/aa/aa', but got: %s", string(out))
+	}
+
+	// Case-insensitive lookup should match the static route /aa/aa
+	out, found = tree.findCaseInsensitivePath("/AA/AA", true)
+	if !found {
+		t.Error("Route '/AA/AA' not found via case-insensitive lookup")
+	} else if string(out) != "/aa/aa" {
+		t.Errorf("Wrong result for '/AA/AA': expected '/aa/aa', got: %s", string(out))
+	}
+}
+
+func TestTreeFindCaseInsensitivePathWildcardParamAndStaticChild(t *testing.T) {
+	tree := &node{}
+
+	// Another variant: param route + static route under same prefix
+	routes := [...]string{
+		"/prefix/:id",
+		"/prefix/xxx",
+	}
+
+	for _, route := range routes {
+		recv := catchPanic(func() {
+			tree.addRoute(route, fakeHandler(route))
+		})
+		if recv != nil {
+			t.Fatalf("panic inserting route '%s': %v", route, recv)
+		}
+	}
+
+	// Should NOT panic even for paths that don't match any route
+	out, found := tree.findCaseInsensitivePath("/prefix/a/b/c", true)
+	if found {
+		t.Errorf("Expected no match for '/prefix/a/b/c', but got: %s", string(out))
+	}
+
+	// Exact match should still work
+	out, found = tree.findCaseInsensitivePath("/prefix/xxx", true)
+	if !found {
+		t.Error("Route '/prefix/xxx' not found")
+	} else if string(out) != "/prefix/xxx" {
+		t.Errorf("Wrong result for '/prefix/xxx': %s", string(out))
+	}
+
+	// Case-insensitive match should work
+	out, found = tree.findCaseInsensitivePath("/PREFIX/XXX", true)
+	if !found {
+		t.Error("Route '/PREFIX/XXX' not found via case-insensitive lookup")
+	} else if string(out) != "/prefix/xxx" {
+		t.Errorf("Wrong result for '/PREFIX/XXX': expected '/prefix/xxx', got: %s", string(out))
+	}
+
+	// Param route should still match
+	out, found = tree.findCaseInsensitivePath("/prefix/something", true)
+	if !found {
+		t.Error("Route '/prefix/something' not found via param match")
+	} else if string(out) != "/prefix/something" {
+		t.Errorf("Wrong result for '/prefix/something': %s", string(out))
 	}
 }

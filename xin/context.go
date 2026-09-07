@@ -282,108 +282,176 @@ func (c *Context) MustGet(key string) any {
 	panic("Key \"" + key + "\" does not exist")
 }
 
-// GetString returns the value associated with the key as a string.
-func (c *Context) GetString(key string) (s string) {
+func getTyped[T any](c *Context, key string) (res T) {
 	if val, ok := c.Get(key); ok && val != nil {
-		s, _ = val.(string)
+		res, _ = val.(T)
 	}
 	return
+}
+
+// GetString returns the value associated with the key as a string.
+func (c *Context) GetString(key string) string {
+	return getTyped[string](c, key)
 }
 
 // GetBool returns the value associated with the key as a boolean.
-func (c *Context) GetBool(key string) (b bool) {
-	if val, ok := c.Get(key); ok && val != nil {
-		b, _ = val.(bool)
-	}
-	return
+func (c *Context) GetBool(key string) bool {
+	return getTyped[bool](c, key)
 }
 
 // GetInt returns the value associated with the key as an integer.
-func (c *Context) GetInt(key string) (i int) {
-	if val, ok := c.Get(key); ok && val != nil {
-		i, _ = val.(int)
-	}
-	return
+func (c *Context) GetInt(key string) int {
+	return getTyped[int](c, key)
+}
+
+// GetInt8 returns the value associated with the key as an integer 8.
+func (c *Context) GetInt8(key string) int8 {
+	return getTyped[int8](c, key)
+}
+
+// GetInt16 returns the value associated with the key as an integer 16.
+func (c *Context) GetInt16(key string) int16 {
+	return getTyped[int16](c, key)
+}
+
+// GetInt32 returns the value associated with the key as an integer 32.
+func (c *Context) GetInt32(key string) int32 {
+	return getTyped[int32](c, key)
 }
 
 // GetInt64 returns the value associated with the key as an integer.
-func (c *Context) GetInt64(key string) (i64 int64) {
-	if val, ok := c.Get(key); ok && val != nil {
-		i64, _ = val.(int64)
-	}
-	return
+func (c *Context) GetInt64(key string) int64 {
+	return getTyped[int64](c, key)
 }
 
 // GetUint returns the value associated with the key as an unsigned integer.
-func (c *Context) GetUint(key string) (ui uint) {
-	if val, ok := c.Get(key); ok && val != nil {
-		ui, _ = val.(uint)
-	}
-	return
+func (c *Context) GetUint(key string) uint {
+	return getTyped[uint](c, key)
 }
 
-// GetUint64 returns the value associated with the key as an unsigned integer.
-func (c *Context) GetUint64(key string) (ui64 uint64) {
-	if val, ok := c.Get(key); ok && val != nil {
-		ui64, _ = val.(uint64)
-	}
-	return
+// GetUint8 returns the value associated with the key as an unsigned integer 8.
+func (c *Context) GetUint8(key string) uint8 {
+	return getTyped[uint8](c, key)
+}
+
+// GetUint16 returns the value associated with the key as an unsigned integer 16.
+func (c *Context) GetUint16(key string) uint16 {
+	return getTyped[uint16](c, key)
+}
+
+// GetUint32 returns the value associated with the key as an unsigned integer 32.
+func (c *Context) GetUint32(key string) uint32 {
+	return getTyped[uint32](c, key)
+}
+
+// GetUint64 returns the value associated with the key as an unsigned integer 64.
+func (c *Context) GetUint64(key string) uint64 {
+	return getTyped[uint64](c, key)
+}
+
+// GetFloat32 returns the value associated with the key as a float32.
+func (c *Context) GetFloat32(key string) float32 {
+	return getTyped[float32](c, key)
 }
 
 // GetFloat64 returns the value associated with the key as a float64.
-func (c *Context) GetFloat64(key string) (f64 float64) {
-	if val, ok := c.Get(key); ok && val != nil {
-		f64, _ = val.(float64)
-	}
-	return
+func (c *Context) GetFloat64(key string) float64 {
+	return getTyped[float64](c, key)
 }
 
 // GetTime returns the value associated with the key as time.
-func (c *Context) GetTime(key string) (t time.Time) {
-	if val, ok := c.Get(key); ok && val != nil {
-		t, _ = val.(time.Time)
-	}
-	return
+func (c *Context) GetTime(key string) time.Time {
+	return getTyped[time.Time](c, key)
 }
 
 // GetDuration returns the value associated with the key as a duration.
-func (c *Context) GetDuration(key string) (d time.Duration) {
-	if val, ok := c.Get(key); ok && val != nil {
-		d, _ = val.(time.Duration)
-	}
-	return
+func (c *Context) GetDuration(key string) time.Duration {
+	return getTyped[time.Duration](c, key)
+}
+
+// GetError returns the value associated with the key as an error.
+func (c *Context) GetError(key string) error {
+	return getTyped[error](c, key)
+}
+
+// GetInts returns the value associated with the key as a slice of integers.
+func (c *Context) GetInts(key string) []int {
+	return getTyped[[]int](c, key)
+}
+
+// GetInt8s returns the value associated with the key as a slice of int8 integers.
+func (c *Context) GetInt8s(key string) []int8 {
+	return getTyped[[]int8](c, key)
+}
+
+// GetInt16s returns the value associated with the key as a slice of int16 integers.
+func (c *Context) GetInt16s(key string) []int16 {
+	return getTyped[[]int16](c, key)
+}
+
+// GetInt32s returns the value associated with the key as a slice of int32 integers.
+func (c *Context) GetInt32s(key string) []int32 {
+	return getTyped[[]int32](c, key)
+}
+
+// GetInt64s returns the value associated with the key as a slice of int64 integers.
+func (c *Context) GetInt64s(key string) []int64 {
+	return getTyped[[]int64](c, key)
+}
+
+// GetUints returns the value associated with the key as a slice of unsigned integers.
+func (c *Context) GetUints(key string) []uint {
+	return getTyped[[]uint](c, key)
+}
+
+// GetUint8s returns the value associated with the key as a slice of uint8 integers.
+func (c *Context) GetUint8s(key string) []uint8 {
+	return getTyped[[]uint8](c, key)
+}
+
+// GetUint16s returns the value associated with the key as a slice of uint16 integers.
+func (c *Context) GetUint16s(key string) []uint16 {
+	return getTyped[[]uint16](c, key)
+}
+
+// GetUint32s returns the value associated with the key as a slice of uint32 integers.
+func (c *Context) GetUint32s(key string) []uint32 {
+	return getTyped[[]uint32](c, key)
+}
+
+// GetUint64s returns the value associated with the key as a slice of uint64 integers.
+func (c *Context) GetUint64s(key string) []uint64 {
+	return getTyped[[]uint64](c, key)
+}
+
+// GetFloat32s returns the value associated with the key as a slice of float32 numbers.
+func (c *Context) GetFloat32s(key string) []float32 {
+	return getTyped[[]float32](c, key)
+}
+
+// GetFloat64s returns the value associated with the key as a slice of float64 numbers.
+func (c *Context) GetFloat64s(key string) []float64 {
+	return getTyped[[]float64](c, key)
 }
 
 // GetStrings returns the value associated with the key as a slice of strings.
-func (c *Context) GetStrings(key string) (ss []string) {
-	if val, ok := c.Get(key); ok && val != nil {
-		ss, _ = val.([]string)
-	}
-	return
+func (c *Context) GetStrings(key string) []string {
+	return getTyped[[]string](c, key)
 }
 
 // GetStringMap returns the value associated with the key as a map of interfaces.
-func (c *Context) GetStringMap(key string) (sm map[string]any) {
-	if val, ok := c.Get(key); ok && val != nil {
-		sm, _ = val.(map[string]any)
-	}
-	return
+func (c *Context) GetStringMap(key string) map[string]any {
+	return getTyped[map[string]any](c, key)
 }
 
 // GetStringMapString returns the value associated with the key as a map of strings.
-func (c *Context) GetStringMapString(key string) (sms map[string]string) {
-	if val, ok := c.Get(key); ok && val != nil {
-		sms, _ = val.(map[string]string)
-	}
-	return
+func (c *Context) GetStringMapString(key string) map[string]string {
+	return getTyped[map[string]string](c, key)
 }
 
 // GetStringMapStrings returns the value associated with the key as a map to a slice of strings.
-func (c *Context) GetStringMapStrings(key string) (smss map[string][]string) {
-	if val, ok := c.Get(key); ok && val != nil {
-		smss, _ = val.(map[string][]string)
-	}
-	return
+func (c *Context) GetStringMapStrings(key string) map[string][]string {
+	return getTyped[map[string][]string](c, key)
 }
 
 /************************************/
@@ -417,17 +485,26 @@ func (c *Context) initFormCache() {
 
 // getStringMapFromCache is an internal method and returns a map which satisfy conditions.
 func getStringMapFromCache(cache map[string][]string, key string) (map[string]string, bool) {
-	dict := make(map[string]string)
-	for n, v := range cache {
-		if i := strings.IndexByte(n, '.'); i >= 1 && n[0:i] == key {
-			dict[n[i+1:]] = v[0]
-		} else if i := strings.IndexByte(n, '['); i >= 1 && n[0:i] == key {
-			if j := strings.IndexByte(n[i+1:], ']'); j >= 1 {
-				dict[n[i+1:][:j]] = v[0]
-			}
+	d := make(map[string]string)
+	found := false
+	keyLen := len(key)
+
+	for k, v := range cache {
+		if len(k) < keyLen+3 { // key + "[" + at least one char + "]"
+			continue
+		}
+
+		if k[:keyLen] != key || k[keyLen] != '[' {
+			continue
+		}
+
+		if j := strings.IndexByte(k[keyLen+1:], ']'); j > 0 {
+			found = true
+			d[k[keyLen+1:keyLen+1+j]] = v[0]
 		}
 	}
-	return dict, len(dict) > 0
+
+	return d, found
 }
 
 // getStringsMapFromCache is an internal method and returns a map which satisfy conditions.
@@ -729,7 +806,14 @@ func (c *Context) MustBindURI(obj any) error {
 // See the binding package.
 func (c *Context) MustBindWith(obj any, b binding.Binding) error {
 	if err := c.BindWith(obj, b); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		var mbe *http.MaxBytesError
+
+		switch {
+		case errors.As(err, &mbe):
+			c.AbortWithError(http.StatusRequestEntityTooLarge, err)
+		default:
+			c.AbortWithError(http.StatusBadRequest, err)
+		}
 		return err
 	}
 	return nil

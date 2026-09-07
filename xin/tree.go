@@ -1,19 +1,12 @@
 package xin
 
 import (
-	"bytes"
 	"net/url"
 	"strings"
 	"unicode"
 	"unicode/utf8"
 
 	"github.com/askasoft/pango/str"
-)
-
-var (
-	strColon = []byte(":")
-	strStar  = []byte("*")
-	strSlash = []byte("/")
 )
 
 // Param is a single URL parameter, consisting of a key and a value.
@@ -80,16 +73,11 @@ func (n *node) addChild(child *node) {
 }
 
 func countParams(path string) uint16 {
-	var n uint16
-	s := str.UnsafeBytes(path)
-	n += uint16(bytes.Count(s, strColon))
-	n += uint16(bytes.Count(s, strStar))
-	return n
+	return safeUint16(strings.Count(path, ":") + strings.Count(path, "*"))
 }
 
 func countSections(path string) uint16 {
-	s := str.UnsafeBytes(path)
-	return uint16(bytes.Count(s, strSlash))
+	return safeUint16(strings.Count(path, "/"))
 }
 
 type nodeType uint8
@@ -171,7 +159,6 @@ walk:
 			}
 
 			n.children = []*node{&child}
-			// []byte for proper unicode char conversion, see #65
 			n.indices = n.path[i : i+1]
 			n.path = path[:i]
 			n.handlers = nil
@@ -229,7 +216,7 @@ walk:
 				// Wildcard conflict
 				pathSeg := path
 				if n.nType != catchAll {
-					pathSeg = strings.SplitN(pathSeg, "/", 2)[0]
+					pathSeg = str.SubstrBeforeByte(pathSeg, '/')
 				}
 				prefix := fullPath[:strings.Index(fullPath, pathSeg)] + n.path
 				panic("'" + pathSeg +
@@ -259,7 +246,19 @@ func findWildcard(path string) (wildcard string, i int, valid bool) {
 	pbs := str.UnsafeBytes(path)
 
 	// Find start
+	escapeColon := false
 	for start, c := range pbs {
+		if escapeColon {
+			escapeColon = false
+			if c == ':' {
+				continue
+			}
+			panic("invalid escape string in path '" + path + "'")
+		}
+		if c == '\\' {
+			escapeColon = true
+			continue
+		}
 		// A wildcard starts with ':' (param) or '*' (catch-all)
 		if c != ':' && c != '*' {
 			continue
@@ -343,7 +342,7 @@ func (n *node) insertChild(path string, fullPath string, handlers HandlersChain)
 		if len(n.path) > 0 && n.path[len(n.path)-1] == '/' {
 			pathSeg := ""
 			if len(n.children) != 0 {
-				pathSeg = strings.SplitN(n.children[0].path, "/", 2)[0]
+				pathSeg = str.SubstrBeforeByte(n.children[0].path, '/')
 			}
 			panic("catch-all wildcard '" + path +
 				"' in new path '" + fullPath +
@@ -666,12 +665,7 @@ walk: // Outer loop for walking the tree
 func (n *node) findCaseInsensitivePath(path string, fixTrailingSlash bool) ([]byte, bool) {
 	const stackBufSize = 128
 
-	// Use a static sized buffer on the stack in the common case.
-	// If the path is too long, allocate a buffer on the heap instead.
-	buf := make([]byte, 0, stackBufSize)
-	if length := len(path) + 1; length > stackBufSize {
-		buf = make([]byte, 0, length)
-	}
+	buf := make([]byte, 0, max(stackBufSize, len(path)+1))
 
 	ciPath := n.findCaseInsensitivePathRec(
 		path,
@@ -818,7 +812,72 @@ walk: // Outer loop for walking the tree
 			return nil
 		}
 
-		n = n.children[0]
+		// When wildChild is true, try static children first (via indices)
+		// before falling back to the wildcard child. This ensures that
+		// case-insensitive lookups prefer static routes over param routes
+		// (e.g., /PREFIX/XXX should resolve to /prefix/xxx, not match :id).
+		if len(n.indices) > 0 {
+			rb = shiftNRuneBytes(rb, npLen)
+
+			if rb[0] != 0 {
+				idxc := rb[0]
+				for i, c := range []byte(n.indices) {
+					if c == idxc {
+						if out := n.children[i].findCaseInsensitivePathRec(
+							path, ciPath, rb, fixTrailingSlash,
+						); out != nil {
+							return out
+						}
+						break
+					}
+				}
+			} else {
+				var rv rune
+				var off int
+				for max_ := min(npLen, 3); off < max_; off++ {
+					if i := npLen - off; utf8.RuneStart(oldPath[i]) {
+						rv, _ = utf8.DecodeRuneInString(oldPath[i:])
+						break
+					}
+				}
+
+				lo := unicode.ToLower(rv)
+				utf8.EncodeRune(rb[:], lo)
+				rb = shiftNRuneBytes(rb, off)
+
+				idxc := rb[0]
+				for i, c := range []byte(n.indices) {
+					if c == idxc {
+						if out := n.children[i].findCaseInsensitivePathRec(
+							path, ciPath, rb, fixTrailingSlash,
+						); out != nil {
+							return out
+						}
+						break
+					}
+				}
+
+				if up := unicode.ToUpper(rv); up != lo {
+					utf8.EncodeRune(rb[:], up)
+					rb = shiftNRuneBytes(rb, off)
+
+					idxc := rb[0]
+					for i, c := range []byte(n.indices) {
+						if c == idxc {
+							if out := n.children[i].findCaseInsensitivePathRec(
+								path, ciPath, rb, fixTrailingSlash,
+							); out != nil {
+								return out
+							}
+							break
+						}
+					}
+				}
+			}
+		}
+
+		// Fall back to wildcard child, which is always at the end of the array
+		n = n.children[len(n.children)-1]
 		switch n.nType {
 		case param:
 			// Find param end (either '/' or path end)

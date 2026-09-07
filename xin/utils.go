@@ -2,6 +2,7 @@ package xin
 
 import (
 	"encoding/xml"
+	"math"
 	"net/http"
 	"path"
 	"strings"
@@ -127,4 +128,12 @@ func joinPaths(absolutePath, relativePath string) string {
 		return finalPath + "/"
 	}
 	return finalPath
+}
+
+// safeUint16 converts int to uint16 safely, capping at math.MaxUint16
+func safeUint16(n int) uint16 {
+	if n > math.MaxUint16 {
+		return math.MaxUint16
+	}
+	return uint16(n)
 }

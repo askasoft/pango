@@ -128,10 +128,14 @@ func (r AsciiJSON) Render(w http.ResponseWriter) error {
 		return err
 	}
 
+	buf := make([]byte, 0, 6) // Preallocate 6 bytes for Unicode escape sequences
+
 	for len(bs) > 0 {
 		r, n := utf8.DecodeRune(bs)
 		if r >= unicode.MaxASCII {
-			_, err = w.Write(str.UnsafeBytes(fmt.Sprintf("\\u%04x", int64(r))))
+			buf = fmt.Appendf(buf[:0], "\\u%04x", r) // Reuse buf
+
+			_, err = w.Write(buf)
 		} else {
 			_, err = w.Write([]byte{byte(r)})
 		}

@@ -2,26 +2,26 @@ package cpt
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/askasoft/pango/ran"
 )
 
-func TestAesCBCEncrypt(t *testing.T) {
+func TestAesGCMEncrypt(t *testing.T) {
 	bits := []int{128, 192, 256}
 	for _, bit := range bits {
-		ae := NewAesCBCEncryptor("1234567890abcde", bit)
-		ad := NewAesCBCDecryptor("1234567890abcde", bit)
+		c := NewAesGCMCryptor("1234567890abcde", bit)
 		for i := 64; i <= 128; i++ {
 			rs := ran.RandString(i)
-			es, err := ae.EncryptString(rs)
+			es, err := c.EncryptString(rs)
 			if err != nil {
 				t.Fatal(i, err)
 			}
 
-			// fmt.Printf("[%d] len(es) = %d\n", i, len(es))
+			fmt.Printf("%d [%d] len(es) = %d\n", bit, i, len(es))
 
-			ds, err := ad.DecryptString(es)
+			ds, err := c.DecryptString(es)
 			if err != nil {
 				t.Fatal(i, err)
 			}
@@ -33,27 +33,105 @@ func TestAesCBCEncrypt(t *testing.T) {
 	}
 }
 
-func TestAesCFBEncrypt(t *testing.T) {
+func TestAesGCMConcurrentEncrypt(t *testing.T) {
 	bits := []int{128, 192, 256}
 	for _, bit := range bits {
-		ae := NewAesCFBEncryptor("1234567890abedefg", bit)
-		ad := NewAesCFBDecryptor("1234567890abedefg", bit)
-		for i := 1; i <= 128; i++ {
-			c := ran.RandString(i)
-			o, err := ae.EncryptString(c)
-			if err != nil {
-				t.Fatal(i, err)
-			}
-			fmt.Println(i, o)
+		c := NewAesGCMCryptor("1234567890abcde", bit)
 
-			s, err := ad.DecryptString(o)
-			if err != nil {
-				t.Fatal(i, err)
-			}
+		var wg sync.WaitGroup
 
-			if s != c {
-				t.Fatalf("[%d] want %q, but %q", i, c, s)
+		tf := func(n int) {
+			defer wg.Done()
+
+			for range 1000 {
+				rs := ran.RandString(n)
+				es, err := c.EncryptString(rs)
+				if err != nil {
+					t.Error(n, err)
+					return
+				}
+
+				ds, err := c.DecryptString(es)
+				if err != nil {
+					t.Error(n, err)
+					return
+				}
+
+				if ds != rs {
+					t.Errorf("[%d] want %q, but %q", n, rs, ds)
+					return
+				}
 			}
 		}
+
+		for i := 64; i <= 128; i++ {
+			wg.Add(1)
+			go tf(i)
+		}
+		wg.Wait()
+	}
+}
+
+func TestAesCBCEncrypt(t *testing.T) {
+	bits := []int{128, 192, 256}
+	for _, bit := range bits {
+		c := NewAesCBCCryptor("1234567890abcde", bit)
+		for i := 64; i <= 128; i++ {
+			rs := ran.RandString(i)
+			es, err := c.EncryptString(rs)
+			if err != nil {
+				t.Fatal(i, err)
+			}
+
+			fmt.Printf("%d [%d] len(es) = %d\n", bit, i, len(es))
+
+			ds, err := c.DecryptString(es)
+			if err != nil {
+				t.Fatal(i, err)
+			}
+
+			if ds != rs {
+				t.Fatalf("[%d] want %q, but %q", i, rs, ds)
+			}
+		}
+	}
+}
+
+func TestAesCBCConcurrentEncrypt(t *testing.T) {
+	bits := []int{128, 192, 256}
+	for _, bit := range bits {
+		c := NewAesCBCCryptor("1234567890abcde", bit)
+
+		var wg sync.WaitGroup
+
+		tf := func(n int) {
+			defer wg.Done()
+
+			for range 1000 {
+				rs := ran.RandString(n)
+				es, err := c.EncryptString(rs)
+				if err != nil {
+					t.Error(n, err)
+					return
+				}
+
+				ds, err := c.DecryptString(es)
+				if err != nil {
+					t.Error(n, err)
+					return
+				}
+
+				if ds != rs {
+					t.Errorf("[%d] want %q, but %q", n, rs, ds)
+					return
+				}
+			}
+		}
+
+		for i := 64; i <= 128; i++ {
+			wg.Add(1)
+			go tf(i)
+		}
+		wg.Wait()
 	}
 }

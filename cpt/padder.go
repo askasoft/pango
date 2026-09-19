@@ -100,9 +100,10 @@ func Pkcs7Unpad(data []byte) []byte {
 // CutPadKey cut key if key's length is greater than 'size',
 // or pad key with space if key's length is smaller than 'size'.
 func CutPadKey(key string, size int) string {
-	if len(key) > size {
+	switch {
+	case len(key) > size:
 		key = key[:size]
-	} else if len(key) < size {
+	case len(key) < size:
 		key = str.PadRight(key, size, " ")
 	}
 	return key

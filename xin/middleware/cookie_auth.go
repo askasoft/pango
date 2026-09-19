@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/cpt"
-	"github.com/askasoft/pango/cpt/ccpt"
 	"github.com/askasoft/pango/net/httpx"
 	"github.com/askasoft/pango/num"
 	"github.com/askasoft/pango/str"
@@ -65,7 +64,7 @@ func NewCookieAuth(f FindUserFunc, secret string) *CookieAuth {
 
 // SetSecret Set the Cryptor secret
 func (ca *CookieAuth) SetSecret(secret string) {
-	ca.Cryptor = ccpt.NewAes128CBCCryptor(secret)
+	ca.Cryptor = cpt.NewAes256GCMCryptor(secret)
 }
 
 // SetCookieSameSite Set the cookie same site mode

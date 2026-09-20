@@ -3,7 +3,6 @@ package csvx
 import (
 	"encoding/csv"
 	"fmt"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/askasoft/pango/bol"
 	"github.com/askasoft/pango/num"
+	"github.com/askasoft/pango/ran"
 )
 
 type record struct {
@@ -39,7 +39,7 @@ func TestScanFileValues(t *testing.T) {
 		exps = append(exps, record{
 			Bool:      i%2 == 0,
 			Int:       i,
-			String:    num.Itoa(rand.Int()),
+			String:    num.Itoa(ran.RandInt()),
 			Duration:  time.Minute * time.Duration(i),
 			CreatedAt: tm.Add(time.Hour * time.Duration(i)),
 		})
@@ -101,7 +101,7 @@ func TestScanFilePointers(t *testing.T) {
 		exps = append(exps, &record{
 			Bool:      i%2 == 0,
 			Int:       i,
-			String:    num.Itoa(rand.Int()),
+			String:    num.Itoa(ran.RandInt()),
 			Duration:  time.Minute * time.Duration(i),
 			CreatedAt: tm.Add(time.Hour * time.Duration(i)),
 		})

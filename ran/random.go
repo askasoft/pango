@@ -1,37 +1,44 @@
 package ran
 
 import (
-	crand "crypto/rand"
+	"crypto/rand"
+	"math"
 	"math/big"
-	mrand "math/rand"
 
 	"github.com/askasoft/pango/str"
 )
 
 func Read(bs []byte) {
-	if _, err := crand.Read(bs); err != nil {
-		_, _ = mrand.Read(bs) //nolint: gosec
-	}
+	_, _ = rand.Read(bs)
 }
 
 func RandInt() int {
-	return int(RandInt63())
+	return RandIntn(math.MaxInt)
+}
+
+func RandIntn(n int) int {
+	if n <= math.MaxInt32 {
+		return int(RandInt31n(int32(n)))
+	}
+	return int(RandInt63n(int64(n)))
 }
 
 func RandInt31() int32 {
-	val, err := crand.Int(crand.Reader, big.NewInt(2147483647))
-	if err == nil {
-		return int32(val.Int64())
-	}
-	return mrand.Int31()
+	return RandInt31n(math.MaxInt32)
+}
+
+func RandInt31n(max int32) int32 {
+	val, _ := rand.Int(rand.Reader, big.NewInt(int64(max)))
+	return int32(val.Int64())
 }
 
 func RandInt63() int64 {
-	val, err := crand.Int(crand.Reader, big.NewInt(9223372036854775807))
-	if err == nil {
-		return val.Int64()
-	}
-	return mrand.Int63()
+	return RandInt63n(math.MaxInt64)
+}
+
+func RandInt63n(max int64) int64 {
+	val, _ := rand.Int(rand.Reader, big.NewInt(max))
+	return val.Int64()
 }
 
 // RandNumbers create a random number string

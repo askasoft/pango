@@ -2,9 +2,10 @@ package lut
 
 import (
 	"fmt"
-	"math/rand"
 	"strings"
 	"testing"
+
+	"github.com/askasoft/pango/ran"
 )
 
 var (
@@ -110,7 +111,7 @@ func TestASCIIConvert(t *testing.T) {
 		han := &strings.Builder{}
 		zen := &strings.Builder{}
 		for n := 0; n < 100; n++ {
-			p := rand.Intn(l)
+			p := ran.RandIntn(l)
 			h := halfASCIIRunes[p]
 			z := fullASCIIRunes[p]
 			src.WriteRune(h)

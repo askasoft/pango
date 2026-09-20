@@ -4,7 +4,6 @@ import (
 	"cmp"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"reflect"
 	"sort"
 	"testing"
@@ -12,6 +11,7 @@ import (
 	"github.com/askasoft/pango/cog"
 	"github.com/askasoft/pango/cog/arraylist"
 	"github.com/askasoft/pango/cog/internal/icap"
+	"github.com/askasoft/pango/ran"
 )
 
 func TestRingBufferInterface(t *testing.T) {
@@ -876,7 +876,7 @@ func TestRingBufferSort(t *testing.T) {
 
 		a := make([]int, 0, 100)
 		for n := i; n < 100; n++ {
-			a = append(a, rand.Intn(20))
+			a = append(a, ran.RandIntn(20))
 		}
 
 		for j := len(a) - 1; j >= 0; j-- {

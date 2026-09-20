@@ -2,17 +2,16 @@ package linkedhashmap
 
 import (
 	"bytes"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"html/template"
 	"math"
-	"math/rand"
 	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/askasoft/pango/cog"
+	"github.com/askasoft/pango/ran"
 )
 
 func TestLinkedHashMapInterface(t *testing.T) {
@@ -386,8 +385,8 @@ func TestLinkedHashMapShuffle(t *testing.T) {
 
 			for i := 0; i < n; i++ {
 				// we prefix with the number to ensure that we don't get any duplicates
-				keys[i] = fmt.Sprintf("%d_%s", i, randomHexString(t, ranLen))
-				values[i] = randomHexString(t, ranLen)
+				keys[i] = fmt.Sprintf("%d_%s", i, ran.RandString(ranLen))
+				values[i] = ran.RandString(ranLen)
 
 				ov, ok := lm.Set(keys[i], values[i])
 				if ok {
@@ -484,20 +483,6 @@ func assertLenEqual[K comparable, V any](n string, t *testing.T, lm *LinkedHashM
 	if lm.Len() != w {
 		t.Fatalf("%s: lm.Len() != %v", n, w)
 	}
-}
-
-func randomHexString(t *testing.T, length int) string {
-	b := length / 2
-	randBytes := make([]byte, b)
-
-	if n, err := rand.Read(randBytes); err != nil || n != b {
-		if err == nil {
-			err = fmt.Errorf("only got %v random bytes, expected %v", n, b)
-		}
-		t.Fatal(err)
-	}
-
-	return hex.EncodeToString(randBytes)
 }
 
 func TestLinkedHashMapString(t *testing.T) {

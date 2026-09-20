@@ -2,7 +2,6 @@ package fsw
 
 import (
 	"fmt"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/askasoft/pango/fsu"
 	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/ran"
 )
 
 func testSleep() {
@@ -88,7 +88,7 @@ func testCreateWatcher() (*FileWatcher, *log.Log) {
 }
 
 func TestWatchRecursive(t *testing.T) {
-	testdir := "TestWatchRecursive-" + strconv.Itoa(rand.Int())
+	testdir := "TestWatchRecursive-" + strconv.Itoa(ran.RandInt())
 
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
@@ -130,7 +130,7 @@ func TestWatchRecursive(t *testing.T) {
 }
 
 func TestWatchAgain(t *testing.T) {
-	testdir := "TestWatchAgain-" + strconv.Itoa(rand.Int())
+	testdir := "TestWatchAgain-" + strconv.Itoa(ran.RandInt())
 
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)
@@ -189,7 +189,7 @@ func TestWatchAgain(t *testing.T) {
 }
 
 func TestWatchCloseInCallback(t *testing.T) {
-	testdir := "TestWatchCloseInCallback-" + strconv.Itoa(rand.Int())
+	testdir := "TestWatchCloseInCallback-" + strconv.Itoa(ran.RandInt())
 
 	os.RemoveAll(testdir)
 	defer os.RemoveAll(testdir)

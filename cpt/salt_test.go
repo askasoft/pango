@@ -1,7 +1,6 @@
 package cpt
 
 import (
-	"math/rand"
 	"testing"
 
 	"github.com/askasoft/pango/ran"
@@ -9,7 +8,7 @@ import (
 
 func TestSalt(t *testing.T) {
 	for i := 0; i < 100; i++ {
-		salt := ran.RandLetterNumbers(rand.Intn(100) + 1)
+		salt := ran.RandLetterNumbers(ran.RandIntn(100) + 1)
 		src := ran.RandLetterNumbers(i)
 
 		salted := Salt(SecretChars, salt, src)

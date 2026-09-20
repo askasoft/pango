@@ -2,9 +2,10 @@ package jpn
 
 import (
 	"fmt"
-	"math/rand"
 	"strings"
 	"testing"
+
+	"github.com/askasoft/pango/ran"
 )
 
 var (
@@ -151,7 +152,7 @@ func TestJapanConvert(t *testing.T) {
 		han := &strings.Builder{}
 		zen := &strings.Builder{}
 		for n := 0; n < 100; n++ {
-			p := rand.Intn(l)
+			p := ran.RandIntn(l)
 			h := hankakuRunes[p]
 			z := zenkakuRunes[p]
 			src.WriteRune(h)

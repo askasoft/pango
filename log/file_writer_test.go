@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io"
-	"math/rand"
 	"os"
 	"strconv"
 	"strings"
@@ -13,10 +12,11 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/fsu"
+	"github.com/askasoft/pango/ran"
 )
 
 func TestFileTextFormatSimple(t *testing.T) {
-	testdir := "TestFileTextFormatSimple-" + strconv.Itoa(rand.Int())
+	testdir := "TestFileTextFormatSimple-" + strconv.Itoa(ran.RandInt())
 	path := testdir + "/filetest"
 
 	os.RemoveAll(testdir)
@@ -40,7 +40,7 @@ func TestFileTextFormatSimple(t *testing.T) {
 }
 
 func TestFilePropGlobal(t *testing.T) {
-	testdir := "TestFilePropGlobal-" + strconv.Itoa(rand.Int())
+	testdir := "TestFilePropGlobal-" + strconv.Itoa(ran.RandInt())
 	path := testdir + "/filetest"
 
 	os.RemoveAll(testdir)
@@ -63,7 +63,7 @@ func TestFilePropGlobal(t *testing.T) {
 }
 
 func TestFilePropDefault(t *testing.T) {
-	testdir := "TestFilePropDefault-" + strconv.Itoa(rand.Int())
+	testdir := "TestFilePropDefault-" + strconv.Itoa(ran.RandInt())
 	path := testdir + "/filetest"
 
 	os.RemoveAll(testdir)
@@ -88,7 +88,7 @@ func TestFilePropDefault(t *testing.T) {
 }
 
 func TestFilePropNewLog(t *testing.T) {
-	testdir := "TestFilePropNewLog-" + strconv.Itoa(rand.Int())
+	testdir := "TestFilePropNewLog-" + strconv.Itoa(ran.RandInt())
 	path := testdir + "/filetest"
 
 	os.RemoveAll(testdir)
@@ -120,7 +120,7 @@ func TestFilePropNewLog(t *testing.T) {
 }
 
 func TestFileCallerGlobal(t *testing.T) {
-	testdir := "TestFileCallerGlobal-" + strconv.Itoa(rand.Int())
+	testdir := "TestFileCallerGlobal-" + strconv.Itoa(ran.RandInt())
 	path := testdir + "/filetest"
 
 	os.RemoveAll(testdir)
@@ -144,7 +144,7 @@ func TestFileCallerGlobal(t *testing.T) {
 }
 
 func TestFileCallerNewLog(t *testing.T) {
-	testdir := "TestFileCallerNewLog-" + strconv.Itoa(rand.Int())
+	testdir := "TestFileCallerNewLog-" + strconv.Itoa(ran.RandInt())
 	path := testdir + "/filetest"
 
 	os.RemoveAll(testdir)
@@ -169,7 +169,7 @@ func TestFileCallerNewLog(t *testing.T) {
 }
 
 func TestFileCallerNewLog2(t *testing.T) {
-	testdir := "TestFileCallerNewLog2-" + strconv.Itoa(rand.Int())
+	testdir := "TestFileCallerNewLog2-" + strconv.Itoa(ran.RandInt())
 	path := testdir + "/filetest"
 
 	os.RemoveAll(testdir)
@@ -194,7 +194,7 @@ func TestFileCallerNewLog2(t *testing.T) {
 }
 
 func TestFileRotateMaxSize(t *testing.T) {
-	testdir := "TestFileRotateMaxSize-" + strconv.Itoa(rand.Int())
+	testdir := "TestFileRotateMaxSize-" + strconv.Itoa(ran.RandInt())
 	path := testdir + "/filetest.log"
 
 	os.RemoveAll(testdir)
@@ -231,7 +231,7 @@ func TestFileRotateMaxSize(t *testing.T) {
 }
 
 func TestFileRotateMaxSizeGzip(t *testing.T) {
-	testdir := "TestFileRotateMaxSizeGzip-" + strconv.Itoa(rand.Int())
+	testdir := "TestFileRotateMaxSizeGzip-" + strconv.Itoa(ran.RandInt())
 	path := testdir + "/filetest.log"
 
 	os.RemoveAll(testdir)
@@ -286,7 +286,7 @@ func TestFileRotateMaxSizeGzip(t *testing.T) {
 }
 
 func TestFileRotateMaxSizeDaily(t *testing.T) {
-	testdir := "TestFileRotateMaxSizeDaily-" + strconv.Itoa(rand.Int())
+	testdir := "TestFileRotateMaxSizeDaily-" + strconv.Itoa(ran.RandInt())
 	path := testdir + "/filetest.log"
 
 	os.RemoveAll(testdir)
@@ -327,7 +327,7 @@ func TestFileRotateMaxSizeDaily(t *testing.T) {
 }
 
 func TestFileRotateMaxSplit(t *testing.T) {
-	testdir := "TestFileRotateMaxSplit-" + strconv.Itoa(rand.Int())
+	testdir := "TestFileRotateMaxSplit-" + strconv.Itoa(ran.RandInt())
 	path := testdir + "/filetest.log"
 
 	os.RemoveAll(testdir)
@@ -376,7 +376,7 @@ func TestFileRotateMaxSplit(t *testing.T) {
 }
 
 func TestFileRotateMaxFilesHourly(t *testing.T) {
-	testdir := "TestFileRotateMaxFilesHourly-" + strconv.Itoa(rand.Int())
+	testdir := "TestFileRotateMaxFilesHourly-" + strconv.Itoa(ran.RandInt())
 	path := testdir + "/filetest.log"
 
 	os.RemoveAll(testdir)
@@ -426,7 +426,7 @@ func TestFileRotateMaxFilesHourly(t *testing.T) {
 }
 
 func TestFileRotateDaily(t *testing.T) {
-	testdir := "TestFileRotateDaily-" + strconv.Itoa(rand.Int())
+	testdir := "TestFileRotateDaily-" + strconv.Itoa(ran.RandInt())
 	path := testdir + "/filetest.log"
 
 	os.RemoveAll(testdir)
@@ -476,7 +476,7 @@ func TestFileRotateDaily(t *testing.T) {
 }
 
 func TestFileRotateDailyInit(t *testing.T) {
-	testdir := "TestFileRotateDailyInit-" + strconv.Itoa(rand.Int())
+	testdir := "TestFileRotateDailyInit-" + strconv.Itoa(ran.RandInt())
 	path := testdir + "/filetest.log"
 
 	os.RemoveAll(testdir)
@@ -545,7 +545,7 @@ func TestFileRotateDailyInit(t *testing.T) {
 }
 
 func TestFileRotateDailyOutdated(t *testing.T) {
-	testdir := "TestFileRotateDailyOutdated-" + strconv.Itoa(rand.Int())
+	testdir := "TestFileRotateDailyOutdated-" + strconv.Itoa(ran.RandInt())
 	path := testdir + "/filetest.log"
 
 	os.RemoveAll(testdir)
@@ -613,7 +613,7 @@ func TestFileRotateDailyOutdated(t *testing.T) {
 }
 
 func TestFileRotateHourly(t *testing.T) {
-	testdir := "TestFileRotateHourly-" + strconv.Itoa(rand.Int())
+	testdir := "TestFileRotateHourly-" + strconv.Itoa(ran.RandInt())
 	path := testdir + "/filetest.log"
 
 	os.RemoveAll(testdir)
@@ -663,7 +663,7 @@ func TestFileRotateHourly(t *testing.T) {
 }
 
 func TestFileRotateHourlyOutdated(t *testing.T) {
-	testdir := "TestFileRotateHourlyOutdated-" + strconv.Itoa(rand.Int())
+	testdir := "TestFileRotateHourlyOutdated-" + strconv.Itoa(ran.RandInt())
 	path := testdir + "/filetest.log"
 
 	os.RemoveAll(testdir)

@@ -2,7 +2,6 @@ package logtest
 
 import (
 	"fmt"
-	"math/rand"
 	"os"
 	"strconv"
 	"strings"
@@ -13,6 +12,7 @@ import (
 	"github.com/askasoft/pango/fsw"
 	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/ran"
 )
 
 const (
@@ -78,7 +78,7 @@ func TestLogConfigSyncFile1toSyncFile2(t *testing.T) {
 }
 
 func testLogConfigFile1toFile2(t *testing.T, async1, async2 string) {
-	testdir := "conftest-" + strconv.Itoa(rand.Int())
+	testdir := "conftest-" + strconv.Itoa(ran.RandInt())
 
 	os.RemoveAll(testdir)
 	os.MkdirAll(testdir, os.FileMode(0777))

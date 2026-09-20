@@ -4,13 +4,13 @@ import (
 	"cmp"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"reflect"
 	"sort"
 	"testing"
 
 	"github.com/askasoft/pango/cog"
 	"github.com/askasoft/pango/cog/arraylist"
+	"github.com/askasoft/pango/ran"
 )
 
 func TestLinkedListInterface(t *testing.T) {
@@ -693,7 +693,7 @@ func TestLinkedListSort(t *testing.T) {
 
 		a := make([]int, 0, 100)
 		for n := i; n < 100; n++ {
-			a = append(a, rand.Intn(20))
+			a = append(a, ran.RandIntn(20))
 		}
 
 		for j := len(a) - 1; j >= 0; j-- {

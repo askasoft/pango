@@ -2,15 +2,16 @@ package fsu
 
 import (
 	"errors"
-	"math/rand"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/askasoft/pango/ran"
 )
 
 func TestFileExists(t *testing.T) {
-	testdir := "TestFileExists-" + strconv.Itoa(rand.Int())
+	testdir := "TestFileExists-" + strconv.Itoa(ran.RandInt())
 	defer RemoveAll(testdir)
 	MkdirAll(testdir, FileMode(0777))
 	WriteFile(filepath.Join(testdir, "test.txt"), []byte("a"), FileMode(0666))
@@ -34,7 +35,7 @@ func TestFileExists(t *testing.T) {
 }
 
 func TestFileSize(t *testing.T) {
-	testdir := "TestFileSize-" + strconv.Itoa(rand.Int())
+	testdir := "TestFileSize-" + strconv.Itoa(ran.RandInt())
 	defer RemoveAll(testdir)
 	MkdirAll(testdir, FileMode(0777))
 	WriteFile(filepath.Join(testdir, "test.txt"), []byte("a"), FileMode(0666))
@@ -59,7 +60,7 @@ func TestFileSize(t *testing.T) {
 }
 
 func TestDirExists(t *testing.T) {
-	testdir := "TestDirExists-" + strconv.Itoa(rand.Int())
+	testdir := "TestDirExists-" + strconv.Itoa(ran.RandInt())
 	defer RemoveAll(testdir)
 	MkdirAll(testdir, FileMode(0777))
 	WriteFile(filepath.Join(testdir, "test.txt"), []byte("a"), FileMode(0666))
@@ -83,7 +84,7 @@ func TestDirExists(t *testing.T) {
 }
 
 func TestDirIsEmpty(t *testing.T) {
-	testdir := "TestDirIsEmpty-" + strconv.Itoa(rand.Int())
+	testdir := "TestDirIsEmpty-" + strconv.Itoa(ran.RandInt())
 	defer RemoveAll(testdir)
 	MkdirAll(testdir, FileMode(0777))
 	WriteFile(filepath.Join(testdir, "test.txt"), []byte("a"), FileMode(0666))
@@ -113,8 +114,8 @@ func TestDirIsEmpty(t *testing.T) {
 }
 
 func TestCopyFile(t *testing.T) {
-	srcdir := "TestCopyFile-" + strconv.Itoa(rand.Int())
-	dstdir := "TestCopyFile-" + strconv.Itoa(rand.Int())
+	srcdir := "TestCopyFile-" + strconv.Itoa(ran.RandInt())
+	dstdir := "TestCopyFile-" + strconv.Itoa(ran.RandInt())
 	defer RemoveAll(srcdir)
 	defer RemoveAll(dstdir)
 

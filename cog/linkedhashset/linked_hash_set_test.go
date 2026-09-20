@@ -4,7 +4,6 @@ import (
 	"cmp"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"reflect"
 	"sort"
 	"testing"
@@ -12,6 +11,7 @@ import (
 	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/cog"
 	"github.com/askasoft/pango/cog/arraylist"
+	"github.com/askasoft/pango/ran"
 )
 
 func TestLinkedHashSetInterface(t *testing.T) {
@@ -563,7 +563,7 @@ func TestLinkedHashSetSort(t *testing.T) {
 
 		a := make([]int, 0, 20)
 		for n := i; n < 20; n++ {
-			v := rand.Intn(1000)
+			v := ran.RandIntn(1000)
 			if !asg.Contains(a, v) {
 				a = append(a, v)
 			}

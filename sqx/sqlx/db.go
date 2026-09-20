@@ -296,13 +296,13 @@ func (db *DB) PreparexContext(ctx context.Context, query string) (*Stmt, error) 
 	return &Stmt{query: query, stmt: s, ext: db.ext}, err
 }
 
-// PrepareNamed returns an sqlx.NamedStmt
-func (db *DB) PrepareNamed(query string) (*NamedStmt, error) {
+// NamedPrepare returns an sqlx.NamedStmt
+func (db *DB) NamedPrepare(query string) (*NamedStmt, error) {
 	return prepareNamed(db, query)
 }
 
-// PrepareNamedContext returns an sqlx.NamedStmt
-func (db *DB) PrepareNamedContext(ctx context.Context, query string) (*NamedStmt, error) {
+// NamedPrepareContext returns an sqlx.NamedStmt
+func (db *DB) NamedPrepareContext(ctx context.Context, query string) (*NamedStmt, error) {
 	return prepareNamedContext(ctx, db, query)
 }
 

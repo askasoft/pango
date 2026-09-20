@@ -154,7 +154,7 @@ func TestMissingNamesContextContext(t *testing.T) {
 		if !isUnsafe(db) {
 			t.Error("Expected db to be unsafe, but it isn't")
 		}
-		nstmt, err := db.PrepareNamedContext(ctx, `SELECT * FROM person WHERE first_name != :name`)
+		nstmt, err := db.NamedPrepareContext(ctx, `SELECT * FROM person WHERE first_name != :name`)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -176,7 +176,7 @@ func TestMissingNamesContextContext(t *testing.T) {
 		if isUnsafe(db) {
 			t.Error("expected db to be safe but it isn't")
 		}
-		nstmt, err = db.PrepareNamedContext(ctx, `SELECT * FROM person WHERE first_name != :name`)
+		nstmt, err = db.NamedPrepareContext(ctx, `SELECT * FROM person WHERE first_name != :name`)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -533,7 +533,7 @@ func TestNamedQueryContext(t *testing.T) {
 			}
 		}
 
-		ns, err := db.PrepareNamed(pdb(`
+		ns, err := db.NamedPrepare(pdb(`
 			SELECT * FROM jsperson
 			WHERE
 				"FIRST"=:FIRST AND
@@ -552,7 +552,7 @@ func TestNamedQueryContext(t *testing.T) {
 		check(t, rows)
 
 		// Check exactly the same thing, but with db.NamedQuery, which does not go
-		// through the PrepareNamed/NamedStmt path.
+		// through the NamedPrepare/NamedStmt path.
 		rows, err = db.NamedQueryContext(ctx, pdb(`
 			SELECT * FROM jsperson
 			WHERE

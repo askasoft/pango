@@ -238,13 +238,13 @@ func (tx *Tx) NamedStmtContext(ctx context.Context, stmt *NamedStmt) *NamedStmt 
 	}
 }
 
-// PrepareNamed returns an sqlx.NamedStmt
-func (tx *Tx) PrepareNamed(query string) (*NamedStmt, error) {
+// NamedPrepare returns an sqlx.NamedStmt
+func (tx *Tx) NamedPrepare(query string) (*NamedStmt, error) {
 	return prepareNamed(tx, query)
 }
 
-// PrepareNamedContext returns an sqlx.NamedStmt
-func (tx *Tx) PrepareNamedContext(ctx context.Context, query string) (*NamedStmt, error) {
+// NamedPrepareContext returns an sqlx.NamedStmt
+func (tx *Tx) NamedPrepareContext(ctx context.Context, query string) (*NamedStmt, error) {
 	return prepareNamedContext(ctx, tx, query)
 }
 

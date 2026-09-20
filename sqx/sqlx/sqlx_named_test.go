@@ -36,23 +36,23 @@ func TestNamedQueries(t *testing.T) {
 		var err error
 
 		// Check that invalid preparations fail
-		ns, err = db.PrepareNamed("SELECT * FROM person WHERE first_name=:first:name")
+		ns, err = db.NamedPrepare("SELECT * FROM person WHERE first_name=:first:name")
 		if err == nil {
 			t.Error("Expected an error with invalid prepared statement.")
 		}
 
-		ns, err = db.PrepareNamed("invalid sql")
+		ns, err = db.NamedPrepare("invalid sql")
 		if err == nil {
 			t.Error("Expected an error with invalid prepared statement.")
 		}
 
 		// Check closing works as anticipated
-		ns, err = db.PrepareNamed("SELECT * FROM person WHERE first_name=:first_name")
+		ns, err = db.NamedPrepare("SELECT * FROM person WHERE first_name=:first_name")
 		test.Error(err)
 		err = ns.Close()
 		test.Error(err)
 
-		ns, err = db.PrepareNamed(`
+		ns, err = db.NamedPrepare(`
 			SELECT first_name, last_name, email 
 			FROM person WHERE first_name=:first_name AND email=:email`)
 		test.Error(err)
@@ -141,7 +141,7 @@ func TestNamedQueries(t *testing.T) {
 		}
 
 		// test Exec
-		ns, err = db.PrepareNamed(`
+		ns, err = db.NamedPrepare(`
 			INSERT INTO person (first_name, last_name, email)
 			VALUES (:first_name, :last_name, :email)`)
 		test.Error(err)
@@ -209,23 +209,23 @@ func TestNamedContextQueries(t *testing.T) {
 		ctx := context.Background()
 
 		// Check that invalid preparations fail
-		ns, err = db.PrepareNamedContext(ctx, "SELECT * FROM person WHERE first_name=:first:name")
+		ns, err = db.NamedPrepareContext(ctx, "SELECT * FROM person WHERE first_name=:first:name")
 		if err == nil {
 			t.Error("Expected an error with invalid prepared statement.")
 		}
 
-		ns, err = db.PrepareNamedContext(ctx, "invalid sql")
+		ns, err = db.NamedPrepareContext(ctx, "invalid sql")
 		if err == nil {
 			t.Error("Expected an error with invalid prepared statement.")
 		}
 
 		// Check closing works as anticipated
-		ns, err = db.PrepareNamedContext(ctx, "SELECT * FROM person WHERE first_name=:first_name")
+		ns, err = db.NamedPrepareContext(ctx, "SELECT * FROM person WHERE first_name=:first_name")
 		test.Error(err)
 		err = ns.Close()
 		test.Error(err)
 
-		ns, err = db.PrepareNamedContext(ctx, `
+		ns, err = db.NamedPrepareContext(ctx, `
 			SELECT first_name, last_name, email
 			FROM person WHERE first_name=:first_name AND email=:email`)
 		test.Error(err)
@@ -268,7 +268,7 @@ func TestNamedContextQueries(t *testing.T) {
 		}
 
 		// test Exec
-		ns, err = db.PrepareNamedContext(ctx, `
+		ns, err = db.NamedPrepareContext(ctx, `
 			INSERT INTO person (first_name, last_name, email)
 			VALUES (:first_name, :last_name, :email)`)
 		test.Error(err)

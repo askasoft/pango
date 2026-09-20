@@ -80,6 +80,16 @@ func (c *Conn) PrepareContext(ctx context.Context, query string) (*sql.Stmt, err
 	return c.tracer.TracePrepareContext(ctx, c.conn, query)
 }
 
+// NamedPrepare returns an sqlx.NamedStmt
+func (c *Conn) NamedPrepare(query string) (*NamedStmt, error) {
+	return prepareNamed(c, query)
+}
+
+// NamedPrepareContext returns an sqlx.NamedStmt
+func (c *Conn) NamedPrepareContext(ctx context.Context, query string) (*NamedStmt, error) {
+	return prepareNamedContext(ctx, c, query)
+}
+
 // Query executes a query that returns rows, typically a SELECT.
 // The args are for any placeholder parameters in the query.
 func (c *Conn) Query(query string, args ...any) (*sql.Rows, error) {

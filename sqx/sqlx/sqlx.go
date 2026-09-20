@@ -147,6 +147,13 @@ type ContextPreparerx interface {
 	PreparexContext(ctx context.Context, query string) (*Stmt, error)
 }
 
+type NamedPreparer interface {
+	NamedPrepare(query string) (*NamedStmt, error)
+}
+type ContextNamedPreparer interface {
+	NamedPrepareContext(ctx context.Context, query string) (*NamedStmt, error)
+}
+
 type Beginxer interface {
 	Beginx() (*Tx, error)
 }
@@ -183,6 +190,7 @@ type Sqlx interface {
 	NamedQueryer
 	NamedUpdater
 	NamedExecer
+	NamedPreparer
 
 	NamedGetter
 	NamedSelector
@@ -202,6 +210,7 @@ type Sqlx interface {
 	ContextNamedCreator
 	ContextNamedUpdater
 	ContextNamedExecer
+	ContextNamedPreparer
 }
 
 type Transactioner interface {

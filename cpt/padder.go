@@ -3,8 +3,6 @@ package cpt
 import (
 	"bytes"
 	"errors"
-
-	"github.com/askasoft/pango/str"
 )
 
 // Padding interface defines functions Pad and Unpad implemented for PKCS #5 and
@@ -95,16 +93,4 @@ func Pkcs7Unpad(data []byte) []byte {
 	n := len(data)
 	p := int(data[n-1])
 	return data[:n-p]
-}
-
-// CutPadKey cut key if key's length is greater than 'size',
-// or pad key with space if key's length is smaller than 'size'.
-func CutPadKey(key string, size int) string {
-	switch {
-	case len(key) > size:
-		key = key[:size]
-	case len(key) < size:
-		key = str.PadRight(key, size, " ")
-	}
-	return key
 }

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/askasoft/pango/cpt"
+	"github.com/askasoft/pango/gog"
 	"github.com/askasoft/pango/net/httpx"
 	"github.com/askasoft/pango/xin"
 )
@@ -61,7 +62,7 @@ func NewTokenProtector(secret string) *TokenProtector {
 
 // SetSecret Set the Cryptor secret
 func (tp *TokenProtector) SetSecret(secret string) {
-	tp.Cryptor = cpt.NewAes256GCMCryptor(secret)
+	tp.Cryptor = gog.Must(cpt.NewAes256GCMCryptor(secret))
 }
 
 // SetCookieSameSite Set the cookie same site mode

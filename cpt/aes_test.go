@@ -5,13 +5,14 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/askasoft/pango/gog"
 	"github.com/askasoft/pango/ran"
 )
 
 func TestAesGCMEncrypt(t *testing.T) {
 	bits := []int{128, 192, 256}
 	for _, bit := range bits {
-		c := NewAesGCMCryptor("1234567890abcde", bit)
+		c := gog.Must(NewAesGCMCryptor("1234567890abcde", bit))
 		for i := 64; i <= 128; i++ {
 			rs := ran.RandString(i)
 			es, err := c.EncryptString(rs)
@@ -36,7 +37,7 @@ func TestAesGCMEncrypt(t *testing.T) {
 func TestAesGCMConcurrentEncrypt(t *testing.T) {
 	bits := []int{128, 192, 256}
 	for _, bit := range bits {
-		c := NewAesGCMCryptor("1234567890abcde", bit)
+		c := gog.Must(NewAesGCMCryptor("1234567890abcde", bit))
 
 		var wg sync.WaitGroup
 
@@ -75,7 +76,7 @@ func TestAesGCMConcurrentEncrypt(t *testing.T) {
 func TestAesCBCEncrypt(t *testing.T) {
 	bits := []int{128, 192, 256}
 	for _, bit := range bits {
-		c := NewAesCBCCryptor("1234567890abcde", bit)
+		c := gog.Must(NewAesCBCCryptor("1234567890abcde", bit))
 		for i := 64; i <= 128; i++ {
 			rs := ran.RandString(i)
 			es, err := c.EncryptString(rs)
@@ -100,7 +101,7 @@ func TestAesCBCEncrypt(t *testing.T) {
 func TestAesCBCConcurrentEncrypt(t *testing.T) {
 	bits := []int{128, 192, 256}
 	for _, bit := range bits {
-		c := NewAesCBCCryptor("1234567890abcde", bit)
+		c := gog.Must(NewAesCBCCryptor("1234567890abcde", bit))
 
 		var wg sync.WaitGroup
 

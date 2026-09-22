@@ -3,13 +3,14 @@ package cpt
 import (
 	"testing"
 
+	"github.com/askasoft/pango/gog"
 	"github.com/askasoft/pango/ran"
 )
 
 func benchmarkAesGCMEncrypt(b *testing.B, bit int) {
 	b.ResetTimer()
 
-	c := NewAesGCMCryptor("1234567890abcde", bit)
+	c := gog.Must(NewAesGCMCryptor("1234567890abcde", bit))
 
 	for range b.N {
 		rs := ran.RandString(63)
@@ -40,7 +41,7 @@ func BenchmarkAes256GCMEncrypt(b *testing.B) {
 func benchmarkAesCBCEncrypt(b *testing.B, bit int) {
 	b.ResetTimer()
 
-	c := NewAesCBCCryptor("1234567890abcde", bit)
+	c := gog.Must(NewAesCBCCryptor("1234567890abcde", bit))
 
 	for range b.N {
 		rs := ran.RandString(64)

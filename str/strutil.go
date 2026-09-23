@@ -310,18 +310,25 @@ func SnakeCaseWithRune(s string, d rune) string {
 	return sb.String()
 }
 
+// IsMasked return true if s is masked by Mask().
+func IsMasked(s string, ms ...string) bool {
+	return s != "" && Mask(s, ms...) == s
+}
+
 // Mask returns a string masked by ms[0] (default: '*').
 func Mask(s string, ms ...string) string {
 	m := asg.First(ms, "*")
 
 	n := RuneCount(s)
 	switch {
-	case n > 8:
+	case n > 9:
 		return Left(s, 4) + Repeat(m, n-4)
-	case n > 6:
+	case n > 8:
 		return Left(s, 3) + Repeat(m, n-3)
-	case n > 4:
+	case n > 7:
 		return Left(s, 2) + Repeat(m, n-2)
+	case n > 6:
+		return Left(s, 1) + Repeat(m, n-1)
 	default:
 		return Repeat("*", n)
 	}

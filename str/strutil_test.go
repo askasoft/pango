@@ -2,6 +2,8 @@ package str
 
 import (
 	"testing"
+
+	"github.com/askasoft/pango/bol"
 )
 
 func TestCompare(t *testing.T) {
@@ -144,22 +146,52 @@ func TestSnakeCase(t *testing.T) {
 	runStringTests(t, func(s string) string { return SnakeCase(SnakeCase(s)) }, "SnakeCase2", cs)
 }
 
+func TestIsMasked(t *testing.T) {
+	cs := []StringTest{
+		{"1234******", "true"},
+		{"123******", "true"},
+		{"12******", "true"},
+		{"1******", "true"},
+		{"①②③④******", "true"},
+		{"①②③******", "true"},
+		{"①②******", "true"},
+		{"①******", "true"},
+		{"******", "true"},
+		{"*****", "true"},
+		{"****", "true"},
+		{"***", "true"},
+		{"**", "true"},
+		{"*", "true"},
+		{"a**", "false"},
+		{"", "false"},
+	}
+
+	runStringTests(t, func(s string) string { return bol.Btoa(IsMasked(s)) }, "IsMasked", cs)
+}
+
 func TestMask(t *testing.T) {
 	cs := []StringTest{
-		{"abcdefghi", "abcd*****"},
-		{"abcdefgh", "abc*****"},
-		{"abcdefg", "abc****"},
-		{"abcdef", "ab****"},
-		{"abcde", "ab***"},
-		{"abcd", "****"},
-		{"abc", "***"},
-		{"①②③④⑤⑥⑦⑧⑨", "①②③④*****"},
-		{"①②③④⑤⑥⑦⑧", "①②③*****"},
-		{"①②③④⑤⑥⑦", "①②③****"},
-		{"①②③④⑤⑥", "①②****"},
-		{"①②③④⑤", "①②***"},
+		{"", ""},
+		{"123456789a", "1234******"},
+		{"123456789", "123******"},
+		{"12345678", "12******"},
+		{"1234567", "1******"},
+		{"123456", "******"},
+		{"12345", "*****"},
+		{"1234", "****"},
+		{"123", "***"},
+		{"12", "**"},
+		{"1", "*"},
+		{"①②③④⑤⑥⑦⑧⑨⑩", "①②③④******"},
+		{"①②③④⑤⑥⑦⑧⑨", "①②③******"},
+		{"①②③④⑤⑥⑦⑧", "①②******"},
+		{"①②③④⑤⑥⑦", "①******"},
+		{"①②③④⑤⑥", "******"},
+		{"①②③④⑤", "*****"},
 		{"①②③④", "****"},
 		{"①②③", "***"},
+		{"①②", "**"},
+		{"①", "*"},
 	}
 
 	runStringTests(t, func(s string) string { return Mask(s) }, "Mask", cs)

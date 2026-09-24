@@ -62,7 +62,7 @@ func NewTokenProtector(secret string) *TokenProtector {
 
 // SetSecret Set the Cryptor secret
 func (tp *TokenProtector) SetSecret(secret string) {
-	tp.Cryptor = gog.Must(cpt.NewAes256GCMCryptor(secret))
+	tp.Cryptor = gog.Must(cpt.NewAes256GCMCryptor(secret, "token"))
 }
 
 // SetCookieSameSite Set the cookie same site mode

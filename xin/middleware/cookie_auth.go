@@ -65,7 +65,7 @@ func NewCookieAuth(f FindUserFunc, secret string) *CookieAuth {
 
 // SetSecret Set the Cryptor secret
 func (ca *CookieAuth) SetSecret(secret string) {
-	ca.Cryptor = gog.Must(cpt.NewAes256GCMCryptor(secret))
+	ca.Cryptor = gog.Must(cpt.NewAes256GCMCryptor(secret, "cookie"))
 }
 
 // SetCookieSameSite Set the cookie same site mode

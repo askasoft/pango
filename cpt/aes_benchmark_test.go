@@ -10,7 +10,7 @@ import (
 func benchmarkAesGCMEncrypt(b *testing.B, bit int) {
 	b.ResetTimer()
 
-	c := gog.Must(NewAesGCMCryptor("1234567890abcde", bit))
+	c := gog.Must(NewAesGCMCryptor("1234567890abcde", "test", bit))
 
 	for range b.N {
 		rs := ran.RandString(63)
@@ -41,7 +41,7 @@ func BenchmarkAes256GCMEncrypt(b *testing.B) {
 func benchmarkAesCBCEncrypt(b *testing.B, bit int) {
 	b.ResetTimer()
 
-	c := gog.Must(NewAesCBCCryptor("1234567890abcde", bit))
+	c := gog.Must(NewAesCBCCryptor("1234567890abcde", "test", bit))
 
 	for range b.N {
 		rs := ran.RandString(64)

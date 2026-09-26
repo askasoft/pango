@@ -11,7 +11,11 @@ func TestPeriodicCron(t *testing.T) {
 		want string
 	}{
 		{"daily", "d 0 10", "0 10 * * *"},
+		{"daily2", "d 0 10 30", "30 10 * * *"},
+		{"daily3", "d 0 10 30 40", "40 30 10 * * *"},
 		{"weekly", "w 3 8", "0 8 * * 3"},
+		{"weekly2", "w 3 8 10", "10 8 * * 3"},
+		{"weekly3", "w 3 8 10 20", "20 10 8 * * 3"},
 		{"monthly", "m 15 22", "0 22 15 * *"},
 		{"monthly last day", "m 32 22", "0 22 32 * *"},
 		{"invalid", "x 0 0", "x 0 0"},
@@ -65,6 +69,16 @@ func TestParsePeriodic(t *testing.T) {
 		{
 			name:    "invalid field count",
 			expr:    "d 12",
+			wantErr: true,
+		},
+		{
+			name:    "invalid second",
+			expr:    "d 0 25 50 60",
+			wantErr: true,
+		},
+		{
+			name:    "invalid minute",
+			expr:    "d 0 25 60",
 			wantErr: true,
 		},
 		{

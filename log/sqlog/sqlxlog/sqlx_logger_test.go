@@ -22,10 +22,7 @@ type Schema struct {
 func TestSqlxLogger(t *testing.T) {
 	log := log.NewLog()
 
-	slg := &SqlxLogger{
-		Logger:        log.GetLogger("SQL"),
-		SlowThreshold: time.Second,
-	}
+	slg := NewSqlxLogger(log.GetLogger("SQL"))
 
 	dsn := "host=127.0.0.1 user=pango password=pango dbname=pango port=5432 sslmode=disable"
 	sdb, err := sqlx.Connect("postgres", dsn, slg.Trace)

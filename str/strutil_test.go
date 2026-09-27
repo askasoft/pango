@@ -280,7 +280,7 @@ func TestRuneCount(t *testing.T) {
 	for i, c := range cs {
 		a := RuneCount(c.s)
 		if a != c.w {
-			t.Errorf("[%d] RuneCount(%q) = %q, want %q", i, c.s, a, c.w)
+			t.Errorf("[%d] RuneCount(%q) = %d, want %d", i, c.s, a, c.w)
 		}
 	}
 }

@@ -39,7 +39,7 @@ func testRun(engine *Engine, address string) (err error) {
 	server.Addr = address
 	err = server.ListenAndServe()
 	if err != nil {
-		engine.Logger.Errorf("Listening and serving HTTP on %s failed: %v", err)
+		engine.Logger.Errorf("Listening and serving HTTP on %s failed: %v", address, err)
 	}
 	return
 }

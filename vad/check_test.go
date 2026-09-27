@@ -489,7 +489,7 @@ func TestIsByteLength(t *testing.T) {
 	for i, c := range cs {
 		a := IsByteLength(c.s, c.min, c.max)
 		if a != c.w {
-			t.Errorf("[%d] IsByteLength(%q, %q, %q) = %v, want %v", i, c.s, c.min, c.max, a, c.w)
+			t.Errorf("[%d] IsByteLength(%q, %d, %d) = %v, want %v", i, c.s, c.min, c.max, a, c.w)
 		}
 	}
 }

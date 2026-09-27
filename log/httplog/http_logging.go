@@ -66,16 +66,14 @@ func debugDo(logger log.Logger, do Do, req *http.Request) (*http.Response, error
 }
 
 func TraceDo(logger log.Logger, do Do, req *http.Request) (*http.Response, error) {
-	if logger == nil {
-		return do.Do(req)
-	}
+	if logger != nil {
+		if logger.IsTraceEnabled() {
+			return traceDo(logger, do, req)
+		}
 
-	if logger.IsTraceEnabled() {
-		return traceDo(logger, do, req)
-	}
-
-	if logger.IsDebugEnabled() {
-		return debugDo(logger, do, req)
+		if logger.IsDebugEnabled() {
+			return debugDo(logger, do, req)
+		}
 	}
 
 	return do.Do(req)
@@ -89,29 +87,14 @@ type loggingRoundTripper struct {
 func LoggingRoundTripper(logger log.Logger, transport ...http.RoundTripper) http.RoundTripper {
 	return loggingRoundTripper{
 		Logger:    logger,
-		Transport: asg.First(transport),
+		Transport: asg.First(transport, http.DefaultTransport),
 	}
 }
 
 func (lrt loggingRoundTripper) Do(req *http.Request) (*http.Response, error) {
-	return lrt.transport().RoundTrip(req)
+	return lrt.Transport.RoundTrip(req)
 }
 
 func (lrt loggingRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
-	if lrt.Logger.IsTraceEnabled() {
-		return traceDo(lrt.Logger, lrt, req)
-	}
-
-	if lrt.Logger.IsDebugEnabled() {
-		return debugDo(lrt.Logger, lrt, req)
-	}
-
-	return lrt.Do(req)
-}
-
-func (lrt loggingRoundTripper) transport() http.RoundTripper {
-	if lrt.Transport != nil {
-		return lrt.Transport
-	}
-	return http.DefaultTransport
+	return TraceDo(lrt.Logger, lrt, req)
 }

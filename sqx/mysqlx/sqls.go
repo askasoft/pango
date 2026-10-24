@@ -13,3 +13,7 @@ func ResetAutoIncrementSQL(table string, starts ...int64) string {
 
 	return sql
 }
+
+func NextAutoIncrementSQL(schema, table string) string {
+	return fmt.Sprintf("SELECT AUTO_INCREMENT FROM information_schema.tables WHERE table_schema = '%s' AND table_name = '%s'", schema, table)
+}

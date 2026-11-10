@@ -5,13 +5,13 @@ import (
 )
 
 func BenchmarkComma(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		Comma(1234567890)
 	}
 }
 
 func BenchmarkCommaFloat(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		CommaFloat(1234567890.83584, ",")
 	}
 }

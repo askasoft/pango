@@ -587,7 +587,7 @@ func (rb *RingBuffer[T]) Swap(i, j int) {
 
 // Sort Sorts this RingBuffer according to the order induced by the specified Comparator.
 func (rb *RingBuffer[T]) Sort(less cog.Less[T]) {
-	isort.Sort[T](rb, less)
+	isort.Sort(rb, less)
 }
 
 // Head get the first item of RingBuffer.
@@ -824,11 +824,11 @@ func (rb *RingBuffer[T]) checkSizeIndex(index int) int {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(rb)
 func (rb *RingBuffer[T]) MarshalJSON() ([]byte, error) {
-	return icol.JsonMarshalCol[T](rb)
+	return icol.JsonMarshalCol(rb)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, rb)
 func (rb *RingBuffer[T]) UnmarshalJSON(data []byte) error {
 	rb.Clear()
-	return icol.JsonUnmarshalCol[T](data, rb)
+	return icol.JsonUnmarshalCol(data, rb)
 }

@@ -3,7 +3,7 @@ package linkedlist
 import "testing"
 
 func benchmarkLinkedListGet(b *testing.B, list *LinkedList[int], size int) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for n := 0; n < size; n++ {
 			list.Get(n)
 		}
@@ -11,7 +11,7 @@ func benchmarkLinkedListGet(b *testing.B, list *LinkedList[int], size int) {
 }
 
 func benchmarkLinkedListAdd(b *testing.B, list *LinkedList[int], size int) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for n := 0; n < size; n++ {
 			list.Add(n)
 		}
@@ -19,7 +19,7 @@ func benchmarkLinkedListAdd(b *testing.B, list *LinkedList[int], size int) {
 }
 
 func benchmarkLinkedListDelete(b *testing.B, list *LinkedList[int], size int) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for n := 0; n < size; n++ {
 			list.Remove(n)
 		}

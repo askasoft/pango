@@ -39,7 +39,7 @@ func BenchmarkDetectBestConcurrent(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for _, bs := range bss {
 			textDetector.DetectBestConcurrent(bs)
 		}
@@ -55,7 +55,7 @@ func BenchmarkDetectBestSequential(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for _, bs := range bss {
 			textDetector.DetectBestSequential(bs)
 		}
@@ -112,7 +112,7 @@ func BenchmarkDetectAllConcurrent(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for _, bs := range bss {
 			textDetector.DetectAllConcurrent(bs)
 		}
@@ -161,7 +161,7 @@ func BenchmarkDetectAllSequential(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for _, bs := range bss {
 			textDetector.DetectAllSequential(bs)
 		}

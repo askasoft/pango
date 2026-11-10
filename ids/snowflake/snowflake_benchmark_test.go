@@ -10,7 +10,7 @@ func BenchmarkNext(b *testing.B) {
 	b.ReportAllocs()
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = node.NextID()
 	}
 }
@@ -21,7 +21,7 @@ func BenchmarkNextMaxSequence(b *testing.B) {
 	b.ReportAllocs()
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = node.NextID()
 	}
 }

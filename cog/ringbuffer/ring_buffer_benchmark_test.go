@@ -3,7 +3,7 @@ package ringbuffer
 import "testing"
 
 func benchmarkRingBufferGet(b *testing.B, rb *RingBuffer[int], size int) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for n := 0; n < size; n++ {
 			rb.Get(n)
 		}
@@ -11,7 +11,7 @@ func benchmarkRingBufferGet(b *testing.B, rb *RingBuffer[int], size int) {
 }
 
 func benchmarkRingBufferPush(b *testing.B, rb *RingBuffer[int], size int) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for n := 0; n < size; n++ {
 			rb.Push(n)
 		}
@@ -19,7 +19,7 @@ func benchmarkRingBufferPush(b *testing.B, rb *RingBuffer[int], size int) {
 }
 
 func benchmarkRingBufferPoll(b *testing.B, rb *RingBuffer[int], size int) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for n := 0; n < size; n++ {
 			rb.Poll()
 		}

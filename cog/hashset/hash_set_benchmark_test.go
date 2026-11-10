@@ -3,7 +3,7 @@ package hashset
 import "testing"
 
 func benchmarkHashSetContains(b *testing.B, set *HashSet[int], size int) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for n := 0; n < size; n++ {
 			set.Contains(n)
 		}
@@ -11,7 +11,7 @@ func benchmarkHashSetContains(b *testing.B, set *HashSet[int], size int) {
 }
 
 func benchmarkHashSetAdd(b *testing.B, set *HashSet[int], size int) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for n := 0; n < size; n++ {
 			set.Add(n)
 		}
@@ -19,7 +19,7 @@ func benchmarkHashSetAdd(b *testing.B, set *HashSet[int], size int) {
 }
 
 func benchmarkHashSetDel(b *testing.B, set *HashSet[int], size int) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for n := 0; n < size; n++ {
 			set.Remove(n)
 		}

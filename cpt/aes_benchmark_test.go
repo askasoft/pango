@@ -12,7 +12,7 @@ func benchmarkAesGCMEncrypt(b *testing.B, bit int) {
 
 	c := gog.Must(NewAesGCMCryptor("1234567890abcde", "test", bit))
 
-	for range b.N {
+	for b.Loop() {
 		rs := ran.RandString(63)
 		es, err := c.EncryptString(rs)
 		if err != nil {
@@ -43,7 +43,7 @@ func benchmarkAesCBCEncrypt(b *testing.B, bit int) {
 
 	c := gog.Must(NewAesCBCCryptor("1234567890abcde", "test", bit))
 
-	for range b.N {
+	for b.Loop() {
 		rs := ran.RandString(64)
 		es, err := c.EncryptString(rs)
 		if err != nil {

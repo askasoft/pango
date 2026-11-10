@@ -3,7 +3,7 @@ package linkedhashset
 import "testing"
 
 func benchmarkLinkedHashSetGet(b *testing.B, lset *LinkedHashSet[int], size int) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for n := 0; n < size; n++ {
 			lset.Get(n)
 		}
@@ -11,7 +11,7 @@ func benchmarkLinkedHashSetGet(b *testing.B, lset *LinkedHashSet[int], size int)
 }
 
 func benchmarkLinkedHashSetAdd(b *testing.B, lset *LinkedHashSet[int], size int) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for n := 0; n < size; n++ {
 			lset.Add(n)
 		}
@@ -19,7 +19,7 @@ func benchmarkLinkedHashSetAdd(b *testing.B, lset *LinkedHashSet[int], size int)
 }
 
 func benchmarkLinkedHashSetDel(b *testing.B, lset *LinkedHashSet[int], size int) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for n := 0; n < size; n++ {
 			lset.Remove(n)
 		}

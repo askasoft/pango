@@ -889,7 +889,7 @@ type E4 struct {
 
 func BenchmarkFieldNameL1(b *testing.B) {
 	e4 := E4{D: 1}
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		v := reflect.ValueOf(e4)
 		f := v.FieldByName("D")
 		if f.Interface().(int) != 1 {
@@ -901,7 +901,7 @@ func BenchmarkFieldNameL1(b *testing.B) {
 func BenchmarkFieldNameL4(b *testing.B) {
 	e4 := E4{}
 	e4.A = 1
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		v := reflect.ValueOf(e4)
 		f := v.FieldByName("A")
 		if f.Interface().(int) != 1 {
@@ -912,7 +912,7 @@ func BenchmarkFieldNameL4(b *testing.B) {
 
 func BenchmarkFieldPosL1(b *testing.B) {
 	e4 := E4{D: 1}
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		v := reflect.ValueOf(e4)
 		f := v.Field(1)
 		if f.Interface().(int) != 1 {
@@ -924,7 +924,7 @@ func BenchmarkFieldPosL1(b *testing.B) {
 func BenchmarkFieldPosL4(b *testing.B) {
 	e4 := E4{}
 	e4.A = 1
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		v := reflect.ValueOf(e4)
 		f := v.Field(0)
 		f = f.Field(0)
@@ -940,7 +940,7 @@ func BenchmarkFieldByIndexL4(b *testing.B) {
 	e4 := E4{}
 	e4.A = 1
 	idx := []int{0, 0, 0, 0}
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		v := reflect.ValueOf(e4)
 		f := FieldByIndexes(v, idx)
 		if f.Interface().(int) != 1 {
@@ -972,7 +972,7 @@ func BenchmarkTraversalsByName(b *testing.B) {
 
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		if l := len(m.TraversalsByName(t, names)); l != len(names) {
 			b.Errorf("expected %d values, got %d", len(names), l)
 		}
@@ -1002,7 +1002,7 @@ func BenchmarkTraversalsByNameFunc(b *testing.B) {
 
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		var l int
 
 		if err := m.TraversalsByNameFunc(t, names, func(_ int, _ []int) error {

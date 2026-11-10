@@ -48,7 +48,7 @@ func TestMaxWorkers(t *testing.T) {
 	}
 
 	wp = newTestWorkerPool(max, 0)
-	defer wp.Stop()
+	defer wp.StopWait()
 
 	if wp.maxWorks != max {
 		t.Fatal("wrong size returned")
@@ -81,7 +81,7 @@ func TestMaxWorkers(t *testing.T) {
 
 func TestReuseWorkers(t *testing.T) {
 	wp := newTestWorkerPool(5, 0)
-	defer wp.Stop()
+	defer wp.StopWait()
 
 	release := make(chan struct{})
 
@@ -193,7 +193,7 @@ func TestStopWait2(t *testing.T) {
 
 func TestSubmitWait(t *testing.T) {
 	wp := newTestWorkerPool(1, 0)
-	defer wp.Stop()
+	defer wp.StopWait()
 
 	// Check that these are noop.
 	wp.Submit(nil)
@@ -224,7 +224,7 @@ func TestSubmitWait(t *testing.T) {
 
 func TestStopRace(t *testing.T) {
 	wp := newTestWorkerPool(max, max)
-	defer wp.Stop()
+	defer wp.StopWait()
 
 	workRelChan := make(chan struct{})
 
@@ -311,27 +311,27 @@ Run benchmarking with: go test -bench '.'
 */
 
 func BenchmarkEnqueue(b *testing.B) {
-	wp := newTestWorkerPool(1, 1)
-	defer wp.Stop()
+	wp := newTestWorkerPool(1, b.N)
+	defer wp.StopWait()
 	releaseChan := make(chan struct{})
 
 	b.ResetTimer()
 
 	// Start workers, and have them all wait on a channel before completing.
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		wp.Submit(func() { <-releaseChan })
 	}
 	close(releaseChan)
 }
 
 func BenchmarkEnqueue2(b *testing.B) {
-	wp := newTestWorkerPool(2, 2)
-	defer wp.Stop()
+	wp := newTestWorkerPool(2, 64)
+	defer wp.StopWait()
 
 	b.ResetTimer()
 
 	// Start workers, and have them all wait on a channel before completing.
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		releaseChan := make(chan struct{})
 		for i := 0; i < 64; i++ {
 			wp.Submit(func() { <-releaseChan })
@@ -366,20 +366,21 @@ func BenchmarkExecute1024Workers(b *testing.B) {
 
 func benchmarkExecWorkers(n int, b *testing.B) {
 	wp := newTestWorkerPool(n, n)
-	defer wp.Stop()
-	var allDone sync.WaitGroup
-	allDone.Add(b.N * n)
+	defer wp.StopWait()
+
+	var wg sync.WaitGroup
 
 	b.ResetTimer()
 
 	// Start workers, and have them all wait on a channel before completing.
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for j := 0; j < n; j++ {
+			wg.Add(1)
 			wp.Submit(func() {
 				//time.Sleep(100 * time.Microsecond)
-				allDone.Done()
+				wg.Done()
 			})
 		}
 	}
-	allDone.Wait()
+	wg.Wait()
 }

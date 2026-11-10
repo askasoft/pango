@@ -6,7 +6,7 @@ import (
 )
 
 func benchmarkTreeMapGet(b *testing.B, tree *TreeMap[int, any], size int) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for n := 0; n < size; n++ {
 			tree.Get(n)
 		}
@@ -14,7 +14,7 @@ func benchmarkTreeMapGet(b *testing.B, tree *TreeMap[int, any], size int) {
 }
 
 func benchmarkTreeMapSet(b *testing.B, tree *TreeMap[int, any], size int) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for n := 0; n < size; n++ {
 			tree.Set(n, struct{}{})
 		}
@@ -22,7 +22,7 @@ func benchmarkTreeMapSet(b *testing.B, tree *TreeMap[int, any], size int) {
 }
 
 func benchmarkTreeMapDel(b *testing.B, tree *TreeMap[int, any], size int) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for n := 0; n < size; n++ {
 			tree.Remove(n)
 		}

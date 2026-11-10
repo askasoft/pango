@@ -395,7 +395,7 @@ func TestArrayListInsert(t *testing.T) {
 		w []string
 	}{
 		{NewArrayList[string](), 0, []string{"a", "b"}, []string{"a", "b"}},
-		{NewArrayList[string]("a", "b", "c"), 0, []string{"x", "y"}, []string{"x", "y", "a", "b", "c"}},
+		{NewArrayList("a", "b", "c"), 0, []string{"x", "y"}, []string{"x", "y", "a", "b", "c"}},
 	}
 
 	for i, c := range cs {

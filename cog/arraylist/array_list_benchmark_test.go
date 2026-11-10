@@ -3,7 +3,7 @@ package arraylist
 import "testing"
 
 func benchmarkArrayListGet(b *testing.B, list *ArrayList[int], size int) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for n := 0; n < size; n++ {
 			list.Get(n)
 		}
@@ -11,7 +11,7 @@ func benchmarkArrayListGet(b *testing.B, list *ArrayList[int], size int) {
 }
 
 func benchmarkArrayListAdd(b *testing.B, list *ArrayList[int], size int) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for n := 0; n < size; n++ {
 			list.Add(n)
 		}
@@ -19,7 +19,7 @@ func benchmarkArrayListAdd(b *testing.B, list *ArrayList[int], size int) {
 }
 
 func benchmarkArrayListDelete(b *testing.B, list *ArrayList[int], size int) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for n := 0; n < size; n++ {
 			list.Remove(n)
 		}

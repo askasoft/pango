@@ -387,7 +387,7 @@ func (al *ArrayList[T]) Swap(i, j int) {
 
 // Sort Sorts this list according to the order induced by the specified Comparator.
 func (al *ArrayList[T]) Sort(less cog.Less[T]) {
-	isort.Sort[T](al, less)
+	isort.Sort(al, less)
 }
 
 // Head get the first item of list.
@@ -569,11 +569,11 @@ func (al *ArrayList[T]) checkSizeIndex(index int) int {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(al)
 func (al *ArrayList[T]) MarshalJSON() ([]byte, error) {
-	return icol.JsonMarshalCol[T](al)
+	return icol.JsonMarshalCol(al)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, al)
 func (al *ArrayList[T]) UnmarshalJSON(data []byte) error {
 	al.Clear()
-	return icol.JsonUnmarshalCol[T](data, al)
+	return icol.JsonUnmarshalCol(data, al)
 }

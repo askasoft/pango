@@ -11,7 +11,7 @@ func BenchmarkFtoaRegexTrailing(b *testing.B) {
 	trailingZerosRegex := regexp.MustCompile(`\.?0+$`)
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		trailingZerosRegex.ReplaceAllString("2.00000", "")
 		trailingZerosRegex.ReplaceAllString("2.0000", "")
 		trailingZerosRegex.ReplaceAllString("2.000", "")
@@ -22,7 +22,7 @@ func BenchmarkFtoaRegexTrailing(b *testing.B) {
 }
 
 func BenchmarkStripTrailingZeros(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		StripTrailingZeros("2.00000")
 		StripTrailingZeros("2.0000")
 		StripTrailingZeros("2.000")
@@ -33,13 +33,13 @@ func BenchmarkStripTrailingZeros(b *testing.B) {
 }
 
 func BenchmarkFmtF(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_ = fmt.Sprintf("%f", 2.03584)
 	}
 }
 
 func BenchmarkStrconvF(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		strconv.FormatFloat(2.03584, 'f', 6, 64)
 	}
 }

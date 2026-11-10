@@ -19,7 +19,7 @@ func Benchmark_expr(b *testing.B) {
 	var out any
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		out, err = el.Calculate(params)
 	}
 	b.StopTimer()
@@ -43,7 +43,7 @@ func Benchmark_expr_eval(b *testing.B) {
 	var err error
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		out, err = Calculate(`(Origin == "MOW" || Country == "RU") && (Value >= 100 || Adults == 1)`, params)
 	}
 	b.StopTimer()
@@ -71,7 +71,7 @@ func Benchmark_arrayIndex(b *testing.B) {
 
 	var out any
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		out, err = el.Calculate(env)
 	}
 	b.StopTimer()
@@ -101,7 +101,7 @@ func Benchmark_envStruct(b *testing.B) {
 
 	var out any
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		out, err = el.Calculate(env)
 	}
 	b.StopTimer()
@@ -129,7 +129,7 @@ func Benchmark_envMap(b *testing.B) {
 
 	var out any
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		out, err = el.Calculate(env)
 	}
 	b.StopTimer()
@@ -175,7 +175,7 @@ func Benchmark_callMethod(b *testing.B) {
 
 	var out any
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		out, err = el.Calculate(env)
 	}
 	b.StopTimer()
@@ -187,69 +187,6 @@ func Benchmark_callMethod(b *testing.B) {
 		b.Fatal(out)
 	}
 }
-
-// func Benchmark_callField(b *testing.B) {
-// 	el, err := Compile(`Fn()`, expr.Env(CallEnv{}))
-// 	if err != nil {
-// 		b.Fatal(err)
-// 	}
-
-// 	env := CallEnv{
-// 		Fn: func() bool {
-// 			return true
-// 		},
-// 	}
-
-// 	var out any
-// 	b.ResetTimer()
-// 	for n := 0; n < b.N; n++ {
-// 		out, err = el.Calculate(env)
-// 	}
-// 	b.StopTimer()
-
-// 	require.NoError(b, err)
-// 	require.True(b, out.(bool))
-// }
-
-// func Benchmark_callFast(b *testing.B) {
-// 	el, err := Compile(`FnFast()`, expr.Env(CallEnv{}))
-// 	if err != nil {
-// 		b.Fatal(err)
-// 	}
-
-// 	env := CallEnv{
-// 		FnFast: func(s ...any) any {
-// 			return "fn_fast"
-// 		},
-// 	}
-
-// 	var out any
-// 	b.ResetTimer()
-// 	for n := 0; n < b.N; n++ {
-// 		out, err = el.Calculate(env)
-// 	}
-// 	b.StopTimer()
-
-// 	require.NoError(b, err)
-// 	require.Equal(b, "fn_fast", out)
-// }
-
-// func Benchmark_callConstExpr(b *testing.B) {
-// 	el, err := Compile(`Func()`, expr.Env(CallEnv{}), expr.ConstExpr("Func"))
-// 	require.NoError(b, err)
-
-// 	env := CallEnv{}
-
-// 	var out any
-// 	b.ResetTimer()
-// 	for n := 0; n < b.N; n++ {
-// 		out, err = el.Calculate(env)
-// 	}
-// 	b.StopTimer()
-
-// 	require.NoError(b, err)
-// 	require.Equal(b, "func", out)
-// }
 
 func Benchmark_largeStructAccess(b *testing.B) {
 	type Env struct {
@@ -266,7 +203,7 @@ func Benchmark_largeStructAccess(b *testing.B) {
 
 	var out any
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		out, err = el.Calculate(&env)
 	}
 	b.StopTimer()
@@ -297,7 +234,7 @@ func Benchmark_largeNestedStructAccess(b *testing.B) {
 
 	var out any
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		out, err = el.Calculate(&env)
 	}
 	b.StopTimer()
@@ -325,7 +262,7 @@ func Benchmark_largeNestedArrayAccess(b *testing.B) {
 
 	var out any
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		out, err = el.Calculate(&env)
 	}
 	b.StopTimer()

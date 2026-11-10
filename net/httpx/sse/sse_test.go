@@ -202,7 +202,7 @@ func BenchmarkResponseWriter(b *testing.B) {
 	w := httptest.NewRecorder()
 	b.ResetTimer()
 	b.ReportAllocs()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		(Event{
 			Event: "new_message",
 			Data:  "hi! how are you? I am fine. this is a long stupid message!!!",
@@ -214,7 +214,7 @@ func BenchmarkFullSSE(b *testing.B) {
 	buf := new(bytes.Buffer)
 	b.ResetTimer()
 	b.ReportAllocs()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		Encode(buf, Event{
 			Event: "new_message",
 			ID:    "13435",
@@ -229,7 +229,7 @@ func BenchmarkNoRetrySSE(b *testing.B) {
 	buf := new(bytes.Buffer)
 	b.ResetTimer()
 	b.ReportAllocs()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		Encode(buf, Event{
 			Event: "new_message",
 			ID:    "13435",
@@ -243,7 +243,7 @@ func BenchmarkSimpleSSE(b *testing.B) {
 	buf := new(bytes.Buffer)
 	b.ResetTimer()
 	b.ReportAllocs()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		Encode(buf, Event{
 			Event: "new_message",
 			Data:  "hi! how are you? I am fine. this is a long stupid message!!!",

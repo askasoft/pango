@@ -3,7 +3,7 @@ package linkedhashmap
 import "testing"
 
 func benchmarkLinkedHashMapGet(b *testing.B, m *LinkedHashMap[int, any], size int) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for n := 0; n < size; n++ {
 			m.Get(n)
 		}
@@ -11,7 +11,7 @@ func benchmarkLinkedHashMapGet(b *testing.B, m *LinkedHashMap[int, any], size in
 }
 
 func benchmarkLinkedHashMapSet(b *testing.B, m *LinkedHashMap[int, any], size int) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for n := 0; n < size; n++ {
 			m.Set(n, struct{}{})
 		}
@@ -19,7 +19,7 @@ func benchmarkLinkedHashMapSet(b *testing.B, m *LinkedHashMap[int, any], size in
 }
 
 func benchmarkLinkedHashMapDel(b *testing.B, m *LinkedHashMap[int, any], size int) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for n := 0; n < size; n++ {
 			m.Remove(n)
 		}

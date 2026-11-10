@@ -16,7 +16,7 @@ func (testdis) Write(p []byte) (int, error) {
 func BenchmarkWriteStringUs(b *testing.B) {
 	o := &testdis{}
 	s := str.Repeat("=", 1000)
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_, _ = WriteString(o, s)
 	}
 }
@@ -24,7 +24,7 @@ func BenchmarkWriteStringUs(b *testing.B) {
 func BenchmarkWriteStringGo(b *testing.B) {
 	o := &testdis{}
 	s := str.Repeat("=", 1000)
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_, _ = io.WriteString(o, s)
 	}
 }

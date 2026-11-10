@@ -21,7 +21,7 @@ func benchmarkCacheGet(b *testing.B, exp time.Duration) {
 	tc := New[string, any](exp, 0)
 	tc.Set("foo", "bar")
 	b.StartTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		tc.Get("foo")
 	}
 }
@@ -33,7 +33,7 @@ func BenchmarkRWMutexMapGet(b *testing.B) {
 	}
 	mu := sync.RWMutex{}
 	b.StartTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		mu.RLock()
 		_ = m["foo"]
 		mu.RUnlock()
@@ -48,7 +48,7 @@ func BenchmarkRWMutexInterfaceMapGetStruct(b *testing.B) {
 	}
 	mu := sync.RWMutex{}
 	b.StartTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		mu.RLock()
 		_ = m[s]
 		mu.RUnlock()
@@ -62,7 +62,7 @@ func BenchmarkRWMutexInterfaceMapGetString(b *testing.B) {
 	}
 	mu := sync.RWMutex{}
 	b.StartTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		mu.RLock()
 		_ = m["foo"]
 		mu.RUnlock()
@@ -169,7 +169,7 @@ func benchmarkCacheSet(b *testing.B, exp time.Duration) {
 	b.StopTimer()
 	tc := New[string, any](exp, 0)
 	b.StartTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		tc.Set("foo", "bar")
 	}
 }
@@ -179,7 +179,7 @@ func BenchmarkRWMutexMapSet(b *testing.B) {
 	m := map[string]string{}
 	mu := sync.RWMutex{}
 	b.StartTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		mu.Lock()
 		m["foo"] = "bar"
 		mu.Unlock()
@@ -190,7 +190,7 @@ func BenchmarkCacheSetRemove(b *testing.B) {
 	b.StopTimer()
 	tc := New[string, any](0, 0)
 	b.StartTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		tc.Set("foo", "bar")
 		tc.Remove("foo")
 	}
@@ -201,7 +201,7 @@ func BenchmarkRWMutexMapSetDelete(b *testing.B) {
 	m := map[string]string{}
 	mu := sync.RWMutex{}
 	b.StartTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		mu.Lock()
 		m["foo"] = "bar"
 		mu.Unlock()
@@ -215,7 +215,7 @@ func BenchmarkCacheSetDeleteSingleLock(b *testing.B) {
 	b.StopTimer()
 	tc := New[string, any](0, 0)
 	b.StartTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		tc.mu.Lock()
 		tc.set("foo", "bar", 0)
 		delete(tc.items, "foo")
@@ -228,7 +228,7 @@ func BenchmarkRWMutexMapSetDeleteSingleLock(b *testing.B) {
 	m := map[string]string{}
 	mu := sync.RWMutex{}
 	b.StartTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		mu.Lock()
 		m["foo"] = "bar"
 		delete(m, "foo")
@@ -245,7 +245,7 @@ func BenchmarkCleanLoop(b *testing.B) {
 	}
 	tc.mu.Unlock()
 	b.StartTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		tc.Clean()
 	}
 }

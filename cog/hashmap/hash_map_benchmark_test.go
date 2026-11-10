@@ -3,7 +3,7 @@ package hashmap
 import "testing"
 
 func benchmarkHashMapGet(b *testing.B, m *HashMap[int, any], size int) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for n := 0; n < size; n++ {
 			m.Get(n)
 		}
@@ -11,7 +11,7 @@ func benchmarkHashMapGet(b *testing.B, m *HashMap[int, any], size int) {
 }
 
 func benchmarkHashMapSet(b *testing.B, m *HashMap[int, any], size int) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for n := 0; n < size; n++ {
 			m.Set(n, struct{}{})
 		}
@@ -19,7 +19,7 @@ func benchmarkHashMapSet(b *testing.B, m *HashMap[int, any], size int) {
 }
 
 func benchmarkHashMapRemove(b *testing.B, m *HashMap[int, any], size int) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for n := 0; n < size; n++ {
 			m.Remove(n)
 		}

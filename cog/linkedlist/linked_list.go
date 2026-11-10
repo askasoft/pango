@@ -435,7 +435,7 @@ func (ll *LinkedList[T]) Swap(i, j int) {
 
 // Sort Sorts this list according to the order induced by the specified Comparator.
 func (ll *LinkedList[T]) Sort(less cog.Less[T]) {
-	isort.Sort[T](ll, less)
+	isort.Sort(ll, less)
 }
 
 // Head get the first item of list.
@@ -616,11 +616,11 @@ func (ll *LinkedList[T]) checkSizeIndex(index int) int {
 
 // MarshalJSON implements type json.Marshaler interface, so can be called in json.Marshal(ll)
 func (ll *LinkedList[T]) MarshalJSON() ([]byte, error) {
-	return icol.JsonMarshalCol[T](ll)
+	return icol.JsonMarshalCol(ll)
 }
 
 // UnmarshalJSON implements type json.Unmarshaler interface, so can be called in json.Unmarshal(data, ll)
 func (ll *LinkedList[T]) UnmarshalJSON(data []byte) error {
 	ll.Clear()
-	return icol.JsonUnmarshalCol[T](data, ll)
+	return icol.JsonUnmarshalCol(data, ll)
 }

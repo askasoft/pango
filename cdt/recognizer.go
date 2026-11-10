@@ -13,10 +13,6 @@ type recognizerInput struct {
 	hasC1Bytes bool
 }
 
-type iEach interface {
-	Each(func(b byte))
-}
-
 type rawInput []byte
 
 func (ri rawInput) Each(f func(b byte)) {

@@ -1760,7 +1760,7 @@ func TestEmbeddedLiterals(t *testing.T) {
 }
 
 func BenchmarkBindStruct(b *testing.B) {
-	b.StopTimer()
+
 	q1 := `INSERT INTO foo (a, b, c, d) VALUES (:name, :age, :first, :last)`
 	type t struct {
 		Name  string
@@ -1769,8 +1769,8 @@ func BenchmarkBindStruct(b *testing.B) {
 		Last  string
 	}
 	am := t{"Jason Moiron", 30, "Jason", "Moiron"}
-	b.StartTimer()
-	for i := 0; i < b.N; i++ {
+
+	for b.Loop() {
 		bindStruct(BindDollar, q1, am, NameMapper)
 	}
 }
@@ -1803,7 +1803,7 @@ func TestBindNamedMapper(t *testing.T) {
 }
 
 func BenchmarkBindMap(b *testing.B) {
-	b.StopTimer()
+
 	q1 := `INSERT INTO foo (a, b, c, d) VALUES (:name, :age, :first, :last)`
 	am := map[string]any{
 		"name":  "Jason Moiron",
@@ -1811,19 +1811,18 @@ func BenchmarkBindMap(b *testing.B) {
 		"first": "Jason",
 		"last":  "Moiron",
 	}
-	b.StartTimer()
-	for i := 0; i < b.N; i++ {
+
+	for b.Loop() {
 		bindMap(BindDollar, q1, am)
 	}
 }
 
 func BenchmarkRebind(b *testing.B) {
-	b.StopTimer()
+
 	q1 := `INSERT INTO foo (a, b, c, d, e, f, g, h, i) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	q2 := `INSERT INTO foo (a, b, c) VALUES (?, ?, "foo"), ("Hi", ?, ?)`
-	b.StartTimer()
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		BindDollar.Rebind(q1)
 		BindDollar.Rebind(q2)
 	}
@@ -1855,12 +1854,10 @@ func rebindBuff(binder Binder, query string) string {
 }
 
 func BenchmarkRebindBuffer(b *testing.B) {
-	b.StopTimer()
 	q1 := `INSERT INTO foo (a, b, c, d, e, f, g, h, i) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	q2 := `INSERT INTO foo (a, b, c) VALUES (?, ?, "foo"), ("Hi", ?, ?)`
-	b.StartTimer()
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		rebindBuff(BindDollar, q1)
 		rebindBuff(BindDollar, q2)
 	}

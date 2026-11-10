@@ -18,7 +18,7 @@ func testIsASCIIRange(s string) bool {
 func BenchmarkIsASCIIRange(b *testing.B) {
 	str := testASCII()
 	b.ResetTimer()
-	for N := 0; N < b.N; N++ {
+	for b.Loop() {
 		is := testIsASCIIRange(str)
 		if !is {
 			b.Fatal("notASCII")
@@ -29,7 +29,7 @@ func BenchmarkIsASCIIRange(b *testing.B) {
 func BenchmarkIsASCIIIndex(b *testing.B) {
 	str := testASCII()
 	b.ResetTimer()
-	for N := 0; N < b.N; N++ {
+	for b.Loop() {
 		is := IsASCII(str)
 		if !is {
 			b.Log("notASCII")
@@ -47,7 +47,7 @@ func testIsASCIIRegex(str string) bool {
 func BenchmarkIsASCIIRegex(b *testing.B) {
 	str := testASCII()
 	b.ResetTimer()
-	for N := 0; N < b.N; N++ {
+	for b.Loop() {
 		is := testIsASCIIRegex(str)
 		if !is {
 			b.Log("notASCII")

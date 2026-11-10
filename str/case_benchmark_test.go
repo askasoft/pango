@@ -29,7 +29,7 @@ func testIsLowerCase(str string) bool {
 func BenchmarkIsLowerCase0(b *testing.B) {
 	str := testLower()
 	b.ResetTimer()
-	for N := 0; N < b.N; N++ {
+	for b.Loop() {
 		is := testIsLowerCase(str)
 		if !is {
 			b.Fatal("notLower")
@@ -40,7 +40,7 @@ func BenchmarkIsLowerCase0(b *testing.B) {
 func BenchmarkIsLowerCase1(b *testing.B) {
 	str := testLower()
 	b.ResetTimer()
-	for N := 0; N < b.N; N++ {
+	for b.Loop() {
 		is := IsLowerCase(str)
 		if !is {
 			b.Fatal("notLower")
@@ -64,7 +64,7 @@ func testIsUpperCase(str string) bool {
 func BenchmarkIsUpperCase0(b *testing.B) {
 	str := testUpper()
 	b.ResetTimer()
-	for N := 0; N < b.N; N++ {
+	for b.Loop() {
 		is := testIsUpperCase(str)
 		if !is {
 			b.Fatal("notUpper")
@@ -75,7 +75,7 @@ func BenchmarkIsUpperCase0(b *testing.B) {
 func BenchmarkIsUpperCase1(b *testing.B) {
 	str := testUpper()
 	b.ResetTimer()
-	for N := 0; N < b.N; N++ {
+	for b.Loop() {
 		is := IsUpperCase(str)
 		if !is {
 			b.Fatal("notUpper")
@@ -91,7 +91,7 @@ func testHasLowerCase(str string) bool {
 func BenchmarkHasLowerCase0(b *testing.B) {
 	str := testUpper()
 	b.ResetTimer()
-	for N := 0; N < b.N; N++ {
+	for b.Loop() {
 		is := testHasLowerCase(str)
 		if is {
 			b.Fatal("hasLower")
@@ -102,7 +102,7 @@ func BenchmarkHasLowerCase0(b *testing.B) {
 func BenchmarkHasLowerCase1(b *testing.B) {
 	str := testUpper()
 	b.ResetTimer()
-	for N := 0; N < b.N; N++ {
+	for b.Loop() {
 		is := HasLowerCase(str)
 		if is {
 			b.Fatal("hasLower")
@@ -118,7 +118,7 @@ func testHasUpperCase(str string) bool {
 func BenchmarkHasUpperCase0(b *testing.B) {
 	str := testLower()
 	b.ResetTimer()
-	for N := 0; N < b.N; N++ {
+	for b.Loop() {
 		is := testHasUpperCase(str)
 		if is {
 			b.Fatal("hasUpper")
@@ -129,7 +129,7 @@ func BenchmarkHasUpperCase0(b *testing.B) {
 func BenchmarkHasUpperCase1(b *testing.B) {
 	str := testLower()
 	b.ResetTimer()
-	for N := 0; N < b.N; N++ {
+	for b.Loop() {
 		is := HasUpperCase(str)
 		if is {
 			b.Fatal("hasUpper")

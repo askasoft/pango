@@ -12,7 +12,7 @@ func BenchmarkFieldSuccess(b *testing.B) {
 	s := "1"
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.Var(&s, "len=1")
 	}
 }
@@ -34,7 +34,7 @@ func BenchmarkFieldFailure(b *testing.B) {
 	s := "12"
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.Var(&s, "len=1")
 	}
 }
@@ -57,7 +57,7 @@ func BenchmarkFieldArrayDiveSuccess(b *testing.B) {
 
 	b.ResetTimer()
 
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.Var(m, "required,dive,required")
 	}
 }
@@ -79,7 +79,7 @@ func BenchmarkFieldArrayDiveFailure(b *testing.B) {
 	m := []string{"val1", "", "val3"}
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.Var(m, "required,dive,required")
 	}
 }
@@ -102,7 +102,7 @@ func BenchmarkFieldMapDiveSuccess(b *testing.B) {
 
 	b.ResetTimer()
 
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.Var(m, "required,dive,required")
 	}
 }
@@ -124,7 +124,7 @@ func BenchmarkFieldMapDiveFailure(b *testing.B) {
 	m := map[string]string{"": "", "val3": "val3"}
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.Var(m, "required,dive,required")
 	}
 }
@@ -147,7 +147,7 @@ func BenchmarkFieldMapDiveWithKeysSuccess(b *testing.B) {
 
 	b.ResetTimer()
 
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.Var(m, "required,dive,keys,required,endkeys,required")
 	}
 }
@@ -169,7 +169,7 @@ func BenchmarkFieldMapDiveWithKeysFailure(b *testing.B) {
 	m := map[string]string{"": "", "val3": "val3"}
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.Var(m, "required,dive,keys,required,endkeys,required")
 	}
 }
@@ -194,7 +194,7 @@ func BenchmarkFieldCustomTypeSuccess(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.Var(val, "len=1")
 	}
 }
@@ -220,7 +220,7 @@ func BenchmarkFieldCustomTypeFailure(b *testing.B) {
 	val := valuer{}
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.Var(val, "len=1")
 	}
 }
@@ -243,7 +243,7 @@ func BenchmarkFieldOrTagSuccess(b *testing.B) {
 	s := "rgba(0,0,0,1)"
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.Var(s, "rgb|rgba")
 	}
 }
@@ -265,7 +265,7 @@ func BenchmarkFieldOrTagFailure(b *testing.B) {
 	s := "#000"
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.Var(s, "rgb|rgba")
 	}
 }
@@ -291,7 +291,7 @@ func BenchmarkStructLevelValidationSuccess(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.Struct(tst)
 	}
 }
@@ -321,7 +321,7 @@ func BenchmarkStructLevelValidationFailure(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.Struct(tst)
 	}
 }
@@ -358,7 +358,7 @@ func BenchmarkStructSimpleCustomTypeSuccess(b *testing.B) {
 	validFoo := &Foo{Valuer: val, IntValue: 7}
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.Struct(validFoo)
 	}
 }
@@ -397,7 +397,7 @@ func BenchmarkStructSimpleCustomTypeFailure(b *testing.B) {
 	validFoo := &Foo{Valuer: val, IntValue: 3}
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.Struct(validFoo)
 	}
 }
@@ -439,7 +439,7 @@ func BenchmarkStructFilteredSuccess(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.StructFiltered(test, fn)
 	}
 }
@@ -487,7 +487,7 @@ func BenchmarkStructFilteredFailure(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.StructFiltered(test, fn)
 	}
 }
@@ -529,7 +529,7 @@ func BenchmarkStructPartialSuccess(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.StructPartial(test, "Name")
 	}
 }
@@ -567,7 +567,7 @@ func BenchmarkStructPartialFailure(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.StructPartial(test, "NickName")
 	}
 }
@@ -605,7 +605,7 @@ func BenchmarkStructExceptSuccess(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.StructExcept(test, "Nickname")
 	}
 }
@@ -643,7 +643,7 @@ func BenchmarkStructExceptFailure(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.StructExcept(test, "Name")
 	}
 }
@@ -684,7 +684,7 @@ func BenchmarkStructSimpleCrossFieldSuccess(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.Struct(test)
 	}
 }
@@ -729,7 +729,7 @@ func BenchmarkStructSimpleCrossFieldFailure(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.Struct(test)
 	}
 }
@@ -778,7 +778,7 @@ func BenchmarkStructSimpleCrossStructCrossFieldSuccess(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.Struct(outer)
 	}
 }
@@ -836,7 +836,7 @@ func BenchmarkStructSimpleCrossStructCrossFieldFailure(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.Struct(outer)
 	}
 }
@@ -883,7 +883,7 @@ func BenchmarkStructSimpleSuccess(b *testing.B) {
 	validFoo := &Foo{StringValue: "Foobar", IntValue: 7}
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.Struct(validFoo)
 	}
 }
@@ -914,7 +914,7 @@ func BenchmarkStructSimpleFailure(b *testing.B) {
 	invalidFoo := &Foo{StringValue: "Fo", IntValue: 3}
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.Struct(invalidFoo)
 	}
 }
@@ -962,7 +962,7 @@ func BenchmarkStructComplexSuccess(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.Struct(tSuccess)
 	}
 }
@@ -1023,7 +1023,7 @@ func BenchmarkStructComplexFailure(b *testing.B) {
 	}
 
 	b.ResetTimer()
-	for n := 0; n < b.N; n++ {
+	for b.Loop() {
 		_ = validate.Struct(tFail)
 	}
 }
@@ -1065,7 +1065,7 @@ type TestOneof struct {
 func BenchmarkOneof(b *testing.B) {
 	w := &TestOneof{Color: "green"}
 	val := New()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		_ = val.Struct(w)
 	}
 }

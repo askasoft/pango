@@ -3,12 +3,30 @@ package httpx
 import (
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 
 	"github.com/askasoft/pango/asg"
 	"github.com/askasoft/pango/net/mimex"
 	"github.com/askasoft/pango/str"
 )
+
+var (
+	SensitiveHeader = regexp.MustCompile(`(?i)(authorization|cookie|token|secret|api[-_]?key|password)`)
+
+	RedactedValue = "***REDACTED***"
+)
+
+// RedactHeader redact any header whose key matches regexp `r` with value `v`.
+func RedactHeader(h http.Header, r *regexp.Regexp, v string) {
+	for key, values := range h {
+		if r.MatchString(key) {
+			for i := range values {
+				values[i] = RedactedValue
+			}
+		}
+	}
+}
 
 // NewHeaderWriter create a http.ResponseWriter to append on WriteHeader(statusCode int).
 // if statusCode != 200, header will not append.

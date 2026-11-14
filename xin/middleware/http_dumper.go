@@ -10,8 +10,10 @@ import (
 	"net/http/httputil"
 	"time"
 
+	"github.com/askasoft/pango/gog"
 	"github.com/askasoft/pango/iox"
 	"github.com/askasoft/pango/log"
+	"github.com/askasoft/pango/net/httpx"
 	"github.com/askasoft/pango/xin"
 )
 
@@ -22,10 +24,11 @@ const dumpTimeFormat = "2006-01-02T15:04:05.000"
 
 // HTTPDumper dump http request and response
 type HTTPDumper struct {
-	Outputer   io.Writer
-	Maxlength  int64
-	DumpCtxKey string // use xin.Context.Set(key, true | false) to enable/disable dump
-	disabled   bool
+	Outputer     io.Writer
+	Maxlength    int64
+	DumpCtxKey   string // use xin.Context.Set(key, true | false) to enable/disable dump
+	RedactHeader func(http.Header)
+	disabled     bool
 }
 
 // DefaultHTTPDumper create a middleware for xin http dumper
@@ -36,12 +39,21 @@ func DefaultHTTPDumper(xin *xin.Engine) *HTTPDumper {
 
 // NewHTTPDumper create a middleware for xin http dumper
 func NewHTTPDumper(outputer io.Writer) *HTTPDumper {
-	return &HTTPDumper{Outputer: outputer, Maxlength: 1 << 20, DumpCtxKey: HTTPDumpKey}
+	return &HTTPDumper{Outputer: outputer, Maxlength: 1 << 20, DumpCtxKey: HTTPDumpKey, RedactHeader: redactHeader}
 }
 
 // Disable disable the dumper or not
 func (hd *HTTPDumper) Disable(disabled bool) {
 	hd.disabled = disabled
+}
+
+// RedactSensetiveHeader redact sensetive header
+func (hd *HTTPDumper) RedactSensetiveHeader(redact bool) {
+	hd.RedactHeader = gog.If(redact, redactHeader, nil)
+}
+
+func redactHeader(hh http.Header) {
+	httpx.RedactHeader(hh, httpx.SensitiveHeader, httpx.RedactedValue)
 }
 
 // Handle process xin request
@@ -77,7 +89,15 @@ func (hd *HTTPDumper) Handle(c *xin.Context) {
 
 func (hd *HTTPDumper) dumpRequest(w io.Writer, req *http.Request) string {
 	db := (req.ContentLength >= 0 && req.ContentLength <= hd.Maxlength)
+
+	hh := req.Header
+	if redact := hd.RedactHeader; redact != nil {
+		req.Header = hh.Clone()
+		redact(req.Header)
+	}
+
 	bs, _ := httputil.DumpRequest(req, db)
+	req.Header = hh
 
 	id := fmt.Sprintf("%x", md5.Sum(bs)) //nolint: gosec
 
@@ -106,6 +126,10 @@ func (hd *HTTPDumper) dumpResponse(w io.Writer, id string, req *http.Request, hd
 	}
 	res.StatusCode = hdw.Status()
 	res.Header = hdw.Header()
+	if redact := hd.RedactHeader; redact != nil {
+		res.Header = res.Header.Clone()
+		redact(req.Header)
+	}
 	res.Body = io.NopCloser(hdw.bb)
 	res.Write(bb) //nolint: errcheck
 

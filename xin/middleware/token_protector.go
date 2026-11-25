@@ -50,7 +50,7 @@ func NewTokenProtector(secret string) *TokenProtector {
 		CookieMaxAge:   time.Hour * 24 * 30, // 30 days
 		CookieSecure:   true,
 		CookieHttpOnly: true,
-		CookieSameSite: http.SameSiteStrictMode,
+		CookieSameSite: http.SameSiteLaxMode,
 		AbortStatus:    http.StatusForbidden,
 		methods:        newStringSet(http.MethodDelete, http.MethodPatch, http.MethodPost, http.MethodPut),
 	}
